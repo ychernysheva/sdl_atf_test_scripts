@@ -39,9 +39,9 @@ local RequestType = {	"HTTP",
 						"AUTH_CHALLENGE",
 						"AUTH_ACK",
 						"PROPRIETARY",
-						"QUERY_APPS",  --is used on SDL4.0 only
-						"LAUNCH_APP", 
-						"LOCK_SCREEN_ICON_URL", 
+						--"QUERY_APPS",  --It is used on SDL4.0 only
+						--"LAUNCH_APP", --It is used on SDL4.0 only
+						--"LOCK_SCREEN_ICON_URL", --It is used on SDL4.0 only
 						"TRAFFIC_MESSAGE_CHANNEL",
 						"DRIVER_PROFILE",
 						"VOICE_SEARCH", 
@@ -81,13 +81,12 @@ local function createDefaultNotification()
 	return 	
 	{
 		requestType = "HTTP", 
-		url = "a", --ToDo: Wait until defect APPLINK-9533 is closed.
+		url = "a", --ToDo: Need update when APPLINK-9533 is closed.
 		fileType = "BINARY",
 		offset = 0,
 		length = 0,
 		timeout = 0,
-		fileName = "a",
-		appID = Apps[1].appID			
+		fileName = "a"
 	}			
 end
 
@@ -99,10 +98,14 @@ local function buildMobileExpectedResult(Notification)
 	mobileExpectation.appID = nil
 	mobileExpectation.fileName = nil
 	
-	--Convert array to string
+	--ToDo: Need update when APPLINK-9533 is closed.
+	--Convert array to string	
 	if mobileExpectation.url ~= nil then
-		mobileExpectation.url = mobileExpectation.url[1]
+		if type(Notification.url) == "table" then
+			mobileExpectation.url = mobileExpectation.url[1]
+		end
 	end
+
 	
 	return mobileExpectation
 		
@@ -142,7 +145,7 @@ local function OnSystemRequest_AllParametersLowerBound_SUCCESS(TestCaseName)
 		local Notification = 
 		{
 			requestType = "HTTP", 
-			url = "a", --ToDo: Wait until defect APPLINK-9533 is closed.
+			url = "a", --ToDo: Need update when APPLINK-9533 is closed.
 			fileType = "BINARY",
 			offset = 0,
 			length = 0,
@@ -226,7 +229,7 @@ end
     --8. appID: type="Integer" mandatory="false"
 -----------------------------------------------------------------------------------------------
 
-local function NomalNotificationChecks()
+local function NormalNotificationChecks()
   
 	--Print new line to separate new test cases group
 	commonFunctions:newTestCasesGroup("Test suite: Check normal cases of HMI notification")	
@@ -247,7 +250,7 @@ local function NomalNotificationChecks()
 			local Notification = 
 				{
 					requestType = "HTTP", 
-					url = "/home/luxoft/sdl_hmi/IVSU/PROPRIETARY_REQUEST", --ToDo: Wait until defect APPLINK-9533 is closed.
+					url = "/home/luxoft/sdl_hmi/IVSU/PROPRIETARY_REQUEST", --ToDo: Need update when APPLINK-9533 is closed.
 					fileType = "BINARY",
 					offset = 1000,
 					length = 10000,
@@ -269,17 +272,16 @@ local function NomalNotificationChecks()
 			local Notification = 
 				{
 					requestType = "HTTP", 
-					url = "/home/luxoft/sdl_hmi/IVSU/PROPRIETARY_REQUEST_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", --ToDo: Wait until defect APPLINK-9533 is closed.
+					url = "/home/luxoft/sdl_hmi/IVSU/PROPRIETARY_REQUEST_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", --ToDo: Need update when APPLINK-9533 is closed.
 					fileType = "BINARY",
 					offset = 1000,
 					length = 10000,
 					timeout = 500,
 					fileName = "/home/luxoft/sdl_hmi/IVSU/PROPRIETARY_REQUEST_bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-					appID = Apps[1].appID,
-					
-					--offset = 100000000000, --Error
-					--length = 100000000000,
-					--timeout = 2000000000,
+					appID = Apps[1].appID,					
+					offset = 100000000000, 
+					length = 100000000000,
+					timeout = 2000000000
 				}
 			
 			self:verify_SUCCESS_Notification_Case(Notification)
@@ -318,8 +320,13 @@ local function NomalNotificationChecks()
 	--3. url: type="String" maxlength="1000" minlength="1" mandatory="false", minsize="1" maxsize="100" array="true"
     --4. fileName: type="String" maxlength="255" minlength="1" mandatory="true"
 	
-	arrayStringParameterInNotification:verify_Array_String_Parameter(Notification, {"url"}, {1, 100},  {1, 1000}, false)
-	stringParameterInNotification:verify_String_Parameter(Notification, {"fileName"}, {1, 255}, true)
+	local IsStringParameterAcceptedSpecialCharacters = false
+	
+	--ToDo: Test case OnSystemRequest_url_IsLowerBound, OnSystemRequest_url_IsUpperBound should be failed due to defect APPLINK-9533. Need to check when APPLINK-9533 is closed.
+	--APPLINK-18381 (17[P][MAN]_TC_ SDL_sends_OnSystemRequest_w/o_url) is covered by test: OnSystemRequest_url_IsMissed
+	arrayStringParameterInNotification:verify_Array_String_Parameter(Notification, {"url"}, {1, 100},  {1, 1000}, false, IsStringParameterAcceptedSpecialCharacters)
+	
+	stringParameterInNotification:verify_String_Parameter(Notification, {"fileName"}, {1, 255}, true, IsStringParameterAcceptedSpecialCharacters)
 	
 	
 	--5. offset: type="Integer" minvalue="0" maxvalue="100000000000" mandatory="false"
@@ -331,19 +338,20 @@ local function NomalNotificationChecks()
 	integerParameterInNotification:verify_Integer_Parameter(Notification, {"timeout"}, {0, 2000000000}, false)
 
 	--8. appID: type="Integer" mandatory="false"
+	--APPLINK-11778([RTC 602443] Removal of the policyAppId (string) param and change appID (string) to appID (integer)) is covered partly.
 	local InvalidCases = 	{
-								{"12a", 	"IsWrongType"}, 
-								{65536, 	"IsOutUpperBound"},
-								{1, 		"IsNotExistAppID"},
-								{0, 		"IsZero"},
-								{-1, 		"IsNegativeNumber"}
+								{"12a", 		"IsWrongType"}, 
+								{2147483648, 	"IsOutUpperBound"},
+								{1, 			"IsNotExistAppID"},
+								{0, 			"IsZero"},
+								{-1, 			"IsNegativeNumber"}
 							}
 	local validValues = {} -- valid appID was verified on many above cases. There is no need to verify here.
 	enumParameterInNotification:verify_Enumeration_Parameter(Notification, {"appID"}, validValues, false, InvalidCases)
 	
 end
 
-NomalNotificationChecks()
+NormalNotificationChecks()
 	
 
 
@@ -453,8 +461,8 @@ NomalNotificationChecks()
 			EXPECT_NOTIFICATION("OnSystemRequest", mobileExpectation)
 			:Timeout(1000)
 			:ValidIf (function(_,data)
-				if data.payload.fake then
-					commonFunctions:printError(" SDL resends fake parameter to mobile app ")
+				if data.payload.sliderPosition then
+					commonFunctions:printError(" SDL resends fake parameter (sliderPosition) to mobile app ")
 					return false
 				else 
 					return true
@@ -471,7 +479,7 @@ NomalNotificationChecks()
 			
 			local NotificationWithoutMadatoryParameters = {
 				--requestType = "HTTP", 
-				url = "a", --ToDo: Wait until defect APPLINK-9533 is closed.
+				url = "a", --ToDo: Need update when APPLINK-9533 is closed.
 				fileType = "BINARY",
 				offset = 0,
 				length = 0,

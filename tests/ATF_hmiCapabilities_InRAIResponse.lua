@@ -86,15 +86,15 @@ end
 
 local function RestartSDL(prefix, hmiCapabilitiesValue, hmiCapabilitiesValueRegister, UpdateHmiCapabilitiesJson, StringToReplace)
 
-	Test["Precondition_StopSDL_" .. tostring(prefix) ] = function(self)
-		commonFunctions:userPrint(35, "================= Precondition ==================")
+	Test["StopSDL_" .. tostring(prefix) ] = function(self)
+		commonFunctions:userPrint(35, "\n================= Precondition ==================")
 		StopSDL()
 
 		commonTestCases:DelayedExp(1000)
 	end
 
 	if UpdateHmiCapabilitiesJson then
-		Test["Precondition_UpdateHmiCapabilitiesJson_" .. tostring(prefix) ] = function(self)
+		Test["UpdateHmiCapabilitiesJson_" .. tostring(prefix) ] = function(self)
 
 		local HmiCapabilities = config.pathToSDL .. "hmi_capabilities.json"
 
@@ -134,149 +134,214 @@ local function RestartSDL(prefix, hmiCapabilitiesValue, hmiCapabilitiesValueRegi
 		end
 	end
 
-	Test["Precondition_StartSDL_" .. tostring(prefix) ] = function(self)
+	Test["StartSDL_" .. tostring(prefix) ] = function(self)
 		StartSDL(config.pathToSDL, config.ExitOnCrash)
 	end
 
-	Test["Precondition_InitHMI_" .. tostring(prefix) ] = function(self)
+	Test["InitHMI_" .. tostring(prefix) ] = function(self)
 		self:initHMI()
 	end
 
-	Test["Precondition_InitHMI_onReady_" .. tostring(prefix) ] = function(self)
+	Test["InitHMI_onReady_" .. tostring(prefix) ] = function(self)
 		self:initHMI_onReady(hmiCapabilitiesValue)
 	end
 
-	Test["Precondition_ConnectMobile_" .. tostring(prefix) ] = function(self)
+	Test["ConnectMobile_" .. tostring(prefix) ] = function(self)
   		self:connectMobile()
 	end
 
 	Test["RegisterApp_" .. tostring(prefix) ] = function(self)
+		commonFunctions:userPrint(34, "=================== Test Case ===================")	
   		OpenSessionRegisterApp(self, hmiCapabilitiesValueRegister)
 	end
 end
 
---======================================================================================
--- navigation = false, phoneCall = false in RAI response in case hmiCapabilities param is absent in UI.GetCapabilities response and in hmiCapabilities.json file
---======================================================================================--
-RestartSDL("hmiCapabilities_absentInUIGetCapRespInHmiCapFile", _, { navigation = false, phoneCall = false }, true, "")
+--//////////////////////////////////////////////////////////////////////////////////////--
+--Set #1: HMI sends UI.GetCapabilities without hmiCapabilities parameter
+--//////////////////////////////////////////////////////////////////////////////////////--
 
---======================================================================================
--- navigation = true, phoneCall = false in RAI response in case hmiCapabilities param is absent in UI.GetCapabilities response and value in hmiCapabilities.json file is navigation = true, phoneCall = false
---======================================================================================--
-RestartSDL("hmiCapabilities_absentInUIGetCapResp_InHmiCapFileNavTruePhoneFalse", _, { navigation = true, phoneCall = false }, true, "\"hmiCapabilities\" : { \"navigation\" : true, \"phoneCall\" : false }")
+	--======================================================================================--
+	-- navigation = false, phoneCall = false in RAI response in case hmiCapabilities param is absent in UI.GetCapabilities response and in hmiCapabilities.json file
+	--======================================================================================--
+	RestartSDL("hmiCapabilities_absentInUIGetCapRespInHmiCapFile", _, { navigation = false, phoneCall = false }, true, "")
 
---======================================================================================
--- navigation = false, phoneCall = true in RAI response in case hmiCapabilities param is absent in UI.GetCapabilities response and value in hmiCapabilities.json file is navigation = false, phoneCall = true
---======================================================================================--
-RestartSDL("hmiCapabilities_absentInUIGetCapResp_InHmiCapFileNavFalsePhoneTrue", _, { navigation = false, phoneCall = true }, true, "\"hmiCapabilities\" : { \"navigation\" : false, \"phoneCall\" : true }")
+-- TODO: Test cases are related to not implemented CRQ APPLINK-21419. Uncomment test cases after implementation will be ready.
+	-- --======================================================================================
+	-- -- navigation = true, phoneCall = false in RAI response in case hmiCapabilities param is absent in UI.GetCapabilities response and value in hmiCapabilities.json file is navigation = true, phoneCall = false
+	-- --======================================================================================--
+	-- RestartSDL("hmiCapabilities_absentInUIGetCapResp_InHmiCapFileNavTruePhoneFalse", _, { navigation = true, phoneCall = false }, true, "\"hmiCapabilities\" : { \"navigation\" : true, \"phoneCall\" : false }")
 
---======================================================================================
--- navigation = true, phoneCall = true in RAI response in case hmiCapabilities param is absent in UI.GetCapabilities response and value in hmiCapabilities.json file is navigation = true, phoneCall = true
---======================================================================================--
-RestartSDL("hmiCapabilities_absentInUIGetCapResp_InHmiCapFileNavTruePhoneTrue", _, { navigation = true, phoneCall = true }, true, "\"hmiCapabilities\" : { \"navigation\" : true, \"phoneCall\" : true }")
+	-- --======================================================================================
+	-- -- navigation = false, phoneCall = true in RAI response in case hmiCapabilities param is absent in UI.GetCapabilities response and value in hmiCapabilities.json file is navigation = false, phoneCall = true
+	-- --======================================================================================--
+	-- RestartSDL("hmiCapabilities_absentInUIGetCapResp_InHmiCapFileNavFalsePhoneTrue", _, { navigation = false, phoneCall = true }, true, "\"hmiCapabilities\" : { \"navigation\" : false, \"phoneCall\" : true }")
 
---======================================================================================
--- navigation = false, phoneCall = false in RAI response in case hmiCapabilities param is absent in UI.GetCapabilities response and value in hmiCapabilities.json file is navigation = false, phoneCall = false
---======================================================================================--
-RestartSDL("hmiCapabilities_absentInUIGetCapResp_InHmiCapFileNavFalsePhoneFalse", _, { navigation = false, phoneCall = false }, true, "\"hmiCapabilities\" : { \"navigation\" : false, \"phoneCall\" : false }")
+	-- --======================================================================================
+	-- -- navigation = true, phoneCall = true in RAI response in case hmiCapabilities param is absent in UI.GetCapabilities response and value in hmiCapabilities.json file is navigation = true, phoneCall = true
+	-- --======================================================================================--
+	-- RestartSDL("hmiCapabilities_absentInUIGetCapResp_InHmiCapFileNavTruePhoneTrue", _, { navigation = true, phoneCall = true }, true, "\"hmiCapabilities\" : { \"navigation\" : true, \"phoneCall\" : true }")
 
---======================================================================================
--- navigation = false, phoneCall = false in RAI response in case hmiCapabilities value in UI.GetCapabilities response is navigation = false, phoneCall = false and value in hmiCapabilities.json file is navigation = true, phoneCall = true
---======================================================================================--
-RestartSDL("hmiCapabilities_InUIGetCapRespBothFalse_InHmiCapFileNavTruePhoneTrue", { navigation = false, phoneCall = false }, { navigation = false, phoneCall = false }, true, "\"hmiCapabilities\" : { \"navigation\" : true, \"phoneCall\" : true }")
+	-- --======================================================================================
+	-- -- navigation = false, phoneCall = false in RAI response in case hmiCapabilities param is absent in UI.GetCapabilities response and value in hmiCapabilities.json file is navigation = false, phoneCall = false
+	-- --======================================================================================--
+	-- RestartSDL("hmiCapabilities_absentInUIGetCapResp_InHmiCapFileNavFalsePhoneFalse", _, { navigation = false, phoneCall = false }, true, "\"hmiCapabilities\" : { \"navigation\" : false, \"phoneCall\" : false }")
 
---======================================================================================
--- navigation = true, phoneCall = true in RAI response in case hmiCapabilities value in UI.GetCapabilities response is navigation = true, phoneCall = true 
---======================================================================================--
-RestartSDL("hmiCapabilities_InUIGetCapRespBothTrue", { navigation = true, phoneCall = true }, { navigation = true, phoneCall = true })
+	--======================================================================================
+	-- navigation = false, phoneCall = false in RAI response in case hmiCapabilities value in UI.GetCapabilities response is empty
+	--======================================================================================--
+	RestartSDL("hmiCapabilities_InUIGetCapRespEmpty", { }, { navigation = false, phoneCall = false })
 
---======================================================================================
--- navigation = false, phoneCall = true in RAI response in case hmiCapabilities value in UI.GetCapabilities response is navigation = false, phoneCall = true 
---======================================================================================--
-RestartSDL("hmiCapabilities_InUIGetCapRespNavFalsePhoneTrue", { navigation = false, phoneCall = true }, { navigation = false, phoneCall = true })
+--//////////////////////////////////////////////////////////////////////////////////////--
+--Set #2: HMI sends UI.GetCapabilities with hmiCapabilities parameter
+--//////////////////////////////////////////////////////////////////////////////////////--
 
---======================================================================================
--- navigation = true, phoneCall = false in RAI response in case hmiCapabilities value in UI.GetCapabilities response is navigation = true, phoneCall = false 
---======================================================================================--
-RestartSDL("hmiCapabilities_InUIGetCapRespNavTruePhoneFalse", { navigation = true, phoneCall = false }, { navigation = true, phoneCall = false })
+	--======================================================================================
+	-- navigation = false, phoneCall = false in RAI response in case hmiCapabilities value in UI.GetCapabilities response is navigation = false, phoneCall = false and value in hmiCapabilities.json file is navigation = true, phoneCall = true
+	--======================================================================================--
+	RestartSDL("hmiCapabilities_InUIGetCapRespBothFalse_InHmiCapFileNavTruePhoneTrue", { navigation = false, phoneCall = false }, { navigation = false, phoneCall = false }, true, "\"hmiCapabilities\" : { \"navigation\" : true, \"phoneCall\" : true }")
 
---======================================================================================
--- navigation = false, phoneCall = false in RAI response in case hmiCapabilities value in UI.GetCapabilities response is empty
---======================================================================================--
-RestartSDL("hmiCapabilities_InUIGetCapRespEmpty", { }, { navigation = false, phoneCall = false })
+	--======================================================================================
+	-- navigation = true, phoneCall = true in RAI response in case hmiCapabilities value in UI.GetCapabilities response is navigation = true, phoneCall = true 
+	--======================================================================================--
+	RestartSDL("hmiCapabilities_InUIGetCapRespBothTrue", { navigation = true, phoneCall = true }, { navigation = true, phoneCall = true })
 
---======================================================================================
--- navigation = false, phoneCall = false in RAI response in case hmiCapabilities values in UI.GetCapabilities response are fake from API
---======================================================================================--
-RestartSDL("hmiCapabilities_InUIGetCapRespOnlyFakeParamsFromAPI", { upDownAvailable = true,
-      imageSupported = true }, { navigation = false, phoneCall = false })
+	--======================================================================================
+	-- navigation = false, phoneCall = true in RAI response in case hmiCapabilities value in UI.GetCapabilities response is navigation = false, phoneCall = true 
+	--======================================================================================--
+	RestartSDL("hmiCapabilities_InUIGetCapRespNavFalsePhoneTrue", { navigation = false, phoneCall = true }, { navigation = false, phoneCall = true })
 
---======================================================================================
--- navigation = false, phoneCall = false in RAI response in case hmiCapabilities values in UI.GetCapabilities response are fake not from API
---======================================================================================--
-RestartSDL("hmiCapabilities_InUIGetCapRespOnlyFakeParamsNotFromAPI", { voltage = true }, { navigation = false, phoneCall = false })
+	--======================================================================================
+	-- navigation = true, phoneCall = false in RAI response in case hmiCapabilities value in UI.GetCapabilities response is navigation = true, phoneCall = false 
+	--======================================================================================--
+	RestartSDL("hmiCapabilities_InUIGetCapRespNavTruePhoneFalse", { navigation = true, phoneCall = false }, { navigation = true, phoneCall = false })
 
---======================================================================================
--- navigation = true, phoneCall = true in RAI response in case hmiCapabilities in UI.GetCapabilities response contains fake parameters from APi except valid ones
---======================================================================================--
-RestartSDL("hmiCapabilities_InUIGetCapRespWithFakeParamsFromAPI", { upDownAvailable = false, navigation = true, phoneCall = true, imageSupported = false }, { navigation = true, phoneCall = true })
 
---======================================================================================
--- navigation = true, phoneCall = true in RAI response in case hmiCapabilities in UI.GetCapabilities response contains fake parameters not from APi except valid ones
---======================================================================================--
-RestartSDL("hmiCapabilities_InUIGetCapRespWithFakeParamsNotFromAPI", { navigation = true, phoneCall = true, voltage = false }, { navigation = true, phoneCall = true })
+--//////////////////////////////////////////////////////////////////////////////////////--
+--Set #4: HMI sends UI.GetCapabilities with hmiCapabilities parameter and with fake parameters
+--//////////////////////////////////////////////////////////////////////////////////////--
 
---======================================================================================
--- navigation = false, phoneCall = false in RAI response in case hmiCapabilities values in UI.GetCapabilities response navigation is array { false }, phoneCall = false
---======================================================================================--
-RestartSDL("hmiCapabilities_InUIGetCapRespNavIsArray", { navigation = {false}, phoneCall = false }, { navigation = false, phoneCall = false })
+	--======================================================================================
+	-- navigation = false, phoneCall = false in RAI response in case hmiCapabilities values in UI.GetCapabilities response are fake from API
+	--======================================================================================--
+	RestartSDL("hmiCapabilities_InUIGetCapRespOnlyFakeParamsFromAPI", { upDownAvailable = true,
+	      imageSupported = true }, { navigation = false, phoneCall = false })
 
---======================================================================================
--- navigation = false in RAI response in case hmiCapabilities value in UI.GetCapabilities is navigation = false
---======================================================================================--
-RestartSDL("hmiCapabilities_InUIGetCapRespOnlyNavFalse", { navigation = false }, { navigation = false })
+	--======================================================================================
+	-- navigation = false, phoneCall = false in RAI response in case hmiCapabilities values in UI.GetCapabilities response are fake not from API
+	--======================================================================================--
+	RestartSDL("hmiCapabilities_InUIGetCapRespOnlyFakeParamsNotFromAPI", { voltage = true }, { navigation = false, phoneCall = false })
 
---======================================================================================
--- navigation = true in RAI response in case hmiCapabilities value in UI.GetCapabilities is navigation = true
---======================================================================================--
-RestartSDL("hmiCapabilities_InUIGetCapRespOnlyNavTrue", { navigation = true }, { navigation = true })
+	--======================================================================================
+	-- navigation = true, phoneCall = true in RAI response in case hmiCapabilities in UI.GetCapabilities response contains fake parameters from APi except valid ones
+	--======================================================================================--
+	RestartSDL("hmiCapabilities_InUIGetCapRespWithFakeParamsFromAPI", { upDownAvailable = false, navigation = true, phoneCall = true, imageSupported = false }, { navigation = true, phoneCall = true })
 
---======================================================================================
--- phoneCall = false in RAI response in case hmiCapabilities value in UI.GetCapabilities is phoneCall = false
---======================================================================================--
-RestartSDL("hmiCapabilities_InUIGetCapRespOnlyPhoneFalse", { phoneCall = false }, { phoneCall = false })
+	--======================================================================================
+	-- navigation = true, phoneCall = true in RAI response in case hmiCapabilities in UI.GetCapabilities response contains fake parameters not from APi except valid ones
+	--======================================================================================--
+	RestartSDL("hmiCapabilities_InUIGetCapRespWithFakeParamsNotFromAPI", { navigation = true, phoneCall = true, voltage = false }, { navigation = true, phoneCall = true })
 
---======================================================================================
--- phoneCall = true in RAI response in case hmiCapabilities value in UI.GetCapabilities is phoneCall = true
---======================================================================================--
-RestartSDL("hmiCapabilities_InUIGetCapRespOnlyPhoneTrue", { phoneCall = true }, { phoneCall = true })
+--//////////////////////////////////////////////////////////////////////////////////////--
+--Set #5: HMI sends UI.GetCapabilities with only navigation or phoneCall in hmiCapabilities
+--//////////////////////////////////////////////////////////////////////////////////////--
 
---======================================================================================
--- navigation = false, phoneCall = false in RAI response in case hmiCapabilities values in UI.GetCapabilities are navigation = true, phoneCall = integer value
---======================================================================================--
-RestartSDL("hmiCapabilities_InUIGetCapRespOnlyPhoneInteger", {navigation = true, phoneCall = 12 }, { navigation = false, phoneCall = false })
+	--======================================================================================
+	-- navigation = false in RAI response in case hmiCapabilities value in UI.GetCapabilities is navigation = false
+	--======================================================================================--
+	RestartSDL("hmiCapabilities_InUIGetCapRespOnlyNavFalse", { navigation = false }, { navigation = false })
 
---======================================================================================
--- navigation = false, phoneCall = false in RAI response in case hmiCapabilities values in UI.GetCapabilities are navigation = integer value, phoneCall = true
---======================================================================================--
-RestartSDL("hmiCapabilities_InUIGetCapRespOnlyNavInteger", {navigation = 12, phoneCall = true }, { navigation = false, phoneCall = false })
+	--======================================================================================
+	-- navigation = true in RAI response in case hmiCapabilities value in UI.GetCapabilities is navigation = true
+	--======================================================================================--
+	RestartSDL("hmiCapabilities_InUIGetCapRespOnlyNavTrue", { navigation = true }, { navigation = true })
 
---======================================================================================
--- navigation = false, phoneCall = false in RAI response in case hmiCapabilities values in UI.GetCapabilities are navigation = true, phoneCall = string value
---======================================================================================--
-RestartSDL("hmiCapabilities_InUIGetCapRespOnlyPhoneString", {navigation = true, phoneCall = "true" }, { navigation = false, phoneCall = false })
+	--======================================================================================
+	-- phoneCall = false in RAI response in case hmiCapabilities value in UI.GetCapabilities is phoneCall = false
+	--======================================================================================--
+	RestartSDL("hmiCapabilities_InUIGetCapRespOnlyPhoneFalse", { phoneCall = false }, { phoneCall = false })
 
---======================================================================================
--- navigation = false, phoneCall = false in RAI response in case hmiCapabilities values in UI.GetCapabilities are navigation = string value, phoneCall = true
---======================================================================================--
-RestartSDL("hmiCapabilities_InUIGetCapRespOnlyNavString", {navigation = "true", phoneCall = true }, { navigation = false, phoneCall = false })
+	--======================================================================================
+	-- phoneCall = true in RAI response in case hmiCapabilities value in UI.GetCapabilities is phoneCall = true
+	--======================================================================================--
+	RestartSDL("hmiCapabilities_InUIGetCapRespOnlyPhoneTrue", { phoneCall = true }, { phoneCall = true })
 
---======================================================================================
--- navigation = false, phoneCall = false in RAI response in case hmiCapabilities values in UI.GetCapabilities are navigation = true, phoneCall = struct value
---======================================================================================--
-RestartSDL("hmiCapabilities_InUIGetCapRespOnlyPhoneStruct", {navigation = true, phoneCall = { value = true } }, { navigation = false, phoneCall = false })
+--//////////////////////////////////////////////////////////////////////////////////////--
+--Set #6: HMI sends UI.GetCapabilities with invalid navigation, phoneCall values in hmiCapabilities
+--//////////////////////////////////////////////////////////////////////////////////////--
 
---======================================================================================
--- navigation = false, phoneCall = false in RAI response in case hmiCapabilities values in UI.GetCapabilities are navigation = struct value, phoneCall = true
---======================================================================================--
-RestartSDL("hmiCapabilities_InUIGetCapRespOnlyNavStruct", {navigation = { value = true }, phoneCall = true }, { navigation = false, phoneCall = false })
+-- TODO: Test cases are related to not implemented CRQ APPLINK-21419. Uncomment precondition and update expectations from { navigation = false, phoneCall = false } to { navigation = true, phoneCall = true } in test cases below after implementation will be ready 
+	--Precondition for test set
+	-- function Test:Precondition_UpdateHmiCapabilitiesJson_navTrue_PhoneTrue()
+
+	-- 	local HmiCapabilities = config.pathToSDL .. "hmi_capabilities.json"
+
+	-- 	f = assert(io.open(HmiCapabilities, "r"))
+	-- 		if f then
+	-- 			fileContent = f:read("*all")
+
+	-- 			local StringToReplace = "\"hmiCapabilities\" : { \"navigation\" : true, \"phoneCall\" : true }"
+
+	-- 			if fileContentFind then
+	-- 				fileContentUpdated  =  string.gsub(fileContent, fileContentFind, StringToReplace)
+	-- 				f = assert(io.open(HmiCapabilities, "w"))
+	-- 				f:write(fileContentUpdated)
+	-- 			elseif StringToReplace == "" then
+	-- 				commonFunctions:userPrint(33, " hmiCapabilities is absent in hmiCapabilities.json  ")
+	-- 			elseif 
+	-- 				StringToReplace ~= "" then
+
+	-- 				fileContentFindPlaceToInsert = fileContent:match("%p?\".?UI.?\"%s-:%s-{%s-")
+
+	-- 				fileContentUpdated  =  string.gsub(fileContent, fileContentFindPlaceToInsert, fileContentFindPlaceToInsert .. tostring("\n\t\t" .. StringToReplace .. ","))
+
+	-- 				f = assert(io.open(HmiCapabilities, "w"))
+	-- 				f:write(fileContentUpdated)
+
+
+	-- 			else 
+	-- 				commonFunctions:userPrint(31, "Finding of 'ResumptionDelayBeforeIgn = value' is failed. Expect string finding and replacing of value to true")
+	-- 			end
+	-- 			f:close()
+	-- 		end
+
+	-- 	end
+
+	--======================================================================================
+	-- navigation = false, phoneCall = false in RAI response in case hmiCapabilities values in UI.GetCapabilities response navigation is array { false }, phoneCall = false
+	--======================================================================================--
+	RestartSDL("hmiCapabilities_InUIGetCapRespNavIsArray", { navigation = {false}, phoneCall = false }, { navigation = false, phoneCall = false })
+
+	--======================================================================================
+	-- navigation = false, phoneCall = false in RAI response in case hmiCapabilities values in UI.GetCapabilities response navigation = false, phoneCall is array { false }
+	--======================================================================================--
+	RestartSDL("hmiCapabilities_InUIGetCapRespPhoneIsArray", { navigation = false, phoneCall = {true} }, { navigation = false, phoneCall = false })
+
+	--======================================================================================
+	-- navigation = false, phoneCall = false in RAI response in case hmiCapabilities values in UI.GetCapabilities are navigation = true, phoneCall = integer value
+	--======================================================================================--
+	RestartSDL("hmiCapabilities_InUIGetCapRespOnlyPhoneInteger", {navigation = true, phoneCall = 12 }, { navigation = false, phoneCall = false })
+
+	--======================================================================================
+	-- navigation = false, phoneCall = false in RAI response in case hmiCapabilities values in UI.GetCapabilities are navigation = integer value, phoneCall = true
+	--======================================================================================--
+	RestartSDL("hmiCapabilities_InUIGetCapRespOnlyNavInteger", {navigation = 12, phoneCall = true }, { navigation = false, phoneCall = false })
+
+	--======================================================================================
+	-- navigation = false, phoneCall = false in RAI response in case hmiCapabilities values in UI.GetCapabilities are navigation = true, phoneCall = string value
+	--======================================================================================--
+	RestartSDL("hmiCapabilities_InUIGetCapRespOnlyPhoneString", {navigation = true, phoneCall = "true" }, { navigation = false, phoneCall = false })
+
+	--======================================================================================
+	-- navigation = false, phoneCall = false in RAI response in case hmiCapabilities values in UI.GetCapabilities are navigation = string value, phoneCall = true
+	--======================================================================================--
+	RestartSDL("hmiCapabilities_InUIGetCapRespOnlyNavString", {navigation = "true", phoneCall = true }, { navigation = false, phoneCall = false })
+
+	--======================================================================================
+	-- navigation = false, phoneCall = false in RAI response in case hmiCapabilities values in UI.GetCapabilities are navigation = true, phoneCall = struct value
+	--======================================================================================--
+	RestartSDL("hmiCapabilities_InUIGetCapRespOnlyPhoneStruct", {navigation = true, phoneCall = { value = true } }, { navigation = false, phoneCall = false })
+
+	--======================================================================================
+	-- navigation = false, phoneCall = false in RAI response in case hmiCapabilities values in UI.GetCapabilities are navigation = struct value, phoneCall = true
+	--======================================================================================--
+	RestartSDL("hmiCapabilities_InUIGetCapRespOnlyNavStruct", {navigation = { value = true }, phoneCall = true }, { navigation = false, phoneCall = false })

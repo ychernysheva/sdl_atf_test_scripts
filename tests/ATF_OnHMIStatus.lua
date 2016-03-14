@@ -2680,4 +2680,138 @@ function Test:Postcondition_UnregisterCommunicationApp_WithAppIDOnHMIStatusOnlyT
 	UnregisterApplication_Success(self, self.mobileSession2, self.applications[config.application4.registerAppInterfaceParams.appName])
 end
 
+local function APPLINK_10706()
 
+-- SDL sets app to NOT_AUDIBLE state in case VR session is active 
+--===================================================================================--
+
+function Test:AudioStreaming_NOT_AUDIBLE_inFULL_MixingAudio_is_supported()
+	userPrint(34, "=================================== Test  Case ===================================")
+
+	local RAIParams = config.application1.registerAppInterfaceParams
+
+	self.mobileSession = mobile_session.MobileSession(
+	self,
+	self.mobileConnection)
+
+	self.mobileSession:StartService(7)
+		:Do(function(_,data)
+
+			RegisterAppInterface_Success(self, self.mobileSession, RAIParams)
+			if MediaApp or NaviComApp then
+
+				EXPECT_NOTIFICATION("OnHMIStatus", 
+							{hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"},
+							{hmiLevel = "FULL", audioStreamingState = "AUDIBLE" , systemContext = "MAIN"},
+							{hmiLevel = "FULL", audioStreamingState = "NOT_AUDIBLE" , systemContext = "MAIN"},
+							{hmiLevel = "FULL", audioStreamingState = "AUDIBLE" , systemContext = "MAIN"})
+					:Times(4)
+					:Do(function(exp,data)
+						if exp.occurences == 1 then
+							ActivationApp(self, self.applications[RAIParams.appName])
+						elseif
+							exp.occurences == 2 then
+
+							-- Openning VR menu
+							self.hmiConnection:SendNotification("VR.Started",{})
+
+							function StopVRSession()
+								--Closing VR menu
+		  						self.hmiConnection:SendNotification("VR.Stopped",{})
+		  					end
+
+		  					RUN_AFTER(StopVRSession, 500)
+
+						end
+					end)
+			else
+				EXPECT_NOTIFICATION("OnHMIStatus",
+					{hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"},
+					{hmiLevel = "FULL", audioStreamingState = "NOT_AUDIBLE" , systemContext = "MAIN"})
+					:Times(2)
+					:Do(function(exp,data)
+						if exp.occurences == 1 then
+							ActivationApp(self, self.applications[RAIParams.appName])
+						elseif
+							exp.occurences == 2 then
+
+							-- Openning VR menu
+							self.hmiConnection:SendNotification("VR.Started",{})
+
+							function StopVRSession()
+								--Closing VR menu
+		  						self.hmiConnection:SendNotification("VR.Stopped",{})
+		  					end
+
+		  					RUN_AFTER(StopVRSession, 500)
+
+						end
+					end)
+
+			end
+		end)
+end 
+
+function Test:Postcondition_UnregisteApp_AudioStreaming_NOT_AUDIBLE_inFULL_MixingAudio_is_supported()
+	UnregisterApplication_Success(self, self.mobileSession, self.applications[config.application1.registerAppInterfaceParams.appName])
+end
+
+
+if MediaApp or NaviComApp then
+
+	function Test:AudioStreaming_NOT_AUDIBLE_inLIMITED_MixingAudio_is_supported()
+		local RAIParams = config.application1.registerAppInterfaceParams
+
+		self.mobileSession = mobile_session.MobileSession(
+		self,
+		self.mobileConnection)
+
+		self.mobileSession:StartService(7)
+			:Do(function(_,data)
+
+				RegisterAppInterface_Success(self, self.mobileSession, RAIParams)
+
+					EXPECT_NOTIFICATION("OnHMIStatus", 
+								{hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"},
+								{hmiLevel = "FULL", audioStreamingState = "AUDIBLE" , systemContext = "MAIN"},
+								{hmiLevel = "LIMITED", audioStreamingState = "AUDIBLE" , systemContext = "MAIN"},
+								{hmiLevel = "LIMITED", audioStreamingState = "NOT_AUDIBLE" , systemContext = "MAIN"},
+								{hmiLevel = "LIMITED", audioStreamingState = "AUDIBLE" , systemContext = "MAIN"})
+						:Times(5)
+						:Do(function(exp,data)
+							if exp.occurences == 1 then
+									ActivationApp(self, self.applications[RAIParams.appName])
+									
+							elseif
+								exp.occurences == 2 then
+									-- Deactivate app ti LIMITED level
+									self.hmiConnection:SendNotification("BasicCommunication.OnAppDeactivated",
+									{
+										appID = self.applications[RAIParams.appName]
+									})
+							elseif
+								exp.occurences == 3 then
+
+								-- Openning VR menu
+								self.hmiConnection:SendNotification("VR.Started",{})
+
+								function StopVRSession()
+									--Closing VR menu
+			  						self.hmiConnection:SendNotification("VR.Stopped",{})
+			  					end
+
+			  					RUN_AFTER(StopVRSession, 500)
+
+							end
+						end)
+			end)
+	end 
+
+	function Test:Postcondition_UnregisteApp_AudioStreaming_NOT_AUDIBLE_inLIMITED_MixingAudio_is_supported()
+		UnregisterApplication_Success(self, self.mobileSession, self.applications[config.application1.registerAppInterfaceParams.appName])
+	end
+
+end
+
+end
+APPLINK_10706()
