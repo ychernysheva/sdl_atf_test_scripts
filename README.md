@@ -1,13 +1,13 @@
 # Automated Test Framework (ATF) scripts
 This repository contains ATF scripts and data to run it.
 
-## How To:
+## Getting Started:
 
-* [Setup SDL](https://github.com/smartdevicelink/sdl_atf/blob/develop/README.md). 
+* [Setup SDL](https://github.com/smartdevicelink/sdl_core). 
  * Later the SDL sources destination directory is referenced as `<sdl_core>`  
-* [Setup ATF](https://github.com/smartdevicelink/sdl_core/blob/master/README.md)
+* [Setup ATF](https://github.com/smartdevicelink/sdl_atf)
  * Later the ATF sources destination directory is referenced as `<sdl_atf>` 
-* Clone [sdl_atf_test_scripts](https://github.com/LuxoftAKutsan/sdl_atf_test_scripts)
+* Clone [sdl_atf_test_scripts](https://github.com/smartdevicelink/sdl_atf)
  * Later the atf test scripts destination directory is referenced as `<sdl_atf_test_scripts>`
 
 ``` git clone https://github.com/smartdevicelink/sdl_atf_test_scripts <sdl_atf_test_scripts>```
@@ -20,7 +20,9 @@ This repository contains ATF scripts and data to run it.
 cp <sdl_core>/src/components/interfaces/HMI_API.xml <sdl_atf>/data/
 cp <sdl_core>/src/components/interfaces/MOBILE_API.xml <sdl_atf>/data/
 ```  
-* Run ATF. 
+* Run ATF.
+
+ _Mandatory options:_
   * Pass path to sdl binary dir with --sdl_core command line parameter
   * Pass path to test script as first command line paramater
 ```
@@ -30,5 +32,10 @@ cd <sdl_atf>/
 
 __Note, that path to SDL binary dir may be different__
 
+You can get additional help of usage ATF: 
+```
+./start.sh --help
+```
 
-Some test cases are failed due to known SDL issues. List of failed test cases avaliable in [KnownIssues.md](https://github.com/LuxoftAKutsan/sdl_atf_test_scripts/blob/master/KnownIssues.md)
+#### Known Issues
+Some test cases are failed due to known SDL issues. List of failed test cases avaliable in KnownIssues.md
