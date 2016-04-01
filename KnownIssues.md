@@ -9,16 +9,23 @@
   * Activation_App (sometimes)
 
 * ATF_AddSubMenu.lua take updated script from attach:
-  * ActivateSecondApp (sometimes)
+  * AddSubMenu_InvalidDataSuccessFalse
+  * AddSubMenu_OutOfMemorySuccessFalse
+  * AddSubMenu_GenericErrorSuccessFalse
+  * AddSubMenu_RejectedSuccessFalse
+  * AddSubMenu_REJECTED
+  * Activation_App (sometimes)
 
 * ATF_OnDriverDistraction.lua:
-  * Activate_Media_App2
+  * Activate_Media_App2 (sometimes)
 
 * ATF_SetMediaClockTimer.lua:
-
+  * UI_SetMediaClockTimer_Response* 
+  
 * ATF_Slider.lua:
   * Slider_AllParametersUpperBound_SUCCESS
+  * Slider_sliderFooter_IsOutLowerBound_IsEmpty_INVALID_DATA
   * Slider_sliderFooter_IsUpperBound_SUCCESS
-  * Activation_App
+  * Activation_App (sometimes)
 
-Checked on SDL commit SDL commit [dfdf6699d4bbee126f614007b6af4ae0660a5bd8](https://github.com/smartdevicelink/sdl_core/commit/dfdf6699d4bbee126f614007b6af4ae0660a5bd8)
+Checked on SDL commit SDL commit [85918cb](https://github.com/smartdevicelink/sdl_core/commit/85918cb)
