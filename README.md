@@ -1,7 +1,7 @@
 # Automated Test Framework (ATF) scripts
 This repository contains ATF scripts and data to run it.
 
-## How To:
+## Getting Started:
 
 * [Setup SDL](https://github.com/smartdevicelink/sdl_core). 
  * Later the SDL sources destination directory is referenced as `<sdl_core>`  
@@ -38,5 +38,4 @@ You can get additional help of usage ATF:
 ```
 
 #### Known Issues
-Some test cases are failed due to known SDL issues. List of failed test cases avaliable in
-[KnownIssues.md](https://github.com/LuxoftAKutsan/sdl_atf_test_scripts/blob/master/KnownIssues.md)
+Some test cases are failed due to known SDL issues. List of failed test cases avaliable in KnownIssues.md
