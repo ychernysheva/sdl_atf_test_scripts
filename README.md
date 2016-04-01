@@ -3,9 +3,9 @@ This repository contains ATF scripts and data to run it.
 
 ## How To:
 
-* [Setup SDL](https://github.com/smartdevicelink/sdl_core/blob/master/README.md). 
+* [Setup SDL](https://github.com/smartdevicelink/sdl_core). 
  * Later the SDL sources destination directory is referenced as `<sdl_core>`  
-* [Setup ATF](https://github.com/smartdevicelink/sdl_atf/blob/develop/README.md)
+* [Setup ATF](https://github.com/smartdevicelink/sdl_atf)
  * Later the ATF sources destination directory is referenced as `<sdl_atf>` 
 * Clone [sdl_atf_test_scripts](https://github.com/smartdevicelink/sdl_atf)
  * Later the atf test scripts destination directory is referenced as `<sdl_atf_test_scripts>`
