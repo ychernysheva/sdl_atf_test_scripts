@@ -20,7 +20,9 @@ This repository contains ATF scripts and data to run it.
 cp <sdl_core>/src/components/interfaces/HMI_API.xml <sdl_atf>/data/
 cp <sdl_core>/src/components/interfaces/MOBILE_API.xml <sdl_atf>/data/
 ```  
-* Run ATF. 
+* Run ATF.
+
+ _Mandatory options:_
   * Pass path to sdl binary dir with --sdl_core command line parameter
   * Pass path to test script as first command line paramater
 ```
@@ -30,5 +32,11 @@ cd <sdl_atf>/
 
 __Note, that path to SDL binary dir may be different__
 
+You can get additional help of usage ATF: 
+```
+./start.sh --help
+```
 
-Some test cases are failed due to known SDL issues. List of failed test cases avaliable in [KnownIssues.md](https://github.com/LuxoftAKutsan/sdl_atf_test_scripts/blob/master/KnownIssues.md)
+#### Known Issues
+Some test cases are failed due to known SDL issues. List of failed test cases avaliable in
+[KnownIssues.md](https://github.com/LuxoftAKutsan/sdl_atf_test_scripts/blob/master/KnownIssues.md)
