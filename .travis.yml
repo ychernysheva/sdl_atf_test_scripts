@@ -1,0 +1,31 @@
+language: cpp
+dist: trusty
+sudo: required
+only:
+  - master
+addons:
+  apt:
+    sources:
+    - ubuntu-toolchain-r-test
+before_install:
+  - ./setup_env.sh
+
+before_script:
+  # Allow us to SSH passwordless to localhost
+  - ssh-keygen -f ~/.ssh/id_rsa -N ""
+  - cp ~/.ssh/{id_rsa.pub,authorized_keys}
+  # Creation of an SSH agent for testing forwarding
+  - eval $(ssh-agent)
+  - ssh-add
+script:
+  - flake8 --ignore=E501 ./utils.py fabfile.py config.py
+  - fab -H localhost prepare
+  - fab -H localhost tests_run
+
+env:
+  global:
+  - LC_CTYPE=en_US.UTF-8
+  - CTEST_OUTPUT_ON_FAILURE=TRUE
+  - CMAKE_CXX_COMPILER=g++-4.9
+  - CMAKE_C_COMPILER=gcc-4.9
+  - LD_LIBRARY_PATH=.
