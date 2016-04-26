@@ -1,0 +1,6 @@
+*.pyc
+*.swp
+.idea/
+.ropeproject/
+local_config.py
+
