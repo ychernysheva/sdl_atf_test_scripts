@@ -54,9 +54,9 @@ def open_dir(dir_path, rewrite=False):
     :return: directory object
     """
     if rewrite and exists(dir_path):
-        run("rm -rf %s" % dir_path)
+        run("rm -rf {}".format(dir_path))
     if not exists(dir_path):
-        run('mkdir -p %s;' % dir_path)
+        run("mkdir -p {}".format(dir_path))
     return cd(dir_path)
 
 
@@ -73,16 +73,16 @@ Clones git repository
     """
     with open_dir(work_dir):
         if exists(folder):
-            print ("%s already exists" % folder)
+            print ("{} already exists".format(folder))
             if rewrite:
-                print ("rewrite %s" % folder)
-                run("rm -rf %s" % folder)
+                print ("rewrite {}".format(folder))
+                run("rm -rf {}".format(folder))
             else:
                 return
-        run("git clone %s %s" % (host, folder))
+        run("git clone {} {}".format(host, folder))
         with cd(folder):
             if branch:
-                run("git checkout %s" % branch)
+                run("git checkout {}".format(branch))
             if submodules:
                 run("git submodule init")
             run("git submodule update")
@@ -136,7 +136,7 @@ def filter_known_issues(failed_list, known_issues):
     """
     Filter known failed test cases from list of failed test cases
     :param failed_list:  list of failed test cases
-    :param known_issues: list of test cases that should be removed from failed_list
+    :param known_issues: test cases that should be removed from failed_list
     :return: list of new failed test cases
     """
     filtered = []

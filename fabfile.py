@@ -59,7 +59,8 @@ def clone_sdl(rewrite=False):
     Clone SDL to work directory
     :param rewrite: if True delete sdl folder
     """
-    clone(config.sdl_repository, config.sdl_clone_dir, config.work_dir, branch=config.sdl_branch, rewrite=rewrite)
+    clone(config.sdl_repository, config.sdl_clone_dir,
+          config.work_dir, branch=config.sdl_branch, rewrite=rewrite)
 
 
 @task(task_class=TaskWithConfig)
@@ -68,7 +69,8 @@ def clone_atf(rewrite=False):
     Clone ATF to work directory
     :param rewrite: if True delete atf folder
     """
-    clone(config.atf_repository, config.atf_build_dir, config.work_dir, branch=config.atf_branch, submodules=True, rewrite=rewrite)
+    clone(config.atf_repository, config.atf_build_dir, config.work_dir,
+          branch=config.atf_branch, submodules=True, rewrite=rewrite)
 
 
 @task(task_class=TaskWithConfig)
@@ -77,8 +79,8 @@ def clone_scripts(rewrite=False):
     Clone ATF scripts to work directory
     :param rewrite: if True delete atf scripts folder
     """
-    clone(config.scripts_repository, config.scripts_clone_dir, config.work_dir, branch=config.scripts_branch,
-          rewrite=rewrite)
+    clone(config.scripts_repository, config.scripts_clone_dir, config.work_dir,
+          branch=config.scripts_branch, rewrite=rewrite)
 
 
 @task(task_class=TaskWithConfig)
@@ -87,12 +89,15 @@ def build_sdl(rewrite=False):
     Build SDL
     :param rewrite: if True delete old SDL build and build again
     """
-    with open_dir(config.work_dir), open_dir(config.sdl_build_dir, rewrite=rewrite):
+    with open_dir(config.work_dir), open_dir(config.sdl_build_dir, rewrite):
         log_build_dir = config.sdl_build_dir + "log4cxx_build/"
         log_build_arch_dir = log_build_dir + arch()
-        run('''export THIRD_PARTY_INSTALL_PREFIX=%s;
-               export THIRD_PARTY_INSTALL_PREFIX_ARCH=%s;
-               cmake %s && make install VERBOSE=1 ''' % (log_build_dir, log_build_arch_dir, config.sdl_clone_dir))
+        run('''export THIRD_PARTY_INSTALL_PREFIX={};
+               export THIRD_PARTY_INSTALL_PREFIX_ARCH={};
+               cmake {} && make install VERBOSE=1 '''.format(
+                                                        log_build_dir,
+                                                        log_build_arch_dir,
+                                                        config.sdl_clone_dir))
 
 
 @task(task_class=TaskWithConfig)
@@ -106,8 +111,8 @@ def build_atf(rewrite=False):
             run("git reset --hard && git clean -dfx")
         qmake_path = config.qt_path + "/bin/qmake"
         qmake_lib = config.qt_path + "/lib/"
-        run('''export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:%s; export QMAKE=%s; make''' % (
-            qmake_lib, qmake_path))
+        run('''export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:{};
+               export QMAKE={}; make'''.format(qmake_lib, qmake_path))
 
 
 @task(task_class=TaskWithConfig)
@@ -117,17 +122,28 @@ def prepare_test_run(rewrite=False):
     :param rewrite: it True delete old tests_run_dir and copy files again
     """
     with open_dir(config.test_run_dir, rewrite):
-        run("cp -r %s %s" % (config.atf_build_dir + "modules/", config.test_run_dir))
-        run("cp -r %s %s" % (config.atf_build_dir + "data/", config.test_run_dir))
-        run("cp -r %s %s" % (config.atf_build_dir + "StartSDL.sh", config.test_run_dir))
-        run("cp -r %s %s" % (config.atf_build_dir + "StopSDL.sh", config.test_run_dir))
-        run("cp -r %s %s" % (config.atf_build_dir + "WaitClosingSocket.sh", config.test_run_dir))
-        run("cp -r %s %s" % (config.atf_build_dir + "start.sh", config.test_run_dir))
-        run("cp -r %s %s" % (config.atf_build_dir + "interp", config.test_run_dir))
-        run("cp -r %s %s" % (config.scripts_clone_dir + "/*", config.test_run_dir))
-        run("cp -r %s %s" % (config.sdl_build_dir + "bin", config.test_run_dir + "SDL_bin"))
-        logger_library_path = config.sdl_build_dir + "log4cxx_build/" + arch() + "/lib/"
-        run("cp -r %s %s" % (logger_library_path + "/*", config.test_run_dir + "SDL_bin/"))
+        run("cp -r {} {}".format(config.atf_build_dir +
+                                 "modules/", config.test_run_dir))
+        run("cp -r {} {}".format(config.atf_build_dir +
+                                 "data/", config.test_run_dir))
+        run("cp -r {} {}".format(config.atf_build_dir +
+                                 "StartSDL.sh", config.test_run_dir))
+        run("cp -r {} {}".format(config.atf_build_dir +
+                                 "StopSDL.sh", config.test_run_dir))
+        run("cp -r {} {}".format(config.atf_build_dir +
+                                 "WaitClosingSocket.sh", config.test_run_dir))
+        run("cp -r {} {}".format(config.atf_build_dir +
+                                 "start.sh", config.test_run_dir))
+        run("cp -r {} {}".format(config.atf_build_dir +
+                                 "interp", config.test_run_dir))
+        run("cp -r {} {}".format(config.scripts_clone_dir +
+                                 "/*", config.test_run_dir))
+        run("cp -r {} {}".format(config.sdl_build_dir + "bin",
+                                 config.test_run_dir + "SDL_bin"))
+        logger_library_path = config.sdl_build_dir + \
+            "log4cxx_build/" + arch() + "/lib/"
+        run("cp -r {} {}".format(logger_library_path +
+                                 "/*", config.test_run_dir + "SDL_bin/"))
 
 
 @task(task_class=TaskWithConfig)
@@ -136,7 +152,7 @@ def tests_run():
     Run all tests from test_run_dir
     """
     if not exists(config.test_run_dir):
-        print("%s does not exists" % config.test_run_dir)
+        print("{} does not exists".format(config.test_run_dir))
     with cd(config.test_run_dir):
         output = run('ls test_scripts')
         scripts = output.split()
@@ -145,26 +161,28 @@ def tests_run():
         new_failed = {}
         print(scripts)
         for script in scripts:
-            print("Execute %s" % script)
+            print("Execute {}".format(script))
             with settings(warn_only=True):
                 output = run('''./start.sh --storeFullSDLLogs \
-                             --sdl_core=./SDL_bin/ test_scripts/%s | tee console_output''' % script)
-                script_reports_dir = "%s/%s" % (config.reports_dir, script)
-                run("mkdir -p %s" % script_reports_dir)
-                run("mv console_output %s/" % script_reports_dir)
-                run("mv TestingReports %s/" % script_reports_dir)
+                             --sdl_core=./SDL_bin/ test_scripts/{} |\
+                             tee console_output'''.format(script))
+                script_reports_dir = "{}/{}".format(config.reports_dir, script)
+                run("mkdir -p {}".format(script_reports_dir))
+                run("mv console_output {}/".format(script_reports_dir))
+                run("mv TestingReports {}/".format(script_reports_dir))
                 new_failed[script] = get_list_of_failed_test_cases(output)
-                print("List of failed test cases in %s : " % script)
+                print("List of failed test cases in {} : ".format(script))
                 for failed_case in new_failed[script]:
-                    print("\t %s" % failed_case)
+                    print("\t {}".format(failed_case))
                 if script in known_issues:
-                    new_failed[script] = filter_known_issues(new_failed[script], known_issues[script])
+                    new_failed[script] = filter_known_issues(
+                                    new_failed[script], known_issues[script])
         print("New failed test cases:")
         for script in new_failed:
             failed_in_script = new_failed[script]
-            print("* %s:" % script)
+            print("* {}:".format(script))
             for case in failed_in_script:
-                print("  * %s" % case)
+                print("  * {}".format(case))
 
 
 @task
@@ -194,7 +212,7 @@ def clear():
     """
     Clear working directory
     """
-    run("rm -rf  %s" % config.work_dir)
+    run("rm -rf  {}".format(config.work_dir))
 
 
 @task
@@ -202,5 +220,5 @@ def reset():
     """
     Clear test_run_dir
     """
-    run("rm -rf  %s" % config.test_run_dir)
+    run("rm -rf  {}".format(config.test_run_dir))
     prepare_test_run()

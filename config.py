@@ -57,6 +57,6 @@ def set_custom_config(config_file_name):
     """
     try:
         exec(open(config_file_name).read(), globals())
-        print("Use custom config : %s" % config_file_name)
+        print("Use custom config : {}".format(config_file_name))
     except IOError:
-        print("Unable to read local config: %s" % config_file_name)
+        print("Unable to read local config: {}".format(config_file_name))
