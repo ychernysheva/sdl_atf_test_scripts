@@ -215,10 +215,10 @@ def clear():
     run("rm -rf  {}".format(config.work_dir))
 
 
-@task
+@task(task_class=TaskWithConfig)
 def reset():
     """
     Clear test_run_dir
     """
     run("rm -rf  {}".format(config.test_run_dir))
-    prepare_test_run()
+    execute(prepare_test_run)
