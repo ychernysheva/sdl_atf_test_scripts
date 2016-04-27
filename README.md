@@ -5,24 +5,24 @@ This repository contains ATF scripts and data to run it.
 
 ## Start in Auto mode
 ### Preconditions:
-For test script automatisation warkstation should be able to build SDL and ATF, also python fabric should be installed.
+For test script automation workstation should be able to build SDL and ATF, also python fabric should be installed.
 To install all dependencies please execute setup_env.sh. Note that it will ask sudo password to install missed software
 
 ```
 ./setup_env.sh
 ```
 
-### Run all scripts from test_scripts automaticaly
+### Run all scripts from test_scripts automatically
 
 ```
 $ fab -H localhost prepare tests_run
 ```
 
 This goals will build all required stuff (SDL, ATF) and execute all scripts.
-Note that thi command will execute test scripts not from you local test_scripts dirrectory but from github.
+Note that this command will execute test scripts not from you local test_scripts directory but from github.
 
-All parameters like an SDL commit, ATF commit, test scripts commit, work, build, source dirrectories may be changed.
-For this purpose ypu can use you own config
+All parameters like an SDL commit, ATF commit, test scripts commit, work, build, source directories may be changed.
+For this purpose you can use you own config
 
 ```
 fab -H localhost prepare:custom_config=develop_config.py
@@ -52,7 +52,7 @@ cp <sdl_core>/src/components/interfaces/MOBILE_API.xml <sdl_atf>/data/
 
  _Mandatory options:_
   * Pass path to sdl binary dir with --sdl_core command line parameter
-  * Pass path to test script as first command line paramater
+  * Pass path to test script as first command line parameter
 ```
 cd <sdl_atf>/
 ./start.sh --sdl_core=<sdl_core>/build/bin  ./test_scripts/ATF_Speak.lua
@@ -66,7 +66,7 @@ You can get additional help of usage ATF:
 ```
 
 #### Known Issues
-Some test cases are failed due to known SDL issues. List of failed test cases avaliable in KnownIssues.md
+Some test cases are failed due to known SDL issues. List of failed test cases available in KnownIssues.md
 
 
 
