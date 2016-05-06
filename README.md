@@ -1,7 +1,24 @@
+[![Build Status](https://travis-ci.org/smartdevicelink/sdl_atf_test_scripts.svg?branch=master)](https://travis-ci.org/smartdevicelink/sdl_atf_test_scripts)
+
 # Automated Test Framework (ATF) scripts
 This repository contains ATF scripts and data to run it.
 
-[![Build Status](https://travis-ci.org/smartdevicelink/sdl_atf_test_scripts.svg?branch=master)](https://travis-ci.org/smartdevicelink/sdl_atf_test_scripts)
+## Coverage
+|Functionality    |Status    |Notes    |
+|:---|:---|:---|
+|Smoke Test    | 100%   | Common mobile APIs check   |
+|Mobile API Protocol    | 95%   |    |
+|HMI API    |  5% |    |
+|App Resumption    | 10%   |    |
+|SDL 4.0    | 100%   |    |
+|UTF-8 Check    | 100%   |    |
+|Safety feature active    | 100%   |    |
+|Audio/Video Streaming    | 20%   | Planned   |
+|Policies    | Not Covered   | Planned   |
+|Heartbeat    | Not Covered   | Needs new ATF functionality   |
+|SecurityService    | Not Covered   | Needs new ATF functionality   |
+|Start/End Service    |  Not Covered  | Planned   |
+|Transport    | Not Covered   |    |
 
 ## Start in Auto mode
 ### Preconditions:
