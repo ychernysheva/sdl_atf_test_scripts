@@ -110,15 +110,20 @@ local function RegisterAppInterface(self)
 	
  	--mobile side: RegisterAppInterface response 
  	self.MobileSession1:ExpectResponse(CorIdRAI, { success = true, resultCode = "SUCCESS"})
-			
- 	-- Issue of ATF, OnHMIStatus  is not verified correctly: APPLINK-17030
- 	--mobile side: expect notification
- 	self.MobileSession1:ExpectNotification("OnHMIStatus", {{ hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"}})
+ 	:Do(function(_,data)
+ 		
+ 		-- Issue of ATF, OnHMIStatus  is not verified correctly: APPLINK-17030
+ 		--mobile side: expect notification
+ 		self.MobileSession1:ExpectNotification("OnHMIStatus", {{ hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"}})
 
- 	--hmi side: expect notification
- 	--Requirement id in JAMA/or Jira ID: APPLINK-20056
- 	--Verification criteria: Structure of HMI notification is verified according to HMI API
- 	EXPECT_HMINOTIFICATION("Buttons.OnButtonSubscription", {appID = self.applications[strAppName], isSubscribed = true, name = "CUSTOM_BUTTON"})
+ 		--hmi side: expect notification
+ 		--Requirement id in JAMA/or Jira ID: APPLINK-20056
+ 		--Verification criteria: Structure of HMI notification is verified according to HMI API
+ 		EXPECT_HMINOTIFICATION("Buttons.OnButtonSubscription", {appID = self.applications[strAppName], isSubscribed = true, name = "CUSTOM_BUTTON"})
+
+ 	end)
+			
+ 	
 end
 
 local function ActivateApplication(self)
@@ -236,15 +241,20 @@ local function SubscribeBtn(self, btn)
 
  	--mobile side: expect SubscribeButton response
  	self.MobileSession1:ExpectResponse(cid, { success = true, resultCode = "SUCCESS"})
-					
- 	--mobile side: expect notification
- 	self.MobileSession1:ExpectNotification("OnHashChange",{})
+ 	:Do(function(_,data) 
 
- 	--hmi side: expect Buttons.OnButtonSubscription
- 	--Requirement id in JAMA/or Jira ID: APPLINK-20056; APPLINK-20118
- 	--Verification criteria:  SDL must notify HMI via OnButtonSubscription (appID, <buttonName>, isSubscribed:true) on successful subscription on the button; 
- 	--                        Structure of HMI notification shall be verified according to HMI API
- 	EXPECT_HMINOTIFICATION("Buttons.OnButtonSubscription", {appID = self.applications[strAppName], isSubscribed = true, name = buttonName})
+ 		--mobile side: expect notification
+ 		self.MobileSession1:ExpectNotification("OnHashChange",{})
+
+ 		--hmi side: expect Buttons.OnButtonSubscription
+ 		--Requirement id in JAMA/or Jira ID: APPLINK-20056; APPLINK-20118
+ 		--Verification criteria:  SDL must notify HMI via OnButtonSubscription (appID, <buttonName>, isSubscribed:true) on successful subscription on the button; 
+ 		--                        Structure of HMI notification shall be verified according to HMI API
+ 		EXPECT_HMINOTIFICATION("Buttons.OnButtonSubscription", {appID = self.applications[strAppName], isSubscribed = true, name = buttonName})
+
+ 	end)
+					
+ 	
 end
 
 local function UnSubscribeBtn(self, btn)
@@ -256,15 +266,20 @@ local function UnSubscribeBtn(self, btn)
 								
  	--mobile side: expect SubscribeButton response
  	self.MobileSession1:ExpectResponse(cid, { success = true, resultCode = "SUCCESS"})
-					
- 	--mobile side: expect notification
- 	self.MobileSession1:ExpectNotification("OnHashChange",{})
+ 	:Do(function(_,data) 
 
- 	-- HMI side: expect OnButtonSubscription notification
- 	--Requirement id in JAMA/or Jira ID: APPLINK-20056; APPLINK-20194
- 	--Verification criteria:  SDL must notify HMI via OnButtonSubscription (appID, <buttonName>, isSubscribed:false) on successful unsubscription on the button; 
- 	--                        Structure of HMI notification shall be verified according to HMI API
- 	EXPECT_HMINOTIFICATION("Buttons.OnButtonSubscription", {appID = self.applications[strAppName], isSubscribed = false, name = buttonName})
+ 		--mobile side: expect notification
+ 		self.MobileSession1:ExpectNotification("OnHashChange",{})
+
+ 		-- HMI side: expect OnButtonSubscription notification
+ 		--Requirement id in JAMA/or Jira ID: APPLINK-20056; APPLINK-20194
+ 		--Verification criteria:  SDL must notify HMI via OnButtonSubscription (appID, <buttonName>, isSubscribed:false) on successful unsubscription on the button; 
+ 		--                        Structure of HMI notification shall be verified according to HMI API
+ 		EXPECT_HMINOTIFICATION("Buttons.OnButtonSubscription", {appID = self.applications[strAppName], isSubscribed = false, name = buttonName})
+
+ 	end)
+					
+ 	
 end
 
 
