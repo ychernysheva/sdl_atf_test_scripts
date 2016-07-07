@@ -23,7 +23,7 @@ local stringParameterInResponse = require('user_modules/shared_testcases/testCas
 
 
 --Contains all test cases
-function testCasesForArrayStringParameterInResponse:verify_Array_String_Parameter(Response, Parameter, Boundary,  ElementBoundary, Mandatory, IsSupportedSpecialCharacters)
+function testCasesForArrayStringParameterInResponse:verify_Array_String_Parameter(Response, Parameter, Boundary,  ElementBoundary, Mandatory)
 
 
 		--Print new line to separate new test cases group
@@ -84,7 +84,7 @@ function testCasesForArrayStringParameterInResponse:verify_Array_String_Paramete
 
 		local parameter_arrayElement = commonFunctions:BuildChildParameter(Parameter, 1) -- element #1
 
-		stringParameterInResponse:verify_String_Parameter(TestingResponse, parameter_arrayElement, ElementBoundary, nil, IsSupportedSpecialCharacters) --nil: not check missed element
+		stringParameterInResponse:verify_String_Parameter(TestingResponse, parameter_arrayElement, ElementBoundary, nil) --nil: not check missed element
 		
 		
 end

@@ -29,7 +29,7 @@ local function verify_image_value_Parameter(Response, Parameter, Boundary, Manda
 
 
 		local Response = commonFunctions:cloneTable(Response)	
-		print_table(Parameter)
+		--print_table(Parameter)
 
 		--Print new line to separate new test cases group
 		commonFunctions:newTestCasesGroup(Parameter)	
@@ -52,7 +52,7 @@ local function verify_image_value_Parameter(Response, Parameter, Boundary, Manda
 		commonFunctions:TestCaseForResponse(self, Response, Parameter, "IsUpperBound_PutFileMaxLength", Boundary[2], "SUCCESS")
 		
 		--4. IsOutLowerBound/IsEmpty
-		commonFunctions:TestCaseForResponse(self, Response, Parameter, "IsOutLowerBound_IsEmpty", "", "GENERIC_ERROR")
+		--commonFunctions:TestCaseForResponse(self, Response, Parameter, "IsOutLowerBound_IsEmpty", "", "GENERIC_ERROR")
 		
 		--5. IsOutUpperBound - PutFile max length
 		commonFunctions:TestCaseForResponse(self, Response, Parameter, "IsOutUpperBound_PutFileMaxLength", Boundary[2] .. "a", "SUCCESS")
@@ -60,17 +60,19 @@ local function verify_image_value_Parameter(Response, Parameter, Boundary, Manda
 		--6. IsWrongType
 		commonFunctions:TestCaseForResponse(self, Response, Parameter, "IsWrongType", 123, "GENERIC_ERROR")
 		
+		
+		-- Uncomment after implementation APPLINK-24135
 		--7. IsInvalidCharacters: Special characters validation: INVALID_DATA response should come according to APPLINK-7687
-		local InvalidCharacters = 
-		{
-			{value = "a\nb", name = "NewLine"},
-			{value = "a\tb", name = "Tab"},
-			{value = "    ", name = "WhiteSpacesOnly"}
-		}
+		-- local InvalidCharacters = 
+		-- {
+		-- 	{value = "a\nb", name = "NewLine"},
+		-- 	{value = "a\tb", name = "Tab"},
+		-- 	{value = "    ", name = "WhiteSpacesOnly"}
+		-- }
 
-		for i = 1, #InvalidCharacters do
-			commonFunctions:TestCaseForResponse(self, Response, Parameter, "IsInvalidCharacters_"..InvalidCharacters[i].name, InvalidCharacters[i].value, "GENERIC_ERROR")
-		end
+		-- for i = 1, #InvalidCharacters do
+		-- 	commonFunctions:TestCaseForResponse(self, Response, Parameter, "IsInvalidCharacters_"..InvalidCharacters[i].name, InvalidCharacters[i].value, "GENERIC_ERROR")
+		-- end
 		
 		--8. IsUpperBound - 65535 characters		
 		commonFunctions:TestCaseForResponse(self, Response, Parameter, "IsUpperBound", string.rep("a",65535), "SUCCESS")
@@ -125,7 +127,7 @@ function testCasesForImageParameter:verify_Image_Parameter(Response, Parameter, 
 		local parameter_imageType = commonFunctions:BuildChildParameter(Parameter, "imageType")
 		
 		
-		enumerationParameter:verify_Enum_String_Parameter(TestingRequest, parameter_imageType, ExistentValues, true)
+		--enumerationParameter:verify_Enum_String_Parameter(TestingRequest, parameter_imageType, ExistentValues, true)
 
 		
 		--6. image.value: type=String, minlength=0 maxlength=65535
