@@ -44,31 +44,6 @@ function commonSteps:ActivationApp(AppNumber, TestCaseName)
 		--hmi side: sending SDL.ActivateApp request
 		local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = Input_AppId})
 		EXPECT_HMIRESPONSE(RequestId)
-		:Do(function(_,data)
-			if
-				data.result.isSDLAllowed ~= true then
-				local RequestId = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
-				
-				--hmi side: expect SDL.GetUserFriendlyMessage message response
-				--TODO: update after resolving APPLINK-16094.
-				--EXPECT_HMIRESPONSE(RequestId,{result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
-				EXPECT_HMIRESPONSE(RequestId)
-				:Do(function(_,data)						
-					--hmi side: send request SDL.OnAllowSDLFunctionality
-					--self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = "127.0.0.1"}})
-					self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", {allowed = true, source = "GUI", device = {id = deviceMAC, name = "127.0.0.1"}})
-
-					--hmi side: expect BasicCommunication.ActivateApp request
-					EXPECT_HMICALL("BasicCommunication.ActivateApp")
-					:Do(function(_,data)
-						--hmi side: sending BasicCommunication.ActivateApp response
-						self.hmiConnection:SendResponse(data.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
-					end)
-					:Times(AnyNumber())
-				end)
-
-			end
-		end)
 		
 		--mobile side: expect notification
 		EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"}) 
@@ -257,25 +232,6 @@ function commonSteps:ActivateTheSecondMediaApp()
 		--HMI send ActivateApp request			
 		local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = appId2})
 		EXPECT_HMIRESPONSE(RequestId)
-		:Do(function(_,data)
-
-			if data.result.isSDLAllowed ~= true then
-				local RequestId = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
-				EXPECT_HMIRESPONSE(RequestId,{result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
-				:Do(function(_,data)
-					--hmi side: send request SDL.OnAllowSDLFunctionality
-					self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", {allowed = true, source = "GUI", device = {id = deviceMAC, name = "127.0.0.1"}})
-				end)
-
-				EXPECT_HMICALL("BasicCommunication.ActivateApp")
-				:Do(function(_,data)
-					self.hmiConnection:SendResponse(data.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
-				end)
-				:Times(AnyNumber())
-			else
-				self.hmiConnection:SendResponse(data.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
-			end
-		end)
 
 		self.mobileSession2:ExpectNotification("OnHMIStatus", {hmiLevel = "FULL", audioStreamingState = "AUDIBLE", systemContext = "MAIN"}) 
 		:Timeout(12000)
