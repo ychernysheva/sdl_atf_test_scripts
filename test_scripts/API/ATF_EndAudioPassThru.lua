@@ -27,6 +27,7 @@ local arrayStringParameterInResponse = require('user_modules/shared_testcases/te
 ---------------------------------------------------------------------------------------------
 APIName = "EndAudioPassThru" -- set request name
 local infoMessage = string.rep("a", 1000)
+config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 local storagePath = config.pathToSDL .. "storage/" .. config.application1.registerAppInterfaceParams.appID .. "_" .. config.deviceMAC .. "/"
 local function SendOnSystemContext(self, ctx)
 	self.hmiConnection:SendNotification("UI.OnSystemContext",{ appID = self.applications["Test Application"], systemContext = ctx })
@@ -323,10 +324,6 @@ end
 	commonSteps:PutFile("PutFile_icon.png", "icon.png")
 	commonSteps:PutFile("PutFile_icon.png", "action.png")
 	commonSteps:PutFile("PutFile_MaxLength_255Characters", strMaxLengthFileName255)
-
-	--3. Update policy to allow request
-	policyTable:Precondition_updatePolicy_By_overwriting_preloaded_pt("files/PTU_OmittedEndAudioPassThru.json", "files/PTU_ForEndAudioPassThru.json")
-
 
 ---------------------------------------------------------------------------------------------
 -----------------------------------------I TEST BLOCK----------------------------------------
@@ -2053,145 +2050,6 @@ end
 
 		-----------------------------------------------------------------------------------------
 
-		--Begin Test case ResultCodeCheck.3
-		--Description: Check DISALLOWED result code with success false
-
-			--Requirement id in JAMA:
-				--SDLAQ-CRS-572
-
-			--Verification criteria:
-				-- SDL must return "resultCode: DISALLOWED, success:false" to the RPC in case this RPC is omitted in the PolicyTable group(s) assigned to the app that requests this RPC.
-				-- SDL must return "resultCode: DISALLOWED, success:false" to the RPC in case this RPC is included to the PolicyTable group(s) assigned to the app that requests this RPC and the group has not yet received user's consents.
-
-			--Begin Test case ResultCodeChecks.3.1
-			--Description: Check resultCode DISALLOWED when RPC is omitted in the PolicyTable
-				function Test:Precondition_PolicyUpdate()
-					self:policyUpdate("PTU_OmittedEndAudioPassThru.json", false)
-
-					DelayedExp(2000)
-				end
-
-				function Test:EndAudioPassThru_resultCode_DISALLOWED_RPCOmitted()
-					local uiPerformID
-						local params ={
-										samplingRate ="8KHZ",
-										maxDuration = 5000,
-										bitsPerSample ="8_BIT",
-										audioType ="PCM",
-									}
-						--mobile side: sending PerformAudioPassThru request
-						local cid = self.mobileSession:SendRPC("PerformAudioPassThru", params)
-
-						UIParams = self:createUIParameters(params)
-
-						ExpectOnHMIStatusWithAudioStateChanged(self, _, false)
-
-						--hmi side: expect UI.OnRecordStart
-						EXPECT_HMINOTIFICATION("UI.OnRecordStart", {appID = self.applications["Test Application"]})
-
-						--hmi side: expect UI.PerformAudioPassThru request
-						EXPECT_HMICALL("UI.PerformAudioPassThru", UIParams)
-						:Do(function(_,data)
-							SendOnSystemContext(self,"HMI_OBSCURED")
-
-							uiPerformID = data.id
-						end)
-
-						--mobile side: expect OnAudioPassThru response
-						EXPECT_NOTIFICATION("OnAudioPassThru")
-						:Do(function(_,data)
-							local cidEndAudioPassThru = self.mobileSession:SendRPC("EndAudioPassThru", {})
-
-							--mobile side: expect EndAudioPassThru response
-							EXPECT_RESPONSE(cidEndAudioPassThru, { success = false, resultCode = "DISALLOWED"})
-
-							--hmi side: sending UI.PerformAudioPassThru response
-							self.hmiConnection:SendResponse(uiPerformID, "UI.PerformAudioPassThru", "SUCCESS", {})
-
-							SendOnSystemContext(self,"MAIN")
-						end)
-
-						--mobile side: expect PerformAudioPassThru response
-						EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
-						:ValidIf (function(_,data)
-							if file_check(storagePath.."/".."audio.wav") ~= true then
-								print(" \27[36m Can not found file: audio.wav \27[0m ")
-								return false
-							else
-								return true
-							end
-						end)
-				end
-			--End Test case ResultCodeChecks.3.1
-
-			-----------------------------------------------------------------------------------------
-
-			--Begin Test case ResultCodeChecks.3.2
-			--Description: Check resultCode USER_DISALLOWED when RPC has not yet received user's consents
-				function Test:Precondition_PolicyUpdate()
-					self:policyUpdate("PTU_ForEndAudioPassThru.json", false)
-
-					DelayedExp(2000)
-				end
-
-				function Test:EndAudioPassThru_resultCode_USER_DISALLOWED()
-					local uiPerformID
-						local params ={
-										samplingRate ="8KHZ",
-										maxDuration = 5000,
-										bitsPerSample ="8_BIT",
-										audioType ="PCM",
-									}
-						--mobile side: sending PerformAudioPassThru request
-						local cid = self.mobileSession:SendRPC("PerformAudioPassThru", params)
-
-						UIParams = self:createUIParameters(params)
-
-						ExpectOnHMIStatusWithAudioStateChanged(self, _, false)
-
-						--hmi side: expect UI.OnRecordStart
-						EXPECT_HMINOTIFICATION("UI.OnRecordStart", {appID = self.applications["Test Application"]})
-
-						--hmi side: expect UI.PerformAudioPassThru request
-						EXPECT_HMICALL("UI.PerformAudioPassThru", UIParams)
-						:Do(function(_,data)
-							SendOnSystemContext(self,"HMI_OBSCURED")
-
-							uiPerformID = data.id
-						end)
-
-						--mobile side: expect OnAudioPassThru response
-						EXPECT_NOTIFICATION("OnAudioPassThru")
-						:Do(function(_,data)
-							local cidEndAudioPassThru = self.mobileSession:SendRPC("EndAudioPassThru", {})
-
-							--mobile side: expect EndAudioPassThru response
-							EXPECT_RESPONSE(cidEndAudioPassThru, { success = false, resultCode = "USER_DISALLOWED"})
-
-							--hmi side: sending UI.PerformAudioPassThru response
-							self.hmiConnection:SendResponse(uiPerformID, "UI.PerformAudioPassThru", "SUCCESS", {})
-
-							SendOnSystemContext(self,"MAIN")
-						end)
-
-						--mobile side: expect PerformAudioPassThru response
-						EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
-						:ValidIf (function(_,data)
-							if file_check(storagePath.."/".."audio.wav") ~= true then
-								print(" \27[36m Can not found file: audio.wav \27[0m ")
-								return false
-							else
-								return true
-							end
-						end)
-				end
-
-				function Test:Postcondition_PolicyUpdate_UserAllowed()
-					--hmi side: sending SDL.OnAppPermissionConsent
-					self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent", { appID =  self.applications["Test Application"], consentedFunctions = {{ allowed = true, id = groupID, name = groupName}}, source = "GUI"})
-				end
-			--End Test case ResultCodeChecks.3.2
-		--End Test case ResultCodeCheck.3
 	--End Test suit ResultCodeCheck
 
 
@@ -3142,20 +3000,6 @@ end
 		end
 		--End Test case DifferentHMIlevelChecks.4
 	--End Test suit DifferentHMIlevel
-
-
-
----------------------------------------------------------------------------------------------
--------------------------------------------Postcondition-------------------------------------
----------------------------------------------------------------------------------------------
-
-	--Print new line to separate Postconditions
-	commonFunctions:newTestCasesGroup("Postconditions")
-
-
-	--Restore sdl_preloaded_pt.json
-	policyTable:Restore_preloaded_pt()
-
 
 
  return Test
