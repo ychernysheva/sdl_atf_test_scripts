@@ -23,9 +23,9 @@ require('user_modules/AppTypes')
 ---------------------------------------------------------------------------------------------
 ------------------------------------ Common Variables ---------------------------------------
 ---------------------------------------------------------------------------------------------
-APIName = "PerformAudioPassThru" -- set request name
+APIName = "EndAudioPassThru" -- set request name
 local infoMessage = string.rep("a", 1000)
-local storagePath = config.SDLStoragePath
+local storagePath = config.pathToSDL .. "storage/"
 local function SendOnSystemContext(self, ctx)
 	self.hmiConnection:SendNotification("UI.OnSystemContext",{ appID = self.applications["Test Application"], systemContext = ctx })
 end
