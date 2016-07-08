@@ -23,6 +23,7 @@ local integerParameterInResponse = require('user_modules/shared_testcases/testCa
 local arrayStringParameterInResponse = require('user_modules/shared_testcases/testCasesForArrayStringParameterInResponse')
 require('user_modules/AppTypes')
 
+config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 ---------------------------------------------------------------------------------------------
 ------------------------------------ Common Variables ---------------------------------------
 ---------------------------------------------------------------------------------------------
@@ -234,11 +235,6 @@ end
 			EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"})
 
 		end
-
-
-	--3. Update policy to allow request
-	policyTable:Precondition_updatePolicy_By_overwriting_preloaded_pt("files/PTU_ForChangeRegistration.json", "files/PTU_WithOutChangeRegistrationRPC.json")
-
 
 
 
@@ -5225,123 +5221,6 @@ end
 			end
 		--End Test case ResultCodeCheck.5
 
-		-----------------------------------------------------------------------------------------
---TODO debbug after resolving APPLINK-13101
-	--Begin Test case ResultCodeCheck.6
-		--Description: Check DISALLOWED result code with success false
-
-			--Requirement id in JAMA: SDLAQ-CRS-703, SDLAQ-CRS-2396, SDLAQ-CRS-2397
-
-			--Verification criteria:
-				-- SDL must return "resultCode: DISALLOWED, success:false" to the RPC in case this RPC is omitted in the PolicyTable group(s) assigned to the app that requests this RPC.
-	
-			--Description: SDL must return "DISALLOWED, success:false" in case ChangeRegistration RPC is not included to policies.
-
-				function Test:Precondition_UpdatePolicyNotIncludeChangeRegistration()
-				--hmi side: sending SDL.GetURLS request
-				local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
-
-				--hmi side: expect SDL.GetURLS response from HMI
-				EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
-				:Do(function(_,data)
-					--print("SDL.GetURLS response is received")
-					--hmi side: sending BasicCommunication.OnSystemRequest request to SDL
-					self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",
-						{
-							requestType = "PROPRIETARY",
-							fileName = "filename"
-						}
-					)
-					--mobile side: expect OnSystemRequest notification
-					EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY" })
-					:Do(function(_,data)
-						--print("OnSystemRequest notification is received")
-						--mobile side: sending SystemRequest request
-						local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest",
-							{
-								fileName = "PolicyTableUpdate",
-								requestType = "PROPRIETARY"
-							},
-						"files/PTU_WithOutChangeRegistrationRPC.json")
-
-						local systemRequestId
-						--hmi side: expect SystemRequest request
-						EXPECT_HMICALL("BasicCommunication.SystemRequest")
-						:Do(function(_,data)
-							systemRequestId = data.id
-							--print("BasicCommunication.SystemRequest is received")
-
-							--hmi side: sending BasicCommunication.OnSystemRequest request to SDL
-							self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate",
-								{
-									policyfile = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate"
-								}
-							)
-							function to_run()
-								--hmi side: sending SystemRequest response
-								self.hmiConnection:SendResponse(systemRequestId,"BasicCommunication.SystemRequest", "SUCCESS", {})
-							end
-
-							RUN_AFTER(to_run, 500)
-						end)
-
-						--hmi side: expect SDL.OnStatusUpdate
-						EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate")
-						:ValidIf(function(exp,data)
-							if
-								exp.occurences == 1 and
-								data.params.status == "UP_TO_DATE" then
-									return true
-							elseif
-								exp.occurences == 1 and
-								data.params.status == "UPDATING" then
-									return true
-							elseif
-								exp.occurences == 2 and
-								data.params.status == "UP_TO_DATE" then
-									return true
-							else
-								if
-									exp.occurences == 1 then
-										print ("\27[31m SDL.OnStatusUpdate came with wrong values. Expected in first occurrences status 'UP_TO_DATE' or 'UPDATING', got '" .. tostring(data.params.status) .. "' \27[0m")
-								elseif exp.occurences == 2 then
-										print ("\27[31m SDL.OnStatusUpdate came with wrong values. Expected in second occurrences status 'UP_TO_DATE', got '" .. tostring(data.params.status) .. "' \27[0m")
-								end
-								return false
-							end
-						end)
-						:Times(Between(1,2))
-
-						--mobile side: expect SystemRequest response
-						EXPECT_RESPONSE(CorIdSystemRequest, { success = true, resultCode = "SUCCESS"})
-						:Do(function(_,data)
-							--print("SystemRequest is received")
-							--hmi side: sending SDL.GetUserFriendlyMessage request to SDL
-							local RequestIdGetUserFriendlyMessage = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"StatusUpToDate"}})
-
-							--hmi side: expect SDL.GetUserFriendlyMessage response
-							EXPECT_HMIRESPONSE(RequestIdGetUserFriendlyMessage,{result = {code = 0, method = "SDL.GetUserFriendlyMessage", messages = {{line1 = "Up-To-Date", messageCode = "StatusUpToDate", textBody = "Up-To-Date"}}}})
-							:Do(function(_,data)
-								print("SDL.GetUserFriendlyMessage is received")
-							end)
-						end)
-
-					end)
-				end)
-			end
-
-				function Test:ChangeRegistration_DisalloweRPCNotIncludedSuccessFalse()
-					local paramsSend = changeRegistrationAllParams()
-
-					--mobile side: send ChangeRegistration request
-					local CorIdChangeRegistration = self.mobileSession:SendRPC("ChangeRegistration", paramsSend)
-
-					--mobile side: expect ChangeRegistration response
-					self.mobileSession:ExpectResponse(CorIdChangeRegistration, { success = false, resultCode = "DISALLOWED" })
-				end
-
-		--End Test case ResultCodeCheck.6
-
 	--End Test suit ResultCodeCheck
 
 
@@ -6497,19 +6376,6 @@ end
 			--End DifferentHMIlevel.1.3
 		--End Test case DifferentHMIlevel.1
 	--End Test suit DifferentHMIlevel
-
----------------------------------------------------------------------------------------------
--------------------------------------------Postcondition-------------------------------------
----------------------------------------------------------------------------------------------
-
-	--Print new line to separate Postconditions
-	commonFunctions:newTestCasesGroup("Postconditions")
-
-
-	--Restore sdl_preloaded_pt.json
-	policyTable:Restore_preloaded_pt()
-
-
 
  return Test
 
