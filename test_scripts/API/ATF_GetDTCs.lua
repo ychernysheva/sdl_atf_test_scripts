@@ -1841,36 +1841,6 @@ local function ResultCodeChecks()
 		commonTestCases:verifyResultCode_APPLICATION_NOT_REGISTERED()
 		
 	--End Test case ResultCodeChecks.1
-	-----------------------------------------------------------------------------------------
-
-	--Begin Test case ResultCodeChecks.2
-	--Description: Check resultCode DISALLOWED, USER_DISALLOWED
-			
-		--Requirement id in JAMA: SDLAQ-CRS-637, SDLAQ-CRS-638
-		--Verification criteria: 
-			--1. SDL must return "resultCode: DISALLOWED, success:false" to the RPC in case this RPC is omitted in the PolicyTable group(s) assigned to the app that requests this RPC.
-			--2. SDL must return "resultCode: DISALLOWED, success:false" to the RPC in case this RPC is included to the PolicyTable group(s) assigned to the app that requests this RPC and the group has not yet received user's consents.		
-			--SDL must return "resultCode: USER_DISALLOWED, success:false" to the RPC in case this RPC exists in the PolicyTable group disallowed by the user.
-				
-		
-		--Begin Test case ResultCodeChecks.2.1
-		--Description: 1. SDL must return "resultCode: DISALLOWED, success:false" to the RPC in case this RPC is omitted in the PolicyTable group(s) assigned to the app that requests this RPC.
-			
-			policyTable:checkPolicyWhenAPIIsNotExist()			
-			
-		--End Test case ResultCodeChecks.2.1
-		
-		
-		--Begin Test case ResultCodeChecks.2.2
-		--Description: 
-			--SDL must return "resultCode: DISALLOWED, success:false" to the RPC in case this RPC is included to the PolicyTable group(s) assigned to the app that requests this RPC and the group has not yet received user's consents.
-			--SDL must return "resultCode: USER_DISALLOWED, success:false" to the RPC in case this RPC exists in the PolicyTable group disallowed by the user.
-		
-			policyTable:checkPolicyWhenUserDisallowed({"FULL", "LIMITED", "BACKGROUND"})
-			
-		--End Test case ResultCodeChecks.2.2
-	
-	--End Test case ResultCodeChecks.2
 
 	-----------------------------------------------------------------------------------------
 	
