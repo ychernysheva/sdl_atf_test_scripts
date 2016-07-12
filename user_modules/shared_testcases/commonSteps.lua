@@ -44,31 +44,40 @@ function commonSteps:ActivationApp(AppNumber, TestCaseName)
 		--hmi side: sending SDL.ActivateApp request
 		local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = Input_AppId})
 		EXPECT_HMIRESPONSE(RequestId)
-		:Do(function(_,data)
-			if
-				data.result.isSDLAllowed ~= true then
-				local RequestId = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
-				
-				--hmi side: expect SDL.GetUserFriendlyMessage message response
-				--TODO: update after resolving APPLINK-16094.
-				--EXPECT_HMIRESPONSE(RequestId,{result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
-				EXPECT_HMIRESPONSE(RequestId)
-				:Do(function(_,data)						
-					--hmi side: send request SDL.OnAllowSDLFunctionality
-					--self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = "127.0.0.1"}})
-					self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", {allowed = true, source = "GUI", device = {id = deviceMAC, name = "127.0.0.1"}})
+		
+		--mobile side: expect notification
+		EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"}) 
+	end
+end
+---------------------------------------------------------------------------------------------
 
-					--hmi side: expect BasicCommunication.ActivateApp request
-					EXPECT_HMICALL("BasicCommunication.ActivateApp")
-					:Do(function(_,data)
-						--hmi side: sending BasicCommunication.ActivateApp response
-						self.hmiConnection:SendResponse(data.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
-					end)
-					:Times(AnyNumber())
-				end)
+---------------------------------------------------------------------------------------------
 
-			end
-		end)
+
+--1. ActivationApp: Activate default application
+--Parameter: AppNumber is optional
+function commonSteps:ActivationAppGenivi(AppId, TestCaseName)	
+
+	local TCName
+	if TestCaseName ==nil then
+		TCName = "Activation_App"
+	else
+		TCName = TestCaseName
+	end
+	
+	Test[TCName] = function(self)
+
+		local Input_AppId
+		
+		if AppId ~= nil then
+			Input_AppId = AppId
+		else
+			Input_AppId = self.applications[config.application1.registerAppInterfaceParams.appName]
+		end
+
+		--hmi side: sending SDL.ActivateApp request
+		local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = Input_AppId})
+		EXPECT_HMIRESPONSE(RequestId)
 		
 		--mobile side: expect notification
 		EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"}) 
@@ -223,25 +232,6 @@ function commonSteps:ActivateTheSecondMediaApp()
 		--HMI send ActivateApp request			
 		local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = appId2})
 		EXPECT_HMIRESPONSE(RequestId)
-		:Do(function(_,data)
-
-			if data.result.isSDLAllowed ~= true then
-				local RequestId = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
-				EXPECT_HMIRESPONSE(RequestId,{result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
-				:Do(function(_,data)
-					--hmi side: send request SDL.OnAllowSDLFunctionality
-					self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", {allowed = true, source = "GUI", device = {id = deviceMAC, name = "127.0.0.1"}})
-				end)
-
-				EXPECT_HMICALL("BasicCommunication.ActivateApp")
-				:Do(function(_,data)
-					self.hmiConnection:SendResponse(data.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
-				end)
-				:Times(AnyNumber())
-			else
-				self.hmiConnection:SendResponse(data.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
-			end
-		end)
 
 		self.mobileSession2:ExpectNotification("OnHMIStatus", {hmiLevel = "FULL", audioStreamingState = "AUDIBLE", systemContext = "MAIN"}) 
 		:Timeout(12000)
@@ -326,8 +316,8 @@ function commonSteps:RegisterAppInterface(TestCaseName)
 		{
 			syncMsgVersion = 
 			{
-				majorVersion = 3,
-				minorVersion = 1
+				majorVersion = 4,
+				minorVersion = 0
 			}
 		})
 		:Timeout(12000)
@@ -360,20 +350,118 @@ end
 
 
 --10. DeleteLogsFileAndPolicyTable
-function commonSteps:DeleteLogsFileAndPolicyTable()
+function commonSteps:DeleteLogsFileAndPolicyTable(DeleteLogsFlags)
 
-	--Delete policy table 
-	os.remove(config.pathToSDL .. SDLConfig:GetValue("AppStorageFolder") .. "/policy.sqlite")
+	self:DeletePolicyTable()
+
+	if DeleteLogsFlags == nil then
+		DeleteLogsFlags = true
+	end
+
+	if DeleteLogsFlags == true then
+		--Delete app_info.dat and log files
+		self:DeleteLogsFiles()
+	end
 	
-	--Delete app_info.dat and log files
-	os.remove(config.pathToSDL .. "app_info.dat")
-	os.remove(config.pathToSDL .. "SmartDeviceLinkCore.log")
-	os.remove(config.pathToSDL .. "TransportManager.log")
-	os.remove(config.pathToSDL .. "ProtocolFordHangling.log")
-	os.remove(config.pathToSDL .. "HmiFrameworkPlugin.log")
 end
 
+--10. DeleteLogsFile
+function commonSteps:DeleteLogsFiles()
+	self:CheckSDLPath()
 
+	--Delete app_info.dat and log files
+	if self:file_exists(config.pathToSDL .. "app_info.dat") == true then
+		os.remove(config.pathToSDL .. "app_info.dat")
+	end
+
+	if self:file_exists(config.pathToSDL .. "SmartDeviceLinkCore.log") == true then
+		os.remove(config.pathToSDL .. "SmartDeviceLinkCore.log")
+	end
+
+	if self:file_exists(config.pathToSDL .. "TransportManager.log") == true then
+		os.remove(config.pathToSDL .. "TransportManager.log")
+	end
+
+	if self:file_exists(config.pathToSDL .. "ProtocolFordHandling.log") == true then
+		os.remove(config.pathToSDL .. "ProtocolFordHandling.log")
+	end
+
+	if self:file_exists(config.pathToSDL .. "HmiFrameworkPlugin.log") == true then
+		os.remove(config.pathToSDL .. "HmiFrameworkPlugin.log")
+	end
 	
+end
+
+--11. Check file existence
+function commonSteps:file_exists(name)
+   	local f=io.open(name,"r")
+
+   	if f ~= nil then 
+   		io.close(f)
+   		return true
+   	else 
+   		return false 
+   	end
+end
+
+--12. Respore original .ini file
+function commonSteps:RestoreIniFile()
+
+	self:RestoreFileFromAppMainFolder("smartDeviceLink.ini")
+
+end
+
+--13. delete PT
+function commonSteps:CheckSDLPath()
+	--Verify config.pathToSDL
+	findresultFirstCharacters = string.match (config.pathToSDL, '^%.%/')
+	if findresultFirstCharacters == "./" then
+		local CurrentFolder = assert( io.popen( "pwd" , 'r'))
+		local CurrentFolderPath = CurrentFolder:read( '*l' )
+
+		PathUsingCurrentFolder = string.match (config.pathToSDL, '[^%.]+')
+
+		config.pathToSDL = CurrentFolderPath .. PathUsingCurrentFolder
+
+	end
+
+	findresultLastCharacters = string.find (config.pathToSDL, '.$')
+	if string.sub(config.pathToSDL,findresultLastCharacters) ~= "/" then
+		config.pathToSDL = config.pathToSDL..tostring("/")
+	end
+end
+
+--14. delete PT 
+function commonSteps:DeletePolicyTable()
+
+	self:CheckSDLPath()
+
+	if self:file_exists(config.pathToSDL .. SDLConfig:GetValue("AppStorageFolder") .. "/policy.sqlite") == true then
+		--Delete policy table 
+		os.remove(config.pathToSDL .. SDLConfig:GetValue("AppStorageFolder") .. "/policy.sqlite")
+	elseif 
+		self:file_exists(config.pathToSDL .. "policy.sqlite") == true then
+		--Delete policy table 
+		os.remove(config.pathToSDL .. "policy.sqlite")
+	else
+		print( " \27[33m commonSteps:DeletePolicyTable : policy.sqlite is not found \27[0m " )
+	end
+	
+end
+
+-- 14. Restoring file from appMain folder
+function commonSteps:RestoreFileFromAppMainFolder(fileName)
+
+	self:CheckSDLPath()
+
+	str = tostring(config.pathToSDL)
+
+	local PathToSDLWihoutBin =  string.gsub(str, "bin/", "")
+
+	OriginalIniFile = PathToSDLWihoutBin .. "src/appMain/" .. tostring(fileName)
+
+	os.execute( " cp " .. tostring(OriginalIniFile) .. " " .. tostring(config.pathToSDL) .. "" )
+end
+
 return commonSteps
 
