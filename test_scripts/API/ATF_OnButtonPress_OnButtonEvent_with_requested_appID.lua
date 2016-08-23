@@ -1,9 +1,11 @@
 ---------------------------------------------------------------------------------------------
 -- Author: I.Stoimenova
 -- Creation date: 12.08.2016
--- Last update date: 12.08.2016
+-- Last update date: 22.08.2016
 -- ATF version: 2.2
-
+-- GOAL: The script implements CRQ APPLINK-25467: [GENIVI] Conditions for SDL to transfer 
+--           OnButtonPress/OnButtonEvent (name = "OK") to app with requested <appID>
+-- Functional and non-functional requirements of CRQ are covered in TCs.
 ---------------------------------------------------------------------------------------------
 ----------------------------- General Preparation -------------------------------------------
 ---------------------------------------------------------------------------------------------
@@ -194,12 +196,43 @@
 		print ("\27[" .. tostring(color) .. "m " .. tostring(message) .. " \27[0m")
 	end
 
+	--Begin Test case PositiveResponseCheck.5
+		--Description: [OnButtonEvent/OnButtonPress] SDL receives notification for "OK" button 
+		--             with <appID> from HMI
+		--             Eventmode: BUTTONDOWN
+		--             PressMode: LONG
+		--Requirement id in JIRA:  APPLINK-25480; APPLINK-25479; APPLINK-20174
+		--Verification criteria:
+			-- In case application is in NONE HMILevel and HMI sends OnButtonEvent/OnButtonPress(name= "OK") with <appID>
+			-- SDL must NOT transfer this OnButtonEvent/OnButtonPress notification to registered app in NONE
+			local	function NoNotificationOnBtnPressEvent(self, appNum, BtnEvent, BtnPress)
+								
+				userPrint(34, "====================== Test Case 01 CorrectAppID_Button_OK_NONE_"..applicationData[appNum].appHMIType[1].."_"..BtnEvent.."_".. BtnPress .."=================================")								
+				--hmi side: send notification
+				self.hmiConnection:SendNotification("Buttons.OnButtonEvent", {	name = "OK", mode = BtnEvent, appID = tonumber(applicationData[appNum].appID) })
+
+				--hmi side: send notification
+				self.hmiConnection:SendNotification("Buttons.OnButtonPress", {	name = "OK", mode = BtnPress, appID = tonumber(applicationData[appNum].appID) })
+	
+				print("Check for no notification from SDL to app "..applicationData[appNum].appHMIType[1] .. " HMI level: " ..HMILevel[appNum])
+
+				--mobile side: expect notification
+				SessionNumber[appNum]:ExpectNotification("OnButtonEvent",{})
+				:Times(0)
+ 								
+				SessionNumber[appNum]:ExpectNotification("OnButtonPress",{})
+				:Times(0)
+			
+				commonTestCases:DelayedExp(10000)
+			end
+	--Begin Test case PositiveResponseCheck.5
+
 	--function Precondition_UnregisterApp(self, session, iappID, nameTC)
 	function Precondition_UnregisterApp(AppNum, nameTC)
 		
 		Test[nameTC .. "_UnregisterApp_" .. applicationData[AppNum].appHMIType[1] ] = function(self)		
 			
-			--mobile side: UnregisterAppInterface request 
+			--mobile side: UnregisterAppInterface request 	
 			local correlationId = SessionNumber[AppNum]:SendRPC("UnregisterAppInterface", {})
 			
 			--hmi side: expected  BasicCommunication.OnAppUnregistered
@@ -225,8 +258,8 @@
 	 		SessionNumber[AppNum] = mobile_session.MobileSession(self, self.mobileConnection, applicationData[AppNum])
 	 		SessionNumber[AppNum]:StartService(7)
  
-   	end
-  end
+   		end
+  	end
 
 	function Precondition_RegisterApp(AppNum, nameTC)
 
@@ -241,6 +274,11 @@
 
 				--mobile side: expect notification
  				SessionNumber[AppNum]:ExpectNotification("OnHMIStatus", {{ hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"}})
+ 				:Do(function (_,data)
+ 					HMILevel[AppNum] = "NONE"
+ 					
+ 					NoNotificationOnBtnPressEvent(self, AppNum, BtnEventMode[1], BtnPressMode[1]) 					
+ 				end)
 
  				--hmi side: expect notification
  				EXPECT_HMINOTIFICATION("Buttons.OnButtonSubscription", {appID = self.applications[applicationData[AppNum].appName], isSubscribed = true, name = "CUSTOM_BUTTON"})
@@ -256,7 +294,7 @@
 		-- Issue of ATF, OnHMIStatus  is not verified correctly: APPLINK-17030
  	
  		Test[nameTC .. "_ActivateApp_" .. applicationData[AppNum].appHMIType[1] ] = function(self)	
-			userPrint(35, "======================================= " ..nameTC .. "_" .. applicationData[AppNum].appHMIType[1] .. " ====================================")
+			--userPrint(35, "======================================= " ..nameTC .. "_" .. applicationData[AppNum].appHMIType[1] .. " ====================================")
  			local HMIlevelNotActiveApp = { hmiLevel = "BACKGROUND", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"}
  			local HMIlevelActiveApp 	 = { hmiLevel = "FULL", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"}
  			
@@ -270,32 +308,6 @@
 
 			--hmi side: expect SDL.ActivateApp response
 			EXPECT_HMIRESPONSE(RequestId)
-		  :Do(function(_,data)
-			--In case when app is not allowed, it is needed to allow app
-			  if (data.result.isSDLAllowed ~= true ) then
-
-					--hmi side: sending SDL.GetUserFriendlyMessage request
-					local RequestId = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
-
-					--hmi side: expect SDL.GetUserFriendlyMessage response
-					--TODO: comment until resolving APPLINK-16094
-					-- EXPECT_HMIRESPONSE(RequestId,{result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
-					EXPECT_HMIRESPONSE(RequestId)
-					:Do(function(_,data)
-
-						--hmi side: send request SDL.OnAllowSDLFunctionality
-						self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = "127.0.0.1"}})
-
-						--hmi side: expect BasicCommunication.ActivateApp request
-						EXPECT_HMICALL("BasicCommunication.ActivateApp")
-						:Do(function(_,data)
-						  --hmi side: sending BasicCommunication.ActivateApp response
-						  self.hmiConnection:SendResponse(data.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
-						end)
-						:Times(2)
-					end)
-				end
-			end)
 
 			--mobile side: expect notification
  			SessionNumber[AppNum]:ExpectNotification("OnHMIStatus", HMIlevelActiveApp)
@@ -374,7 +386,7 @@ for appNum = 1, #applicationData do
 	Precondition_ActivateApp(appNum, "Precondition")
 
 	-- OK button will be subscribed
-	Test["TC01_Precondition_SubscribeBtn_OK"] = function(self)
+	Test["TC02_Precondition_SubscribeBtn_OK"] = function(self)
  			local strAppName = applicationData.appName
 				
  			--mobile side: sending SubscribeButton request
@@ -409,7 +421,7 @@ for appNum = 1, #applicationData do
 					--Verification criteria:
 						-- In case application is in FULL HMILevel and HMI sends OnButtonEvent/OnButtonPress(name= "OK") without <appID>
 						-- SDL must transfer this OnButtonEvent notification to registered app in FULL only
-						Test["TC01_OnButtonEventPress_OK_without_appID_"..applicationData[appNum].appHMIType[1] .."_"..BtnEventMode[BtnEvent].."_".. BtnPressMode[BtnPress] ] = function (self)
+						Test["TC02_OnButtonEventPress_OK_without_appID_"..applicationData[appNum].appHMIType[1] .."_"..BtnEventMode[BtnEvent].."_".. BtnPressMode[BtnPress] ] = function (self)
 							userPrint(34, "====================== Test Case 01 No_appID_Button_OK_"..applicationData[appNum].appHMIType[1] .."_"..BtnEventMode[BtnEvent].."_".. BtnPressMode[BtnPress].."=================================")
 							
 							--hmi side: send notification
@@ -418,27 +430,27 @@ for appNum = 1, #applicationData do
 							--hmi side: send notification
 							self.hmiConnection:SendNotification("Buttons.OnButtonPress", {	name = "OK", mode = BtnPressMode[BtnPress]})
 
-							--mobile side: expect notification
- 							SessionNumber[appNum]:ExpectNotification("OnButtonEvent", {	buttonName = "OK", buttonEventMode = BtnEventMode[BtnEvent]} )
+							for allApp = 1 , appNum do
+								if(HMILevel[allApp] ~= FULL) then
+									print("Check for no notification from SDL to app "..applicationData[allApp].appHMIType[1] .. " HMI level: " ..HMILevel[allApp])
 
- 							--mobile side: expect notification
- 							SessionNumber[appNum]:ExpectNotification("OnButtonPress", {	buttonName = "OK", buttonPressMode = BtnPressMode[BtnPress]} )
+ 							 		--mobile side: expect notification
+ 							 		SessionNumber[allApp]:ExpectNotification("OnButtonEvent",{})
+ 							 		:Times(0)
 
-							print("Application "..applicationData[appNum].appHMIType[1] .. " has HMI level: " .. HMILevel[appNum])
- 							if(appNum > 1) then
- 								for notActiveApp = 1, (appNum - 1) do
- 									print("Check for no notification of app "..applicationData[notActiveApp].appHMIType[1] .. " HMI level: " ..HMILevel[notActiveApp])
+ 							 		SessionNumber[allApp]:ExpectNotification("OnButtonPress",{})
+ 							 		:Times(0)
+ 							 	else
+ 							 		print("Application "..applicationData[allApp].appHMIType[1] .. " has HMI level: " .. HMILevel[allApp])
 
- 									--mobile side: expect notification
- 									SessionNumber[notActiveApp]:ExpectNotification("OnButtonEvent",{})
- 									:Times(0)
- 								
- 									SessionNumber[notActiveApp]:ExpectNotification("OnButtonPress",{})
- 									:Times(0)
+ 							 		--mobile side: expect notification
+ 							 		SessionNumber[allApp]:ExpectNotification("OnButtonEvent", {	buttonName = "OK", buttonEventMode = BtnEventMode[BtnEvent]} )
 
- 								end
- 								commonTestCases:DelayedExp(10000)
- 							end
+ 							 		--mobile side: expect notification
+ 								 	SessionNumber[allApp]:ExpectNotification("OnButtonPress", {	buttonName = "OK", buttonPressMode = BtnPressMode[BtnPress]} )
+								end
+							end
+
 						end
 					--End Test case PositiveResponseCheck.1
 
@@ -451,7 +463,7 @@ for appNum = 1, #applicationData do
 					--Verification criteria:
 						-- In case application is in FULL HMILevel and HMI sends OnButtonEvent/OnButtonPress(name= "OK") with <appID>
 						-- SDL must transfer this OnButtonEvent notification to registered app in FULL
-						Test["TC02_OnButtonEventPress_OK_with_appID_FULL_"..applicationData[appNum].appHMIType[1] .."_"..BtnEventMode[BtnEvent].."_".. BtnPressMode[BtnPress] ] = function (self)
+						Test["TC03_OnButtonEventPress_OK_with_appID_FULL_"..applicationData[appNum].appHMIType[1] .."_"..BtnEventMode[BtnEvent].."_".. BtnPressMode[BtnPress] ] = function (self)
 							userPrint(34, "====================== Test Case 02 CorrectAppID_Button_OK_FULL_"..applicationData[appNum].appHMIType[1] .."_"..BtnEventMode[BtnEvent].."_".. BtnPressMode[BtnPress].."=================================")
 							
 							--hmi side: send notification
@@ -469,7 +481,7 @@ for appNum = 1, #applicationData do
 							print("Application "..applicationData[appNum].appHMIType[1] .. " has HMI level: " .. HMILevel[appNum])
  							if(appNum > 1) then
  								for notActiveApp = 1, (appNum - 1) do
- 									print("Check for no notification of app "..applicationData[notActiveApp].appHMIType[1] .. " HMI level: " ..HMILevel[notActiveApp])
+ 									print("Check for no notification from SDL to app "..applicationData[notActiveApp].appHMIType[1] .. " HMI level: " ..HMILevel[notActiveApp])
 
  									--mobile side: expect notification
  									SessionNumber[notActiveApp]:ExpectNotification("OnButtonEvent",{})
@@ -493,7 +505,7 @@ for appNum = 1, #applicationData do
 					--Verification criteria:
 						-- In case application is in LIMITED HMILevel and HMI sends OnButtonEvent/OnButtonPress(name= "OK") with <appID>
 						-- SDL must transfer this OnButtonEvent notification to registered app in LIMITED
-						Test["TC03_OnButtonEventPress_OK_with_appID_LIMITED_"..BtnEventMode[BtnEvent].."_".. BtnPressMode[BtnPress]] = function (self)
+						Test["TC04_OnButtonEventPress_OK_with_appID_LIMITED_"..BtnEventMode[BtnEvent].."_".. BtnPressMode[BtnPress]] = function (self)
 							local limitedApp = 0
 
 							if(appNum > 1) then
@@ -524,21 +536,21 @@ for appNum = 1, #applicationData do
  									SessionNumber[appNum]:ExpectNotification("OnButtonPress",{})
  									:Times(0)
  									
- 									if(appNum > 1) then
- 										for notLimitedApp = 1, (appNum - 1) do
- 											if(notLimitedApp ~= limitedApp) then
- 												print("Check for no notification of app "..applicationData[notLimitedApp].appHMIType[1] .. " HMI level: " ..HMILevel[notLimitedApp])
+ 									
+ 									for notLimitedApp = 1, (appNum - 1) do
+ 										if(notLimitedApp ~= limitedApp) then
+ 											print("Check for no notification from SDL to app "..applicationData[notLimitedApp].appHMIType[1] .. " HMI level: " ..HMILevel[notLimitedApp])
 
- 												--mobile side: expect notification
- 												SessionNumber[notLimitedApp]:ExpectNotification("OnButtonEvent",{})
- 												:Times(0)
+											--mobile side: expect notification
+											SessionNumber[notLimitedApp]:ExpectNotification("OnButtonEvent",{})
+											:Times(0)
  								
- 												SessionNumber[notLimitedApp]:ExpectNotification("OnButtonPress",{})
- 												:Times(0)
- 											end
- 										end
- 										commonTestCases:DelayedExp(10000)
- 									end
+											SessionNumber[notLimitedApp]:ExpectNotification("OnButtonPress",{})
+											:Times(0)
+										end
+									end
+									commonTestCases:DelayedExp(10000)
+
  								end -- if(HMILevel[appNum -1] == "LIMITED") then
  							end -- (appNum > 1) then
 						end
@@ -551,9 +563,9 @@ for appNum = 1, #applicationData do
 					--             PressMode: LONG; SHORT
 					--Requirement id in JIRA:  APPLINK-25480; APPLINK-25479; APPLINK-20174
 					--Verification criteria:
-						-- In case application is in BACKGROUND HMILevel and HMI sends OnButtonEvent/OnButtonPress(name= "OK") with <appID>
-						-- SDL must NOT transfer this OnButtonEvent/OnButtonPress notification to registered app in BACKGROUND
-						Test["TC04_OnButtonEventPress_OK_with_appID_BACKGROUND_"..BtnEventMode[BtnEvent].."_".. BtnPressMode[BtnPress]] = function (self)
+						-- In case application is in BACKGROUND/NONE HMILevel and HMI sends OnButtonEvent/OnButtonPress(name= "OK") with <appID>
+						-- SDL must NOT transfer this OnButtonEvent/OnButtonPress notification to registered app in BACKGROUND/NONE
+						Test["TC05_OnButtonEventPress_OK_with_appID_BACKGROUND_"..BtnEventMode[BtnEvent].."_".. BtnPressMode[BtnPress]] = function (self)
 							local backgroundApp = 0
 
 							if(appNum > 1) then
@@ -571,7 +583,7 @@ for appNum = 1, #applicationData do
 
 
  									for i = 1, appNum  do
-										print("Check for no notification of app "..applicationData[i].appHMIType[1] .. " HMI level: " ..HMILevel[i])
+										print("Check for no notification from SDL to app "..applicationData[i].appHMIType[1] .. " HMI level: " ..HMILevel[i])
 
 										--mobile side: expect notification
 										SessionNumber[i]:ExpectNotification("OnButtonEvent",{})
@@ -624,7 +636,7 @@ for appNum = 1, #applicationData do
 					--Verification criteria: 
 						-- In case application is in FULL/LIMITED HMILevel and HMI sends OnButtonEvent/OnButtonPress(name= "OK") with <Invalid_appID>
 						-- SDL must NOT transfer this OnButtonEvent/OnButtonPress notification to registered app in FULL/LIMITED
-						Test["TC05_OnButtonEventPress_OK_wrong_appID"] = function (self)
+						Test["TC06_OnButtonEventPress_OK_wrong_appID"] = function (self)
 							userPrint(34, "====================== Test Case 05 Wrong_appID_Button_OK_"..applicationData[appNum].appHMIType[1] .."_"..BtnEventMode[BtnEvent].."_".. BtnPressMode[BtnPress].."=================================")
 							
 							--hmi side: send notification
@@ -634,7 +646,7 @@ for appNum = 1, #applicationData do
 							self.hmiConnection:SendNotification("Buttons.OnButtonPress", {	name = "OK", mode = BtnPressMode[BtnPress], appID = 9999999 })
  							
  							for i = 1, appNum do
- 								print("Check for no notification of app "..applicationData[i].appHMIType[1] .. " HMI level: " ..HMILevel[i])
+ 								print("Check for no notification from SDL to app "..applicationData[i].appHMIType[1] .. " HMI level: " ..HMILevel[i])
 
  								--mobile side: expect notification
  								SessionNumber[i]:ExpectNotification("OnButtonEvent",{})
@@ -656,7 +668,7 @@ for appNum = 1, #applicationData do
 					--Verification criteria: 
 						-- In case application is in FULL/LIMITED HMILevel and HMI sends OnButtonEvent/OnButtonPress(name= "CUSTOM_BUTTON") with <Invalid_appID>
 						-- SDL must NOT transfer this OnButtonEvent/OnButtonPress notification to registered app in FULL/LIMITED
-						Test["TC06_OnButtonEventPress_CUSTOM_BUTTON_wrong_appID"] = function (self)
+						Test["TC0_OnButtonEventPress_CUSTOM_BUTTON_wrong_appID"] = function (self)
 							userPrint(34, "====================== Test Case 06 Wrong_appID_CUSTOM_BUTTON_"..applicationData[appNum].appHMIType[1] .."_"..BtnEventMode[BtnEvent].."_".. BtnPressMode[BtnPress].."=================================")
 							
 							--hmi side: send notification
@@ -668,7 +680,7 @@ for appNum = 1, #applicationData do
 							print("Application "..applicationData[appNum].appHMIType[1] .. " has HMI level: " .. HMILevel[appNum])
  							
  							for i = 1, appNum do
- 								print("Check for no notification of app "..applicationData[i].appHMIType[1] .. " HMI level: " ..HMILevel[i])
+ 								print("Check for no notification from SDL to app "..applicationData[i].appHMIType[1] .. " HMI level: " ..HMILevel[i])
 
  								--mobile side: expect notification
  								SessionNumber[i]:ExpectNotification("OnButtonEvent",{})
