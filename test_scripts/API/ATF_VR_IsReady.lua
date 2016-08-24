@@ -661,8 +661,8 @@ function Test:initHMI_onReady_VR_IsReady(case)
 		end
 		
 		
-		--ToDo: Due to problem with stop and start SDL (APPLINK-26394 (stop and start SDL again)), this step is skipped and update user_modules/connecttest_VR_Isready.lua to send VR.IsReady(available = false) response manually.
-		--StopStartSDL_HMI_MOBILE()
+		--ToDo: Due to problem with stop and start SDL (APPLINK-25898), this step is skipped and update user_modules/connecttest_VR_Isready.lua to send VR.IsReady(available = false) response manually.
+		StopStartSDL_HMI_MOBILE()
 		
 		-----------------------------------------------------------------------------------------------		
 		--CRQ #1) APPLINK-25046: [RegisterAppInterface] SDL behavior in case <Interface> is not supported by system => omit <Interface>-related param from response to mobile app (meaning: SDL must NOT retrieve the default values from 'HMI_capabilities.json' file and provide via response to mobile app)
@@ -1687,7 +1687,7 @@ function Test:initHMI_onReady_VR_IsReady(case)
 	end
 		
 	--Precondition: Update connecttest_VR_Isready.lua responds VR.IsReady(available = false). 
-	--ToDo: After APPLINK-26394 (stop and start SDL again) is closed, remove this precondition.
+	--ToDo: After APPLINK-25898 is closed, remove this precondition.
 	case1_IsReady_availabe_false()
 
 
@@ -3589,7 +3589,7 @@ function Test:initHMI_onReady_VR_IsReady(case)
 }
 
 	
-	--ToDo: Defect APPLINK-26394 Due to problem when stop and start SDL, script is debugged by updating user_modules/connecttest_VR_Isready.lua
+	--ToDo: Defect APPLINK-25898 Due to problem when stop and start SDL, script is debugged by updating user_modules/connecttest_VR_Isready.lua
 	--for i=1, #TestData do
 	for i=1, 1 do
 
@@ -3640,7 +3640,7 @@ function Test:initHMI_onReady_VR_IsReady(case)
 		end
 	
 
-		--ToDo: Due to problem when stop and start SDL (APPLINK-26394 (stop and start SDL again)), script is debugged by updating user_modules/connecttest_VR_Isready.lua
+		--ToDo: Due to problem when stop and start SDL (APPLINK-25898), script is debugged by updating user_modules/connecttest_VR_Isready.lua
 		--StopStartSDL_HMI_MOBILE(TestData[i].caseID, TestCaseName)
 
 		
