@@ -55,7 +55,6 @@ end
 
 --Backup preloaded file
 local function BackupPreloaded()
-	-- body
 	os.execute('cp ' .. config.pathToSDL .. 'sdl_preloaded_pt.json' .. ' ' .. config.pathToSDL .. 'backup_sdl_preloaded_pt.json')
 	os.execute('rm ' .. config.pathToSDL .. 'policy.sqlite')
 end
@@ -63,7 +62,6 @@ end
 
 --Restore correct preloaded policy table file
 local function RestorePreloadedPT(self)
-	-- body
 	os.execute('rm ' .. config.pathToSDL .. 'sdl_preloaded_pt.json')
 	os.execute('cp ' .. config.pathToSDL .. 'backup_sdl_preloaded_pt.json' .. ' ' .. config.pathToSDL .. 'sdl_preloaded_pt.json')
 	os.execute('rm ' .. config.pathToSDL .. 'policy.sqlite')
@@ -511,44 +509,53 @@ commonSteps:ActivationApp()
 
 		commonFunctions:newTestCasesGroup("TC07_Case when mandatory section device is missed in preloaded_pt:")
 
-		function Test:IgnitionOff()
-		    StopSDL()
-		end
+			function Test:PreconditionIgnitionOff()
+			    StopSDL()
+			end
 
-		function Test:BackupPreloadedPt()
-			BackupPreloaded()
-		end
+			function Test:BackupPreloadedPt()
+				BackupPreloaded()
+			end
 
-		function Test:RemoveDeviceFromPreloadedJson()
-		  -- body
-		    pathToFile = config.pathToSDL .. 'sdl_preloaded_pt.json'
-		    local file  = io.open(pathToFile, "r")
-		    local json_data = file:read("*all") -- may be abbreviated to "*a";
-		    file:close()
+			function Test:RemoveDeviceFromPreloadedJson()
+			    pathToFile = config.pathToSDL .. 'sdl_preloaded_pt.json'
+			    local file  = io.open(pathToFile, "r")
+			    local json_data = file:read("*all") -- may be abbreviated to "*a";
+			    file:close()
 
-		    local json = require("modules/json")
-		   
-		    local data = json.decode(json_data)
-		    if data.policy_table.app_policies and 
-		   	    data.policy_table.app_policies["device"] ~= nil then
-		   		data.policy_table.app_policies["device"] = nil  
-		    end
+			    local json = require("modules/json")
+			   
+			    local data = json.decode(json_data)
+			    if data.policy_table.app_policies and 
+			   	    data.policy_table.app_policies["device"] ~= nil then
+			   		data.policy_table.app_policies["device"] = nil  
+			    end
 		
-		    data = json.encode(data)
+			    data = json.encode(data)
 
-		    file = io.open(pathToFile, "w")
-		    file:write(data)
-		    file:close()
-		end
-  
-	    function Test:RestorePreloadedJson()
-	  		RestorePreloadedPT()
-	    end
+			    file = io.open(pathToFile, "w")
+			    file:write(data)
+			    file:close()
+			end
+                
+			function Test:IgnitionOnWithEditedPT()
+				StartSDL(config.pathToSDL, config.ExitOnCrash)
+				userPrint(34, "After IGNON SDL stops since preloaded not valid(see above message)")
+			end
 
-		function Test:StartSDLWithDeviceInPT()
-			StartSDL(config.pathToSDL, config.ExitOnCrash)
-			userPrint(34, "After correct sdl_preloaded_pt.json restored, SDL starts successfully")
-		end
+		--Start Postcondition to case7.
+		commonFunctions:newTestCasesGroup("TC07_Posconditions")
+
+		    	function Test:RestorePreloadedJson()
+		  		RestorePreloadedPT()
+		   	end
+
+			function Test:StartSDLWithDeviceInPT()
+				StartSDL(config.pathToSDL, config.ExitOnCrash)
+				userPrint(34, "After correct sdl_preloaded_pt.json restored, SDL starts successfully:")
+			end
+		--end Postcondition to case7.
+
 	-- End Negative case7.
 
 	-------------------------------------------------------------
@@ -558,44 +565,52 @@ commonSteps:ActivationApp()
 
 		commonFunctions:newTestCasesGroup("TC08_Case when mandatory section device is incorrect in preloaded_pt:")
 
-		function Test:IgnitionOff1()
-		    StopSDL()
-		end
+			function Test:PreconditionIgnitionOff()
+			    StopSDL()
+			end
 
-		function Test:BackupPreloadedPtFile()
-			BackupPreloaded()
-		end
+			function Test:BackupPreloadedPtFile()
+				BackupPreloaded()
+			end
 
-		function Test:ChangeDeviceSectionInPreloaded()
-		  -- body
-		    pathToFile = config.pathToSDL .. 'sdl_preloaded_pt.json'
-		    local file  = io.open(pathToFile, "r")
-		    local json_data = file:read("*all") -- may be abbreviated to "*a";
-		    file:close()
+			function Test:ChangeDeviceSectionInPreloaded()
+			    pathToFile = config.pathToSDL .. 'sdl_preloaded_pt.json'
+			    local file  = io.open(pathToFile, "r")
+			    local json_data = file:read("*all") -- may be abbreviated to "*a";
+			    file:close()
 
-		    local json = require("modules/json")
-		   
-		    local data = json.decode(json_data)
-		    if data.policy_table.app_policies and 
-		   	    data.policy_table.app_policies["device"] ~= nil then
-		   		data.policy_table.app_policies["device"] = data.policy_table.app_policies["Device"]  
-		    end
+			    local json = require("modules/json")
+			   
+			    local data = json.decode(json_data)
+			    if data.policy_table.app_policies and 
+			   	    data.policy_table.app_policies["device"] ~= nil then
+			   		data.policy_table.app_policies["device"] = data.policy_table.app_policies["Device"]  
+			    end
 		
-		    data = json.encode(data)
+			    data = json.encode(data)
 
-		    file = io.open(pathToFile, "w")
-		    file:write(data)
-		    file:close()
-		end
- 
-	    function Test:RestorePreloadedJson()
-	  		RestorePreloadedPT()
-	    end
+			    file = io.open(pathToFile, "w")
+			    file:write(data)
+			    file:close()
+			end
+				
+			function Test:IgnitionOnWithEditedPT()
+				StartSDL(config.pathToSDL, config.ExitOnCrash)
+				userPrint(34, "After IGNON SDL stops since preloaded not valid(see above message)")
+			end
+ 		
+		--Start Postcondition to case8.
+		commonFunctions:newTestCasesGroup("TC08_Posconditions")
 
-		function Test:StartSDLWithDeviceInPT()
-			StartSDL(config.pathToSDL, config.ExitOnCrash)
-			userPrint(34, "After correct sdl_preloaded_pt.json restored, SDL starts successfully")
-		end
+		  	function Test:RestorePreloadedJson()
+		  		RestorePreloadedPT()
+		   	end
+
+			function Test:StartSDLWithDeviceInPT()
+				StartSDL(config.pathToSDL, config.ExitOnCrash)
+				userPrint(34, "After correct sdl_preloaded_pt.json restored, SDL starts successfully:")
+			end
+		--end Postcondition to case8.
 	-- End Negative case8.
 
 	-------------------------------------------------------------	
@@ -606,45 +621,52 @@ commonSteps:ActivationApp()
 
 		commonFunctions:newTestCasesGroup("TC09_Case when mandatory section pre_DataConsent is missed in preloaded_pt:")
 
-		function Test:IgnitionOff2()
-			StopSDL()
-		end
+			function Test:PreconditionIgnitionOff()
+				StopSDL()
+			end
 
-		function Test:BackupPreloadedPtFile()
-			BackupPreloaded()
-		end
+			function Test:BackupPreloadedPtFile()
+				BackupPreloaded()
+			end
 
-		function Test:RemovePreDataConsentFromPreloadedJson()
-		  -- body
-		    pathToFile = config.pathToSDL .. 'sdl_preloaded_pt.json'
-		    local file  = io.open(pathToFile, "r")
-		    local json_data = file:read("*all") -- may be abbreviated to "*a";
-		    file:close()
+			function Test:RemovePreDataConsentFromPreloadedJson()
+			    pathToFile = config.pathToSDL .. 'sdl_preloaded_pt.json'
+			    local file  = io.open(pathToFile, "r")
+			    local json_data = file:read("*all") -- may be abbreviated to "*a";
+			    file:close()
 
-		    local json = require("modules/json")
-		   
-		    local data = json.decode(json_data)
-		   	if data.policy_table.app_policies and 
-		   		data.policy_table.app_policies["pre_DataConsent"] ~= nil then
-		   		data.policy_table.app_policies["pre_DataConsent"] = nil
-			  
-		    end
+			    local json = require("modules/json")
+			   
+			    local data = json.decode(json_data)
+			   	if data.policy_table.app_policies and 
+			   		data.policy_table.app_policies["pre_DataConsent"] ~= nil then
+			   		data.policy_table.app_policies["pre_DataConsent"] = nil
+				  
+			    end
 		
-		    data = json.encode(data)
+			    data = json.encode(data)
 
-		    file = io.open(pathToFile, "w")
-		    file:write(data)
-		    file:close()
-		 end
+			    file = io.open(pathToFile, "w")
+			    file:write(data)
+			    file:close()
+			 end
 
-		function Test:RestorePreloadedJson()
-	  		RestorePreloadedPT()
-	    end   
+			function Test:IgnitionOnWithEditedPT()
+				StartSDL(config.pathToSDL, config.ExitOnCrash)
+				userPrint(34, "After IGNON SDL stops since preloaded not valid(see above message)")
+			end
+	
+		--Start Postcondition to case9.
+		commonFunctions:newTestCasesGroup("TC09_Posconditions")
+			function Test:RestorePreloadedJson()
+		  		RestorePreloadedPT()
+		    	end   
 
-		function Test:StartSDLWithPreDataInPT()
-			StartSDL(config.pathToSDL, config.ExitOnCrash)
-			userPrint(34, "After correct sdl_preloaded_pt.json restored, SDL starts successfully")
-		end
+			function Test:StartSDLWithPreDataInPT()
+				StartSDL(config.pathToSDL, config.ExitOnCrash)
+				userPrint(34, "After correct sdl_preloaded_pt.json restored, SDL starts successfully:")
+			end
+		--end Postcondition to case9.
 	-- End Negative case9.
 
 	-------------------------------------------------------------
@@ -654,44 +676,51 @@ commonSteps:ActivationApp()
 
 		commonFunctions:newTestCasesGroup("TC10_Case when mandatory section pre_DataConsent is incorrect in preloaded_pt:")
 
-		function Test:IgnitionOff3()
-		    StopSDL()
-		end
+			function Test:PreconditionIgnitionOff()
+			    StopSDL()
+			end
 
-		function Test:BackupPreloadedPtFile()
-			BackupPreloaded()
-		end
+			function Test:BackupPreloadedPtFile()
+				BackupPreloaded()
+			end
 
-		function Test:ChangePreDataSectionInPreloaded()
-		  -- body
-		    pathToFile = config.pathToSDL .. 'sdl_preloaded_pt.json'
-		    local file  = io.open(pathToFile, "r")
-		    local json_data = file:read("*all") -- may be abbreviated to "*a";
-		    file:close()
+			function Test:ChangePreDataSectionInPreloaded()
+			    pathToFile = config.pathToSDL .. 'sdl_preloaded_pt.json'
+			    local file  = io.open(pathToFile, "r")
+			    local json_data = file:read("*all") -- may be abbreviated to "*a";
+			    file:close()
 
-		    local json = require("modules/json")
-		   
-		    local data = json.decode(json_data)
-		    if data.policy_table.app_policies and 
-		   	    data.policy_table.app_policies["pre_DataConsent"] ~= nil then
-		   		data.policy_table.app_policies["pre_DataConsent"] = data.policy_table.app_policies["Pre_DataConsent"]  
-		    end
+			    local json = require("modules/json")
+			   
+			    local data = json.decode(json_data)
+			    if data.policy_table.app_policies and 
+			   	    data.policy_table.app_policies["pre_DataConsent"] ~= nil then
+			   		data.policy_table.app_policies["pre_DataConsent"] = data.policy_table.app_policies["Pre_DataConsent"]  
+			    end
 		
-		    data = json.encode(data)
+			    data = json.encode(data)
 
-		    file = io.open(pathToFile, "w")
-		    file:write(data)
-		    file:close()
-		end
- 
-	    function Test:RestorePreloadedJson()
-	  		RestorePreloadedPT()
-	    end
+			    file = io.open(pathToFile, "w")
+			    file:write(data)
+			    file:close()
+			end
 
-		function Test:StartSDLWithDeviceInPT()
-			StartSDL(config.pathToSDL, config.ExitOnCrash)
-			userPrint(34, "After correct sdl_preloaded_pt.json restored, SDL starts successfully")
-		end
+			function Test:IgnitionOnWithEditedPT()
+				StartSDL(config.pathToSDL, config.ExitOnCrash)
+				userPrint(34, "After IGNON SDL stops since preloaded not valid(see above message)")
+			end
+ 		
+		--Start Postcondition to case10.
+		commonFunctions:newTestCasesGroup("TC10_Posconditions")
+		    	function Test:RestorePreloadedJson()
+		  		RestorePreloadedPT()
+		   	end
+
+			function Test:StartSDLWithDeviceInPT()
+				StartSDL(config.pathToSDL, config.ExitOnCrash)
+				userPrint(34, "After correct sdl_preloaded_pt.json restored, SDL starts successfully:")
+			end
+		--end Postcondition to case10.
 	-- End Negative case10.
 
 	-------------------------------------------------------------
@@ -702,45 +731,52 @@ commonSteps:ActivationApp()
 
 		commonFunctions:newTestCasesGroup("TC11_Case when both sections device and pre_DataConsent are missed in preloaded_pt:")
 
-		function Test:IgnitionOff4()
-			StopSDL()
-		end
+			function Test:PreconditionIgnitionOff()
+				StopSDL()
+			end
 
-		function Test:BackupPreloadedPtFile()
-			BackupPreloaded()
-		end
+			function Test:BackupPreloadedPtFile()
+				BackupPreloaded()
+			end
 
-		function Test:RemoveDeviceAndPreDataFromPreloaded()
-		    -- body
-		    pathToFile = config.pathToSDL .. 'sdl_preloaded_pt.json'
-		    local file  = io.open(pathToFile, "r")
-		    local json_data = file:read("*all") -- may be abbreviated to "*a";
-		    file:close()
+			function Test:RemoveDeviceAndPreDataFromPreloaded()
+			    pathToFile = config.pathToSDL .. 'sdl_preloaded_pt.json'
+			    local file  = io.open(pathToFile, "r")
+			    local json_data = file:read("*all") -- may be abbreviated to "*a";
+			    file:close()
 
-		    local json = require("modules/json")
-		   
-		    local data = json.decode(json_data)
-		   		if data.policy_table.app_policies and 
-			   		data.policy_table.app_policies["pre_DataConsent"] ~= nil and data.policy_table.app_policies["device"] ~= nil then
-			   		data.policy_table.app_policies["device"] = nil
-			   		data.policy_table.app_policies["pre_DataConsent"] = nil	  
-		        end
+			    local json = require("modules/json")
+			   
+			    local data = json.decode(json_data)
+			   		if data.policy_table.app_policies and 
+				   		data.policy_table.app_policies["pre_DataConsent"] ~= nil and data.policy_table.app_policies["device"] ~= nil then
+				   		data.policy_table.app_policies["device"] = nil
+				   		data.policy_table.app_policies["pre_DataConsent"] = nil	  
+				end
 
-		    data = json.encode(data)
+			    data = json.encode(data)
 
-		    file = io.open(pathToFile, "w")
-		    file:write(data)
-		    file:close()
-		 end
+			    file = io.open(pathToFile, "w")
+			    file:write(data)
+			    file:close()
+			end
 
-		function Test:RestorePreloadedJson()
-	  		RestorePreloadedPT()
-	    end   
+			function Test:IgnitionOnWithEditedPT()
+				StartSDL(config.pathToSDL, config.ExitOnCrash)
+				userPrint(34, "After IGNON SDL stops since preloaded not valid(see above message)")
+			end
+	
+		--Start Postcondition to case11.
+		commonFunctions:newTestCasesGroup("TC11_Posconditions")
+			function Test:RestorePreloadedJson()
+		  		RestorePreloadedPT()
+		  	end   
 
-		function Test:StartSDLWithDeviceAndPreDataInPT()
-			StartSDL(config.pathToSDL, config.ExitOnCrash)
-			userPrint(34, "After correct sdl_preloaded_pt.json restored, SDL starts successfully")
-		end
+			function Test:StartSDLWithDeviceAndPreDataInPT()
+				StartSDL(config.pathToSDL, config.ExitOnCrash)
+				userPrint(34, "After correct sdl_preloaded_pt.json restored, SDL starts successfully:")
+			end
+		--end Postcondition to case11.
 	-- End Negative case11.
 
 	-------------------------------------------------------------
@@ -750,59 +786,55 @@ commonSteps:ActivationApp()
 
 		commonFunctions:newTestCasesGroup("TC12_Case when mandatory device and pre_DataConsent are incorrect in preloaded_pt:")
 
-		function Test:IgnitionOff5()
-		    StopSDL()
-		end
+			function Test:PreconditionIgnitionOff()
+			    StopSDL()
+			end
 
-		function Test:BackupPreloadedPtFile()
-			BackupPreloaded()
-		end
+			function Test:BackupPreloadedPtFile()
+				BackupPreloaded()
+			end
 
-		function Test:ChangePreDataAndDeviceInPreloaded()
-		  -- body
-		    pathToFile = config.pathToSDL .. 'sdl_preloaded_pt.json'
-		    local file  = io.open(pathToFile, "r")
-		    local json_data = file:read("*all") -- may be abbreviated to "*a";
-		    file:close()
+			function Test:ChangePreDataAndDeviceInPreloaded()
+			    pathToFile = config.pathToSDL .. 'sdl_preloaded_pt.json'
+			    local file  = io.open(pathToFile, "r")
+			    local json_data = file:read("*all") -- may be abbreviated to "*a";
+			    file:close()
 
-		    local json = require("modules/json")
-		   
-		    local data = json.decode(json_data)
-		    if data.policy_table.app_policies and 
-		   	    data.policy_table.app_policies["pre_DataConsent"] ~= nil and data.policy_table.app_policies["device"] ~= nil then
-		   		data.policy_table.app_policies["pre_DataConsent"] = data.policy_table.app_policies["Pre_DataConsent"]  
-		   		data.policy_table.app_policies["device"] = data.policy_table.app_policies["Device"] 
+			    local json = require("modules/json")
+			   
+			    local data = json.decode(json_data)
+			    if data.policy_table.app_policies and 
+			   	    data.policy_table.app_policies["pre_DataConsent"] ~= nil and data.policy_table.app_policies["device"] ~= nil then
+			   		data.policy_table.app_policies["pre_DataConsent"] = data.policy_table.app_policies["Pre_DataConsent"]  
+			   		data.policy_table.app_policies["device"] = data.policy_table.app_policies["Device"] 
 
-		    end
+			    end
 		
-		    data = json.encode(data)
+			    data = json.encode(data)
 
-		    file = io.open(pathToFile, "w")
-		    file:write(data)
-		    file:close()
-		end
+			    file = io.open(pathToFile, "w")
+			    file:write(data)
+			    file:close()
+			end
+
+			function Test:IgnitionOnWithEditedPT()
+				StartSDL(config.pathToSDL, config.ExitOnCrash)
+				userPrint(34, "After IGNON SDL stops since preloaded not valid(see above message)")
+			end
  
-	    function Test:RestorePreloadedJson()
-	  		RestorePreloadedPT()
-	    end
+		--Start Postcondition to case12.
+		commonFunctions:newTestCasesGroup("TC12_Posconditions")
+		  	function Test:RestorePreloadedJson()
+		  		RestorePreloadedPT()
+		 	end
 
-		function Test:StartSDLWithDeviceInPT()
-			StartSDL(config.pathToSDL, config.ExitOnCrash)
-			userPrint(34, "After correct sdl_preloaded_pt.json restored, SDL starts successfully")
-		end
+			function Test:StartSDLWithDeviceInPT()
+				StartSDL(config.pathToSDL, config.ExitOnCrash)
+				userPrint(34, "After correct sdl_preloaded_pt.json restored, SDL starts successfully:")
+			end
+		--end Postcondition to case12.
 	-- End Negative case12.
-
-	-------------------------------------------------------------
-
 --End Negative cases check.
----------------------------------------------------------------------------------------------
---------------------------------------Postconditions-----------------------------------------
----------------------------------------------------------------------------------------------
 
---Print new line to seperate Postconditions
-commonFunctions:newTestCasesGroup("Postconditions")
-
---Restore preloaded PT:
-testCasesForPolicyTable:Restore_preloaded_pt()
 
 return Test
