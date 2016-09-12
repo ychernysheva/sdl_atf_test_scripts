@@ -40,7 +40,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 ---------------------------------------------------------------------------------------------
 -------------------------------------------Common variables-----------------------------------
 ---------------------------------------------------------------------------------------------
-	local paramsRAI = commonFunctions:cloneTable(isReady.paramsRAI)
+	local params_RAI = commonFunctions:cloneTable(isReady.paramsRAI)
 
 ---------------------------------------------------------------------------------------------
 -------------------------------------------Preconditions-------------------------------------
@@ -183,7 +183,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 		commonSteps:UnregisterApplication("Postcondition_UnregisterApplication_WRONG_LANGUAGE")
 
 		--APPLINK-16249 WRONG_LANGUAGE hmiDisplayLanguageDesired: It is for UI interface only.
-		Test["TC01_"..TestCaseName .. "_RegisterApplication_Check_"..TestedInterface.."_Parameters_From_HMI_capabilities_json_resultCode_WRONG_LANGUAGE"] = function(self)
+		Test["TC01_"..TestCaseName .. "_RegisterApplication_Check_"..TestedInterface.."_Parameters_From_HMI_capabilities_json_resultCode_WRONG_LANGUAGE1"] = function(self)
 			
 			local local_paramsRAI = params_RAI
 			commonTestCases:DelayedExp(iTimeout)
