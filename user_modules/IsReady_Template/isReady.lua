@@ -9,7 +9,7 @@
 local isReady = {}
 
 require('cardinalities')
-local interface = require('user_modules/Interfaces_RPC')
+local interface = require('user_modules/IsReady_Template/Interfaces_RPC')
 local events = require('events')  
 local mobile_session = require('mobile_session')
 

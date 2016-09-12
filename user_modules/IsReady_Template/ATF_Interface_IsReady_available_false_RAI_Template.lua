@@ -30,7 +30,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 	local events = require('events')  
 	local mobile_session = require('mobile_session')
 	require('user_modules/AppTypes')
-	local isReady = require('user_modules/isReady')
+	local isReady = require('user_modules/IsReady_Template/isReady')
 
 ---------------------------------------------------------------------------------------------
 -------------------------------------------Preconditions-------------------------------------
