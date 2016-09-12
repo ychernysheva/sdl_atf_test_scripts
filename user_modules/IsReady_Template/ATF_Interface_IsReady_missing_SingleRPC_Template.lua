@@ -320,24 +320,41 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 		local TestCaseName = "Case_" .. TestData[i].caseID .. "_IsReady_" ..TestData[i].description
 
 				
-		--Print new line to separate new test cases group
-		commonFunctions:newTestCasesGroup(TestCaseName)
 		
-		isReady:StopStartSDL_HMI_MOBILE(self, TestData[i].caseID, TestCaseName)
-
-		-- Description: Register app for precondition
-		commonSteps:RegisterAppInterface("Precondition_RegisterAppInterface_" .. TestCaseName)
-		
-		-- Description: Activation app for precondition
-		commonSteps:ActivationApp(nil, "Precondition_ActivationApp_" .. TestCaseName)
 		
 		if( i == 1) then
+			--Print new line to separate new test cases group
+			commonFunctions:newTestCasesGroup(TestCaseName)
+		
+			isReady:StopStartSDL_HMI_MOBILE(self, TestData[i].caseID, TestCaseName)
+
+			-- Description: Register app for precondition
+			commonSteps:RegisterAppInterface("Precondition_RegisterAppInterface_" .. TestCaseName)
+		
+			-- Description: Activation app for precondition
+			commonSteps:ActivationApp(nil, "Precondition_ActivationApp_" .. TestCaseName)
+
 			-- execute test for all resultCodes and all related RPCs of the testing interface
-			Single_Interface_RPCs(TestCaseName, false, false)
-			--Single_Interface_RPCs(TestCaseName, true, true)
+			Single_Interface_RPCs(TestCaseName, true, true)
 		else
-			-- execute test for only one resultCode (SUCCESS) and the first related RPC of the testing interface
-			Single_Interface_RPCs(TestCaseName, false, false)
+			-- Tested_wrongJSON is defined in general lua script for execution
+			-- if Tested_wrongJSON is not defined by default will be set to true. Test will be executed.
+			if(Tested_wrongJSON == true) then
+
+				--Print new line to separate new test cases group
+				commonFunctions:newTestCasesGroup(TestCaseName)
+			
+				isReady:StopStartSDL_HMI_MOBILE(self, TestData[i].caseID, TestCaseName)
+
+				-- Description: Register app for precondition
+				commonSteps:RegisterAppInterface("Precondition_RegisterAppInterface_" .. TestCaseName)
+		
+				-- Description: Activation app for precondition
+				commonSteps:ActivationApp(nil, "Precondition_ActivationApp_" .. TestCaseName)
+				
+				-- execute test for only one resultCode (SUCCESS) and the first related RPC of the testing interface
+				Single_Interface_RPCs(TestCaseName, false, false)
+			end
 		end
 		
 	end
