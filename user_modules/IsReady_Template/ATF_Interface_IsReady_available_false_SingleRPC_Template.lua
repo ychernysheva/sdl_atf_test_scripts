@@ -154,9 +154,9 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 						--mobile side: expect RPC response
 						EXPECT_RESPONSE(cid, {success = false, resultCode = "INVALID_ID"})
 					
-					elseif( (mob_request.name == "UnsubscribeVehicleData") or (mob_request.name == "UnsubscribeWayPoints") ) then
-						-- According to APPLINK-27079 and APPLINK-20043 / APPLINK-21906
-						--mobile side: expect RPC response
+					elseif(mob_request.name == "UnsubscribeVehicleData") then
+						-- According to APPLINK-27872 and APPLINK-20043
+						-- mobile side: expect RPC response
 						EXPECT_RESPONSE(cid, {success = false, resultCode = "IGNORED"})
 
 					else
