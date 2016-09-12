@@ -49,9 +49,12 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 		Tested_resultCode = "AllTested"
 		print_msg = "Test will be executed for all resultCodes; "
 	end
-
+	
 	if(Tested_wrongJSON == nil) then
 		Tested_wrongJSON = true
+	end
+
+	if(Tested_wrongJSON == true) then
 		print_msg = print_msg .. "All wrong JSON formats will be tested."
 	else
 		print_msg = print_msg .. "Wrong JSON formats won't be tested."

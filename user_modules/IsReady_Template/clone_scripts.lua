@@ -6,7 +6,7 @@ local script = {}
  				   "GENERIC_ERROR", "TRUNCATED_DATA", "UNSUPPORTED_RESOURCE"}
 
 
-	file_name = "06_ATF_UI_IsReady_missing_SplitRPC"
+	file_name = "ATF_UI_IsReady_missing_SpliRPC"
 	file_path = "./test_scripts/"
 	file_extension = ".lua"
 	resulCode = "SUCCESS"
@@ -26,25 +26,26 @@ local script = {}
 	--replace result code in general file
 	local function replace_resultCode(file, result)
 		local patternResultCode = ".?Tested_resultCode.?=.?([^\n]*)"
-		local new_ResultCode = "\nTested_resultCode = \""..resulCode.."\" \n"
+		local new_ResultCode = "\nTested_resultCode = \""..result.."\" \n"
 
 		local pattern_wrongJSON = ".?Tested_wrongJSON.?=.?([^\n]*)"
-		local new_wrongJSON = "\nTested_wrongJSON = false\n"
+		local new_wrongJSON = "Tested_wrongJSON = false\n"
 
-		if(resulCode == "SUCCESS") then
-			new_wrongJSON = "\nTested_wrongJSON = true\n"
+		if(result == "SUCCESS") then
+			new_wrongJSON = "Tested_wrongJSON = true\n"
 		end
 
 		f = assert(io.open(file, "r"))
 		fileContent = f:read("*all")
 		f:close()
 		
-		
 		fileContent = string.gsub(fileContent, patternResultCode, new_ResultCode)
 		fileContent = string.gsub(fileContent, pattern_wrongJSON, new_wrongJSON)
 		f = assert(io.open(file, "w+"))
 		f:write(fileContent)
 		f:close()
+
+		
 	end
 
 	
