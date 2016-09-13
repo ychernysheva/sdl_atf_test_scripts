@@ -1091,7 +1091,7 @@ local TestData = {
 		{success = false, resultCode = "ABORTED", expected_resultCode = "ABORTED"},
 		{success = false, resultCode = "IGNORED", expected_resultCode = "IGNORED"},
 		{success = false, resultCode = "IN_USE", 	expected_resultCode = "IN_USE"},
-		{success = false, resultCode = "VEHICLE_DATA_NOT_AVAILABLE", expected_resultCode = "VEHICLE_DATA_NOT_AVAILABLE"},
+		{success = false, resultCode = "DATA_NOT_AVAILABLE", expected_resultCode = "VEHICLE_DATA_NOT_AVAILABLE"},
 		{success = false, resultCode = "TIMED_OUT", expected_resultCode = "TIMED_OUT"},
 		{success = false, resultCode = "INVALID_DATA", expected_resultCode = "INVALID_DATA"},
 		{success = false, resultCode = "CHAR_LIMIT_EXCEEDED", expected_resultCode = "CHAR_LIMIT_EXCEEDED"},
