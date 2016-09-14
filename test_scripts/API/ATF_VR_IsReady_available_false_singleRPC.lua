@@ -222,7 +222,7 @@ function Test:initHMI_onReady_VR_IsReady(case)
 					
 				elseif (case == 41) then --message_IsMissed
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"VR.IsReady"}, "message":"The data sent is invalid","code":11}}') --INVALID_DATA
-					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"VR.IsReady"}, "message":"The data sent is invalid","code":11}}')
+					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"VR.IsReady"},"code":11}}')
 					
 				elseif (case == 42) then --message_IsLowerBound
 					local messageValue = "a"
