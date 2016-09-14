@@ -13,6 +13,6 @@ Tested_resultCode = "SUCCESS"
 Tested_wrongJSON = true
 
 
-Test = require('user_modules/IsReady_Template/ATF_Interface_IsReady_missing_RAI_Template')
+Test = require('user_modules/IsReady_Template/ATF_Interface_IsReady_missing_SingleRPC_Template')
 
 return Test
