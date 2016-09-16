@@ -694,8 +694,8 @@ local TestData = {
 	--VR responds UNSUPPORTED_RESOURCE, other interfaces respond successful resultCodes
 	local function checksplit_VR_RPCs_VR_Responds_UNSUPPORTED_RESOURCE_Others_respond_success_resultCodes(TestCaseName, resultCodes)
 	-- Structure of resultCodes parameter = {
-			-- {resultCode = "SUCCESS"},
-			-- {resultCode = "WARNINGS"}
+			-- {resultCode = "SUCCESS", info = "abc"},
+			-- {resultCode = "WARNINGS", info = "abc"}
 		-- }		
 			
 		-- 1. Add.Command
@@ -722,7 +722,7 @@ local TestData = {
 				})
 				:Do(function(_,data)
 					--hmi side: sending VR.AddCommand response
-					self.hmiConnection:SendError(data.id, data.method, "UNSUPPORTED_RESOURCE", "error message")					
+					self.hmiConnection:SendError(data.id, data.method, "UNSUPPORTED_RESOURCE", resultCodes[i].info)					
 				end)
 				
 				--hmi side: expect UI.AddCommand request 
@@ -738,7 +738,7 @@ local TestData = {
 				
 				
 				--mobile side: expect AddCommand response
-				EXPECT_RESPONSE(cid, { success = true, resultCode = "UNSUPPORTED_RESOURCE", info = "VR is not supported by system"})
+				EXPECT_RESPONSE(cid, { success = true, resultCode = "UNSUPPORTED_RESOURCE", info = resultCodes[i].info})
 
 				--mobile side: expect OnHashChange notification
 				EXPECT_NOTIFICATION("OnHashChange")
@@ -809,7 +809,7 @@ local TestData = {
 				EXPECT_HMICALL("VR.DeleteCommand", {cmdID = commandID})
 				:Do(function(_,data)
 					--hmi side: sending VR.DeleteCommand response
-					self.hmiConnection:SendError(data.id, data.method, "UNSUPPORTED_RESOURCE", "error message")												
+					self.hmiConnection:SendError(data.id, data.method, "UNSUPPORTED_RESOURCE", resultCodes[i].info)												
 				end)
 
 				--hmi side: expect UI.DeleteCommand request
@@ -821,7 +821,7 @@ local TestData = {
 				
 				
 				--mobile side: expect DeleteCommand response 
-				EXPECT_RESPONSE(cid, {success = true , resultCode = "UNSUPPORTED_RESOURCE", info = "VR is not supported by system"})
+				EXPECT_RESPONSE(cid, {success = true , resultCode = "UNSUPPORTED_RESOURCE", info = resultCodes[i].info})
 
 				EXPECT_NOTIFICATION("OnHashChange")
 			end		
@@ -931,7 +931,7 @@ local TestData = {
 				:Do(function(_,data)
 
 					--Send VR.PerformInteraction response 
-					self.hmiConnection:SendError(data.id, data.method, "UNSUPPORTED_RESOURCE", "error message")			
+					self.hmiConnection:SendError(data.id, data.method, "UNSUPPORTED_RESOURCE", resultCodes[i].info)			
 					
 				end)
 				
@@ -953,7 +953,7 @@ local TestData = {
 
 				
 				--mobile side: expect PerformInteraction response
-				EXPECT_RESPONSE(cid, {success = true, resultCode = "UNSUPPORTED_RESOURCE", info = "VR is not supported by system"})
+				EXPECT_RESPONSE(cid, {success = true, resultCode = "UNSUPPORTED_RESOURCE", info = resultCodes[i].info})
 
 			end
 		
@@ -991,7 +991,7 @@ local TestData = {
 				EXPECT_HMICALL("VR.ChangeRegistration", {language = request.language, vrSynonyms = request.vrSynonyms})
 				:Do(function(_,data)						
 					--hmi side: send VR.ChangeRegistration response
-					self.hmiConnection:SendError(data.id, data.method, "UNSUPPORTED_RESOURCE", "error message")
+					self.hmiConnection:SendError(data.id, data.method, "UNSUPPORTED_RESOURCE", resultCodes[i].info)
 					
 				end)
 
@@ -1007,7 +1007,7 @@ local TestData = {
 				end)
 
 				--mobile side: expect response
-				EXPECT_RESPONSE(cid, {success = true, resultCode = "UNSUPPORTED_RESOURCE", info = "VR is not supported by system"})
+				EXPECT_RESPONSE(cid, {success = true, resultCode = "UNSUPPORTED_RESOURCE", info = resultCodes[i].info})
 				
 				--mobile side: expect OnHashChange notification
 				EXPECT_NOTIFICATION("OnHashChange")
@@ -1019,15 +1019,15 @@ local TestData = {
 
 
 	local Full_ResultCodes = {
-				{resultCode = "SUCCESS"},
-				{resultCode = "WARNINGS"},
-				{resultCode = "WRONG_LANGUAGE"},
-				{resultCode = "RETRY"},
-				{resultCode = "SAVED"}
+				{resultCode = "SUCCESS", info = "abc"},
+				{resultCode = "WARNINGS", info = "abc"},
+				{resultCode = "WRONG_LANGUAGE", info = "abc"},
+				{resultCode = "RETRY", info = "abc"},
+				{resultCode = "SAVED", info = "abc"}
 			}
 
 	local SUCCESS_ResultCode = {
-				{resultCode = "SUCCESS"}
+				{resultCode = "SUCCESS", info = "abc"}
 			}
 			
 	for i=1, #TestData do
