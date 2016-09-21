@@ -552,36 +552,45 @@ local mobile_session = require('mobile_session')
 
 				if(TestedInterface == "VR" or TestedInterface == "UI" or TestedInterface == "TTS") then
 					ExpectRequest(TestedInterface ..".GetLanguage" , true, { language = "EN-US" })
+					:Timeout(20000)
 
 		    		ExpectRequest(TestedInterface ..".GetSupportedLanguages" , true, { language = "EN-US" })
+		    		:Timeout(20000)
 
 		    		ExpectRequest(TestedInterface ..".GetCapabilities", true, { vrCapabilities = { "TEXT" } })
+		    		:Timeout(20000)
 				end
 			end
 
 		    for i = 1, #isReady.NotTestedInterfaces do
 		    	if(isReady.NotTestedInterfaces[i].interface == "VR" or isReady.NotTestedInterfaces[i].interface == "UI" or isReady.NotTestedInterfaces[i].interface == "TTS") then
 			    	ExpectRequest(isReady.NotTestedInterfaces[i].interface ..".GetLanguage", true, { language = "EN-US" })
+			    	:Timeout(20000)
 			    	ExpectRequest(isReady.NotTestedInterfaces[i].interface ..".GetSupportedLanguages", true, { languages =
 																					        {
 																					          "EN-US","ES-MX","FR-CA","DE-DE","ES-ES","EN-GB","RU-RU","TR-TR","PL-PL",
 																					          "FR-FR","IT-IT","SV-SE","PT-PT","NL-NL","ZH-TW","JA-JP","AR-SA","KO-KR",
 																					          "PT-BR","CS-CZ","DA-DK","NO-NO"
 																					        } })	    	
+			    	:Timeout(20000)
 
 					if  ( isReady.NotTestedInterfaces[i].interface == "UI") then 
 						
 						ExpectRequest("UI.GetCapabilities", true,  { params_UI_GetCapabilities })
+						:Timeout(20000)
 					elseif( isReady.NotTestedInterfaces[i].interface == "TTS") then
 						
 						ExpectRequest("TTS.GetCapabilities", true, { params_TTS_GetCapabilities})
+						:Timeout(20000)
 					elseif( isReady.NotTestedInterfaces[i].interface == "VR") then
 						
 						ExpectRequest("VR.GetCapabilities", true,  { params_VR_GetCapabilities })
+						:Timeout(20000)
 					end
 				end
 				if(isReady.NotTestedInterfaces[i].interface == "VehicleInfo" ) then
 					ExpectRequest("VehicleInfo.GetVehicleType", true, {params_VehInfo_GetVehicleType})
+					:Timeout(20000)
 				end
 		    end
 	    
