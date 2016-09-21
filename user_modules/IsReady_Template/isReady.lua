@@ -538,7 +538,7 @@ local mobile_session = require('mobile_session')
 					:Times(0)
 				end
 				if(TestedInterface == "VehicleInfo" ) then
-					ExpectRequest("VehicleInfo.GetVehicleType", true, {params_VehInfo_GetVehicleType})
+					ExpectRequest("VehicleInfo.GetVehicleType", true, params_VehInfo_GetVehicleType)
 					:Times(0)
 				end
 			else -- (case ~=0)
@@ -547,17 +547,27 @@ local mobile_session = require('mobile_session')
 		    	-- https://adc.luxoft.com/confluence/pages/viewpage.action?pageId=290334082&focusedCommentId=290338124#comment-290338124
 		    	-- As result, in case HMI does NOT respond to Vehicle.IsReady -> SDL can send this request to HMI 
 		    	if( TestedInterface == "VehicleInfo") then
-					ExpectRequest("VehicleInfo.GetVehicleType", true, {params_VehInfo_GetVehicleType})
+					ExpectRequest("VehicleInfo.GetVehicleType", true, params_VehInfo_GetVehicleType)
 				end
 
 				if(TestedInterface == "VR" or TestedInterface == "UI" or TestedInterface == "TTS") then
+					local params_GetCapabilities = params_VR_GetCapabilities
+					
+					if (TestedInterface == "UI")      then params_GetCapabilities = params_UI_GetCapabilities
+					elseif(TestedInterface == "TTS")  then params_GetCapabilities = params_TTS_GetCapabilities		
+					end
+					
 					ExpectRequest(TestedInterface ..".GetLanguage" , true, { language = "EN-US" })
 					:Timeout(20000)
 
-		    		ExpectRequest(TestedInterface ..".GetSupportedLanguages" , true, { language = "EN-US" })
+		    		ExpectRequest(TestedInterface ..".GetSupportedLanguages" , true, {  languages = {
+																								        "EN-US","ES-MX","FR-CA","DE-DE","ES-ES","EN-GB","RU-RU",
+																								        "TR-TR","PL-PL","FR-FR","IT-IT","SV-SE","PT-PT","NL-NL",
+																								        "ZH-TW","JA-JP","AR-SA","KO-KR","PT-BR","CS-CZ","DA-DK",
+																								        "NO-NO","NL-BE","EL-GR","HU-HU","FI-FI","SK-SK" } })
 		    		:Timeout(20000)
 
-		    		ExpectRequest(TestedInterface ..".GetCapabilities", true, { vrCapabilities = { "TEXT" } })
+		    		ExpectRequest(TestedInterface ..".GetCapabilities", true,  params_GetCapabilities )
 		    		:Timeout(20000)
 				end
 			end
@@ -576,20 +586,20 @@ local mobile_session = require('mobile_session')
 
 					if  ( isReady.NotTestedInterfaces[i].interface == "UI") then 
 						
-						ExpectRequest("UI.GetCapabilities", true,  { params_UI_GetCapabilities })
+						ExpectRequest("UI.GetCapabilities", true,   params_UI_GetCapabilities )
 						:Timeout(20000)
 					elseif( isReady.NotTestedInterfaces[i].interface == "TTS") then
 						
-						ExpectRequest("TTS.GetCapabilities", true, { params_TTS_GetCapabilities})
+						ExpectRequest("TTS.GetCapabilities", true, params_TTS_GetCapabilities)
 						:Timeout(20000)
 					elseif( isReady.NotTestedInterfaces[i].interface == "VR") then
 						
-						ExpectRequest("VR.GetCapabilities", true,  { params_VR_GetCapabilities })
+						ExpectRequest("VR.GetCapabilities", true,   params_VR_GetCapabilities )
 						:Timeout(20000)
 					end
 				end
 				if(isReady.NotTestedInterfaces[i].interface == "VehicleInfo" ) then
-					ExpectRequest("VehicleInfo.GetVehicleType", true, {params_VehInfo_GetVehicleType})
+					ExpectRequest("VehicleInfo.GetVehicleType", true, params_VehInfo_GetVehicleType)
 					:Timeout(20000)
 				end
 		    end
