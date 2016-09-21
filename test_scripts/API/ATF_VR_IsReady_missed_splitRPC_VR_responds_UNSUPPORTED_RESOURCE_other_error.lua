@@ -738,7 +738,15 @@ local TestData = {
 				
 				
 				--mobile side: expect AddCommand response
-				EXPECT_RESPONSE(cid, { success = false, resultCode = resultCodes[i].resultCode, info = "VR is not supported by system, ".."error message 2"})
+				EXPECT_RESPONSE(cid, { success = false, resultCode = resultCodes[i].resultCode})
+				:ValidIf (function(_,data)
+					if data.payload.info == "error message, error message 2" or data.payload.info == "error message 2, error message" then
+						return true
+					else
+						commonFunctions:printError(" Expected 'info' = 'error message, error message 2' or 'error message 2, error message'; Actual 'info' = '" .. tostring(data.payload.info) .."'")
+						return false
+					end
+				end)
 
 				--mobile side: expect OnHashChange notification
 				EXPECT_NOTIFICATION("OnHashChange")
@@ -818,8 +826,16 @@ local TestData = {
 				
 				
 				--mobile side: expect DeleteCommand response 
-				EXPECT_RESPONSE(cid, { success = false, resultCode = resultCodes[i].resultCode, info = "VR is not supported by system, ".."error message 2"})
-
+				EXPECT_RESPONSE(cid, { success = false, resultCode = resultCodes[i].resultCode})
+				:ValidIf (function(_,data)
+					if data.payload.info == "error message, error message 2" or data.payload.info == "error message 2, error message" then
+						return true
+					else
+						commonFunctions:printError(" Expected 'info' = 'error message, error message 2' or 'error message 2, error message'; Actual 'info' = '" .. tostring(data.payload.info) .."'")
+						return false
+					end
+				end)
+				
 				EXPECT_NOTIFICATION("OnHashChange")
 				:Times(0)
 			end		
@@ -952,8 +968,15 @@ local TestData = {
 
 				
 				--mobile side: expect PerformInteraction response
-				EXPECT_RESPONSE(cid, { success = false, resultCode = resultCodes[i].resultCode, info = "VR is not supported by system, ".."error message 2"})
-
+				EXPECT_RESPONSE(cid, { success = false, resultCode = resultCodes[i].resultCode})
+				:ValidIf (function(_,data)
+					if data.payload.info == "error message, error message 2" or data.payload.info == "error message 2, error message" then
+						return true
+					else
+						commonFunctions:printError(" Expected 'info' = 'error message, error message 2' or 'error message 2, error message'; Actual 'info' = '" .. tostring(data.payload.info) .."'")
+						return false
+					end
+				end)
 			end
 		
 		end
