@@ -797,6 +797,10 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 			-- Description: Activation app for precondition
 			commonSteps:ActivationApp(nil, "Precondition_ActivationApp_" .. TestCaseName)
 
+			commonSteps:PutFile("PutFile_MinLength", "a")
+			commonSteps:PutFile("PutFile_icon.png", "icon.png")
+			commonSteps:PutFile("PutFile_action.png", "action.png")
+
 			-- execute test for all resultCodes and all related RPCs of the testing interface
 			Splitted_Interfaces_RPCs(TestCaseName, true, true)
 		else
@@ -814,6 +818,10 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 		
 				-- Description: Activation app for precondition
 				commonSteps:ActivationApp(nil, "Precondition_ActivationApp_" .. TestCaseName)
+
+				commonSteps:PutFile("PutFile_MinLength", "a")
+				commonSteps:PutFile("PutFile_icon.png", "icon.png")
+				commonSteps:PutFile("PutFile_action.png", "action.png")
 
 				-- execute test for only one resultCode (SUCCESS) and the first related RPC of the testing interface
 				Splitted_Interfaces_RPCs(TestCaseName, false, false)

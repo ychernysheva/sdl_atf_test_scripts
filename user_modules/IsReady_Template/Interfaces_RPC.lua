@@ -85,6 +85,7 @@ interfaces.mobile_req = {
                           {
                             name = "AddCommand", 
                             splitted = true,
+                            single = true,
                             description = "AddCommand with all parameters",
                             hashChange = true,
                             params = {
@@ -98,6 +99,7 @@ interfaces.mobile_req = {
                           {
                             name = "DeleteCommand", 
                             splitted = true,
+                            single = true,
                             description = "DeleteCommand with all parameters",
                             hashChange = true,
                             params = {
@@ -108,6 +110,7 @@ interfaces.mobile_req = {
                           {
                             name = "PerformInteraction", 
                             splitted = true,
+                            single = false,
                             description = "PerformInteraction with all parameters",
                             hashChange = false,
                             params = {
@@ -152,6 +155,7 @@ interfaces.mobile_req = {
                           {
                             name = "ChangeRegistration", 
                             splitted = true,
+                            single = false,
                             description = "ChangeRegistration with all parameters",
                             hashChange = false,
                             params = {
@@ -172,6 +176,7 @@ interfaces.mobile_req = {
                           {
                             name = "Alert",
                             splitted = false,
+                            single = false,
                             description = "Alert with all parameters",
                             hashChange = false,
                             params = {
@@ -202,6 +207,7 @@ interfaces.mobile_req = {
                           {
                             name = "Show",
                             splitted = false,
+                            single = true,
                             description = "Show with all parameters",
                             hashChange = false,
                             params = {
@@ -229,6 +235,7 @@ interfaces.mobile_req = {
                           {
                             name = "AddSubMenu",
                             splitted = false,
+                            single = true,
                             description = "AddSubMenu with all parameters",
                             hashChange = true,
                             params = {
@@ -241,6 +248,7 @@ interfaces.mobile_req = {
                           {
                             name = "DeleteSubMenu",
                             splitted = false,
+                            single = true,
                             description = "DeleteSubMenu with all parameters",
                             hashChange = true,
                             params = {
@@ -251,11 +259,12 @@ interfaces.mobile_req = {
                           {
                             name = "SetMediaClockTimer",
                             splitted = false,
+                            single = true,
                             description = "SetMediaClockTimer with all parameters",
                             hashChange = false,
                             params = {
                                         startTime = {--<param name="startTime" type="StartTime" mandatory="false">
-                                                      hours = 0,
+                                                      hours = 1,
                                                       minutes = 1,
                                                       seconds = 33
                                                     },
@@ -271,6 +280,7 @@ interfaces.mobile_req = {
                           {
                             name = "SetGlobalProperties",
                             splitted = false,
+                            single = true,
                             description = "SetGlobalProperties with all parameters",
                             hashChange = true,
                             params = {
@@ -319,6 +329,7 @@ interfaces.mobile_req = {
                           {
                             name = "SetAppIcon",
                             splitted = false,
+                            single = true,
                             description = "SetAppIcon with all parameters",
                             hashChange = false,
                             params = {
@@ -329,6 +340,7 @@ interfaces.mobile_req = {
                           {
                             name = "SetDisplayLayout",
                             splitted = false,
+                            single = true,
                             description = "SetDisplayLayout with all parameters",
                             hashChange = false,
                             params = {
@@ -339,6 +351,7 @@ interfaces.mobile_req = {
                           {
                             name = "Slider",
                             splitted = false,
+                            single = true,
                             description = "Slider with all parameters",
                             hashChange = false,
                             params = {
@@ -353,6 +366,7 @@ interfaces.mobile_req = {
                           {
                             name = "ScrollableMessage",
                             splitted = false,
+                            single = true,
                             description = "ScrollableMessage with all parameters",
                             hashChange = false,
                             params = {
@@ -378,6 +392,7 @@ interfaces.mobile_req = {
                           {
                             name = "PerformAudioPassThru",
                             splitted = false,
+                            single = false,
                             description = "PerformAudioPassThru with all parameters",
                             hashChange = false,
                             params = {
@@ -400,6 +415,7 @@ interfaces.mobile_req = {
                           {
                             name = "EndAudioPassThru",
                             splitted = false,
+                            single = true,
                             description = "EndAudioPassThru with all parameters",
                             hashChange = false,
                             --No params
@@ -409,6 +425,7 @@ interfaces.mobile_req = {
                           {
                             name = "Speak",
                             splitted = false,
+                            single = true,
                             description = "Speak with all parameters",
                             hashChange = false,
                             params = {
@@ -424,6 +441,7 @@ interfaces.mobile_req = {
                           {
                             name = "ReadDID",
                             splitted = false,
+                            single = true,
                             description = "ReadDID with all parameters",
                             hashChange = false,
                             params = {
@@ -435,6 +453,7 @@ interfaces.mobile_req = {
                           {
                             name = "GetDTCs",
                             splitted = false,
+                            single = true,
                             description = "GetDTCs with all parameters",
                             hashChange = false,
                             params = {
@@ -446,6 +465,7 @@ interfaces.mobile_req = {
                           {
                             name = "DiagnosticMessage",
                             splitted = false,
+                            single = true,
                             description = "DiagnosticMessage with all parameters",
                             hashChange = false,
                             params = {
@@ -458,6 +478,7 @@ interfaces.mobile_req = {
                           {
                             name = "SubscribeVehicleData",
                             splitted = false,
+                            single = true,
                             description = "SubscribeVehicleData with gps parameter",
                             hashChange = true,
                             params = {
@@ -468,6 +489,7 @@ interfaces.mobile_req = {
                           {
                             name = "GetVehicleData",
                             splitted = false,
+                            single = true,
                             description = "GetVehicleData with gps parameter",
                             hashChange = false,
                             params = {
@@ -478,6 +500,7 @@ interfaces.mobile_req = {
                           {
                             name = "UnsubscribeVehicleData",
                             splitted = false,
+                            single = true,
                             description = "UnsubscribeVehicleData with gps parameter",
                             hashChange = true,
                             params = {
@@ -488,6 +511,7 @@ interfaces.mobile_req = {
                           {
                             name = "SendLocation",
                             splitted = false,
+                            single = true,
                             description = "SendLocation with all parameters",
                             hashChange = false,
                             params = {
@@ -532,6 +556,7 @@ interfaces.mobile_req = {
                           {
                             name = "ShowConstantTBT",
                             splitted = false,
+                            single = true,
                             description = "ShowConstantTBT with gps parameter",
                             hashChange = false,
                             params = {
@@ -571,6 +596,7 @@ interfaces.mobile_req = {
                           {
                             name = "AlertManeuver",
                             splitted = false,
+                            single = true,
                             description = "AlertManeuver with gps parameter",
                             hashChange = false,
                             params = {
@@ -617,6 +643,7 @@ interfaces.mobile_req = {
                           {
                             name = "UpdateTurnList",
                             splitted = false,
+                            single = true,
                             description = "UpdateTurnList with gps parameter",
                             hashChange = false,
                             params = { 
@@ -650,6 +677,7 @@ interfaces.mobile_req = {
                           {
                             name = "GetWayPoints",
                             splitted = false,
+                            single = true,
                             description = "GetWayPoints with all parameters",
                             hashChange = false,
                             params = {
@@ -660,6 +688,7 @@ interfaces.mobile_req = {
                           {
                             name = "SubscribeWayPoints",
                             splitted = false,
+                            single = true,
                             description = "SubscribeWayPoints with all parameters",
                             hashChange = true,
                             params = { }--no parameters 
@@ -668,6 +697,7 @@ interfaces.mobile_req = {
                           {
                             name = "UnsubscribeWayPoints",
                             splitted = false,
+                            single = true,
                             description = "UnsubscribeWayPoints with all parameters",
                             hashChange = true,
                             params = { }-- no parameters 
