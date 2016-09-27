@@ -111,68 +111,75 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 	-- Description: Activation app for precondition
 	commonSteps:ActivationApp(nil, "Precondition_ActivationApp_" .. TestCaseName)
 
+	commonSteps:PutFile("PutFile_MinLength", "a")
+	commonSteps:PutFile("PutFile_icon.png", "icon.png")
+	commonSteps:PutFile("PutFile_action.png", "action.png")
+
 	local function Interface_IsReady_response_availabe_false_check_single_related_RPC(TestCaseName)
 			for count_RPC = 1, #RPCs do
-				-- All applicable RPCs
-				Test["TC01_".. RPCs[count_RPC].name .. "_UNSUPPORTED_RESOURCE_false" ..TestCaseName] = function(self)
-					local menuparams = ""
-					local vrCmd = ""
-					print("=============== Test: "..TestedInterface.."."..RPCs[count_RPC].name)
-					local mob_request = mobile_request[count_RPC]
-					local hmi_call = RPCs[count_RPC]
-					local hmi_method_call = TestedInterface.."."..hmi_call.name
+				
+				local mob_request = mobile_request[count_RPC]
+				if(mob_request.single == true)then
 
-					if ( hmi_call.params.appID ~= nil ) then hmi_call.params.appID = self.applications[config.application1.registerAppInterfaceParams.appName] end
-					
-					
-					if ( TestedInterface == "VR") then 
-						-- APPLINK-19333: AddCommand should not to be splitted to UI.AddCommand
-						if (mob_request.params.menuParams ~= nil ) then 
-							menuparams = mob_request.params.menuParams 
-							mob_request.params.menuParams =  nil 
-						end
-					end
-					if( TestedInterface == "UI") then
-						-- APPLINK-19329: AddCommand should not to be splitted to VR.AddCommand
-						if ( mob_request.params.vrCommands ~= nil ) then 
-							vrCmd = mob_request.params.vrCommands
-							mob_request.params.vrCommands = nil
-						end
-					end
+					-- All applicable RPCs
+					Test["TC01_".. RPCs[count_RPC].name .. "_UNSUPPORTED_RESOURCE_false" ..TestCaseName] = function(self)
+						local menuparams = ""
+						local vrCmd = ""
+						print("=============== Test: "..TestedInterface.."."..RPCs[count_RPC].name)
+						local hmi_call = RPCs[count_RPC]
+						local hmi_method_call = TestedInterface.."."..hmi_call.name
 
-					commonTestCases:DelayedExp(iTimeout)
-			
-					--mobile side: sending AddCommand request
-					local cid = self.mobileSession:SendRPC(mob_request.name, mob_request.params)
+						if ( hmi_call.params.appID ~= nil ) then hmi_call.params.appID = self.applications[config.application1.registerAppInterfaceParams.appName] end
 						
-					--hmi side: expect SDL does not send Interface.RPC request
-					EXPECT_HMICALL(hmi_method_call, {})
-					:Times(0)
+						
+						if ( TestedInterface == "VR") then 
+							-- APPLINK-19333: AddCommand should not to be splitted to UI.AddCommand
+							if (mob_request.params.menuParams ~= nil ) then 
+								menuparams = mob_request.params.menuParams 
+								mob_request.params.menuParams =  nil 
+							end
+						end
+						if( TestedInterface == "UI") then
+							-- APPLINK-19329: AddCommand should not to be splitted to VR.AddCommand
+							if ( mob_request.params.vrCommands ~= nil ) then 
+								vrCmd = mob_request.params.vrCommands
+								mob_request.params.vrCommands = nil
+							end
+						end
 
-					if(mob_request.name == "DeleteCommand") then
-						-- According to APPLINK-27079
-						--mobile side: expect RPC response
-						EXPECT_RESPONSE(cid, {success = false, resultCode = "INVALID_ID"})
-					
-					elseif(mob_request.name == "UnsubscribeVehicleData") then
-						-- According to APPLINK-27872 and APPLINK-20043
-						-- mobile side: expect RPC response
-						EXPECT_RESPONSE(cid, {success = false, resultCode = "IGNORED"})
+						commonTestCases:DelayedExp(iTimeout)
+				
+						--mobile side: sending AddCommand request
+						local cid = self.mobileSession:SendRPC(mob_request.name, mob_request.params)
+							
+						--hmi side: expect SDL does not send Interface.RPC request
+						EXPECT_HMICALL(hmi_method_call, {})
+						:Times(0)
 
-					else
-						--mobile side: expect RPC response
-						EXPECT_RESPONSE(cid, {success = false, resultCode = "UNSUPPORTED_RESOURCE", info =  TestedInterface .." is not supported by system"})
-					
-					end
+						if(mob_request.name == "DeleteCommand" or mob_request.name == "DeleteSubMenu") then
+							-- According to APPLINK-27079
+							--mobile side: expect RPC response
+							EXPECT_RESPONSE(cid, {success = false, resultCode = "INVALID_ID"})
+						
+						elseif(mob_request.name == "UnsubscribeVehicleData") then
+							-- According to APPLINK-27872 and APPLINK-20043
+							-- mobile side: expect RPC response
+							EXPECT_RESPONSE(cid, {success = false, resultCode = "IGNORED"})
+						else
+							--mobile side: expect RPC response
+							EXPECT_RESPONSE(cid, {success = false, resultCode = "UNSUPPORTED_RESOURCE", info =  TestedInterface .." is not supported by system"})
+						
+						end
 
-					--mobile side: expect OnHashChange notification
-					EXPECT_NOTIFICATION("OnHashChange")
-					:Times(0)
+						--mobile side: expect OnHashChange notification
+						EXPECT_NOTIFICATION("OnHashChange")
+						:Times(0)
 
-					--In some reason when assign global variable to local one and local var becomes nil, global var also becomes nil!!!! The solution is temporary until resolving the problem. 
-					if(menuparams ~= "") then mob_request.params.menuParams = menuparams end
-					if(vrCmd ~= "") 	 then mob_request.params.vrCommands = vrCmd end
-				end			
+						--In some reason when assign global variable to local one and local var becomes nil, global var also becomes nil!!!! The solution is temporary until resolving the problem. 
+						if(menuparams ~= "") then mob_request.params.menuParams = menuparams end
+						if(vrCmd ~= "") 	 then mob_request.params.vrCommands = vrCmd end
+					end		
+				end --if(mob_request.single == true)then	
 			end -- for count_RPC = 1, #RPCs do
 	end
 		

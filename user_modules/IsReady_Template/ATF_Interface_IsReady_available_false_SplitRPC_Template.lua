@@ -124,6 +124,10 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 	-- Description: Activation app for precondition
 	commonSteps:ActivationApp( nil, "Precondition_ActivationApp_"..TestCaseName)
 
+	commonSteps:PutFile("PutFile_MinLength", "a")
+	commonSteps:PutFile("PutFile_icon.png", "icon.png")
+	commonSteps:PutFile("PutFile_action.png", "action.png")
+
 	-- For VehicleInfo and Navigation specified requirements are not applicable.
 	if( (TestedInterface ~= "VehicleInfo") and (TestedInterface~="Navigation") ) then
 		--local function VR_IsReady_response_availabe_false_check_split_RPC_Other_Interfaces_Responds_SUCCESS(TestCaseName)

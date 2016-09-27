@@ -209,105 +209,107 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 			    end --if(mob_request.name == "PerformInteraction") then
 
 				if( ( Tested_resultCode == "AllTested" ) or (Tested_resultCode == TestData[i].resultCode) ) then
-					Test["TC01_"..mob_request.name.."_Only_".. tostring(TestData[i].resultCode).."_"..TestCaseName] = function(self)
+					if(mob_request.single == true)then
 
-					  	local menuparams = ""
-					  	local vrCmd = ""
-						print("Testing RPC = "..mob_request.name)
-						--======================================================================================================
-						-- Update and backup used params
-							
-							if ( mob_request.params.appName ~= nil )    then mob_request.params.appName = config.application1.registerAppInterfaceParams.appName end
-							if ( mob_request.params.cmdID ~= nil ) then mob_request.params.cmdID = i end
-							
-							if( TestedInterface == "UI") then
-								if ( mob_request.params.vrCommands ~= nil ) then 
-									vrCmd = mob_request.params.vrCommands
-									mob_request.params.vrCommands = nil
-								end
-							else
-								if ( mob_request.params.vrCommands ~= nil ) then 
-									mob_request.params.vrCommands =  {"vrCommands_" .. tostring(i)}
-								end
-							end
-							
-							if ( TestedInterface == "VR") then 
-								if (mob_request.params.menuParams ~= nil ) then 
-									menuparams = mob_request.params.menuParams 
-									mob_request.params.menuParams =  nil 
-								end
-							else --if( TestedInterface == "UI") then
-								if (mob_request.params.menuParams ~= nil ) then 
-									mob_request.params.menuParams = {position = 1, menuName = "Command " .. tostring(i)}
-								end
-							end
-						
-							if ( mob_request.params.interactionChoiceSetIDList ~= nil) then mob_request.params.interactionChoiceSetIDList = {i} end
-						--======================================================================================================
-						commonTestCases:DelayedExp(iTimeout)
-							
-						--mobile side: sending RPC request
-						local cid = self.mobileSession:SendRPC(mob_request.name, mob_request.params)
-						
-						--======================================================================================================
-						-- Update of verified params
-							if ( hmi_call.params.appID ~= nil ) then hmi_call.params.appID = self.applications[config.application1.registerAppInterfaceParams.appName] end
-							if ( hmi_call.params.cmdID ~= nil )      then hmi_call.params.cmdID = i end
-						  	if ( hmi_call.params.vrCommands ~= nil ) then hmi_call.params.vrCommands =  {"vrCommands_" .. tostring(i)}  end
-						  	if ( hmi_call.params.grammarID ~= nil ) then 
-						  		if (mob_request.name == "DeleteCommand") then
-						  			hmi_call.params.grammarID =  grammarID  
-								else
-						  			hmi_call.params.grammarID[1] =  grammarID  
-						  		end
-						  	end
-						--======================================================================================================
+						Test["TC01_"..mob_request.name.."_Only_".. tostring(TestData[i].resultCode).."_"..TestCaseName] = function(self)
 
-			 			--hmi side: expect Interface.RPC request 	
-						EXPECT_HMICALL( hmi_method_call, hmi_call.params)
-						:Do(function(_,data)
-							if(mob_request.name == "AddCommand") then grammarID = data.params.grammarID end
-							
-							--hmi side: sending response
-							if (TestData[i].resultCode == "") then
-								-- HMI does not respond					
-							else
-								if TestData[i].success == true then 
-									self.hmiConnection:SendResponse(data.id, data.method, TestData[i].resultCode, {})
+						  	local menuparams = ""
+						  	local vrCmd = ""
+							print("Testing RPC = "..mob_request.name)
+							--======================================================================================================
+							-- Update and backup used params
+								
+								if ( mob_request.params.appName ~= nil )    then mob_request.params.appName = config.application1.registerAppInterfaceParams.appName end
+								if ( mob_request.params.cmdID ~= nil ) then mob_request.params.cmdID = i end
+								
+								if( TestedInterface == "UI") then
+									if ( mob_request.params.vrCommands ~= nil ) then 
+										vrCmd = mob_request.params.vrCommands
+										mob_request.params.vrCommands = nil
+									end
 								else
-									self.hmiConnection:SendError(data.id, data.method, TestData[i].resultCode, "error message")
-								end						
-							end
-						end)
-						
-						--mobile side: expect AddCommand response and OnHashChange notification
-						if TestData[i].success == true then 
-							EXPECT_RESPONSE(cid, { success = TestData[i].success , resultCode = TestData[i].expected_resultCode })
-						
-							--mobile side: expect OnHashChange notification
-							if(mob_request.hashChange == true) then
-								EXPECT_NOTIFICATION("OnHashChange")
-								:Timeout(iTimeout)
+									if ( mob_request.params.vrCommands ~= nil ) then 
+										mob_request.params.vrCommands =  {"vrCommands_" .. tostring(i)}
+									end
+								end
+								
+								if ( TestedInterface == "VR") then 
+									if (mob_request.params.menuParams ~= nil ) then 
+										menuparams = mob_request.params.menuParams 
+										mob_request.params.menuParams =  nil 
+									end
+								else --if( TestedInterface == "UI") then
+									if (mob_request.params.menuParams ~= nil ) then 
+										mob_request.params.menuParams = {position = 1, menuName = "Command " .. tostring(i)}
+									end
+								end
+							
+								if ( mob_request.params.interactionChoiceSetIDList ~= nil) then mob_request.params.interactionChoiceSetIDList = {i} end
+							--======================================================================================================
+							commonTestCases:DelayedExp(iTimeout)
+								
+							--mobile side: sending RPC request
+							local cid = self.mobileSession:SendRPC(mob_request.name, mob_request.params)
+							
+							--======================================================================================================
+							-- Update of verified params
+								if ( hmi_call.params.appID ~= nil ) then hmi_call.params.appID = self.applications[config.application1.registerAppInterfaceParams.appName] end
+								if ( hmi_call.params.cmdID ~= nil )      then hmi_call.params.cmdID = i end
+							  	if ( hmi_call.params.vrCommands ~= nil ) then hmi_call.params.vrCommands =  {"vrCommands_" .. tostring(i)}  end
+							  	if ( hmi_call.params.grammarID ~= nil ) then 
+							  		if (mob_request.name == "DeleteCommand") then
+							  			hmi_call.params.grammarID =  grammarID  
+									else
+							  			hmi_call.params.grammarID[1] =  grammarID  
+							  		end
+							  	end
+							--======================================================================================================
+
+				 			--hmi side: expect Interface.RPC request 	
+							EXPECT_HMICALL( hmi_method_call, hmi_call.params)
+							:Do(function(_,data)
+								if(mob_request.name == "AddCommand") then grammarID = data.params.grammarID end
+								
+								--hmi side: sending response
+								if (TestData[i].resultCode == "") then
+									-- HMI does not respond					
+								else
+									if TestData[i].success == true then 
+										self.hmiConnection:SendResponse(data.id, data.method, TestData[i].resultCode, {})
+									else
+										self.hmiConnection:SendError(data.id, data.method, TestData[i].resultCode, "error message")
+									end						
+								end
+							end)
+							
+							--mobile side: expect AddCommand response and OnHashChange notification
+							if TestData[i].success == true then 
+								EXPECT_RESPONSE(cid, { success = TestData[i].success , resultCode = TestData[i].expected_resultCode })
+							
+								--mobile side: expect OnHashChange notification
+								if(mob_request.hashChange == true) then
+									EXPECT_NOTIFICATION("OnHashChange")
+									:Timeout(iTimeout)
+								else
+									EXPECT_NOTIFICATION("OnHashChange")
+									:Times(0)
+								end
+							
 							else
+							
+								EXPECT_RESPONSE(cid, { success = TestData[i].success , resultCode = TestData[i].expected_resultCode, info = "error message"})
+							
 								EXPECT_NOTIFICATION("OnHashChange")
 								:Times(0)
+
 							end
-						
-						else
-						
-							EXPECT_RESPONSE(cid, { success = TestData[i].success , resultCode = TestData[i].expected_resultCode, info = "error message"})
-						
-							EXPECT_NOTIFICATION("OnHashChange")
-							:Times(0)
-
+		 					
+		 					--======================================================================================================
+		 					--restore values for used parameters
+								if(menuparams ~= "") then mob_request.params.menuParams = menuparams end
+								if(vrCmd ~= "")      then mob_request.params.VRCommands = vrCmd end
 						end
-	 					
-	 					--======================================================================================================
-	 					--restore values for used parameters
-							if(menuparams ~= "") then mob_request.params.menuParams = menuparams end
-							if(vrCmd ~= "")      then mob_request.params.VRCommands = vrCmd end
-					end
-
+					end -- if(mob_request.single == true)then
 					if(IsExecutedAllRelatedRPCs == false) then
 					 	break -- use break to exit the second for loop "for count_RPC = 1, #RPCs do"
 					end
@@ -337,6 +339,10 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 			-- Description: Activation app for precondition
 			commonSteps:ActivationApp(nil, "Precondition_ActivationApp_" .. TestCaseName)
 
+			commonSteps:PutFile("PutFile_MinLength", "a")
+			commonSteps:PutFile("PutFile_icon.png", "icon.png")
+			commonSteps:PutFile("PutFile_action.png", "action.png")
+
 			-- execute test for all resultCodes and all related RPCs of the testing interface
 			Single_Interface_RPCs(TestCaseName, true, true)
 		else
@@ -354,6 +360,10 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 		
 				-- Description: Activation app for precondition
 				commonSteps:ActivationApp(nil, "Precondition_ActivationApp_" .. TestCaseName)
+
+				commonSteps:PutFile("PutFile_MinLength", "a")
+				commonSteps:PutFile("PutFile_icon.png", "icon.png")
+				commonSteps:PutFile("PutFile_action.png", "action.png")
 				
 				-- execute test for only one resultCode (SUCCESS) and the first related RPC of the testing interface
 				Single_Interface_RPCs(TestCaseName, false, false)
