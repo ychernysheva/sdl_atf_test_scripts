@@ -35,7 +35,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 config.sharedMemoryPath = ""
 local dif_fileType = {{typeV = "GRAPHIC_BMP", file = "files/PutFile/bmp_6kb.bmp" }, {typeV = "GRAPHIC_JPEG", file = "files/PutFile/jpeg_4kb.jpg" }, {typeV = "GRAPHIC_PNG", file = "files/PutFile/icon.png" }, {typeV = "AUDIO_WAVE", file = "files/PutFile/WAV_6kb.wav" }, {typeV = "AUDIO_MP3", file = "files/PutFile/MP3_123kb.mp3" }, {typeV = "AUDIO_AAC", file = "files/PutFile/Alarm.aac" }, {typeV = "BINARY", file = "files/PutFile/binaryFile" }, {typeV = "JSON", file = "files/PutFile/luxoftPT.json" }}
 
-local ButtonArray = {"OK","SEEKLEFT", "SEEKRIGHT", "TUNEUP", "TUNEDOWN", "PRESET_0", "PRESET_1", "PRESET_2", "PRESET_3", "PRESET_4", "PRESET_5", "PRESET_6", "PRESET_7", "PRESET_8", "PRESET_9"}
+local ButtonArray = {"OK","PLAY_PAUSE","SEEKLEFT", "SEEKRIGHT", "TUNEUP", "TUNEDOWN", "PRESET_0", "PRESET_1", "PRESET_2", "PRESET_3", "PRESET_4", "PRESET_5", "PRESET_6", "PRESET_7", "PRESET_8", "PRESET_9"}
 
 
 --------------------------------------------------------------------------------------------
@@ -51,7 +51,7 @@ local PathToAppFolder = config.pathToSDL .. SDLConfig:GetValue("AppStorageFolder
 local updateModeNotRequireStartEndTime = {"PAUSE", "RESUME", "CLEAR"}
 local updateMode = {"COUNTUP", "COUNTDOWN", "PAUSE", "RESUME", "CLEAR"}
 local updateModeCountUpDown = {"COUNTUP", "COUNTDOWN"}
-local buttonName = {"OK","SEEKLEFT","SEEKRIGHT","TUNEUP","TUNEDOWN", "PRESET_0","PRESET_1","PRESET_2","PRESET_3","PRESET_4","PRESET_5","PRESET_6","PRESET_7","PRESET_8"}
+local buttonName = {"OK","PLAY_PAUSE","SEEKLEFT","SEEKRIGHT","TUNEUP","TUNEDOWN", "PRESET_0","PRESET_1","PRESET_2","PRESET_3","PRESET_4","PRESET_5","PRESET_6","PRESET_7","PRESET_8"}
 local PositiveChoiceSets
 local textPromtValue = {"Please speak one of the following commands," ,"Please say a command,"}
 
@@ -6729,6 +6729,7 @@ end
 				      	EXPECT_NOTIFICATION("OnHashChange") 
 				  else
 				  	if 
+				  		ButtonArray[i] == "PLAY_PAUSE" or
 				  		ButtonArray[i] == "SEEKLEFT" or 
 				  		ButtonArray[i] == "SEEKRIGHT" or
 				  		ButtonArray[i] == "TUNEUP" or
@@ -6797,6 +6798,7 @@ end
 				      	self.mobileSession:ExpectResponse(cid, { success = false, resultCode = "IGNORED"})
 				  else
 				  	if 
+				  		ButtonArray[i] == "PLAY_PAUSE" or 
 				  		ButtonArray[i] == "SEEKLEFT" or 
 				  		ButtonArray[i] == "SEEKRIGHT" or
 				  		ButtonArray[i] == "TUNEUP" or
@@ -6864,6 +6866,7 @@ end
 				      	EXPECT_NOTIFICATION("OnHashChange") 
 				  else
 				  	if 
+				  		ButtonArray[i] == "PLAY_PAUSE" or 
 				  		ButtonArray[i] == "SEEKLEFT" or 
 				  		ButtonArray[i] == "SEEKRIGHT" or
 				  		ButtonArray[i] == "TUNEUP" or
