@@ -18,7 +18,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 ------------------------- General Precondition before ATF start -----------------------------
 ---------------------------------------------------------------------------------------------
 	-- Precondition: remove policy table and log files
-	--commonSteps:DeleteLogsFileAndPolicyTable()
+	commonSteps:DeleteLogsFileAndPolicyTable()
 
 ---------------------------------------------------------------------------------------------
 ---------------------------- General Settings for configuration----------------------------
