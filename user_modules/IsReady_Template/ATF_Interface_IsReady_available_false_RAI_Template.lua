@@ -1,4 +1,4 @@
-print("\27[31m APPLINK-24414 - SDL crash on DCHECK via SDLActivateApp() - Some tests are commented. After resolving uncomment tests!\27[0m")
+print("\27[31m APPLINK-24414 - SDL crash on DCHECK via SDLActivateApp() - TC4 is commented.\27[0m")
 
 config.defaultProtocolVersion = 2
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
@@ -6,26 +6,24 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 ---------------------------------------------------------------------------------------------
 ---------------------------- Required Shared libraries --------------------------------------
 ---------------------------------------------------------------------------------------------
-
 	local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 	local commonSteps = require('user_modules/shared_testcases/commonSteps')
 	local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
-	local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
-		
+	local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')		
 	DefaultTimeout = 3
 	local iTimeout = 2000
 	local commonPreconditions = require ('/user_modules/shared_testcases/commonPreconditions')
 
 ---------------------------------------------------------------------------------------------
 ------------------------- General Precondition before ATF start -----------------------------
+---------------------------------------------------------------------------------------------
 	-- Precondition: remove policy table and log files
-	commonSteps:DeleteLogsFileAndPolicyTable()
+	--commonSteps:DeleteLogsFileAndPolicyTable()
 
 ---------------------------------------------------------------------------------------------
 ---------------------------- General Settings for configuration----------------------------
 ---------------------------------------------------------------------------------------------
 	Test = require('connecttest')
-
 	require('cardinalities')
 	local events = require('events')  
 	local mobile_session = require('mobile_session')
@@ -45,8 +43,6 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 
 -- Not applicable for '..tested_method..' HMI API.
 
-
-
 ----------------------------------------------------------------------------------------------
 ----------------------------------------TEST BLOCK II-----------------------------------------
 -----------------------------Check special cases of Mobile request----------------------------
@@ -58,7 +54,6 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 -------------------------------------------TEST BLOCK III--------------------------------------
 ----------------------------------Check normal cases of HMI response---------------------------
 -----------------------------------------------------------------------------------------------
-
 --List of CRQs:
 	--APPLINK-20918: [GENIVI] VR interface: SDL behavior in case HMI does not respond to IsReady_request or respond with "available" = false
 		-- 1. HMI respond '..tested_method..' (false) -> SDL must return 'UNSUPPORTED_RESOURCE, success:false' to all single VR-related RPC
@@ -73,7 +68,6 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 	--Parameter 5: available: type=Boolean, mandatory="true"
 -----------------------------------------------------------------------------------------------
 
-	
 	
 -----------------------------------------------------------------------------------------------				
 -- Cases 1: HMI sends '..tested_method..' response (available = false)
@@ -125,7 +119,6 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 					self.appName=data.params.application.appName
 					self.applications[config.application1.registerAppInterfaceParams.appName]=data.params.application.appID
 				end)
-				
 				
 				--mobile side: expect response
 				-- SDL does not send VR-related param to mobile app	
@@ -191,11 +184,9 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 				
 			commonSteps:UnregisterApplication("Postcondition_UnregisterApplication_SUCCESS")
 			
-			-- APPLINK-16320 UNSUPPORTED_RESOURCE unavailable/not supported component: It is not applicable for RegisterAppInterface because RegisterAppInterface is not split able request
-			
+			-- APPLINK-16320 UNSUPPORTED_RESOURCE unavailable/not supported component: It is not applicable for RegisterAppInterface because RegisterAppInterface is not split able request		
 			-- APPLINK-16251 WRONG_LANGUAGE
 			-- APPLINK-16250 WRONG_LANGUAGE languageDesired
-			--[[TODO: Uncomment when APPLINK-24414 - SDL crash on DCHECK via SDLActivateApp()!!!!!
 				Test["TC2_RegisterApplication_Check_VR_Parameters_IsOmitted_resultCode_WRONG_LANGUAGE"..TestCaseName ] = function(self)
 					
 					commonTestCases:DelayedExp(iTimeout)
@@ -221,7 +212,6 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 					end)
 					
 					
-
 					--mobile side: expect response
 					-- SDL does not send VR-related param to mobile app	
 					self.mobileSession:ExpectResponse(CorIdRegister, {success=true,resultCode="WRONG_LANGUAGE"})
@@ -283,14 +273,11 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 				end	
 			
 				--APPLINK-16249 WRONG_LANGUAGE hmiDisplayLanguageDesired: It is for UI interface only.
-		
-
-			
 				-- APPLINK-16307 WARNINGS, true
 				commonSteps:UnregisterApplication("Precondition_UnregisterApplication_for_checking_WARNINGS_" ..TestCaseName)
 				
-				--Test[TestCaseName .. "_RegisterApplication_Check_VR_Parameters_IsOmitted_resultCode_WARNINGS"] = function(self)
-				Test["TC3_".."_Parameters_IsOmitted_resultCode_WARNINGS" ..TestCaseName .. "_RegisterApplication_Check_"..TestedInterface] = function(self)
+				-- Test[TestCaseName .. "_RegisterApplication_Check_VR_Parameters_IsOmitted_resultCode_WARNINGS"] = function(self)
+				Test["TC3_Parameters_IsOmitted_resultCode_WARNINGS" ..TestCaseName .. "_RegisterApplication_Check_"..TestedInterface] = function(self)
 					
 					commonTestCases:DelayedExp(iTimeout)
 					
@@ -313,8 +300,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 						self.applications[config.application1.registerAppInterfaceParams.appName]=data.params.application.appID
 					end)
 					
-					
-					--mobile side: expect response
+					-- mobile side: expect response
 					-- SDL does not send VR-related param to mobile app	
 					self.mobileSession:ExpectResponse(CorIdRegister, {success=true,resultCode="WARNINGS"})
 					:ValidIf (function(_,data)
@@ -373,17 +359,18 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 					--mobile side: expect notification
 					self.mobileSession:ExpectNotification("OnHMIStatus", { systemContext="MAIN", hmiLevel="NONE", audioStreamingState="NOT_AUDIBLE"})
 				end	
-			]]
+			
 			-- APPLINK-15686 RESUME_FAILED
 			--////////////////////////////////////////////////////////////////////////////////////////////--
 			-- Check absence of resumption in case HashID in RAI is not match
 			--////////////////////////////////////////////////////////////////////////////////////////////--
-			--TODO: Commented because script can't be debugged.
-			--[[		if(TestedInterface ~= "NAVIGATION") then
+			--[[TODO: Uncomment when APPLINK-24414 - SDL crash on DCHECK via SDLActivateApp()!!!!!
+
+ 			if(TestedInterface ~= "NAVIGATION") then
 				--Precondition:
 				commonSteps:UnregisterApplication(TestCaseName .. "_Precondition_for_checking_RESUME_FAILED_UnregisterApp")
 				commonSteps:RegisterAppInterface(TestCaseName .. "_Precondition_for_checking_RESUME_FAILED_RegisterApp")
-				commonSteps:ActivationApp(_, TestCaseName .. "_Precondition_for_checking_RESUME_FAILED_ActivateApp")		
+				commonSteps:ActivationApp(_, TestCaseName .. "_Precondition_for_checking_RESUME_FAILED_ActivateApp")	
 
 				function Test:Precondition_for_checking_RESUME_FAILED_AddResumptionData_AddCommand()
 					
@@ -712,6 +699,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 				end
 
 				--Test[TestCaseName .. "_RegisterApplication_Check_VR_Parameters_IsOmitted_resultCode_RESUME_FAILED"] = function(self)
+
 				Test["TC4_"..TestCaseName .. "_RegisterApplication_Check_"..TestedInterface.."_Parameters_IsOmitted_resultCode_RESUME_FAILED"] = function(self)
 			
 					commonTestCases:DelayedExp(iTimeout)
@@ -832,7 +820,6 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 						end
 					end)
 
-
 					EXPECT_HMICALL("UI.SetGlobalProperties")
 					:Times(0)
 
@@ -850,7 +837,6 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 	case1_IsReady_available_false()
 
 
-
 ----------------------------------------------------------------------------------------------
 -----------------------------------------TEST BLOCK IV----------------------------------------
 ------------------------------Check special cases of HMI response-----------------------------
@@ -858,8 +844,6 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 
 -- These cases are merged into TEST BLOCK III
 
-
-	
 -----------------------------------------------------------------------------------------------
 -------------------------------------------TEST BLOCK V----------------------------------------
 -------------------------------------Checks All Result Codes-----------------------------------
@@ -867,16 +851,12 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 
 --Not applicable
 
-
-
 ----------------------------------------------------------------------------------------------
 -----------------------------------------TEST BLOCK VI----------------------------------------
 -------------------------Sequence with emulating of user's action(s)--------------------------
 ----------------------------------------------------------------------------------------------
 
 --Not applicable
-
-
 
 ----------------------------------------------------------------------------------------------
 -----------------------------------------TEST BLOCK VII---------------------------------------
