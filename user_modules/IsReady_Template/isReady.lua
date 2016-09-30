@@ -13,6 +13,10 @@ local interface = require('user_modules/IsReady_Template/Interfaces_RPC')
 local events = require('events')  
 local mobile_session = require('mobile_session')
 
+--User output
+local function userPrint( color, message)
+  print ("\27[" .. tostring(color) .. "m " .. tostring(message) .. " \27[0m")
+end
 
 --Interfaces and RPCs that will be tested:
 ---------------------------------------------------------------------------
@@ -63,7 +67,7 @@ local mobile_session = require('mobile_session')
 	TestData = {
 
 		--caseID 1-3 are used to checking special cases
-		{caseID = 1, description = "HMI_Does_Not_Repond"},
+		{caseID = 1, description = "HMI_Does_Not_Respond"},
 		{caseID = 2, description = "MissedAllParamaters"},
 		{caseID = 3, description = "Invalid_Json"},
 
@@ -73,10 +77,10 @@ local mobile_session = require('mobile_session')
 			--12. IsNonexistent
 			--13. IsWrongType
 			--14. IsNegative 	
-		{caseID = 11, description = "collerationID_IsMissed"},
-		{caseID = 12, description = "collerationID_IsNonexistent"},
-		{caseID = 13, description = "collerationID_IsWrongType"},
-		{caseID = 14, description = "collerationID_IsNegative"},
+		{caseID = 11, description = "correlationID_IsMissed"},
+		{caseID = 12, description = "correlationID_IsNonexistent"},
+		{caseID = 13, description = "correlationID_IsWrongType"},
+		{caseID = 14, description = "correlationID_IsNegative"},
 
 		--caseID 21-27 are used to checking "method" parameter
 			--21. IsMissed
@@ -90,7 +94,7 @@ local mobile_session = require('mobile_session')
 		{caseID = 23, description = "method_IsOtherResponse"},
 		{caseID = 24, description = "method_IsEmpty"},
 		{caseID = 25, description = "method_IsWrongType"},
-		{caseID = 26, description = "method_IsInvalidCharacter_Splace"},
+		{caseID = 26, description = "method_IsInvalidCharacter_Space"},
 		{caseID = 26, description = "method_IsInvalidCharacter_Tab"},
 		{caseID = 26, description = "method_IsInvalidCharacter_NewLine"},
 
@@ -189,19 +193,19 @@ local mobile_session = require('mobile_session')
 								--13. collerationID_IsWrongType
 								--14. collerationID_IsNegative 	
 								
-							elseif (case == 11) then --collerationID_IsMissed
+							elseif (case == 11) then --correlationID_IsMissed
 								--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"'..tested_method..'", "code":0}}')
 							    self.hmiConnection:Send('{"jsonrpc":"2.0","result":{"available":true,"method":"'..tested_method..'", "code":0}}')
 								  
-							elseif (case == 12) then --collerationID_IsNonexistent
+							elseif (case == 12) then --correlationID_IsNonexistent
 								--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"'..tested_method..'", "code":0}}')
 								self.hmiConnection:Send('{"id":'..tostring(data.id + 10)..',"jsonrpc":"2.0","result":{"available":true,"method":"'..tested_method..'", "code":0}}')
 									  
-							elseif (case == 13) then --collerationID_IsWrongType
+							elseif (case == 13) then --correlationID_IsWrongType
 								--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"'..tested_method..'", "code":0}}')
 							    self.hmiConnection:Send('{"id":"'..tostring(data.id)..'","jsonrpc":"2.0","result":{"available":true,"method":"'..tested_method..'", "code":0}}')
 									  
-							elseif (case == 14) then --collerationID_IsNegative
+							elseif (case == 14) then --correlationID_IsNegative
 								self.hmiConnection:Send('{"id":'..tostring(-1)..',"jsonrpc":"2.0","result":{"available":true,"method":"'..tested_method..'", "code":0}}')
 								
 							--*****************************************************************************************************************************
@@ -612,7 +616,7 @@ local mobile_session = require('mobile_session')
 		    ExpectRequest("TTS.ChangeRegistration", false, { }):Pin()
 		    
 		    ExpectRequest("VehicleInfo.GetVehicleData", true, { vin = "52-452-52-752" })
-			:Times(0)
+			--:Times(0)
 
 		    local function button_capability(name, shortPressAvailable, longPressAvailable, upDownAvailable)
 		      	xmlReporter.AddMessage(debug.getinfo(1, "n").name, tostring(name))
@@ -672,6 +676,8 @@ local mobile_session = require('mobile_session')
 			--Stop SDL
 			Test["Precondition_StopSDL_" ..tostring(TestCaseName)] = function(self)
 
+				userPrint(33, "Preconditions:")
+
 				StopSDL()
 			end
 			
@@ -692,7 +698,6 @@ local mobile_session = require('mobile_session')
 			-- TTS:         APPLINK-25303: [HMI_API] TTS.IsReady
 			-- VehicleInfo: APPLINK-25305: [HMI_API] VehicleInfo.IsReady
 			-- Navigation:  APPLINK-25301: [HMI_API] Navi.IsReady
-			-- Test["Precondition_InitHMI_onReady_"..TestedInterface.."_IsReady_" ..tostring(TestCaseName)] = function(self)
 			Test["Precondition_initHMI_onReady_"..TestedInterface.."_IsReady_" .. tostring(TestCaseName)] = function(self)
 
 				isReady:Common_initHMI_onReady_Interfaces_IsReady(self,case)
@@ -707,7 +712,7 @@ local mobile_session = require('mobile_session')
 			--StartSession
 			Test["Precondition_StartSession_"..tostring(TestCaseName)] = function(self)
 
-				self.mobileSession= mobile_session.MobileSession(self, self.mobileConnection)
+				self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
 				self.mobileSession:StartService(7)
 			end
 		end
