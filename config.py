@@ -29,14 +29,14 @@
 
 work_dir = "~/SmartDeviceLinkCore/"
 
-sdl_repository = "https://github.com/smartdevicelink/sdl_core/"
-sdl_branch = "release/4.1.0"
+sdl_repository = "https://github.com/CustomSDL/sdl_panasonic/"
+sdl_branch = "develop"
 
 atf_repository = "https://github.com/smartdevicelink/sdl_atf/"
-atf_branch = "release/4.1.0"
+atf_branch = "BUILD_SERVER_VERSION"
 
-scripts_repository = "https://github.com/CustomSDL/sdl_atf_test_scripts/"
-scripts_branch = "release/4.1.0"
+scripts_repository = "https://github.com/smartdevicelink/sdl_atf_test_scripts/"
+scripts_branch = "develop"
 
 sdl_clone_dir = work_dir + "sdl_core/"
 sdl_build_dir = sdl_clone_dir + "build/"
