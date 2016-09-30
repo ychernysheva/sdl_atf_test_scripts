@@ -52,7 +52,6 @@ test_scripts_dir = scripts_clone_dir + "test_scripts/"
 test_run_dir = work_dir + "test_run/"
 reports_dir = test_run_dir + "reports/"
 
-
 def set_custom_config(config_file_name):
     """
     Load variable from custom config file
