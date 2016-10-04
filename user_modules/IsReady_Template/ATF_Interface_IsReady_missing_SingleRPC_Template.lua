@@ -303,7 +303,11 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 									-- HMI does not respond					
 								else
 									if TestData[i].success == true then 
-										self.hmiConnection:SendResponse(data.id, data.method, TestData[i].resultCode, {})
+										if(hmi_call.mandatory_params ~= nil) then
+											self.hmiConnection:SendResponse(data.id, data.method, TestData[i].resultCode, hmi_call.mandatory_params )	
+										else
+											self.hmiConnection:SendResponse(data.id, data.method, TestData[i].resultCode, {})
+										end
 									else
 										self.hmiConnection:SendError(data.id, data.method, TestData[i].resultCode, "error message")
 									end						
@@ -324,8 +328,12 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 								end
 							
 							else
-							
-								EXPECT_RESPONSE(cid, { success = TestData[i].success , resultCode = TestData[i].expected_resultCode, info = "error message"})
+								if (TestData[i].resultCode == "") then
+									EXPECT_RESPONSE(cid, { success = TestData[i].success , resultCode = TestData[i].expected_resultCode})
+								else
+									EXPECT_RESPONSE(cid, { success = TestData[i].success , resultCode = TestData[i].expected_resultCode, info = "error message"})
+								end
+
 
 								EXPECT_NOTIFICATION("OnHashChange")
 								:Times(0)
@@ -352,9 +360,6 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 	
 		local TestCaseName = "Case_" .. TestData[i].caseID .. "_IsReady_" ..TestData[i].description
 
-				
-		
-		
 		if( i == 1) then
 			--Print new line to separate new test cases group
 			commonFunctions:newTestCasesGroup(TestCaseName)

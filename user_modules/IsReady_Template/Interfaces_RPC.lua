@@ -1578,7 +1578,10 @@ interfaces.RPC = {
                                                 ecuName = 0, --<param name="ecuName" type="Integer" minvalue="0" maxvalue="65535" mandatory="true">
                                                 --<param name="dtcMask" type="Integer" minvalue="0" maxvalue="255" mandatory="false">
                                                 appID = 1 
-                                              }
+                                              },
+                                    mandatory_params = {
+                                                          ecuHeader = 2
+                                                        }
                                   },
                                   --DiagnosticMessage
                                   {
@@ -1589,7 +1592,10 @@ interfaces.RPC = {
                                                 messageLength = 8,--<param name="messageLength" type="Integer" minvalue="0" maxvalue="65535" mandatory="true">
                                                 messageData =  {1, 2, 3, 5, 6, 7, 9, 10, 24, 25, 34, 62}, --<param name="messageData" type="Integer" minvalue="0" maxvalue="255" minsize="1" maxsize="65535" array="true" mandatory="true">
                                                 appID = 1--<param name="appID" type="Integer" mandatory="true">
-                                              }
+                                              },
+                                    mandatory_params = {
+                                                          messageDataResult = {200}
+                                                        }
                                   },
                                   --SubscribeVehicleData
                                   {
