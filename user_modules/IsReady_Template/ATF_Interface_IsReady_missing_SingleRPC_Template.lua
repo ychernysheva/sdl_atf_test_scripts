@@ -9,10 +9,10 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 	local commonSteps = require('user_modules/shared_testcases/commonSteps')
 	local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 	local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
+	local commonPreconditions = require ('/user_modules/shared_testcases/commonPreconditions')
 
 	DefaultTimeout = 3
 	local iTimeout = 2000
-	local commonPreconditions = require ('/user_modules/shared_testcases/commonPreconditions')
 
 ---------------------------------------------------------------------------------------------
 -----------------------------------Backup, updated preloaded file ---------------------------
@@ -83,6 +83,10 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 ---------------------------------------------------------------------------------------------
 	local RPCs = commonFunctions:cloneTable(isReady.RPCs)
 	local mobile_request = commonFunctions:cloneTable(isReady.mobile_request)
+
+	local function userPrint( color, message)
+	  print ("\27[" .. tostring(color) .. "m " .. tostring(message) .. " \27[0m")
+	end
 
 ---------------------------------------------------------------------------------------------
 -------------------------------------------Preconditions-------------------------------------
@@ -241,11 +245,11 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 				if( ( Tested_resultCode == "AllTested" ) or (Tested_resultCode == TestData[i].resultCode) ) then
 					if(mob_request.single == true)then
 
-						Test["TC01_"..mob_request.name.."_Only_".. tostring(TestData[i].resultCode).."_"..TestCaseName] = function(self)
+						Test["TC_"..mob_request.name.."_Only_".. tostring(TestData[i].resultCode).."_"..TestCaseName] = function(self)
 
 						  	local menuparams = ""
 						  	local vrCmd = ""
-							print("Testing RPC = "..mob_request.name)
+							userPrint(33, "Testing RPC = "..mob_request.name)
 							--======================================================================================================
 							-- Update and backup used params
 								
@@ -379,9 +383,9 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 			-- Description: Activation app for precondition
 			commonSteps:ActivationApp(nil, "Precondition_ActivationApp_" .. TestCaseName)
 
-			commonSteps:PutFile("PutFile_MinLength", "a")
-			commonSteps:PutFile("PutFile_icon.png", "icon.png")
-			commonSteps:PutFile("PutFile_action.png", "action.png")
+			commonSteps:PutFile("Precondition_PutFile_MinLength", "a")
+			commonSteps:PutFile("Precondition_PutFile_icon.png", "icon.png")
+			commonSteps:PutFile("Precondition_PutFile_action.png", "action.png")
 
 			-- execute test for all resultCodes and all related RPCs of the testing interface
 			Single_Interface_RPCs(TestCaseName, true, true)
@@ -401,9 +405,9 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 				-- Description: Activation app for precondition
 				commonSteps:ActivationApp(nil, "Precondition_ActivationApp_" .. TestCaseName)
 
-				commonSteps:PutFile("PutFile_MinLength", "a")
-				commonSteps:PutFile("PutFile_icon.png", "icon.png")
-				commonSteps:PutFile("PutFile_action.png", "action.png")
+				commonSteps:PutFile("Precondition_PutFile_MinLength", "a")
+				commonSteps:PutFile("Precondition_PutFile_icon.png", "icon.png")
+				commonSteps:PutFile("Precondition_PutFile_action.png", "action.png")
 				
 				-- execute test for only one resultCode (SUCCESS) and the first related RPC of the testing interface
 				Single_Interface_RPCs(TestCaseName, false, false)
@@ -448,7 +452,10 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 
 -- Not applicable for '..tested_method..' HMI API.
 
-	function Test:Postcondition_RestoreIniFile()
+	--function Test:Postcondition_RestoreIniFile()
+	function Test:RestoreIniFile()
+
+		userPrint(33, "=============================== Postcondition ===============================")
 		commonPreconditions:RestoreFile("smartDeviceLink.ini")
 	end
 
