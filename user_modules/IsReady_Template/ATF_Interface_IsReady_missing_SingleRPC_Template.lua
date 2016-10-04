@@ -194,47 +194,49 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 				local other_interfaces_call = {}			
 				local hmi_method_call = TestedInterface.."."..hmi_call.name
 
-				-- Precondition for PerformInteraction
-				if(mob_request.name == "PerformInteraction") then
-					Test["Precondition_CreateInteractionChoiceSet_" ..tostring(i)] = function (self)
-			          	--mobile side: sending CreateInteractionChoiceSet request
-			          	local cid = self.mobileSession:SendRPC("CreateInteractionChoiceSet",
-																		{
-																			interactionChoiceSetID = i,
-																			choiceSet = {{ 
-																								choiceID = i,
-																								menuName ="Choice" .. tostring(i),
-																								vrCommands = 
-																								{ 
-																									"VrChoice" .. tostring(i),
-																								}
-																								-- SDL image verification failed
-																								-- image =
-																								-- { 
-																								-- 	value ="icon.png",
-																								-- 	imageType ="STATIC",
-																								-- }
-																						}}
-																		})
-								
-								--hmi side: expect VR.AddCommand
-								EXPECT_HMICALL("VR.AddCommand", 
-											{ 
-												cmdID = i,
-												type = "Choice",
-												vrCommands = {"VrChoice"..tostring(i) }
+				if(i == 1) then
+					-- Precondition for PerformInteraction
+					if(mob_request.name == "PerformInteraction") then
+						Test["Precondition_CreateInteractionChoiceSet_" ..tostring(i)] = function (self)
+				          	--mobile side: sending CreateInteractionChoiceSet request
+				          	local cid = self.mobileSession:SendRPC("CreateInteractionChoiceSet",
+																			{
+																				interactionChoiceSetID = i,
+																				choiceSet = {{ 
+																									choiceID = i,
+																									menuName ="Choice" .. tostring(i),
+																									vrCommands = 
+																									{ 
+																										"VrChoice" .. tostring(i),
+																									}
+																									-- SDL image verification failed
+																									-- image =
+																									-- { 
+																									-- 	value ="icon.png",
+																									-- 	imageType ="STATIC",
+																									-- }
+																							}}
+																			})
+									
+									--hmi side: expect VR.AddCommand
+									EXPECT_HMICALL("VR.AddCommand", 
+												{ 
+													cmdID = i,
+													type = "Choice",
+													vrCommands = {"VrChoice"..tostring(i) }
 
-											})
-								:Do(function(_,data)						
-									--hmi side: sending VR.AddCommand response
-									self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-									grammarID = data.params.grammarID
-								end)		
-								
-								--mobile side: expect CreateInteractionChoiceSet response
-								EXPECT_RESPONSE(cid, { resultCode = "SUCCESS", success = true  })
-				    end
-			    end --if(mob_request.name == "PerformInteraction") then
+												})
+									:Do(function(_,data)						
+										--hmi side: sending VR.AddCommand response
+										self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+										grammarID = data.params.grammarID
+									end)		
+									
+									--mobile side: expect CreateInteractionChoiceSet response
+									EXPECT_RESPONSE(cid, { resultCode = "SUCCESS", success = true  })
+					    end
+				    end --if(mob_request.name == "PerformInteraction") then
+				end --if(i == 1) then
 
 				if( ( Tested_resultCode == "AllTested" ) or (Tested_resultCode == TestData[i].resultCode) ) then
 					if(mob_request.single == true)then
@@ -281,10 +283,11 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 							
 							--======================================================================================================
 							-- Update of verified params
-								if ( hmi_call.params.appID ~= nil ) then hmi_call.params.appID = self.applications[config.application1.registerAppInterfaceParams.appName] end
-								if ( hmi_call.params.cmdID ~= nil )      then hmi_call.params.cmdID = i end
-							  	if ( hmi_call.params.vrCommands ~= nil ) then hmi_call.params.vrCommands =  {"vrCommands_" .. tostring(i)}  end
-							  	if ( hmi_call.params.grammarID ~= nil ) then 
+								if ( hmi_call.params.appID ~= nil )          then hmi_call.params.appID = self.applications[config.application1.registerAppInterfaceParams.appName] end
+								if ( hmi_call.params.cmdID ~= nil )          then hmi_call.params.cmdID = i end
+							  	if ( hmi_call.params.vrCommands ~= nil )     then hmi_call.params.vrCommands =  {"vrCommands_" .. tostring(i)}  end
+							  	if ( mob_request.params.menuParams ~= nil )  then hmi_call.params.menuParams = {position = 1, menuName = "Command " .. tostring(i)} end
+							  	if ( hmi_call.params.grammarID ~= nil )      then 
 							  		if (mob_request.name == "DeleteCommand") then
 							  			hmi_call.params.grammarID =  grammarID  
 									else
@@ -293,7 +296,11 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 							  	end
 							--======================================================================================================
 
+
 				 			--hmi side: expect Interface.RPC request 	
+				 			if(hmi_method_call == "UI.EndAudioPassThru") then
+				 				hmi_call.params = nil
+				 			end
 							EXPECT_HMICALL( hmi_method_call, hmi_call.params)
 							:Do(function(_,data)
 								if(mob_request.name == "AddCommand") then grammarID = data.params.grammarID end
@@ -328,12 +335,12 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 								end
 							
 							else
+								--TODO: APPLINK-28492 - update after clarification
 								if (TestData[i].resultCode == "") then
 									EXPECT_RESPONSE(cid, { success = TestData[i].success , resultCode = TestData[i].expected_resultCode})
 								else
 									EXPECT_RESPONSE(cid, { success = TestData[i].success , resultCode = TestData[i].expected_resultCode, info = "error message"})
 								end
-
 
 								EXPECT_NOTIFICATION("OnHashChange")
 								:Times(0)
