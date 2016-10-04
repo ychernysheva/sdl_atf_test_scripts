@@ -192,15 +192,15 @@ interfaces.mobile_req = {
                                         duration = 3000,
                                         playTone = false,
                                         progressIndicator = false,
-                                        softButtons = { -- <param name="softButtons" type="SoftButton" minsize="0" maxsize="4" array="true" mandatory="false">
-                                                        { 
-                                                          type = "TEXT",
-                                                          text = "Keep",
-                                                          isHighlighted = true,
-                                                          softButtonID = 4,
-                                                          systemAction = "KEEP_CONTEXT",
-                                                        }
-                                                      }
+                                        -- softButtons = { -- <param name="softButtons" type="SoftButton" minsize="0" maxsize="4" array="true" mandatory="false">
+                                        --                 { 
+                                        --                   type = "TEXT",
+                                        --                   text = "Keep",
+                                        --                   isHighlighted = true,
+                                        --                   softButtonID = 4,
+                                        --                   systemAction = "KEEP_CONTEXT",
+                                        --                 }
+                                        --               }
                                       }
                           },
                           --show
@@ -1007,17 +1007,17 @@ interfaces.RPC = {
                                                                   {fieldName = "alertText3", fieldText = "alertText3"}
                                                                 },
                                                 alertType = "BOTH",
-                                                duration = 0,
+                                                duration = 3000,
                                                 progressIndicator = false,
-                                                softButtons = {
-                                                                { 
-                                                                  type = "TEXT",
-                                                                  text = "Keep",
-                                                                  isHighlighted = true,
-                                                                  softButtonID = 4,
-                                                                  systemAction = "KEEP_CONTEXT"
-                                                                }
-                                                              }
+                                                -- softButtons = {
+                                                --                 { 
+                                                --                   type = "TEXT",
+                                                --                   text = "Keep",
+                                                --                   isHighlighted = true,
+                                                --                   softButtonID = 4,
+                                                --                   systemAction = "KEEP_CONTEXT"
+                                                --                 }
+                                                --               }
                                               }
                                   },
                                   --Show
