@@ -14,6 +14,31 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 	local iTimeout = 2000
 	local commonPreconditions = require ('/user_modules/shared_testcases/commonPreconditions')
 
+---------------------------------------------------------------------------------------------
+-----------------------------------Backup, updated preloaded file ---------------------------
+---------------------------------------------------------------------------------------------
+	os.execute(" cp " .. config.pathToSDL .. "/sdl_preloaded_pt.json " .. config.pathToSDL .. "/sdl_preloaded_pt_origin.json" )
+
+	f = assert(io.open(config.pathToSDL.. "/sdl_preloaded_pt.json", "r"))
+
+	fileContent = f:read("*all")
+
+    DefaultContant = fileContent:match('"default".?:.?.?%{.-%}')
+
+    if not DefaultContant then
+      print ( " \27[31m  default grpoup is not found in sdl_preloaded_pt.json \27[0m " )
+    else
+       DefaultContant =  string.gsub(DefaultContant, '".?groups.?".?:.?.?%[.-%]', '"groups": ["Base-4", "Location-1", "DrivingCharacteristics-3", "VehicleInfo-3", "Emergency-1", "PropriataryData-1"]')
+    end
+
+
+	fileContent  =  string.gsub(fileContent, '".?default.?".?:.?.?%{.-%}', DefaultContant)
+
+
+	f = assert(io.open(config.pathToSDL.. "/sdl_preloaded_pt.json", "w+"))
+	
+	f:write(fileContent)
+	f:close()
 
 ---------------------------------------------------------------------------------------------
 ------------------------- General Precondition before ATF start -----------------------------
@@ -124,12 +149,15 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 		local TestData = {}
 		if(IsExecutedAllResultCodes == true) then
 			TestData = {
-		
+				
+				-- if and this resultCode is unexpected for this RPC(please see expected <resultCodes> for each RPC at MOBILE_API)
+				-- APPLINK-25748: result code should have success: true or false
 				{success = true, resultCode = "SUCCESS", 						expected_resultCode = "SUCCESS"},
 				{success = true, resultCode = "WARNINGS", 						expected_resultCode = "WARNINGS"},
 				{success = true, resultCode = "WRONG_LANGUAGE", 				expected_resultCode = "WRONG_LANGUAGE"},
 				{success = true, resultCode = "RETRY", 							expected_resultCode = "RETRY"},
 				{success = true, resultCode = "SAVED", 							expected_resultCode = "SAVED"},
+				{success = true, resultCode = "UNSUPPORTED_RESOURCE", 			expected_resultCode = "UNSUPPORTED_RESOURCE"},
 								
 				{success = false, resultCode = "", 								expected_resultCode = "GENERIC_ERROR"}, --not respond
 				{success = false, resultCode = "ABC", 							expected_resultCode = "INVALID_DATA"},
@@ -298,7 +326,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 							else
 							
 								EXPECT_RESPONSE(cid, { success = TestData[i].success , resultCode = TestData[i].expected_resultCode, info = "error message"})
-							
+
 								EXPECT_NOTIFICATION("OnHashChange")
 								:Times(0)
 
@@ -407,5 +435,9 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 ----------------------------------------------------------------------------------------------
 
 -- Not applicable for '..tested_method..' HMI API.
+
+	function Test:Postcondition_RestoreIniFile()
+		commonPreconditions:RestoreFile("smartDeviceLink.ini")
+	end
 
 return Test

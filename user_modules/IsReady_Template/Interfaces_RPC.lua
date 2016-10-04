@@ -123,7 +123,7 @@ interfaces.mobile_req = {
                                                           }
                                                       },
                                         interactionMode = "BOTH", --<param name="interactionMode" type="InteractionMode">:"MANUAL_ONLY" / "VR_ONLY" / "BOTH"
-                                        interactionChoiceSetIDList = {1}, --<param name="interactionChoiceSetIDList" type="Integer" minsize="0" maxsize="100" minvalue="0" maxvalue="2000000000" array="true">
+                                        interactionChoiceSetIDList = {2}, --<param name="interactionChoiceSetIDList" type="Integer" minsize="0" maxsize="100" minvalue="0" maxvalue="2000000000" array="true">
                                         helpPrompt = {--<param name="helpPrompt" type="TTSChunk" minsize="1" maxsize="100" array="true" mandatory="false">
                                                       --TTSChunk
                                                       {
@@ -175,7 +175,7 @@ interfaces.mobile_req = {
                           --Alert
                           {
                             name = "Alert",
-                            splitted = false,
+                            splitted = true,
                             single = false,
                             description = "Alert with all parameters",
                             hashChange = false,
@@ -391,7 +391,7 @@ interfaces.mobile_req = {
                           --PerformAudioPassThru
                           {
                             name = "PerformAudioPassThru",
-                            splitted = false,
+                            splitted = true,
                             single = false,
                             description = "PerformAudioPassThru with all parameters",
                             hashChange = false,
@@ -730,7 +730,6 @@ interfaces.mobile_req = {
                           
                         }
 
-
 interfaces.RPC = {
                     --VR
                     {
@@ -969,7 +968,7 @@ interfaces.RPC = {
                                                                   
                                                                 },  
                                                 choiceSet = {
-                                                              { choiceID = 1, menuName = "Choice1" }
+                                                              { choiceID = 2, menuName = "Choice2" }
                                                             },
                                                 vrHelpTitle = "StartPerformInteraction",
                                                 vrHelp = { --<param name="vrHelp" type="Common.VrHelpItem" minsize="1" maxsize="100" array="true" mandatory="false">
@@ -999,7 +998,7 @@ interfaces.RPC = {
                                   {
                                     
                                     name = "Alert",
-                                    splitted = false,
+                                    splitted = true, -- TTS.Speak - the second RPC
                                     params = {
                                                 alertStrings = 
                                                                 {
@@ -1185,7 +1184,7 @@ interfaces.RPC = {
                                   --PerformAudioPassThru
                                   {
                                     name = "PerformAudioPassThru",
-                                    splitted = false,
+                                    splitted = true, --TTS.Speak
                                     params = {
                                                 appID = 1,
                                                 audioPassThruDisplayTexts = {--<param name="audioPassThruDisplayTexts" type="Common.TextFieldStruct" mandatory="true" minsize="0" maxsize="2" array="true">

@@ -616,7 +616,8 @@ end
 		    ExpectRequest("TTS.ChangeRegistration", false, { }):Pin()
 		    
 		    ExpectRequest("VehicleInfo.GetVehicleData", true, { vin = "52-452-52-752" })
-			--:Times(0)
+			-- CLARIFICATION should be done. For now leave as fail
+			:Times(0)
 
 		    local function button_capability(name, shortPressAvailable, longPressAvailable, upDownAvailable)
 		      	xmlReporter.AddMessage(debug.getinfo(1, "n").name, tostring(name))
