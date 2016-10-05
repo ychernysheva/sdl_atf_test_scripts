@@ -206,6 +206,7 @@ interfaces.mobile_req = {
                           --show
                           {
                             name = "Show",
+                            -- TODO: Clarification according to APPLINK-25102/25099(See APPLINK-28483) Show is impacted
                             splitted = false,
                             single = true,
                             description = "Show with all parameters",
@@ -234,6 +235,7 @@ interfaces.mobile_req = {
                           --AddSubMenu
                           {
                             name = "AddSubMenu",
+                            -- TODO: Clarification according to APPLINK-25102/25099(See APPLINK-28483) AddSubMenu is impacted
                             splitted = false,
                             single = true,
                             description = "AddSubMenu with all parameters",
@@ -247,6 +249,7 @@ interfaces.mobile_req = {
                           --DeleteSubMenu
                           {
                             name = "DeleteSubMenu",
+                            -- TODO: Clarification according to APPLINK-25102/25099(See APPLINK-28483) DeleteSubMenu is impacted
                             splitted = false,
                             single = true,
                             description = "DeleteSubMenu with all parameters",
@@ -258,6 +261,7 @@ interfaces.mobile_req = {
                           --SetMediaClockTimer
                           {
                             name = "SetMediaClockTimer",
+                            -- TODO: Clarification according to APPLINK-25102/25099(See APPLINK-28483) SetMediaClockTimer is impacted
                             splitted = false,
                             single = true,
                             description = "SetMediaClockTimer with all parameters",
@@ -279,7 +283,7 @@ interfaces.mobile_req = {
                           --SetGlobalProperties
                           {
                             name = "SetGlobalProperties",
-                            splitted = false,
+                            splitted = true,
                             single = true,
                             description = "SetGlobalProperties with all parameters",
                             hashChange = true,
@@ -328,6 +332,7 @@ interfaces.mobile_req = {
                           --SetAppIcon
                           {
                             name = "SetAppIcon",
+                            -- TODO: Clarification according to APPLINK-25102/25099(See APPLINK-28483) SetAppIcon is impacted
                             splitted = false,
                             single = true,
                             description = "SetAppIcon with all parameters",
@@ -339,6 +344,7 @@ interfaces.mobile_req = {
                           --SetDisplayLayout
                           {
                             name = "SetDisplayLayout",
+                            -- TODO: Clarification according to APPLINK-25102/25099(See APPLINK-28483) SetDisplayLayout is impacted
                             splitted = false,
                             single = true,
                             description = "SetDisplayLayout with all parameters",
@@ -350,6 +356,7 @@ interfaces.mobile_req = {
                           --Slider
                           {
                             name = "Slider",
+                            -- TODO: Clarification according to APPLINK-25102/25099(See APPLINK-28483) Slider is impacted
                             splitted = false,
                             single = true,
                             description = "Slider with all parameters",
@@ -365,6 +372,7 @@ interfaces.mobile_req = {
                           --ScrollableMessage
                           {
                             name = "ScrollableMessage",
+                            -- TODO: Clarification according to APPLINK-25102/25099(See APPLINK-28483) ScrollableMessage is impacted
                             splitted = false,
                             single = true,
                             description = "ScrollableMessage with all parameters",
@@ -414,7 +422,8 @@ interfaces.mobile_req = {
                           --EndAudioPassThru
                           {
                             name = "EndAudioPassThru",
-                            splitted = false,
+                            -- TODO: Clarification according to APPLINK-25102/25099(See APPLINK-28483) EndAudioPassThru is impacted
+                            splitted = true,
                             single = true,
                             description = "EndAudioPassThru with all parameters",
                             hashChange = false,
