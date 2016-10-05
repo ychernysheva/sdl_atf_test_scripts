@@ -335,6 +335,8 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 											--======================================================================================================
 											-- Update of verified params
 												if ( local_params.cmdID ~= nil )      then local_params.cmdID = i end
+												if ( local_params.vrCommands ~= nil ) then local_params.vrCommands = {"vrCommands_" .. tostring(i)} end
+												
 												if ( local_params.menuParams ~= nil ) then local_params.menuParams =  {position = 1, menuName ="Command "..tostring(i)} end
 				 								if ( local_params.appID ~= nil )      then local_params.appID = self.applications[config.application1.registerAppInterfaceParams.appName] end
 				 								if ( local_params.grammarID ~= nil ) then 
@@ -368,6 +370,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 								-- Update of verified params
 									if ( hmi_call.params.cmdID ~= nil )      then hmi_call.params.cmdID = i end
 									if ( hmi_call.params.type ~= nil ) 		   then hmi_call.params.type = "Command" end
+									if ( hmi_call.params.menuParams ~= nil ) then hmi_call.params.menuParams =  {position = 1, menuName ="Command "..tostring(i)} end
 									if ( hmi_call.params.vrCommands ~= nil ) then hmi_call.params.vrCommands = {"vrCommands_" .. tostring(i)} end
 								--======================================================================================================
 								EXPECT_HMICALL(hmi_method_call, hmi_call.params)
@@ -385,10 +388,8 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 
 										local function speakResponse()
 											self.hmiConnection:SendResponse(SpeakId, "TTS.Speak", "SUCCESS", { })
-
 											self.hmiConnection:SendNotification("TTS.Stopped")
 										end
-
 											RUN_AFTER(speakResponse, 2000)
 
 										end)
@@ -551,10 +552,9 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 
 								if ( mob_request.params.appName ~= nil )    then mob_request.params.appName = config.application1.registerAppInterfaceParams.appName end
 								if ( mob_request.params.cmdID ~= nil )      then mob_request.params.cmdID = 100+i end
-								if ( mob_request.params.cmdID ~= nil )      then mob_request.params.cmdID = 100+i end
 					 			if ( mob_request.params.menuParams ~= nil ) then mob_request.params.menuParams = {position = 1, menuName ="Command ".. tostring(100+i)} end
 					 			
-					 			if ( mob_request.params.vrCommands ~= nil ) then	mob_request.params.vrCommands = {"vrCommands_" .. tostring(100+i)}	end
+					 			if ( mob_request.params.vrCommands ~= nil ) then mob_request.params.vrCommands = {"vrCommands_" .. tostring(100+i)}	end
 					 			if ( mob_request.params.appID ~= nil )      then mob_request.params.appID = self.applications[config.application1.registerAppInterfaceParams.appName] end
 					 			
 								--======================================================================================================
@@ -610,7 +610,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 								--======================================================================================================
 								EXPECT_HMICALL(hmi_method_call, hmi_call.params)
 								:Do(function(_,data)
-									--hmi side: sending VR.AddCommand response
+									--hmi side: sending HMI response
 									self.hmiConnection:SendError(data.id, data.method, "UNSUPPORTED_RESOURCE", "error message")					
 								end)		
 
@@ -621,13 +621,21 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 										self.hmiConnection:SendNotification("TTS.Started")
 										local function speakResponse()
 											self.hmiConnection:SendResponse(SpeakId, "TTS.Speak", "SUCCESS", { })
+											self.hmiConnection:SendNotification("TTS.Stopped")
 										end
 										RUN_AFTER(speakResponse, 2000)
 									end)
 								end
+								local hmi_info = "error message"
+								
+								-- APPLINK-16277
+								if(mob_request.name == "PerformInteraction") then
+									hmi_info = "Unsupported phoneme type was sent in an item"
+								end
+
 								
 								--mobile side: expect AddCommand response
-								EXPECT_RESPONSE(cid, { success = true, resultCode = "UNSUPPORTED_RESOURCE", info = "error message"})
+								EXPECT_RESPONSE(cid, { success = true, resultCode = "UNSUPPORTED_RESOURCE", info = hmi_info})
 
 								--mobile side: expect OnHashChange notification
 								if(mob_request.hashChange == true) then
@@ -856,6 +864,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 										self.hmiConnection:SendNotification("TTS.Started")
 										local function speakResponse()
 											self.hmiConnection:SendResponse(SpeakId, "TTS.Speak", "SUCCESS", { })
+											self.hmiConnection:SendNotification("TTS.Stopped")
 										end
 										RUN_AFTER(speakResponse, 2000)
 									end)
@@ -944,6 +953,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 -----------------------------------------TEST BLOCK IV----------------------------------------
 ------------------------------Check special cases of HMI response-----------------------------
 ----------------------------------------------------------------------------------------------
+
 -- These cases are merged into TEST BLOCK III
 
 
@@ -952,6 +962,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 -------------------------------------------TEST BLOCK V----------------------------------------
 -------------------------------------Checks All Result Codes-----------------------------------
 -----------------------------------------------------------------------------------------------
+
 --Not applicable
 
 
@@ -960,6 +971,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 -----------------------------------------TEST BLOCK VI----------------------------------------
 -------------------------Sequence with emulating of user's action(s)--------------------------
 ----------------------------------------------------------------------------------------------
+
 --Not applicable
 
 

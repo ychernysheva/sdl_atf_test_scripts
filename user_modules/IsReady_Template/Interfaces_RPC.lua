@@ -161,7 +161,7 @@ interfaces.mobile_req = {
                             params = {
                                         language = "EN-US",--<param name="language" type="Language" mandatory="true">
                                         hmiDisplayLanguage ="EN-US",--<param name="hmiDisplayLanguage" type="Language" mandatory="true">
-                                        appName ="SyncProxyTester",--<param name="appName" type="String" maxlength="100" mandatory="false">
+                                        --appName ="SyncProxyTester",--<param name="appName" type="String" maxlength="100" mandatory="false">
                                         ttsName ={
                                                     {
                                                       text ="SyncProxyTester",
@@ -419,7 +419,7 @@ interfaces.mobile_req = {
                             description = "EndAudioPassThru with all parameters",
                             hashChange = false,
                             --No params
-                            params = { fakeparams = nil }
+                            params = {}
                           },
                           --Speak
                           {
@@ -987,7 +987,7 @@ interfaces.RPC = {
                                     name = "ChangeRegistration",
                                     splitted = true,
                                     params = {
-                                                appName = "SyncProxyTester",
+                                                --appName = "SyncProxyTester",
                                                 ngnMediaScreenAppName = "SPT",
                                                 language =  "EN-US",--<param name="language" type="Common.Language" mandatory="true">
                                                 appHMIType = "MEDIA",
@@ -1026,17 +1026,15 @@ interfaces.RPC = {
                                     name = "Show",
                                     splitted = false,
                                     params = {
-                                                --showStrings = {"a"},--
+                                                showStrings = "a",--
                                                 alignment = "CENTERED",
                                                 graphic = {
                                                             imageType = "DYNAMIC",
-                                                            --as verification should be done with ValidIf and is not in scope of these CRQ
-                                                            --value = "a"
+                                                            value = "a"
                                                           },
                                                 secondaryGraphic = {
                                                                       imageType = "DYNAMIC",
-                                                                      --as verification should be done with ValidIf and is not in scope of these CRQ
-                                                                      --value = "a"
+                                                                      value = "a"
                                                                     },
                                                 --softButtons,
                                                 --customPresets,
@@ -1074,7 +1072,7 @@ interfaces.RPC = {
                                     splitted = false,
                                     params = {
                                                 startTime = {--<param name="startTime" type="StartTime" mandatory="false">
-                                                              hours = 1,
+                                                              hours = 0,
                                                               minutes = 1,
                                                               seconds = 33
                                                             },
@@ -1100,8 +1098,7 @@ interfaces.RPC = {
                                                               image = 
                                                               {
                                                                 imageType = "DYNAMIC",
-                                                                --as verification should be done with ValidIf and is not in scope of these CRQ
-                                                                --value = storagePath .. "action.png"
+                                                                value = storagePath .. "action.png"
                                                               },
                                                               text = "VR help item"
                                                             }
@@ -1109,8 +1106,7 @@ interfaces.RPC = {
                                                 menuTitle = "Menu Title",--<param name="menuTitle" maxlength="500" type="String" mandatory="false">                                                
                                                 menuIcon = {--<param name="menuIcon" type="Common.Image" mandatory="false">
                                                               imageType = "DYNAMIC",
-                                                              -- as verification should be done with ValidIf and is not in scope of these CRQ
-                                                              -- value = strAppFolder .. "action.png"
+                                                              --value = strAppFolder .. "action.png"
                                                             },
                                                 keyboardProperties = { --<param name="keyboardProperties" type="Common.KeyboardProperties" mandatory="false">
                                                                         keyboardLayout = "QWERTY",
@@ -1130,8 +1126,7 @@ interfaces.RPC = {
                                     params = {
                                                 syncFileName = {--<param name="syncFileName" type="Common.Image" mandatory="true">
                                                                   imageType = "DYNAMIC",
-                                                                  -- as verification should be done with ValidIf and is not in scope of these CRQ
-                                                                  -- value = storagePath .. "icon.png"
+                                                                  value = storagePath .. "icon.png"
                                                                 } ,
                                                 appID = 1
                                               }
@@ -1172,12 +1167,11 @@ interfaces.RPC = {
                                                 softButtons = {--<param name="softButtons" type="Common.SoftButton" minsize="0" maxsize="8" array="true" mandatory="false">
                                                                 {
                                                                   softButtonID = 1,
-                                                                  --text = "Button1",
+                                                                  text = "Button1",
                                                                   type = "IMAGE",
                                                                   image =
                                                                   {
-                                                                    -- as verification should be done with ValidIf and is not in scope of these CRQ
-                                                                    --value = "action.png",
+                                                                    value = "action.png",
                                                                     imageType = "DYNAMIC"
                                                                   },
                                                                   isHighlighted = false,
