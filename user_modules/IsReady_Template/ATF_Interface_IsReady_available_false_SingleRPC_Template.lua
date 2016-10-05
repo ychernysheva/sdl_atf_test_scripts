@@ -9,10 +9,36 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 	local commonSteps = require('user_modules/shared_testcases/commonSteps')
 	local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 	local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
+	local commonPreconditions = require ('/user_modules/shared_testcases/commonPreconditions')
 
 	DefaultTimeout = 3
 	local iTimeout = 2000
-	local commonPreconditions = require ('/user_modules/shared_testcases/commonPreconditions')
+
+---------------------------------------------------------------------------------------------
+-----------------------------------Backup, updated preloaded file ---------------------------
+---------------------------------------------------------------------------------------------
+	os.execute(" cp " .. config.pathToSDL .. "/sdl_preloaded_pt.json " .. config.pathToSDL .. "/sdl_preloaded_pt_origin.json" )
+
+	f = assert(io.open(config.pathToSDL.. "/sdl_preloaded_pt.json", "r"))
+
+	fileContent = f:read("*all")
+
+    DefaultContant = fileContent:match('"default".?:.?.?%{.-%}')
+
+    if not DefaultContant then
+      print ( " \27[31m  default grpoup is not found in sdl_preloaded_pt.json \27[0m " )
+    else
+       DefaultContant =  string.gsub(DefaultContant, '".?groups.?".?:.?.?%[.-%]', '"groups": ["Base-4", "Location-1", "DrivingCharacteristics-3", "VehicleInfo-3", "Emergency-1", "PropriataryData-1"]')
+    end
+
+
+	fileContent  =  string.gsub(fileContent, '".?default.?".?:.?.?%{.-%}', DefaultContant)
+
+
+	f = assert(io.open(config.pathToSDL.. "/sdl_preloaded_pt.json", "w+"))
+	
+	f:write(fileContent)
+	f:close()
 
 
 ---------------------------------------------------------------------------------------------
@@ -38,6 +64,10 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 ---------------------------------------------------------------------------------------------
 	local RPCs = commonFunctions:cloneTable(isReady.RPCs)
 	local mobile_request = commonFunctions:cloneTable(isReady.mobile_request)
+
+	local function userPrint( color, message)
+	  print ("\27[" .. tostring(color) .. "m " .. tostring(message) .. " \27[0m")
+	end
 
 ---------------------------------------------------------------------------------------------
 -------------------------------------------Preconditions-------------------------------------
@@ -111,9 +141,9 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 	-- Description: Activation app for precondition
 	commonSteps:ActivationApp(nil, "Precondition_ActivationApp_" .. TestCaseName)
 
-	commonSteps:PutFile("PutFile_MinLength", "a")
-	commonSteps:PutFile("PutFile_icon.png", "icon.png")
-	commonSteps:PutFile("PutFile_action.png", "action.png")
+	commonSteps:PutFile("Precondition_PutFile_MinLength", "a")
+	commonSteps:PutFile("Precondition_PutFile_icon.png", "icon.png")
+	commonSteps:PutFile("Precondition_PutFile_action.png", "action.png")
 
 	local function Interface_IsReady_response_availabe_false_check_single_related_RPC(TestCaseName)
 			for count_RPC = 1, #RPCs do
@@ -122,10 +152,11 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 				if(mob_request.single == true)then
 
 					-- All applicable RPCs
-					Test["TC01_".. RPCs[count_RPC].name .. "_UNSUPPORTED_RESOURCE_false" ..TestCaseName] = function(self)
+					Test["TC_".. RPCs[count_RPC].name .. "_UNSUPPORTED_RESOURCE_false" ..TestCaseName] = function(self)
 						local menuparams = ""
 						local vrCmd = ""
-						print("=============== Test: "..TestedInterface.."."..RPCs[count_RPC].name)
+						userPrint(33, "Testing RPC = "..RPCs[count_RPC].name)
+						--print("=============== Test: "..TestedInterface.."."..RPCs[count_RPC].name)
 						local hmi_call = RPCs[count_RPC]
 						local hmi_method_call = TestedInterface.."."..hmi_call.name
 
@@ -212,5 +243,17 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 ----------------------------------------------------------------------------------------------
 
 -- Not applicable for '..tested_method..' HMI API.
+
+
+----------------------------------------------------------------------------------------------
+-----------------------------------------Postconditions---------------------------------------
+----------------------------------------------------------------------------------------------
+
+	--function Test:Postcondition_RestoreIniFile()
+	function Test:RestoreIniFile()
+
+		userPrint(33, "=============================== Postcondition ===============================")
+		commonPreconditions:RestoreFile("smartDeviceLink.ini")
+end
 
 return Test
