@@ -9,11 +9,36 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 	local commonSteps = require('user_modules/shared_testcases/commonSteps')
 	local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 	local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
+	local commonPreconditions = require ('/user_modules/shared_testcases/commonPreconditions')
 
 	DefaultTimeout = 3
 	local iTimeout = 2000
-	local commonPreconditions = require ('/user_modules/shared_testcases/commonPreconditions')
 
+---------------------------------------------------------------------------------------------
+-----------------------------------Backup, updated preloaded file ---------------------------
+---------------------------------------------------------------------------------------------
+	os.execute(" cp " .. config.pathToSDL .. "/sdl_preloaded_pt.json " .. config.pathToSDL .. "/sdl_preloaded_pt_origin.json" )
+
+	f = assert(io.open(config.pathToSDL.. "/sdl_preloaded_pt.json", "r"))
+
+	fileContent = f:read("*all")
+
+    DefaultContant = fileContent:match('"default".?:.?.?%{.-%}')
+
+    if not DefaultContant then
+      print ( " \27[31m  default grpoup is not found in sdl_preloaded_pt.json \27[0m " )
+    else
+       DefaultContant =  string.gsub(DefaultContant, '".?groups.?".?:.?.?%[.-%]', '"groups": ["Base-4", "Location-1", "DrivingCharacteristics-3", "VehicleInfo-3", "Emergency-1", "PropriataryData-1"]')
+    end
+
+
+	fileContent  =  string.gsub(fileContent, '".?default.?".?:.?.?%{.-%}', DefaultContant)
+
+
+	f = assert(io.open(config.pathToSDL.. "/sdl_preloaded_pt.json", "w+"))
+	
+	f:write(fileContent)
+	f:close()
 
 ---------------------------------------------------------------------------------------------
 ------------------------- General Precondition before ATF start -----------------------------
@@ -58,6 +83,10 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 ---------------------------------------------------------------------------------------------
 	local RPCs = commonFunctions:cloneTable(isReady.RPCs)
 	local mobile_request = commonFunctions:cloneTable(isReady.mobile_request)
+
+	local function userPrint( color, message)
+	  print ("\27[" .. tostring(color) .. "m " .. tostring(message) .. " \27[0m")
+	end
 
 ---------------------------------------------------------------------------------------------
 -------------------------------------------Preconditions-------------------------------------
@@ -124,12 +153,15 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 		local TestData = {}
 		if(IsExecutedAllResultCodes == true) then
 			TestData = {
-		
+				
+				-- if and this resultCode is unexpected for this RPC(please see expected <resultCodes> for each RPC at MOBILE_API)
+				-- APPLINK-25748: result code should have success: true or false
 				{success = true, resultCode = "SUCCESS", 						expected_resultCode = "SUCCESS"},
 				{success = true, resultCode = "WARNINGS", 						expected_resultCode = "WARNINGS"},
 				{success = true, resultCode = "WRONG_LANGUAGE", 				expected_resultCode = "WRONG_LANGUAGE"},
 				{success = true, resultCode = "RETRY", 							expected_resultCode = "RETRY"},
 				{success = true, resultCode = "SAVED", 							expected_resultCode = "SAVED"},
+				{success = true, resultCode = "UNSUPPORTED_RESOURCE", 			expected_resultCode = "UNSUPPORTED_RESOURCE"},
 								
 				{success = false, resultCode = "", 								expected_resultCode = "GENERIC_ERROR"}, --not respond
 				{success = false, resultCode = "ABC", 							expected_resultCode = "INVALID_DATA"},
@@ -166,56 +198,58 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 				local other_interfaces_call = {}			
 				local hmi_method_call = TestedInterface.."."..hmi_call.name
 
-				-- Precondition for PerformInteraction
-				if(mob_request.name == "PerformInteraction") then
-					Test["Precondition_CreateInteractionChoiceSet_" ..tostring(i)] = function (self)
-			          	--mobile side: sending CreateInteractionChoiceSet request
-			          	local cid = self.mobileSession:SendRPC("CreateInteractionChoiceSet",
-																		{
-																			interactionChoiceSetID = i,
-																			choiceSet = {{ 
-																								choiceID = i,
-																								menuName ="Choice" .. tostring(i),
-																								vrCommands = 
-																								{ 
-																									"VrChoice" .. tostring(i),
-																								}
-																								-- SDL image verification failed
-																								-- image =
-																								-- { 
-																								-- 	value ="icon.png",
-																								-- 	imageType ="STATIC",
-																								-- }
-																						}}
-																		})
-								
-								--hmi side: expect VR.AddCommand
-								EXPECT_HMICALL("VR.AddCommand", 
-											{ 
-												cmdID = i,
-												type = "Choice",
-												vrCommands = {"VrChoice"..tostring(i) }
+				if(i == 1) then
+					-- Precondition for PerformInteraction
+					if(mob_request.name == "PerformInteraction") then
+						Test["Precondition_CreateInteractionChoiceSet_" ..tostring(i)] = function (self)
+				          	--mobile side: sending CreateInteractionChoiceSet request
+				          	local cid = self.mobileSession:SendRPC("CreateInteractionChoiceSet",
+																			{
+																				interactionChoiceSetID = i,
+																				choiceSet = {{ 
+																									choiceID = i,
+																									menuName ="Choice" .. tostring(i),
+																									vrCommands = 
+																									{ 
+																										"VrChoice" .. tostring(i),
+																									}
+																									-- SDL image verification failed
+																									-- image =
+																									-- { 
+																									-- 	value ="icon.png",
+																									-- 	imageType ="STATIC",
+																									-- }
+																							}}
+																			})
+									
+									--hmi side: expect VR.AddCommand
+									EXPECT_HMICALL("VR.AddCommand", 
+												{ 
+													cmdID = i,
+													type = "Choice",
+													vrCommands = {"VrChoice"..tostring(i) }
 
-											})
-								:Do(function(_,data)						
-									--hmi side: sending VR.AddCommand response
-									self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-									grammarID = data.params.grammarID
-								end)		
-								
-								--mobile side: expect CreateInteractionChoiceSet response
-								EXPECT_RESPONSE(cid, { resultCode = "SUCCESS", success = true  })
-				    end
-			    end --if(mob_request.name == "PerformInteraction") then
+												})
+									:Do(function(_,data)						
+										--hmi side: sending VR.AddCommand response
+										self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+										grammarID = data.params.grammarID
+									end)		
+									
+									--mobile side: expect CreateInteractionChoiceSet response
+									EXPECT_RESPONSE(cid, { resultCode = "SUCCESS", success = true  })
+					    end
+				    end --if(mob_request.name == "PerformInteraction") then
+				end --if(i == 1) then
 
 				if( ( Tested_resultCode == "AllTested" ) or (Tested_resultCode == TestData[i].resultCode) ) then
 					if(mob_request.single == true)then
 
-						Test["TC01_"..mob_request.name.."_Only_".. tostring(TestData[i].resultCode).."_"..TestCaseName] = function(self)
+						Test["TC_"..mob_request.name.."_Only_".. tostring(TestData[i].resultCode).."_"..TestCaseName] = function(self)
 
 						  	local menuparams = ""
 						  	local vrCmd = ""
-							print("Testing RPC = "..mob_request.name)
+							userPrint(33, "Testing RPC = "..mob_request.name)
 							--======================================================================================================
 							-- Update and backup used params
 								
@@ -253,10 +287,11 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 							
 							--======================================================================================================
 							-- Update of verified params
-								if ( hmi_call.params.appID ~= nil ) then hmi_call.params.appID = self.applications[config.application1.registerAppInterfaceParams.appName] end
-								if ( hmi_call.params.cmdID ~= nil )      then hmi_call.params.cmdID = i end
-							  	if ( hmi_call.params.vrCommands ~= nil ) then hmi_call.params.vrCommands =  {"vrCommands_" .. tostring(i)}  end
-							  	if ( hmi_call.params.grammarID ~= nil ) then 
+								if ( hmi_call.params.appID ~= nil )          then hmi_call.params.appID = self.applications[config.application1.registerAppInterfaceParams.appName] end
+								if ( hmi_call.params.cmdID ~= nil )          then hmi_call.params.cmdID = i end
+							  	if ( hmi_call.params.vrCommands ~= nil )     then hmi_call.params.vrCommands =  {"vrCommands_" .. tostring(i)}  end
+							  	if ( mob_request.params.menuParams ~= nil )  then hmi_call.params.menuParams = {position = 1, menuName = "Command " .. tostring(i)} end
+							  	if ( hmi_call.params.grammarID ~= nil )      then 
 							  		if (mob_request.name == "DeleteCommand") then
 							  			hmi_call.params.grammarID =  grammarID  
 									else
@@ -265,7 +300,11 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 							  	end
 							--======================================================================================================
 
+
 				 			--hmi side: expect Interface.RPC request 	
+				 			if(hmi_method_call == "UI.EndAudioPassThru") then
+				 				hmi_call.params = nil
+				 			end
 							EXPECT_HMICALL( hmi_method_call, hmi_call.params)
 							:Do(function(_,data)
 								if(mob_request.name == "AddCommand") then grammarID = data.params.grammarID end
@@ -275,7 +314,11 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 									-- HMI does not respond					
 								else
 									if TestData[i].success == true then 
-										self.hmiConnection:SendResponse(data.id, data.method, TestData[i].resultCode, {})
+										if(hmi_call.mandatory_params ~= nil) then
+											self.hmiConnection:SendResponse(data.id, data.method, TestData[i].resultCode, hmi_call.mandatory_params )	
+										else
+											self.hmiConnection:SendResponse(data.id, data.method, TestData[i].resultCode, {})
+										end
 									else
 										self.hmiConnection:SendError(data.id, data.method, TestData[i].resultCode, "error message")
 									end						
@@ -296,9 +339,13 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 								end
 							
 							else
-							
-								EXPECT_RESPONSE(cid, { success = TestData[i].success , resultCode = TestData[i].expected_resultCode, info = "error message"})
-							
+								--TODO: APPLINK-28492 - update after clarification
+								if (TestData[i].resultCode == "") then
+									EXPECT_RESPONSE(cid, { success = TestData[i].success , resultCode = TestData[i].expected_resultCode})
+								else
+									EXPECT_RESPONSE(cid, { success = TestData[i].success , resultCode = TestData[i].expected_resultCode, info = "error message"})
+								end
+
 								EXPECT_NOTIFICATION("OnHashChange")
 								:Times(0)
 
@@ -324,9 +371,6 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 	
 		local TestCaseName = "Case_" .. TestData[i].caseID .. "_IsReady_" ..TestData[i].description
 
-				
-		
-		
 		if( i == 1) then
 			--Print new line to separate new test cases group
 			commonFunctions:newTestCasesGroup(TestCaseName)
@@ -339,9 +383,9 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 			-- Description: Activation app for precondition
 			commonSteps:ActivationApp(nil, "Precondition_ActivationApp_" .. TestCaseName)
 
-			commonSteps:PutFile("PutFile_MinLength", "a")
-			commonSteps:PutFile("PutFile_icon.png", "icon.png")
-			commonSteps:PutFile("PutFile_action.png", "action.png")
+			commonSteps:PutFile("Precondition_PutFile_MinLength", "a")
+			commonSteps:PutFile("Precondition_PutFile_icon.png", "icon.png")
+			commonSteps:PutFile("Precondition_PutFile_action.png", "action.png")
 
 			-- execute test for all resultCodes and all related RPCs of the testing interface
 			Single_Interface_RPCs(TestCaseName, true, true)
@@ -361,9 +405,9 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 				-- Description: Activation app for precondition
 				commonSteps:ActivationApp(nil, "Precondition_ActivationApp_" .. TestCaseName)
 
-				commonSteps:PutFile("PutFile_MinLength", "a")
-				commonSteps:PutFile("PutFile_icon.png", "icon.png")
-				commonSteps:PutFile("PutFile_action.png", "action.png")
+				commonSteps:PutFile("Precondition_PutFile_MinLength", "a")
+				commonSteps:PutFile("Precondition_PutFile_icon.png", "icon.png")
+				commonSteps:PutFile("Precondition_PutFile_action.png", "action.png")
 				
 				-- execute test for only one resultCode (SUCCESS) and the first related RPC of the testing interface
 				Single_Interface_RPCs(TestCaseName, false, false)
@@ -407,5 +451,12 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 ----------------------------------------------------------------------------------------------
 
 -- Not applicable for '..tested_method..' HMI API.
+
+	--function Test:Postcondition_RestoreIniFile()
+	function Test:RestoreIniFile()
+
+		userPrint(33, "=============================== Postcondition ===============================")
+		commonPreconditions:RestoreFile("smartDeviceLink.ini")
+	end
 
 return Test

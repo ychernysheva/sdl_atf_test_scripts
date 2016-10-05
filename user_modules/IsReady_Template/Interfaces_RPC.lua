@@ -123,7 +123,7 @@ interfaces.mobile_req = {
                                                           }
                                                       },
                                         interactionMode = "BOTH", --<param name="interactionMode" type="InteractionMode">:"MANUAL_ONLY" / "VR_ONLY" / "BOTH"
-                                        interactionChoiceSetIDList = {1}, --<param name="interactionChoiceSetIDList" type="Integer" minsize="0" maxsize="100" minvalue="0" maxvalue="2000000000" array="true">
+                                        interactionChoiceSetIDList = {2}, --<param name="interactionChoiceSetIDList" type="Integer" minsize="0" maxsize="100" minvalue="0" maxvalue="2000000000" array="true">
                                         helpPrompt = {--<param name="helpPrompt" type="TTSChunk" minsize="1" maxsize="100" array="true" mandatory="false">
                                                       --TTSChunk
                                                       {
@@ -175,7 +175,7 @@ interfaces.mobile_req = {
                           --Alert
                           {
                             name = "Alert",
-                            splitted = false,
+                            splitted = true,
                             single = false,
                             description = "Alert with all parameters",
                             hashChange = false,
@@ -192,15 +192,15 @@ interfaces.mobile_req = {
                                         duration = 3000,
                                         playTone = false,
                                         progressIndicator = false,
-                                        softButtons = { -- <param name="softButtons" type="SoftButton" minsize="0" maxsize="4" array="true" mandatory="false">
-                                                        { 
-                                                          type = "TEXT",
-                                                          text = "Keep",
-                                                          isHighlighted = true,
-                                                          softButtonID = 4,
-                                                          systemAction = "KEEP_CONTEXT",
-                                                        }
-                                                      }
+                                        -- softButtons = { -- <param name="softButtons" type="SoftButton" minsize="0" maxsize="4" array="true" mandatory="false">
+                                        --                 { 
+                                        --                   type = "TEXT",
+                                        --                   text = "Keep",
+                                        --                   isHighlighted = true,
+                                        --                   softButtonID = 4,
+                                        --                   systemAction = "KEEP_CONTEXT",
+                                        --                 }
+                                        --               }
                                       }
                           },
                           --show
@@ -391,7 +391,7 @@ interfaces.mobile_req = {
                           --PerformAudioPassThru
                           {
                             name = "PerformAudioPassThru",
-                            splitted = false,
+                            splitted = true,
                             single = false,
                             description = "PerformAudioPassThru with all parameters",
                             hashChange = false,
@@ -419,7 +419,7 @@ interfaces.mobile_req = {
                             description = "EndAudioPassThru with all parameters",
                             hashChange = false,
                             --No params
-                            params = {}
+                            params = { fakeparams = nil }
                           },
                           --Speak
                           {
@@ -730,7 +730,6 @@ interfaces.mobile_req = {
                           
                         }
 
-
 interfaces.RPC = {
                     --VR
                     {
@@ -969,7 +968,7 @@ interfaces.RPC = {
                                                                   
                                                                 },  
                                                 choiceSet = {
-                                                              { choiceID = 1, menuName = "Choice1" }
+                                                              { choiceID = 2, menuName = "Choice2" }
                                                             },
                                                 vrHelpTitle = "StartPerformInteraction",
                                                 vrHelp = { --<param name="vrHelp" type="Common.VrHelpItem" minsize="1" maxsize="100" array="true" mandatory="false">
@@ -999,7 +998,7 @@ interfaces.RPC = {
                                   {
                                     
                                     name = "Alert",
-                                    splitted = false,
+                                    splitted = true, -- TTS.Speak - the second RPC
                                     params = {
                                                 alertStrings = 
                                                                 {
@@ -1008,17 +1007,17 @@ interfaces.RPC = {
                                                                   {fieldName = "alertText3", fieldText = "alertText3"}
                                                                 },
                                                 alertType = "BOTH",
-                                                duration = 0,
+                                                duration = 3000,
                                                 progressIndicator = false,
-                                                softButtons = {
-                                                                { 
-                                                                  type = "TEXT",
-                                                                  text = "Keep",
-                                                                  isHighlighted = true,
-                                                                  softButtonID = 4,
-                                                                  systemAction = "KEEP_CONTEXT"
-                                                                }
-                                                              }
+                                                -- softButtons = {
+                                                --                 { 
+                                                --                   type = "TEXT",
+                                                --                   text = "Keep",
+                                                --                   isHighlighted = true,
+                                                --                   softButtonID = 4,
+                                                --                   systemAction = "KEEP_CONTEXT"
+                                                --                 }
+                                                --               }
                                               }
                                   },
                                   --Show
@@ -1027,15 +1026,17 @@ interfaces.RPC = {
                                     name = "Show",
                                     splitted = false,
                                     params = {
-                                                showStrings = "a",--
+                                                --showStrings = {"a"},--
                                                 alignment = "CENTERED",
                                                 graphic = {
                                                             imageType = "DYNAMIC",
-                                                            value = "a"
+                                                            --as verification should be done with ValidIf and is not in scope of these CRQ
+                                                            --value = "a"
                                                           },
                                                 secondaryGraphic = {
                                                                       imageType = "DYNAMIC",
-                                                                      value = "a"
+                                                                      --as verification should be done with ValidIf and is not in scope of these CRQ
+                                                                      --value = "a"
                                                                     },
                                                 --softButtons,
                                                 --customPresets,
@@ -1073,7 +1074,7 @@ interfaces.RPC = {
                                     splitted = false,
                                     params = {
                                                 startTime = {--<param name="startTime" type="StartTime" mandatory="false">
-                                                              hours = 0,
+                                                              hours = 1,
                                                               minutes = 1,
                                                               seconds = 33
                                                             },
@@ -1099,7 +1100,8 @@ interfaces.RPC = {
                                                               image = 
                                                               {
                                                                 imageType = "DYNAMIC",
-                                                                value = storagePath .. "action.png"
+                                                                --as verification should be done with ValidIf and is not in scope of these CRQ
+                                                                --value = storagePath .. "action.png"
                                                               },
                                                               text = "VR help item"
                                                             }
@@ -1107,7 +1109,8 @@ interfaces.RPC = {
                                                 menuTitle = "Menu Title",--<param name="menuTitle" maxlength="500" type="String" mandatory="false">                                                
                                                 menuIcon = {--<param name="menuIcon" type="Common.Image" mandatory="false">
                                                               imageType = "DYNAMIC",
-                                                              --value = strAppFolder .. "action.png"
+                                                              -- as verification should be done with ValidIf and is not in scope of these CRQ
+                                                              -- value = strAppFolder .. "action.png"
                                                             },
                                                 keyboardProperties = { --<param name="keyboardProperties" type="Common.KeyboardProperties" mandatory="false">
                                                                         keyboardLayout = "QWERTY",
@@ -1127,7 +1130,8 @@ interfaces.RPC = {
                                     params = {
                                                 syncFileName = {--<param name="syncFileName" type="Common.Image" mandatory="true">
                                                                   imageType = "DYNAMIC",
-                                                                  value = storagePath .. "icon.png"
+                                                                  -- as verification should be done with ValidIf and is not in scope of these CRQ
+                                                                  -- value = storagePath .. "icon.png"
                                                                 } ,
                                                 appID = 1
                                               }
@@ -1168,11 +1172,12 @@ interfaces.RPC = {
                                                 softButtons = {--<param name="softButtons" type="Common.SoftButton" minsize="0" maxsize="8" array="true" mandatory="false">
                                                                 {
                                                                   softButtonID = 1,
-                                                                  text = "Button1",
+                                                                  --text = "Button1",
                                                                   type = "IMAGE",
                                                                   image =
                                                                   {
-                                                                    value = "action.png",
+                                                                    -- as verification should be done with ValidIf and is not in scope of these CRQ
+                                                                    --value = "action.png",
                                                                     imageType = "DYNAMIC"
                                                                   },
                                                                   isHighlighted = false,
@@ -1185,7 +1190,7 @@ interfaces.RPC = {
                                   --PerformAudioPassThru
                                   {
                                     name = "PerformAudioPassThru",
-                                    splitted = false,
+                                    splitted = true, --TTS.Speak
                                     params = {
                                                 appID = 1,
                                                 audioPassThruDisplayTexts = {--<param name="audioPassThruDisplayTexts" type="Common.TextFieldStruct" mandatory="true" minsize="0" maxsize="2" array="true">
@@ -1579,7 +1584,10 @@ interfaces.RPC = {
                                                 ecuName = 0, --<param name="ecuName" type="Integer" minvalue="0" maxvalue="65535" mandatory="true">
                                                 --<param name="dtcMask" type="Integer" minvalue="0" maxvalue="255" mandatory="false">
                                                 appID = 1 
-                                              }
+                                              },
+                                    mandatory_params = {
+                                                          ecuHeader = 2
+                                                        }
                                   },
                                   --DiagnosticMessage
                                   {
@@ -1590,7 +1598,10 @@ interfaces.RPC = {
                                                 messageLength = 8,--<param name="messageLength" type="Integer" minvalue="0" maxvalue="65535" mandatory="true">
                                                 messageData =  {1, 2, 3, 5, 6, 7, 9, 10, 24, 25, 34, 62}, --<param name="messageData" type="Integer" minvalue="0" maxvalue="255" minsize="1" maxsize="65535" array="true" mandatory="true">
                                                 appID = 1--<param name="appID" type="Integer" mandatory="true">
-                                              }
+                                              },
+                                    mandatory_params = {
+                                                          messageDataResult = {200}
+                                                        }
                                   },
                                   --SubscribeVehicleData
                                   {
