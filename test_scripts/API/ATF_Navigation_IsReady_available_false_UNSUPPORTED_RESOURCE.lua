@@ -1052,7 +1052,7 @@ local function sequence_check_UNSUPPORTED_RESOURCE()
 			
 		end)
 		
-		EXPECT_RESPONSE(cid, { success = false, resultCode = "GENERIC_ERROR", {}})
+		EXPECT_RESPONSE(cid, { success = false, resultCode = "GENERIC_ERROR", info =  "TTS component does not respond"})
 		:Timeout(TimeoutValue)			
 	end
 	

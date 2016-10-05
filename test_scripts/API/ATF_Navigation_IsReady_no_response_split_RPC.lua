@@ -953,7 +953,7 @@ local function sequence_check_Result_Code_split_RPC(successValue, resultCodeValu
 			
 		end)
 		
-		EXPECT_RESPONSE(cid, { success = false, resultCode = "GENERIC_ERROR"})
+		EXPECT_RESPONSE(cid, { success = false, resultCode = "GENERIC_ERROR", info =  "TTS component does not respond"})
 		:Timeout(TimeoutValue)				
 		
 	end
@@ -1030,7 +1030,7 @@ local function sequence_check_Result_Code_split_RPC(successValue, resultCodeValu
 			
 		end)
 		
-		EXPECT_RESPONSE(cid, { success = false, resultCode = "GENERIC_ERROR"})
+		EXPECT_RESPONSE(cid, { success = false, resultCode = "GENERIC_ERROR", info =  "Navigation component does not respond"})
 		:Timeout(TimeoutValue)	
 	end
 	-- end 3.2			

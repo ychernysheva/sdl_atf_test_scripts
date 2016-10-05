@@ -854,7 +854,7 @@ local function sequence_check_single_RPC_no_reponse()
 			--self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 		end)				
 		
-		EXPECT_RESPONSE(cid, { success = false, resultCode = "GENERIC_ERROR"})
+		EXPECT_RESPONSE(cid, { success = false, resultCode = "GENERIC_ERROR", info =  "Navigation component does not respond"})
 		:Timeout(TimeoutValue)		
 	end
 	
@@ -870,7 +870,7 @@ local function sequence_check_single_RPC_no_reponse()
 			--self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 		end)
 		
-		EXPECT_RESPONSE(cid, { success = false, resultCode = "GENERIC_ERROR"})
+		EXPECT_RESPONSE(cid, { success = false, resultCode = "GENERIC_ERROR", info =  "Navigation component does not respond"})
 		:Timeout(TimeoutValue)								
 	end
 	
@@ -913,7 +913,7 @@ local function sequence_check_single_RPC_no_reponse()
 			--self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 		end)
 		
-		EXPECT_RESPONSE(cid, { success = false, resultCode = "GENERIC_ERROR"})
+		EXPECT_RESPONSE(cid, { success = false, resultCode = "GENERIC_ERROR", info =  "Navigation component does not respond"})
 		:Timeout(TimeoutValue)					
 	end
 	
@@ -929,7 +929,7 @@ local function sequence_check_single_RPC_no_reponse()
 			--self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 		end)
 		
-		EXPECT_RESPONSE(cid, { success = false, resultCode = "GENERIC_ERROR"})
+		EXPECT_RESPONSE(cid, { success = false, resultCode = "GENERIC_ERROR", info =  "Navigation component does not respond"})
 		:Timeout(TimeoutValue)	
 		
 	end
@@ -945,7 +945,7 @@ local function sequence_check_single_RPC_no_reponse()
 			--self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 		end)
 		
-		EXPECT_RESPONSE(cid, { success = false, resultCode = "GENERIC_ERROR"})
+		EXPECT_RESPONSE(cid, { success = false, resultCode = "GENERIC_ERROR", info =  "Navigation component does not respond"})
 		:Timeout(TimeoutValue)	
 		
 		EXPECT_NOTIFICATION("OnHashChange")
@@ -965,7 +965,7 @@ local function sequence_check_single_RPC_no_reponse()
 			--self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 		end)
 		
-		EXPECT_RESPONSE(cid, { success = false, resultCode = "GENERIC_ERROR"})
+		EXPECT_RESPONSE(cid, { success = false, resultCode = "GENERIC_ERROR", info =  "Navigation component does not respond"})
 		:Timeout(TimeoutValue)	
 
 		EXPECT_NOTIFICATION("OnHashChange")
