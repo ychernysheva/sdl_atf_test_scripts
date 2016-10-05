@@ -428,7 +428,7 @@ interfaces.mobile_req = {
                             description = "EndAudioPassThru with all parameters",
                             hashChange = false,
                             --No params
-                            params = {}
+                            params = { fakeparams = nil }
                           },
                           --Speak
                           {
@@ -1035,15 +1035,17 @@ interfaces.RPC = {
                                     name = "Show",
                                     splitted = false,
                                     params = {
-                                                showStrings = "a",--
+                                                --showStrings = {"a"},--
                                                 alignment = "CENTERED",
                                                 graphic = {
                                                             imageType = "DYNAMIC",
-                                                            value = "a"
+                                                            --as verification should be done with ValidIf and is not in scope of these CRQ
+                                                            --value = "a"
                                                           },
                                                 secondaryGraphic = {
                                                                       imageType = "DYNAMIC",
-                                                                      value = "a"
+                                                                      --as verification should be done with ValidIf and is not in scope of these CRQ
+                                                                      --value = "a"
                                                                     },
                                                 --softButtons,
                                                 --customPresets,
@@ -1081,7 +1083,7 @@ interfaces.RPC = {
                                     splitted = false,
                                     params = {
                                                 startTime = {--<param name="startTime" type="StartTime" mandatory="false">
-                                                              hours = 0,
+                                                              hours = 1,
                                                               minutes = 1,
                                                               seconds = 33
                                                             },
@@ -1107,7 +1109,8 @@ interfaces.RPC = {
                                                               image = 
                                                               {
                                                                 imageType = "DYNAMIC",
-                                                                value = storagePath .. "action.png"
+                                                                --as verification should be done with ValidIf and is not in scope of these CRQ
+                                                                --value = storagePath .. "action.png"
                                                               },
                                                               text = "VR help item"
                                                             }
@@ -1115,7 +1118,8 @@ interfaces.RPC = {
                                                 menuTitle = "Menu Title",--<param name="menuTitle" maxlength="500" type="String" mandatory="false">                                                
                                                 menuIcon = {--<param name="menuIcon" type="Common.Image" mandatory="false">
                                                               imageType = "DYNAMIC",
-                                                              --value = strAppFolder .. "action.png"
+                                                              -- as verification should be done with ValidIf and is not in scope of these CRQ
+                                                              -- value = strAppFolder .. "action.png"
                                                             },
                                                 keyboardProperties = { --<param name="keyboardProperties" type="Common.KeyboardProperties" mandatory="false">
                                                                         keyboardLayout = "QWERTY",
@@ -1135,7 +1139,8 @@ interfaces.RPC = {
                                     params = {
                                                 syncFileName = {--<param name="syncFileName" type="Common.Image" mandatory="true">
                                                                   imageType = "DYNAMIC",
-                                                                  value = storagePath .. "icon.png"
+                                                                  -- as verification should be done with ValidIf and is not in scope of these CRQ
+                                                                  -- value = storagePath .. "icon.png"
                                                                 } ,
                                                 appID = 1
                                               }
@@ -1176,11 +1181,12 @@ interfaces.RPC = {
                                                 softButtons = {--<param name="softButtons" type="Common.SoftButton" minsize="0" maxsize="8" array="true" mandatory="false">
                                                                 {
                                                                   softButtonID = 1,
-                                                                  text = "Button1",
+                                                                  --text = "Button1",
                                                                   type = "IMAGE",
                                                                   image =
                                                                   {
-                                                                    value = "action.png",
+                                                                    -- as verification should be done with ValidIf and is not in scope of these CRQ
+                                                                    --value = "action.png",
                                                                     imageType = "DYNAMIC"
                                                                   },
                                                                   isHighlighted = false,
