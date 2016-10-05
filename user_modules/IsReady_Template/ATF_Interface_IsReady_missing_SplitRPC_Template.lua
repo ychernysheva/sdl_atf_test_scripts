@@ -23,32 +23,6 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 config.SDLStoragePath = config.pathToSDL .. "storage/"
 
 ---------------------------------------------------------------------------------------------
------------------------------------Backup, updated preloaded file ---------------------------
----------------------------------------------------------------------------------------------
-	os.execute(" cp " .. config.pathToSDL .. "/sdl_preloaded_pt.json " .. config.pathToSDL .. "/sdl_preloaded_pt_origin.json" )
-
-	f = assert(io.open(config.pathToSDL.. "/sdl_preloaded_pt.json", "r"))
-
-	fileContent = f:read("*all")
-
-    DefaultContant = fileContent:match('"default".?:.?.?%{.-%}')
-
-    if not DefaultContant then
-      print ( " \27[31m  default grpoup is not found in sdl_preloaded_pt.json \27[0m " )
-    else
-       DefaultContant =  string.gsub(DefaultContant, '".?groups.?".?:.?.?%[.-%]', '"groups": ["Base-4", "Location-1", "DrivingCharacteristics-3", "VehicleInfo-3", "Emergency-1", "PropriataryData-1"]')
-    end
-
-
-	fileContent  =  string.gsub(fileContent, '".?default.?".?:.?.?%{.-%}', DefaultContant)
-
-
-	f = assert(io.open(config.pathToSDL.. "/sdl_preloaded_pt.json", "w+"))
-	
-	f:write(fileContent)
-	f:close()
-
----------------------------------------------------------------------------------------------
 ---------------------------- Required Shared libraries --------------------------------------
 ---------------------------------------------------------------------------------------------
 
@@ -982,8 +956,8 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 ----------------------------------------------------------------------------------------------
 --Not applicable
 
-	function Test:Postcondition_RestoreIniFile()
-		commonPreconditions:RestoreFile("smartDeviceLink.ini")
+	function Test:Postcondition_RestorePreloadedFile()
+		commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 	end
 
 return Test

@@ -626,16 +626,6 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 				self.appName=data.params.application.appName
 				self.applications[config.application1.registerAppInterfaceParams.appName]=data.params.application.appID
 			end)
-			
-			
-			-- Read VR parameters from hmi_capabilities.json
-			local HmiCapabilities_file = config.pathToSDL .. "hmi_capabilities.json"
-			f = assert(io.open(HmiCapabilities_file, "r"))
-			fileContent = f:read("*all")
-			f:close()
-			
-			local json = require("modules/json")
-			local HmiCapabilities = json.decode(fileContent)
 
 			--mobile side: expect response
 			-- SDL sends VR-related parameters to mobile app with value from HMI_capabilities_json
@@ -782,7 +772,10 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 -----------------------------------------TEST BLOCK VII---------------------------------------
 --------------------------------------Different HMIStatus-------------------------------------
 ----------------------------------------------------------------------------------------------
-
 -- Not applicable
+
+	function Test:Postcondition_RestorePreloadedFile()
+		commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
+	end
 
 return Test

@@ -12,11 +12,36 @@ require('cardinalities')
 local interface = require('user_modules/IsReady_Template/Interfaces_RPC')
 local events = require('events')  
 local mobile_session = require('mobile_session')
+local commonPreconditions = require ('/user_modules/shared_testcases/commonPreconditions')
 
 --User output
 local function userPrint( color, message)
   print ("\27[" .. tostring(color) .. "m " .. tostring(message) .. " \27[0m")
 end
+
+---------------------------------------------------------------------------------------------
+-----------------------------------Backup, updated preloaded file ---------------------------
+---------------------------------------------------------------------------------------------
+	commonPreconditions:BackupFile("sdl_preloaded_pt.json")
+	f = assert(io.open(config.pathToSDL.. "/sdl_preloaded_pt.json", "r"))
+	fileContent = f:read("*all")
+
+    DefaultContant = fileContent:match('"default".?:.?.?%{.-%}')
+
+    if not DefaultContant then
+      print ( " \27[31m  default grpoup is not found in sdl_preloaded_pt.json \27[0m " )
+    else
+       DefaultContant =  string.gsub(DefaultContant, '".?groups.?".?:.?.?%[.-%]', '"groups": ["Base-4", "Location-1", "DrivingCharacteristics-3", "VehicleInfo-3", "Emergency-1", "PropriataryData-1"]')
+    end
+
+
+	fileContent  =  string.gsub(fileContent, '".?default.?".?:.?.?%{.-%}', DefaultContant)
+
+
+	f = assert(io.open(config.pathToSDL.. "/sdl_preloaded_pt.json", "w+"))
+	
+	f:write(fileContent)
+	f:close()
 
 --Interfaces and RPCs that will be tested:
 ---------------------------------------------------------------------------
@@ -66,13 +91,13 @@ end
 -- Tested Data according to JSON format
 	TestData = {
 
-		--caseID 1-3 are used to checking special cases
+		--caseID 1-3 are used to check special cases
 		{caseID = 1, description = "HMI_Does_Not_Respond"},
 		{caseID = 2, description = "MissedAllParamaters"},
 		{caseID = 3, description = "Invalid_Json"},
 
 				
-		--caseID 11-14 are used to checking "collerationID" parameter
+		--caseID 11-14 are used to check "collerationID" parameter
 			--11. IsMissed
 			--12. IsNonexistent
 			--13. IsWrongType
@@ -82,7 +107,7 @@ end
 		{caseID = 13, description = "correlationID_IsWrongType"},
 		{caseID = 14, description = "correlationID_IsNegative"},
 
-		--caseID 21-27 are used to checking "method" parameter
+		--caseID 21-27 are used to check "method" parameter
 			--21. IsMissed
 			--22. IsNotValid
 			--23. IsOtherResponse
@@ -98,7 +123,7 @@ end
 		{caseID = 26, description = "method_IsInvalidCharacter_Tab"},
 		{caseID = 26, description = "method_IsInvalidCharacter_NewLine"},
 
-			-- --caseID 31-35 are used to checking "resultCode" parameter
+			-- --caseID 31-35 are used to check "resultCode" parameter
 				-- --31. IsMissed
 				-- --32. IsNotExist
 				-- --33. IsEmpty
@@ -111,7 +136,7 @@ end
 		{caseID = 36,  description = "resultCode_GENERIC_ERROR"},
 		
 
-			--caseID 41-45 are used to checking "message" parameter
+			--caseID 41-45 are used to check "message" parameter
 				--41. IsMissed
 				--42. IsLowerBound
 				--43. IsUpperBound
@@ -130,7 +155,7 @@ end
 		{caseID = 49,  description = "message_IsInvalidCharacter_Newline"},
 		
 
-		--caseID 51-55 are used to checking "available" parameter
+		--caseID 51-55 are used to check "available" parameter
 			--51. IsMissed
 			--52. IsWrongType
 		{caseID = 51,  description = "available_IsMissed"},
@@ -616,7 +641,8 @@ end
 		    ExpectRequest("TTS.ChangeRegistration", false, { }):Pin()
 		    
 		    ExpectRequest("VehicleInfo.GetVehicleData", true, { vin = "52-452-52-752" })
-			-- CLARIFICATION should be done. For now leave as fail
+			-- TODO: APPLINK-28499: Should VehicleInfo.GetVehicleData be expected with initHMI OnReady
+			-- Update after clarification if needed.
 			:Times(0)
 
 		    local function button_capability(name, shortPressAvailable, longPressAvailable, upDownAvailable)

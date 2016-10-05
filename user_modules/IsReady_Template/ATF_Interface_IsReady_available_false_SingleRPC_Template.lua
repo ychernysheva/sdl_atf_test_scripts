@@ -15,33 +15,6 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 	local iTimeout = 2000
 
 ---------------------------------------------------------------------------------------------
------------------------------------Backup, updated preloaded file ---------------------------
----------------------------------------------------------------------------------------------
-	os.execute(" cp " .. config.pathToSDL .. "/sdl_preloaded_pt.json " .. config.pathToSDL .. "/sdl_preloaded_pt_origin.json" )
-
-	f = assert(io.open(config.pathToSDL.. "/sdl_preloaded_pt.json", "r"))
-
-	fileContent = f:read("*all")
-
-    DefaultContant = fileContent:match('"default".?:.?.?%{.-%}')
-
-    if not DefaultContant then
-      print ( " \27[31m  default grpoup is not found in sdl_preloaded_pt.json \27[0m " )
-    else
-       DefaultContant =  string.gsub(DefaultContant, '".?groups.?".?:.?.?%[.-%]', '"groups": ["Base-4", "Location-1", "DrivingCharacteristics-3", "VehicleInfo-3", "Emergency-1", "PropriataryData-1"]')
-    end
-
-
-	fileContent  =  string.gsub(fileContent, '".?default.?".?:.?.?%{.-%}', DefaultContant)
-
-
-	f = assert(io.open(config.pathToSDL.. "/sdl_preloaded_pt.json", "w+"))
-	
-	f:write(fileContent)
-	f:close()
-
-
----------------------------------------------------------------------------------------------
 ------------------------- General Precondition before ATF start -----------------------------
 ---------------------------------------------------------------------------------------------
 	-- Precondition: remove policy table and log files
@@ -146,72 +119,86 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 	commonSteps:PutFile("Precondition_PutFile_action.png", "action.png")
 
 	local function Interface_IsReady_response_availabe_false_check_single_related_RPC(TestCaseName)
-			for count_RPC = 1, #RPCs do
+		for count_RPC = 1, #RPCs do
 				
-				local mob_request = mobile_request[count_RPC]
-				if(mob_request.single == true)then
+			local mob_request = mobile_request[count_RPC]
+			if(mob_request.single == true)then
 
-					-- All applicable RPCs
-					Test["TC_".. RPCs[count_RPC].name .. "_UNSUPPORTED_RESOURCE_false" ..TestCaseName] = function(self)
-						local menuparams = ""
-						local vrCmd = ""
-						userPrint(33, "Testing RPC = "..RPCs[count_RPC].name)
-						--print("=============== Test: "..TestedInterface.."."..RPCs[count_RPC].name)
-						local hmi_call = RPCs[count_RPC]
-						local hmi_method_call = TestedInterface.."."..hmi_call.name
+				-- All applicable RPCs
+				Test["TC_".. RPCs[count_RPC].name .. "_UNSUPPORTED_RESOURCE_false" ..TestCaseName] = function(self)
+					local menuparams = ""
+					local vrCmd = ""
+					local ltimeout = ""
+					local helpPrompt = ""
+					userPrint(33, "Testing RPC = "..RPCs[count_RPC].name)
+					--print("=============== Test: "..TestedInterface.."."..RPCs[count_RPC].name)
+					local hmi_call = RPCs[count_RPC]
+					local hmi_method_call = TestedInterface.."."..hmi_call.name
 
-						if ( hmi_call.params.appID ~= nil ) then hmi_call.params.appID = self.applications[config.application1.registerAppInterfaceParams.appName] end
+					if ( hmi_call.params.appID ~= nil ) then hmi_call.params.appID = self.applications[config.application1.registerAppInterfaceParams.appName] end
 						
 						
-						if ( TestedInterface == "VR") then 
+					if ( TestedInterface == "VR") then 
 							-- APPLINK-19333: AddCommand should not to be splitted to UI.AddCommand
 							if (mob_request.params.menuParams ~= nil ) then 
 								menuparams = mob_request.params.menuParams 
 								mob_request.params.menuParams =  nil 
 							end
-						end
-						if( TestedInterface == "UI") then
+					end
+					if( TestedInterface == "UI") then
 							-- APPLINK-19329: AddCommand should not to be splitted to VR.AddCommand
 							if ( mob_request.params.vrCommands ~= nil ) then 
 								vrCmd = mob_request.params.vrCommands
 								mob_request.params.vrCommands = nil
 							end
-						end
+							if (mob_request.params.timeoutPrompt ~= nil ) then
+								ltimeout = mob_request.params.timeoutPrompt
+								mob_request.params.timeoutPrompt = nil
+							end
+							if (mob_request.params.helpPrompt ~= nil ) then
+								helpPrompt = mob_request.params.helpPrompt
+								mob_request.params.helpPrompt = nil
+							end
+					end
 
-						commonTestCases:DelayedExp(iTimeout)
+					commonTestCases:DelayedExp(iTimeout)
 				
-						--mobile side: sending AddCommand request
-						local cid = self.mobileSession:SendRPC(mob_request.name, mob_request.params)
+					--mobile side: sending AddCommand request
+					local cid = self.mobileSession:SendRPC(mob_request.name, mob_request.params)
 							
-						--hmi side: expect SDL does not send Interface.RPC request
-						EXPECT_HMICALL(hmi_method_call, {})
-						:Times(0)
+					--hmi side: expect SDL does not send Interface.RPC request
+					EXPECT_HMICALL(hmi_method_call, {})
+					:Times(0)
 
-						if(mob_request.name == "DeleteCommand" or mob_request.name == "DeleteSubMenu") then
-							-- According to APPLINK-27079
-							--mobile side: expect RPC response
-							EXPECT_RESPONSE(cid, {success = false, resultCode = "INVALID_ID"})
+					if(mob_request.name == "DeleteCommand" or mob_request.name == "DeleteSubMenu") then
+						-- According to APPLINK-27079
+						--mobile side: expect RPC response
+						EXPECT_RESPONSE(cid, {success = false, resultCode = "INVALID_ID"})
 						
-						elseif(mob_request.name == "UnsubscribeVehicleData") then
-							-- According to APPLINK-27872 and APPLINK-20043
-							-- mobile side: expect RPC response
-							EXPECT_RESPONSE(cid, {success = false, resultCode = "IGNORED"})
-						else
-							--mobile side: expect RPC response
-							EXPECT_RESPONSE(cid, {success = false, resultCode = "UNSUPPORTED_RESOURCE", info =  TestedInterface .." is not supported by system"})
+					elseif(mob_request.name == "UnsubscribeVehicleData") then
+						-- According to APPLINK-27872 and APPLINK-20043
+						-- mobile side: expect RPC response
+						EXPECT_RESPONSE(cid, {success = false, resultCode = "IGNORED"})
+					else
+						--mobile side: expect RPC response
+						EXPECT_RESPONSE(cid, {success = false, resultCode = "UNSUPPORTED_RESOURCE", info =  TestedInterface .." is not supported by system"})
 						
-						end
+					end
 
-						--mobile side: expect OnHashChange notification
-						EXPECT_NOTIFICATION("OnHashChange")
-						:Times(0)
+					--mobile side: expect OnHashChange notification
+					EXPECT_NOTIFICATION("OnHashChange")
+					:Times(0)
 
-						--In some reason when assign global variable to local one and local var becomes nil, global var also becomes nil!!!! The solution is temporary until resolving the problem. 
-						if(menuparams ~= "") then mob_request.params.menuParams = menuparams end
-						if(vrCmd ~= "") 	 then mob_request.params.vrCommands = vrCmd end
-					end		
-				end --if(mob_request.single == true)then	
-			end -- for count_RPC = 1, #RPCs do
+					--In some reason when assign global variable to local one and local var becomes nil, global var also becomes nil!!!! The solution is temporary until resolving the problem. 
+					if(menuparams ~= "") then mob_request.params.menuParams = menuparams end
+					if(vrCmd ~= "") 	 then mob_request.params.vrCommands = vrCmd end
+					if(ltimeout ~= "")   then mob_request.params.timeoutPrompt = ltimeout end
+					if(helpPrompt ~= "") then mob_request.params.helpPrompt = helpPrompt end
+					
+					
+				end		
+			end --if(mob_request.single == true)then	
+		end -- for count_RPC = 1, #RPCs do
 	end
 		
 	Interface_IsReady_response_availabe_false_check_single_related_RPC(TestedInterface .."_IsReady_response_availabe_false_single_"..TestedInterface.."_related_RPC")
@@ -249,11 +236,8 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 -----------------------------------------Postconditions---------------------------------------
 ----------------------------------------------------------------------------------------------
 
-	--function Test:Postcondition_RestoreIniFile()
-	function Test:RestoreIniFile()
-
-		userPrint(33, "=============================== Postcondition ===============================")
-		commonPreconditions:RestoreFile("smartDeviceLink.ini")
-end
+	function Test:Postcondition_RestorePreloadedFile()
+		commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
+	end
 
 return Test

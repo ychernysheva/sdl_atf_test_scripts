@@ -1,5 +1,5 @@
 local interfaces = { }
-
+-- TODO: APPLINK-28518: Script is updated according to clarification. Update of requirement is waiting. After update RPCs should be checked again.
 -- Read paramaters from hmi_capabilities.json
 local HmiCapabilities_file = config.pathToSDL .. "hmi_capabilities.json"
 f = assert(io.open(HmiCapabilities_file, "r"))
@@ -422,8 +422,8 @@ interfaces.mobile_req = {
                           --EndAudioPassThru
                           {
                             name = "EndAudioPassThru",
-                            -- TODO: Clarification according to APPLINK-25102/25099(See APPLINK-28483) EndAudioPassThru is impacted
-                            splitted = true,
+                            -- APPLINK-28518
+                            splitted = false,
                             single = true,
                             description = "EndAudioPassThru with all parameters",
                             hashChange = false,

@@ -31,6 +31,32 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 	local isReady = require('user_modules/IsReady_Template/isReady')
 
 ---------------------------------------------------------------------------------------------
+---------------------------- Local functions ------------------------------------------------
+---------------------------------------------------------------------------------------------
+	local function update_sdl_preloaded_pt_json()
+		pathToFile = config.pathToSDL .. 'sdl_preloaded_pt.json'
+		local file = io.open(pathToFile, "r")
+		local json_data = file:read("*all") -- may be abbreviated to "*a";
+		file:close()
+		
+		local json = require("modules/json")
+		
+		local data = json.decode(json_data)
+		for k,v in pairs(data.policy_table.functional_groupings) do
+			if (data.policy_table.functional_groupings[k].rpcs == nil) then
+				--do
+				data.policy_table.functional_groupings[k] = nil
+			end
+		end
+		
+		data.policy_table.app_policies["0000001"].AppHMIType = {"NAVIGATION"}
+		data = json.encode(data)
+		file = io.open(pathToFile, "w")
+		file:write(data)
+		file:close()
+	end
+
+---------------------------------------------------------------------------------------------
 -------------------------------------------Preconditions-------------------------------------
 ---------------------------------------------------------------------------------------------
 
@@ -41,14 +67,14 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 --------------------------------Check normal cases of Mobile request---------------------------
 -----------------------------------------------------------------------------------------------
 
--- Not applicable for '..tested_method..' HMI API.
+-- Not applicable for
 
 ----------------------------------------------------------------------------------------------
 ----------------------------------------TEST BLOCK II-----------------------------------------
 -----------------------------Check special cases of Mobile request----------------------------
 ----------------------------------------------------------------------------------------------
 
--- Not applicable for '..tested_method..' HMI API.
+-- Not applicable for 
 
 -----------------------------------------------------------------------------------------------
 -------------------------------------------TEST BLOCK III--------------------------------------
@@ -187,7 +213,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 			-- APPLINK-16320 UNSUPPORTED_RESOURCE unavailable/not supported component: It is not applicable for RegisterAppInterface because RegisterAppInterface is not split able request		
 			-- APPLINK-16251 WRONG_LANGUAGE
 			-- APPLINK-16250 WRONG_LANGUAGE languageDesired
-				Test["TC2_RegisterApplication_Check_VR_Parameters_IsOmitted_resultCode_WRONG_LANGUAGE"..TestCaseName ] = function(self)
+			Test["TC2_RegisterApplication_Check_VR_Parameters_IsOmitted_resultCode_WRONG_LANGUAGE"..TestCaseName ] = function(self)
 					
 					commonTestCases:DelayedExp(iTimeout)
 					
@@ -270,14 +296,23 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 					
 					--mobile side: expect notification
 					self.mobileSession:ExpectNotification("OnHMIStatus", { systemContext="MAIN", hmiLevel="NONE", audioStreamingState="NOT_AUDIBLE"})
-				end	
+			end	
 			
-				--APPLINK-16249 WRONG_LANGUAGE hmiDisplayLanguageDesired: It is for UI interface only.
 				-- APPLINK-16307 WARNINGS, true
-				commonSteps:UnregisterApplication("Precondition_UnregisterApplication_for_checking_WARNINGS_" ..TestCaseName)
+			Test["RegisterApplication_Check_"..TestedInterface.."_Parameters_IsOmitted_resultCode_WARNINGS_Precondition_Update_Preload_PT_JSON"] = function(self)					
+					--Add AppHMIType = {"NAVIGATION"} for app "0000001"
+					--config.application1.registerAppInterfaceParams.AppHMIType = {"NAVIGATION"}
+					
+					--TODO: Update after comments with Dong
+					--update_sdl_preloaded_pt_json()
+					commonSteps:DeletePolicyTable()
+			end
 				
-				-- Test[TestCaseName .. "_RegisterApplication_Check_VR_Parameters_IsOmitted_resultCode_WARNINGS"] = function(self)
-				Test["TC3_Parameters_IsOmitted_resultCode_WARNINGS" ..TestCaseName .. "_RegisterApplication_Check_"..TestedInterface] = function(self)
+			isReady:StopStartSDL_HMI_MOBILE(self, 0, "RegisterApplication_Check_"..TestedInterface.."_Parameters_IsOmitted_resultCode_WARNINGS_Precondition")
+			-- commonSteps:UnregisterApplication("Precondition_UnregisterApplication_for_checking_WARNINGS_" ..TestCaseName)
+			
+			-- Test[TestCaseName .. "_RegisterApplication_Check_VR_Parameters_IsOmitted_resultCode_WARNINGS"] = function(self)
+			Test["TC3_Parameters_IsOmitted_resultCode_WARNINGS" ..TestCaseName .. "_RegisterApplication_Check_"..TestedInterface] = function(self)
 					
 					commonTestCases:DelayedExp(iTimeout)
 					
@@ -358,7 +393,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 
 					--mobile side: expect notification
 					self.mobileSession:ExpectNotification("OnHMIStatus", { systemContext="MAIN", hmiLevel="NONE", audioStreamingState="NOT_AUDIBLE"})
-				end	
+			end	
 			
 			-- APPLINK-15686 RESUME_FAILED
 			--////////////////////////////////////////////////////////////////////////////////////////////--
@@ -862,7 +897,10 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 -----------------------------------------TEST BLOCK VII---------------------------------------
 --------------------------------------Different HMIStatus-------------------------------------
 ----------------------------------------------------------------------------------------------
+-- Not applicable
 
--- Not applicable for '..tested_method..' HMI API.
+	function Test:Postcondition_RestorePreloadedFile()
+		commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
+	end
 
 return Test
