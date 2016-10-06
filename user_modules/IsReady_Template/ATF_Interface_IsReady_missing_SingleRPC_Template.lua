@@ -58,9 +58,55 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 	local RPCs = commonFunctions:cloneTable(isReady.RPCs)
 	local mobile_request = commonFunctions:cloneTable(isReady.mobile_request)
 
+---------------------------------------------------------------------------------------------
+-------------------------------------------Local functions-----------------------------------
+---------------------------------------------------------------------------------------------
 	local function userPrint( color, message)
 	  print ("\27[" .. tostring(color) .. "m " .. tostring(message) .. " \27[0m")
 	end
+
+    function table.val_to_str ( v )
+      if "string" == type( v ) then
+        v = string.gsub( v, "\n", "\\n" )
+        if string.match( string.gsub(v,"[^'\"]",""), '^"+$' ) then
+        	print("1 -> ".. "'" .. v .. "'")
+          return "'" .. v .. "'"
+        end
+        print("v = "..v)
+        print("2 ->".. '"' .. string.gsub(v,'"', '\\"' ) .. '"')
+        return '"' .. string.gsub(v,'"', '\\"' ) .. '"'
+      else
+      	
+        return --"table" == type( v ) --[[and table.tostring( v )]] or
+          tostring( v )
+      end
+    end
+
+    function table.key_to_str ( k )
+      if "string" == type( k ) and string.match( k, "^[_%a][_%a%d]*$" ) then
+      	print("3->".. k)
+        return k
+      else
+        return "[" .. table.val_to_str( k ) .. "]"
+      end
+    end
+
+    function table.tostring( tbl )
+      local result, done = {}, {}
+      for k, v in ipairs( tbl ) do
+      	print("4->"..table.val_to_str( v ) )
+        table.insert( result, table.val_to_str( v ) )
+        done[ k ] = true
+      end
+      for k, v in pairs( tbl ) do
+        if not done[ k ] then
+          table.insert( result,
+            table.key_to_str( k ) .. "=" .. table.val_to_str( v ) )
+        end
+      end
+      return table.concat( result, "," )
+    end
+
 
 ---------------------------------------------------------------------------------------------
 -------------------------------------------Preconditions-------------------------------------
@@ -130,37 +176,37 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 				
 				-- if and this resultCode is unexpected for this RPC(please see expected <resultCodes> for each RPC at MOBILE_API)
 				-- APPLINK-25748: result code should have success: true or false
-				{success = true, resultCode = "SUCCESS", 						expected_resultCode = "SUCCESS"},
-				{success = true, resultCode = "WARNINGS", 						expected_resultCode = "WARNINGS"},
-				{success = true, resultCode = "WRONG_LANGUAGE", 				expected_resultCode = "WRONG_LANGUAGE"},
-				{success = true, resultCode = "RETRY", 							expected_resultCode = "RETRY"},
-				{success = true, resultCode = "SAVED", 							expected_resultCode = "SAVED"},
-				{success = true, resultCode = "UNSUPPORTED_RESOURCE", 			expected_resultCode = "UNSUPPORTED_RESOURCE"},
+				{success = true, resultCode = "SUCCESS", 						expected_resultCode = "SUCCESS", value = 0},
+				{success = true, resultCode = "WARNINGS", 						expected_resultCode = "WARNINGS", value = 21},
+				{success = true, resultCode = "WRONG_LANGUAGE", 				expected_resultCode = "WRONG_LANGUAGE", value = 16},
+				{success = true, resultCode = "RETRY", 							expected_resultCode = "RETRY", value = 7},
+				{success = true, resultCode = "SAVED", 							expected_resultCode = "SAVED", value = 25},
+				{success = true, resultCode = "UNSUPPORTED_RESOURCE", 			expected_resultCode = "UNSUPPORTED_RESOURCE", value = 2},
 								
-				{success = false, resultCode = "", 								expected_resultCode = "GENERIC_ERROR"}, --not respond
-				{success = false, resultCode = "ABC", 							expected_resultCode = "INVALID_DATA"},
+				{success = false, resultCode = "", 								expected_resultCode = "GENERIC_ERROR", value = 22}, --not respond
+				{success = false, resultCode = "ABC", 							expected_resultCode = "INVALID_DATA", value = 11},
 				
-				{success = false, resultCode = "UNSUPPORTED_REQUEST",			expected_resultCode = "UNSUPPORTED_REQUEST"},
-				{success = false, resultCode = "DISALLOWED", 					expected_resultCode = "DISALLOWED"},
-				{success = false, resultCode = "USER_DISALLOWED", 				expected_resultCode = "USER_DISALLOWED"},
-				{success = false, resultCode = "REJECTED", 						expected_resultCode = "REJECTED"},
-				{success = false, resultCode = "ABORTED", 						expected_resultCode = "ABORTED"},
-				{success = false, resultCode = "IGNORED", 						expected_resultCode = "IGNORED"},
-				{success = false, resultCode = "IN_USE", 						expected_resultCode = "IN_USE"},
-				{success = false, resultCode = "VEHICLE_DATA_NOT_AVAILABLE",	expected_resultCode = "VEHICLE_DATA_NOT_AVAILABLE"},
-				{success = false, resultCode = "TIMED_OUT", 					expected_resultCode = "TIMED_OUT"},
-				{success = false, resultCode = "INVALID_DATA", 					expected_resultCode = "INVALID_DATA"},
-				{success = false, resultCode = "CHAR_LIMIT_EXCEEDED", 			expected_resultCode = "CHAR_LIMIT_EXCEEDED"},
-				{success = false, resultCode = "INVALID_ID", 					expected_resultCode = "INVALID_ID"},
-				{success = false, resultCode = "DUPLICATE_NAME", 				expected_resultCode = "DUPLICATE_NAME"},
-				{success = false, resultCode = "APPLICATION_NOT_REGISTERED", 	expected_resultCode = "APPLICATION_NOT_REGISTERED"},
-				{success = false, resultCode = "OUT_OF_MEMORY", 				expected_resultCode = "OUT_OF_MEMORY"},
-				{success = false, resultCode = "TOO_MANY_PENDING_REQUESTS", 	expected_resultCode = "TOO_MANY_PENDING_REQUESTS"},
-				{success = false, resultCode = "GENERIC_ERROR", 				expected_resultCode = "GENERIC_ERROR"},
-				{success = false, resultCode = "TRUNCATED_DATA", 				expected_resultCode = "TRUNCATED_DATA"}
+				{success = false, resultCode = "UNSUPPORTED_REQUEST",			expected_resultCode = "UNSUPPORTED_REQUEST", value = 1},
+				{success = false, resultCode = "DISALLOWED", 					expected_resultCode = "DISALLOWED", value = 3},
+				{success = false, resultCode = "USER_DISALLOWED", 				expected_resultCode = "USER_DISALLOWED", value = 23},
+				{success = false, resultCode = "REJECTED", 						expected_resultCode = "REJECTED", value = 4},
+				{success = false, resultCode = "ABORTED", 						expected_resultCode = "ABORTED", value = 5},
+				{success = false, resultCode = "IGNORED", 						expected_resultCode = "IGNORED", value = 6},
+				{success = false, resultCode = "IN_USE", 						expected_resultCode = "IN_USE", value = 8},
+				--{success = false, resultCode = "VEHICLE_DATA_NOT_AVAILABLE",	expected_resultCode = "VEHICLE_DATA_NOT_AVAILABLE"},
+				{success = false, resultCode = "TIMED_OUT", 					expected_resultCode = "TIMED_OUT", value = 10},
+				{success = false, resultCode = "INVALID_DATA", 					expected_resultCode = "INVALID_DATA", value = 11},
+				{success = false, resultCode = "CHAR_LIMIT_EXCEEDED", 			expected_resultCode = "CHAR_LIMIT_EXCEEDED", value = 12},
+				{success = false, resultCode = "INVALID_ID", 					expected_resultCode = "INVALID_ID", value = 13},
+				{success = false, resultCode = "DUPLICATE_NAME", 				expected_resultCode = "DUPLICATE_NAME", value = 14},
+				{success = false, resultCode = "APPLICATION_NOT_REGISTERED", 	expected_resultCode = "APPLICATION_NOT_REGISTERED", value = 15},
+				{success = false, resultCode = "OUT_OF_MEMORY", 				expected_resultCode = "OUT_OF_MEMORY", value = 17},
+				{success = false, resultCode = "TOO_MANY_PENDING_REQUESTS", 	expected_resultCode = "TOO_MANY_PENDING_REQUESTS", value = 18},
+				{success = false, resultCode = "GENERIC_ERROR", 				expected_resultCode = "GENERIC_ERROR", value = 22},
+				{success = false, resultCode = "TRUNCATED_DATA", 				expected_resultCode = "TRUNCATED_DATA", value = 24}
 			}
 		else
-			TestData = {	{success = true, resultCode = "SUCCESS", expected_resultCode = "SUCCESS"} }
+			TestData = {	{success = true, resultCode = "SUCCESS", expected_resultCode = "SUCCESS", value = 0} }
 		end
 			
 		local grammarID = 1
@@ -172,52 +218,54 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 				local other_interfaces_call = {}			
 				local hmi_method_call = TestedInterface.."."..hmi_call.name
 
-				if(i == 1) then
-					-- Precondition for PerformInteraction
-					if(mob_request.name == "PerformInteraction") then
-						Test["Precondition_CreateInteractionChoiceSet_" ..tostring(i)] = function (self)
-				          	--mobile side: sending CreateInteractionChoiceSet request
-				          	local cid = self.mobileSession:SendRPC("CreateInteractionChoiceSet",
-																			{
-																				interactionChoiceSetID = i,
-																				choiceSet = {{ 
-																									choiceID = i,
-																									menuName ="Choice" .. tostring(i),
-																									vrCommands = 
-																									{ 
-																										"VrChoice" .. tostring(i),
-																									}
-																									-- SDL image verification failed
-																									-- image =
-																									-- { 
-																									-- 	value ="icon.png",
-																									-- 	imageType ="STATIC",
-																									-- }
-																							}}
-																			})
-									
-									--hmi side: expect VR.AddCommand
-									EXPECT_HMICALL("VR.AddCommand", 
-												{ 
-													cmdID = i,
-													type = "Choice",
-													vrCommands = {"VrChoice"..tostring(i) }
-
-												})
-									:Do(function(_,data)						
-										--hmi side: sending VR.AddCommand response
-										self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-										grammarID = data.params.grammarID
-									end)		
-									
-									--mobile side: expect CreateInteractionChoiceSet response
-									EXPECT_RESPONSE(cid, { resultCode = "SUCCESS", success = true  })
-					    end
-				    end --if(mob_request.name == "PerformInteraction") then
-				end --if(i == 1) then
+				--if(i == 1) then
+					
+				--end --if(i == 1) then
 
 				if( ( Tested_resultCode == "AllTested" ) or (Tested_resultCode == TestData[i].resultCode) ) then
 					if(mob_request.single == true)then
+
+						-- Precondition for PerformInteraction
+						if(mob_request.name == "PerformInteraction") then
+							Test["Precondition_CreateInteractionChoiceSet_" ..tostring(i)] = function (self)
+					          	--mobile side: sending CreateInteractionChoiceSet request
+					          	local cid = self.mobileSession:SendRPC("CreateInteractionChoiceSet",
+																				{
+																					interactionChoiceSetID = i,
+																					choiceSet = {{ 
+																										choiceID = i,
+																										menuName ="Choice" .. tostring(i),
+																										vrCommands = 
+																										{ 
+																											"VrChoice" .. tostring(i),
+																										}
+																										-- SDL image verification failed
+																										-- image =
+																										-- { 
+																										-- 	value ="icon.png",
+																										-- 	imageType ="STATIC",
+																										-- }
+																								}}
+																				})
+										
+								--hmi side: expect VR.AddCommand
+								EXPECT_HMICALL("VR.AddCommand", 
+													{ 
+														cmdID = i,
+														type = "Choice",
+														vrCommands = {"VrChoice"..tostring(i) }
+
+													})
+										:Do(function(_,data)						
+											--hmi side: sending VR.AddCommand response
+											self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+											grammarID = data.params.grammarID
+										end)		
+										
+										--mobile side: expect CreateInteractionChoiceSet response
+										EXPECT_RESPONSE(cid, { resultCode = "SUCCESS", success = true  })
+						    end
+					    end --if(mob_request.name == "PerformInteraction") then
 
 						Test["TC_"..mob_request.name.."_Only_".. tostring(TestData[i].resultCode).."_"..TestCaseName] = function(self)
 
@@ -289,12 +337,49 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 								else
 									if TestData[i].success == true then 
 										if(hmi_call.mandatory_params ~= nil) then
-											self.hmiConnection:SendResponse(data.id, data.method, TestData[i].resultCode, hmi_call.mandatory_params )	
+											self.hmiConnection:SendResponse(data.id, data.method, TestData[i].resultCode, hmi_call.mandatory_params )
+											--[[ TODO: Will be updated in next iteration
+											self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"'..data.method..'","code":'..TestData[i].value..'}}')
+											local str_mandatory = table.tostring( hmi_call.mandatory_params )
+											local hmi_params
+											local elements_mandatory = {}
+											local array_mandatory = {}
+											-- for i = 1, #hmi_call.mandatory_params do
+											-- 	print(""..hmi_call.mandatory_params)
+											-- end
+											print("str_mandatory = "..str_mandatory )
+											j = 1
+											for elements_mandatory in string.gmatch(str_mandatory,"[^,]*") do
+												for i in string.gmatch(elements_mandatory,"[^=]*") do
+													if(i ~= "" and i ~= " ") then
+														array_mandatory[j] = i
+														print(j..": " ..array_mandatory[j])
+														j = j + 1
+													end
+												end
+											end
+											hmi_params = "\""
+									
+											for i = 1, #array_mandatory do
+												if(array_mandatory[i] ~= "" and array_mandatory[i] ~= " ") then
+													hmi_params = hmi_params..array_mandatory[i]
+													if(i == 1) then
+														hmi_params = hmi_params.."\":"
+													end
+												end
+											end
+											print("hmi_params = "..hmi_params)
+											--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0",'..hmi_call.mandatory_params..'"result":{"method":"'..data.method..'","code":'..TestData[i].value..'}}')
+											--{"id":32,"result":{"code":0,"ecuHeader":2,"method":"VehicleInfo.GetDTCs"},"jsonrpc":"2.0"} 	
+											--]]
 										else
-											self.hmiConnection:SendResponse(data.id, data.method, TestData[i].resultCode, {})
+											--self.hmiConnection:SendResponse(data.id, data.method, TestData[i].resultCode, {})
+											self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"'..data.method..'","code":'..tostring(TestData[i].value)..'}}')
 										end
 									else
-										self.hmiConnection:SendError(data.id, data.method, TestData[i].resultCode, "error message")
+										self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"'..data.method..'","message":"error message","code":'..tostring(TestData[i].value)..'}}')
+										--self.hmiConnection:SendError(data.id, data.method, TestData[i].resultCode, "error message")
+										"message":"The data sent is invalid"
 									end						
 								end
 							end)
