@@ -36,7 +36,7 @@ sudo apt-get -qq update
 # SDL build dependencies
 sudo apt-get -q -y install cmake gcc-4.9 g++-4.9 libssl-dev libbluetooth3 libbluetooth-dev libudev-dev libavahi-client-dev bluez-tools sqlite3 libsqlite3-dev automake1.11 libexpat1-dev
 
-# ATF build decencies
+# ATF build dependencies
 sudo apt-get -q -y install qt53base qt53websockets liblua5.2-dev libxml2-dev lua-lpeg-dev libgl1-mesa-dev
 
 # sdl_atf_scripts dependencies
