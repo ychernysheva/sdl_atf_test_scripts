@@ -49,7 +49,16 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 			end
 		end
 		
-		data.policy_table.app_policies["0000001"].AppHMIType = {"NAVIGATION"}
+		
+		data.policy_table.app_policies["0000001"] = {
+			keep_context = false,
+			steal_focus = false,
+			priority = "NONE",
+			default_hmi = "NONE",
+			groups = {"Base-4"}
+		  }
+		 data.policy_table.app_policies["0000001"].AppHMIType = {"NAVIGATION"}
+	  
 		data = json.encode(data)
 		file = io.open(pathToFile, "w")
 		file:write(data)
@@ -125,7 +134,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 
 			-- APPLINK-16420 SUCCESS
 			-- Precondition: App has not been registered yet.			
-			
+		
 			Test["TC1_RegisterApplication_Check_"..TestedInterface.."_Parameters_IsOmitted_resultCode_SUCCESS_"..TestCaseName] = function(self)
 			
 				commonTestCases:DelayedExp(iTimeout)
@@ -298,13 +307,15 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 					self.mobileSession:ExpectNotification("OnHMIStatus", { systemContext="MAIN", hmiLevel="NONE", audioStreamingState="NOT_AUDIBLE"})
 			end	
 			
+			
+			
 				-- APPLINK-16307 WARNINGS, true
 			Test["RegisterApplication_Check_"..TestedInterface.."_Parameters_IsOmitted_resultCode_WARNINGS_Precondition_Update_Preload_PT_JSON"] = function(self)					
 					--Add AppHMIType = {"NAVIGATION"} for app "0000001"
 					--config.application1.registerAppInterfaceParams.AppHMIType = {"NAVIGATION"}
 					
 					--TODO: Update after comments with Dong
-					--update_sdl_preloaded_pt_json()
+					update_sdl_preloaded_pt_json()
 					commonSteps:DeletePolicyTable()
 			end
 				
@@ -314,7 +325,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 			-- Test[TestCaseName .. "_RegisterApplication_Check_VR_Parameters_IsOmitted_resultCode_WARNINGS"] = function(self)
 			Test["TC3_Parameters_IsOmitted_resultCode_WARNINGS" ..TestCaseName .. "_RegisterApplication_Check_"..TestedInterface] = function(self)
 					
-					commonTestCases:DelayedExp(iTimeout)
+					--commonTestCases:DelayedExp(iTimeout)
 					
 					local parameters = commonFunctions:cloneTable(config.application1.registerAppInterfaceParams)
 					parameters.appHMIType = {"MEDIA"}
@@ -395,11 +406,12 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 					self.mobileSession:ExpectNotification("OnHMIStatus", { systemContext="MAIN", hmiLevel="NONE", audioStreamingState="NOT_AUDIBLE"})
 			end	
 			
+			
 			-- APPLINK-15686 RESUME_FAILED
 			--////////////////////////////////////////////////////////////////////////////////////////////--
 			-- Check absence of resumption in case HashID in RAI is not match
 			--////////////////////////////////////////////////////////////////////////////////////////////--
-			--[[TODO: Uncomment when APPLINK-24414 - SDL crash on DCHECK via SDLActivateApp()!!!!!
+			--TODO: Uncomment when APPLINK-24414 - SDL crash on DCHECK via SDLActivateApp()!!!!!
 
  			if(TestedInterface ~= "NAVIGATION") then
 				--Precondition:
@@ -862,7 +874,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 					EXPECT_NOTIFICATION("OnHashChange")
 					:Times(0)
 				end
-			end --if(TestedInterface ~= "NAVIGATION") then ]]
+			end --if(TestedInterface ~= "NAVIGATION") then 
 		end
 
 		RegisterApplication_Check_Interfaces_Parameters_IsOmitted(TestCaseName)
