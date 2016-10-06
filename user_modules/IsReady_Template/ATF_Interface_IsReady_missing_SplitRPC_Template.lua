@@ -176,7 +176,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 				TestData = { {success = true, resultCode = "SUCCESS", 				expected_resultCode = "SUCCESS", value = 0} }
 			end
 			
-			local grammarID = 1
+			
 			-- All RPCs
 			for i = 1, #TestData do
 			--for i = 1, 1 do
@@ -185,6 +185,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 					local hmi_call = RPCs[count_RPC]
 					local other_interfaces_call = {}			
 					local hmi_method_call = TestedInterface.."."..hmi_call.name
+					local grammarID = 1
 
 					if(mob_request.splitted == true) then						
 						if( ( Tested_resultCode == "AllTested" ) or (Tested_resultCode == TestData[i].resultCode) ) then
@@ -351,10 +352,10 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 								--======================================================================================================
 								-- Update of verified params
 									if ( hmi_call.params.cmdID ~= nil )      then hmi_call.params.cmdID = TestData[i].value end
-									if ( hmi_call.params.type ~= nil ) 		   then hmi_call.params.type = "Command" end
+									if ( hmi_call.params.type ~= nil ) 		 then hmi_call.params.type = "Command" end
 									if ( hmi_call.params.menuParams ~= nil ) then hmi_call.params.menuParams =  {position = 1, menuName ="Command "..tostring(TestData[i].value)} end
 									if ( hmi_call.params.vrCommands ~= nil ) then hmi_call.params.vrCommands = {"vrCommands_" .. tostring(TestData[i].value)} end
-									if ( hmi_call.params.choiceSet ~= nil)      then hmi_call.params.choiceSet = { { choiceID = TestData[i].value, menuName = "Choice"..tostring(TestData[i].value) } } end
+									if ( hmi_call.params.choiceSet ~= nil)   then hmi_call.params.choiceSet = { { choiceID = TestData[i].value, menuName = "Choice"..tostring(TestData[i].value) } } end
 								--======================================================================================================
 								if ( TestData[i].success == false and 
 									 (mob_request.name == "DeleteCommand" or mob_request.name == "DeleteSubMenu")) then
@@ -446,6 +447,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 					local hmi_call = RPCs[count_RPC]
 					local other_interfaces_call = {}			
 					local hmi_method_call = TestedInterface.."."..hmi_call.name
+					local grammarID = 1
 
 					if(mob_request.splitted == true) then
 						if( ( Tested_resultCode == "AllTested" ) or (Tested_resultCode == TestData[i].resultCode) ) then
@@ -570,6 +572,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 								 		local local_interface = NotTestedInterfaces[cnt].interface
 								 		local local_rpc = NotTestedInterfaces[cnt].usedRPC[cnt_rpc].name
 								 		local local_params = NotTestedInterfaces[cnt].usedRPC[cnt_rpc].params
+
 									 		
 								 		if (local_rpc == hmi_call.name) then
 								 			--======================================================================================================
@@ -695,65 +698,65 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 			for i = 1, #TestData do
 			--for i = 1, 1 do
 				for count_RPC = 1, #RPCs do
-					local mob_request = mobile_request[count_RPC]
-					local hmi_call = RPCs[count_RPC]
+					local mob_request = commonFunctions:cloneTable(mobile_request[count_RPC])
+					local hmi_call    = commonFunctions:cloneTable(RPCs[count_RPC])
 					local other_interfaces_call = {}			
 					local hmi_method_call = TestedInterface.."."..hmi_call.name
 
 					if(mob_request.splitted == true) then
 								
 						if( ( Tested_resultCode == "AllTested" ) or (Tested_resultCode == TestData[i].resultCode) ) then
-							-- Preconditions should be executed only once.
-						
+							
+						-- Preconditions should be executed only once.
 							--Precondition: for RPC DeleteCommand: AddCommand 1
-							-- if(mob_request.name == "DeleteCommand") then
-							-- 	Test["Precondition_AddCommand_301" ..TestCaseName] = function(self)
-							-- 		--mobile side: sending AddCommand request
-							-- 		local cid = self.mobileSession:SendRPC("AddCommand",
-							-- 		{
-							-- 			cmdID = 301,
-							-- 			vrCommands = {"vrCommands_301"},
-							-- 			menuParams = {position = 1, menuName = "Command 301"}
-							-- 		})
+							if(mob_request.name == "DeleteCommand") then
+								Test["Precondition_AddCommand_"..(TestData[i].value + 2).."_"..TestCaseName] = function(self)
+									--mobile side: sending AddCommand request
+									local cid = self.mobileSession:SendRPC("AddCommand",
+									{
+										cmdID = TestData[i].value + 2,
+										vrCommands = {"vrCommands_"..TestData[i].value + 2},
+										menuParams = {position = 1, menuName = "Command "..TestData[i].value + 2}
+									})
 										
-							-- 		--hmi side: expect VR.AddCommand request
-							-- 		EXPECT_HMICALL("VR.AddCommand", 
-							-- 		{ 
-							-- 			cmdID = 301,
-							-- 			type = "Command",
-							-- 			vrCommands = {"vrCommands_301"}
-							-- 		})
-							-- 		:Do(function(_,data)
-							-- 			--hmi side: sending VR.AddCommand response
-							-- 			self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})						
-							-- 			grammarID = data.params.grammarID
-							-- 		end)
+									--hmi side: expect VR.AddCommand request
+									EXPECT_HMICALL("VR.AddCommand", 
+									{ 
+										cmdID = TestData[i].value + 2,
+										type = "Command",
+										vrCommands = {"vrCommands_"..TestData[i].value + 2}
+									})
+									:Do(function(_,data)
+										--hmi side: sending VR.AddCommand response
+										self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})						
+										grammarID = data.params.grammarID
+									end)
 									
-							-- 		--hmi side: expect UI.AddCommand request 
-							-- 		EXPECT_HMICALL("UI.AddCommand", 
-							-- 		{ 
-							-- 			cmdID = 301,		
-							-- 			menuParams = {position = 1, menuName ="Command 301"}
-							-- 		})
-							-- 		:Do(function(_,data)
-							-- 			--hmi side: sending UI.AddCommand response
-							-- 			self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-							-- 		end)
+									--hmi side: expect UI.AddCommand request 
+									EXPECT_HMICALL("UI.AddCommand", 
+									{ 
+										cmdID = TestData[i].value + 2,		
+										menuParams = {position = 1, menuName ="Command "..TestData[i].value + 2}
+									})
+									:Do(function(_,data)
+										--hmi side: sending UI.AddCommand response
+										self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+									end)
 									
 									
-							-- 		--mobile side: expect AddCommand response
-							-- 		EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})
+									--mobile side: expect AddCommand response
+									EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})
 
-							-- 		--mobile side: expect OnHashChange notification
-							-- 		if(mob_request.hashChange == true) then
-							-- 			EXPECT_NOTIFICATION("OnHashChange")
-							-- 			:Timeout(iTimeout)
-							-- 		else
-							-- 			EXPECT_NOTIFICATION("OnHashChange")
-							-- 			:Times(0)
-							-- 		end
-							-- 	end
-							-- end
+									--mobile side: expect OnHashChange notification
+									if(mob_request.hashChange == true) then
+										EXPECT_NOTIFICATION("OnHashChange")
+										:Timeout(iTimeout)
+									else
+										EXPECT_NOTIFICATION("OnHashChange")
+										:Times(0)
+									end
+								end
+							end
 							--Precondition: for RPC PerformInteraction: CreateInteractionChoiceSet
 							if(mob_request.name == "PerformInteraction") then
 								Test["Precondition_PerformInteraction_CreateInteractionChoiceSet_" .. i ..TestCaseName] = function(self)
@@ -795,17 +798,18 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 								end
 							end --if(mob_request.name == "PerformInteraction") then
 						
-						
 							Test["TC03_"..TestCaseName .. "_"..mob_request.name.."_"..TestedInterface.."_responds_UNSUPPORTED_RESOURCE_OtherInterfaces_respond_".. tostring(TestData[i].resultCode)] = function(self)
 								print("======================================================================================================")
 								print("Split 3 RPC: "..mob_request.name)
+								
 								--======================================================================================================
 								-- Update of used params
 									if ( hmi_call.params.appID ~= nil )         then hmi_call.params.appID = self.applications[config.application1.registerAppInterfaceParams.appName] end
 									if ( mob_request.params.cmdID ~= nil )      then mob_request.params.cmdID = (TestData[i].value + 2) end
 						 			if ( mob_request.params.menuParams ~= nil ) then mob_request.params.menuParams =  {position = 1, menuName ="Command "..tostring(TestData[i].value + 2)} end
 						 			if ( mob_request.params.vrCommands ~= nil ) then mob_request.params.vrCommands = {"vrCommands_" .. tostring(TestData[i].value + 2)} end
-						 			if ( mob_request.params.interactionChoiceSetIDList ~= nil ) then mob_request.params.interactionChoiceSetIDList = {TestData[i].value + 3} end
+						 			if ( mob_request.params.interactionChoiceSetIDList ~= nil ) then mob_request.params.interactionChoiceSetIDList = {TestData[i].value + 2} end
+
 								--======================================================================================================
 						
 								commonTestCases:DelayedExp(iTimeout)
@@ -815,16 +819,11 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 									
 								--======================================================================================================
 								-- Update of verified params
-								if( hmi_call.params.cmdID ~= nil )      then hmi_call.params.cmdID = (TestData[i].value + 2) end
-								if( hmi_call.params.type ~= nil )       then hmi_call.params.type = "Command" end
-								if( hmi_call.params.vrCommands ~= nil ) then hmi_call.params.vrCommands = {"vrCommands_" .. tostring(TestData[i].value + 2)} end
-								if ( hmi_call.params.grammarID ~= nil ) then 
-							  		if (mob_request.name == "DeleteCommand") then
-							  			hmi_call.params.grammarID =  grammarID  
-									else
-							  			hmi_call.params.grammarID[1] =  grammarID  
-							  		end
-							  	end
+									if( hmi_call.params.cmdID ~= nil )       then hmi_call.params.cmdID = (TestData[i].value + 2) end
+									if( hmi_call.params.type ~= nil )        then hmi_call.params.type = "Command" end
+									if( hmi_call.params.vrCommands ~= nil )  then hmi_call.params.vrCommands = {"vrCommands_" .. tostring(TestData[i].value + 2)} end
+									if( hmi_call.params.menuParams ~= nil )  then hmi_call.params.menuParams =  {position = 1, menuName ="Command "..tostring(TestData[i].value + 2)} end
+									if( hmi_call.params.choiceSet ~= nil)    then hmi_call.params.choiceSet = { { choiceID = TestData[i].value + 2, menuName = "Choice"..tostring(TestData[i].value + 2) } } end
 								-- Update of verified params
 								--======================================================================================================
 
@@ -833,23 +832,23 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 								:Do(function(_,data)
 									--hmi side: sending VR.AddCommand response
 									self.hmiConnection:SendError(data.id, data.method, "UNSUPPORTED_RESOURCE", "error message")
-									--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"'..data.method..'","code":'..TestData[i].value..'}}')					
-									if(mob_request.name == "AddCommand") then grammarID = data.params.grammarID end
 								end)
 								
 
 								for cnt = 1, #NotTestedInterfaces do
 									for cnt_rpc = 1, #NotTestedInterfaces[cnt].usedRPC do
 								 		local local_interface = NotTestedInterfaces[cnt].interface
-								 		local local_rpc = NotTestedInterfaces[cnt].usedRPC[cnt_rpc].name
-								 		local local_params = NotTestedInterfaces[cnt].usedRPC[cnt_rpc].params
+								 		local local_rpc       = NotTestedInterfaces[cnt].usedRPC[cnt_rpc].name
+								 		local local_params    = NotTestedInterfaces[cnt].usedRPC[cnt_rpc].params
 								 		
 								 		if (local_rpc == hmi_call.name) then
 								 			--======================================================================================================
 											-- Update of verified params
-									 			if ( local_params.cmdID ~= nil ) then local_params.cmdID = TestData[i].value + 2 end
-									 			if ( local_params.menuParams ~= nil ) then local_params.menuParams =  {position = 1, menuName ="Command "..tostring(TestData[i].value + 2)} end
-									 			if ( local_params.appID ~= nil ) then local_params.appID = self.applications[config.application1.registerAppInterfaceParams.appName] end
+									 			if ( local_params.cmdID ~= nil )       then local_params.cmdID = TestData[i].value + 2 end
+									 			if ( local_params.menuParams ~= nil )  then local_params.menuParams =  {position = 1, menuName ="Command "..tostring(TestData[i].value + 2)} end
+									 			if ( local_params.appID ~= nil )       then local_params.appID = self.applications[config.application1.registerAppInterfaceParams.appName] end
+									 			if ( local_params.vrCommands ~= nil )  then local_params.vrCommands = {"vrCommands_" .. tostring(TestData[i].value + 2)} end
+									 			if ( local_params.choiceSet ~= nil)    then local_params.choiceSet = { { choiceID = TestData[i].value + 2, menuName = "Choice"..tostring(TestData[i].value + 2) } } end
 											--======================================================================================================
 											
 											--hmi side: expect OtherInterfaces.RPC request 
@@ -857,7 +856,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 											:Do(function(_,data)
 												--hmi side: sending UI.AddCommand response
 												--self.hmiConnection:SendError(data.id, data.method, TestData[i].resultCode, "error message 2")
-												self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"'..data.method..'","code":'..TestData[i].value..'}}')	
+												self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"'..data.method..'","message":"error message 2","code":'..tostring(TestData[i].value)..'}}')
 											end)
 								 		end -- if (local_rpc == hmi_call.name) then
 								 	end --for cnt_rpc = 1, #NotTestedInterfaces[cnt].usedRPC do
@@ -876,8 +875,10 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 									end)
 								end
 								
+								--TODO: APPLINK-27931: C;arification is expected
 								--mobile side: expect AddCommand response
-								EXPECT_RESPONSE(cid, { success = false, resultCode = "UNSUPPORTED_RESOURCE", info = "VR is not supported by system"})
+								--EXPECT_RESPONSE(cid, { success = false, resultCode = "UNSUPPORTED_RESOURCE", info = TestedInterface.." is not supported by system"})
+								EXPECT_RESPONSE(cid, { success = false, resultCode = TestData[i].resultCode, "error message, error message 2"})
 
 								--mobile side: expect OnHashChange notification
 								EXPECT_NOTIFICATION("OnHashChange")

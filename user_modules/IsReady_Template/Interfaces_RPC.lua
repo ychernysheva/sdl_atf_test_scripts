@@ -999,7 +999,8 @@ interfaces.RPC = {
                                                 --appName = "SyncProxyTester",
                                                 ngnMediaScreenAppName = "SPT",
                                                 language =  "EN-US",--<param name="language" type="Common.Language" mandatory="true">
-                                                appHMIType = "MEDIA",
+                                                -- APPPLINK-28533: verification of this parameter is not in scope of CRQs
+                                                --appHMIType = "MEDIA",
                                                 appID = 1                                            
                                               }
                                   },
