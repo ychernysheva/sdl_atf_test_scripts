@@ -379,7 +379,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 									else
 										self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"'..data.method..'","message":"error message","code":'..tostring(TestData[i].value)..'}}')
 										--self.hmiConnection:SendError(data.id, data.method, TestData[i].resultCode, "error message")
-										"message":"The data sent is invalid"
+										--"message":"The data sent is invalid"
 									end						
 								end
 							end)
