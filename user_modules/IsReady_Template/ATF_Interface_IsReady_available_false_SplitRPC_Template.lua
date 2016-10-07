@@ -8,19 +8,25 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 	local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 	local commonSteps = require('user_modules/shared_testcases/commonSteps')
 	local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
+	local commonPreconditions = require ('/user_modules/shared_testcases/commonPreconditions')
 	local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
-
 		
 	DefaultTimeout = 3
-	local iTimeout = 2000
-	--local commonPreconditions = require ('/user_modules/shared_testcases/commonPreconditions')
-
+	local iTimeout = 10000
 
 ---------------------------------------------------------------------------------------------
 ------------------------- General Precondition before ATF start -----------------------------
 ---------------------------------------------------------------------------------------------
 	-- Precondition: remove policy table and log files
 	commonSteps:DeleteLogsFileAndPolicyTable()
+	local print_msg = ""
+
+	if(Tested_resultCode ~= nil) then
+		print_msg = "Test will be executed for resultCode = " .. Tested_resultCode .. "; "
+	else
+		Tested_resultCode = "AllTested"
+		print_msg = "Test will be executed for all resultCodes; "
+	end
 
 ---------------------------------------------------------------------------------------------
 ---------------------------- General Settings for configuration----------------------------
@@ -149,9 +155,8 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 					local local_menuparams = ""
 
 					if(mob_request.splitted == true) then
-						-- Preconditions should be executed only once.
-						if( i == 1) then
-						
+						if( ( Tested_resultCode == "AllTested" ) or (Tested_resultCode == TestData[i].resultCode) ) then
+											
 							--Precondition: for RPC PerformInteraction: CreateInteractionChoiceSet
 							if(mob_request.name == "PerformInteraction") then
 								Test["Precondition_PerformInteraction_CreateInteractionChoiceSet_" .. TestData[i].value.."_"..TestCaseName] = function(self)
@@ -189,95 +194,101 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 								
 									--mobile side: expect CreateInteractionChoiceSet response
 									EXPECT_RESPONSE(cid, { resultCode = "SUCCESS", success = true  })
+
+									EXPECT_NOTIFICATION("OnHashChange")
+									:Timeout(iTimeout)
 								end
 							end	-- if(mob_request.name == "PerformInteraction")					
-						end --if( i == 1)
-
-						Test["TC01_"..TestCaseName .. "_"..mob_request.name.."_UNSUPPORTED_RESOURCE_true_Incase_OtherInterfaces_responds_" .. TestData[i].resultCode] = function(self)
-							-- if(TestData[i].resultCode == "SAVED") then
-							-- 	 print ("\27[31m ATF defect should be created for HMI result_code SAVED. Please investigate! \27[0m")
-							-- end
-							--======================================================================================================
-							-- Update of used params
-								if ( hmi_call.params.appID ~= nil ) then hmi_call.params.appID = self.applications[config.application1.registerAppInterfaceParams.appName] end
-								if ( mob_request.params.cmdID      ~= nil ) then mob_request.params.cmdID = TestData[i].value end
-								if ( mob_request.params.vrCommands ~= nil ) then mob_request.params.vrCommands =  {"vrCommands_" .. tostring(TestData[i].value)} end
-								if ( mob_request.params.menuParams ~= nil ) then mob_request.params.menuParams =  {position = 1, menuName = "Command " .. tostring(TestData[i].value)} end
-								if ( mob_request.params.interactionChoiceSetIDList ~= nil ) then mob_request.params.interactionChoiceSetIDList = {TestData[i].value} end
-							--======================================================================================================
-							commonTestCases:DelayedExp(iTimeout)
 					
-							--mobile side: sending RPC request
-							local cid = self.mobileSession:SendRPC(mob_request.name, mob_request.params)
+
+							Test["TC01_"..TestCaseName .. "_"..mob_request.name.."_UNSUPPORTED_RESOURCE_true_Incase_OtherInterfaces_responds_" .. TestData[i].resultCode] = function(self)
+								-- if(TestData[i].resultCode == "SAVED") then
+								-- 	 print ("\27[31m ATF defect should be created for HMI result_code SAVED. Please investigate! \27[0m")
+								-- end
+								--======================================================================================================
+								-- Update of used params
+									if ( hmi_call.params.appID ~= nil ) then hmi_call.params.appID = self.applications[config.application1.registerAppInterfaceParams.appName] end
+									if ( mob_request.params.cmdID      ~= nil ) then mob_request.params.cmdID = TestData[i].value end
+									if ( mob_request.params.vrCommands ~= nil ) then mob_request.params.vrCommands =  {"vrCommands_" .. tostring(TestData[i].value)} end
+									if ( mob_request.params.menuParams ~= nil ) then mob_request.params.menuParams =  {position = 1, menuName = "Command " .. tostring(TestData[i].value)} end
+									if ( mob_request.params.interactionChoiceSetIDList ~= nil ) then mob_request.params.interactionChoiceSetIDList = {TestData[i].value} end
+								--======================================================================================================
+								commonTestCases:DelayedExp(iTimeout)
+						
+								--mobile side: sending RPC request
+								local cid = self.mobileSession:SendRPC(mob_request.name, mob_request.params)
+									
+								--hmi side: expect Interface.RPC request 	
+								for cnt = 1, #NotTestedInterfaces do
+									for cnt_rpc = 1, #NotTestedInterfaces[cnt].usedRPC do
 								
-							--hmi side: expect Interface.RPC request 	
-							for cnt = 1, #NotTestedInterfaces do
-								for cnt_rpc = 1, #NotTestedInterfaces[cnt].usedRPC do
-							
-						 			local local_interface = NotTestedInterfaces[cnt].interface
-						 			local local_rpc = NotTestedInterfaces[cnt].usedRPC[cnt_rpc].name
-						 			local local_params = NotTestedInterfaces[cnt].usedRPC[cnt_rpc].params
-						 		
-						 			if (local_rpc == hmi_call.name) then
-										
-										--======================================================================================================
-										-- Update of verified params
-											if ( local_params.cmdID ~= nil )      then local_params.cmdID = TestData[i].value end
-											if ( local_params.vrCommands ~= nil ) then local_params.vrCommands = {"vrCommands_" .. tostring(TestData[i].value)} end
+							 			local local_interface = NotTestedInterfaces[cnt].interface
+							 			local local_rpc = NotTestedInterfaces[cnt].usedRPC[cnt_rpc].name
+							 			local local_params = NotTestedInterfaces[cnt].usedRPC[cnt_rpc].params
+							 		
+							 			if (local_rpc == hmi_call.name) then
 											
-											if ( local_params.menuParams ~= nil ) then local_params.menuParams =  {position = 1, menuName ="Command "..tostring(TestData[i].value)} end
-				 							if ( local_params.appID ~= nil )      then local_params.appID = self.applications[config.application1.registerAppInterfaceParams.appName] end
-				 							if ( local_params.grammarID ~= nil ) then 
-										  		if (mob_request.name == "DeleteCommand") then
-										  			local_params.grammarID =  grammarID  
-												else
-										  			local_params.grammarID[1] =  grammarID  
-										  		end
-										  	end
-										--======================================================================================================
+											--======================================================================================================
+											-- Update of verified params
+												if ( local_params.cmdID ~= nil )      then local_params.cmdID = TestData[i].value end
+												if ( local_params.vrCommands ~= nil ) then local_params.vrCommands = {"vrCommands_" .. tostring(TestData[i].value)} end
+												
+												if ( local_params.menuParams ~= nil ) then local_params.menuParams =  {position = 1, menuName ="Command "..tostring(TestData[i].value)} end
+					 							if ( local_params.appID ~= nil )      then local_params.appID = self.applications[config.application1.registerAppInterfaceParams.appName] end
+					 							if ( local_params.grammarID ~= nil ) then 
+											  		if (mob_request.name == "DeleteCommand") then
+											  			local_params.grammarID =  grammarID  
+													else
+											  			local_params.grammarID[1] =  grammarID  
+											  		end
+											  	end
+											--======================================================================================================
 
-						 				EXPECT_HMICALL(local_interface.."."..local_rpc, local_params)
-										:Do(function(_,data)
-											--hmi side: sending Interface.RPC response 
-											--self.hmiConnection:SendResponse(data.id, data.method, TestData[i].resultCode, {})
-											self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"'..data.method..'","code":'..TestData[i].value..'}}')	
-										end)	
-						 			end --if (local_rpc == hmi_call.name) then
-						 		end--for cnt_rpc = 1, #NotTestedInterfaces[cnt].usedRPC do
-							end--for cnt = 1, #NotTestedInterfaces do
+							 				EXPECT_HMICALL(local_interface.."."..local_rpc, local_params)
+											:Do(function(_,data)
+												--hmi side: sending Interface.RPC response 
+												--self.hmiConnection:SendResponse(data.id, data.method, TestData[i].resultCode, {})
+												self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"'..data.method..'","code":'..TestData[i].value..'}}')	
+											end)	
+							 			end --if (local_rpc == hmi_call.name) then
+							 		end--for cnt_rpc = 1, #NotTestedInterfaces[cnt].usedRPC do
+								end--for cnt = 1, #NotTestedInterfaces do
 
-							if(mob_request.name == "Alert" or mob_request.name == "PerformAudioPassThru") then
-								--hmi side: TTS.Speak request 
-								EXPECT_HMICALL("TTS.Speak", {})
-								:Do(function(_,data)
-									self.hmiConnection:SendNotification("TTS.Started")
-							
-									local function speakResponse()
-										self.hmiConnection:SendResponse(SpeakId, "TTS.Speak", "SUCCESS", { })
-										self.hmiConnection:SendNotification("TTS.Stopped")
-									end
-										RUN_AFTER(speakResponse, 2000)
+								if(mob_request.name == "Alert" or mob_request.name == "PerformAudioPassThru") then
+									local SpeakId
+									
+									--hmi side: TTS.Speak request 
+									EXPECT_HMICALL("TTS.Speak", {})
+									:Do(function(_,data)
+										self.hmiConnection:SendNotification("TTS.Started")
+										SpeakId = data.id
+										local function speakResponse()
+											self.hmiConnection:SendResponse(SpeakId, "TTS.Speak", "SUCCESS", { })
+											self.hmiConnection:SendNotification("TTS.Stopped")
+										end
+											RUN_AFTER(speakResponse, 2000)
 
-									end)
-							end
-							
-							--hmi side: expect there is no request is sent to the testing interface.
-							EXPECT_HMICALL(hmi_method_call, {})
-							:Times(0)
-							
-							--mobile side: expect RPC response
-							EXPECT_RESPONSE(cid, {success = true, resultCode = "UNSUPPORTED_RESOURCE", info = TestData[i].info})
-							:Timeout(iTimeout)
-
-							--mobile side: expect OnHashChange notification
-							if(mob_request.hashChange == true) then
-								EXPECT_NOTIFICATION("OnHashChange")
-								:Timeout(iTimeout)
-							else
-								EXPECT_NOTIFICATION("OnHashChange")
+										end)
+								end
+								
+								--hmi side: expect there is no request is sent to the testing interface.
+								EXPECT_HMICALL(hmi_method_call, {})
 								:Times(0)
+								
+								--mobile side: expect RPC response
+								EXPECT_RESPONSE(cid, {success = true, resultCode = "UNSUPPORTED_RESOURCE", info = TestData[i].info})
+								:Timeout(iTimeout)
+
+								--mobile side: expect OnHashChange notification
+								if(mob_request.hashChange == true) then
+									EXPECT_NOTIFICATION("OnHashChange")
+									:Timeout(iTimeout)
+								else
+									EXPECT_NOTIFICATION("OnHashChange")
+									:Times(0)
+								end
 							end
-						end
+						end --if( ( Tested_resultCode == "AllTested" ) or (Tested_resultCode == TestData[i].resultCode) ) then
 					end --if(mob_request.splitted == true) then
 				end --for count_RPC = 1, #RPCs do
 			end --for i = 1, #TestData do
@@ -348,7 +359,8 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 						local hmi_method_call = TestedInterface.."."..hmi_call.name
 						
 						if(mob_request.splitted == true) then
-							if( i == 1) then
+							if( ( Tested_resultCode == "AllTested" ) or (Tested_resultCode == TestData[i].resultCode) ) then
+							--if( i == 1) then
 								-- Precondition: for RPC DeleteCommand
 								if(mob_request.name == "DeleteCommand") then
 									Test["Precondition_AddCommand_1_"..TestCaseName] = function(self)
@@ -447,8 +459,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 										EXPECT_RESPONSE(cid, { resultCode = "SUCCESS", success = true  })
 									end
 								end	-- if(mob_request.name == "PerformInteraction")					
-							end --if( i == 1)
-
+							--end --if( i == 1)
 						
 							Test["TC02_"..TestCaseName .. "_"..mob_request.name.."_UNSUPPORTED_RESOURCE_true_Incase_UI_responds_" .. TestData[i].resultCode] = function(self)
 								--Test[TestCaseName .. "_AddCommand_UNSUPPORTED_RESOURCE_true_Incase_UI_responds_" .. TestData[i].resultCode] = function(self)
@@ -506,7 +517,22 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 								 	end --for cnt_rpc = 1, #NotTestedInterfaces[cnt].usedRPC do
 								end --for cnt = 1, #NotTestedInterfaces do
 								
-								
+								if(mob_request.name == "Alert" or mob_request.name == "PerformAudioPassThru") then
+									local SpeakId
+									
+									--hmi side: TTS.Speak request 
+									EXPECT_HMICALL("TTS.Speak", {})
+									:Do(function(_,data)
+										self.hmiConnection:SendNotification("TTS.Started")
+										SpeakId = data.id
+										local function speakResponse()
+											self.hmiConnection:SendResponse(SpeakId, "TTS.Speak", "SUCCESS", { })
+											self.hmiConnection:SendNotification("TTS.Stopped")
+										end
+											RUN_AFTER(speakResponse, 2000)
+
+										end)
+								end
 								--hmi side: expect there is no request is sent to the testing interface.
 								EXPECT_HMICALL(hmi_method_call, {})
 								:Times(0)
@@ -523,6 +549,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 								EXPECT_NOTIFICATION("OnHashChange")
 								:Times(0)
 							end
+							end --if( ( Tested_resultCode == "AllTested" ) or (Tested_resultCode == TestData[i].resultCode) ) then
 						end --if(mob_request.splitted == true) then
 					end --for count_RPC = 1, #RPCs do
 				end -- for i = 1, #TestData do
@@ -570,8 +597,8 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 ----------------------------------------------------------------------------------------------
 -- Not applicable
 
-function Test:Postcondition_RestorePreloadedFile()
-	commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
-end
+	function Test:Postcondition_RestorePreloadedFile()
+		commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
+	end
 
 return Test
