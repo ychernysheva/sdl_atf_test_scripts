@@ -171,7 +171,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 					:Times(0)
 
 					if(mob_request.name == "DeleteCommand" or mob_request.name == "DeleteSubMenu") then
-						-- According to APPLINK-27079
+						-- According to APPLINK-27079; APPLNIK-19401
 						--mobile side: expect RPC response
 						EXPECT_RESPONSE(cid, {success = false, resultCode = "INVALID_ID"})
 						

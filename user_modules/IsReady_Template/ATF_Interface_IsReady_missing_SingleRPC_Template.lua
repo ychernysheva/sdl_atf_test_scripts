@@ -327,62 +327,68 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 				 			if(hmi_method_call == "UI.EndAudioPassThru") then
 				 				hmi_call.params = nil
 				 			end
-							EXPECT_HMICALL( hmi_method_call, hmi_call.params)
-							:Do(function(_,data)
-								if(mob_request.name == "AddCommand") then grammarID = data.params.grammarID end
-								
-								--hmi side: sending response
-								if (TestData[i].resultCode == "") then
-									-- HMI does not respond					
-								else
-									if TestData[i].success == true then 
-										if(hmi_call.mandatory_params ~= nil) then
-											self.hmiConnection:SendResponse(data.id, data.method, TestData[i].resultCode, hmi_call.mandatory_params )
-											--[[ TODO: Will be updated in next iteration
-											self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"'..data.method..'","code":'..TestData[i].value..'}}')
-											local str_mandatory = table.tostring( hmi_call.mandatory_params )
-											local hmi_params
-											local elements_mandatory = {}
-											local array_mandatory = {}
-											-- for i = 1, #hmi_call.mandatory_params do
-											-- 	print(""..hmi_call.mandatory_params)
-											-- end
-											print("str_mandatory = "..str_mandatory )
-											j = 1
-											for elements_mandatory in string.gmatch(str_mandatory,"[^,]*") do
-												for i in string.gmatch(elements_mandatory,"[^=]*") do
-													if(i ~= "" and i ~= " ") then
-														array_mandatory[j] = i
-														print(j..": " ..array_mandatory[j])
-														j = j + 1
-													end
-												end
-											end
-											hmi_params = "\""
+				 			if( (TestData[i].success == false) and 
+				 				(mob_request.name == "DeleteCommand" or mob_request.name == "DeleteSubMenu") ) then
+				 				EXPECT_HMICALL( hmi_method_call, hmi_call.params)
+				 				:Times(0)
+				 			else
+								EXPECT_HMICALL( hmi_method_call, hmi_call.params)
+								:Do(function(_,data)
+									if(mob_request.name == "AddCommand") then grammarID = data.params.grammarID end
 									
-											for i = 1, #array_mandatory do
-												if(array_mandatory[i] ~= "" and array_mandatory[i] ~= " ") then
-													hmi_params = hmi_params..array_mandatory[i]
-													if(i == 1) then
-														hmi_params = hmi_params.."\":"
+									--hmi side: sending response
+									if (TestData[i].resultCode == "") then
+										-- HMI does not respond					
+									else
+										if TestData[i].success == true then 
+											if(hmi_call.mandatory_params ~= nil) then
+												self.hmiConnection:SendResponse(data.id, data.method, TestData[i].resultCode, hmi_call.mandatory_params )
+												--[[ TODO: Will be updated in next iteration
+												self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"'..data.method..'","code":'..TestData[i].value..'}}')
+												local str_mandatory = table.tostring( hmi_call.mandatory_params )
+												local hmi_params
+												local elements_mandatory = {}
+												local array_mandatory = {}
+												-- for i = 1, #hmi_call.mandatory_params do
+												-- 	print(""..hmi_call.mandatory_params)
+												-- end
+												print("str_mandatory = "..str_mandatory )
+												j = 1
+												for elements_mandatory in string.gmatch(str_mandatory,"[^,]*") do
+													for i in string.gmatch(elements_mandatory,"[^=]*") do
+														if(i ~= "" and i ~= " ") then
+															array_mandatory[j] = i
+															print(j..": " ..array_mandatory[j])
+															j = j + 1
+														end
 													end
 												end
+												hmi_params = "\""
+										
+												for i = 1, #array_mandatory do
+													if(array_mandatory[i] ~= "" and array_mandatory[i] ~= " ") then
+														hmi_params = hmi_params..array_mandatory[i]
+														if(i == 1) then
+															hmi_params = hmi_params.."\":"
+														end
+													end
+												end
+												print("hmi_params = "..hmi_params)
+												--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0",'..hmi_call.mandatory_params..'"result":{"method":"'..data.method..'","code":'..TestData[i].value..'}}')
+												--{"id":32,"result":{"code":0,"ecuHeader":2,"method":"VehicleInfo.GetDTCs"},"jsonrpc":"2.0"} 	
+												--]]
+											else
+												--self.hmiConnection:SendResponse(data.id, data.method, TestData[i].resultCode, {})
+												self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"'..data.method..'","code":'..tostring(TestData[i].value)..'}}')
 											end
-											print("hmi_params = "..hmi_params)
-											--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0",'..hmi_call.mandatory_params..'"result":{"method":"'..data.method..'","code":'..TestData[i].value..'}}')
-											--{"id":32,"result":{"code":0,"ecuHeader":2,"method":"VehicleInfo.GetDTCs"},"jsonrpc":"2.0"} 	
-											--]]
 										else
-											--self.hmiConnection:SendResponse(data.id, data.method, TestData[i].resultCode, {})
-											self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"'..data.method..'","code":'..tostring(TestData[i].value)..'}}')
-										end
-									else
-										self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"'..data.method..'","message":"error message","code":'..tostring(TestData[i].value)..'}}')
-										--self.hmiConnection:SendError(data.id, data.method, TestData[i].resultCode, "error message")
-										--"message":"The data sent is invalid"
-									end						
-								end
-							end)
+											self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"'..data.method..'","message":"error message","code":'..tostring(TestData[i].value)..'}}')
+											--self.hmiConnection:SendError(data.id, data.method, TestData[i].resultCode, "error message")
+											--"message":"The data sent is invalid"
+										end						
+									end
+								end)
+							end
 							
 							--mobile side: expect AddCommand response and OnHashChange notification
 							if TestData[i].success == true then 
@@ -398,11 +404,27 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 								end
 							
 							else
-								--TODO: APPLINK-28492 - update after clarification
-								if (TestData[i].resultCode == "") then
-									EXPECT_RESPONSE(cid, { success = TestData[i].success , resultCode = TestData[i].expected_resultCode})
+								if(mob_request.name == "DeleteCommand" or mob_request.name == "DeleteSubMenu") then
+									-- According to APPLINK-27079; APPLNIK-19401
+									--mobile side: expect RPC response
+									EXPECT_RESPONSE(cid, {success = false, resultCode = "INVALID_ID"})
+									
+								elseif(mob_request.name == "UnsubscribeVehicleData") then
+									-- According to APPLINK-27872 and APPLINK-20043
+									-- mobile side: expect RPC response
+									EXPECT_RESPONSE(cid, {success = false, resultCode = "IGNORED"})
 								else
-									EXPECT_RESPONSE(cid, { success = TestData[i].success , resultCode = TestData[i].expected_resultCode, info = "error message"})
+								-- 	--mobile side: expect RPC response
+								-- 	EXPECT_RESPONSE(cid, {success = false, resultCode = "UNSUPPORTED_RESOURCE", info =  TestedInterface .." is not supported by system"})
+									
+								-- end
+
+									--TODO: APPLINK-28492 - update after clarification
+									if (TestData[i].resultCode == "") then
+										EXPECT_RESPONSE(cid, { success = TestData[i].success , resultCode = TestData[i].expected_resultCode})
+									else
+										EXPECT_RESPONSE(cid, { success = TestData[i].success , resultCode = TestData[i].expected_resultCode, info = "error message"})
+									end
 								end
 
 								EXPECT_NOTIFICATION("OnHashChange")
