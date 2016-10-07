@@ -371,14 +371,15 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 
 								if(mob_request.name == "Alert" or mob_request.name == "PerformAudioPassThru") then
 									local SpeakId
+									
 									--hmi side: TTS.Speak request 
 									EXPECT_HMICALL("TTS.Speak", {})
 									:Do(function(_,data)
 										self.hmiConnection:SendNotification("TTS.Started")
 										SpeakId = data.id
-
 										local function speakResponse()
-											self.hmiConnection:SendResponse(SpeakId, "TTS.Speak", "SUCCESS", { })
+											--self.hmiConnection:SendResponse(SpeakId, "TTS.Speak", "SUCCESS", { })
+											self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"TTS.Speak","code":'..TestData[i].value..'}}')
 											self.hmiConnection:SendNotification("TTS.Stopped")
 										end
 											RUN_AFTER(speakResponse, 2000)
@@ -624,17 +625,20 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 
 								if(mob_request.name == "Alert" or mob_request.name == "PerformAudioPassThru") then
 									local SpeakId
+									
 									--hmi side: TTS.Speak request 
 									EXPECT_HMICALL("TTS.Speak", {})
 									:Do(function(_,data)
 										self.hmiConnection:SendNotification("TTS.Started")
 										SpeakId = data.id
 										local function speakResponse()
-											self.hmiConnection:SendResponse(SpeakId, "TTS.Speak", "SUCCESS", { })
+											--self.hmiConnection:SendResponse(SpeakId, "TTS.Speak", "SUCCESS", { })
+											self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"'..data.method..'","code":'..TestData[i].value..'}}')
 											self.hmiConnection:SendNotification("TTS.Stopped")
 										end
-										RUN_AFTER(speakResponse, 2000)
-									end)
+											RUN_AFTER(speakResponse, 2000)
+
+										end)
 								end
 								local hmi_info = "error message"
 								
@@ -867,17 +871,20 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 
 								if(mob_request.name == "Alert" or mob_request.name == "PerformAudioPassThru") then
 									local SpeakId
+									
 									--hmi side: TTS.Speak request 
 									EXPECT_HMICALL("TTS.Speak", {})
 									:Do(function(_,data)
 										self.hmiConnection:SendNotification("TTS.Started")
 										SpeakId = data.id
 										local function speakResponse()
-											self.hmiConnection:SendResponse(SpeakId, "TTS.Speak", "SUCCESS", { })
+											self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"TTS.Speak","code":'..TestData[i].value..'}}')
+											--self.hmiConnection:SendError(SpeakId, "TTS.Speak", TestData[i].resultCode, { })
 											self.hmiConnection:SendNotification("TTS.Stopped")
 										end
-										RUN_AFTER(speakResponse, 2000)
-									end)
+											RUN_AFTER(speakResponse, 2000)
+
+										end)
 								end
 								
 								--TODO: APPLINK-27931: C;arification is expected

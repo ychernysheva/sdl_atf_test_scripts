@@ -263,7 +263,8 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 										self.hmiConnection:SendNotification("TTS.Started")
 										SpeakId = data.id
 										local function speakResponse()
-											self.hmiConnection:SendResponse(SpeakId, "TTS.Speak", "SUCCESS", { })
+											self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"TTS.Speak","code":'..TestData[i].value..'}}')
+											--self.hmiConnection:SendResponse(SpeakId, "TTS.Speak", "SUCCESS", { })
 											self.hmiConnection:SendNotification("TTS.Stopped")
 										end
 											RUN_AFTER(speakResponse, 2000)
@@ -526,7 +527,8 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 										self.hmiConnection:SendNotification("TTS.Started")
 										SpeakId = data.id
 										local function speakResponse()
-											self.hmiConnection:SendResponse(SpeakId, "TTS.Speak", "SUCCESS", { })
+											--self.hmiConnection:SendResponse(SpeakId, "TTS.Speak", "SUCCESS", { })
+											self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"TTS.Speak","code":'..TestData[i].value..'}}')
 											self.hmiConnection:SendNotification("TTS.Stopped")
 										end
 											RUN_AFTER(speakResponse, 2000)
