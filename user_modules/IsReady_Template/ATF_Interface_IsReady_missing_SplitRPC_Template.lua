@@ -370,11 +370,12 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 								end				
 
 								if(mob_request.name == "Alert" or mob_request.name == "PerformAudioPassThru") then
+									local SpeakId
 									--hmi side: TTS.Speak request 
 									EXPECT_HMICALL("TTS.Speak", {})
 									:Do(function(_,data)
 										self.hmiConnection:SendNotification("TTS.Started")
-										
+										SpeakId = data.id
 
 										local function speakResponse()
 											self.hmiConnection:SendResponse(SpeakId, "TTS.Speak", "SUCCESS", { })
@@ -622,10 +623,12 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 								end)		
 
 								if(mob_request.name == "Alert" or mob_request.name == "PerformAudioPassThru") then
+									local SpeakId
 									--hmi side: TTS.Speak request 
 									EXPECT_HMICALL("TTS.Speak", {})
 									:Do(function(_,data)
 										self.hmiConnection:SendNotification("TTS.Started")
+										SpeakId = data.id
 										local function speakResponse()
 											self.hmiConnection:SendResponse(SpeakId, "TTS.Speak", "SUCCESS", { })
 											self.hmiConnection:SendNotification("TTS.Stopped")
@@ -863,10 +866,12 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 								end --for cnt = 1, #NotTestedInterfaces do
 
 								if(mob_request.name == "Alert" or mob_request.name == "PerformAudioPassThru") then
+									local SpeakId
 									--hmi side: TTS.Speak request 
 									EXPECT_HMICALL("TTS.Speak", {})
 									:Do(function(_,data)
 										self.hmiConnection:SendNotification("TTS.Started")
+										SpeakId = data.id
 										local function speakResponse()
 											self.hmiConnection:SendResponse(SpeakId, "TTS.Speak", "SUCCESS", { })
 											self.hmiConnection:SendNotification("TTS.Stopped")
