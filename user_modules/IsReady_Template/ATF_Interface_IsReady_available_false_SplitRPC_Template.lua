@@ -12,7 +12,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 	local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
 		
 	DefaultTimeout = 3
-	local iTimeout = 10000
+	local iTimeout = 3000
 
 ---------------------------------------------------------------------------------------------
 ------------------------- General Precondition before ATF start -----------------------------
@@ -328,27 +328,46 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 				-- List of erroneous resultCodes (success:false)
 				local TestData = {
 				
-									{resultCode = "UNSUPPORTED_REQUEST", 		info = TestedInterface .." is not supported by system", value = 1},
-									{resultCode = "DISALLOWED", 				info = TestedInterface .." is not supported by system", value = 3},
-									{resultCode = "USER_DISALLOWED", 			info = TestedInterface .." is not supported by system", value = 23},
-									{resultCode = "REJECTED", 					info = TestedInterface .." is not supported by system", value = 4},
-									{resultCode = "ABORTED", 					info = TestedInterface .." is not supported by system", value = 5},
-									{resultCode = "IGNORED", 					info = TestedInterface .." is not supported by system", value = 6},
-									{resultCode = "IN_USE", 					info = TestedInterface .." is not supported by system", value = 8},
-									--{resultCode = "VEHICLE_DATA_NOT_AVAILABLE", info = TestedInterface .." is not supported by system", value = 1},
-									{resultCode = "TIMED_OUT", 					info = TestedInterface .." is not supported by system", value = 10},
-									{resultCode = "INVALID_DATA", 				info = TestedInterface .." is not supported by system", value = 11},
-									{resultCode = "CHAR_LIMIT_EXCEEDED", 		info = TestedInterface .." is not supported by system", value = 12},
-									{resultCode = "INVALID_ID", 				info = TestedInterface .." is not supported by system", value = 13},
-									{resultCode = "DUPLICATE_NAME", 			info = TestedInterface .." is not supported by system", value = 14},
-									{resultCode = "APPLICATION_NOT_REGISTERED", info = TestedInterface .." is not supported by system", value = 15},
-									{resultCode = "OUT_OF_MEMORY", 				info = TestedInterface .." is not supported by system", value = 17},
-									{resultCode = "TOO_MANY_PENDING_REQUESTS", 	info = TestedInterface .." is not supported by system", value = 18},
-									{resultCode = "GENERIC_ERROR", 				info = TestedInterface .." is not supported by system", value = 22},
-									{resultCode = "TRUNCATED_DATA", 			info = TestedInterface .." is not supported by system", value = 24},
-									{resultCode = "UNSUPPORTED_RESOURCE", 		info = TestedInterface .." is not supported by system", value = 2},
-									{resultCode = "NOT_RESPOND", 				info = TestedInterface .." is not supported by system", value = 33}
-								}		
+							{resultCode = "UNSUPPORTED_REQUEST", 		info = "Error message", value = 1},
+							{resultCode = "UNSUPPORTED_REQUEST", 		info = nil, 			value = 1},
+							{resultCode = "DISALLOWED", 				info = "Error message", value = 3},
+							{resultCode = "DISALLOWED", 				info = nil, 			value = 3},
+							{resultCode = "USER_DISALLOWED", 			info = "Error message", value = 23},
+							{resultCode = "USER_DISALLOWED", 			info = nil,				value = 23},
+							{resultCode = "REJECTED", 					info = "Error message", value = 4},
+							{resultCode = "REJECTED", 					info = nil, 			value = 4},
+							{resultCode = "ABORTED", 					info = "Error message", value = 5},
+							{resultCode = "ABORTED", 					info = nil, 			value = 5},
+							{resultCode = "IGNORED", 					info = "Error message", value = 6},
+							{resultCode = "IGNORED", 					info = nil, 			value = 6},
+							{resultCode = "IN_USE", 					info = "Error message", value = 8},
+							--{resultCode = "VEHICLE_DATA_NOT_AVAILABLE", info = "Error message", value = 1},
+							--{resultCode = "VEHICLE_DATA_NOT_AVAILABLE", info = nil, value = 1},
+							{resultCode = "TIMED_OUT", 					info = "Error message", value = 10},
+							{resultCode = "TIMED_OUT", 					info = nil, 			value = 10},
+							{resultCode = "INVALID_DATA", 				info = "Error message", value = 11},
+							{resultCode = "INVALID_DATA", 				info = nil, 			value = 11},
+							{resultCode = "CHAR_LIMIT_EXCEEDED", 		info = "Error message", value = 12},
+							{resultCode = "CHAR_LIMIT_EXCEEDED", 		info = nil, 			value = 12},
+							{resultCode = "INVALID_ID", 				info = "Error message", value = 13},
+							{resultCode = "INVALID_ID", 				info = nil, 			value = 13},
+							{resultCode = "DUPLICATE_NAME", 			info = "Error message", value = 14},
+							{resultCode = "DUPLICATE_NAME", 			info = nil, 			value = 14},
+							{resultCode = "APPLICATION_NOT_REGISTERED", info = "Error message", value = 15},
+							{resultCode = "APPLICATION_NOT_REGISTERED", info = nil, 			value = 15},
+							{resultCode = "OUT_OF_MEMORY", 				info = "Error message", value = 17},
+							{resultCode = "OUT_OF_MEMORY", 				info = nil, 			value = 17},
+							{resultCode = "TOO_MANY_PENDING_REQUESTS", 	info = "Error message", value = 18},
+							{resultCode = "TOO_MANY_PENDING_REQUESTS", 	info = nil, 			value = 18},
+							{resultCode = "GENERIC_ERROR", 				info = "Error message", value = 22},
+							{resultCode = "GENERIC_ERROR", 				info = nil, 			value = 22},
+							{resultCode = "TRUNCATED_DATA", 			info = "Error message", value = 24},
+							{resultCode = "TRUNCATED_DATA", 			info = nil, 			value = 24},
+							{resultCode = "UNSUPPORTED_RESOURCE", 		info = "Error message", value = 2},
+							{resultCode = "UNSUPPORTED_RESOURCE", 		info = nil, 			value = 2},
+							{resultCode = "NOT_RESPOND", 				info = "Error message", value = 33},
+							{resultCode = "NOT_RESPOND", 				info = nil, 			value = 33}
+						}		
 			
 				-- All RPCs		
 				for i = 1, #TestData do
@@ -370,16 +389,16 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 										if(TestedInterface == "UI") then
 											cid = self.mobileSession:SendRPC("AddCommand",
 																							{
-																								cmdID = TestData[i].value,
-																								vrCommands = {"vrCommands_"..TestData[i].value},
+																								cmdID = i,
+																								vrCommands = {"vrCommands_"..i},
 																								--menuParams = {position = 1, menuName = "Command 1"}
 																							})
 											--hmi side: expect VR.AddCommand request
 											EXPECT_HMICALL("VR.AddCommand", 
 											{ 
-												cmdID = TestData[i].value,
+												cmdID = i,
 												type = "Command",
-												vrCommands = {"vrCommands_"..TestData[i].value}
+												vrCommands = {"vrCommands_"..i}
 											})
 											:Do(function(_,data)
 												--hmi side: sending VR.AddCommand response
@@ -389,20 +408,19 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 										else
 											cid = self.mobileSession:SendRPC("AddCommand",
 																							{
-																								cmdID = TestData[i].value,
+																								cmdID = i,
 																								--vrCommands = {"vrCommands_1"},
-																								menuParams = {position = 1, menuName = "Command "..TestData[i].value}
+																								menuParams = {position = 1, menuName = "Command "..i}
 																							})
 											--hmi side: expect UI.AddCommand request 
 											EXPECT_HMICALL("UI.AddCommand", 
 											{ 
-												cmdID = TestData[i].value,		
-												menuParams = {position = 1, menuName ="Command "..TestData[i].value}
+												cmdID = i,		
+												menuParams = {position = 1, menuName ="Command "..i}
 											})
 											:Do(function(_,data)
 												--hmi side: sending UI.AddCommand response
-												self.hmiConnection:SendResponse(data.id, data.method, TestData[i].resultCode, {})
-												--self.hmiConnection:SendError(data.id, data.method, TestData[i].resultCode, "Error Messages")
+												self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 											end)
 										end
 											
@@ -426,13 +444,13 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 										--mobile side: sending CreateInteractionChoiceSet request
 										local cid = self.mobileSession:SendRPC("CreateInteractionChoiceSet",
 																			{
-																				interactionChoiceSetID = TestData[i].value,
+																				interactionChoiceSetID = i,
 																				choiceSet = {{ 
-																									choiceID = TestData[i].value,
-																									menuName ="Choice" .. tostring(TestData[i].value),
+																									choiceID = i,
+																									menuName ="Choice" .. tostring(i),
 																									vrCommands = 
 																									{ 
-																										"VrChoice" .. tostring(TestData[i].value),
+																										"VrChoice" .. tostring(i),
 																									}, 
 																									image =
 																									{ 
@@ -445,9 +463,9 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 										--hmi side: expect VR.AddCommand
 										EXPECT_HMICALL("VR.AddCommand", 
 												{ 
-													cmdID = TestData[i].value,
+													cmdID = i,
 													type = "Choice",
-													vrCommands = {"VrChoice"..tostring(TestData[i].value) }
+													vrCommands = {"VrChoice"..tostring(i) }
 												})
 										:Do(function(_,data)						
 											--hmi side: sending VR.AddCommand response
@@ -458,20 +476,24 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 									
 										--mobile side: expect CreateInteractionChoiceSet response
 										EXPECT_RESPONSE(cid, { resultCode = "SUCCESS", success = true  })
+										
+										--mobile side: expect OnHashChange notification
+										EXPECT_NOTIFICATION("OnHashChange")
+								
 									end
 								end	-- if(mob_request.name == "PerformInteraction")					
 							--end --if( i == 1)
 						
-							Test["TC02_"..TestCaseName .. "_"..mob_request.name.."_UNSUPPORTED_RESOURCE_true_Incase_UI_responds_" .. TestData[i].resultCode] = function(self)
+							Test["TC02_"..TestCaseName .. "_"..mob_request.name.."_Incase_Other_Interfaces_responds_" .. TestData[i].resultCode .. "_info_" .. tostring(TestData[i].info)] = function(self)
 								--Test[TestCaseName .. "_AddCommand_UNSUPPORTED_RESOURCE_true_Incase_UI_responds_" .. TestData[i].resultCode] = function(self)
 								--======================================================================================================
 								-- Update of used params
 									if ( hmi_call.params.appID ~= nil ) then hmi_call.params.appID = self.applications[config.application1.registerAppInterfaceParams.appName] end
 
-									if ( mob_request.params.cmdID      ~= nil ) then mob_request.params.cmdID = TestData[i].value end
-									if ( mob_request.params.vrCommands ~= nil ) then mob_request.params.vrCommands =  {"vrCommands_" .. tostring(TestData[i].value)} end
-									if ( mob_request.params.menuParams ~= nil ) then mob_request.params.menuParams =  {position = 1, menuName = "Command " .. tostring(TestData[i].value)} end
-									if ( mob_request.params.interactionChoiceSetIDList ~= nil ) then mob_request.params.interactionChoiceSetIDList = {TestData[i].value} end
+									if ( mob_request.params.cmdID      ~= nil ) then mob_request.params.cmdID = i end
+									if ( mob_request.params.vrCommands ~= nil ) then mob_request.params.vrCommands =  {"vrCommands_" .. tostring(i)} end
+									if ( mob_request.params.menuParams ~= nil ) then mob_request.params.menuParams =  {position = 1, menuName = "Command " .. tostring(i)} end
+									if ( mob_request.params.interactionChoiceSetIDList ~= nil ) then mob_request.params.interactionChoiceSetIDList = {i} end
 								--======================================================================================================
 								
 								commonTestCases:DelayedExp(iTimeout)
@@ -490,10 +512,10 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 								 		if (local_rpc == hmi_call.name) then
 								 			--======================================================================================================
 											-- Update of verified params
-												if ( local_params.cmdID ~= nil )      then local_params.cmdID = TestData[i].value end
-												if ( local_params.vrCommands ~= nil ) then local_params.vrCommands = {"vrCommands_" .. tostring(TestData[i].value)} end
+												if ( local_params.cmdID ~= nil )      then local_params.cmdID = i end
+												if ( local_params.vrCommands ~= nil ) then local_params.vrCommands = {"vrCommands_" .. tostring(i)} end
 												
-												if ( local_params.menuParams ~= nil ) then local_params.menuParams =  {position = 1, menuName ="Command "..tostring(TestData[i].value)} end
+												if ( local_params.menuParams ~= nil ) then local_params.menuParams =  {position = 1, menuName ="Command "..tostring(i)} end
 				 								if ( local_params.appID ~= nil )      then local_params.appID = self.applications[config.application1.registerAppInterfaceParams.appName] end
 				 								if ( local_params.grammarID ~= nil ) then 
 											  		if (mob_request.name == "DeleteCommand") then
@@ -510,8 +532,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 												if TestData[i].resultCode == "NOT_RESPOND" then
 													--HMI does not respond
 												else
-													--self.hmiConnection:SendError(data.id, data.method, TestData[i].resultCode, {})
-													self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"'..data.method..'","code":'..TestData[i].value..'}}')	
+													self.hmiConnection:SendError(data.id, data.method, TestData[i].resultCode, TestData[i].info)
 												end
 											end)	
 								 		end
@@ -519,16 +540,14 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 								end --for cnt = 1, #NotTestedInterfaces do
 								
 								if(mob_request.name == "Alert" or mob_request.name == "PerformAudioPassThru") then
-									local SpeakId
 									
 									--hmi side: TTS.Speak request 
 									EXPECT_HMICALL("TTS.Speak", {})
 									:Do(function(_,data)
 										self.hmiConnection:SendNotification("TTS.Started")
-										SpeakId = data.id
+					
 										local function speakResponse()
-											--self.hmiConnection:SendResponse(SpeakId, "TTS.Speak", "SUCCESS", { })
-											self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"TTS.Speak","code":'..TestData[i].value..'}}')
+											self.hmiConnection:SendError(data.id, data.method, TestData[i].resultCode, TestData[i].info)
 											self.hmiConnection:SendNotification("TTS.Stopped")
 										end
 											RUN_AFTER(speakResponse, 2000)
@@ -544,13 +563,39 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 									EXPECT_RESPONSE(cid, {success = false, resultCode = "GENERIC_ERROR"})
 									:Timeout(12000)
 								else
-									EXPECT_RESPONSE(cid, {success = false, resultCode = TestData[i].resultCode, info = TestData[i].info})
+									
+									EXPECT_RESPONSE(cid, {success = false, resultCode = TestData[i].resultCode})
+									:ValidIf (function(_,data)
+										-- APPLINK-26900  SDL receives errorCode and with error message from other interface, SDL responds to mobile with info = error message from other interface
+										-- APPLINK-28100:
+										-- verify info parameter is omitted if HMI does not sent message parameter in response
+										-- "Message" is optional param for all responses from HMI side - HMI just provide the info regarding processing of requests. As result, in case HMI provides "message" or not - it will be still valid response
+										if TestData[i].info == nil then 
+											if data.payload.info ~= nil  then
+												commonFunctions:printError(" Expected result: info is omitted; Actual result: info = '" .. data.payload.info .. "'")
+												return false
+											else
+												return true
+											end
+										else
+											-- APPLINK-26900  SDL receives errorCode and with error message from other interface, SDL responds to mobile with info = error message from other interface
+											if data.payload.info ~= TestData[i].info  then
+												commonFunctions:printError(" Expected result: info = '".. TestData[i].info .."'; Actual result: info = '" .. data.payload.info .. "'")
+												return false
+											else
+												return true
+											end
+										end
+									end)
+									
 								end
 								
 								--mobile side: expect OnHashChange notification is not sent
 								EXPECT_NOTIFICATION("OnHashChange")
 								:Times(0)
 							end
+							
+							
 							end --if( ( Tested_resultCode == "AllTested" ) or (Tested_resultCode == TestData[i].resultCode) ) then
 						end --if(mob_request.splitted == true) then
 					end --for count_RPC = 1, #RPCs do
