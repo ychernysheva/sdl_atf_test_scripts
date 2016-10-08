@@ -366,7 +366,9 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 							{resultCode = "UNSUPPORTED_RESOURCE", 		info = "Error message", value = 2},
 							{resultCode = "UNSUPPORTED_RESOURCE", 		info = nil, 			value = 2},
 							{resultCode = "NOT_RESPOND", 				info = "Error message", value = 33},
-							{resultCode = "NOT_RESPOND", 				info = nil, 			value = 33}
+							{resultCode = "NOT_RESPOND", 				info = nil, 			value = 33},
+							{resultCode = "IsNotExist", 				info = "Error message", value = 26},
+							{resultCode = "IsNotExist", 				info = nil, 			value = 26}
 						}		
 			
 				-- All RPCs		
@@ -485,7 +487,6 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 							--end --if( i == 1)
 						
 							Test["TC02_"..TestCaseName .. "_"..mob_request.name.."_Incase_Other_Interfaces_responds_" .. TestData[i].resultCode .. "_info_" .. tostring(TestData[i].info)] = function(self)
-								--Test[TestCaseName .. "_AddCommand_UNSUPPORTED_RESOURCE_true_Incase_UI_responds_" .. TestData[i].resultCode] = function(self)
 								--======================================================================================================
 								-- Update of used params
 									if ( hmi_call.params.appID ~= nil ) then hmi_call.params.appID = self.applications[config.application1.registerAppInterfaceParams.appName] end
@@ -532,7 +533,13 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 												if TestData[i].resultCode == "NOT_RESPOND" then
 													--HMI does not respond
 												else
-													self.hmiConnection:SendError(data.id, data.method, TestData[i].resultCode, TestData[i].info)
+													-- self.hmiConnection:SendError(data.id, data.method, TestData[i].resultCode, TestData[i].info)
+													-- Use Send() function because it is required to verify resultCode is invalid (not in [0, 25])
+													if TestData[i].info == nil then													
+														self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"'.. data.method.. '","code":'..TestData[i].value..'"}}')													
+													else													
+														self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"'.. data.method.. '","code":'..TestData[i].value..', "message":"'.. TestData[i].info .. '"}}')
+													end
 												end
 											end)	
 								 		end
@@ -547,7 +554,15 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 										self.hmiConnection:SendNotification("TTS.Started")
 					
 										local function speakResponse()
-											self.hmiConnection:SendError(data.id, data.method, TestData[i].resultCode, TestData[i].info)
+											--self.hmiConnection:SendError(data.id, data.method, TestData[i].resultCode, TestData[i].info)
+											-- Use Send() function because it is required to verify resultCode is invalid (not in [0, 25])
+											if TestData[i].info == nil then													
+												self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"'.. data.method.. '","code":'..TestData[i].value..'"}}')													
+											else													
+												self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"'.. data.method.. '","code":'..TestData[i].value..', "message":"'.. TestData[i].info .. '"}}')
+											end
+											
+											
 											self.hmiConnection:SendNotification("TTS.Stopped")
 										end
 											RUN_AFTER(speakResponse, 2000)
@@ -562,6 +577,10 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 								if TestData[i].resultCode == "NOT_RESPOND" then
 									EXPECT_RESPONSE(cid, {success = false, resultCode = "GENERIC_ERROR"})
 									:Timeout(12000)
+								elseif 
+									-- APPLINK-15494 SDL must handle the invalid responses from HMI
+									TestData[i].resultCode == "IsNotExist" then
+									EXPECT_RESPONSE(cid, {success = false, resultCode = "GENERIC_ERROR", info = "Invalid message received from "})
 								else
 									
 									EXPECT_RESPONSE(cid, {success = false, resultCode = TestData[i].resultCode})
