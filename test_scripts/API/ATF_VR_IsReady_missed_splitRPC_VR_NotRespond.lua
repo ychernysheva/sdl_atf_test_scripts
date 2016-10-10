@@ -794,7 +794,7 @@ local TestData = {
 				})
 				:Do(function(_,data)
 					--hmi side: sending UI.AddCommand response
-					self.hmiConnection:SendResponse(data.id, data.method, resultCodes[i].resultCode, {})
+					self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 				end)
 				
 				
