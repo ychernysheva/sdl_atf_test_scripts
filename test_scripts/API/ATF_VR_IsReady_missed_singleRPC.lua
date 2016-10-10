@@ -17,7 +17,7 @@ local testCasesForPolicyTable = require('user_modules/shared_testcases/testCases
 
 
 DefaultTimeout = 3
-local iTimeout = 10000
+local iTimeout = 3000
 local commonPreconditions = require ('/user_modules/shared_testcases/commonPreconditions')
 
 
@@ -721,6 +721,8 @@ local TestData = {
 					--hmi side: sending response
 					if (resultCodes[i].resultCode == "") then
 						-- HMI does not respond					
+					elseif (resultCodes[i].resultCode == "ABC") then
+						self.hmiConnection:Send('{"id":'.. data.id ..',"jsonrpc":"2.0","result":{"method":"'..data.method..'","code":26}}')  -- code 26 is out of existing values [0-25] 
 					else
 						if resultCodes[i].success == true then 
 							self.hmiConnection:SendResponse(data.id, data.method, resultCodes[i].resultCode, {})
@@ -741,7 +743,12 @@ local TestData = {
 					
 				else
 					
-					EXPECT_RESPONSE(cid, { success = resultCodes[i].success , resultCode = resultCodes[i].expected_resultCode, info = "error message"})
+					if resultCodes[i].resultCode == "" then  -- means HMI does not respond
+						EXPECT_RESPONSE(cid, { success = resultCodes[i].success , resultCode = resultCodes[i].expected_resultCode})
+						:Timeout(12000)
+					else
+						EXPECT_RESPONSE(cid, { success = resultCodes[i].success , resultCode = resultCodes[i].expected_resultCode, info = "error message"})					
+					end
 					
 					EXPECT_NOTIFICATION("OnHashChange")
 					:Times(0)
@@ -800,7 +807,9 @@ local TestData = {
 				:Do(function(_,data)
 					--hmi side: sending VR.DeleteCommand response
 					if (resultCodes[i].resultCode == "") then
-						-- HMI does not respond							
+						-- HMI does not respond		
+					elseif (resultCodes[i].resultCode == "ABC") then
+						self.hmiConnection:Send('{"id":'.. data.id ..',"jsonrpc":"2.0","result":{"method":"'..data.method..'","code":26}}')  -- code 26 is out of existing values [0-25] 
 					else
 						if resultCodes[i].success == true then 
 							self.hmiConnection:SendResponse(data.id, data.method, resultCodes[i].resultCode, {})
@@ -820,7 +829,16 @@ local TestData = {
 					:Timeout(iTimeout)
 					
 				else
-					EXPECT_RESPONSE(cid, { success = resultCodes[i].success , resultCode = resultCodes[i].expected_resultCode, info = "error message"})
+					if resultCodes[i].resultCode == "" then  -- means HMI does not respond
+						EXPECT_RESPONSE(cid, { success = resultCodes[i].success , resultCode = resultCodes[i].expected_resultCode})
+						:Timeout(12000)
+					elseif (resultCodes[i].resultCode == "ABC") then
+						EXPECT_RESPONSE(cid, { success = resultCodes[i].success , resultCode = resultCodes[i].expected_resultCode, info = "Invalid message received from VR"})
+					else
+						EXPECT_RESPONSE(cid, { success = resultCodes[i].success , resultCode = resultCodes[i].expected_resultCode, info = "error message"})					
+					end
+					
+						
 					EXPECT_NOTIFICATION("OnHashChange")
 					:Times(0)
 				end
@@ -841,8 +859,8 @@ local TestData = {
 		{success = true, resultCode = "RETRY", 				expected_resultCode = "RETRY"},
 		{success = true, resultCode = "SAVED", 				expected_resultCode = "SAVED"},
 						
-		{success = false, resultCode = "", 		expected_resultCode = "GENERIC_ERROR"}, --not respond
-		{success = false, resultCode = "ABC", 	expected_resultCode = "INVALID_DATA"},
+		{success = false, resultCode = "", 		expected_resultCode = "GENERIC_ERROR"}, --mean HMI does not respond
+		{success = false, resultCode = "ABC", 	expected_resultCode = "GENERIC_ERROR"}, -- APPLINK-15494
 		
 		{success = false, resultCode = "UNSUPPORTED_REQUEST", 	expected_resultCode = "UNSUPPORTED_REQUEST"},
 		{success = false, resultCode = "DISALLOWED", 			expected_resultCode = "DISALLOWED"},
