@@ -539,7 +539,7 @@ function Test:initHMI_onReady_VR_IsReady(case)
 	self.hmiConnection:SendNotification("BasicCommunication.OnReady")
 end 
 
-local function StopStartSDL_HMI_MOBILE()
+local function StopStartSDL_HMI_MOBILE(TestCaseName)
 	
 	--Stop SDL
 	Test[tostring(TestCaseName) .. "_Precondition_StopSDL"] = function(self)
@@ -621,7 +621,7 @@ end
 --Print new line to separate new test cases group
 commonFunctions:newTestCasesGroup("VR_IsReady_response_availabe_false_Other_Interfaces_Responds_SUCCESS")
 
-StopStartSDL_HMI_MOBILE()
+StopStartSDL_HMI_MOBILE("VR_IsReady_response_availabe_false")
 
 commonSteps:RegisterAppInterface()
 
