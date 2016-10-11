@@ -16,9 +16,7 @@ local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
 
-
-DefaultTimeout = 3
-local iTimeout = 10000
+local iTimeout = 3000
 local commonPreconditions = require ('/user_modules/shared_testcases/commonPreconditions')
 
 
@@ -670,11 +668,9 @@ for i = 1, #TestData do
 		
 		--mobile side: expect AddCommand response
 		EXPECT_RESPONSE(cid, {success = true, resultCode = "UNSUPPORTED_RESOURCE", info = TestData[i].info})
-		:Timeout(iTimeout)
 		
 		--mobile side: expect OnHashChange notification
 		EXPECT_NOTIFICATION("OnHashChange")
-		:Timeout(iTimeout)
 		
 	end
 end
@@ -706,10 +702,8 @@ for i = 1, #TestData do
 		
 		--mobile side: expect DeleteCommand response 
 		EXPECT_RESPONSE(cid, {success = true, resultCode = "UNSUPPORTED_RESOURCE", info = TestData[i].info})
-		:Timeout(iTimeout)
 		
 		EXPECT_NOTIFICATION("OnHashChange")
-		:Timeout(iTimeout)
 		
 	end		
 	
@@ -719,17 +713,20 @@ end
 
 -- ChangeRegistration
 commonFunctions:newTestCasesGroup("ChangeRegistration_UNSUPPORTED_RESOURCE_true_Other_Interfaces_Responds_SUCCESS")
+
 for i = 1, #TestData do
 	Test["ChangeRegistration_UNSUPPORTED_RESOURCE_true_Incase_UI_responds_" .. TestData[i].resultCode] = function(self)
 		
 		commonTestCases:DelayedExp(iTimeout)
 		
-		local request = {	language ="EN-US",
+		local request = {	
+			language ="EN-US",
 			hmiDisplayLanguage ="EN-US",
 			appName ="SyncProxyTester_" .. tostring(i),
 			ttsName = {{text ="SyncProxyTester", type ="TEXT"}},
 			ngnMediaScreenAppName ="SPT",
-		vrSynonyms = {"VRSyncProxyTester"}}
+			vrSynonyms = {"VRSyncProxyTester"}
+		}
 		
 		--mobile side: send ChangeRegistration request
 		local cid = self.mobileSession:SendRPC("ChangeRegistration", request)
@@ -763,12 +760,7 @@ for i = 1, #TestData do
 		
 		--mobile side: expect ChangeRegistration response					
 		EXPECT_RESPONSE(cid, {success = true, resultCode = "UNSUPPORTED_RESOURCE", info = TestData[i].info})
-		:Timeout(iTimeout)
-		
-		--mobile side: expect OnHashChange notification
-		EXPECT_NOTIFICATION("OnHashChange")
-		:Timeout(iTimeout)
-		
+				
 	end
 end
 
