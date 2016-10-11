@@ -301,7 +301,8 @@ function Test:initHMI_onReady_VR_IsReady(case)
       })
     ExpectRequest("UI.GetLanguage", true, { language = "EN-US" })
     ExpectRequest("VR.GetLanguage", true, { language = "EN-US" })
-	:Times(0)
+	--:Times(0)
+	:Timeout(15000)
 	
     ExpectRequest("TTS.GetLanguage", true, { language = "EN-US" })
     ExpectRequest("UI.ChangeRegistration", false, { }):Pin()
@@ -318,7 +319,8 @@ function Test:initHMI_onReady_VR_IsReady(case)
           "PT-BR","CS-CZ","DA-DK","NO-NO"
         }
       })
-	:Times(0)
+	--:Times(0)
+	:Timeout(15000)
 	
     ExpectRequest("TTS.GetSupportedLanguages", true, {
         languages =
@@ -385,7 +387,8 @@ function Test:initHMI_onReady_VR_IsReady(case)
     }
     ExpectRequest("Buttons.GetCapabilities", true, buttons_capabilities)
     ExpectRequest("VR.GetCapabilities", true, { vrCapabilities = { "TEXT" } })
-	:Times(0)
+	--:Times(0)
+	:Timeout(15000)
 	
     ExpectRequest("TTS.GetCapabilities", true, {
         speechCapabilities = { "TEXT", "PRE_RECORDED" },
