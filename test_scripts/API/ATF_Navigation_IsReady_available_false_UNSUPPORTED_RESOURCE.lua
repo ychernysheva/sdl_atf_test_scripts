@@ -982,7 +982,7 @@ local function sequence_check_UNSUPPORTED_RESOURCE()
 					RUN_AFTER(speakResponse, 1000)
 				end)
 				
-				EXPECT_RESPONSE(cid, { success = false, resultCode = allResultCodes[i].resultCode, info = "TTS error message" })
+				EXPECT_RESPONSE(cid, { success = false, resultCode = allResultCodes[i].expected_resultCode, info = "TTS error message" })
 				:Timeout(TimeoutValue)	
 				
 			end
