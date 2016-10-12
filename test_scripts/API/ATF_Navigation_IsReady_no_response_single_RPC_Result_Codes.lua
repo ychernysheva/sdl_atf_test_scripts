@@ -117,11 +117,11 @@ local allResultCodes = {
 	{success = true, resultCode = "RETRY", 				expected_resultCode = "RETRY"}, --7
 	{success = true, resultCode = "SAVED", 				expected_resultCode = "SAVED"}, --25
 	
-	{success = false, resultCode = "", 		expected_resultCode = "GENERIC_ERROR"}, --not respond
-	{success = false, resultCode = "ABC", 	expected_resultCode = "GENERIC_ERROR"},
+	{success = false, resultCode = "", 		expected_resultCode = "INVALID_DATA"}, 
+	{success = false, resultCode = "ABC", 	expected_resultCode = "INVALID_DATA"},
 	
 	{success = false, resultCode = "UNSUPPORTED_REQUEST", 	expected_resultCode = "UNSUPPORTED_REQUEST"}, --1
-	{success = false, resultCode = "UNSUPPORTED_RESOURCE", 	expected_resultCode = "UNSUPPORTED_RESOURCE"}, --2
+	{success = true, resultCode = "UNSUPPORTED_RESOURCE", 	expected_resultCode = "UNSUPPORTED_RESOURCE"}, --2
 	{success = false, resultCode = "DISALLOWED", 			expected_resultCode = "DISALLOWED"}, --3
 	{success = false, resultCode = "USER_DISALLOWED", 		expected_resultCode = "USER_DISALLOWED"}, --23
 	{success = false, resultCode = "REJECTED", 				expected_resultCode = "REJECTED"}, --4
@@ -179,7 +179,7 @@ function sleep(iTimeout)
 end
 
 function Test:initHMI_onReady_Navi_IsReady(case)
-	critical(true)
+	--critical(true)
 	local function ExpectRequest(name, mandatory, params)
 		xmlReporter.AddMessage(debug.getinfo(1, "n").name, tostring(name))
 		local event = events.Event()
@@ -951,11 +951,7 @@ local function sequence_check_Result_Code_single_RPC(successValue, resultCodeVal
 				longitudeDegrees = 1.1
 			},
 			locationName = "Hotel",
-			addressLines =
-			{
-				"Hotel Bora",
-				"Hotel 5 stars"
-			},
+			addressLines =	"Hotel 5 stars",
 			locationDescription = "VIP Hotel",
 			phoneNumber = "Phone39300434",
 			locationImage =
@@ -1021,23 +1017,6 @@ local function sequence_check_Result_Code_single_RPC(successValue, resultCodeVal
 			end
 		end)
 	end	
-	--Postcondition	
-	if (successValue == true) then 
-		Test[APIName .. "_Postcondition_UnsubscribeWayPoints_SUCCESS"] = function(self)
-			local cid1 = self.mobileSession:SendRPC("UnsubscribeWayPoints",{})
-			EXPECT_HMICALL("Navigation.UnsubscribeWayPoints")
-			:Do(function(_,data)
-				self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-			end)
-			EXPECT_RESPONSE(cid1, { success = true, resultCode = "SUCCESS" })
-			:Timeout(TimeoutValue)
-			
-			EXPECT_NOTIFICATION("OnHashChange")
-			:Times(1)				
-			:Timeout(TimeoutValue)			
-		end
-	end
-	--end Postcondition		
 	------------Additional check: HMI send OnWayPointChange notification
 	if (resultCodeValue == "SUCCESS") then
 		Test[APIName .. "_Additional_Check: OnWayPointChange"] = function(self)
@@ -1074,6 +1053,23 @@ local function sequence_check_Result_Code_single_RPC(successValue, resultCodeVal
 			EXPECT_NOTIFICATION("OnWayPointChange", notification)	
 		end
 	end
+	--Postcondition	
+	if (successValue == true) then 
+		Test[APIName .. "_Postcondition_UnsubscribeWayPoints_SUCCESS"] = function(self)
+			local cid1 = self.mobileSession:SendRPC("UnsubscribeWayPoints",{})
+			EXPECT_HMICALL("Navigation.UnsubscribeWayPoints")
+			:Do(function(_,data)
+				self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+			end)
+			EXPECT_RESPONSE(cid1, { success = true, resultCode = "SUCCESS" })
+			:Timeout(TimeoutValue)
+			
+			EXPECT_NOTIFICATION("OnHashChange")
+			:Times(1)				
+			:Timeout(TimeoutValue)			
+		end
+	end
+	--end Postcondition		
 	
 	------------7. UnsubscribeWayPoints
 	--Precondition	
@@ -1203,53 +1199,51 @@ local function sequence_check_Result_Code_single_RPC(successValue, resultCodeVal
 	end
 	--end Precondition		
 	Test[APIName .. "_StopStream_" .. resultCodeValue] = function(self)		
-		self.mobileSession:StopService(11)
+		commonTestCases:DelayedExp(TimeDelay)
+ 
+		xmlReporter.AddMessage("StopService", 11)
+		local stopService =
+			self.mobileSession:Send(
+			{
+				frameType = 0,
+				serviceType = 11,
+				frameInfo = 4,
+				sessionId = self.mobileSession.sessionId,
+				binaryData = self.mobileSession.hashCode,
+			})
+			
+
+		local event = events.Event()
+		-- prepare event to expect
+		event.matches = function(_, data)
+			return data.frameType == 0 and
+			data.serviceType == 11 and
+			(data.sessionId == self.mobileSession.sessionId) and
+			(data.frameInfo == 5 or -- End Service ACK
+			data.frameInfo == 6) -- End Service NACK
+		end
+
+		local ret = self.mobileSession:ExpectEvent(event, "EndService ACK")
+		:ValidIf(function(s, data)
+			if data.frameInfo == 5 then -- End Service ACK
+				print ("\27[32m End Service ACK received \27[0m ")				
+				return true
+			elseif data.frameInfo == 6 then -- End Service NACK
+				print ("\27[32m End Service NACK received \27[0m ")			
+				return false 
+			else 
+				return false 
+			end
+		end)
 		
 		EXPECT_HMICALL("Navigation.StopStream")
 		:Do(function(_,data)
 			if (successValue == true) then
 				self.hmiConnection:SendResponse(data.id, data.method, resultCodeValue, {})
-				
-				local event = events.Event()
-				event.matches = function(_, data)
-								return 	data.frameType   == 0 and
-										(data.serviceType == 11 or
-										data.serviceType == 10) and
-										data.sessionId   == self.mobileSession.sessionId and
-										(data.frameInfo   == 5 or -- End Service ACK
-										data.frameInfo   == 6)   -- End Service NACK
-								end
-				self.mobileSession:ExpectEvent(event, "EndService ACK")		
-				:Timeout(60000)
-				:ValidIf(function(_, data)
-					if data.serviceType == 11 and data.frameInfo == 5 then return true
-						else return false
-					end
-				end)
-		
 			else
 				self.hmiConnection:SendError(data.id, data.method, resultCodeValue, "Navigation error message")
-
-				local event = events.Event()
-				event.matches = function(_, data)
-								return 	data.frameType   == 0 and
-										(data.serviceType == 11 or
-										data.serviceType == 10) and
-										data.sessionId   == self.mobileSession.sessionId and
-										(data.frameInfo   == 5 or -- End Service ACK
-										data.frameInfo   == 6)   -- End Service NACK
-								end
-				self.mobileSession:ExpectEvent(event, "EndService NACK")		
-				:Timeout(60000)
-				:ValidIf(function(_, data)
-					if data.serviceType == 11 and data.frameInfo == 6 then return true
-						else return false
-					end
-				end)
-				
 			end
 		end)
-		
 	end	
 	
 	------------10. StartAudioStream
@@ -1318,53 +1312,51 @@ local function sequence_check_Result_Code_single_RPC(successValue, resultCodeVal
 	end
 	--end Precondition
 	Test[APIName .. "_StopAudioStream_" .. resultCodeValue] = function(self)				
-		self.mobileSession:StopService(10)
+		commonTestCases:DelayedExp(TimeDelay)
+		
+		xmlReporter.AddMessage("StopService", 10)
+		local stopService =
+			self.mobileSession:Send(
+			{
+				frameType = 0,
+				serviceType = 10,
+				frameInfo = 4,
+				sessionId = self.mobileSession.sessionId,
+				binaryData = self.mobileSession.hashCode,
+			})
+			
+		
+		local event = events.Event()
+		-- prepare event to expect
+		event.matches = function(_, data)
+			return data.frameType == 0 and
+			data.serviceType == 10 and
+			(data.sessionId == self.mobileSession.sessionId) and
+			(data.frameInfo == 5 or -- End Service ACK
+			data.frameInfo == 6) -- End Service NACK
+		end
+
+		local ret = self.mobileSession:ExpectEvent(event, "EndService ACK")
+		:ValidIf(function(s, data)
+			if data.frameInfo == 5 then -- End Service ACK
+				print ("\27[32m End Service ACK received \27[0m ")				
+				return true
+			elseif data.frameInfo == 6 then -- End Service NACK
+				print ("\27[32m End Service NACK received \27[0m ")			
+				return false 
+			else 
+				return false 
+			end
+		end)
 		
 		EXPECT_HMICALL("Navigation.StopAudioStream")
 		:Do(function(_,data)
 			if (successValue == true) then
-				self.hmiConnection:SendResponse(data.id, data.method, resultCodeValue, {})
-				
-				local event = events.Event()
-				event.matches = function(_, data)
-								return 	data.frameType   == 0 and
-										(data.serviceType == 11 or
-										data.serviceType == 10) and
-										data.sessionId   == self.mobileSession.sessionId and
-										(data.frameInfo   == 5 or -- End Service ACK
-										data.frameInfo   == 6)   -- End Service NACK
-								end
-				self.mobileSession:ExpectEvent(event, "EndService ACK")		
-				:Timeout(60000)
-				:ValidIf(function(_, data)
-					if data.serviceType == 10 and data.frameInfo == 5 then return true
-						else return false
-					end
-				end)
-				
+				self.hmiConnection:SendResponse(data.id, data.method, resultCodeValue, {})			
 			else
-				self.hmiConnection:SendError(data.id, data.method, resultCodeValue, "Navigation error message")
-				
-				local event = events.Event()
-				event.matches = function(_, data)
-								return 	data.frameType   == 0 and
-										(data.serviceType == 11 or
-										data.serviceType == 10) and
-										data.sessionId   == self.mobileSession.sessionId and
-										(data.frameInfo   == 5 or -- End Service ACK
-										data.frameInfo   == 6)   -- End Service NACK
-								end
-				self.mobileSession:ExpectEvent(event, "EndService NACK")		
-				:Timeout(60000)
-				:ValidIf(function(_, data)
-					if data.serviceType == 10 and data.frameInfo == 6 then return true
-						else return false
-					end
-				end)				
-				
+				self.hmiConnection:SendError(data.id, data.method, resultCodeValue, "Navigation error message")		
 			end
 		end)
-		
 	end			
 	
 	------------Additional check: HMI send OnTBTClientState notification
@@ -1392,17 +1384,9 @@ for i= 2, 2 do --TODO: Remove this row and use the row above after APPLINK-25898
 	commonSteps:ActivationAppGenivi(_,APIName .. TestCases[i].description .. "_ActivationApp")
 	commonSteps:PutFile("Precondition_PutFile", "icon.png")
 	
---	for j=1, #allResultCodes do
-	for j=2, 2 do
+	for j=1, #allResultCodes do
 		commonFunctions:newTestCasesGroup(APIName .. TestCases[i].description .. " (" .. allResultCodes[j].resultCode ..")")
 		sequence_check_Result_Code_single_RPC(allResultCodes[j].success, allResultCodes[j].resultCode, allResultCodes[j].expected_resultCode)
-
-		--TODO: Currently check all result codes for invalid HMI response take so much time. So only check full incase HMI does not respond and in 1 case HMI responds invalid data. 
-		--Remove this break if want to check all ResultCodes for all cases of HMI responds invalid data
-		if (i>3) then
-			break
-		end		
-		
 	end
 	
 	commonSteps:UnregisterApplication(APIName .. TestCases[i].description .. "_UnregisterAppInterface")	
