@@ -136,7 +136,7 @@ end
 		{caseID = 36,  description = "resultCode_GENERIC_ERROR"},
 		
 
-			--caseID 41-45 are used to check "message" parameter
+		--caseID 41-45 are used to check "message" parameter
 				--41. IsMissed
 				--42. IsLowerBound
 				--43. IsUpperBound
@@ -160,6 +160,21 @@ end
 			--52. IsWrongType
 		{caseID = 51,  description = "available_IsMissed"},
 		{caseID = 52,  description = "available_IsWrongType"},
+
+		-- Should be debugged at next iteration
+		-- --caseID 61-65 are used to check "resultCode" parameter with available = false
+			--61. resultCode_IsMissed
+			--62. resultCode_IsNotExist
+			--63. resultCode_IsWrongType
+			--64. resultCode_INVALID_DATA (code = 11)
+			--65. resultCode_DATA_NOT_AVAILABLE (code = 9)
+			--66. resultCode_GENERIC_ERROR (code = 22)
+		-- {caseID = 61,  description = "resultCode_IsMissed_available_false"},
+		-- {caseID = 62,  description = "resultCode_IsNotExist_available_false"},
+		-- {caseID = 63,  description = "resultCode_IsWrongType_available_false"},
+		-- {caseID = 64,  description = "resultCode_INVALID_DATA_available_false"},
+		-- {caseID = 65,  description = "resultCode_DATA_NOT_AVAILABLE_available_false"},
+		-- {caseID = 66,  description = "resultCode_GENERIC_ERROR_available_false"},
 	}
 ---------------------------------------------------------------------------
 
@@ -381,6 +396,39 @@ end
 									--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"'..tested_method..'", "code":0}}')
 									  self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":"true","method":"'..tested_method..'", "code":"0"}}')
 
+								--*****************************************************************************************************************************
+								--caseID 31-35 are used to check "resultCode" parameter with available = false
+								--61. resultCode_IsMissed
+								--62. resultCode_IsNotExist
+								--63. resultCode_IsWrongType
+								--64. resultCode_INVALID_DATA (code = 11)
+								--65. resultCode_DATA_NOT_AVAILABLE (code = 9)
+								--66. resultCode_GENERIC_ERROR (code = 22)
+									
+								elseif (case == 61) then --resultCode_IsMissed
+									--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"'..tested_method..'", "code":0}}')
+									self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":false,"method":"'..tested_method..'"}}')
+
+								elseif (case == 62) then --resultCode_IsNotExist
+									--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"'..tested_method..'", "code":0}}')
+								    self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":false,"method":"'..tested_method..'", "code":123}}')
+
+								elseif (case == 63) then --resultCode_IsWrongType
+									--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"'..tested_method..'", "code":0}}')
+									self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":false,"method":"'..tested_method..'", "code":"0"}}')
+									
+								elseif (case == 64) then --resultCode_INVALID_DATA
+									--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"'..tested_method..'", "code":0}}')
+									self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":false,"method":"'..tested_method..'", "code":11}}')
+									
+								elseif (case == 65) then --resultCode_DATA_NOT_AVAILABLE
+									--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"'..tested_method..'", "code":0}}')
+									self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":false,"method":"'..tested_method..'", "code":9}}')
+									
+								elseif (case == 66) then --resultCode_GENERIC_ERROR
+									--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"'..tested_method..'", "code":0}}')
+								    self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":false,"method":"'..tested_method..'", "code":22}}')
+
 								else
 									print("***************************Error: "..tested_method..": Input value is not correct ***************************")
 								end			
@@ -577,7 +625,6 @@ end
 		    	-- As result, in case HMI does NOT respond to Vehicle.IsReady -> SDL can send this request to HMI 
 		    	if( TestedInterface == "VehicleInfo") then
 					ExpectRequest("VehicleInfo.GetVehicleType", true, params_VehInfo_GetVehicleType)
-					:Timeout(20000)
 				end
 
 				if(TestedInterface == "VR" or TestedInterface == "UI" or TestedInterface == "TTS") then

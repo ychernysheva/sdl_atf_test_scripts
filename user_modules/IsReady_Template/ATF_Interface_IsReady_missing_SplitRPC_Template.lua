@@ -278,6 +278,9 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 									
 										--mobile side: expect CreateInteractionChoiceSet response
 										EXPECT_RESPONSE(cid, { resultCode = "SUCCESS", success = true  })
+
+										EXPECT_NOTIFICATION("OnHashChange")
+
 									end
 								end	-- if(mob_request.name == "PerformInteraction")					
 							
@@ -454,59 +457,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 					if(mob_request.splitted == true) then
 						if( ( Tested_resultCode == "AllTested" ) or (Tested_resultCode == TestData[i].resultCode) ) then
 							-- Preconditions should be executed only once.
-							
-								--Precondition: for RPC DeleteCommand: AddCommand 1
-								-- if(mob_request.name == "DeleteCommand") then
-
-								-- 	Test[TestCaseName .. "_Precondition_AddCommand_201"] = function(self)
-
-								-- 		--mobile side: sending AddCommand request
-								-- 		local cid = self.mobileSession:SendRPC("AddCommand",
-								-- 		{
-								-- 			cmdID = 201,
-								-- 			vrCommands = {"vrCommands_201"},
-								-- 			menuParams = {position = 1, menuName = "Command 201"}
-								-- 		})
-											
-								-- 		--hmi side: expect VR.AddCommand request
-								-- 		EXPECT_HMICALL("VR.AddCommand", 
-								-- 		{ 
-								-- 			cmdID = 201,
-								-- 			type = "Command",
-								-- 			vrCommands = {"vrCommands_201"}
-								-- 		})
-								-- 		:Do(function(_,data)
-								-- 			--hmi side: sending VR.AddCommand response
-								-- 			self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})						
-								-- 			grammarID = data.params.grammarID
-								-- 		end)
-										
-								-- 		--hmi side: expect UI.AddCommand request 
-								-- 		EXPECT_HMICALL("UI.AddCommand", 
-								-- 		{ 
-								-- 			cmdID = 201,		
-								-- 			menuParams = {position = 1, menuName ="Command 201"}
-								-- 		})
-								-- 		:Do(function(_,data)
-								-- 			--hmi side: sending UI.AddCommand response
-								-- 			self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-								-- 		end)
-										
-										
-								-- 		--mobile side: expect AddCommand response
-								-- 		EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})
-
-								-- 		--mobile side: expect OnHashChange notification
-								-- 		if(mob_request.hashChange == true) then
-								-- 			EXPECT_NOTIFICATION("OnHashChange")
-								-- 			:Timeout(iTimeout)
-								-- 		else
-								-- 			EXPECT_NOTIFICATION("OnHashChange")
-								-- 			:Times(0)
-								-- 		end
-								-- 	end
-								-- end						
-								--Precondition: for RPC PerformInteraction: CreateInteractionChoiceSet
+							--Precondition: for RPC PerformInteraction: CreateInteractionChoiceSet
 								if(mob_request.name == "PerformInteraction") then
 										Test["Precondition_PerformInteraction_Precondition_CreateInteractionChoiceSet_" .. TestData[i].value ..TestCaseName] = function(self)
 											--mobile side: sending CreateInteractionChoiceSet request
@@ -544,7 +495,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 											--mobile side: expect CreateInteractionChoiceSet response
 											EXPECT_RESPONSE(cid, { resultCode = "SUCCESS", success = true  })
 
-											
+											EXPECT_NOTIFICATION("OnHashChange")
 										end
 								end
 							
@@ -567,7 +518,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 								--mobile side: sending AddCommand request
 								local cid = self.mobileSession:SendRPC(mob_request.name, mob_request.params)
 									
-								--hmi side: expect VR.AddCommand request
+								--hmi side: expect NotTested_Interface.RPC request
 								for cnt = 1, #NotTestedInterfaces do
 									for cnt_rpc = 1, #NotTestedInterfaces[cnt].usedRPC do
 										
@@ -633,7 +584,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 										SpeakId = data.id
 										local function speakResponse()
 											--self.hmiConnection:SendResponse(SpeakId, "TTS.Speak", "SUCCESS", { })
-											self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"'..data.method..'","code":'..TestData[i].value..'}}')
+											self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"message = "error message", "method":"'..data.method..'","code":'..TestData[i].value..'}}')
 											self.hmiConnection:SendNotification("TTS.Stopped")
 										end
 											RUN_AFTER(speakResponse, 2000)
@@ -802,6 +753,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 											
 									--mobile side: expect CreateInteractionChoiceSet response
 									EXPECT_RESPONSE(cid, { resultCode = "SUCCESS", success = true  })
+									EXPECT_NOTIFICATION("OnHashChange")
 								end
 							end --if(mob_request.name == "PerformInteraction") then
 						
@@ -834,7 +786,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 								-- Update of verified params
 								--======================================================================================================
 
-								--hmi side: expect VR.AddCommand request
+								--hmi side: expect TestedInterface.RPC request
 								EXPECT_HMICALL(hmi_method_call, hmi_call.params)
 								:Do(function(_,data)
 									--hmi side: sending VR.AddCommand response
@@ -889,16 +841,19 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 								
 								--TODO: APPLINK-27931: C;arification is expected
 								--mobile side: expect AddCommand response
-								--EXPECT_RESPONSE(cid, { success = false, resultCode = "UNSUPPORTED_RESOURCE", info = TestedInterface.." is not supported by system"})
-								EXPECT_RESPONSE(cid, { success = false, resultCode = TestData[i].resultCode, "error message, error message 2"})
+								EXPECT_RESPONSE(cid, { success = false, resultCode = TestData[i].resultCode})
+								:ValidIf (function(_,data)
+									if data.payload.info == "error message, error message 2" or data.payload.info == "error message 2, error message" then
+										return true
+									else
+										commonFunctions:printError(" Expected 'info' = 'error message, error message 2' or 'error message 2, error message'; Actual 'info' = '" .. tostring(data.payload.info) .."'")
+										return false
+									end
+								end)
 
 								--mobile side: expect OnHashChange notification
 								EXPECT_NOTIFICATION("OnHashChange")
 								:Times(0)
-
-								if(IsExecutedAllRelatedRPCs == false) then
-									count_RPC = #RPCs
-								end
 							end
 
 							if(IsExecutedAllRelatedRPCs == false) then

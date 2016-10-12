@@ -1,4 +1,5 @@
 print("\27[31m SDL crushes with DCHECK. Some tests are commented. After resolving uncomment tests!\27[0m")
+--ATF defect: APPLINK-28830 : Worng check of RAI params in TC for regsiter app interface(TC0x)
 
 config.defaultProtocolVersion = 2
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
@@ -685,6 +686,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 	end
 
 	for i=1, #TestData do
+	--for i=10, 10 do
 		--for i=1, 2 do
 
 		local TestCaseName = "Case_" .. TestData[i].caseID.."_" ..TestData[i].description 

@@ -343,48 +343,17 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 										if TestData[i].success == true then 
 											if(hmi_call.mandatory_params ~= nil) then
 												self.hmiConnection:SendResponse(data.id, data.method, TestData[i].resultCode, hmi_call.mandatory_params )
-												--[[ TODO: Will be updated in next iteration
-												self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"'..data.method..'","code":'..TestData[i].value..'}}')
-												local str_mandatory = table.tostring( hmi_call.mandatory_params )
-												local hmi_params
-												local elements_mandatory = {}
-												local array_mandatory = {}
-												-- for i = 1, #hmi_call.mandatory_params do
-												-- 	print(""..hmi_call.mandatory_params)
-												-- end
-												print("str_mandatory = "..str_mandatory )
-												j = 1
-												for elements_mandatory in string.gmatch(str_mandatory,"[^,]*") do
-													for i in string.gmatch(elements_mandatory,"[^=]*") do
-														if(i ~= "" and i ~= " ") then
-															array_mandatory[j] = i
-															print(j..": " ..array_mandatory[j])
-															j = j + 1
-														end
-													end
-												end
-												hmi_params = "\""
-										
-												for i = 1, #array_mandatory do
-													if(array_mandatory[i] ~= "" and array_mandatory[i] ~= " ") then
-														hmi_params = hmi_params..array_mandatory[i]
-														if(i == 1) then
-															hmi_params = hmi_params.."\":"
-														end
-													end
-												end
-												print("hmi_params = "..hmi_params)
-												--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0",'..hmi_call.mandatory_params..'"result":{"method":"'..data.method..'","code":'..TestData[i].value..'}}')
-												--{"id":32,"result":{"code":0,"ecuHeader":2,"method":"VehicleInfo.GetDTCs"},"jsonrpc":"2.0"} 	
-												--]]
 											else
 												--self.hmiConnection:SendResponse(data.id, data.method, TestData[i].resultCode, {})
 												self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"'..data.method..'","code":'..tostring(TestData[i].value)..'}}')
 											end
 										else
-											self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"'..data.method..'","message":"error message","code":'..tostring(TestData[i].value)..'}}')
-											--self.hmiConnection:SendError(data.id, data.method, TestData[i].resultCode, "error message")
-											--"message":"The data sent is invalid"
+											if(hmi_call.mandatory_params ~= nil) then
+												--print("hmi_call.mandatory_params = " ..hmi_call.mandatory_params)
+												self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"'..data.method..'",'..hmi_call.string_mandatory_params..',"message":"error message","code":'..tostring(TestData[i].value)..'}}')
+											else
+												self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"'..data.method..'","message":"error message","code":'..tostring(TestData[i].value)..'}}')
+											end
 										end						
 									end
 								end)
@@ -414,11 +383,6 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 									-- mobile side: expect RPC response
 									EXPECT_RESPONSE(cid, {success = false, resultCode = "IGNORED"})
 								else
-								-- 	--mobile side: expect RPC response
-								-- 	EXPECT_RESPONSE(cid, {success = false, resultCode = "UNSUPPORTED_RESOURCE", info =  TestedInterface .." is not supported by system"})
-									
-								-- end
-
 									--TODO: APPLINK-28492 - update after clarification
 									if (TestData[i].resultCode == "") then
 										EXPECT_RESPONSE(cid, { success = TestData[i].success , resultCode = TestData[i].expected_resultCode})
@@ -494,7 +458,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 				Single_Interface_RPCs(TestCaseName, false, false)
 			end
 		end
-		
+
 	end
 
 	

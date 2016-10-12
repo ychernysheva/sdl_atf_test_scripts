@@ -486,7 +486,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 								end	-- if(mob_request.name == "PerformInteraction")					
 							--end --if( i == 1)
 						
-							Test["TC02_"..TestCaseName .. "_"..mob_request.name.."_Incase_Other_Interfaces_responds_" .. TestData[i].resultCode .. "_info_" .. tostring(TestData[i].info)] = function(self)
+							Test["TC02_"..TestCaseName .. "_"..mob_request.name.."_" .. TestData[i].resultCode .. "_false_Incase_OtherInterfaces_responds" .. TestData[i].resultCode] = function(self)
 								--======================================================================================================
 								-- Update of used params
 									if ( hmi_call.params.appID ~= nil ) then hmi_call.params.appID = self.applications[config.application1.registerAppInterfaceParams.appName] end
@@ -574,12 +574,12 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 								:Times(0)
 								
 								--mobile side: expect RPC response
-								if TestData[i].resultCode == "NOT_RESPOND" then
+								if ( TestData[i].resultCode == "NOT_RESPOND" ) then
 									EXPECT_RESPONSE(cid, {success = false, resultCode = "GENERIC_ERROR"})
 									:Timeout(12000)
-								elseif 
-									-- APPLINK-15494 SDL must handle the invalid responses from HMI
-									TestData[i].resultCode == "IsNotExist" then
+								-- APPLINK-15494 SDL must handle the invalid responses from HMI
+								elseif ( TestData[i].resultCode == "IsNotExist" ) then
+
 									EXPECT_RESPONSE(cid, {success = false, resultCode = "GENERIC_ERROR", info = "Invalid message received from "})
 								else
 									
@@ -598,9 +598,15 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 											end
 										else
 											-- APPLINK-26900  SDL receives errorCode and with error message from other interface, SDL responds to mobile with info = error message from other interface
-											if data.payload.info ~= TestData[i].info  then
-												commonFunctions:printError(" Expected result: info = '".. TestData[i].info .."'; Actual result: info = '" .. data.payload.info .. "'")
-												return false
+											if data.payload.info ~= TestData[i].info then
+												if (data.payload.info ~= nil) then 
+													commonFunctions:printError(" Expected result: info = '".. TestData[i].info .."'; Actual result: info = '" .. data.payload.info .. "'")
+													return false
+												else
+													commonFunctions:printError(" Expected result: info = '".. TestData[i].info .."'; Actual result: info is nil'")
+													return false
+												end
+
 											else
 												return true
 											end

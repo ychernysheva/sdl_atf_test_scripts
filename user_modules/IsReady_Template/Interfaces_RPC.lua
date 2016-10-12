@@ -1,5 +1,6 @@
 local interfaces = { }
 -- TODO: APPLINK-28518: Script is updated according to clarification. Update of requirement is waiting. After update RPCs should be checked again.
+
 -- Read paramaters from hmi_capabilities.json
 local HmiCapabilities_file = config.pathToSDL .. "hmi_capabilities.json"
 f = assert(io.open(HmiCapabilities_file, "r"))
@@ -206,7 +207,7 @@ interfaces.mobile_req = {
                           --show
                           {
                             name = "Show",
-                            -- TODO: Clarification according to APPLINK-25102/25099(See APPLINK-28483) Show is impacted
+                            -- APPLINK-28518 - RPC is not split
                             splitted = false,
                             single = true,
                             description = "Show with all parameters",
@@ -235,7 +236,7 @@ interfaces.mobile_req = {
                           --AddSubMenu
                           {
                             name = "AddSubMenu",
-                            -- TODO: Clarification according to APPLINK-25102/25099(See APPLINK-28483) AddSubMenu is impacted
+                            -- APPLINK-28518 - RPC is not split
                             splitted = false,
                             single = true,
                             description = "AddSubMenu with all parameters",
@@ -249,7 +250,7 @@ interfaces.mobile_req = {
                           --DeleteSubMenu
                           {
                             name = "DeleteSubMenu",
-                            -- TODO: Clarification according to APPLINK-25102/25099(See APPLINK-28483) DeleteSubMenu is impacted
+                            -- APPLINK-28518 - RPC is not split
                             splitted = false,
                             single = true,
                             description = "DeleteSubMenu with all parameters",
@@ -261,7 +262,7 @@ interfaces.mobile_req = {
                           --SetMediaClockTimer
                           {
                             name = "SetMediaClockTimer",
-                            -- TODO: Clarification according to APPLINK-25102/25099(See APPLINK-28483) SetMediaClockTimer is impacted
+                            -- APPLINK-28518 - RPC is not split
                             splitted = false,
                             single = true,
                             description = "SetMediaClockTimer with all parameters",
@@ -332,7 +333,7 @@ interfaces.mobile_req = {
                           --SetAppIcon
                           {
                             name = "SetAppIcon",
-                            -- TODO: Clarification according to APPLINK-25102/25099(See APPLINK-28483) SetAppIcon is impacted
+                            -- APPLINK-28518 - RPC is not split
                             splitted = false,
                             single = true,
                             description = "SetAppIcon with all parameters",
@@ -344,7 +345,7 @@ interfaces.mobile_req = {
                           --SetDisplayLayout
                           {
                             name = "SetDisplayLayout",
-                            -- TODO: Clarification according to APPLINK-25102/25099(See APPLINK-28483) SetDisplayLayout is impacted
+                            -- APPLINK-28518 - RPC is not split
                             splitted = false,
                             single = true,
                             description = "SetDisplayLayout with all parameters",
@@ -356,7 +357,7 @@ interfaces.mobile_req = {
                           --Slider
                           {
                             name = "Slider",
-                            -- TODO: Clarification according to APPLINK-25102/25099(See APPLINK-28483) Slider is impacted
+                            -- APPLINK-28518 - RPC is not split
                             splitted = false,
                             single = true,
                             description = "Slider with all parameters",
@@ -372,7 +373,7 @@ interfaces.mobile_req = {
                           --ScrollableMessage
                           {
                             name = "ScrollableMessage",
-                            -- TODO: Clarification according to APPLINK-25102/25099(See APPLINK-28483) ScrollableMessage is impacted
+                            -- APPLINK-28518 - RPC is not split
                             splitted = false,
                             single = true,
                             description = "ScrollableMessage with all parameters",
@@ -422,7 +423,7 @@ interfaces.mobile_req = {
                           --EndAudioPassThru
                           {
                             name = "EndAudioPassThru",
-                            -- APPLINK-28518
+                            -- APPLINK-28518 - RPC is not split
                             splitted = false,
                             single = true,
                             description = "EndAudioPassThru with all parameters",
@@ -723,6 +724,7 @@ interfaces.mobile_req = {
                             --Checked in initHMI_onReady_Interfaces_IsReady
                               -- <description>Method is invoked at system start-up. SDL requests the information about all supported hardware buttons and their capabilities</description>
                               -- Tested at InitHMIOnReady but only at side SLD <-> HMI
+                          -- ClosePopUp is not sent by application
                           -- GetVehicleType is not sent by application
                             --Checked in initHMI_onReady_Interfaces_IsReady
                           -- StartStream is not sent by application
@@ -1597,7 +1599,8 @@ interfaces.RPC = {
                                               },
                                     mandatory_params = {
                                                           ecuHeader = 2
-                                                        }
+                                                        },
+                                    string_mandatory_params = ' "ecuHeader":2'
                                   },
                                   --DiagnosticMessage
                                   {
@@ -1611,7 +1614,8 @@ interfaces.RPC = {
                                               },
                                     mandatory_params = {
                                                           messageDataResult = {200}
-                                                        }
+                                                        },
+                                    string_mandatory_params = ' "messageDataResult":[200]'
                                   },
                                   --SubscribeVehicleData
                                   {
