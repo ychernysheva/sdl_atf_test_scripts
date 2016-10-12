@@ -577,6 +577,7 @@ end
 		    	-- As result, in case HMI does NOT respond to Vehicle.IsReady -> SDL can send this request to HMI 
 		    	if( TestedInterface == "VehicleInfo") then
 					ExpectRequest("VehicleInfo.GetVehicleType", true, params_VehInfo_GetVehicleType)
+					:Timeout(20000)
 				end
 
 				if(TestedInterface == "VR" or TestedInterface == "UI" or TestedInterface == "TTS") then
