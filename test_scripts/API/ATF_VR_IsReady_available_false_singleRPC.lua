@@ -48,6 +48,7 @@ local mobile_session = require('mobile_session')
 require('user_modules/AppTypes')
 
 
+local iTimeout = 12000
 
 ---------------------------------------------------------------------------------------------
 -------------------------------------------Common function-----------------------------------
@@ -537,7 +538,7 @@ function Test:initHMI_onReady_VR_IsReady(case)
 	self.hmiConnection:SendNotification("BasicCommunication.OnReady")
 end 
 
-local function StopStartSDL_HMI_MOBILE()
+local function StopStartSDL_HMI_MOBILE(TestCaseName)
 	
 	--Stop SDL
 	Test[tostring(TestCaseName) .. "_Precondition_StopSDL"] = function(self)
@@ -614,7 +615,7 @@ end
 --Print new line to separate new test cases group
 commonFunctions:newTestCasesGroup("VR_IsReady_response_availabe_false_check_single_VR_related_RPC")
 
-StopStartSDL_HMI_MOBILE()	
+StopStartSDL_HMI_MOBILE("VR_IsReady_response_availabe_false")	
 
 commonSteps:RegisterAppInterface()
 
@@ -639,6 +640,7 @@ Test["AddCommand_VRCommandsOnly_UNSUPPORTED_RESOURCE_false"] = function(self)
 	
 	--mobile side: expect AddCommand response
 	EXPECT_RESPONSE(cid, {success = false, resultCode = "UNSUPPORTED_RESOURCE", info = "VR is not supported by system"})
+	:Timeout(12000)
 	
 	--mobile side: expect OnHashChange notification
 	EXPECT_NOTIFICATION("OnHashChange")
@@ -696,6 +698,7 @@ Test["CreateInteractionChoiceSet_1"] = function(self)
 	
 	--mobile side: expect CreateInteractionChoiceSet response
 	EXPECT_RESPONSE(cid, {success = false, resultCode = "UNSUPPORTED_RESOURCE", info = "VR is not supported by system"})
+	:Timeout(12000)
 	
 	--mobile side: expect there is no OnHashChange
 	EXPECT_NOTIFICATION("OnHashChange")
