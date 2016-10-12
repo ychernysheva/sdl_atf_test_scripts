@@ -71,7 +71,8 @@ commonSteps:DeleteLogsFileAndPolicyTable()
 ---------------------------------------------------------------------------------------------
 ---------------------------- General Settings for configuration----------------------------
 ---------------------------------------------------------------------------------------------
-Test = require('user_modules/connecttest_TTS_Isready')
+commonPreconditions:Connecttest_without_ExitBySDLDisconnect("Temp_ConnectTest_IsReady.lua")
+Test = require('user_modules/Temp_ConnectTest_IsReady')
 require('cardinalities')
 local events = require('events') 
 local mobile_session = require('mobile_session')
@@ -95,7 +96,6 @@ function Check_menuIconParams(data, type_icon, value)
 	if (type_icon == "DYNAMIC") then
 		value_Icon = path .. value--"action.png"
 	end
-	
 	
 	
 	--if (data.params.menuIcon.imageType ~= "DYNAMIC") then
@@ -123,7 +123,6 @@ function DelayedExp()
 end
 --Cover APPLINK-25117: [HMI_API] TTS.IsReady
 function Test:initHMI_onReady_TTS_IsReady(case)
-	critical(true)
 	local function ExpectRequest(name, mandatory, params)
 		xmlReporter.AddMessage(debug.getinfo(1, "n").name, tostring(name))
 		local event = events.Event()
@@ -352,7 +351,7 @@ function Test:initHMI_onReady_TTS_IsReady(case)
 	ExpectRequest("VR.GetLanguage", true, { language = "EN-US" })
 	
 	ExpectRequest("TTS.GetLanguage", true, { language = "EN-US" })
-	:Times(0)
+	-- :Times(0)
 	ExpectRequest("UI.ChangeRegistration", false, { }):Pin()
 	ExpectRequest("TTS.SetGlobalProperties", false, { }):Pin()
 	
@@ -376,7 +375,7 @@ function Test:initHMI_onReady_TTS_IsReady(case)
 			"PT-BR","CS-CZ","DA-DK","NO-NO"
 		}
 	})
-	:Times(0)
+	-- :Times(0)
 	ExpectRequest("UI.GetSupportedLanguages", true, {
 		languages =
 		{
@@ -428,11 +427,11 @@ function Test:initHMI_onReady_TTS_IsReady(case)
 		},
 		presetBankCapabilities = { onScreenPresetsAvailable = true }
 	}
-	local speech_capabilities = {"TEXT", "SAPI_PHONEMES", "LHPLUS_PHONEMES", "PRE_RECORDED", "SILENCE"}
+	
 	ExpectRequest("Buttons.GetCapabilities", true, buttons_capabilities)
 	ExpectRequest("VR.GetCapabilities", true, { vrCapabilities = { "TEXT" } })
-	ExpectRequest("TTS.GetCapabilities", true, speech_capabilities)
-	:Times(0)
+	
+	-- :Times(0)
 	
 	ExpectRequest("TTS.GetCapabilities", true, {
 		speechCapabilities = { "TEXT", "SAPI_PHONEMES", "LHPLUS_PHONEMES", "PRE_RECORDED", "SILENCE" },
@@ -445,7 +444,7 @@ function Test:initHMI_onReady_TTS_IsReady(case)
 			"NEGATIVE_JINGLE"
 		}
 	}) 
-	:Times(0)
+	-- :Times(0)
 	local function text_field(name, characterSet, width, rows)
 		xmlReporter.AddMessage(debug.getinfo(1, "n").name, tostring(name))
 		return
@@ -716,12 +715,12 @@ local function APPLINK_25139_checksplit_TTS_RPCs_TTS_does_not_Respond(TestCaseNa
 			end)
 			
 			--mobile side: expect ChangeRegistration response
-			EXPECT_RESPONSE(cid, {success = false, resultCode = "GENERIC_ERROR"})
+			EXPECT_RESPONSE(cid, {success = false, resultCode = "GENERIC_ERROR", info = "TTS component does not respond"})
 			:Timeout(12000)
 			
 		end
 	end
-	--2. SetGlobalProperties
+	-- 2. SetGlobalProperties
 	-------------------------------------------
 	for i = 1, #TestData do
 		Test[TestCaseName .. "_SetGlobalProperties_TTS_does_not_respond_Other_responds_" .. TestData[i].resultCode] = function(self)
@@ -779,7 +778,6 @@ local function APPLINK_25139_checksplit_TTS_RPCs_TTS_does_not_Respond(TestCaseNa
 			
 			--hmi side: expect TTS.SetGlobalProperties request
 			EXPECT_HMICALL("TTS.SetGlobalProperties", {
-				menuTitle = "Menu Title",
 				timeoutPrompt = 
 				{
 					{
@@ -787,42 +785,14 @@ local function APPLINK_25139_checksplit_TTS_RPCs_TTS_does_not_Respond(TestCaseNa
 						type = "TEXT"
 					}
 				},
-				vrHelp = 
-				{
-					{
-						position = 1,
-						image = 
-						{
-							value = "action.png",
-							imageType = "DYNAMIC"
-						},
-						text = "VR help item"
-					}
-				},
-				menuIcon = 
-				{
-					value = "action.png",
-					imageType = "DYNAMIC"
-				},
+			
 				helpPrompt = 
 				{
 					{
 						text = "Help prompt",
 						type = "TEXT"
 					}
-				},
-				vrHelpTitle = "VR help title",
-				keyboardProperties = 
-				{
-					keyboardLayout = "QWERTY",
-					keypressMode = "SINGLE_KEYPRESS",
-					limitedCharacterList = 
-					{
-						"a"
-					},
-					language = "EN-US",
-					autoCompleteText = "Daemon, Freedom"
-			}}
+				}}
 			)
 			:Do(function(_,data)
 				--hmi side: sending UI.SetGlobalProperties response
@@ -860,7 +830,7 @@ local function APPLINK_25139_checksplit_TTS_RPCs_TTS_does_not_Respond(TestCaseNa
 			end)
 			
 			--mobile side: expect SetGlobalProperties response
-			EXPECT_RESPONSE(cid, {success = false, resultCode = "GENERIC_ERROR"})
+			 EXPECT_RESPONSE(cid, {success = false, resultCode = "GENERIC_ERROR", info = "TTS component does not respond"})
 			:Timeout(12000)
 			
 			--mobile side: expect OnHashChange notification
@@ -931,7 +901,7 @@ local function APPLINK_25139_checksplit_TTS_RPCs_TTS_does_not_Respond(TestCaseNa
 				
 			end)
 			--mobile side: expect AlertManeuver response
-			EXPECT_RESPONSE(CorIdAlertM, {success = false, resultCode = "GENERIC_ERROR"})
+			EXPECT_RESPONSE(CorIdAlertM, {success = false, resultCode = "GENERIC_ERROR", info = "TTS component does not respond"})
 			:Timeout(12000)
 		end	
 	end	
@@ -988,7 +958,7 @@ local function checksplit_TTS_Respond_AnyResultCode_OtherInterface_does_not_Resp
 			end)
 			
 			--mobile side: expect ChangeRegistration response
-			EXPECT_RESPONSE(cid, {success = false, resultCode = "GENERIC_ERROR"})
+			EXPECT_RESPONSE(cid, {success = false, resultCode = "GENERIC_ERROR",info = "UI component does not respond"})
 			:Timeout(12000)
 			
 		end
@@ -1051,7 +1021,7 @@ local function checksplit_TTS_Respond_AnyResultCode_OtherInterface_does_not_Resp
 			
 			--hmi side: expect TTS.SetGlobalProperties request
 			EXPECT_HMICALL("TTS.SetGlobalProperties", {
-				menuTitle = "Menu Title",
+				
 				timeoutPrompt = 
 				{
 					{
@@ -1059,42 +1029,14 @@ local function checksplit_TTS_Respond_AnyResultCode_OtherInterface_does_not_Resp
 						type = "TEXT"
 					}
 				},
-				vrHelp = 
-				{
-					{
-						position = 1,
-						image = 
-						{
-							value = "action.png",
-							imageType = "DYNAMIC"
-						},
-						text = "VR help item"
-					}
-				},
-				menuIcon = 
-				{
-					value = "action.png",
-					imageType = "DYNAMIC"
-				},
+				
 				helpPrompt = 
 				{
 					{
 						text = "Help prompt",
 						type = "TEXT"
 					}
-				},
-				vrHelpTitle = "VR help title",
-				keyboardProperties = 
-				{
-					keyboardLayout = "QWERTY",
-					keypressMode = "SINGLE_KEYPRESS",
-					limitedCharacterList = 
-					{
-						"a"
-					},
-					language = "EN-US",
-					autoCompleteText = "Daemon, Freedom"
-			}}
+				}}
 			)
 			:Do(function(_,data)
 				--hmi side: sending UI.SetGlobalProperties response
@@ -1131,7 +1073,7 @@ local function checksplit_TTS_Respond_AnyResultCode_OtherInterface_does_not_Resp
 			end)
 			
 			--mobile side: expect SetGlobalProperties response
-			EXPECT_RESPONSE(cid, {success = false, resultCode = "GENERIC_ERROR"})
+			EXPECT_RESPONSE(cid, {success = false, resultCode = "GENERIC_ERROR",info = "UI component does not respond"})
 			:Timeout(12000)
 			
 			--mobile side: expect OnHashChange notification
@@ -1202,7 +1144,7 @@ local function checksplit_TTS_Respond_AnyResultCode_OtherInterface_does_not_Resp
 				self.hmiConnection:SendResponse(data.id, data.method, TestData[i].resultCode, {})
 			end)
 			--mobile side: expect AlertManeuver response
-			EXPECT_RESPONSE(CorIdAlertM, {success = false, resultCode = "GENERIC_ERROR"})
+			EXPECT_RESPONSE(CorIdAlertM, {success = false, resultCode = "GENERIC_ERROR",info = "Navigation component does not respond"})
 			:Timeout(12000)
 
 		end	
@@ -1212,7 +1154,7 @@ end
 local TestData = {
 	
 	--caseID 1-3 are used to checking special cases
-	{caseID = 1, description = "HMI_Does_Not_Repond"},
+	-- {caseID = 1, description = "HMI_Does_Not_Repond"},
 	-- {caseID = 2, description = "MissedAllParamaters"},
 	-- {caseID = 3, description = "Invalid_Json"},
 	
@@ -1240,14 +1182,14 @@ local TestData = {
 	-- {caseID = 24, description = "method_IsEmpty"},
 	-- {caseID = 25, description = "method_IsWrongType"},
 	-- {caseID = 26, description = "method_IsInvalidCharacter_Splace"},
-	-- {caseID = 26, description = "method_IsInvalidCharacter_Tab"},
-	-- {caseID = 26, description = "method_IsInvalidCharacter_NewLine"},
+	-- {caseID = 27, description = "method_IsInvalidCharacter_Tab"},
+	-- {caseID = 28, description = "method_IsInvalidCharacter_NewLine"},
 	
 	-- --caseID 31-35 are used to checking "resultCode" parameter
 	-- --31. IsMissed
 	-- --32. IsNotExist
 	-- --33. IsEmpty
-	-- --34. IsWrongType
+	--34. IsWrongType
 	-- {caseID = 31, description = "resultCode_IsMissed"},
 	-- {caseID = 32, description = "resultCode_IsNotExist"},
 	-- {caseID = 33, description = "resultCode_IsWrongType"},
@@ -1279,7 +1221,7 @@ local TestData = {
 	--51. IsMissed
 	--52. IsWrongType
 	-- {caseID = 51, description = "available_IsMissed"},
-	-- {caseID = 52, description = "available_IsWrongType"}
+	{caseID = 52, description = "available_IsWrongType"}
 	
 }
 
@@ -1308,14 +1250,12 @@ for i=1, #TestData do
 			self:initHMI()
 		end
 		
-		
 		--InitHMIonReady
 		Test[tostring(TestCaseName) .. "_initHMI_onReady_TTS_InReady_" .. tostring(description)] = function(self)
 			
 			self:initHMI_onReady_TTS_IsReady(case)
 			
 		end
-		
 		
 		--ConnectMobile
 		Test[tostring(TestCaseName) .. "_ConnectMobile"] = function(self)
@@ -1351,25 +1291,12 @@ for i=1, #TestData do
 			self.applications[config.application1.registerAppInterfaceParams.appName]=data.params.application.appID
 		end)
 		
-		
-		-- Read TTS parameters from hmi_capabilities.json
-		local HmiCapabilities_file = config.pathToSDL .. "hmi_capabilities.json"
-		f = assert(io.open(HmiCapabilities_file, "r"))
-		fileContent = f:read("*all")
-		f:close()
-		
-		local json = require("modules/json")
-		local HmiCapabilities = json.decode(fileContent)
-		
 		--mobile side: expect response
-		-- SDL sends TTS-related parameters to mobile app with value from HMI_capabilities_json
 		self.mobileSession:ExpectResponse(CorIdRegister, 
-		{
-			success = true, 
-			resultCode = "SUCCESS",
-			speechCapabilities = HmiCapabilities.TTS.capabilities,
-			language = HmiCapabilities.TTS.language
-		}
+			{
+				success = true, 
+				resultCode = "SUCCESS"
+			}
 		)
 		
 		--mobile side: expect notification
