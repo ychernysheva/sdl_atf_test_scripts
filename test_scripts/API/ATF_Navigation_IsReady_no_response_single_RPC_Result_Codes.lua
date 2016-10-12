@@ -1379,7 +1379,7 @@ end
 for i= 2, 2 do --TODO: Remove this row and use the row above after APPLINK-25898 closed. Currently, replace numbers "2" by value of TestCases.caseID you want to test.
 	commonFunctions:newTestCasesGroup(APIName .. "_Test_suite: " .. TestCases[i].description)
 	
-	StopStartSDL_StartMobileSession(i)
+	StopStartSDL_StartMobileSession(TestCases[i].caseID)
 	commonSteps:RegisterAppInterface(APIName .. TestCases[i].description .. "_RegisterAppInterface")
 	commonSteps:ActivationAppGenivi(_,APIName .. TestCases[i].description .. "_ActivationApp")
 	commonSteps:PutFile("Precondition_PutFile", "icon.png")
