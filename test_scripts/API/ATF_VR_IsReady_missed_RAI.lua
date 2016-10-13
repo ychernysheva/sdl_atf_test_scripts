@@ -100,7 +100,7 @@ require('user_modules/AppTypes')
 -----------------------------------------------------------------------------------------------
 
 --Cover APPLINK-25286: [HMI_API] VR.IsReady
-function Test:initHMI_onReady_VR_IsReady(case, IsVRIsReadyNotRespondCase)
+function Test:initHMI_onReady_VR_IsReady(case)
 	--critical(true)
 	local function ExpectRequest(name, mandatory, params)
 		
@@ -255,6 +255,7 @@ function Test:initHMI_onReady_VR_IsReady(case, IsVRIsReadyNotRespondCase)
 					--49. message_IsInvalidCharacter_Newline
 					
 				elseif (case == 41) then --message_IsMissed
+					print("Case 41 message_IsMissed")
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"VR.IsReady"}, "message":"The data sent is invalid","code":11}}') --INVALID_DATA
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"VR.IsReady"},"code":11}}')
 					
@@ -333,12 +334,7 @@ function Test:initHMI_onReady_VR_IsReady(case, IsVRIsReadyNotRespondCase)
 	})
 	ExpectRequest("UI.GetLanguage", true, { language = "EN-US" })
 	
-	local TimesForRelatedVR_RPCs = 0
-	if (IsVRIsReadyNotRespondCase == true)then
-		TimesForRelatedVR_RPCs = 1
-	end
 	ExpectRequest("VR.GetLanguage", true, { language = "EN-US" })
-	:Times(TimesForRelatedVR_RPCs)
 	:Timeout(15000)
 	
 	ExpectRequest("TTS.GetLanguage", true, { language = "EN-US" })
@@ -356,7 +352,6 @@ function Test:initHMI_onReady_VR_IsReady(case, IsVRIsReadyNotRespondCase)
 			"PT-BR","CS-CZ","DA-DK","NO-NO"
 		}
 	})
-	:Times(TimesForRelatedVR_RPCs)
 	:Timeout(15000)
 	
 	ExpectRequest("TTS.GetSupportedLanguages", true, {
@@ -423,7 +418,6 @@ function Test:initHMI_onReady_VR_IsReady(case, IsVRIsReadyNotRespondCase)
 	}
 	ExpectRequest("Buttons.GetCapabilities", true, buttons_capabilities)
 	ExpectRequest("VR.GetCapabilities", true, { vrCapabilities = { "TEXT" } })
-	:Times(TimesForRelatedVR_RPCs)
 	:Timeout(15000)
 	
 	ExpectRequest("TTS.GetCapabilities", true, {
@@ -578,7 +572,7 @@ function Test:initHMI_onReady_VR_IsReady(case, IsVRIsReadyNotRespondCase)
 	self.hmiConnection:SendNotification("BasicCommunication.OnReady")
 end 
 
-local function StopStartSDL_HMI_MOBILE(case, TestCaseName, IsVRIsReadyNotRespondCase)
+local function StopStartSDL_HMI_MOBILE(case, TestCaseName)
 	
 	--Stop SDL
 	Test[tostring(TestCaseName) .. "_Precondition_StopSDL"] = function(self)
@@ -599,7 +593,7 @@ local function StopStartSDL_HMI_MOBILE(case, TestCaseName, IsVRIsReadyNotRespond
 	--InitHMIonReady
 	Test[tostring(TestCaseName) .. "_initHMI_onReady_VR_InReady_" .. tostring(description)] = function(self)
 		
-		self:initHMI_onReady_VR_IsReady(case, IsVRIsReadyNotRespondCase)
+		self:initHMI_onReady_VR_IsReady(case)
 		
 	end
 	
@@ -621,9 +615,9 @@ end
 local TestData = {
 
 -- caseID 1-3 are used to checking special cases
-{caseID = 1, description = "HMI_Does_Not_Repond", IsConsideredAsNotRespondCase = true},
-{caseID = 2, description = "MissedAllParamaters", IsConsideredAsNotRespondCase = true},
-{caseID = 3, description = "Invalid_Json", IsConsideredAsNotRespondCase = true},
+{caseID = 1, description = "HMI_Does_Not_Repond"},
+{caseID = 2, description = "MissedAllParamaters"},
+{caseID = 3, description = "Invalid_Json"},
 
 		
 --caseID 11-14 are used to checking "collerationID" parameter
@@ -631,10 +625,10 @@ local TestData = {
 	--12. IsNonexistent
 	--13. IsWrongType
 	--14. IsNegative 	
-{caseID = 11, description = "collerationID_IsMissed", IsConsideredAsNotRespondCase = true},
-{caseID = 12, description = "collerationID_IsNonexistent", IsConsideredAsNotRespondCase = true},
-{caseID = 13, description = "collerationID_IsWrongType", IsConsideredAsNotRespondCase = true},
-{caseID = 14, description = "collerationID_IsNegative", IsConsideredAsNotRespondCase = true},
+{caseID = 11, description = "collerationID_IsMissed"},
+{caseID = 12, description = "collerationID_IsNonexistent"},
+{caseID = 13, description = "collerationID_IsWrongType"},
+{caseID = 14, description = "collerationID_IsNegative"},
 
 --caseID 21-27 are used to checking "method" parameter
 	--21. IsMissed
@@ -643,26 +637,26 @@ local TestData = {
 	--24. IsEmpty
 	--25. IsWrongType
 	--26. IsInvalidCharacter - \n, \t, only spaces
-{caseID = 21, description = "method_IsMissed", IsConsideredAsNotRespondCase = true},
-{caseID = 22, description = "method_IsNotValid", IsConsideredAsNotRespondCase = true},
- {caseID = 23, description = "method_IsOtherResponse", IsConsideredAsNotRespondCase = true},
-{caseID = 24, description = "method_IsEmpty", IsConsideredAsNotRespondCase = true},
-{caseID = 25, description = "method_IsWrongType", IsConsideredAsNotRespondCase = true},
-{caseID = 26, description = "method_IsInvalidCharacter_Splace", IsConsideredAsNotRespondCase = true},
-{caseID = 26, description = "method_IsInvalidCharacter_Tab", IsConsideredAsNotRespondCase = true},
-{caseID = 26, description = "method_IsInvalidCharacter_NewLine", IsConsideredAsNotRespondCase = true},
+{caseID = 21, description = "method_IsMissed"},
+{caseID = 22, description = "method_IsNotValid"},
+{caseID = 23, description = "method_IsOtherResponse"},
+{caseID = 24, description = "method_IsEmpty"},
+{caseID = 25, description = "method_IsWrongType"},
+{caseID = 26, description = "method_IsInvalidCharacter_Splace"},
+{caseID = 26, description = "method_IsInvalidCharacter_Tab"},
+{caseID = 26, description = "method_IsInvalidCharacter_NewLine"},
 
 	--caseID 31-35 are used to checking "resultCode" parameter
 		--31. IsMissed
 		--32. IsNotExist
 		--33. IsEmpty
 		--34. IsWrongType
-{caseID = 31,  description = "resultCode_IsMissed", IsConsideredAsNotRespondCase = true},
-{caseID = 32,  description = "resultCode_IsNotExist", IsConsideredAsNotRespondCase = true},
-{caseID = 33,  description = "resultCode_IsWrongType", IsConsideredAsNotRespondCase = true},
-{caseID = 34,  description = "resultCode_INVALID_DATA", IsConsideredAsNotRespondCase = true},
-{caseID = 35,  description = "resultCode_DATA_NOT_AVAILABLE", IsConsideredAsNotRespondCase = true},
-{caseID = 36,  description = "resultCode_GENERIC_ERROR", IsConsideredAsNotRespondCase = true},
+{caseID = 31,  description = "resultCode_IsMissed"},
+{caseID = 32,  description = "resultCode_IsNotExist"},
+{caseID = 33,  description = "resultCode_IsWrongType"},
+{caseID = 34,  description = "resultCode_INVALID_DATA"},
+{caseID = 35,  description = "resultCode_DATA_NOT_AVAILABLE"},
+{caseID = 36,  description = "resultCode_GENERIC_ERROR"},
 
 
 	--caseID 41-45 are used to checking "message" parameter
@@ -673,22 +667,22 @@ local TestData = {
 		--45. IsEmpty/IsOutLowerBound
 		--46. IsWrongType
 		--47. IsInvalidCharacter - \n, \t, only spaces
-{caseID = 41,  description = "message_IsMissed", IsConsideredAsNotRespondCase = true},
-{caseID = 42,  description = "message_IsLowerBound", IsConsideredAsNotRespondCase = true},
-{caseID = 43,  description = "message_IsUpperBound", IsConsideredAsNotRespondCase = true},
-{caseID = 44,  description = "message_IsOutUpperBound", IsConsideredAsNotRespondCase = true},
-{caseID = 45,  description = "message_IsEmpty_IsOutLowerBound", IsConsideredAsNotRespondCase = true},
-{caseID = 46,  description = "message_IsWrongType", IsConsideredAsNotRespondCase = true},
-{caseID = 47,  description = "message_IsInvalidCharacter_Tab", IsConsideredAsNotRespondCase = true},
-{caseID = 48,  description = "message_IsInvalidCharacter_OnlySpaces", IsConsideredAsNotRespondCase = true},
-{caseID = 49,  description = "message_IsInvalidCharacter_Newline", IsConsideredAsNotRespondCase = true},
+ {caseID = 41,  description = "message_IsMissed"},
+{caseID = 42,  description = "message_IsLowerBound"},
+{caseID = 43,  description = "message_IsUpperBound"},
+{caseID = 44,  description = "message_IsOutUpperBound"},
+{caseID = 45,  description = "message_IsEmpty_IsOutLowerBound"},
+{caseID = 46,  description = "message_IsWrongType"},
+{caseID = 47,  description = "message_IsInvalidCharacter_Tab"},
+{caseID = 48,  description = "message_IsInvalidCharacter_OnlySpaces"},
+{caseID = 49,  description = "message_IsInvalidCharacter_Newline"},
 
 
 --caseID 51-55 are used to checking "available" parameter
 	--51. IsMissed
 	--52. IsWrongType
-{caseID = 51,  description = "available_IsMissed", IsConsideredAsNotRespondCase = true},
-{caseID = 52,  description = "available_IsWrongType", IsConsideredAsNotRespondCase = true},
+{caseID = 51,  description = "available_IsMissed"},
+{caseID = 52,  description = "available_IsWrongType"},
 			
 }
 
@@ -1520,18 +1514,17 @@ end
 
 
 for i=1, #TestData do
-		
+
 	--Print new line to separate new test cases group
 	commonFunctions:newTestCasesGroup("Case_" .. TestData[i].caseID .. "_IsReady_" ..TestData[i].description)
 	
 	local TestCaseName = "Case_" .. TestData[i].caseID
 	
-	StopStartSDL_HMI_MOBILE(TestData[i].caseID, TestCaseName, TestData[i].IsConsideredAsNotRespondCase)
+	StopStartSDL_HMI_MOBILE(TestData[i].caseID, TestCaseName)
 	
 	RegisterApplication_Check_VR_Parameters_From_HMI_capabilities_json(TestData[i].caseID, TestCaseName)
 	
 end
-
 
 ----------------------------------------------------------------------------------------------
 -----------------------------------------TEST BLOCK IV----------------------------------------
