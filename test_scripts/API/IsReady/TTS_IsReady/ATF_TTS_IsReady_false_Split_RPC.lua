@@ -557,11 +557,61 @@ function Test:initHMI_onReady_TTS_IsReady(case)
 	self.hmiConnection:SendNotification("BasicCommunication.OnReady")
 end 
 
+local function UpdatePolicy()
+	
+	local PermissionForSetGlobalProperties = 
+	[[				
+	"SetGlobalProperties": {
+		"hmi_levels": [
+		"BACKGROUND",
+		"FULL",
+		"LIMITED"
+		]
+	}
+	]].. ", \n"
+	local PermissionForChangeRegistration = 
+	[[				
+	"ChangeRegistration": {
+		"hmi_levels": [
+		"BACKGROUND",
+		"FULL",
+		"LIMITED"
+		]
+	}
+	]].. ", \n"
+	local PermissionForAlertManeuver = 
+	[[				
+	"AlertManeuver": {
+		"hmi_levels": [
+		"BACKGROUND",
+		"FULL",
+		"LIMITED"
+		]
+	}
+	]].. ", \n"
+					
+	local PermissionLinesForBase4 = PermissionForSetGlobalProperties..PermissionForChangeRegistration..PermissionForAlertManeuver
+	local PTName = testCasesForPolicyTable:createPolicyTableFile_temp(PermissionLinesForBase4, nil, nil, {"SetGlobalProperties","ChangeRegistration","AlertManeuver"})	
+	testCasesForPolicyTable:Precondition_updatePolicy_By_overwriting_preloaded_pt(PTName)
+end
+
 ---------------------------------------------------------------------------------------------
 -------------------------------------------Preconditions-------------------------------------
 ---------------------------------------------------------------------------------------------
 
---Not applicable
+commonFunctions:newTestCasesGroup("Preconditions")
+
+--make backup copy of file sdl_preloaded_pt.json
+commonPreconditions:BackupFile("sdl_preloaded_pt.json")
+
+-- Precondition: replace preloaded file with new one
+--os.execute('cp ./files/ptu_general.json ' .. tostring(config.pathToSDL) .. "sdl_preloaded_pt.json")
+
+UpdatePolicy()
+
+
+-- Precondition: remove policy table and log files
+commonSteps:DeleteLogsFileAndPolicyTable()
 
 -----------------------------------------------------------------------------------------------
 -------------------------------------------TEST BLOCK I----------------------------------------
@@ -704,6 +754,7 @@ Test[TestCaseName .. "_RegisterApplication_Check_TTS_Parameters_IsOmitted_result
 end	
 -- Description: Activation app for precondition
 commonSteps:ActivationApp()
+commonSteps:PutFile("Precondition_PutFile", "action.png")
 -----------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------
 --CRQ #3) APPLINK-25133: [TTS Interface] TTS.IsReady(false) -> HMI respond with successful resultCode to split RPC
@@ -807,9 +858,9 @@ local function APPLINK_25133_checksplit_TTS_Responds_false_Other_Interfaces_Resp
 					autoCompleteText = "Daemon, Freedom"
 				}
 			})
-			:ValidIf(function(_,data)
-				return Check_menuIconParams(data)
-			end)
+			-- :ValidIf(function(_,data)
+				-- return Check_menuIconParams(data)
+			-- end)
 			:Timeout(iTimeout)
 			:Do(function(_,data)
 				--hmi side: sending UI.SetGlobalProperties response
@@ -1016,9 +1067,9 @@ local function APPLINK_25133_checksplit_TTS_Responds_false_Other_Interfaces_Not_
 				autoCompleteText = "Daemon, Freedom"
 			}
 		})
-		:ValidIf(function(_,data)
-			return Check_menuIconParams(data)
-		end)
+		-- :ValidIf(function(_,data)
+			-- return Check_menuIconParams(data)
+		-- end)
 		:Timeout(iTimeout)
 		:Do(function(_,data)
 			--hmi side: hmi does not respond
@@ -1026,7 +1077,7 @@ local function APPLINK_25133_checksplit_TTS_Responds_false_Other_Interfaces_Not_
 		end)
 		
 		--mobile side: expect SetGlobalProperties response
-		EXPECT_RESPONSE(cid, {success = false, resultCode = "GENERIC_ERROR", info = "TTS is not supported by system"})
+		EXPECT_RESPONSE(cid, {success = false, resultCode = "GENERIC_ERROR", info = "UI is not supported by system"})
 		:Timeout(iTimeout)
 	end
 	
@@ -1074,7 +1125,7 @@ local function APPLINK_25133_checksplit_TTS_Responds_false_Other_Interfaces_Not_
 		:Times(0)
 		
 		--mobile side: expect ChangeRegistration response					
-		EXPECT_RESPONSE(cid, {success = false, resultCode = "GENERIC_ERROR", info = "TTS is not supported by system"})
+		EXPECT_RESPONSE(cid, {success = false, resultCode = "GENERIC_ERROR", info = "VR is not supported by system"})
 		:Timeout(iTimeout)
 		
 	end
@@ -1117,7 +1168,7 @@ local function APPLINK_25133_checksplit_TTS_Responds_false_Other_Interfaces_Not_
 		EXPECT_HMICALL("TTS.Speak",{})
 		:Times(0)
 		--mobile side: expect ChangeRegistration response					
-		EXPECT_RESPONSE(CorIdAlertM, {success = false, resultCode = "GENERIC_ERROR", info = "TTS is not supported by system"})
+		EXPECT_RESPONSE(CorIdAlertM, {success = false, resultCode = "GENERIC_ERROR", info = "Navigation is not supported by system"})
 		:Timeout(iTimeout)
 	end	
 	
@@ -1147,14 +1198,14 @@ local function APPLINK_25134_checksplit_TTS_Responds_false_Other_Interfaces_Resp
 		{resultCode = "ABORTED"},
 		{resultCode = "IGNORED"},
 		{resultCode = "IN_USE"},
-		{resultCode = "VEHICLE_DATA_NOT_AVAILABLE"},
+		{resultCode = "DATA_NOT_AVAILABLE"},
 		{resultCode = "TIMED_OUT"},
 		{resultCode = "INVALID_DATA"},
 		{resultCode = "CHAR_LIMIT_EXCEEDED"},
 		{resultCode = "INVALID_ID"},
 		{resultCode = "DUPLICATE_NAME"},
 		{resultCode = "APPLICATION_NOT_REGISTERED"},
-		{resultCode = "OUT_OF_MEMROY"},
+		{resultCode = "OUT_OF_MEMORY"},
 		{resultCode = "TOO_MANY_PENDING_REQUESTS"},
 		{resultCode = "GENERIC_ERROR"},
 		{resultCode = "TRUNCATED_DATA"},
@@ -1240,9 +1291,9 @@ local function APPLINK_25134_checksplit_TTS_Responds_false_Other_Interfaces_Resp
 					autoCompleteText = "Daemon, Freedom"
 				}
 			})
-			:ValidIf(function(_,data)
-				return Check_menuIconParams(data)
-			end)
+			-- :ValidIf(function(_,data)
+				-- return Check_menuIconParams(data)
+			-- end)
 			:Timeout(iTimeout)
 			:Do(function(_,data)
 				--hmi side: sending UI.SetGlobalProperties response
