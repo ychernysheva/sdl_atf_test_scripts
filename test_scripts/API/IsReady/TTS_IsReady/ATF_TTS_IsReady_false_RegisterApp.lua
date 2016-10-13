@@ -71,7 +71,7 @@ local function update_sdl_preloaded_pt_json()
 	file:write(data)
 	file:close()
 end
-update_sdl_preloaded_pt_json()
+--update_sdl_preloaded_pt_json()
 
 -- Precondition: remove policy table and log files
 commonSteps:DeleteLogsFileAndPolicyTable()
@@ -80,7 +80,8 @@ commonSteps:DeleteLogsFileAndPolicyTable()
 ---------------------------------------------------------------------------------------------
 ---------------------------- General Settings for configuration----------------------------
 ---------------------------------------------------------------------------------------------
-Test = require('user_modules/connecttest_TTS_Isready')
+commonPreconditions:Connecttest_without_ExitBySDLDisconnect("Temp_ConnectTest_IsReady.lua")
+Test = require('user_modules/Temp_ConnectTest_IsReady')
 require('cardinalities')
 local events = require('events') 
 local mobile_session = require('mobile_session')
@@ -94,7 +95,7 @@ require('user_modules/AppTypes')
 
 --Cover APPLINK-25117: [HMI_API] TTS.IsReady
 function Test:initHMI_onReady_TTS_IsReady(case)
-	critical(true)
+	-- critical(true)
 	local function ExpectRequest(name, mandatory, params)
 		xmlReporter.AddMessage(debug.getinfo(1, "n").name, tostring(name))
 		local event = events.Event()
@@ -324,7 +325,6 @@ function Test:initHMI_onReady_TTS_IsReady(case)
 	})
 	ExpectRequest("UI.GetLanguage", true, { language = "EN-US" })
 	ExpectRequest("VR.GetLanguage", true, { language = "EN-US" })
-	
 	ExpectRequest("TTS.GetLanguage", true, { language = "EN-US" })
 	:Times(0)
 	ExpectRequest("UI.ChangeRegistration", false, { }):Pin()
@@ -342,6 +342,7 @@ function Test:initHMI_onReady_TTS_IsReady(case)
 			"PT-BR","CS-CZ","DA-DK","NO-NO"
 		}
 	})
+	
 	ExpectRequest("TTS.GetSupportedLanguages", true, {
 		languages =
 		{
@@ -405,9 +406,6 @@ function Test:initHMI_onReady_TTS_IsReady(case)
 	local speech_capabilities = {"TEXT", "SAPI_PHONEMES", "LHPLUS_PHONEMES", "PRE_RECORDED", "SILENCE"}
 	ExpectRequest("Buttons.GetCapabilities", true, buttons_capabilities)
 	ExpectRequest("VR.GetCapabilities", true, { vrCapabilities = { "TEXT" } })
-	ExpectRequest("TTS.GetCapabilities", true, speech_capabilities)
-	:Times(0)
-	
 	ExpectRequest("TTS.GetCapabilities", true, {
 		speechCapabilities = { "TEXT", "SAPI_PHONEMES", "LHPLUS_PHONEMES", "PRE_RECORDED", "SILENCE" },
 		prerecordedSpeechCapabilities =
@@ -556,6 +554,43 @@ function Test:initHMI_onReady_TTS_IsReady(case)
 	
 	self.hmiConnection:SendNotification("BasicCommunication.OnReady")
 end 
+	
+local function StopStartSDL_HMI_MOBILE(TestCaseName)
+	
+	--Stop SDL
+	Test[tostring(TestCaseName) .. "_Precondition_StopSDL"] = function(self)
+		StopSDL()
+	end
+	
+	--Start SDL
+	Test[tostring(TestCaseName) .. "_Precondition_StartSDL"] = function(self)
+		StartSDL(config.pathToSDL, config.ExitOnCrash)
+	end
+	
+	--InitHMI
+	Test[tostring(TestCaseName) .. "_Precondition_InitHMI"] = function(self)
+		self:initHMI()
+	end
+	
+	
+	--InitHMIonReady: Cover APPLINK-25117: [HMI_API] TTS.IsReady
+	Test[tostring(TestCaseName) .. "_initHMI_onReady_TTS_IsReady_" .. tostring(description)] = function(self)
+		self:initHMI_onReady_TTS_IsReady(0)	--	available = false
+	end
+	
+	
+	--ConnectMobile
+	Test[tostring(TestCaseName) .. "_ConnectMobile"] = function(self)
+		self:connectMobile()
+	end
+	
+	--StartSession
+	Test[tostring(TestCaseName) .. "_StartSession"] = function(self)
+		self.mobileSession= mobile_session.MobileSession(self, self.mobileConnection)
+		self.mobileSession:StartService(7)
+	end
+	
+end
 
 ---------------------------------------------------------------------------------------------
 -------------------------------------------Preconditions-------------------------------------
@@ -615,46 +650,7 @@ local TestCaseName = "TTS_IsReady_response_available_false"
 --Print new line to separate new test cases group
 commonFunctions:newTestCasesGroup(TestCaseName)
 
-local function StopStartSDL_HMI_MOBILE()
-	
-	--Stop SDL
-	Test[tostring(TestCaseName) .. "_Precondition_StopSDL"] = function(self)
-		StopSDL()
-	end
-	
-	--Start SDL
-	Test[tostring(TestCaseName) .. "_Precondition_StartSDL"] = function(self)
-		StartSDL(config.pathToSDL, config.ExitOnCrash)
-	end
-	
-	--InitHMI
-	Test[tostring(TestCaseName) .. "_Precondition_InitHMI"] = function(self)
-		self:initHMI()
-	end
-	
-	
-	--InitHMIonReady: Cover APPLINK-25117: [HMI_API] TTS.IsReady
-	Test[tostring(TestCaseName) .. "_initHMI_onReady_TTS_IsReady_" .. tostring(description)] = function(self)
-		self:initHMI_onReady_TTS_IsReady(0)	--	available = false
-	end
-	
-	
-	--ConnectMobile
-	Test[tostring(TestCaseName) .. "_ConnectMobile"] = function(self)
-		self:connectMobile()
-	end
-	
-	--StartSession
-	Test[tostring(TestCaseName) .. "_StartSession"] = function(self)
-		self.mobileSession= mobile_session.MobileSession(self, self.mobileConnection)
-		self.mobileSession:StartService(7)
-	end
-	
-end
-
-
---ToDo: Due to problem with stop and start SDL (APPLINK-25898), this step is skipped and update user_modules/connecttest_TTS_Isready.lua to send TTS.IsReady(available = false) response manually.
-StopStartSDL_HMI_MOBILE()
+StopStartSDL_HMI_MOBILE("TTS_IsReady_response_available_false_prepcondition")
 
 -----------------------------------------------------------------------------------------------		
 --CRQ #1) APPLINK-25046: [RegisterAppInterface] SDL behavior in case <Interface> is not supported by system => omit <Interface>-related param from response to mobile app (meaning: SDL must NOT retrieve the default values from 'HMI_capabilities.json' file and provide via response to mobile app)
@@ -690,7 +686,6 @@ local function RegisterApplication_Check_TTS_Parameters_IsOmitted(TestCaseName)
 			self.applications[config.application1.registerAppInterfaceParams.appName]=data.params.application.appID
 		end)
 		
-		
 		--mobile side: expect response
 		-- SDL does not send TTS-related param to mobile app	
 		self.mobileSession:ExpectResponse(CorIdRegister, {success=true,resultCode="SUCCESS"})
@@ -699,9 +694,9 @@ local function RegisterApplication_Check_TTS_Parameters_IsOmitted(TestCaseName)
 			if data.payload.speechCapabilities then
 				errorMessage = errorMessage .. "SDL resends 'speechCapabilities' parameter to mobile app. "
 			end
-			if data.payload.language then
-				errorMessage = errorMessage .. "SDL resends 'language' parameter to mobile app"
-			end	
+			-- if data.payload.language then
+				-- errorMessage = errorMessage .. "SDL resends 'language' parameter to mobile app"
+			-- end	
 			if data.payload.prerecordedSpeech then
 				errorMessage = errorMessage .. "SDL resends 'prerecordedSpeech' parameter to mobile app"
 			end	
@@ -755,9 +750,9 @@ local function RegisterApplication_Check_TTS_Parameters_IsOmitted(TestCaseName)
 			if data.payload.speechCapabilities then
 				errorMessage = errorMessage .. "SDL resends 'speechCapabilities' parameter to mobile app. "
 			end
-			if data.payload.language then
-				errorMessage = errorMessage .. "SDL resends 'language' parameter to mobile app"
-			end	
+			-- if data.payload.language then
+				-- errorMessage = errorMessage .. "SDL resends 'language' parameter to mobile app"
+			-- end	
 			if data.payload.prerecordedSpeech then
 				errorMessage = errorMessage .. "SDL resends 'prerecordedSpeech' parameter to mobile app"
 			end	
@@ -776,7 +771,17 @@ local function RegisterApplication_Check_TTS_Parameters_IsOmitted(TestCaseName)
 	
 	-- APPLINK-16249 WRONG_LANGUAGE hmiDisplayLanguageDesired: It is for UI interface only.
 	-- APPLINK-16307 WARNINGS, true
-	commonSteps:UnregisterApplication(TestCaseName .. "_Precondition_UnregisterApplication_for_checking_WARNINGS")
+	-- commonSteps:UnregisterApplication(TestCaseName .. "_Precondition_UnregisterApplication_for_checking_WARNINGS")
+	function Test:RegisterApplication_Check_TTS_Parameters_IsOmitted_resultCode_WARNINGS_Precondition_Update_Preload_PT_JSON()
+		
+		--Add AppHMIType = {"NAVIGATION"} for app "0000001"
+		--config.application1.registerAppInterfaceParams.AppHMIType = {"NAVIGATION"}
+		
+		update_sdl_preloaded_pt_json()
+		commonSteps:DeletePolicyTable()
+	end
+
+	StopStartSDL_HMI_MOBILE("RegisterApplication_Check_TTS_Parameters_IsOmitted_resultCode_WARNINGS_Precondition")
 	
 	Test[TestCaseName .. "_RegisterApplication_Check_TTS_Parameters_IsOmitted_resultCode_WARNINGS"] = function(self)
 		
@@ -810,9 +815,9 @@ local function RegisterApplication_Check_TTS_Parameters_IsOmitted(TestCaseName)
 			if data.payload.speechCapabilities then
 				errorMessage = errorMessage .. "SDL resends 'speechCapabilities' parameter to mobile app. "
 			end
-			if data.payload.language then
-				errorMessage = errorMessage .. "SDL resends 'language' parameter to mobile app"
-			end	
+			-- if data.payload.language then
+				-- errorMessage = errorMessage .. "SDL resends 'language' parameter to mobile app"
+			-- end	
 			if data.payload.prerecordedSpeech then
 				errorMessage = errorMessage .. "SDL resends 'prerecordedSpeech' parameter to mobile app"
 			end	
@@ -949,9 +954,9 @@ local function RegisterApplication_Check_TTS_Parameters_IsOmitted(TestCaseName)
 			if data.payload.speechCapabilities then
 				errorMessage = errorMessage .. "SDL resends 'speechCapabilities' parameter to mobile app. "
 			end
-			if data.payload.language then
-				errorMessage = errorMessage .. "SDL resends 'language' parameter to mobile app"
-			end	
+			-- if data.payload.language then
+				-- errorMessage = errorMessage .. "SDL resends 'language' parameter to mobile app"
+			-- end	
 			if data.payload.prerecordedSpeech then
 				errorMessage = errorMessage .. "SDL resends 'prerecordedSpeech' parameter to mobile app"
 			end
@@ -966,15 +971,15 @@ local function RegisterApplication_Check_TTS_Parameters_IsOmitted(TestCaseName)
 		
 		--mobile side: expect notification
 		self.mobileSession:ExpectNotification("OnHMIStatus", 
-		{systemContext="MAIN", hmiLevel="NONE", audioStreamingState="NOT_AUDIBLE"}, 
-		{systemContext="MAIN", hmiLevel="FULL", audioStreamingState="AUDIBLE"}
+		{systemContext="MAIN", hmiLevel="NONE", audioStreamingState="NOT_AUDIBLE"}--, 
+		-- {systemContext="MAIN", hmiLevel="FULL", audioStreamingState="AUDIBLE"}
 		)
-		:Times(2)
+		-- :Times(2)
 		--APPLINK-9532: Sending TTS.SetGlobalProperties to VCA in case no obtained from mobile app
 		--Description: When registering the app as soon as the app gets HMI Level NONE, SDL sends TTS.SetGlobalProperties(helpPrompt[]) with an empty array of helpPrompts (just helpPrompts, no timeoutPrompt).
 		--hmi side: expect TTS.SetGlobalProperties request
-		EXPECT_HMICALL("TTS.SetGlobalProperties")
-		:Times(0)
+		EXPECT_HMICALL("TTS.SetGlobalProperties", {helpPrompt = {}})
+		-- :Times(0)
 		EXPECT_HMICALL("UI.SetGlobalProperties")
 		:Times(0)
 		--mobile side: expect OnHashChange notification
