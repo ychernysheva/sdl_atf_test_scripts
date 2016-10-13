@@ -536,7 +536,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 													-- self.hmiConnection:SendError(data.id, data.method, TestData[i].resultCode, TestData[i].info)
 													-- Use Send() function because it is required to verify resultCode is invalid (not in [0, 25])
 													if TestData[i].info == nil then													
-														self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"'.. data.method.. '","code":'..TestData[i].value..'"}}')													
+														self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"'.. data.method.. '","code":'..TestData[i].value..'}}')													
 													else													
 														self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"'.. data.method.. '","code":'..TestData[i].value..', "message":"'.. TestData[i].info .. '"}}')
 													end

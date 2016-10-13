@@ -584,7 +584,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 										SpeakId = data.id
 										local function speakResponse()
 											--self.hmiConnection:SendResponse(SpeakId, "TTS.Speak", "SUCCESS", { })
-											self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"message = "error message", "method":"'..data.method..'","code":'..TestData[i].value..'}}')
+											self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"message":"error message", "method":"'..data.method..'","code":'..TestData[i].value..'}}')
 											self.hmiConnection:SendNotification("TTS.Stopped")
 										end
 											RUN_AFTER(speakResponse, 2000)
