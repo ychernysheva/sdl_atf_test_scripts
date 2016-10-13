@@ -724,7 +724,7 @@ Test["Precondition_AddCommand_1000"] = function(self)
 	EXPECT_HMICALL("UI.AddCommand", 
 	{ 
 		cmdID = 1000,		
-		menuParams = {position = 1000, menuName ="Command 1000"}
+		menuParams = {position = 1, menuName ="Command 1000"}
 	})
 	:Do(function(_,data)
 		--hmi side: sending UI.AddCommand response
