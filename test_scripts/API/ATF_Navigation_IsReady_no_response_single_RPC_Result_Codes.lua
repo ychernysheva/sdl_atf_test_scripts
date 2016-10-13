@@ -642,36 +642,36 @@ end
 
 local function StopStartSDL_StartMobileSession(caseid)
 	--Stop SDL
-	Test[APIName .. TestCases[caseid].description .."_Precondition_StopSDL"] = function(self)
+	Test[APIName .. "CaseID:".. tostring(caseid) .."_Precondition_StopSDL"] = function(self)
 		StopSDL()
 	end
 	
 	--Start SDL
-	Test[APIName.. TestCases[caseid].description .. "_Precondition_StartSDL"] = function(self)
+	Test[APIName.. "CaseID:".. tostring(caseid) .. "_Precondition_StartSDL"] = function(self)
 		StartSDL(config.pathToSDL, config.ExitOnCrash)
 	end
 	
 	--InitHMI
-	Test[APIName.. TestCases[caseid].description .. "_Precondition_InitHMI"] = function(self)
+	Test[APIName.. "CaseID:".. tostring(caseid) .. "_Precondition_InitHMI"] = function(self)
 		self:initHMI()
 	end
 	
-	Test[APIName .. TestCases[caseid].description .. "_initHMI_OnReady"] = function(self)
+	Test[APIName .. "CaseID:".. tostring(caseid) .. "_initHMI_OnReady"] = function(self)
 		self:initHMI_onReady_Navi_IsReady(caseid)	
 	end
 	
 	if (caseid > 1) then -- Wait for timeout (HMI does not response Navigation.IsReady)
-		Test[APIName .. TestCases[caseid].description .. "_DefaultTimeout"] = function(self)
+		Test[APIName .. "CaseID:".. tostring(caseid) .. "_DefaultTimeout"] = function(self)
 			sleep(DefaultTimeout)
 		end
 	end	
 	
 	--ConnectMobile
-	Test[APIName .. TestCases[caseid].description .. "_ConnectMobile"] = function(self)
+	Test[APIName .. "CaseID:".. tostring(caseid) .. "_ConnectMobile"] = function(self)
 		self:connectMobile()
 	end
 	--StartSession
-	Test[APIName .. TestCases[caseid].description .. "_StartSession"] = function(self)
+	Test[APIName .. "CaseID:".. tostring(caseid) .. "_StartSession"] = function(self)
 		self.mobileSession= mobile_session.MobileSession(
 		self,
 		self.mobileConnection)

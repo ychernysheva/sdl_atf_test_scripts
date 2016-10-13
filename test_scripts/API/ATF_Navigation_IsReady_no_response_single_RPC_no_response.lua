@@ -954,6 +954,24 @@ local function sequence_check_single_RPC_no_reponse()
 	end	
 	
 	------------7. UnsubscribeWayPoints
+	------------Precondition: SubscribeWayPoints
+	Test[APIName .. "_Precondition_SubscribeWayPoints_SUCCESS"] = function(self)
+		local cid = self.mobileSession:SendRPC("SubscribeWayPoints",
+		{
+		})
+		
+		EXPECT_HMICALL("Navigation.SubscribeWayPoints")
+		:Do(function(_,data)
+			self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+		end)
+		
+		EXPECT_RESPONSE(cid, { success = false, resultCode = "GENERIC_ERROR", info =  "Navigation component does not respond"})
+		:Timeout(TimeoutValue)	
+		
+		EXPECT_NOTIFICATION("OnHashChange")
+		:Timeout(TimeoutValue)			
+	end
+	------------end Precondition	
 	Test[APIName .. "_UnsubscribeWayPoints_no_response"] = function(self)
 		
 		local cid = self.mobileSession:SendRPC("UnsubscribeWayPoints",
