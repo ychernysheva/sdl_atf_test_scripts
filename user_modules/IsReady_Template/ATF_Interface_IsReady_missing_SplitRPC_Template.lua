@@ -839,17 +839,24 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 										end)
 								end
 								
-								--TODO: APPLINK-27931: C;arification is expected
-								--mobile side: expect AddCommand response
-								EXPECT_RESPONSE(cid, { success = false, resultCode = TestData[i].resultCode})
-								:ValidIf (function(_,data)
-									if data.payload.info == "error message, error message 2" or data.payload.info == "error message 2, error message" then
-										return true
-									else
-										commonFunctions:printError(" Expected 'info' = 'error message, error message 2' or 'error message 2, error message'; Actual 'info' = '" .. tostring(data.payload.info) .."'")
-										return false
-									end
-								end)
+								
+								if(mob_request.name == "Alert") then
+									--APPLINK-17008
+									EXPECT_RESPONSE(cid, { success = false, resultCode = "GENERIC_ERROR"})
+								
+								else
+									--TODO: APPLINK-27931: C;arification is expected
+									--mobile side: expect AddCommand response
+									EXPECT_RESPONSE(cid, { success = false, resultCode = TestData[i].resultCode})
+									:ValidIf (function(_,data)
+										if data.payload.info == "error message, error message 2" or data.payload.info == "error message 2, error message" then
+											return true
+										else
+											commonFunctions:printError(" Expected 'info' = 'error message, error message 2' or 'error message 2, error message'; Actual 'info' = '" .. tostring(data.payload.info) .."'")
+											return false
+										end
+									end)
+								end
 
 								--mobile side: expect OnHashChange notification
 								EXPECT_NOTIFICATION("OnHashChange")
