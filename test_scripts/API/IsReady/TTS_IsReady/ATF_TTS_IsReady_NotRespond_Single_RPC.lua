@@ -65,7 +65,6 @@ local function update_sdl_preloaded_pt_json()
 	data.policy_table.functional_groupings["Base-4"]["rpcs"]["SetGlobalProperties"]["hmi_levels"] = {"BACKGROUND", "FULL","LIMITED"}
 	data.policy_table.functional_groupings["Base-4"]["rpcs"]["AlertManeuver"] = {}
 	data.policy_table.functional_groupings["Base-4"]["rpcs"]["AlertManeuver"]["hmi_levels"] = {"BACKGROUND", "FULL","LIMITED"}
-	data.policy_table.app_policies["0000001"].AppHMIType = {"NAVIGATION"}
 	data = json.encode(data)
 	file = io.open(pathToFile, "w")
 	file:write(data)
@@ -626,7 +625,7 @@ local function APPLINK_25131_single_TTS_RPCs(TestCaseName)
 		{success = false, resultCode = "ABORTED", 				expected_resultCode = "ABORTED"},
 		{success = false, resultCode = "IGNORED", 				expected_resultCode = "IGNORED"},
 		{success = false, resultCode = "IN_USE", 				expected_resultCode = "IN_USE"},
-		{success = false, resultCode = "VEHICLE_DATA_NOT_AVAILABLE", expected_resultCode = "VEHICLE_DATA_NOT_AVAILABLE"},
+		--{success = false, resultCode = "VEHICLE_DATA_NOT_AVAILABLE", expected_resultCode = "VEHICLE_DATA_NOT_AVAILABLE"},
 		{success = false, resultCode = "TIMED_OUT", 					expected_resultCode = "TIMED_OUT"},
 		{success = false, resultCode = "INVALID_DATA", 				expected_resultCode = "INVALID_DATA"},
 		{success = false, resultCode = "CHAR_LIMIT_EXCEEDED", 		expected_resultCode = "CHAR_LIMIT_EXCEEDED"},
@@ -642,7 +641,7 @@ local function APPLINK_25131_single_TTS_RPCs(TestCaseName)
 	
 	-- 1. Speak
 	for i = 1, #TestData do	
-		Test[TestCaseName .. "_Speak_OnlyTTSInterface_UNSUPPORTED_RESOURCE_false"] = function(self)
+		Test[TestCaseName .. "_Speak_OnlyTTSInterface_"..TestData[i].resultCode.."_"..tostring(TestData[i].success)] = function(self)
 			commonTestCases:DelayedExp(iTimeout)
 			
 			--mobile side: sending Speak request
@@ -664,10 +663,15 @@ local function APPLINK_25131_single_TTS_RPCs(TestCaseName)
 			:Do(function(_,data)
 				--hmi side: sending response
 				if (TestData[i].resultCode == "") then
-					-- HMI does not respond					
+					-- HMI does not respond		
+					-- EXPECT_RESPONSE(cid, { success = TestData[i].success , resultCode = TestData[i].expected_resultCode})
+					-- :Timeout(iTimeout)
+							
 				else
 					if TestData[i].success == true then 
+						self.hmiConnection:SendNotification("TTS.Started")
 						self.hmiConnection:SendResponse(data.id, data.method, TestData[i].resultCode, {})
+						self.hmiConnection:SendNotification("TTS.Stopped")
 					else
 						self.hmiConnection:SendError(data.id, data.method, TestData[i].resultCode, "error message")
 					end						
@@ -680,83 +684,82 @@ local function APPLINK_25131_single_TTS_RPCs(TestCaseName)
 				
 				EXPECT_RESPONSE(cid, { success = TestData[i].success , resultCode = TestData[i].expected_resultCode })
 				
-				EXPECT_NOTIFICATION("OnHashChange")
+				--EXPECT_NOTIFICATION("OnHashChange")
 				:Timeout(iTimeout)
 				
 			else
 				
 				EXPECT_RESPONSE(cid, { success = TestData[i].success , resultCode = TestData[i].expected_resultCode, info = "error message"})
 				
-				EXPECT_NOTIFICATION("OnHashChange")
-				:Times(0)
+				:Timeout(iTimeout)
 				
 			end
 			
 		end		
 	end
 	-- 2. StopSpeaking
-	for i = 1, #TestData do
-		Test[TestCaseName .. "_StopSpeaking_OnlyTTSInterface_UNSUPPORTED_RESOURCE_false"] = function(self)
-			commonTestCases:DelayedExp(iTimeout)
+	-- for i = 1, #TestData do
+	-- 	Test[TestCaseName .. "_StopSpeaking_OnlyTTSInterface_"..TestData[i].resultCode.."_"..tostring(TestData[i].success)] = function(self)
+	-- 		commonTestCases:DelayedExp(iTimeout)
 			
-			--mobile side: sending Speak request
-			local cid = self.mobileSession:SendRPC("Speak", {ttsChunks =
-				{
-					{text ="Text1", type ="TEXT"},
-					{text ="Text2", type ="TEXT"},
-					{text ="Text3", type ="TEXT"}
-			}}
-			)
+	-- 		--mobile side: sending Speak request
+	-- 		local cid = self.mobileSession:SendRPC("Speak", {ttsChunks =
+	-- 			{
+	-- 				{text ="Text1", type ="TEXT"},
+	-- 				{text ="Text2", type ="TEXT"},
+	-- 				{text ="Text3", type ="TEXT"}
+	-- 		}}
+	-- 		)
 			
-			--hmi side: expect TTS.Speak request
-			EXPECT_HMICALL("TTS.Speak", {ttsChunks =
-				{
-					{text ="Text1", type ="TEXT"},
-					{text ="Text2", type ="TEXT"},
-					{text ="Text3", type ="TEXT"}
-			}})
-			:Do(function(_,data)
-				--hmi side: sending response
-				self.hmiConnection:SendNotification("TTS.Started")
-			end)
-			EXPECT_HMICALL("TTS.StopSpeaking")
-			:Do(function(_,data)
-				if (TestData[i].resultCode == "") then
-					-- HMI does not respond					
-				else
-					if TestData[i].success == true then 
-						self.hmiConnection:SendResponse(data.id, data.method, TestData[i].resultCode, {})
-					else
-						self.hmiConnection:SendError(data.id, data.method, TestData[i].resultCode, "error message")
-					end						
-				end
-			end)
-			--mobile side: expect Speak response and OnHashChange notification
-			if TestData[i].success == true then 
+	-- 		--hmi side: expect TTS.Speak request
+	-- 		EXPECT_HMICALL("TTS.Speak", {ttsChunks =
+	-- 			{
+	-- 				{text ="Text1", type ="TEXT"},
+	-- 				{text ="Text2", type ="TEXT"},
+	-- 				{text ="Text3", type ="TEXT"}
+	-- 		}})
+	-- 		:Do(function(_,data)
+	-- 			--hmi side: sending response
+	-- 			self.hmiConnection:SendNotification("TTS.Started")
+	-- 		end)
+	-- 		EXPECT_HMICALL("TTS.StopSpeaking")
+	-- 		:Do(function(_,data)
+	-- 			if (TestData[i].resultCode == "") then
+	-- 				-- HMI does not respond					
+	-- 			else
+	-- 				if TestData[i].success == true then 
+	-- 					self.hmiConnection:SendResponse(data.id, data.method, TestData[i].resultCode, {})
+	-- 				else
+	-- 					self.hmiConnection:SendError(data.id, data.method, TestData[i].resultCode, "error message")
+	-- 				end						
+	-- 			end
+	-- 		end)
+	-- 		--mobile side: expect Speak response and OnHashChange notification
+	-- 		if TestData[i].success == true then 
 				
-				EXPECT_RESPONSE(cid, { success = TestData[i].success , resultCode = TestData[i].expected_resultCode })
+	-- 			EXPECT_RESPONSE(cid, { success = TestData[i].success , resultCode = TestData[i].expected_resultCode })
 				
-				EXPECT_NOTIFICATION("OnHashChange")
-				:Timeout(iTimeout)
+	-- 			--EXPECT_NOTIFICATION("OnHashChange")
+	-- 			:Timeout(iTimeout)
 				
-			else
+	-- 		else
 				
-				EXPECT_RESPONSE(cid, { success = TestData[i].success , resultCode = TestData[i].expected_resultCode, info = "error message"})
+	-- 			EXPECT_RESPONSE(cid, { success = TestData[i].success , resultCode = TestData[i].expected_resultCode, info = "error message"})
 				
-				EXPECT_NOTIFICATION("OnHashChange")
-				:Times(0)
+	-- 			--EXPECT_NOTIFICATION("OnHashChange")
+	-- 			--:Times(0)
 				
-			end
+	-- 		end
 			
-		end
-	end
+	-- 	end
+	-- end
 	
 end
 local TestData = {
 	--caseID 1-3 are used to checking special cases
 	{caseID = 1, description = "HMI_Does_Not_Repond"},
-	-- {caseID = 2, description = "MissedAllParamaters"},
-	-- {caseID = 3, description = "Invalid_Json"},
+	{caseID = 2, description = "MissedAllParamaters"},
+	{caseID = 3, description = "Invalid_Json"},
 	
 	
 	--caseID 11-14 are used to checking "collerationID" parameter
@@ -764,10 +767,10 @@ local TestData = {
 	--12. IsNonexistent
 	--13. IsWrongType
 	--14. IsNegative 	
-	-- {caseID = 11, description = "collerationID_IsMissed"},
-	-- {caseID = 12, description = "collerationID_IsNonexistent"},
-	-- {caseID = 13, description = "collerationID_IsWrongType"},
-	-- {caseID = 14, description = "collerationID_IsNegative"},
+	{caseID = 11, description = "collerationID_IsMissed"},
+	{caseID = 12, description = "collerationID_IsNonexistent"},
+	{caseID = 13, description = "collerationID_IsWrongType"},
+	{caseID = 14, description = "collerationID_IsNegative"},
 	
 	--caseID 21-27 are used to checking "method" parameter
 	--21. IsMissed
@@ -776,26 +779,26 @@ local TestData = {
 	--24. IsEmpty
 	--25. IsWrongType
 	--26. IsInvalidCharacter - \n, \t, only spaces
-	-- {caseID = 21, description = "method_IsMissed"},
-	-- {caseID = 22, description = "method_IsNotValid"},
-	-- {caseID = 23, description = "method_IsOtherResponse"},
-	-- {caseID = 24, description = "method_IsEmpty"},
-	-- {caseID = 25, description = "method_IsWrongType"},
-	-- {caseID = 26, description = "method_IsInvalidCharacter_Splace"},
-	-- {caseID = 26, description = "method_IsInvalidCharacter_Tab"},
-	-- {caseID = 26, description = "method_IsInvalidCharacter_NewLine"},
+	{caseID = 21, description = "method_IsMissed"},
+	{caseID = 22, description = "method_IsNotValid"},
+	{caseID = 23, description = "method_IsOtherResponse"},
+	{caseID = 24, description = "method_IsEmpty"},
+	{caseID = 25, description = "method_IsWrongType"},
+	{caseID = 26, description = "method_IsInvalidCharacter_Splace"},
+	{caseID = 26, description = "method_IsInvalidCharacter_Tab"},
+	{caseID = 26, description = "method_IsInvalidCharacter_NewLine"},
 	
 	-- --caseID 31-35 are used to checking "resultCode" parameter
 	-- --31. IsMissed
 	-- --32. IsNotExist
 	-- --33. IsEmpty
 	-- --34. IsWrongType
-	-- {caseID = 31, description = "resultCode_IsMissed"},
-	-- {caseID = 32, description = "resultCode_IsNotExist"},
-	-- {caseID = 33, description = "resultCode_IsWrongType"},
-	-- {caseID = 34, description = "resultCode_INVALID_DATA"},
-	-- {caseID = 35, description = "resultCode_DATA_NOT_AVAILABLE"},
-	-- {caseID = 36, description = "resultCode_GENERIC_ERROR"},
+	{caseID = 31, description = "resultCode_IsMissed"},
+	{caseID = 32, description = "resultCode_IsNotExist"},
+	{caseID = 33, description = "resultCode_IsWrongType"},
+	{caseID = 34, description = "resultCode_INVALID_DATA"},
+	{caseID = 35, description = "resultCode_DATA_NOT_AVAILABLE"},
+	{caseID = 36, description = "resultCode_GENERIC_ERROR"},
 	
 	
 	--caseID 41-45 are used to checking "message" parameter
@@ -806,22 +809,22 @@ local TestData = {
 	--45. IsEmpty/IsOutLowerBound
 	--46. IsWrongType
 	--47. IsInvalidCharacter - \n, \t, only spaces
-	-- {caseID = 41, description = "message_IsMissed"},
-	-- {caseID = 42, description = "message_IsLowerBound"},
-	-- {caseID = 43, description = "message_IsUpperBound"},
-	-- {caseID = 44, description = "message_IsOutUpperBound"},
-	-- {caseID = 45, description = "message_IsEmpty_IsOutLowerBound"},
-	-- {caseID = 46, description = "message_IsWrongType"},
-	-- {caseID = 47, description = "message_IsInvalidCharacter_Tab"},
-	-- {caseID = 48, description = "message_IsInvalidCharacter_OnlySpaces"},
-	-- {caseID = 49, description = "message_IsInvalidCharacter_Newline"},
+	{caseID = 41, description = "message_IsMissed"},
+	{caseID = 42, description = "message_IsLowerBound"},
+	{caseID = 43, description = "message_IsUpperBound"},
+	{caseID = 44, description = "message_IsOutUpperBound"},
+	{caseID = 45, description = "message_IsEmpty_IsOutLowerBound"},
+	{caseID = 46, description = "message_IsWrongType"},
+	{caseID = 47, description = "message_IsInvalidCharacter_Tab"},
+	{caseID = 48, description = "message_IsInvalidCharacter_OnlySpaces"},
+	{caseID = 49, description = "message_IsInvalidCharacter_Newline"},
 	
 	
 	--caseID 51-55 are used to checking "available" parameter
 	--51. IsMissed
 	--52. IsWrongType
-	-- {caseID = 51, description = "available_IsMissed"},
-	-- {caseID = 52, description = "available_IsWrongType"}
+	{caseID = 51, description = "available_IsMissed"},
+	{caseID = 52, description = "available_IsWrongType"}
 	
 }
 
@@ -838,6 +841,12 @@ for i=1, #TestData do
 		--Stop SDL
 		Test[tostring(TestCaseName) .. "_Precondition_StopSDL"] = function(self)
 			StopSDL()
+		end
+
+		Test["ForceKill" .. tostring(i)] = function (self)
+			-- body
+			os.execute("ps aux | grep smart | awk \'{print $2}\' | xargs kill -9")
+			os.execute("sleep 1")
 		end
 		
 		--Start SDL
@@ -875,7 +884,7 @@ for i=1, #TestData do
 	StopStartSDL_HMI_MOBILE(TestData[i].caseID, TestCaseName)
 	Test[TestCaseName .. "_RegisterApplication_Check_TTS_Parameters_From_HMI_capabilities_json_resultCode_SUCCESS"] = function(self)
 		
-		commonTestCases:DelayedExp(iTimeout)
+		commonTestCases:DelayedExp(15000)
 		
 		--mobile side: RegisterAppInterface request
 		local CorIdRegister=self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
