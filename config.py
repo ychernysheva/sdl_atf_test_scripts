@@ -29,7 +29,7 @@
 
 work_dir = "~/SmartDeviceLinkCore/"
 
-sdl_repository = "https://github.com/CustomSDL/sdl_panasonic/"
+sdl_repository = "https://github.com/smartdevicelink/sdl_core/"
 sdl_branch = "develop"
 
 atf_repository = "https://github.com/smartdevicelink/sdl_atf/"
