@@ -117,8 +117,8 @@ local allResultCodes = {
 	{success = true, resultCode = "RETRY", 				expected_resultCode = "RETRY", value = 7}, --7
 	{success = true, resultCode = "SAVED", 				expected_resultCode = "SAVED", value = 25}, --25
 	
-	{success = false, resultCode = "", 		expected_resultCode = "INVALID_DATA", value = 11}, 
-	{success = false, resultCode = "ABC", 	expected_resultCode = "INVALID_DATA", value = 11},
+	{success = false, resultCode = "", 		expected_resultCode = "GENERIC_ERROR"}, --not respond
+	{success = false, resultCode = "ABC", 	expected_resultCode = "GENERIC_ERROR"},
 	
 	{success = false, resultCode = "UNSUPPORTED_REQUEST", 	expected_resultCode = "UNSUPPORTED_REQUEST", value = 1}, --1
 	{success = false, resultCode = "UNSUPPORTED_RESOURCE", 	expected_resultCode = "UNSUPPORTED_RESOURCE", value = 2}, --2
@@ -941,8 +941,12 @@ local function sequence_check_Result_Code_split_RPC(successValue, resultCodeValu
 				if (successValue == true) then
 					self.hmiConnection:SendResponse(data.id, data.method, resultCodeValue, {})
 				else
-					--self.hmiConnection:SendError(data.id, data.method, resultCodeValue, "Navigation error message")
-					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"message = "Navigation error message", "method":"'..data.method..'","code":'..HMI_result..'}}')
+					if(HMI_result ~= nil) then 
+						self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"message = "Navigation error message", "method":"'..data.method..'","code":'..HMI_result..'}}')
+					else
+						--self.hmiConnection:SendError(data.id, data.method, resultCodeValue, "Navigation error message")
+						self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"message = "Navigation error message", "method":"'..data.method..'","code":}}')
+					end
 				end
 			end
 			RUN_AFTER(alertResponse, 2000)
@@ -1035,11 +1039,20 @@ local function sequence_check_Result_Code_split_RPC(successValue, resultCodeValu
 			local function speakResponse()
 				if (successValue == true) then
 					--self.hmiConnection:SendResponse(data.id, data.method, resultCodeValue, {})
-					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"'..data.method..'","code":'..HMI_result..'}}')
+					if(HMI_result ~= nil) then
+						self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"'..data.method..'","code":'..HMI_result..'}}')
+					else
+						self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"'..data.method..'","code": }}')
+					end
 
 				else
-					--self.hmiConnection:SendError(data.id, data.method, resultCodeValue, "TTS error message")
-					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"message = "TTS error message", "method":"'..data.method..'","code":'..HMI_result..'}}')
+					if(HMI_result ~= nil) then
+						--self.hmiConnection:SendError(data.id, data.method, resultCodeValue, "TTS error message")
+						self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"message = "TTS error message", "method":"'..data.method..'","code":'..HMI_result..'}}')
+					else
+						--self.hmiConnection:SendError(data.id, data.method, resultCodeValue, "TTS error message")
+						self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"message = "TTS error message", "method":"'..data.method..'","code":}}')
+					end
 				end
 				
 				self.hmiConnection:SendNotification("TTS.Stopped")
@@ -1135,10 +1148,14 @@ local function sequence_check_Result_Code_split_RPC(successValue, resultCodeValu
 								HMI_result_1 = allResultCodes[i].value
 							end
 						end
-						--self.hmiConnection:SendError(data.id, data.method, erroneousResultCodes[k].resultCode, "TTS error message")
-						self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"message":"TTS error message", "method":"'..data.method..'","code":'..HMI_result_1..'}}')
-						--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"'..data.method..'","code":0}}')
-						
+						if(HMI_result_1 ~= nil ) then
+							--self.hmiConnection:SendError(data.id, data.method, erroneousResultCodes[k].resultCode, "TTS error message")
+							self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"message":"TTS error message", "method":"'..data.method..'","code":'..HMI_result_1..'}}')
+							--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"'..data.method..'","code":0}}')
+						else
+							self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"message":"TTS error message", "method":"'..data.method..'","code": }}')
+						end
+							
 						self.hmiConnection:SendNotification("TTS.Stopped")
 					end
 					
@@ -1233,7 +1250,11 @@ local function sequence_check_Result_Code_split_RPC(successValue, resultCodeValu
 							end
 						end
 						--self.hmiConnection:SendResponse(data.id, data.method, successResultCodes[k].resultCode, {})
-						self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"'..data.method..'","code":'..HMI_result_1..'}}')
+						if(HMI_result_1 ~= nil )then
+							self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"'..data.method..'","code":'..HMI_result_1..'}}')
+						else
+							self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"'..data.method..'","code":}}')
+						end
 						
 						self.hmiConnection:SendNotification("TTS.Stopped")
 					end
