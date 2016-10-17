@@ -1,40 +1,36 @@
----------------------------------------------------------------------------------------------
-------------------------------------- General configuration ---------------------------------
----------------------------------------------------------------------------------------------
-Test = require('user_modules/connecttest_TTS_Isready')
-require('cardinalities')
-local events = require('events') 
-local mobile_session = require('mobile_session')
+config.defaultProtocolVersion = 2
 
 ---------------------------------------------------------------------------------------------
 ---------------------------- Required Shared libraries --------------------------------------
 ---------------------------------------------------------------------------------------------
-require('user_modules/AppTypes')
+
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
-local commonPreconditions = require ('/user_modules/shared_testcases/commonPreconditions')
 
----------------------------------------------------------------------------------------------
---------------------------------------- Used variables --------------------------------------
----------------------------------------------------------------------------------------------
 APIName = "TTS.IsReady"
-config.defaultProtocolVersion = 2
+
 DefaultTimeout = 3
 local iTimeout = 10000
+local commonPreconditions = require ('/user_modules/shared_testcases/commonPreconditions')
+
+function DelayedExp()
+	local event = events.Event()
+	event.matches = function(self, e) return self == e end
+	EXPECT_EVENT(event, "Delayed event")
+	RUN_AFTER(function()
+		RAISE_EVENT(event, event)
+	end, 2000)
+end
 
 ---------------------------------------------------------------------------------------------
 ------------------------- General Precondition before ATF start -----------------------------
 ---------------------------------------------------------------------------------------------
--- Remove policy table and log files
-commonSteps:DeleteLogsFileAndPolicyTable()
-
---Make backup copy of file sdl_preloaded_pt.json
+--make backup copy of file sdl_preloaded_pt.json
 commonPreconditions:BackupFile("sdl_preloaded_pt.json")
-
 -- TODO: Remove after implementation policy update
--- Replace preloaded file with new one
+-- Precondition: replace preloaded file with new one
 os.execute('cp ./files/ptu_general.json ' .. tostring(config.pathToSDL) .. "sdl_preloaded_pt.json")
 
 -- Precondition for APPLINK-16307 WARNINGS, true: appID is assigned none empty appHMIType = { "NAVIGATION" }
@@ -77,18 +73,24 @@ local function update_sdl_preloaded_pt_json()
 end
 update_sdl_preloaded_pt_json()
 
+-- Precondition: remove policy table and log files
+commonSteps:DeleteLogsFileAndPolicyTable()
+
+
+---------------------------------------------------------------------------------------------
+---------------------------- General Settings for configuration----------------------------
+---------------------------------------------------------------------------------------------
+Test = require('user_modules/connecttest_TTS_Isready')
+require('cardinalities')
+local events = require('events') 
+local mobile_session = require('mobile_session')
+require('user_modules/AppTypes')
+
+
+
 ---------------------------------------------------------------------------------------------
 -------------------------------------------Common function-----------------------------------
 ---------------------------------------------------------------------------------------------
-
-function DelayedExp()
-	local event = events.Event()
-	event.matches = function(self, e) return self == e end
-	EXPECT_EVENT(event, "Delayed event")
-	RUN_AFTER(function()
-		RAISE_EVENT(event, event)
-	end, 2000)
-end
 
 --Cover APPLINK-25117: [HMI_API] TTS.IsReady
 function Test:initHMI_onReady_TTS_IsReady(case)
@@ -555,9 +557,9 @@ function Test:initHMI_onReady_TTS_IsReady(case)
 	self.hmiConnection:SendNotification("BasicCommunication.OnReady")
 end 
 
------------------------------------------------------------------------------------------------
--------------------------------------------Preconditions---------------------------------------
------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------
+-------------------------------------------Preconditions-------------------------------------
+---------------------------------------------------------------------------------------------
 
 --Not applicable
 
@@ -570,10 +572,10 @@ end
 
 
 
------------------------------------------------------------------------------------------------
-----------------------------------------TEST BLOCK II------------------------------------------
------------------------------Check special cases of Mobile request-----------------------------
------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------
+----------------------------------------TEST BLOCK II-----------------------------------------
+-----------------------------Check special cases of Mobile request----------------------------
+----------------------------------------------------------------------------------------------
 
 -- Not applicable for TTS.IsReady HMI API.
 
@@ -612,35 +614,34 @@ commonFunctions:newTestCasesGroup(TestCaseName)
 local function StopStartSDL_HMI_MOBILE()
 	
 	--Stop SDL
-	--Test[tostring(TestCaseName) .. "_Precondition_StopSDL"] = function(self)
-	Test["Precondition_StopSDL"] = function(self)
+	Test[tostring(TestCaseName) .. "_Precondition_StopSDL"] = function(self)
 		StopSDL()
 	end
 	
 	--Start SDL
-	Test["Precondition_StartSDL"] = function(self)
+	Test[tostring(TestCaseName) .. "_Precondition_StartSDL"] = function(self)
 		StartSDL(config.pathToSDL, config.ExitOnCrash)
 	end
 	
 	--InitHMI
-	Test["Precondition_InitHMI"] = function(self)
+	Test[tostring(TestCaseName) .. "_Precondition_InitHMI"] = function(self)
 		self:initHMI()
 	end
 	
 	
 	--InitHMIonReady: Cover APPLINK-25117: [HMI_API] TTS.IsReady
-	Test["Precondition_initHMI_onReady_TTS_IsReady_" .. tostring(description)] = function(self)
+	Test[tostring(TestCaseName) .. "_initHMI_onReady_TTS_IsReady_" .. tostring(description)] = function(self)
 		self:initHMI_onReady_TTS_IsReady(0)	--	available = false
 	end
 	
 	
 	--ConnectMobile
-	Test["Precondition_ConnectMobile"] = function(self)
+	Test[tostring(TestCaseName) .. "_ConnectMobile"] = function(self)
 		self:connectMobile()
 	end
 	
 	--StartSession
-	Test["Precondition_StartSession"] = function(self)
+	Test[tostring(TestCaseName) .. "_StartSession"] = function(self)
 		self.mobileSession= mobile_session.MobileSession(self, self.mobileConnection)
 		self.mobileSession:StartService(7)
 	end
@@ -650,7 +651,7 @@ end
 
 --ToDo: Due to problem with stop and start SDL (APPLINK-25898), this step is skipped and update user_modules/connecttest_TTS_Isready.lua to send TTS.IsReady(available = false) response manually.
 StopStartSDL_HMI_MOBILE()
-Test["RAI_TTS_Params_Omitted_resultCode_SUCCESS"] = function(self)
+Test[TestCaseName .. "_RegisterApplication_Check_TTS_Parameters_IsOmitted_resultCode_SUCCESS"] = function(self)
 	
 	commonTestCases:DelayedExp(iTimeout)
 	
@@ -677,13 +678,13 @@ Test["RAI_TTS_Params_Omitted_resultCode_SUCCESS"] = function(self)
 	:ValidIf (function(_,data)
 		local errorMessage = ""
 		if data.payload.speechCapabilities then
-			errorMessage = errorMessage .. "SDL must omit TTS-related parameters in response, SDL resends 'speechCapabilities' parameter to mobile app. "
+			errorMessage = errorMessage .. "SDL resends 'speechCapabilities' parameter to mobile app. "
 		end
 		if data.payload.language then
-			errorMessage = errorMessage .. "SDL must omit TTS-related parameters in response, but SDL resends 'language' parameter to mobile app"
+			errorMessage = errorMessage .. "SDL resends 'language' parameter to mobile app"
 		end	
 		if data.payload.prerecordedSpeech then
-			errorMessage = errorMessage .. "SDL must omit TTS-related parameters in response, SDL resends 'prerecordedSpeech' parameter to mobile app"
+			errorMessage = errorMessage .. "SDL resends 'prerecordedSpeech' parameter to mobile app"
 		end	
 		if errorMessage == "" then
 			return true					
@@ -696,13 +697,9 @@ Test["RAI_TTS_Params_Omitted_resultCode_SUCCESS"] = function(self)
 	--mobile side: expect notification
 	self.mobileSession:ExpectNotification("OnHMIStatus", { systemContext="MAIN", hmiLevel="NONE", audioStreamingState="NOT_AUDIBLE"})
 	
-end
-	
+end	
 -- Description: Activation app for precondition
 commonSteps:ActivationApp()
-
-
-
 -----------------------------------------------------------------------------------------------
 --CRQ #2) APPLINK-25140: [TTS Interface] Conditions for SDL to respond 'UNSUPPORTED_RESOURCE, success:false' to mobile app <= SDL receives TTS.IsReady (available=false) from HMI 
 --Verification criteria:
@@ -719,7 +716,7 @@ local Request = {ttsChunks =
 		{text ="Text3", type ="TEXT"}
 }}
 -- 1. Speak		
-Test["Speak_OnlyTTSInterf_UNSUPPORTED_RESOURCE_false"] = function(self)
+Test[TestCaseName .. "_Speak_OnlyTTSInterface_UNSUPPORTED_RESOURCE_false"] = function(self)
 	commonTestCases:DelayedExp(iTimeout)
 	
 	--mobile side: sending Speak request
@@ -734,10 +731,10 @@ Test["Speak_OnlyTTSInterf_UNSUPPORTED_RESOURCE_false"] = function(self)
 	EXPECT_RESPONSE(cid, {success = false, resultCode = "UNSUPPORTED_RESOURCE", info = "TTS is not supported by system"})
 end
 
------------------------------------------------------------------------------------------------
------------------------------------------TEST BLOCK IV-----------------------------------------
-------------------------------Check special cases of HMI response------------------------------
------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------
+-----------------------------------------TEST BLOCK IV----------------------------------------
+------------------------------Check special cases of HMI response-----------------------------
+----------------------------------------------------------------------------------------------
 
 -- These cases are merged into TEST BLOCK III
 
@@ -752,28 +749,30 @@ end
 
 
 
------------------------------------------------------------------------------------------------
------------------------------------------TEST BLOCK VI-----------------------------------------
--------------------------Sequence with emulating of user's action(s)---------------------------
------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------
+-----------------------------------------TEST BLOCK VI----------------------------------------
+-------------------------Sequence with emulating of user's action(s)--------------------------
+----------------------------------------------------------------------------------------------
 
 --Not applicable
 
 
 
------------------------------------------------------------------------------------------------
------------------------------------------TEST BLOCK VII----------------------------------------
---------------------------------------Different HMIStatus--------------------------------------
------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------
+-----------------------------------------TEST BLOCK VII---------------------------------------
+--------------------------------------Different HMIStatus-------------------------------------
+----------------------------------------------------------------------------------------------
 
 -- Not applicable for TTS.IsReady HMI API.
 
 
------------------------------------------------------------------------------------------------
-------------------------------------------Postcondition----------------------------------------
------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------
+------------------------------------------Post-condition--------------------------------------
+----------------------------------------------------------------------------------------------
 
-function Test:Postcondition_RestorePreloadedfile()
+
+function Test:Postcondition_Preloadedfile()
+	print ("restoring sdl_preloaded_pt.json")
 	commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 end
 
