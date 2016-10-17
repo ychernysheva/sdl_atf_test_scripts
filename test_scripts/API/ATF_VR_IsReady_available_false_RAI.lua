@@ -15,8 +15,7 @@ local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
 
 
-DefaultTimeout = 3
-local iTimeout = 10000
+local iTimeout = 3000
 local commonPreconditions = require ('/user_modules/shared_testcases/commonPreconditions')
 
 
@@ -95,7 +94,10 @@ require('user_modules/AppTypes')
 
 --Cover APPLINK-25286: [HMI_API] VR.IsReady
 function Test:initHMI_onReady_VR_IsReady(case)
-	critical(true)
+	
+	--critical(true)
+	commonTestCases:DelayedExp(iTimeout)
+	
 	local function ExpectRequest(name, mandatory, params)
 		
 		
@@ -354,7 +356,7 @@ function Test:initHMI_onReady_VR_IsReady(case)
 			"PT-BR","CS-CZ","DA-DK","NO-NO"
 		}
 	})
-	--:Times(0)
+
 	ExpectRequest("UI.GetSupportedLanguages", true, {
 		languages =
 		{
@@ -363,7 +365,7 @@ function Test:initHMI_onReady_VR_IsReady(case)
 			"PT-BR","CS-CZ","DA-DK","NO-NO"
 		}
 	})
-	--:Times(0)
+
 	ExpectRequest("VehicleInfo.GetVehicleType", true, {
 		vehicleType =
 		{
@@ -373,9 +375,10 @@ function Test:initHMI_onReady_VR_IsReady(case)
 			trim = "SE"
 		}
 	})
-	:Times(0) 
+	
+	
 	ExpectRequest("VehicleInfo.GetVehicleData", true, { vin = "52-452-52-752" })
-	:Times(0)
+	
 	
 	local function button_capability(name, shortPressAvailable, longPressAvailable, upDownAvailable)
 		xmlReporter.AddMessage(debug.getinfo(1, "n").name, tostring(name))
@@ -424,7 +427,6 @@ function Test:initHMI_onReady_VR_IsReady(case)
 			"NEGATIVE_JINGLE"
 		}
 	})
-	--:Times(0)
 	
 	local function text_field(name, characterSet, width, rows)
 		xmlReporter.AddMessage(debug.getinfo(1, "n").name, tostring(name))
@@ -543,7 +545,7 @@ function Test:initHMI_onReady_VR_IsReady(case)
 			imageSupported = true
 		}
 	})
-	--:Times(0)
+
 	
 	ExpectRequest("VR.IsReady", true, { available = true })
 	ExpectRequest("TTS.IsReady", true, { available = true })
@@ -640,788 +642,1156 @@ end
 -- and mobile app sends RegisterAppInterface_request to SDL
 -- and SDL successfully registers this application (see req-s # APPLINK-16420, APPLINK-16251, APPLINK-16250, APPLINK-16249, APPLINK-16320, APPLINK-15686, APPLINK-16307)
 -- SDL must omit <Interface>-related param from response to mobile app (meaning: SDL must NOT retrieve the default values from 'HMI_capabilities.json' file and provide via response to mobile app)		
+
+-- APPLINK-28634 [RegisterAppInterface]: SDL should return "language" param in case VR or TTS interface is not supported
 -----------------------------------------------------------------------------------------------		
 
 
 commonFunctions:newTestCasesGroup("VR_IsReady_response_availabe_false_RegisterApplication_Check_VR_Parameters_IsOmitted")	
 
-StopStartSDL_HMI_MOBILE("Precondition")
 
 
 
---List of resultCodes for RAI: APPLINK-16420 SUCCESS, APPLINK-16251 WRONG_LANGUAGE, APPLINK-16250 WRONG_LANGUAGE languageDesired, APPLINK-16249 WRONG_LANGUAGE hmiDisplayLanguageDesired, APPLINK-16320 UNSUPPORTED_RESOURCE unavailable/not supported component, APPLINK-15686 RESUME_FAILED, APPLINK-16307 WARNINGS, true
-
-
--- APPLINK-16420 SUCCESS
---Precondition: App has not been registered yet.		
-
-function Test:RegisterApplication_Check_VR_Parameters_IsOmitted_resultCode_SUCCESS()
+-- verify both vrCapabilities and language are omitted when both VR and TTS are not supported.
+local function Case1_BothVR_TTS_IsReady_available_false()
 	
-	commonTestCases:DelayedExp(iTimeout)
+	function Test:initHMI_onReady_VR_IsReady1(case)
 	
-	--mobile side: RegisterAppInterface request
-	local CorIdRegister=self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
+	--critical(true)
+	--commonTestCases:DelayedExp(iTimeout)
 	
-	--hmi side: expect BasicCommunication.OnAppRegistered request
-	EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", 
-	{
-		application=
-		{
-			appName=config.application1.registerAppInterfaceParams.appName
-		}
-	})
-	:Do(function(_,data)
-		self.appName=data.params.application.appName
-		self.applications[config.application1.registerAppInterfaceParams.appName]=data.params.application.appID
-	end)
-	
-	
-	--mobile side: expect response
-	-- SDL does not send VR-related param to mobile app	
-	self.mobileSession:ExpectResponse(CorIdRegister, {success=true,resultCode="SUCCESS"})
-	:ValidIf (function(_,data)
-		local errorMessage = ""
-		if data.payload.vrCapabilities then
-			errorMessage = errorMessage .. "SDL resends 'vrCapabilities' parameter to mobile app. "
-		end
-		if data.payload.language then
-			errorMessage = errorMessage .. "SDL resends 'language' parameter to mobile app"
-		end	
+	local function ExpectRequest(name, mandatory, params)
 		
-		if errorMessage == "" then
-			return true					
-		else
-			commonFunctions:printError(errorMessage)
-			return false
-		end
-	end)
-	
-	--mobile side: expect notification
-	self.mobileSession:ExpectNotification("OnHMIStatus", { systemContext="MAIN", hmiLevel="NONE", audioStreamingState="NOT_AUDIBLE"})
-	
-end	
-
-commonSteps:UnregisterApplication("Postcondition_UnregisterApplication_SUCCESS")
-
--- APPLINK-16320 UNSUPPORTED_RESOURCE unavailable/not supported component: It is not applicable for RegisterAppInterface because RegisterAppInterface is not split able request
-
--- APPLINK-16251 WRONG_LANGUAGE
--- APPLINK-16250 WRONG_LANGUAGE languageDesired
-function Test:RegisterApplication_Check_VR_Parameters_IsOmitted_resultCode_WRONG_LANGUAGE()
-	
-	commonTestCases:DelayedExp(iTimeout)
-	
-	--Set language = "RU-RU"
-	local parameters = commonFunctions:cloneTable(config.application1.registerAppInterfaceParams)
-	parameters.languageDesired = "RU-RU"
-	
-	--mobile side: RegisterAppInterface request
-	local CorIdRegister=self.mobileSession:SendRPC("RegisterAppInterface", parameters)
-	
-	--hmi side: expect BasicCommunication.OnAppRegistered request
-	EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", 
-	{
-		application=
-		{
-			appName=config.application1.registerAppInterfaceParams.appName
-		}
-	})
-	:Do(function(_,data)
-		self.appName=data.params.application.appName
-		self.applications[config.application1.registerAppInterfaceParams.appName]=data.params.application.appID
-	end)
-	
-	
-	
-	--mobile side: expect response
-	-- SDL does not send VR-related param to mobile app	
-	self.mobileSession:ExpectResponse(CorIdRegister, {success=true,resultCode="WRONG_LANGUAGE"})
-	:ValidIf (function(_,data)
-		local errorMessage = ""
-		if data.payload.vrCapabilities then
-			errorMessage = errorMessage .. "SDL resends 'vrCapabilities' parameter to mobile app. "
-		end
-		if data.payload.language then
-			errorMessage = errorMessage .. "SDL resends 'language' parameter to mobile app"
-		end	
 		
-		if errorMessage == "" then
-			return true					
-		else
-			commonFunctions:printError(errorMessage)
-			return false
-		end
-	end)
-	
-	--mobile side: expect notification
-	self.mobileSession:ExpectNotification("OnHMIStatus", { systemContext="MAIN", hmiLevel="NONE", audioStreamingState="NOT_AUDIBLE"})
-	
-end	
-
-
-
---APPLINK-16249 WRONG_LANGUAGE hmiDisplayLanguageDesired: It is for UI interface only.
-
-
--- APPLINK-16307 WARNINGS, true
-function Test:RegisterApplication_Check_VR_Parameters_IsOmitted_resultCode_WARNINGS_Precondition_Update_Preload_PT_JSON()
-	
-	--Add AppHMIType = {"NAVIGATION"} for app "0000001"
-	--config.application1.registerAppInterfaceParams.AppHMIType = {"NAVIGATION"}
-	
-	update_sdl_preloaded_pt_json()
-	commonSteps:DeletePolicyTable()
-end
-
-StopStartSDL_HMI_MOBILE("RegisterApplication_Check_VR_Parameters_IsOmitted_resultCode_WARNINGS_Precondition")
-
-function Test:RegisterApplication_Check_VR_Parameters_IsOmitted_resultCode_WARNINGS()
-	
-	commonTestCases:DelayedExp(iTimeout)
-	
-	local parameters = commonFunctions:cloneTable(config.application1.registerAppInterfaceParams)
-	parameters.appHMIType = {"MEDIA"}
-	
-	--mobile side: RegisterAppInterface request
-	local CorIdRegister=self.mobileSession:SendRPC("RegisterAppInterface", parameters)
-	
-	--hmi side: expect BasicCommunication.OnAppRegistered request
-	EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", 
-	{
-		application=
-		{
-			appName=config.application1.registerAppInterfaceParams.appName
-		}
-	})
-	:Do(function(_,data)
-		self.appName=data.params.application.appName
-		self.applications[config.application1.registerAppInterfaceParams.appName]=data.params.application.appID
-	end)
-	
-	
-	--mobile side: expect response
-	-- SDL does not send VR-related param to mobile app	
-	self.mobileSession:ExpectResponse(CorIdRegister, {success=true,resultCode="WARNINGS"})
-	:ValidIf (function(_,data)
-		local errorMessage = ""
-		if data.payload.vrCapabilities then
-			errorMessage = errorMessage .. "SDL resends 'vrCapabilities' parameter to mobile app. "
-		end
-		if data.payload.language then
-			errorMessage = errorMessage .. "SDL resends 'language' parameter to mobile app"
-		end	
 		
-		if errorMessage == "" then
-			return true					
-		else
-			commonFunctions:printError(errorMessage)
-			return false
-		end
-	end)
+		xmlReporter.AddMessage(debug.getinfo(1, "n").name, tostring(name))
+		local event = events.Event()
+		event.level = 2
+		event.matches = function(self, data) return data.method == name end
+		return
+		EXPECT_HMIEVENT(event, name)
+		:Times(mandatory and 1 or AnyNumber())
+		:Do(function(_, data)
+			
+
+				self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", params) 			
+
+			
+			
+			
+		end)
+		
+	end
 	
-	--mobile side: expect notification
-	self.mobileSession:ExpectNotification("OnHMIStatus", { systemContext="MAIN", hmiLevel="NONE", audioStreamingState="NOT_AUDIBLE"})
-	
-end	
-
-
-
--- APPLINK-15686 RESUME_FAILED
---////////////////////////////////////////////////////////////////////////////////////////////--
--- Check absence of resumption in case HashID in RAI is not match
---////////////////////////////////////////////////////////////////////////////////////////////--
-
---Precondition:
-commonSteps:UnregisterApplication("Precondition_for_checking_RESUME_FAILED_UnregisterApp")
-commonSteps:RegisterAppInterface("Precondition_for_checking_RESUME_FAILED_RegisterApp")
-commonSteps:ActivationApp(_, "Precondition_for_checking_RESUME_FAILED_ActivateApp")	
-
-
-function Test:Precondition_for_checking_RESUME_SUCCESS_AddResumptionData_AddCommand()
-	
-	commonTestCases:DelayedExp(iTimeout)
-	
-	--mobile side: sending AddCommand request
-	local cid = self.mobileSession:SendRPC("AddCommand",
+	ExpectRequest("BasicCommunication.MixingAudioSupported",
+	true,
+	{ attenuatedSupported = true })
+	ExpectRequest("BasicCommunication.GetSystemInfo", false,
 	{
-		cmdID = 1,
-		menuParams = 	
-		{
-			position = 0,
-			menuName ="Command 1"
-		}, 
-		vrCommands = {"VRCommand 1"}
+		ccpu_version = "ccpu_version",
+		language = "EN-US",
+		wersCountryCode = "wersCountryCode"
 	})
-	
-	--hmi side: expect UI.AddCommand request 
-	EXPECT_HMICALL("UI.AddCommand", 
-	{ 
-		cmdID = 1,		
-		menuParams = 
-		{
-			position = 0,
-			menuName ="Command 1"
-		}
-	})
-	:Do(function(_,data)
-		--hmi side: sending UI.AddCommand response 
-		self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-	end)
-	
-	--hmi side: expect VR.AddCommand request 
-	EXPECT_HMICALL("VR.AddCommand", {})
+	ExpectRequest("UI.GetLanguage", true, { language = "EN-US" })
+	ExpectRequest("VR.GetLanguage", true, { language = "EN-US" })
 	:Times(0)
 	
+	ExpectRequest("TTS.GetLanguage", true, { language = "EN-US" })
+	:Times(0)
 	
-	--mobile side: expect AddCommand response
-	EXPECT_RESPONSE(cid, {success = true, resultCode = "UNSUPPORTED_RESOURCE", info = "VR is not supported by system"})
-	:Timeout(iTimeout)
-	:Do(function()
-		--mobile side: expect OnHashChange notification
-		--Requirement id in JAMA/or Jira ID: APPLINK-15682
-		--[Data Resumption]: OnHashChange
-		EXPECT_NOTIFICATION("OnHashChange")
-		:Do(function(_, data)
-			self.currentHashID = data.payload.hashID
-		end)
+	ExpectRequest("UI.ChangeRegistration", false, { }):Pin()
+	ExpectRequest("TTS.SetGlobalProperties", false, { }):Pin()
+	ExpectRequest("BasicCommunication.UpdateDeviceList", false, { }):Pin()
+	ExpectRequest("VR.ChangeRegistration", false, { }):Pin()
+	
+	ExpectRequest("TTS.ChangeRegistration", false, { }):Pin()
+	ExpectRequest("VR.GetSupportedLanguages", true, {
+		languages =
+		{
+			"EN-US","ES-MX","FR-CA","DE-DE","ES-ES","EN-GB","RU-RU","TR-TR","PL-PL",
+			"FR-FR","IT-IT","SV-SE","PT-PT","NL-NL","ZH-TW","JA-JP","AR-SA","KO-KR",
+			"PT-BR","CS-CZ","DA-DK","NO-NO"
+		}
+	})
+	:Times(0)
+	
+	ExpectRequest("TTS.GetSupportedLanguages", true, {
+		languages =
+		{
+			"EN-US","ES-MX","FR-CA","DE-DE","ES-ES","EN-GB","RU-RU","TR-TR","PL-PL",
+			"FR-FR","IT-IT","SV-SE","PT-PT","NL-NL","ZH-TW","JA-JP","AR-SA","KO-KR",
+			"PT-BR","CS-CZ","DA-DK","NO-NO"
+		}
+	})
+	:Times(0)
+	
+	ExpectRequest("UI.GetSupportedLanguages", true, {
+		languages =
+		{
+			"EN-US","ES-MX","FR-CA","DE-DE","ES-ES","EN-GB","RU-RU","TR-TR","PL-PL",
+			"FR-FR","IT-IT","SV-SE","PT-PT","NL-NL","ZH-TW","JA-JP","AR-SA","KO-KR",
+			"PT-BR","CS-CZ","DA-DK","NO-NO"
+		}
+	})
+
+	ExpectRequest("VehicleInfo.GetVehicleType", true, {
+		vehicleType =
+		{
+			make = "Ford",
+			model = "Fiesta",
+			modelYear = "2013",
+			trim = "SE"
+		}
+	})
+	
+	
+	ExpectRequest("VehicleInfo.GetVehicleData", true, { vin = "52-452-52-752" })
+	
+	
+	local function button_capability(name, shortPressAvailable, longPressAvailable, upDownAvailable)
+		xmlReporter.AddMessage(debug.getinfo(1, "n").name, tostring(name))
+		return
+		{
+			name = name,
+			shortPressAvailable = shortPressAvailable == nil and true or shortPressAvailable,
+			longPressAvailable = longPressAvailable == nil and true or longPressAvailable,
+			upDownAvailable = upDownAvailable == nil and true or upDownAvailable
+		}
+	end
+	local buttons_capabilities =
+	{
+		capabilities =
+		{
+			button_capability("PRESET_0"),
+			button_capability("PRESET_1"),
+			button_capability("PRESET_2"),
+			button_capability("PRESET_3"),
+			button_capability("PRESET_4"),
+			button_capability("PRESET_5"),
+			button_capability("PRESET_6"),
+			button_capability("PRESET_7"),
+			button_capability("PRESET_8"),
+			button_capability("PRESET_9"),
+			button_capability("OK", true, false, true),
+			button_capability("SEEKLEFT"),
+			button_capability("SEEKRIGHT"),
+			button_capability("TUNEUP"),
+			button_capability("TUNEDOWN")
+		},
+		presetBankCapabilities = { onScreenPresetsAvailable = true }
+	}
+	ExpectRequest("Buttons.GetCapabilities", true, buttons_capabilities)
+	ExpectRequest("VR.GetCapabilities", true, { vrCapabilities = { "TEXT" } })
+	:Times(0)
+	
+	ExpectRequest("TTS.GetCapabilities", true, {
+		speechCapabilities = { "TEXT", "PRE_RECORDED" },
+		prerecordedSpeechCapabilities =
+		{
+			"HELP_JINGLE",
+			"INITIAL_JINGLE",
+			"LISTEN_JINGLE",
+			"POSITIVE_JINGLE",
+			"NEGATIVE_JINGLE"
+		}
+	})
+	:Times(0)
+	
+	local function text_field(name, characterSet, width, rows)
+		xmlReporter.AddMessage(debug.getinfo(1, "n").name, tostring(name))
+		return
+		{
+			name = name,
+			characterSet = characterSet or "TYPE2SET",
+			width = width or 500,
+			rows = rows or 1
+		}
+	end
+	local function image_field(name, width, heigth)
+		xmlReporter.AddMessage(debug.getinfo(1, "n").name, tostring(name))
+		return
+		{
+			name = name,
+			imageTypeSupported =
+			{
+				"GRAPHIC_BMP",
+				"GRAPHIC_JPEG",
+				"GRAPHIC_PNG"
+			},
+			imageResolution =
+			{
+				resolutionWidth = width or 64,
+				resolutionHeight = height or 64
+			}
+		}
+		
+	end
+	
+	ExpectRequest("UI.GetCapabilities", true, {
+		displayCapabilities =
+		{
+			displayType = "GEN2_8_DMA",
+			textFields =
+			{
+				text_field("mainField1"),
+				text_field("mainField2"),
+				text_field("mainField3"),
+				text_field("mainField4"),
+				text_field("statusBar"),
+				text_field("mediaClock"),
+				text_field("mediaTrack"),
+				text_field("alertText1"),
+				text_field("alertText2"),
+				text_field("alertText3"),
+				text_field("scrollableMessageBody"),
+				text_field("initialInteractionText"),
+				text_field("navigationText1"),
+				text_field("navigationText2"),
+				text_field("ETA"),
+				text_field("totalDistance"),
+				text_field("navigationText"),
+				text_field("audioPassThruDisplayText1"),
+				text_field("audioPassThruDisplayText2"),
+				text_field("sliderHeader"),
+				text_field("sliderFooter"),
+				text_field("notificationText"),
+				text_field("menuName"),
+				text_field("secondaryText"),
+				text_field("tertiaryText"),
+				text_field("timeToDestination"),
+				text_field("turnText"),
+				text_field("menuTitle")
+			},
+			imageFields =
+			{
+				image_field("softButtonImage"),
+				image_field("choiceImage"),
+				image_field("choiceSecondaryImage"),
+				image_field("vrHelpItem"),
+				image_field("turnIcon"),
+				image_field("menuIcon"),
+				image_field("cmdIcon"),
+				image_field("showConstantTBTIcon"),
+				image_field("showConstantTBTNextTurnIcon")
+			},
+			mediaClockFormats =
+			{
+				"CLOCK1",
+				"CLOCK2",
+				"CLOCK3",
+				"CLOCKTEXT1",
+				"CLOCKTEXT2",
+				"CLOCKTEXT3",
+				"CLOCKTEXT4"
+			},
+			graphicSupported = true,
+			imageCapabilities = { "DYNAMIC", "STATIC" },
+			templatesAvailable = { "TEMPLATE" },
+			screenParams =
+			{
+				resolution = { resolutionWidth = 800, resolutionHeight = 480 },
+				touchEventAvailable =
+				{
+					pressAvailable = true,
+					multiTouchAvailable = true,
+					doublePressAvailable = false
+				}
+			},
+			numCustomPresetsAvailable = 10
+		},
+		audioPassThruCapabilities =
+		{
+			samplingRate = "44KHZ",
+			bitsPerSample = "8_BIT",
+			audioType = "PCM"
+		},
+		hmiZoneCapabilities = "FRONT",
+		softButtonCapabilities =
+		{
+			shortPressAvailable = true,
+			longPressAvailable = true,
+			upDownAvailable = true,
+			imageSupported = true
+		}
+	})
+
+	
+	ExpectRequest("VR.IsReady", true, { available = false })
+	ExpectRequest("TTS.IsReady", true, { available = false })
+	ExpectRequest("UI.IsReady", true, { available = true })
+	ExpectRequest("Navigation.IsReady", true, { available = true })
+	ExpectRequest("VehicleInfo.IsReady", true, { available = true }) 
+	
+	self.applications = { }
+	ExpectRequest("BasicCommunication.UpdateAppList", false, { })
+	:Pin()
+	:Do(function(_, data)
+		self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", { })
+		self.applications = { }
+		for _, app in pairs(data.params.applications) do
+			self.applications[app.appName] = app.appID
+		end
 	end)
 	
+	self.hmiConnection:SendNotification("BasicCommunication.OnReady")
+end 
+
+
+	local function StopStartSDL_HMI_MOBILE1(TestCaseName)
+		
+		--Stop SDL
+		Test[tostring(TestCaseName) .. "_Precondition_StopSDL"] = function(self)
+			StopSDL()
+		end
+		
+		--Start SDL
+		Test[tostring(TestCaseName) .. "_Precondition_StartSDL"] = function(self)
+			StartSDL(config.pathToSDL, config.ExitOnCrash)
+		end
+		
+		--InitHMI
+		Test[tostring(TestCaseName) .. "_Precondition_InitHMI"] = function(self)
+			self:initHMI()
+		end
+		
+		
+		--InitHMIonReady: Cover APPLINK-25286: [HMI_API] VR.IsReady
+		Test[tostring(TestCaseName) .. "_initHMI_onReady_VR_IsReady_" .. tostring(description)] = function(self)
+			
+			self:initHMI_onReady_VR_IsReady1(0)	--	available = false
+		end
+		
+		
+		--ConnectMobile
+		Test[tostring(TestCaseName) .. "_ConnectMobile"] = function(self)
+			self:connectMobile()
+		end
+		
+		--StartSession
+		Test[tostring(TestCaseName) .. "_StartSession"] = function(self)
+			self.mobileSession= mobile_session.MobileSession(self, self.mobileConnection)
+			self.mobileSession:StartService(7)
+		end
+		
+	end
+
+
+	StopStartSDL_HMI_MOBILE1("BothVR_TTS_IsReady_available_false_prepcondition")
+
+	function Test:RegisterApplication_BothVR_TTS_IsReady_available_false()
+		
+
+		--commonTestCases:DelayedExp(iTimeout)
+		
+		--mobile side: RegisterAppInterface request
+		local CorIdRegister = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
+		
+		
+		--hmi side: expect BasicCommunication.OnAppRegistered request
+		EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", 
+		{
+			application=
+			{
+				appName=config.application1.registerAppInterfaceParams.appName
+			}
+		})
+		:Do(function(_,data)
+			self.appName=data.params.application.appName
+			self.applications[config.application1.registerAppInterfaceParams.appName]=data.params.application.appID
+		end)
+		
+		
+		
+		--mobile side: expect response
+		-- SDL does not send VR-related param to mobile app	
+		self.mobileSession:ExpectResponse(CorIdRegister, {success=true,resultCode="SUCCESS"})
+		:ValidIf (function(_,data)
+			local errorMessage = ""
+
+			if data.payload.vrCapabilities then
+				errorMessage = errorMessage .. "SDL resends 'vrCapabilities' parameter to mobile app. "
+			end
+			if data.payload.language then
+				errorMessage = errorMessage .. "SDL resends 'language' parameter to mobile app"
+			end	
+			
+			if errorMessage == "" then
+				return true					
+			else
+				commonFunctions:printError(errorMessage)
+				return false
+			end
+		end)
+		
+		--mobile side: expect notification
+		self.mobileSession:ExpectNotification("OnHMIStatus", { systemContext="MAIN", hmiLevel="NONE", audioStreamingState="NOT_AUDIBLE"})
+		
+	end	
+
+
+
 end
 
-function Test:Precondition_for_checking_RESUME_SUCCESS_AddResumptionData_CreateInteractionChoiceSet()
-	--mobile side: sending CreateInteractionChoiceSet request
-	local cid = self.mobileSession:SendRPC("CreateInteractionChoiceSet",
-	{
-		interactionChoiceSetID = 1,
-		choiceSet = 
-		{ 
+
+Case1_BothVR_TTS_IsReady_available_false()
+
+
+
+
+
+
+local function Case2_Only_VR_IsReady_available_false()
+
+	StopStartSDL_HMI_MOBILE("Precondition")
+
+
+
+	--List of resultCodes for RAI: APPLINK-16420 SUCCESS, APPLINK-16251 WRONG_LANGUAGE, APPLINK-16250 WRONG_LANGUAGE languageDesired, APPLINK-16249 WRONG_LANGUAGE hmiDisplayLanguageDesired, APPLINK-16320 UNSUPPORTED_RESOURCE unavailable/not supported component, APPLINK-15686 RESUME_FAILED, APPLINK-16307 WARNINGS, true
+
+	commonFunctions:newTestCasesGroup("RegisterAppInterface SUCCESS")	
+
+	-- APPLINK-16420 SUCCESS
+	--Precondition: App has not been registered yet.		
+
+	function Test:RegisterApplication_Check_VR_Parameters_IsOmitted_resultCode_SUCCESS()
+		
+		commonTestCases:DelayedExp(iTimeout)
+		
+		--mobile side: RegisterAppInterface request
+		local CorIdRegister=self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
+		
+		--hmi side: expect BasicCommunication.OnAppRegistered request
+		EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", 
+		{
+			application=
+			{
+				appName=config.application1.registerAppInterfaceParams.appName
+			}
+		})
+		:Do(function(_,data)
+			self.appName=data.params.application.appName
+			self.applications[config.application1.registerAppInterfaceParams.appName]=data.params.application.appID
+		end)
+		
+		
+		--mobile side: expect response
+		-- SDL does not send VR-related param to mobile app	
+		self.mobileSession:ExpectResponse(CorIdRegister, {success=true,resultCode="SUCCESS", language = "EN-US"})
+		:ValidIf (function(_,data)
+			local errorMessage = ""
+			if data.payload.vrCapabilities then
+				errorMessage = errorMessage .. "SDL resends 'vrCapabilities' parameter to mobile app. "
+			end
+
+			if errorMessage == "" then
+				return true					
+			else
+				commonFunctions:printError(errorMessage)
+				return false
+			end
+		end)
+		
+		--mobile side: expect notification
+		self.mobileSession:ExpectNotification("OnHMIStatus", { systemContext="MAIN", hmiLevel="NONE", audioStreamingState="NOT_AUDIBLE"})
+		
+	end	
+
+	commonSteps:UnregisterApplication("Postcondition_UnregisterApplication_SUCCESS")
+
+	
+	commonFunctions:newTestCasesGroup("RegisterAppInterface WRONG_LANGUAGE")	
+	
+	-- APPLINK-16320 UNSUPPORTED_RESOURCE unavailable/not supported component: It is not applicable for RegisterAppInterface because RegisterAppInterface is not split able request
+
+	-- APPLINK-16251 WRONG_LANGUAGE
+	-- APPLINK-16250 WRONG_LANGUAGE languageDesired
+	function Test:RegisterApplication_Check_VR_Parameters_IsOmitted_resultCode_WRONG_LANGUAGE()
+		
+		commonTestCases:DelayedExp(iTimeout)
+		
+		--Set language = "RU-RU"
+		local parameters = commonFunctions:cloneTable(config.application1.registerAppInterfaceParams)
+		parameters.languageDesired = "RU-RU"
+		
+		--mobile side: RegisterAppInterface request
+		local CorIdRegister=self.mobileSession:SendRPC("RegisterAppInterface", parameters)
+		
+		--hmi side: expect BasicCommunication.OnAppRegistered request
+		EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", 
+		{
+			application=
+			{
+				appName=config.application1.registerAppInterfaceParams.appName
+			}
+		})
+		:Do(function(_,data)
+			self.appName=data.params.application.appName
+			self.applications[config.application1.registerAppInterfaceParams.appName]=data.params.application.appID
+		end)
+		
+		
+		
+		--mobile side: expect response
+		-- SDL does not send VR-related param to mobile app	
+		self.mobileSession:ExpectResponse(CorIdRegister, {success=true,resultCode="WRONG_LANGUAGE", language = "EN-US"})
+		:ValidIf (function(_,data)
+			local errorMessage = ""
+			if data.payload.vrCapabilities then
+				errorMessage = errorMessage .. "SDL resends 'vrCapabilities' parameter to mobile app. "
+			end
 			
-			{ 
-				choiceID = 1,
-				menuName = "Choice 1",
-				vrCommands = 
-				{ 
-					"VrChoice 1",
+			if errorMessage == "" then
+				return true					
+			else
+				commonFunctions:printError(errorMessage)
+				return false
+			end
+		end)
+		
+		--mobile side: expect notification
+		self.mobileSession:ExpectNotification("OnHMIStatus", { systemContext="MAIN", hmiLevel="NONE", audioStreamingState="NOT_AUDIBLE"})
+		
+	end	
+
+
+
+	--APPLINK-16249 WRONG_LANGUAGE hmiDisplayLanguageDesired: It is for UI interface only.
+
+	
+
+	commonFunctions:newTestCasesGroup("RegisterAppInterface RESUME_SUCCESS")
+	-- APPLINK-15686 RESUME_FAILED
+	--////////////////////////////////////////////////////////////////////////////////////////////--
+	-- Check absence of resumption in case HashID in RAI is not match
+	--////////////////////////////////////////////////////////////////////////////////////////////--
+
+	--Precondition:
+	commonSteps:UnregisterApplication("Precondition_for_checking_RESUME_SUCCESS_UnregisterApp")
+	commonSteps:RegisterAppInterface("Precondition_for_checking_RESUME_SUCCESS_RegisterApp")
+	commonSteps:ActivationApp(_, "Precondition_for_checking_RESUME_SUCCESS_ActivateApp")	
+
+
+	function Test:Precondition_for_checking_RESUME_SUCCESS_AddResumptionData_AddCommand()
+		
+		commonTestCases:DelayedExp(iTimeout)
+		
+		--mobile side: sending AddCommand request
+		local cid = self.mobileSession:SendRPC("AddCommand",
+		{
+			cmdID = 1,
+			menuParams = 	
+			{
+				position = 0,
+				menuName ="Command 1"
+			}, 
+			vrCommands = {"VRCommand 1"}
+		})
+		
+		--hmi side: expect UI.AddCommand request 
+		EXPECT_HMICALL("UI.AddCommand", 
+		{ 
+			cmdID = 1,		
+			menuParams = 
+			{
+				position = 0,
+				menuName ="Command 1"
+			}
+		})
+		:Do(function(_,data)
+			--hmi side: sending UI.AddCommand response 
+			self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+		end)
+		
+		--hmi side: expect VR.AddCommand request 
+		EXPECT_HMICALL("VR.AddCommand", {})
+		:Times(0)
+		
+		
+		--mobile side: expect AddCommand response
+		EXPECT_RESPONSE(cid, {success = true, resultCode = "UNSUPPORTED_RESOURCE", info = "VR is not supported by system"})
+		:Timeout(iTimeout)
+		:Do(function()
+			--mobile side: expect OnHashChange notification
+			--Requirement id in JAMA/or Jira ID: APPLINK-15682
+			--[Data Resumption]: OnHashChange
+			EXPECT_NOTIFICATION("OnHashChange")
+			:Do(function(_, data)
+				self.currentHashID = data.payload.hashID
+			end)
+		end)
+		
+	end
+
+	-- CreateInteractionChoiceSet: can not created ChoiceSet because VR is not supported. This RPC is single so SDL always responds info":"VR is not supported by system","resultCode":"UNSUPPORTED_RESOURCE","success":false
+
+	function Test:Precondition_for_checking_RESUME_SUCCESS_AddResumptionData_AddSubMenu()
+		
+		--mobile side: sending AddSubMenu request
+		local cid = self.mobileSession:SendRPC("AddSubMenu",
+		{
+			menuID = 1,
+			position = 500,
+			menuName = "SubMenupositive 1"
+		})
+		
+		--hmi side: expect UI.AddSubMenu request
+		EXPECT_HMICALL("UI.AddSubMenu", 
+		{ 
+			menuID = 1,
+			menuParams = {
+				position = 500,
+				menuName = "SubMenupositive 1"
+			}
+		})
+		:Do(function(_,data)
+			--hmi side: sending UI.AddSubMenu response
+			self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+		end)
+		
+		--mobile side: expect AddSubMenu response
+		EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
+		:Do(function()
+			--mobile side: expect OnHashChange notification
+			
+			--Requirement id in JAMA/or Jira ID: APPLINK-15682
+			--[Data Resumption]: OnHashChange
+			EXPECT_NOTIFICATION("OnHashChange")
+			:Do(function(_, data)
+				self.currentHashID = data.payload.hashID
+			end)
+		end)
+	end
+
+	function Test:Precondition_for_checking_RESUME_SUCCESS_AddResumptionData_SetGlobalProperites()
+		
+		--mobile side: sending SetGlobalProperties request
+		local cid = self.mobileSession:SendRPC("SetGlobalProperties",
+		{
+			menuTitle = "Menu Title",
+			timeoutPrompt = 
+			{
+				{
+					text = "Timeout prompt",
+					type = "TEXT"
+				}
+			},
+			vrHelp = 
+			{
+				{
+					position = 1,
+					text = "VR help item"
+				}
+			},
+			helpPrompt = 
+			{
+				{
+					text = "Help prompt",
+					type = "TEXT"
+				}
+			},
+			vrHelpTitle = "VR help title",
+		})
+		
+		
+		--hmi side: expect TTS.SetGlobalProperties request
+		EXPECT_HMICALL("TTS.SetGlobalProperties",
+		{
+			timeoutPrompt = 
+			{
+				{
+					text = "Timeout prompt",
+					type = "TEXT"
+				}
+			},
+			helpPrompt = 
+			{
+				{
+					text = "Help prompt",
+					type = "TEXT"
 				}
 			}
-		}
-	})
-	
-	
-	--hmi side: expect VR.AddCommand request
-	EXPECT_HMICALL("VR.AddCommand", 
-	{ 
-		cmdID = 1,
-		appID = self.applications[config.application1.registerAppInterfaceParams.appName],
-		type = "Choice",
-		vrCommands = {"VrChoice 1"}
-	})
-	:Do(function(_,data)
-		--hmi side: sending VR.AddCommand response
-		grammarIDValue = data.params.grammarID
-		self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-	end)
-	
-	--mobile side: expect CreateInteractionChoiceSet response
-	EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
-	:Do(function(_,data)
+		})
+		:Do(function(_,data)
+			--hmi side: sending UI.SetGlobalProperties response
+			self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+		end)
+		
+		--hmi side: expect UI.SetGlobalProperties request
+		EXPECT_HMICALL("UI.SetGlobalProperties",
+		{
+			menuTitle = "Menu Title",
+			vrHelp = 
+			{
+				{
+					position = 1,
+					text = "VR help item"
+				}
+			},
+			vrHelpTitle = "VR help title"
+		})
+		:Do(function(_,data)
+			--hmi side: sending UI.SetGlobalProperties response
+			self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+		end)
+		
+		
+		--mobile side: expect SetGlobalProperties response
+		EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})
+		:Do(function(_,data)
+			
+			--Requirement id in JAMA/or Jira ID: APPLINK-15682
+			--[Data Resumption]: OnHashChange
+			EXPECT_NOTIFICATION("OnHashChange")
+			:Do(function(_, data)
+				self.currentHashID = data.payload.hashID
+			end)
+		end)
+	end
+
+	function Test:Precondition_for_checking_RESUME_SUCCESS_AddResumptionData_SubscribeButton()
+		
+		--mobile side: sending SubscribeButton request
+		local cid = self.mobileSession:SendRPC("SubscribeButton", {buttonName = "PRESET_0"})
+		
+		--expect Buttons.OnButtonSubscription
+		EXPECT_HMINOTIFICATION("Buttons.OnButtonSubscription", 
+		{
+			appID = self.applications[config.application1.registerAppInterfaceParams.appName], 
+			isSubscribed = true, 
+			name = "PRESET_0"
+		})
+		
+		--mobile side: expect SubscribeButton response
+		EXPECT_RESPONSE(cid, {success = true, resultCode = "SUCCESS"})
+		:Do(function(_,data)
+			
+			--Requirement id in JAMA/or Jira ID: APPLINK-15682
+			--[Data Resumption]: OnHashChange
+			EXPECT_NOTIFICATION("OnHashChange")
+			:Do(function(_, data)
+				self.currentHashID = data.payload.hashID
+			end)
+		end)
+	end
+
+	function Test:Precondition_for_checking_RESUME_SUCCESS_AddResumptionData_SubscribeVehicleData()
+		
+		--mobile side: sending SubscribeVehicleData request
+		local cid = self.mobileSession:SendRPC("SubscribeVehicleData",{gps = true})
+		
+		--hmi side: expect SubscribeVehicleData request
+		EXPECT_HMICALL("VehicleInfo.SubscribeVehicleData",{gps = true})
+		:Do(function(_,data)
+			--hmi side: sending VehicleInfo.SubscribeVehicleData response
+			self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", { gps = { resultCode = "SUCCESS", dataType = "VEHICLEDATA_GPS"}})	
+		end)
+		
+		--mobile side: expect SubscribeVehicleData response
+		EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})
+		:Do(function(_,data)
+			
+			--mobile side: expect OnHashChange notification
+			--Requirement id in JAMA/or Jira ID: APPLINK-15682
+			--[Data Resumption]: OnHashChange
+			EXPECT_NOTIFICATION("OnHashChange")
+			:Do(function(_, data)
+				self.currentHashID = data.payload.hashID
+			end)
+		end)
+	end
+
+	function Test:Precondition_for_checking_RESUME_SUCCESS_AddResumptionData_SubscribeWayPoints()
+		
+		local cid = self.mobileSession:SendRPC("SubscribeWayPoints", {})
+		
+		--hmi side: expected SubscribeWayPoints request
+		EXPECT_HMICALL("Navigation.SubscribeWayPoints")
+		:Do(function(_,data)
+			--hmi side: sending Navigation.SubscribeWayPoints response
+			self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+		end)
+		
+		--mobile side: SubscribeWayPoints response
+		EXPECT_RESPONSE(cid, {success = true , resultCode = "SUCCESS"})
+		:Do(function(_,data)
+			--Requirement id in JAMA/or Jira ID: APPLINK-15682
+			--[Data Resumption]: OnHashChange
+			
+			--userPrint(31,"DEFECT ID: APPLINK-25808")
+			EXPECT_NOTIFICATION("OnHashChange")
+			:Do(function(_, data)
+				self.currentHashID = data.payload.hashID
+			end)
+		end)
+	end
+
+	function Test:Precondition_for_checking_RESUME_SUCCESS_CloseConnection()
+		self.mobileConnection:Close() 
+	end
+
+	function Test:Precondition_for_checking_RESUME_SUCCESS_ConnectMobile()
+		self:connectMobile()
+	end
+
+	function Test:Precondition_for_checking_RESUME_SUCCESS_StartSession()
+		self.mobileSession = mobile_session.MobileSession(
+		self,
+		self.mobileConnection,
+		config.application1.registerAppInterfaceParams)
+		
+		self.mobileSession:StartService(7)
+	end
+
+	function Test:RegisterApplication_Check_VR_Parameters_IsOmitted_resultCode_RESUME_SUCCESS()
+		
+		commonTestCases:DelayedExp(iTimeout)
+		
+		local parameters = commonFunctions:cloneTable(config.application1.registerAppInterfaceParams)
+		parameters.hashID = self.currentHashID
+		
+		--mobile side: RegisterAppInterface request
+		local CorIdRegister=self.mobileSession:SendRPC("RegisterAppInterface", parameters)
+		
+		--hmi side: expect BasicCommunication.OnAppRegistered request
+		EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", 
+		{
+			application=
+			{
+				appName=config.application1.registerAppInterfaceParams.appName
+			}
+		})
+		:Do(function(_,data)
+			self.appName=data.params.application.appName
+			self.applications[config.application1.registerAppInterfaceParams.appName]=data.params.application.appID
+		end)
+		
+		
+		--mobile side: expect response
+		-- SDL does not send VR-related param to mobile app	
+		self.mobileSession:ExpectResponse(CorIdRegister, {success=true,resultCode="SUCCESS", language = "EN-US"})
+		:ValidIf (function(_,data)
+			local errorMessage = ""
+			if data.payload.vrCapabilities then
+				errorMessage = errorMessage .. "SDL resends 'vrCapabilities' parameter to mobile app. "
+			end
+			
+			if errorMessage == "" then
+				return true					
+			else
+				commonFunctions:printError(errorMessage)
+				return false
+			end
+		end)
+		
+		
+		--hmi side: expect BasicCommunication.ActivateApp request
+		EXPECT_HMICALL("BasicCommunication.ActivateApp", {})
+		:Do(function(_,data)
+			--hmi side: sending response
+			self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+		end)
+				
+		
+		--mobile side: OnHMIStatus notification
+		EXPECT_NOTIFICATION("OnHMIStatus",
+			{systemContext="MAIN", hmiLevel="NONE", audioStreamingState="NOT_AUDIBLE"}, 
+			{systemContext="MAIN", hmiLevel="FULL", audioStreamingState="AUDIBLE"}
+		)
+		:Times(2)
+		:Timeout(12000)	
+		
+		--hmi side: expect UI.AddCommand request 
+		EXPECT_HMICALL("UI.AddCommand", 
+		{ 
+			cmdID = 1,		
+			menuParams = 
+			{
+				position = 0,
+				menuName ="Command 1"
+			}
+		})
+		:Do(function(_,data)
+			--hmi side: sending UI.AddCommand response 
+			self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+		end)
+		
+		
+		EXPECT_HMICALL("VR.AddCommand")
+		:Times(0)
+		
+		--hmi side: expect UI.AddSubMenu request
+		EXPECT_HMICALL("UI.AddSubMenu", 
+		{ 
+			menuID = 1,
+			menuParams = {
+				position = 500,
+				menuName = "SubMenupositive 1"
+			}
+		})
+		:Do(function(_,data)
+			--hmi side: sending UI.AddSubMenu response
+			self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+		end)
+		
+		--APPLINK-9532: Sending TTS.SetGlobalProperties to VCA in case no obtained from mobile app
+		--Description: When registering the app as soon as the app gets HMI Level NONE, SDL sends TTS.SetGlobalProperties(helpPrompt[]) with an empty array of helpPrompts (just helpPrompts, no timeoutPrompt).
+		--hmi side: expect TTS.SetGlobalProperties request
+		EXPECT_HMICALL("TTS.SetGlobalProperties", 
+		{},
+		{
+			timeoutPrompt = 
+			{
+				{
+					text = "Timeout prompt",
+					type = "TEXT"
+				}
+			},
+			helpPrompt = 
+			{
+				{
+					text = "Help prompt",
+					type = "TEXT"
+				}
+			}
+		})
+		:Times(2)
+		:Do(function(_,data)
+			--hmi side: sending TTS.SetGlobalProperties response
+			self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+		end)
+		:ValidIf(function(exp,data)
+			if exp.occurences == 1 then
+				if data.params.timeoutPrompt then
+					commonFunctions:printError("TTS.SetGlobalProperties request came with unexpected timeoutPrompt parameter.")
+					return false
+				elseif data.params.helpPrompt and #data.params.helpPrompt == 0 then
+					return true
+				elseif data.params.helpPrompt == nil then
+					commonFunctions:printError("TTS.SetGlobalProperties request came without helpPrompt")
+					return false
+				else 
+					commonFunctions:printError("TTS.SetGlobalProperties request came with some unexpected values of helpPrompt, array length is " .. tostring(#data.params.helpPrompt))
+					return false
+				end
+			else
+				return true
+			end
+		end)
+		
+		
+		--hmi side: expect UI.SetGlobalProperties request
+		EXPECT_HMICALL("UI.SetGlobalProperties",
+		{
+			menuTitle = "Menu Title",
+			vrHelp = 
+			{
+				{
+					position = 1,
+					text = "VR help item"
+				}
+			},
+			vrHelpTitle = "VR help title"
+		})
+		:Do(function(_,data)
+			--hmi side: sending UI.SetGlobalProperties response
+			self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+		end)
 		
 		--mobile side: expect OnHashChange notification
-		--Requirement id in JAMA/or Jira ID: APPLINK-15682
-		--[Data Resumption]: OnHashChange
 		EXPECT_NOTIFICATION("OnHashChange")
 		:Do(function(_, data)
 			self.currentHashID = data.payload.hashID
 		end)
-	end)
-end
-
-function Test:Precondition_for_checking_RESUME_SUCCESS_AddResumptionData_AddSubMenu()
-	
-	--mobile side: sending AddSubMenu request
-	local cid = self.mobileSession:SendRPC("AddSubMenu",
-	{
-		menuID = 1,
-		position = 500,
-		menuName = "SubMenupositive 1"
-	})
-	
-	--hmi side: expect UI.AddSubMenu request
-	EXPECT_HMICALL("UI.AddSubMenu", 
-	{ 
-		menuID = 1,
-		menuParams = {
-			position = 500,
-			menuName = "SubMenupositive 1"
-		}
-	})
-	:Do(function(_,data)
-		--hmi side: sending UI.AddSubMenu response
-		self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-	end)
-	
-	--mobile side: expect AddSubMenu response
-	EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
-	:Do(function()
-		--mobile side: expect OnHashChange notification
 		
-		--Requirement id in JAMA/or Jira ID: APPLINK-15682
-		--[Data Resumption]: OnHashChange
-		EXPECT_NOTIFICATION("OnHashChange")
-		:Do(function(_, data)
-			self.currentHashID = data.payload.hashID
+		
+	end	
+	
+
+
+	commonFunctions:newTestCasesGroup("RegisterAppInterface RESUME_FAILED")
+	
+	function Test:Precondition_for_checking_RESUME_FAILED_CloseConnection()
+		self.mobileConnection:Close() 
+	end
+
+	function Test:Precondition_for_checking_RESUME_FAILED_ConnectMobile()
+		self:connectMobile()
+	end
+
+	function Test:Precondition_for_checking_RESUME_FAILED_StartSession()
+		self.mobileSession = mobile_session.MobileSession(
+		self,
+		self.mobileConnection,
+		config.application1.registerAppInterfaceParams)
+		
+		self.mobileSession:StartService(7)
+	end
+
+	function Test:RegisterApplication_Check_VR_Parameters_IsOmitted_resultCode_RESUME_FAILED()
+		
+		commonTestCases:DelayedExp(iTimeout)
+		
+		local parameters = commonFunctions:cloneTable(config.application1.registerAppInterfaceParams)
+		parameters.hashID = "sdfgTYWRTdfhsdfgh"
+		
+		--mobile side: RegisterAppInterface request
+		local CorIdRegister=self.mobileSession:SendRPC("RegisterAppInterface", parameters)
+		
+		--hmi side: expect BasicCommunication.OnAppRegistered request
+		EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", 
+		{
+			application=
+			{
+				appName=config.application1.registerAppInterfaceParams.appName
+			}
+		})
+		:Do(function(_,data)
+			self.appName=data.params.application.appName
+			self.applications[config.application1.registerAppInterfaceParams.appName]=data.params.application.appID
 		end)
-	end)
-end
-
-function Test:Precondition_for_checking_RESUME_SUCCESS_AddResumptionData_SetGlobalProperites()
-	
-	--mobile side: sending SetGlobalProperties request
-	local cid = self.mobileSession:SendRPC("SetGlobalProperties",
-	{
-		menuTitle = "Menu Title",
-		timeoutPrompt = 
-		{
-			{
-				text = "Timeout prompt",
-				type = "TEXT"
-			}
-		},
-		vrHelp = 
-		{
-			{
-				position = 1,
-				text = "VR help item"
-			}
-		},
-		helpPrompt = 
-		{
-			{
-				text = "Help prompt",
-				type = "TEXT"
-			}
-		},
-		vrHelpTitle = "VR help title",
-	})
-	
-	
-	--hmi side: expect TTS.SetGlobalProperties request
-	EXPECT_HMICALL("TTS.SetGlobalProperties",
-	{
-		timeoutPrompt = 
-		{
-			{
-				text = "Timeout prompt",
-				type = "TEXT"
-			}
-		},
-		helpPrompt = 
-		{
-			{
-				text = "Help prompt",
-				type = "TEXT"
-			}
-		}
-	})
-	:Do(function(_,data)
-		--hmi side: sending UI.SetGlobalProperties response
-		self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-	end)
-	
-	--hmi side: expect UI.SetGlobalProperties request
-	EXPECT_HMICALL("UI.SetGlobalProperties",
-	{
-		menuTitle = "Menu Title",
-		vrHelp = 
-		{
-			{
-				position = 1,
-				text = "VR help item"
-			}
-		},
-		vrHelpTitle = "VR help title"
-	})
-	:Do(function(_,data)
-		--hmi side: sending UI.SetGlobalProperties response
-		self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-	end)
-	
-	
-	--mobile side: expect SetGlobalProperties response
-	EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})
-	:Do(function(_,data)
 		
-		--Requirement id in JAMA/or Jira ID: APPLINK-15682
-		--[Data Resumption]: OnHashChange
-		EXPECT_NOTIFICATION("OnHashChange")
-		:Do(function(_, data)
-			self.currentHashID = data.payload.hashID
+		
+		--mobile side: expect response
+		-- SDL does not send VR-related param to mobile app	
+		self.mobileSession:ExpectResponse(CorIdRegister, {success=true,resultCode="RESUME_FAILED", language = "EN-US"})
+		:ValidIf (function(_,data)
+			local errorMessage = ""
+			if data.payload.vrCapabilities then
+				errorMessage = errorMessage .. "SDL resends 'vrCapabilities' parameter to mobile app. "
+			end
+			
+			if errorMessage == "" then
+				return true					
+			else
+				commonFunctions:printError(errorMessage)
+				return false
+			end
 		end)
-	end)
-end
-
-function Test:Precondition_for_checking_RESUME_SUCCESS_AddResumptionData_SubscribeButton()
-	
-	--mobile side: sending SubscribeButton request
-	local cid = self.mobileSession:SendRPC("SubscribeButton", {buttonName = "PRESET_0"})
-	
-	--expect Buttons.OnButtonSubscription
-	EXPECT_HMINOTIFICATION("Buttons.OnButtonSubscription", 
-	{
-		appID = self.applications[config.application1.registerAppInterfaceParams.appName], 
-		isSubscribed = true, 
-		name = "PRESET_0"
-	})
-	
-	--mobile side: expect SubscribeButton response
-	EXPECT_RESPONSE(cid, {success = true, resultCode = "SUCCESS"})
-	:Do(function(_,data)
 		
-		--Requirement id in JAMA/or Jira ID: APPLINK-15682
-		--[Data Resumption]: OnHashChange
-		EXPECT_NOTIFICATION("OnHashChange")
-		:Do(function(_, data)
-			self.currentHashID = data.payload.hashID
+		
+		--hmi side: expect BasicCommunication.ActivateApp request
+		EXPECT_HMICALL("BasicCommunication.ActivateApp", {})
+		:Do(function(_,data)
+			--hmi side: sending response
+			self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 		end)
-	end)
-end
-
-function Test:Precondition_for_checking_RESUME_SUCCESS_AddResumptionData_SubscribeVehicleData()
-	
-	--mobile side: sending SubscribeVehicleData request
-	local cid = self.mobileSession:SendRPC("SubscribeVehicleData",{gps = true})
-	
-	--hmi side: expect SubscribeVehicleData request
-	EXPECT_HMICALL("VehicleInfo.SubscribeVehicleData",{gps = true})
-	:Do(function(_,data)
-		--hmi side: sending VehicleInfo.SubscribeVehicleData response
-		self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", { gps = { resultCode = "SUCCESS", dataType = "VEHICLEDATA_GPS"}})	
-	end)
-	
-	--mobile side: expect SubscribeVehicleData response
-	EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})
-	:Do(function(_,data)
 		
-		--mobile side: expect OnHashChange notification
-		--Requirement id in JAMA/or Jira ID: APPLINK-15682
-		--[Data Resumption]: OnHashChange
-		EXPECT_NOTIFICATION("OnHashChange")
-		:Do(function(_, data)
-			self.currentHashID = data.payload.hashID
+		
+		--mobile side: expect notification
+		self.mobileSession:ExpectNotification("OnHMIStatus", 
+		{systemContext="MAIN", hmiLevel="NONE", audioStreamingState="NOT_AUDIBLE"}, 
+		{systemContext="MAIN", hmiLevel="FULL", audioStreamingState="AUDIBLE"}
+		)
+		:Times(2)
+		
+		EXPECT_HMICALL("UI.AddCommand")
+		:Times(0)
+		
+		EXPECT_HMICALL("VR.AddCommand")
+		:Times(0)
+		
+		EXPECT_HMICALL("UI.AddSubMenu")
+		:Times(0)
+		
+		--APPLINK-9532: Sending TTS.SetGlobalProperties to VCA in case no obtained from mobile app
+		--Description: When registering the app as soon as the app gets HMI Level NONE, SDL sends TTS.SetGlobalProperties(helpPrompt[]) with an empty array of helpPrompts (just helpPrompts, no timeoutPrompt).
+		--hmi side: expect TTS.SetGlobalProperties request
+		EXPECT_HMICALL("TTS.SetGlobalProperties")
+		:Do(function(_,data)
+			--hmi side: sending UI.SetGlobalProperties response
+			self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 		end)
-	end)
-end
-
-function Test:Precondition_for_checking_RESUME_SUCCESS_AddResumptionData_SubscribeWayPoints()
-	
-	local cid = self.mobileSession:SendRPC("SubscribeWayPoints", {})
-	
-	--hmi side: expected SubscribeWayPoints request
-	EXPECT_HMICALL("Navigation.SubscribeWayPoints")
-	:Do(function(_,data)
-		--hmi side: sending Navigation.SubscribeWayPoints response
-		self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-	end)
-	
-	--mobile side: SubscribeWayPoints response
-	EXPECT_RESPONSE(cid, {success = true , resultCode = "SUCCESS"})
-	:Do(function(_,data)
-		--Requirement id in JAMA/or Jira ID: APPLINK-15682
-		--[Data Resumption]: OnHashChange
-		
-		--userPrint(31,"DEFECT ID: APPLINK-25808")
-		EXPECT_NOTIFICATION("OnHashChange")
-		:Do(function(_, data)
-			self.currentHashID = data.payload.hashID
-		end)
-	end)
-end
-
-function Test:Precondition_for_checking_RESUME_SUCCESS_CloseConnection()
-	self.mobileConnection:Close() 
-end
-
-function Test:Precondition_for_checking_RESUME_SUCCESS_ConnectMobile()
-	self:connectMobile()
-end
-
-function Test:Precondition_for_checking_RESUME_SUCCESS_StartSession()
-	self.mobileSession = mobile_session.MobileSession(
-	self,
-	self.mobileConnection,
-	config.application1.registerAppInterfaceParams)
-	
-	self.mobileSession:StartService(7)
-end
-
-function Test:RegisterApplication_Check_VR_Parameters_IsOmitted_resultCode_RESUME_SUCCESS()
-	
-	commonTestCases:DelayedExp(iTimeout)
-	
-	local parameters = commonFunctions:cloneTable(config.application1.registerAppInterfaceParams)
-	parameters.hashID = self.currentHashID
-	
-	--mobile side: RegisterAppInterface request
-	local CorIdRegister=self.mobileSession:SendRPC("RegisterAppInterface", parameters)
-	
-	--hmi side: expect BasicCommunication.OnAppRegistered request
-	EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", 
-	{
-		application=
-		{
-			appName=config.application1.registerAppInterfaceParams.appName
-		}
-	})
-	:Do(function(_,data)
-		self.appName=data.params.application.appName
-		self.applications[config.application1.registerAppInterfaceParams.appName]=data.params.application.appID
-	end)
-	
-	
-	--mobile side: expect response
-	-- SDL does not send VR-related param to mobile app	
-	self.mobileSession:ExpectResponse(CorIdRegister, {success=true,resultCode="SUCCESS"})
-	:ValidIf (function(_,data)
-		local errorMessage = ""
-		if data.payload.vrCapabilities then
-			errorMessage = errorMessage .. "SDL resends 'vrCapabilities' parameter to mobile app. "
-		end
-		if data.payload.language then
-			errorMessage = errorMessage .. "SDL resends 'language' parameter to mobile app"
-		end	
-		
-		if errorMessage == "" then
-			return true					
-		else
-			commonFunctions:printError(errorMessage)
-			return false
-		end
-	end)
-	
-	
-	--mobile side: expect notification
-	self.mobileSession:ExpectNotification("OnHMIStatus", 
-	{systemContext="MAIN", hmiLevel="NONE", audioStreamingState="NOT_AUDIBLE"}, 
-	{systemContext="MAIN", hmiLevel="FULL", audioStreamingState="AUDIBLE"}
-	)
-	:Times(2)
-	
-	--hmi side: expect UI.AddCommand request 
-	EXPECT_HMICALL("UI.AddCommand", 
-	{ 
-		cmdID = 1,		
-		menuParams = 
-		{
-			position = 0,
-			menuName ="Command 1"
-		}
-	})
-	:Do(function(_,data)
-		--hmi side: sending UI.AddCommand response 
-		self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-	end)
-	
-	
-	EXPECT_HMICALL("VR.AddCommand")
-	:Times(0)
-	
-	--hmi side: expect UI.AddSubMenu request
-	EXPECT_HMICALL("UI.AddSubMenu", 
-	{ 
-		menuID = 1,
-		menuParams = {
-			position = 500,
-			menuName = "SubMenupositive 1"
-		}
-	})
-	:Do(function(_,data)
-		--hmi side: sending UI.AddSubMenu response
-		self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-	end)
-	
-	--APPLINK-9532: Sending TTS.SetGlobalProperties to VCA in case no obtained from mobile app
-	--Description: When registering the app as soon as the app gets HMI Level NONE, SDL sends TTS.SetGlobalProperties(helpPrompt[]) with an empty array of helpPrompts (just helpPrompts, no timeoutPrompt).
-	--hmi side: expect TTS.SetGlobalProperties request
-	EXPECT_HMICALL("TTS.SetGlobalProperties", 
-	{},
-	{
-		timeoutPrompt = 
-		{
-			{
-				text = "Timeout prompt",
-				type = "TEXT"
-			}
-		},
-		helpPrompt = 
-		{
-			{
-				text = "Help prompt",
-				type = "TEXT"
-			}
-		}
-	})
-	:Times(2)
-	:Do(function(_,data)
-		--hmi side: sending TTS.SetGlobalProperties response
-		self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-	end)
-	:ValidIf(function(exp,data)
-		if exp.occurences == 1 then
+		:ValidIf(function(_,data)
 			if data.params.timeoutPrompt then
 				commonFunctions:printError("TTS.SetGlobalProperties request came with unexpected timeoutPrompt parameter.")
 				return false
 			elseif data.params.helpPrompt and #data.params.helpPrompt == 0 then
 				return true
 			elseif data.params.helpPrompt == nil then
-				commonFunctions:printError("TTS.SetGlobalProperties request came without helpPrompt")
+				commonFunctions:printError("UI.SetGlobalProperties request came without helpPrompt")
 				return false
 			else 
-				commonFunctions:printError("TTS.SetGlobalProperties request came with some unexpected values of helpPrompt, array length is " .. tostring(#data.params.helpPrompt))
+				commonFunctions:printError("UI.SetGlobalProperties request came with some unexpected values of helpPrompt, array length is " .. tostring(#data.params.helpPrompt))
 				return false
 			end
-		else
-			return true
-		end
-	end)
-	
-	
-	--hmi side: expect UI.SetGlobalProperties request
-	EXPECT_HMICALL("UI.SetGlobalProperties",
-	{
-		menuTitle = "Menu Title",
-		vrHelp = 
-		{
-			{
-				position = 1,
-				text = "VR help item"
-			}
-		},
-		vrHelpTitle = "VR help title"
-	})
-	:Do(function(_,data)
-		--hmi side: sending UI.SetGlobalProperties response
-		self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-	end)
-	
-	--mobile side: expect OnHashChange notification
-	EXPECT_NOTIFICATION("OnHashChange")
-	:Do(function(_, data)
-		self.currentHashID = data.payload.hashID
-	end)
-	
-	
-end	
-
-function Test:Precondition_for_checking_RESUME_FAILED_CloseConnection()
-	self.mobileConnection:Close() 
-end
-
-function Test:Precondition_for_checking_RESUME_FAILED_ConnectMobile()
-	self:connectMobile()
-end
-
-function Test:Precondition_for_checking_RESUME_FAILED_StartSession()
-	self.mobileSession = mobile_session.MobileSession(
-	self,
-	self.mobileConnection,
-	config.application1.registerAppInterfaceParams)
-	
-	self.mobileSession:StartService(7)
-end
-
-function Test:RegisterApplication_Check_VR_Parameters_IsOmitted_resultCode_RESUME_FAILED()
-	
-	commonTestCases:DelayedExp(iTimeout)
-	
-	local parameters = commonFunctions:cloneTable(config.application1.registerAppInterfaceParams)
-	parameters.hashID = "sdfgTYWRTdfhsdfgh"
-	
-	--mobile side: RegisterAppInterface request
-	local CorIdRegister=self.mobileSession:SendRPC("RegisterAppInterface", parameters)
-	
-	--hmi side: expect BasicCommunication.OnAppRegistered request
-	EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", 
-	{
-		application=
-		{
-			appName=config.application1.registerAppInterfaceParams.appName
-		}
-	})
-	:Do(function(_,data)
-		self.appName=data.params.application.appName
-		self.applications[config.application1.registerAppInterfaceParams.appName]=data.params.application.appID
-	end)
-	
-	
-	--mobile side: expect response
-	-- SDL does not send VR-related param to mobile app	
-	self.mobileSession:ExpectResponse(CorIdRegister, {success=true,resultCode="RESUME_FAILED"})
-	:ValidIf (function(_,data)
-		local errorMessage = ""
-		if data.payload.vrCapabilities then
-			errorMessage = errorMessage .. "SDL resends 'vrCapabilities' parameter to mobile app. "
-		end
-		if data.payload.language then
-			errorMessage = errorMessage .. "SDL resends 'language' parameter to mobile app"
-		end	
+		end)
 		
-		if errorMessage == "" then
-			return true					
-		else
-			commonFunctions:printError(errorMessage)
-			return false
-		end
-	end)
+		
+		EXPECT_HMICALL("UI.SetGlobalProperties")
+		:Times(0)
+		
+		--mobile side: expect OnHashChange notification
+		EXPECT_NOTIFICATION("OnHashChange")
+		:Times(0)
+		
+	end	
+
 	
+
+	commonFunctions:newTestCasesGroup("RegisterAppInterface WARNINGS")
+	-- APPLINK-16307 WARNINGS, true
+	function Test:RegisterApplication_Check_VR_Parameters_IsOmitted_resultCode_WARNINGS_Precondition_Update_Preload_PT_JSON()
+		
+		--Add AppHMIType = {"NAVIGATION"} for app "0000001"
+		--config.application1.registerAppInterfaceParams.AppHMIType = {"NAVIGATION"}
+		
+		update_sdl_preloaded_pt_json()
+		commonSteps:DeletePolicyTable()
+	end
+
+	StopStartSDL_HMI_MOBILE("RegisterApplication_Check_VR_Parameters_IsOmitted_resultCode_WARNINGS_Precondition")
+
+	function Test:RegisterApplication_Check_VR_Parameters_IsOmitted_resultCode_WARNINGS()
+		
+		commonTestCases:DelayedExp(iTimeout)
+		
+		local parameters = commonFunctions:cloneTable(config.application1.registerAppInterfaceParams)
+		parameters.appHMIType = {"MEDIA"}
+		
+		--mobile side: RegisterAppInterface request
+		local CorIdRegister=self.mobileSession:SendRPC("RegisterAppInterface", parameters)
+		
+		--hmi side: expect BasicCommunication.OnAppRegistered request
+		EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", 
+		{
+			application=
+			{
+				appName=config.application1.registerAppInterfaceParams.appName
+			}
+		})
+		:Do(function(_,data)
+			self.appName=data.params.application.appName
+			self.applications[config.application1.registerAppInterfaceParams.appName]=data.params.application.appID
+		end)
+		
+		
+		--mobile side: expect response
+		-- SDL does not send VR-related param to mobile app	
+		self.mobileSession:ExpectResponse(CorIdRegister, {success=true,resultCode="WARNINGS", language = "EN-US"})
+		:ValidIf (function(_,data)
+			local errorMessage = ""
+			if data.payload.vrCapabilities then
+				errorMessage = errorMessage .. "SDL resends 'vrCapabilities' parameter to mobile app. "
+			end
+			
+			if errorMessage == "" then
+				return true					
+			else
+				commonFunctions:printError(errorMessage)
+				return false
+			end
+		end)
+		
+		--mobile side: expect notification
+		self.mobileSession:ExpectNotification("OnHMIStatus", { systemContext="MAIN", hmiLevel="NONE", audioStreamingState="NOT_AUDIBLE"})
+		
+	end	
+
+
 	
-	--mobile side: expect notification
-	self.mobileSession:ExpectNotification("OnHMIStatus", 
-	{systemContext="MAIN", hmiLevel="NONE", audioStreamingState="NOT_AUDIBLE"}, 
-	{systemContext="MAIN", hmiLevel="FULL", audioStreamingState="AUDIBLE"}
-	)
-	:Times(2)
-	
-	EXPECT_HMICALL("UI.AddCommand")
-	:Times(0)
-	
-	EXPECT_HMICALL("VR.AddCommand")
-	:Times(0)
-	
-	EXPECT_HMICALL("UI.AddSubMenu")
-	:Times(0)
-	
-	--APPLINK-9532: Sending TTS.SetGlobalProperties to VCA in case no obtained from mobile app
-	--Description: When registering the app as soon as the app gets HMI Level NONE, SDL sends TTS.SetGlobalProperties(helpPrompt[]) with an empty array of helpPrompts (just helpPrompts, no timeoutPrompt).
-	--hmi side: expect TTS.SetGlobalProperties request
-	EXPECT_HMICALL("TTS.SetGlobalProperties")
-	:Do(function(_,data)
-		--hmi side: sending UI.SetGlobalProperties response
-		self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-	end)
-	:ValidIf(function(_,data)
-		if data.params.timeoutPrompt then
-			commonFunctions:printError("TTS.SetGlobalProperties request came with unexpected timeoutPrompt parameter.")
-			return false
-		elseif data.params.helpPrompt and #data.params.helpPrompt == 0 then
-			return true
-		elseif data.params.helpPrompt == nil then
-			commonFunctions:printError("UI.SetGlobalProperties request came without helpPrompt")
-			return false
-		else 
-			commonFunctions:printError("UI.SetGlobalProperties request came with some unexpected values of helpPrompt, array length is " .. tostring(#data.params.helpPrompt))
-			return false
-		end
-	end)
-	
-	
-	EXPECT_HMICALL("UI.SetGlobalProperties")
-	:Times(0)
-	
-	--mobile side: expect OnHashChange notification
-	EXPECT_NOTIFICATION("OnHashChange")
-	:Times(0)
-	
-end	
+end
+
+Case2_Only_VR_IsReady_available_false()
 
 ----------------------------------------------------------------------------------------------
 -----------------------------------------TEST BLOCK IV----------------------------------------

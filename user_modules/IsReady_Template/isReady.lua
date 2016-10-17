@@ -12,7 +12,36 @@ require('cardinalities')
 local interface = require('user_modules/IsReady_Template/Interfaces_RPC')
 local events = require('events')  
 local mobile_session = require('mobile_session')
+local commonPreconditions = require ('/user_modules/shared_testcases/commonPreconditions')
 
+--User output
+local function userPrint( color, message)
+  print ("\27[" .. tostring(color) .. "m " .. tostring(message) .. " \27[0m")
+end
+
+---------------------------------------------------------------------------------------------
+-----------------------------------Backup, updated preloaded file ---------------------------
+---------------------------------------------------------------------------------------------
+	commonPreconditions:BackupFile("sdl_preloaded_pt.json")
+	f = assert(io.open(config.pathToSDL.. "/sdl_preloaded_pt.json", "r"))
+	fileContent = f:read("*all")
+
+    DefaultContant = fileContent:match('"default".?:.?.?%{.-%}')
+
+    if not DefaultContant then
+      print ( " \27[31m  default grpoup is not found in sdl_preloaded_pt.json \27[0m " )
+    else
+       DefaultContant =  string.gsub(DefaultContant, '".?groups.?".?:.?.?%[.-%]', '"groups": ["Base-4", "Location-1", "DrivingCharacteristics-3", "VehicleInfo-3", "Emergency-1", "PropriataryData-1"]')
+    end
+
+
+	fileContent  =  string.gsub(fileContent, '".?default.?".?:.?.?%{.-%}', DefaultContant)
+
+
+	f = assert(io.open(config.pathToSDL.. "/sdl_preloaded_pt.json", "w+"))
+	
+	f:write(fileContent)
+	f:close()
 
 --Interfaces and RPCs that will be tested:
 ---------------------------------------------------------------------------
@@ -62,23 +91,23 @@ local mobile_session = require('mobile_session')
 -- Tested Data according to JSON format
 	TestData = {
 
-		--caseID 1-3 are used to checking special cases
-		{caseID = 1, description = "HMI_Does_Not_Repond"},
+		--caseID 1-3 are used to check special cases
+		{caseID = 1, description = "HMI_Does_Not_Respond"},
 		{caseID = 2, description = "MissedAllParamaters"},
 		{caseID = 3, description = "Invalid_Json"},
 
 				
-		--caseID 11-14 are used to checking "collerationID" parameter
+		--caseID 11-14 are used to check "collerationID" parameter
 			--11. IsMissed
 			--12. IsNonexistent
 			--13. IsWrongType
 			--14. IsNegative 	
-		{caseID = 11, description = "collerationID_IsMissed"},
-		{caseID = 12, description = "collerationID_IsNonexistent"},
-		{caseID = 13, description = "collerationID_IsWrongType"},
-		{caseID = 14, description = "collerationID_IsNegative"},
+		{caseID = 11, description = "correlationID_IsMissed"},
+		{caseID = 12, description = "correlationID_IsNonexistent"},
+		{caseID = 13, description = "correlationID_IsWrongType"},
+		{caseID = 14, description = "correlationID_IsNegative"},
 
-		--caseID 21-27 are used to checking "method" parameter
+		--caseID 21-27 are used to check "method" parameter
 			--21. IsMissed
 			--22. IsNotValid
 			--23. IsOtherResponse
@@ -90,11 +119,11 @@ local mobile_session = require('mobile_session')
 		{caseID = 23, description = "method_IsOtherResponse"},
 		{caseID = 24, description = "method_IsEmpty"},
 		{caseID = 25, description = "method_IsWrongType"},
-		{caseID = 26, description = "method_IsInvalidCharacter_Splace"},
+		{caseID = 26, description = "method_IsInvalidCharacter_Space"},
 		{caseID = 26, description = "method_IsInvalidCharacter_Tab"},
 		{caseID = 26, description = "method_IsInvalidCharacter_NewLine"},
 
-			-- --caseID 31-35 are used to checking "resultCode" parameter
+			-- --caseID 31-35 are used to check "resultCode" parameter
 				-- --31. IsMissed
 				-- --32. IsNotExist
 				-- --33. IsEmpty
@@ -107,7 +136,7 @@ local mobile_session = require('mobile_session')
 		{caseID = 36,  description = "resultCode_GENERIC_ERROR"},
 		
 
-			--caseID 41-45 are used to checking "message" parameter
+		--caseID 41-45 are used to check "message" parameter
 				--41. IsMissed
 				--42. IsLowerBound
 				--43. IsUpperBound
@@ -126,11 +155,26 @@ local mobile_session = require('mobile_session')
 		{caseID = 49,  description = "message_IsInvalidCharacter_Newline"},
 		
 
-		--caseID 51-55 are used to checking "available" parameter
+		--caseID 51-55 are used to check "available" parameter
 			--51. IsMissed
 			--52. IsWrongType
 		{caseID = 51,  description = "available_IsMissed"},
 		{caseID = 52,  description = "available_IsWrongType"},
+
+		-- Should be debugged at next iteration
+		-- --caseID 61-65 are used to check "resultCode" parameter with available = false
+			--61. resultCode_IsMissed
+			--62. resultCode_IsNotExist
+			--63. resultCode_IsWrongType
+			--64. resultCode_INVALID_DATA (code = 11)
+			--65. resultCode_DATA_NOT_AVAILABLE (code = 9)
+			--66. resultCode_GENERIC_ERROR (code = 22)
+		-- {caseID = 61,  description = "resultCode_IsMissed_available_false"},
+		-- {caseID = 62,  description = "resultCode_IsNotExist_available_false"},
+		-- {caseID = 63,  description = "resultCode_IsWrongType_available_false"},
+		-- {caseID = 64,  description = "resultCode_INVALID_DATA_available_false"},
+		-- {caseID = 65,  description = "resultCode_DATA_NOT_AVAILABLE_available_false"},
+		-- {caseID = 66,  description = "resultCode_GENERIC_ERROR_available_false"},
 	}
 ---------------------------------------------------------------------------
 
@@ -189,19 +233,19 @@ local mobile_session = require('mobile_session')
 								--13. collerationID_IsWrongType
 								--14. collerationID_IsNegative 	
 								
-							elseif (case == 11) then --collerationID_IsMissed
+							elseif (case == 11) then --correlationID_IsMissed
 								--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"'..tested_method..'", "code":0}}')
 							    self.hmiConnection:Send('{"jsonrpc":"2.0","result":{"available":true,"method":"'..tested_method..'", "code":0}}')
 								  
-							elseif (case == 12) then --collerationID_IsNonexistent
+							elseif (case == 12) then --correlationID_IsNonexistent
 								--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"'..tested_method..'", "code":0}}')
 								self.hmiConnection:Send('{"id":'..tostring(data.id + 10)..',"jsonrpc":"2.0","result":{"available":true,"method":"'..tested_method..'", "code":0}}')
 									  
-							elseif (case == 13) then --collerationID_IsWrongType
+							elseif (case == 13) then --correlationID_IsWrongType
 								--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"'..tested_method..'", "code":0}}')
 							    self.hmiConnection:Send('{"id":"'..tostring(data.id)..'","jsonrpc":"2.0","result":{"available":true,"method":"'..tested_method..'", "code":0}}')
 									  
-							elseif (case == 14) then --collerationID_IsNegative
+							elseif (case == 14) then --correlationID_IsNegative
 								self.hmiConnection:Send('{"id":'..tostring(-1)..',"jsonrpc":"2.0","result":{"available":true,"method":"'..tested_method..'", "code":0}}')
 								
 							--*****************************************************************************************************************************
@@ -351,6 +395,39 @@ local mobile_session = require('mobile_session')
 								elseif (case == 52) then --available_IsWrongType
 									--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"'..tested_method..'", "code":0}}')
 									  self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":"true","method":"'..tested_method..'", "code":"0"}}')
+
+								--*****************************************************************************************************************************
+								--caseID 31-35 are used to check "resultCode" parameter with available = false
+								--61. resultCode_IsMissed
+								--62. resultCode_IsNotExist
+								--63. resultCode_IsWrongType
+								--64. resultCode_INVALID_DATA (code = 11)
+								--65. resultCode_DATA_NOT_AVAILABLE (code = 9)
+								--66. resultCode_GENERIC_ERROR (code = 22)
+									
+								elseif (case == 61) then --resultCode_IsMissed
+									--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"'..tested_method..'", "code":0}}')
+									self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":false,"method":"'..tested_method..'"}}')
+
+								elseif (case == 62) then --resultCode_IsNotExist
+									--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"'..tested_method..'", "code":0}}')
+								    self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":false,"method":"'..tested_method..'", "code":123}}')
+
+								elseif (case == 63) then --resultCode_IsWrongType
+									--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"'..tested_method..'", "code":0}}')
+									self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":false,"method":"'..tested_method..'", "code":"0"}}')
+									
+								elseif (case == 64) then --resultCode_INVALID_DATA
+									--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"'..tested_method..'", "code":0}}')
+									self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":false,"method":"'..tested_method..'", "code":11}}')
+									
+								elseif (case == 65) then --resultCode_DATA_NOT_AVAILABLE
+									--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"'..tested_method..'", "code":0}}')
+									self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":false,"method":"'..tested_method..'", "code":9}}')
+									
+								elseif (case == 66) then --resultCode_GENERIC_ERROR
+									--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"'..tested_method..'", "code":0}}')
+								    self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":false,"method":"'..tested_method..'", "code":22}}')
 
 								else
 									print("***************************Error: "..tested_method..": Input value is not correct ***************************")
@@ -612,6 +689,8 @@ local mobile_session = require('mobile_session')
 		    ExpectRequest("TTS.ChangeRegistration", false, { }):Pin()
 		    
 		    ExpectRequest("VehicleInfo.GetVehicleData", true, { vin = "52-452-52-752" })
+			-- TODO: APPLINK-28499: Should VehicleInfo.GetVehicleData be expected with initHMI OnReady
+			-- Update after clarification if needed.
 			:Times(0)
 
 		    local function button_capability(name, shortPressAvailable, longPressAvailable, upDownAvailable)
@@ -672,6 +751,8 @@ local mobile_session = require('mobile_session')
 			--Stop SDL
 			Test["Precondition_StopSDL_" ..tostring(TestCaseName)] = function(self)
 
+				userPrint(33, "Preconditions:")
+
 				StopSDL()
 			end
 			
@@ -692,7 +773,6 @@ local mobile_session = require('mobile_session')
 			-- TTS:         APPLINK-25303: [HMI_API] TTS.IsReady
 			-- VehicleInfo: APPLINK-25305: [HMI_API] VehicleInfo.IsReady
 			-- Navigation:  APPLINK-25301: [HMI_API] Navi.IsReady
-			-- Test["Precondition_InitHMI_onReady_"..TestedInterface.."_IsReady_" ..tostring(TestCaseName)] = function(self)
 			Test["Precondition_initHMI_onReady_"..TestedInterface.."_IsReady_" .. tostring(TestCaseName)] = function(self)
 
 				isReady:Common_initHMI_onReady_Interfaces_IsReady(self,case)
@@ -707,7 +787,7 @@ local mobile_session = require('mobile_session')
 			--StartSession
 			Test["Precondition_StartSession_"..tostring(TestCaseName)] = function(self)
 
-				self.mobileSession= mobile_session.MobileSession(self, self.mobileConnection)
+				self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
 				self.mobileSession:StartService(7)
 			end
 		end

@@ -111,64 +111,64 @@ local TestCases = {
 
 -- List all resultCodes
 local allResultCodes = {
-	{success = true, resultCode = "SUCCESS", 			expected_resultCode = "SUCCESS"}, --0
-	{success = true, resultCode = "WARNINGS", 			expected_resultCode = "WARNINGS"}, --21
-	{success = true, resultCode = "WRONG_LANGUAGE", 		expected_resultCode = "WRONG_LANGUAGE"}, --16
-	{success = true, resultCode = "RETRY", 				expected_resultCode = "RETRY"}, --7
-	{success = true, resultCode = "SAVED", 				expected_resultCode = "SAVED"}, --25
+	{success = true, resultCode = "SUCCESS", 			expected_resultCode = "SUCCESS", value = 0}, --0
+	{success = true, resultCode = "WARNINGS", 			expected_resultCode = "WARNINGS", value = 21}, --21
+	{success = true, resultCode = "WRONG_LANGUAGE", 		expected_resultCode = "WRONG_LANGUAGE", value = 16}, --16
+	{success = true, resultCode = "RETRY", 				expected_resultCode = "RETRY", value = 7}, --7
+	{success = true, resultCode = "SAVED", 				expected_resultCode = "SAVED", value = 25}, --25
 	
 	{success = false, resultCode = "", 		expected_resultCode = "GENERIC_ERROR"}, --not respond
 	{success = false, resultCode = "ABC", 	expected_resultCode = "GENERIC_ERROR"},
 	
-	{success = false, resultCode = "UNSUPPORTED_REQUEST", 	expected_resultCode = "UNSUPPORTED_REQUEST"}, --1
-	{success = false, resultCode = "UNSUPPORTED_RESOURCE", 	expected_resultCode = "UNSUPPORTED_RESOURCE"}, --2
-	{success = false, resultCode = "DISALLOWED", 			expected_resultCode = "DISALLOWED"}, --3
-	{success = false, resultCode = "USER_DISALLOWED", 		expected_resultCode = "USER_DISALLOWED"}, --23
-	{success = false, resultCode = "REJECTED", 				expected_resultCode = "REJECTED"}, --4
-	{success = false, resultCode = "ABORTED", 				expected_resultCode = "ABORTED"}, --5
-	{success = false, resultCode = "IGNORED", 				expected_resultCode = "IGNORED"}, --6
-	{success = false, resultCode = "IN_USE", 				expected_resultCode = "IN_USE"}, --8
-	{success = false, resultCode = "DATA_NOT_AVAILABLE", expected_resultCode = "VEHICLE_DATA_NOT_AVAILABLE"}, --9	
-	{success = false, resultCode = "TIMED_OUT", 					expected_resultCode = "TIMED_OUT"}, --10
-	{success = false, resultCode = "INVALID_DATA", 				expected_resultCode = "INVALID_DATA"}, --11
-	{success = false, resultCode = "CHAR_LIMIT_EXCEEDED", 		expected_resultCode = "CHAR_LIMIT_EXCEEDED"}, --12
-	{success = false, resultCode = "INVALID_ID", 				expected_resultCode = "INVALID_ID"}, --13
-	{success = false, resultCode = "DUPLICATE_NAME", 			expected_resultCode = "DUPLICATE_NAME"}, --14
-	{success = false, resultCode = "APPLICATION_NOT_REGISTERED", expected_resultCode = "APPLICATION_NOT_REGISTERED"}, --15
-	{success = false, resultCode = "OUT_OF_MEMORY", 				expected_resultCode = "OUT_OF_MEMORY"}, --17
-	{success = false, resultCode = "TOO_MANY_PENDING_REQUESTS", 	expected_resultCode = "TOO_MANY_PENDING_REQUESTS"}, --18
-	{success = false, resultCode = "GENERIC_ERROR", 				expected_resultCode = "GENERIC_ERROR"}, --22
-	{success = false, resultCode = "TRUNCATED_DATA", 			expected_resultCode = "TRUNCATED_DATA"} --24
+	{success = false, resultCode = "UNSUPPORTED_REQUEST", 	expected_resultCode = "UNSUPPORTED_REQUEST", value = 1}, --1
+	{success = false, resultCode = "UNSUPPORTED_RESOURCE", 	expected_resultCode = "UNSUPPORTED_RESOURCE", value = 2}, --2
+	{success = false, resultCode = "DISALLOWED", 			expected_resultCode = "DISALLOWED", value = 3}, --3
+	{success = false, resultCode = "USER_DISALLOWED", 		expected_resultCode = "USER_DISALLOWED", value = 23}, --23
+	{success = false, resultCode = "REJECTED", 				expected_resultCode = "REJECTED", value = 4}, --4
+	{success = false, resultCode = "ABORTED", 				expected_resultCode = "ABORTED", value = 5}, --5
+	{success = false, resultCode = "IGNORED", 				expected_resultCode = "IGNORED", value = 6}, --6
+	{success = false, resultCode = "IN_USE", 				expected_resultCode = "IN_USE", value = 8}, --8
+	{success = false, resultCode = "DATA_NOT_AVAILABLE", expected_resultCode = "VEHICLE_DATA_NOT_AVAILABLE", value = 9}, --9	
+	{success = false, resultCode = "TIMED_OUT", 					expected_resultCode = "TIMED_OUT", value = 10}, --10
+	{success = false, resultCode = "INVALID_DATA", 				expected_resultCode = "INVALID_DATA", value = 11}, --11
+	{success = false, resultCode = "CHAR_LIMIT_EXCEEDED", 		expected_resultCode = "CHAR_LIMIT_EXCEEDED", value = 12}, --12
+	{success = false, resultCode = "INVALID_ID", 				expected_resultCode = "INVALID_ID", value = 13}, --13
+	{success = false, resultCode = "DUPLICATE_NAME", 			expected_resultCode = "DUPLICATE_NAME", value = 14}, --14
+	{success = false, resultCode = "APPLICATION_NOT_REGISTERED", expected_resultCode = "APPLICATION_NOT_REGISTERED", value = 15}, --15
+	{success = false, resultCode = "OUT_OF_MEMORY", 				expected_resultCode = "OUT_OF_MEMORY", value = 17}, --17
+	{success = false, resultCode = "TOO_MANY_PENDING_REQUESTS", 	expected_resultCode = "TOO_MANY_PENDING_REQUESTS", value = 18}, --18
+	{success = false, resultCode = "GENERIC_ERROR", 				expected_resultCode = "GENERIC_ERROR", value = 22}, --22
+	{success = false, resultCode = "TRUNCATED_DATA", 			expected_resultCode = "TRUNCATED_DATA", value = 24} --24
 }
 
 local successResultCodes = {
-	{success = true, resultCode = "SUCCESS"},
-	{success = true, resultCode = "WARNINGS"},
-	{success = true, resultCode = "WRONG_LANGUAGE"},
-	{success = true, resultCode = "RETRY"},
-	{success = true, resultCode = "SAVED"}							
+	{success = true, resultCode = "SUCCESS", value = 0},
+	{success = true, resultCode = "WARNINGS", value = 21},
+	{success = true, resultCode = "WRONG_LANGUAGE", value = 16},
+	{success = true, resultCode = "RETRY", value = 7},
+	{success = true, resultCode = "SAVED", value = 25}							
 }
 
 local erroneousResultCodes = {				
-	{success = false, resultCode = "UNSUPPORTED_REQUEST"},
-	{success = false, resultCode = "UNSUPPORTED_RESOURCE"},				
-	{success = false, resultCode = "DISALLOWED"},
-	{success = false, resultCode = "USER_DISALLOWED"},
-	{success = false, resultCode = "REJECTED"},
-	{success = false, resultCode = "ABORTED"},
-	{success = false, resultCode = "IGNORED"},
-	{success = false, resultCode = "IN_USE"},
-	{success = false, resultCode = "DATA_NOT_AVAILABLE"},	
-	{success = false, resultCode = "TIMED_OUT"},
-	{success = false, resultCode = "INVALID_DATA"},
-	{success = false, resultCode = "CHAR_LIMIT_EXCEEDED"},
-	{success = false, resultCode = "INVALID_ID"},
-	{success = false, resultCode = "DUPLICATE_NAME"},
-	{success = false, resultCode = "APPLICATION_NOT_REGISTERED"},
-	{success = false, resultCode = "OUT_OF_MEMORY"},
-	{success = false, resultCode = "TOO_MANY_PENDING_REQUESTS"},
-	{success = false, resultCode = "GENERIC_ERROR"},
-	{success = false, resultCode = "TRUNCATED_DATA"}
+	{success = false, resultCode = "UNSUPPORTED_REQUEST", value = 1},
+	{success = false, resultCode = "UNSUPPORTED_RESOURCE", value = 2},				
+	{success = false, resultCode = "DISALLOWED", value = 3},
+	{success = false, resultCode = "USER_DISALLOWED", value = 23},
+	{success = false, resultCode = "REJECTED", value = 4},
+	{success = false, resultCode = "ABORTED", value = 5},
+	{success = false, resultCode = "IGNORED", value = 6},
+	{success = false, resultCode = "IN_USE", value = 8},
+	{success = false, resultCode = "DATA_NOT_AVAILABLE", value = 9},	
+	{success = false, resultCode = "TIMED_OUT", value = 10},
+	{success = false, resultCode = "INVALID_DATA", value = 11},
+	{success = false, resultCode = "CHAR_LIMIT_EXCEEDED", value = 12},
+	{success = false, resultCode = "INVALID_ID", value = 13},
+	{success = false, resultCode = "DUPLICATE_NAME", value = 14},
+	{success = false, resultCode = "APPLICATION_NOT_REGISTERED", value = 15},
+	{success = false, resultCode = "OUT_OF_MEMORY", value = 17},
+	{success = false, resultCode = "TOO_MANY_PENDING_REQUESTS", value = 18},
+	{success = false, resultCode = "GENERIC_ERROR", value = 22},
+	{success = false, resultCode = "TRUNCATED_DATA", value = 24}
 }
 
 ---------------------------------------------------------------------------------------------
@@ -841,7 +841,8 @@ commonSteps:DeleteLogsFileAndPolicyTable()
 -- c. The same SDL behavior is applicable in case HMI sends invalid by any reason IsReady_response
 -- Note: Incase AlertManeuver, refer to APPLINK-25117 for split RPC requirement (according to: APPLINK-27829)
 
-local function sequence_check_Result_Code_split_RPC(successValue, resultCodeValue, expected_resultCodeValue)
+--UPDATED
+local function sequence_check_Result_Code_split_RPC(successValue, resultCodeValue, expected_resultCodeValue, HMI_value)
 	------------3. AlertManeuver
 	-- Requirement: APPLINK-25185
 	-- Refer to APPLINK-25117 for split RPC requirement (according to answer of question: APPLINK-27829)
@@ -884,6 +885,13 @@ local function sequence_check_Result_Code_split_RPC(successValue, resultCodeValu
 	-- Requirement: APPLINK-17008
 	-- SDL must respond with "GENERIC_ERROR, success:false" in case HMI does NOT respond during <DefaultTimeout> at least to one component of RPC
 	Test[APIName .. "_AlertManeuver_Navi.AlertManeuver=" .. resultCodeValue .. "_TTS.Speak_no_response"] = function(self)
+		local HMI_result
+		for i = 1, #allResultCodes do
+			if(resultCodeValue == allResultCodes[i].resultCode) then
+				HMI_result = allResultCodes[i].value
+			end
+		end
+		
 		local cid = self.mobileSession:SendRPC("AlertManeuver",
 		{
 			ttsChunks = 
@@ -933,7 +941,12 @@ local function sequence_check_Result_Code_split_RPC(successValue, resultCodeValu
 				if (successValue == true) then
 					self.hmiConnection:SendResponse(data.id, data.method, resultCodeValue, {})
 				else
-					self.hmiConnection:SendError(data.id, data.method, resultCodeValue, "Navigation error message")
+					if(HMI_result ~= nil) then 
+						self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"message = "Navigation error message", "method":"'..data.method..'","code":'..HMI_result..'}}')
+					else
+						--self.hmiConnection:SendError(data.id, data.method, resultCodeValue, "Navigation error message")
+						self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"message = "Navigation error message", "method":"'..data.method..'","code":}}')
+					end
 				end
 			end
 			RUN_AFTER(alertResponse, 2000)
@@ -953,7 +966,7 @@ local function sequence_check_Result_Code_split_RPC(successValue, resultCodeValu
 			
 		end)
 		
-		EXPECT_RESPONSE(cid, { success = false, resultCode = "GENERIC_ERROR"})
+		EXPECT_RESPONSE(cid, { success = false, resultCode = "GENERIC_ERROR", info =  "TTS component does not respond"})
 		:Timeout(TimeoutValue)				
 		
 	end
@@ -963,6 +976,13 @@ local function sequence_check_Result_Code_split_RPC(successValue, resultCodeValu
 	-- Requirement: APPLINK-17008
 	-- SDL must respond with "GENERIC_ERROR, success:false" in case HMI does NOT respond during <DefaultTimeout> at least to one component of RPC 
 	Test[APIName .. "_AlertManeuver_TTS.Speak=" .. resultCodeValue .. "_Navi.AlertManeuver_no_response"] = function(self)
+		local HMI_result
+		for i = 1, #allResultCodes do
+			if(resultCodeValue == allResultCodes[i].resultCode) then
+				HMI_result = allResultCodes[i].value
+			end
+		end
+
 		local cid = self.mobileSession:SendRPC("AlertManeuver",
 		{
 			ttsChunks = 
@@ -1018,9 +1038,21 @@ local function sequence_check_Result_Code_split_RPC(successValue, resultCodeValu
 			
 			local function speakResponse()
 				if (successValue == true) then
-					self.hmiConnection:SendResponse(data.id, data.method, resultCodeValue, {})
+					--self.hmiConnection:SendResponse(data.id, data.method, resultCodeValue, {})
+					if(HMI_result ~= nil) then
+						self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"'..data.method..'","code":'..HMI_result..'}}')
+					else
+						self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"'..data.method..'","code": }}')
+					end
+
 				else
-					self.hmiConnection:SendError(data.id, data.method, resultCodeValue, "TTS error message")
+					if(HMI_result ~= nil) then
+						--self.hmiConnection:SendError(data.id, data.method, resultCodeValue, "TTS error message")
+						self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"message = "TTS error message", "method":"'..data.method..'","code":'..HMI_result..'}}')
+					else
+						--self.hmiConnection:SendError(data.id, data.method, resultCodeValue, "TTS error message")
+						self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"message = "TTS error message", "method":"'..data.method..'","code":}}')
+					end
 				end
 				
 				self.hmiConnection:SendNotification("TTS.Stopped")
@@ -1030,15 +1062,15 @@ local function sequence_check_Result_Code_split_RPC(successValue, resultCodeValu
 			
 		end)
 		
-		EXPECT_RESPONSE(cid, { success = false, resultCode = "GENERIC_ERROR"})
+		EXPECT_RESPONSE(cid, { success = false, resultCode = "GENERIC_ERROR", info =  "Navigation component does not respond"})
 		:Timeout(TimeoutValue)	
 	end
-	-- end 3.2			
+	-- end 3.2		
 	
 	-- 3.3) Navi.AlertManeuver: successfull resultCodes, TTS. Speak: successfull resultCodes 
 	-- => TODO: Script needs to be added after APPLINK-15276 is confirmed (according to APPLINK-27829)
 	-- end 3.3
-	
+
 	
 	-- 3.4) Navi.AlertManeuver: successfull resultCodes, TTS. Speak: erroneous resultCodes 
 	-- Requirement: APPLINK-26092
@@ -1047,6 +1079,13 @@ local function sequence_check_Result_Code_split_RPC(successValue, resultCodeValu
 	if (successValue == true) then
 		for k = 1, #erroneousResultCodes do
 			Test[APIName .. "_AlertManeuver_" .. resultCodeValue .. "_TTS.Speak_respond_erroneous_resultCodes_" .. erroneousResultCodes[k].resultCode] = function(self)
+				local HMI_result
+				for i = 1, #allResultCodes do
+					if(resultCodeValue == allResultCodes[i].resultCode) then
+						HMI_result = allResultCodes[i].value
+					end
+				end
+
 				local cid = self.mobileSession:SendRPC("AlertManeuver",
 				{
 					ttsChunks = 
@@ -1103,27 +1142,47 @@ local function sequence_check_Result_Code_split_RPC(successValue, resultCodeValu
 					self.hmiConnection:SendNotification("TTS.Started")
 					
 					local function speakResponse()
-						self.hmiConnection:SendError(data.id, data.method, erroneousResultCodes[k].resultCode, "TTS error message")
-						
+						local HMI_result_1
+						for i = 1, #allResultCodes do
+							if(erroneousResultCodes[k].resultCode == allResultCodes[i].resultCode) then
+								HMI_result_1 = allResultCodes[i].value
+							end
+						end
+						if(HMI_result_1 ~= nil ) then
+							--self.hmiConnection:SendError(data.id, data.method, erroneousResultCodes[k].resultCode, "TTS error message")
+							self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"message":"TTS error message", "method":"'..data.method..'","code":'..HMI_result_1..'}}')
+							--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"'..data.method..'","code":0}}')
+						else
+							self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"message":"TTS error message", "method":"'..data.method..'","code": }}')
+						end
+							
 						self.hmiConnection:SendNotification("TTS.Stopped")
 					end
 					
 					RUN_AFTER(speakResponse, 1000)
 					
 				end)
-				
-				EXPECT_RESPONSE(cid, { success = true, resultCode = erroneousResultCodes[k].resultCode, info = "TTS error message" })						
+				--UPDATED: According to APPLINK-26092, point e "List of erroneous resultCodes (success:false):""
+				--EXPECT_RESPONSE(cid, { success = true, resultCode = erroneousResultCodes[k].resultCode, info = "TTS error message" })						
+				EXPECT_RESPONSE(cid, { success = false, resultCode = erroneousResultCodes[k].resultCode, info = "TTS error message" })						
 			end
 		end
 	end
 	-- end 3.4
 	
-	
+		
 	-- 3.5) Navi.AlertManeuver: erroneous resultCodes,	TTS. Speak: successfull resultCodes 
 	-- => SDL responds with Navi.AlertManeuver's resultCode to mobile app (because Navi.AlertManeuver got erroneous resultCode from HMI) (APPLINK-25139 description)
 	if (successValue == false) then
 		for k = 1, #successResultCodes do
 			Test[APIName .. "_AlertManeuver_" .. resultCodeValue .. "_TTS.Speak_respond_success_resultCodes_" .. successResultCodes[k].resultCode] = function(self)
+				local HMI_result
+				for i = 1, #allResultCodes do
+					if(resultCodeValue == allResultCodes[i].resultCode) then
+						HMI_result = allResultCodes[i].value
+					end
+				end
+
 				local cid = self.mobileSession:SendRPC("AlertManeuver",
 				{
 					ttsChunks = 
@@ -1170,7 +1229,11 @@ local function sequence_check_Result_Code_split_RPC(successValue, resultCodeValu
 				EXPECT_HMICALL("Navigation.AlertManeuver")
 				:Do(function(_,data)
 					local function alertResponse()
-						self.hmiConnection:SendError(data.id, data.method, resultCodeValue, "Navigation error message")
+						if (HMI_result == nil) then
+							self.hmiConnection:SendError(data.id, data.method, resultCodeValue, "Navigation error message")
+						else
+							self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"message":"Navigation error message", "method":"'..data.method..'","code":'..HMI_result..'}}')
+						end
 					end
 					RUN_AFTER(alertResponse, 2000)
 				end)
@@ -1180,7 +1243,18 @@ local function sequence_check_Result_Code_split_RPC(successValue, resultCodeValu
 					self.hmiConnection:SendNotification("TTS.Started")
 					
 					local function speakResponse()
-						self.hmiConnection:SendResponse(data.id, data.method, successResultCodes[k].resultCode, {})
+						local HMI_result_1
+						for i = 1, #allResultCodes do
+							if(successResultCodes[k].resultCode == allResultCodes[i].resultCode) then
+								HMI_result_1 = allResultCodes[i].value
+							end
+						end
+						--self.hmiConnection:SendResponse(data.id, data.method, successResultCodes[k].resultCode, {})
+						if(HMI_result_1 ~= nil )then
+							self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"'..data.method..'","code":'..HMI_result_1..'}}')
+						else
+							self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"'..data.method..'","code":}}')
+						end
 						
 						self.hmiConnection:SendNotification("TTS.Stopped")
 					end
@@ -1188,7 +1262,7 @@ local function sequence_check_Result_Code_split_RPC(successValue, resultCodeValu
 					RUN_AFTER(speakResponse, 1000)
 					
 				end)
-				
+				print("expected_resultCodeValue = " ..expected_resultCodeValue)
 				EXPECT_RESPONSE(cid, { success = true, resultCode = expected_resultCodeValue, info = "Navigation error message"})
 			end
 		end
@@ -1263,7 +1337,9 @@ local function sequence_check_Result_Code_split_RPC(successValue, resultCodeValu
 			
 		end)
 		
-		EXPECT_RESPONSE(cid, { success = true, resultCode = expected_resultCodeValue })
+		--UPDATED
+		--EXPECT_RESPONSE(cid, { success = true, resultCode = expected_resultCodeValue })
+		EXPECT_RESPONSE(cid, { success = false, resultCode = "UNSUPPORTED_RESOURCE" })
 		:ValidIf(function(_,data)
 			if data.payload.info == "Navigation error message, TTS error message" then
 				return true
@@ -1289,7 +1365,7 @@ for i= 2, 2 do --TODO: Remove this row and use the row above after APPLINK-25898
 	
 	for j=1, #allResultCodes do
 		commonFunctions:newTestCasesGroup(APIName .. TestCases[i].description .. " (" .. allResultCodes[j].resultCode ..")")
-		sequence_check_Result_Code_split_RPC(allResultCodes[j].success, allResultCodes[j].resultCode, allResultCodes[j].expected_resultCode)
+		sequence_check_Result_Code_split_RPC(allResultCodes[j].success, allResultCodes[j].resultCode, allResultCodes[j].expected_resultCode, allResultCodes[j].value)
 		
 		--TODO: Currently check all result codes for invalid HMI response take so much time. So only check full incase HMI does not respond and in 1 case HMI responds invalid data. 
 		--Remove this break if want to check all ResultCodes for all cases of HMI responds invalid data

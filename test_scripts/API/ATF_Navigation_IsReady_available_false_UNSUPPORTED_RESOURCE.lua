@@ -117,8 +117,8 @@ local allResultCodes = {
 	{success = true, resultCode = "RETRY", 				expected_resultCode = "RETRY"}, --7
 	{success = true, resultCode = "SAVED", 				expected_resultCode = "SAVED"}, --25
 	
-	{success = false, resultCode = "", 		expected_resultCode = "GENERIC_ERROR"}, --not respond
-	{success = false, resultCode = "ABC", 	expected_resultCode = "GENERIC_ERROR"},
+	{success = false, resultCode = "", 		expected_resultCode = "INVALID_DATA"}, 
+	{success = false, resultCode = "ABC", 	expected_resultCode = "INVALID_DATA"},
 	
 	{success = false, resultCode = "UNSUPPORTED_REQUEST", 	expected_resultCode = "UNSUPPORTED_REQUEST"}, --1
 	{success = false, resultCode = "UNSUPPORTED_RESOURCE", 	expected_resultCode = "UNSUPPORTED_RESOURCE"}, --2
@@ -982,7 +982,7 @@ local function sequence_check_UNSUPPORTED_RESOURCE()
 					RUN_AFTER(speakResponse, 1000)
 				end)
 				
-				EXPECT_RESPONSE(cid, { success = false, resultCode = allResultCodes[i].resultCode, info = "TTS error message" })
+				EXPECT_RESPONSE(cid, { success = false, resultCode = allResultCodes[i].expected_resultCode, info = "TTS error message" })
 				:Timeout(TimeoutValue)	
 				
 			end
@@ -1052,7 +1052,7 @@ local function sequence_check_UNSUPPORTED_RESOURCE()
 			
 		end)
 		
-		EXPECT_RESPONSE(cid, { success = false, resultCode = "GENERIC_ERROR", {}})
+		EXPECT_RESPONSE(cid, { success = false, resultCode = "GENERIC_ERROR", info =  "TTS component does not respond"})
 		:Timeout(TimeoutValue)			
 	end
 	
@@ -1176,8 +1176,17 @@ local function sequence_check_UNSUPPORTED_RESOURCE()
 	Test[APIName .. "_StartStream_UNSUPPORTED_RESOURCE"] = function(self)
 		commonTestCases:DelayedExp(TimeDelay)
 		
-		self.mobileSession:StartService(11)
-		
+		xmlReporter.AddMessage("StartService", 11)
+		local startSession =
+		{
+			frameType = 0,
+			serviceType = 11,
+			frameInfo = 1,
+			sessionId = self.mobileSession.sessionId,
+		}
+
+		self.mobileSession:Send(startSession)
+  
 		EXPECT_HMICALL("Navigation.StartStream")
 		:Times(0)
 		
@@ -1185,75 +1194,168 @@ local function sequence_check_UNSUPPORTED_RESOURCE()
 		
 		EXPECT_HMINOTIFICATION("Navigation.OnVideoDataStreaming")
 		:Times(0)
+
+		-- prepare event to expect
+		local startserviceEvent = events.Event()
+		startserviceEvent.matches = function(_, data)
+			return data.frameType == 0 and
+			data.serviceType == 11 and
+			(data.sessionId == self.mobileSession.sessionId) and
+			(data.frameInfo == 2 or -- Start Service ACK
+			data.frameInfo == 3) -- Start Service NACK
+		end
+
+		local ret = self.mobileSession:ExpectEvent(startserviceEvent, "StartService ACK")
+		:ValidIf(function(s, data)
+			if data.frameInfo == 2 then -- Start Service ACK
+				xmlReporter.AddMessage("StartService", "StartService ACK", "True")
+				print ("\27[32m Start Service ACK received \27[0m ")				
+				return false
+			elseif data.frameInfo == 3 then -- Start Service NACK
+				print ("\27[32m Start Service NACK received \27[0m ")			
+				return true 
+			else 
+				return false 
+			end
+		end)
+		--return ret
 	end		
 	
 	------------9. StopStream
 	Test[APIName .. "_StopStream_UNSUPPORTED_RESOURCE"] = function(self)
 		commonTestCases:DelayedExp(TimeDelay)
-		
-		self.mobileSession:StopService(11)
-		
+ 
+		xmlReporter.AddMessage("StopService", 11)
+		local stopService =
+			self.mobileSession:Send(
+			{
+				frameType = 0,
+				serviceType = 11,
+				frameInfo = 4,
+				sessionId = self.mobileSession.sessionId,
+				binaryData = self.mobileSession.hashCode,
+			})
+			
 		EXPECT_HMICALL("Navigation.StopStream")
 		:Times(0)
-
+		
 		local event = events.Event()
+		-- prepare event to expect
 		event.matches = function(_, data)
-						return 	data.frameType   == 0 and
-								(data.serviceType == 11 or
-								data.serviceType == 10) and
-								data.sessionId   == self.mobileSession.sessionId and
-								(data.frameInfo   == 5 or -- End Service ACK
-								data.frameInfo   == 6)   -- End Service NACK
-						end
-		self.mobileSession:ExpectEvent(event, "EndService NACK")		
-	    :Timeout(60000)
-	    :ValidIf(function(_, data)
-			if data.serviceType == 11 and data.frameInfo == 6 then return true
-				else return false
+			return data.frameType == 0 and
+			data.serviceType == 11 and
+			(data.sessionId == self.mobileSession.sessionId) and
+			(data.frameInfo == 5 or -- End Service ACK
+			data.frameInfo == 6) -- End Service NACK
+		end
+
+		local ret = self.mobileSession:ExpectEvent(event, "EndService ACK")
+		:ValidIf(function(s, data)
+			if data.frameInfo == 5 then -- End Service ACK
+				print ("\27[32m End Service ACK received \27[0m ")				
+				return false
+			elseif data.frameInfo == 6 then -- End Service NACK
+				print ("\27[32m End Service NACK received \27[0m ")			
+				return true 
+			else 
+				return false 
 			end
 		end)
+	--return ret
+  
 	end	
 	
 	------------10. StartAudioStream
 	Test[APIName .. "_StartAudioStream_UNSUPPORTED_RESOURCE"] = function(self)
 		commonTestCases:DelayedExp(TimeDelay)
 		
-		self.mobileSession:StartService(10)
-		
+		xmlReporter.AddMessage("StartService", 10)
+		local startSession =
+		{
+			frameType = 0,
+			serviceType = 10,
+			frameInfo = 1,
+			sessionId = self.mobileSession.sessionId,
+		}
+
+		self.mobileSession:Send(startSession)
+  
 		EXPECT_HMICALL("Navigation.StartAudioStream")
 		:Times(0)
 		
 		self.mobileSession:StartStreaming(10,"files/Kalimba.mp3")
 		
 		EXPECT_HMINOTIFICATION("Navigation.OnAudioDataStreaming")
-		:Times(0)						
+		:Times(0)
+
+		-- prepare event to expect
+		local startserviceEvent = events.Event()
+		startserviceEvent.matches = function(_, data)
+			return data.frameType == 0 and
+			data.serviceType == 10 and
+			(data.sessionId == self.mobileSession.sessionId) and
+			(data.frameInfo == 2 or -- Start Service ACK
+			data.frameInfo == 3) -- Start Service NACK
+		end
+
+		local ret = self.mobileSession:ExpectEvent(startserviceEvent, "StartService ACK")
+		:ValidIf(function(s, data)
+			if data.frameInfo == 2 then -- Start Service ACK
+				xmlReporter.AddMessage("StartService", "StartService ACK", "True")
+				print ("\27[32m Start Service ACK received \27[0m ")
+				return false
+			elseif data.frameInfo == 3 then 
+				print ("\27[32m Start Service NACK received \27[0m ")
+				return true -- Start Service NACK
+			else 
+				return false 
+			end
+		end)
+		--return ret
 	end	
 	
 	------------11. StopAudioStream
 	Test[APIName .. "_StopAudioStream_UNSUPPORTED_RESOURCE"] = function(self)
 		commonTestCases:DelayedExp(TimeDelay)
 		
-		self.mobileSession:StopService(10)
-		
+		xmlReporter.AddMessage("StopService", 10)
+		local stopService =
+			self.mobileSession:Send(
+			{
+				frameType = 0,
+				serviceType = 10,
+				frameInfo = 4,
+				sessionId = self.mobileSession.sessionId,
+				binaryData = self.mobileSession.hashCode,
+			})
+			
+	
 		EXPECT_HMICALL("Navigation.StopAudioStream")
 		:Times(0)
 		
 		local event = events.Event()
+		-- prepare event to expect
 		event.matches = function(_, data)
-						return 	data.frameType   == 0 and
-								(data.serviceType == 11 or
-								data.serviceType == 10) and
-								data.sessionId   == self.mobileSession.sessionId and
-								(data.frameInfo   == 5 or -- End Service ACK
-								data.frameInfo   == 6)   -- End Service NACK
-						end
-		self.mobileSession:ExpectEvent(event, "EndService NACK")		
-	    :Timeout(60000)
-	    :ValidIf(function(_, data)
-			if data.serviceType == 10 and data.frameInfo == 6 then return true
-				else return false
+			return data.frameType == 0 and
+			data.serviceType == 10 and
+			(data.sessionId == self.mobileSession.sessionId) and
+			(data.frameInfo == 5 or -- End Service ACK
+			data.frameInfo == 6) -- End Service NACK
+		end
+
+		local ret = self.mobileSession:ExpectEvent(event, "EndService ACK")
+		:ValidIf(function(s, data)
+			if data.frameInfo == 5 then -- End Service ACK
+				print ("\27[32m End Service ACK received \27[0m ")				
+				return false
+			elseif data.frameInfo == 6 then -- End Service NACK
+				print ("\27[32m End Service NACK received \27[0m ")			
+				return true 
+			else 
+				return false 
 			end
 		end)
+	--return ret
 				 
 		commonTestCases:DelayedExp(1000)					
 	end			
@@ -1273,13 +1375,20 @@ local function sequence_check_UNSUPPORTED_RESOURCE()
 	------------
 end	
 
-
 commonFunctions:newTestCasesGroup(APIName .."_Test_suite: ".. TestCases[1].description)
 StopStartSDL_StartMobileSession(1)
+Test[APIName .. TestCases[1].description .."_Change_App_Config_To_MEDIA"] = function(self)
+	config.application1.registerAppInterfaceParams.appHMIType = {"MEDIA"}
+	config.application1.registerAppInterfaceParams.isMediaApplication = true
+end
 commonSteps:RegisterAppInterface(APIName .. TestCases[1].description .. "_RegisterAppInterface")
 commonSteps:ActivationAppGenivi(_,APIName .. TestCases[1].description .. "_ActivationApp")
 commonSteps:PutFile("Precondition_PutFile", "icon.png")
 sequence_check_UNSUPPORTED_RESOURCE()
+Test[APIName .. TestCases[1].description .."_Return_App_Config_To_NAVIGATION"] = function(self)
+	config.application1.registerAppInterfaceParams.appHMIType = {"NAVIGATION"}
+	config.application1.registerAppInterfaceParams.isMediaApplication = false
+end
 --End of SpecialHMIResponse.1.1
 
 -----------------------------------------------------------------------------------------------

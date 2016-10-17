@@ -9,11 +9,10 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 	local commonSteps = require('user_modules/shared_testcases/commonSteps')
 	local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 	local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
+	local commonPreconditions = require ('/user_modules/shared_testcases/commonPreconditions')
 
 	DefaultTimeout = 3
 	local iTimeout = 2000
-	local commonPreconditions = require ('/user_modules/shared_testcases/commonPreconditions')
-
 
 ---------------------------------------------------------------------------------------------
 ------------------------- General Precondition before ATF start -----------------------------
@@ -38,6 +37,10 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 ---------------------------------------------------------------------------------------------
 	local RPCs = commonFunctions:cloneTable(isReady.RPCs)
 	local mobile_request = commonFunctions:cloneTable(isReady.mobile_request)
+
+	local function userPrint( color, message)
+	  print ("\27[" .. tostring(color) .. "m " .. tostring(message) .. " \27[0m")
+	end
 
 ---------------------------------------------------------------------------------------------
 -------------------------------------------Preconditions-------------------------------------
@@ -111,80 +114,216 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 	-- Description: Activation app for precondition
 	commonSteps:ActivationApp(nil, "Precondition_ActivationApp_" .. TestCaseName)
 
-	commonSteps:PutFile("PutFile_MinLength", "a")
-	commonSteps:PutFile("PutFile_icon.png", "icon.png")
-	commonSteps:PutFile("PutFile_action.png", "action.png")
+	commonSteps:PutFile("Precondition_PutFile_MinLength", "a")
+	commonSteps:PutFile("Precondition_PutFile_icon.png", "icon.png")
+	commonSteps:PutFile("Precondition_PutFile_action.png", "action.png")
 
 	local function Interface_IsReady_response_availabe_false_check_single_related_RPC(TestCaseName)
-			for count_RPC = 1, #RPCs do
+		for count_RPC = 1, #RPCs do
 				
-				local mob_request = mobile_request[count_RPC]
-				if(mob_request.single == true)then
+			local mob_request = mobile_request[count_RPC]
+			if(mob_request.single == true)then
 
-					-- All applicable RPCs
-					Test["TC01_".. RPCs[count_RPC].name .. "_UNSUPPORTED_RESOURCE_false" ..TestCaseName] = function(self)
-						local menuparams = ""
-						local vrCmd = ""
-						print("=============== Test: "..TestedInterface.."."..RPCs[count_RPC].name)
-						local hmi_call = RPCs[count_RPC]
-						local hmi_method_call = TestedInterface.."."..hmi_call.name
+				-- All applicable RPCs
+				Test["TC_".. RPCs[count_RPC].name .. "_UNSUPPORTED_RESOURCE_false" ..TestCaseName] = function(self)
+					local menuparams = ""
+					local vrCmd = ""
+					local ltimeout = ""
+					local helpPrompt = ""
+					userPrint(33, "Testing RPC = "..RPCs[count_RPC].name)
+					--print("=============== Test: "..TestedInterface.."."..RPCs[count_RPC].name)
+					local hmi_call = RPCs[count_RPC]
+					local hmi_method_call = TestedInterface.."."..hmi_call.name
 
-						if ( hmi_call.params.appID ~= nil ) then hmi_call.params.appID = self.applications[config.application1.registerAppInterfaceParams.appName] end
+					if ( hmi_call.params.appID ~= nil ) then hmi_call.params.appID = self.applications[config.application1.registerAppInterfaceParams.appName] end
 						
 						
-						if ( TestedInterface == "VR") then 
+					if ( TestedInterface == "VR") then 
 							-- APPLINK-19333: AddCommand should not to be splitted to UI.AddCommand
 							if (mob_request.params.menuParams ~= nil ) then 
 								menuparams = mob_request.params.menuParams 
 								mob_request.params.menuParams =  nil 
 							end
-						end
-						if( TestedInterface == "UI") then
+					end
+					if( TestedInterface == "UI") then
 							-- APPLINK-19329: AddCommand should not to be splitted to VR.AddCommand
 							if ( mob_request.params.vrCommands ~= nil ) then 
 								vrCmd = mob_request.params.vrCommands
 								mob_request.params.vrCommands = nil
 							end
-						end
+							if (mob_request.params.timeoutPrompt ~= nil ) then
+								ltimeout = mob_request.params.timeoutPrompt
+								mob_request.params.timeoutPrompt = nil
+							end
+							if (mob_request.params.helpPrompt ~= nil ) then
+								helpPrompt = mob_request.params.helpPrompt
+								mob_request.params.helpPrompt = nil
+							end
+					end
 
-						commonTestCases:DelayedExp(iTimeout)
+					commonTestCases:DelayedExp(iTimeout)
 				
-						--mobile side: sending AddCommand request
-						local cid = self.mobileSession:SendRPC(mob_request.name, mob_request.params)
+					--mobile side: sending AddCommand request
+					local cid = self.mobileSession:SendRPC(mob_request.name, mob_request.params)
 							
-						--hmi side: expect SDL does not send Interface.RPC request
-						EXPECT_HMICALL(hmi_method_call, {})
-						:Times(0)
+					--hmi side: expect SDL does not send Interface.RPC request
+					EXPECT_HMICALL(hmi_method_call, {})
+					:Times(0)
 
-						if(mob_request.name == "DeleteCommand" or mob_request.name == "DeleteSubMenu") then
-							-- According to APPLINK-27079
-							--mobile side: expect RPC response
-							EXPECT_RESPONSE(cid, {success = false, resultCode = "INVALID_ID"})
+					if(mob_request.name == "DeleteCommand" or mob_request.name == "DeleteSubMenu") then
+						-- According to APPLINK-27079; APPLNIK-19401
+						--mobile side: expect RPC response
+						EXPECT_RESPONSE(cid, {success = false, resultCode = "INVALID_ID"})
 						
-						elseif(mob_request.name == "UnsubscribeVehicleData") then
-							-- According to APPLINK-27872 and APPLINK-20043
-							-- mobile side: expect RPC response
-							EXPECT_RESPONSE(cid, {success = false, resultCode = "IGNORED"})
-						else
-							--mobile side: expect RPC response
-							EXPECT_RESPONSE(cid, {success = false, resultCode = "UNSUPPORTED_RESOURCE", info =  TestedInterface .." is not supported by system"})
+					elseif(mob_request.name == "UnsubscribeVehicleData") then
+						-- According to APPLINK-27872 and APPLINK-20043
+						-- mobile side: expect RPC response
+						EXPECT_RESPONSE(cid, {success = false, resultCode = "IGNORED"})
+					else
+						--mobile side: expect RPC response
+						EXPECT_RESPONSE(cid, {success = false, resultCode = "UNSUPPORTED_RESOURCE", info =  TestedInterface .." is not supported by system"})
 						
-						end
+					end
 
-						--mobile side: expect OnHashChange notification
-						EXPECT_NOTIFICATION("OnHashChange")
-						:Times(0)
+					--mobile side: expect OnHashChange notification
+					EXPECT_NOTIFICATION("OnHashChange")
+					:Times(0)
 
-						--In some reason when assign global variable to local one and local var becomes nil, global var also becomes nil!!!! The solution is temporary until resolving the problem. 
-						if(menuparams ~= "") then mob_request.params.menuParams = menuparams end
-						if(vrCmd ~= "") 	 then mob_request.params.vrCommands = vrCmd end
-					end		
-				end --if(mob_request.single == true)then	
-			end -- for count_RPC = 1, #RPCs do
+					--In some reason when assign global variable to local one and local var becomes nil, global var also becomes nil!!!! The solution is temporary until resolving the problem. 
+					if(menuparams ~= "") then mob_request.params.menuParams = menuparams end
+					if(vrCmd ~= "") 	 then mob_request.params.vrCommands = vrCmd end
+					if(ltimeout ~= "")   then mob_request.params.timeoutPrompt = ltimeout end
+					if(helpPrompt ~= "") then mob_request.params.helpPrompt = helpPrompt end
+					
+					
+				end		
+			end --if(mob_request.single == true)then	
+		end -- for count_RPC = 1, #RPCs do
 	end
 		
 	Interface_IsReady_response_availabe_false_check_single_related_RPC(TestedInterface .."_IsReady_response_availabe_false_single_"..TestedInterface.."_related_RPC")
 
+
+	--TODO: Should be debugged for next iteration
+	-----------------------------------------------------------------------------------------------
+	-- Verification with IsReady(result = error_code, available = false)
+	-- for i = 1, #TestData do
+	-- 	if(TestData[i].caseID >= 61) then
+	-- 		local TestCaseName = TestedInterface .."_IsReady_response_" .. TestData[i].description
+				
+	-- 		--Print new line to separate new test cases group
+	-- 		commonFunctions:newTestCasesGroup(TestCaseName)
+				
+				
+	-- 		isReady:StopStartSDL_HMI_MOBILE(self, i, TestCaseName)
+				
+	-- 		-----------------------------------------------------------------------------------------------
+	-- 		--CRQ #2) 
+	-- 		-- VR:  APPLINK-20931: [VR Interface] Conditions for SDL to respond 'UNSUPPORTED_RESOURCE, success:false' to mobile app <= SDL receives IsReady(available=false) from HMI 
+	-- 		-- UI:  APPLINK-25045
+	-- 		-- TTS: APPLINK-25140
+	-- 		-- VehicleInfo: APPLINK-25224
+	-- 		-- Navigation:  APPLINK-25184
+	-- 		-- Verification criteria:
+	-- 			-- In case SDL receives Interface (available=false) from HMI and mobile app sends any single interface-related RPC
+	-- 			-- SDL must respond "UNSUPPORTED_RESOURCE, success=false, info: "Interface is not supported by system" to mobile app
+	-- 			-- SDL must NOT transfer this Interface-related RPC to HMI
+	-- 		-----------------------------------------------------------------------------------------------	
+	-- 		commonSteps:RegisterAppInterface("Precondition_RegisterAppInterface_" .. TestCaseName)
+				
+	-- 		-- Description: Activation app for precondition
+	-- 		commonSteps:ActivationApp(nil, "Precondition_ActivationApp_" .. TestCaseName)
+
+	-- 		commonSteps:PutFile("Precondition_PutFile_MinLength", "a")
+	-- 		commonSteps:PutFile("Precondition_PutFile_icon.png", "icon.png")
+	-- 		commonSteps:PutFile("Precondition_PutFile_action.png", "action.png")
+
+	-- 		local function Interface_IsReady_response_availabe_false_check_single_related_RPC(TestCaseName)
+	-- 			for count_RPC = 1, #RPCs do
+						
+	-- 				local mob_request = mobile_request[count_RPC]
+	-- 				if(mob_request.single == true)then
+
+	-- 					-- All applicable RPCs
+	-- 					Test["TC_".. RPCs[count_RPC].name .. "_UNSUPPORTED_RESOURCE_false" ..TestCaseName] = function(self)
+	-- 						local menuparams = ""
+	-- 						local vrCmd = ""
+	-- 						local ltimeout = ""
+	-- 						local helpPrompt = ""
+	-- 						userPrint(33, "Testing RPC = "..RPCs[count_RPC].name)
+	-- 						--print("=============== Test: "..TestedInterface.."."..RPCs[count_RPC].name)
+	-- 						local hmi_call = RPCs[count_RPC]
+	-- 						local hmi_method_call = TestedInterface.."."..hmi_call.name
+
+	-- 						if ( hmi_call.params.appID ~= nil ) then hmi_call.params.appID = self.applications[config.application1.registerAppInterfaceParams.appName] end
+								
+								
+	-- 						if ( TestedInterface == "VR") then 
+	-- 								-- APPLINK-19333: AddCommand should not to be splitted to UI.AddCommand
+	-- 								if (mob_request.params.menuParams ~= nil ) then 
+	-- 									menuparams = mob_request.params.menuParams 
+	-- 									mob_request.params.menuParams =  nil 
+	-- 								end
+	-- 						end
+	-- 						if( TestedInterface == "UI") then
+	-- 								-- APPLINK-19329: AddCommand should not to be splitted to VR.AddCommand
+	-- 								if ( mob_request.params.vrCommands ~= nil ) then 
+	-- 									vrCmd = mob_request.params.vrCommands
+	-- 									mob_request.params.vrCommands = nil
+	-- 								end
+	-- 								if (mob_request.params.timeoutPrompt ~= nil ) then
+	-- 									ltimeout = mob_request.params.timeoutPrompt
+	-- 									mob_request.params.timeoutPrompt = nil
+	-- 								end
+	-- 								if (mob_request.params.helpPrompt ~= nil ) then
+	-- 									helpPrompt = mob_request.params.helpPrompt
+	-- 									mob_request.params.helpPrompt = nil
+	-- 								end
+	-- 						end
+
+	-- 						commonTestCases:DelayedExp(iTimeout)
+						
+	-- 						--mobile side: sending AddCommand request
+	-- 						local cid = self.mobileSession:SendRPC(mob_request.name, mob_request.params)
+									
+	-- 						--hmi side: expect SDL does not send Interface.RPC request
+	-- 						EXPECT_HMICALL(hmi_method_call, {})
+	-- 						:Times(0)
+
+	-- 						if(mob_request.name == "DeleteCommand" or mob_request.name == "DeleteSubMenu") then
+	-- 							-- According to APPLINK-27079; APPLNIK-19401
+	-- 							--mobile side: expect RPC response
+	-- 							EXPECT_RESPONSE(cid, {success = false, resultCode = "INVALID_ID"})
+								
+	-- 						elseif(mob_request.name == "UnsubscribeVehicleData") then
+	-- 							-- According to APPLINK-27872 and APPLINK-20043
+	-- 							-- mobile side: expect RPC response
+	-- 							EXPECT_RESPONSE(cid, {success = false, resultCode = "IGNORED"})
+	-- 						else
+	-- 							--mobile side: expect RPC response
+	-- 							EXPECT_RESPONSE(cid, {success = false, resultCode = "UNSUPPORTED_RESOURCE", info =  TestedInterface .." is not supported by system"})
+								
+	-- 						end
+
+	-- 						--mobile side: expect OnHashChange notification
+	-- 						EXPECT_NOTIFICATION("OnHashChange")
+	-- 						:Times(0)
+
+	-- 						--In some reason when assign global variable to local one and local var becomes nil, global var also becomes nil!!!! The solution is temporary until resolving the problem. 
+	-- 						if(menuparams ~= "") then mob_request.params.menuParams = menuparams end
+	-- 						if(vrCmd ~= "") 	 then mob_request.params.vrCommands = vrCmd end
+	-- 						if(ltimeout ~= "")   then mob_request.params.timeoutPrompt = ltimeout end
+	-- 						if(helpPrompt ~= "") then mob_request.params.helpPrompt = helpPrompt end
+							
+							
+	-- 					end		
+	-- 				end --if(mob_request.single == true)then	
+	-- 			end -- for count_RPC = 1, #RPCs do
+	-- 		end
+				
+	-- 		Interface_IsReady_response_availabe_false_check_single_related_RPC(TestedInterface .."_IsReady_response_availabe_false_single_"..TestedInterface.."_related_RPC")
+	-- 	end
+	-- end
 ----------------------------------------------------------------------------------------------
 -----------------------------------------TEST BLOCK IV----------------------------------------
 ------------------------------Check special cases of HMI response-----------------------------
@@ -212,5 +351,14 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 ----------------------------------------------------------------------------------------------
 
 -- Not applicable for '..tested_method..' HMI API.
+
+
+----------------------------------------------------------------------------------------------
+-----------------------------------------Postconditions---------------------------------------
+----------------------------------------------------------------------------------------------
+
+	function Test:Postcondition_RestorePreloadedFile()
+		commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
+	end
 
 return Test

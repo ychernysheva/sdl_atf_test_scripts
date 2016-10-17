@@ -17,7 +17,7 @@ local testCasesForPolicyTable = require('user_modules/shared_testcases/testCases
 
 
 DefaultTimeout = 3
-local iTimeout = 10000
+local iTimeout = 3000
 local commonPreconditions = require ('/user_modules/shared_testcases/commonPreconditions')
 
 -- Read VR parameters from hmi_capabilities.json
@@ -101,7 +101,7 @@ require('user_modules/AppTypes')
 
 --Cover APPLINK-25286: [HMI_API] VR.IsReady
 function Test:initHMI_onReady_VR_IsReady(case)
-	critical(true)
+	--critical(true)
 	local function ExpectRequest(name, mandatory, params)
 		
 		
@@ -255,6 +255,7 @@ function Test:initHMI_onReady_VR_IsReady(case)
 					--49. message_IsInvalidCharacter_Newline
 					
 				elseif (case == 41) then --message_IsMissed
+					print("Case 41 message_IsMissed")
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"VR.IsReady"}, "message":"The data sent is invalid","code":11}}') --INVALID_DATA
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"VR.IsReady"},"code":11}}')
 					
@@ -332,8 +333,9 @@ function Test:initHMI_onReady_VR_IsReady(case)
 		wersCountryCode = "wersCountryCode"
 	})
 	ExpectRequest("UI.GetLanguage", true, { language = "EN-US" })
+	
 	ExpectRequest("VR.GetLanguage", true, { language = "EN-US" })
-	:Times(0)
+	:Timeout(15000)
 	
 	ExpectRequest("TTS.GetLanguage", true, { language = "EN-US" })
 	ExpectRequest("UI.ChangeRegistration", false, { }):Pin()
@@ -350,7 +352,7 @@ function Test:initHMI_onReady_VR_IsReady(case)
 			"PT-BR","CS-CZ","DA-DK","NO-NO"
 		}
 	})
-	:Times(0)
+	:Timeout(15000)
 	
 	ExpectRequest("TTS.GetSupportedLanguages", true, {
 		languages =
@@ -360,7 +362,7 @@ function Test:initHMI_onReady_VR_IsReady(case)
 			"PT-BR","CS-CZ","DA-DK","NO-NO"
 		}
 	})
-	--:Times(0)
+	
 	ExpectRequest("UI.GetSupportedLanguages", true, {
 		languages =
 		{
@@ -369,7 +371,7 @@ function Test:initHMI_onReady_VR_IsReady(case)
 			"PT-BR","CS-CZ","DA-DK","NO-NO"
 		}
 	})
-	--:Times(0)
+	
 	ExpectRequest("VehicleInfo.GetVehicleType", true, {
 		vehicleType =
 		{
@@ -379,10 +381,9 @@ function Test:initHMI_onReady_VR_IsReady(case)
 			trim = "SE"
 		}
 	})
-	:Times(0) 
+		
 	ExpectRequest("VehicleInfo.GetVehicleData", true, { vin = "52-452-52-752" })
-	:Times(0)
-	
+		
 	local function button_capability(name, shortPressAvailable, longPressAvailable, upDownAvailable)
 		xmlReporter.AddMessage(debug.getinfo(1, "n").name, tostring(name))
 		return
@@ -417,7 +418,7 @@ function Test:initHMI_onReady_VR_IsReady(case)
 	}
 	ExpectRequest("Buttons.GetCapabilities", true, buttons_capabilities)
 	ExpectRequest("VR.GetCapabilities", true, { vrCapabilities = { "TEXT" } })
-	:Times(0)
+	:Timeout(15000)
 	
 	ExpectRequest("TTS.GetCapabilities", true, {
 		speechCapabilities = { "TEXT", "PRE_RECORDED" },
@@ -430,7 +431,7 @@ function Test:initHMI_onReady_VR_IsReady(case)
 			"NEGATIVE_JINGLE"
 		}
 	})
-	--:Times(0)
+	
 	
 	local function text_field(name, characterSet, width, rows)
 		xmlReporter.AddMessage(debug.getinfo(1, "n").name, tostring(name))
@@ -549,7 +550,7 @@ function Test:initHMI_onReady_VR_IsReady(case)
 			imageSupported = true
 		}
 	})
-	--:Times(0)
+	
 	
 	ExpectRequest("VR.IsReady", true, { available = true })
 	ExpectRequest("TTS.IsReady", true, { available = true })
@@ -613,75 +614,75 @@ end
 --ToDo: Uncomment invalid cases when APPLINK-15494 is resolved (According to answers on question APPLINK-27524).
 local TestData = {
 
---caseID 1-3 are used to checking special cases
+-- caseID 1-3 are used to checking special cases
 {caseID = 1, description = "HMI_Does_Not_Repond"},
--- {caseID = 2, description = "MissedAllParamaters"},
--- {caseID = 3, description = "Invalid_Json"},
+{caseID = 2, description = "MissedAllParamaters"},
+{caseID = 3, description = "Invalid_Json"},
 
 		
--- --caseID 11-14 are used to checking "collerationID" parameter
-	-- --11. IsMissed
-	-- --12. IsNonexistent
-	-- --13. IsWrongType
-	-- --14. IsNegative 	
--- -- {caseID = 11, description = "collerationID_IsMissed"},
--- -- {caseID = 12, description = "collerationID_IsNonexistent"},
--- -- {caseID = 13, description = "collerationID_IsWrongType"},
--- -- {caseID = 14, description = "collerationID_IsNegative"},
+--caseID 11-14 are used to checking "collerationID" parameter
+	--11. IsMissed
+	--12. IsNonexistent
+	--13. IsWrongType
+	--14. IsNegative 	
+{caseID = 11, description = "collerationID_IsMissed"},
+{caseID = 12, description = "collerationID_IsNonexistent"},
+{caseID = 13, description = "collerationID_IsWrongType"},
+{caseID = 14, description = "collerationID_IsNegative"},
 
--- --caseID 21-27 are used to checking "method" parameter
-	-- --21. IsMissed
-	-- --22. IsNotValid
-	-- --23. IsOtherResponse
-	-- --24. IsEmpty
-	-- --25. IsWrongType
-	-- --26. IsInvalidCharacter - \n, \t, only spaces
--- {caseID = 21, description = "method_IsMissed"},
--- {caseID = 22, description = "method_IsNotValid"},
- {caseID = 23, description = "method_IsOtherResponse"},
--- {caseID = 24, description = "method_IsEmpty"},
--- {caseID = 25, description = "method_IsWrongType"},
--- {caseID = 26, description = "method_IsInvalidCharacter_Splace"},
--- {caseID = 26, description = "method_IsInvalidCharacter_Tab"},
--- {caseID = 26, description = "method_IsInvalidCharacter_NewLine"},
+--caseID 21-27 are used to checking "method" parameter
+	--21. IsMissed
+	--22. IsNotValid
+	--23. IsOtherResponse
+	--24. IsEmpty
+	--25. IsWrongType
+	--26. IsInvalidCharacter - \n, \t, only spaces
+{caseID = 21, description = "method_IsMissed"},
+{caseID = 22, description = "method_IsNotValid"},
+{caseID = 23, description = "method_IsOtherResponse"},
+{caseID = 24, description = "method_IsEmpty"},
+{caseID = 25, description = "method_IsWrongType"},
+{caseID = 26, description = "method_IsInvalidCharacter_Splace"},
+{caseID = 26, description = "method_IsInvalidCharacter_Tab"},
+{caseID = 26, description = "method_IsInvalidCharacter_NewLine"},
 
-	-- -- --caseID 31-35 are used to checking "resultCode" parameter
-		-- -- --31. IsMissed
-		-- -- --32. IsNotExist
-		-- -- --33. IsEmpty
-		-- -- --34. IsWrongType
--- {caseID = 31,  description = "resultCode_IsMissed"},
--- {caseID = 32,  description = "resultCode_IsNotExist"},
--- {caseID = 33,  description = "resultCode_IsWrongType"},
--- {caseID = 34,  description = "resultCode_INVALID_DATA"},
--- {caseID = 35,  description = "resultCode_DATA_NOT_AVAILABLE"},
--- {caseID = 36,  description = "resultCode_GENERIC_ERROR"},
-
-
-	-- --caseID 41-45 are used to checking "message" parameter
-		-- --41. IsMissed
-		-- --42. IsLowerBound
-		-- --43. IsUpperBound
-		-- --44. IsOutUpperBound
-		-- --45. IsEmpty/IsOutLowerBound
-		-- --46. IsWrongType
-		-- --47. IsInvalidCharacter - \n, \t, only spaces
--- {caseID = 41,  description = "message_IsMissed"},
--- {caseID = 42,  description = "message_IsLowerBound"},
--- {caseID = 43,  description = "message_IsUpperBound"},
--- {caseID = 44,  description = "message_IsOutUpperBound"},
--- {caseID = 45,  description = "message_IsEmpty_IsOutLowerBound"},
--- {caseID = 46,  description = "message_IsWrongType"},
--- {caseID = 47,  description = "message_IsInvalidCharacter_Tab"},
--- {caseID = 48,  description = "message_IsInvalidCharacter_OnlySpaces"},
--- {caseID = 49,  description = "message_IsInvalidCharacter_Newline"},
+	--caseID 31-35 are used to checking "resultCode" parameter
+		--31. IsMissed
+		--32. IsNotExist
+		--33. IsEmpty
+		--34. IsWrongType
+{caseID = 31,  description = "resultCode_IsMissed"},
+{caseID = 32,  description = "resultCode_IsNotExist"},
+{caseID = 33,  description = "resultCode_IsWrongType"},
+{caseID = 34,  description = "resultCode_INVALID_DATA"},
+{caseID = 35,  description = "resultCode_DATA_NOT_AVAILABLE"},
+{caseID = 36,  description = "resultCode_GENERIC_ERROR"},
 
 
--- --caseID 51-55 are used to checking "available" parameter
-	-- --51. IsMissed
-	-- --52. IsWrongType
--- {caseID = 51,  description = "available_IsMissed"},
--- {caseID = 52,  description = "available_IsWrongType"},
+	--caseID 41-45 are used to checking "message" parameter
+		--41. IsMissed
+		--42. IsLowerBound
+		--43. IsUpperBound
+		--44. IsOutUpperBound
+		--45. IsEmpty/IsOutLowerBound
+		--46. IsWrongType
+		--47. IsInvalidCharacter - \n, \t, only spaces
+ {caseID = 41,  description = "message_IsMissed"},
+{caseID = 42,  description = "message_IsLowerBound"},
+{caseID = 43,  description = "message_IsUpperBound"},
+{caseID = 44,  description = "message_IsOutUpperBound"},
+{caseID = 45,  description = "message_IsEmpty_IsOutLowerBound"},
+{caseID = 46,  description = "message_IsWrongType"},
+{caseID = 47,  description = "message_IsInvalidCharacter_Tab"},
+{caseID = 48,  description = "message_IsInvalidCharacter_OnlySpaces"},
+{caseID = 49,  description = "message_IsInvalidCharacter_Newline"},
+
+
+--caseID 51-55 are used to checking "available" parameter
+	--51. IsMissed
+	--52. IsWrongType
+{caseID = 51,  description = "available_IsMissed"},
+{caseID = 52,  description = "available_IsWrongType"},
 			
 }
 
@@ -734,9 +735,11 @@ local function RegisterApplication_Check_VR_Parameters_From_HMI_capabilities_jso
 	-- APPLINK-16420 SUCCESS
 	
 	Test[TestCaseName .. "_RegisterApplication_Check_VR_Parameters_From_HMI_capabilities_json_resultCode_SUCCESS"] = function(self)
-		
-		commonTestCases:DelayedExp(iTimeout)
-		
+
+		--mobile side: expect notification
+		self.mobileSession:ExpectNotification("OnHMIStatus", { systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE"})
+	
+
 		--mobile side: RegisterAppInterface request
 		local CorIdRegister=self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
 		
@@ -765,8 +768,8 @@ local function RegisterApplication_Check_VR_Parameters_From_HMI_capabilities_jso
 		}
 		)
 		
-		--mobile side: expect notification
-		self.mobileSession:ExpectNotification("OnHMIStatus", { systemContext="MAIN", hmiLevel="NONE", audioStreamingState="NOT_AUDIBLE"})
+
+		
 		
 	end	
 	
@@ -891,9 +894,9 @@ local function RegisterApplication_Check_VR_Parameters_From_HMI_capabilities_jso
 	-- Check absence of resumption in case HashID in RAI is not match
 	--////////////////////////////////////////////////////////////////////////////////////////////--
 	
-	--Precondition:
-	commonSteps:RegisterAppInterface(TestCaseName .. "_Precondition_for_checking_RESUME_FAILED_RegisterApp")
-	commonSteps:ActivationApp(_, TestCaseName .. "_Precondition_for_checking_RESUME_FAILED_ActivateApp")	
+	--Precondition: verify resume success case 
+	commonSteps:RegisterAppInterface(TestCaseName .. "_Precondition_for_checking_RESUME_SUCCESS_RegisterApp")
+	commonSteps:ActivationApp(_, TestCaseName .. "_Precondition_for_checking_RESUME_SUCCESS_ActivateApp")	
 	
 	Test[TestCaseName .. "_Precondition_for_checking_RESUME_SUCCESS_AddResumptionData_AddCommand"] = function(self)
 		
@@ -1221,9 +1224,7 @@ local function RegisterApplication_Check_VR_Parameters_From_HMI_capabilities_jso
 		self.mobileSession:StartService(7)
 	end
 	
-	Test[TestCaseName .. "_RegisterApplication_Check_VR_Parameters_From_HMI_capabilities_json_resultCode_SUCCESS"] = function(self)
-		
-		commonTestCases:DelayedExp(iTimeout)
+	Test[TestCaseName .. "_RegisterApplication_RESUME_SUCCESS_VR_Parameters_From_HMI_capabilities_json"] = function(self)
 		
 		local parameters = commonFunctions:cloneTable(config.application1.registerAppInterfaceParams)
 		parameters.hashID = self.currentHashID
@@ -1251,14 +1252,22 @@ local function RegisterApplication_Check_VR_Parameters_From_HMI_capabilities_jso
 			success = true, 
 			resultCode = "SUCCESS",
 			vrCapabilities = HmiCapabilities.VR.capabilities,
-			language = HmiCapabilities.VR.language
+			language = HmiCapabilities.VR.language,
+			info  = "Resume succeeded."
 		}
 		)
 		
+		--hmi side: expect BasicCommunication.ActivateApp request
+		EXPECT_HMICALL("BasicCommunication.ActivateApp", {})
+		:Do(function(_,data)
+			--hmi side: sending response
+			self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+		end)
+		
 		--mobile side: expect notification
 		self.mobileSession:ExpectNotification("OnHMIStatus", 
-		{systemContext="MAIN", hmiLevel="NONE", audioStreamingState="NOT_AUDIBLE"}, 
-		{systemContext="MAIN", hmiLevel="FULL", audioStreamingState="AUDIBLE"}
+			{systemContext="MAIN", hmiLevel="NONE", audioStreamingState="NOT_AUDIBLE"}, 
+			{systemContext="MAIN", hmiLevel="FULL", audioStreamingState="AUDIBLE"}
 		)
 		:Times(2)
 		
@@ -1385,6 +1394,9 @@ local function RegisterApplication_Check_VR_Parameters_From_HMI_capabilities_jso
 		:Do(function(_, data)
 			self.currentHashID = data.payload.hashID
 		end)
+		
+		
+		
 	end	
 	
 	Test[TestCaseName .. "_Precondition_for_checking_RESUME_FAILED_CloseConnection"] = function(self)
@@ -1409,7 +1421,7 @@ local function RegisterApplication_Check_VR_Parameters_From_HMI_capabilities_jso
 		commonTestCases:DelayedExp(iTimeout)
 		
 		local parameters = commonFunctions:cloneTable(config.application1.registerAppInterfaceParams)
-		parameters.hashID = "sdfgTYWRTdfhsdfgh"
+		parameters.hashID = "invalid_hashID"
 		
 		--mobile side: RegisterAppInterface request
 		local CorIdRegister=self.mobileSession:SendRPC("RegisterAppInterface", parameters)
@@ -1438,6 +1450,15 @@ local function RegisterApplication_Check_VR_Parameters_From_HMI_capabilities_jso
 			language = HmiCapabilities.VR.language
 		}
 		)
+		
+		
+		--hmi side: expect BasicCommunication.ActivateApp request
+		EXPECT_HMICALL("BasicCommunication.ActivateApp", {})
+		:Do(function(_,data)
+			--hmi side: sending response
+			self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+		end)
+		
 		
 		--mobile side: expect notification
 		self.mobileSession:ExpectNotification("OnHMIStatus", 
@@ -1493,7 +1514,7 @@ end
 
 
 for i=1, #TestData do
-		
+
 	--Print new line to separate new test cases group
 	commonFunctions:newTestCasesGroup("Case_" .. TestData[i].caseID .. "_IsReady_" ..TestData[i].description)
 	
@@ -1504,7 +1525,6 @@ for i=1, #TestData do
 	RegisterApplication_Check_VR_Parameters_From_HMI_capabilities_json(TestData[i].caseID, TestCaseName)
 	
 end
-
 
 ----------------------------------------------------------------------------------------------
 -----------------------------------------TEST BLOCK IV----------------------------------------

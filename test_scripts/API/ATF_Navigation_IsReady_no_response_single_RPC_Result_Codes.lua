@@ -111,64 +111,64 @@ local TestCases = {
 
 -- List all resultCodes
 local allResultCodes = {
-	{success = true, resultCode = "SUCCESS", 			expected_resultCode = "SUCCESS"}, --0
-	{success = true, resultCode = "WARNINGS", 			expected_resultCode = "WARNINGS"}, --21
-	{success = true, resultCode = "WRONG_LANGUAGE", 		expected_resultCode = "WRONG_LANGUAGE"}, --16
-	{success = true, resultCode = "RETRY", 				expected_resultCode = "RETRY"}, --7
-	{success = true, resultCode = "SAVED", 				expected_resultCode = "SAVED"}, --25
+	{success = true, resultCode = "SUCCESS", 			expected_resultCode = "SUCCESS", value = 0}, --0
+	{success = true, resultCode = "WARNINGS", 			expected_resultCode = "WARNINGS", value = 21}, --21
+	{success = true, resultCode = "WRONG_LANGUAGE", 		expected_resultCode = "WRONG_LANGUAGE", value = 16}, --16
+	{success = true, resultCode = "RETRY", 				expected_resultCode = "RETRY", value = 7}, --7
+	{success = true, resultCode = "SAVED", 				expected_resultCode = "SAVED", value = 25}, --25
 	
-	{success = false, resultCode = "", 		expected_resultCode = "GENERIC_ERROR"}, --not respond
-	{success = false, resultCode = "ABC", 	expected_resultCode = "GENERIC_ERROR"},
+	{success = false, resultCode = "", 		expected_resultCode = "INVALID_DATA", value = 11}, --not respond
+	{success = false, resultCode = "ABC", 	expected_resultCode = "INVALID_DATA", value = 11},
 	
-	{success = false, resultCode = "UNSUPPORTED_REQUEST", 	expected_resultCode = "UNSUPPORTED_REQUEST"}, --1
-	{success = false, resultCode = "UNSUPPORTED_RESOURCE", 	expected_resultCode = "UNSUPPORTED_RESOURCE"}, --2
-	{success = false, resultCode = "DISALLOWED", 			expected_resultCode = "DISALLOWED"}, --3
-	{success = false, resultCode = "USER_DISALLOWED", 		expected_resultCode = "USER_DISALLOWED"}, --23
-	{success = false, resultCode = "REJECTED", 				expected_resultCode = "REJECTED"}, --4
-	{success = false, resultCode = "ABORTED", 				expected_resultCode = "ABORTED"}, --5
-	{success = false, resultCode = "IGNORED", 				expected_resultCode = "IGNORED"}, --6
-	{success = false, resultCode = "IN_USE", 				expected_resultCode = "IN_USE"}, --8
-	{success = false, resultCode = "DATA_NOT_AVAILABLE", expected_resultCode = "VEHICLE_DATA_NOT_AVAILABLE"}, --9	
-	{success = false, resultCode = "TIMED_OUT", 					expected_resultCode = "TIMED_OUT"}, --10
-	{success = false, resultCode = "INVALID_DATA", 				expected_resultCode = "INVALID_DATA"}, --11
-	{success = false, resultCode = "CHAR_LIMIT_EXCEEDED", 		expected_resultCode = "CHAR_LIMIT_EXCEEDED"}, --12
-	{success = false, resultCode = "INVALID_ID", 				expected_resultCode = "INVALID_ID"}, --13
-	{success = false, resultCode = "DUPLICATE_NAME", 			expected_resultCode = "DUPLICATE_NAME"}, --14
-	{success = false, resultCode = "APPLICATION_NOT_REGISTERED", expected_resultCode = "APPLICATION_NOT_REGISTERED"}, --15
-	{success = false, resultCode = "OUT_OF_MEMORY", 				expected_resultCode = "OUT_OF_MEMORY"}, --17
-	{success = false, resultCode = "TOO_MANY_PENDING_REQUESTS", 	expected_resultCode = "TOO_MANY_PENDING_REQUESTS"}, --18
-	{success = false, resultCode = "GENERIC_ERROR", 				expected_resultCode = "GENERIC_ERROR"}, --22
-	{success = false, resultCode = "TRUNCATED_DATA", 			expected_resultCode = "TRUNCATED_DATA"} --24
+	{success = false, resultCode = "UNSUPPORTED_REQUEST", 	expected_resultCode = "UNSUPPORTED_REQUEST", value = 1}, --1
+	{success = false, resultCode = "UNSUPPORTED_RESOURCE", 	expected_resultCode = "UNSUPPORTED_RESOURCE", value = 2}, --2
+	{success = false, resultCode = "DISALLOWED", 			expected_resultCode = "DISALLOWED", value = 3}, --3
+	{success = false, resultCode = "USER_DISALLOWED", 		expected_resultCode = "USER_DISALLOWED", value = 23}, --23
+	{success = false, resultCode = "REJECTED", 				expected_resultCode = "REJECTED", value = 4}, --4
+	{success = false, resultCode = "ABORTED", 				expected_resultCode = "ABORTED", value = 5}, --5
+	{success = false, resultCode = "IGNORED", 				expected_resultCode = "IGNORED", value = 6}, --6
+	{success = false, resultCode = "IN_USE", 				expected_resultCode = "IN_USE", value = 8}, --8
+	{success = false, resultCode = "DATA_NOT_AVAILABLE", expected_resultCode = "VEHICLE_DATA_NOT_AVAILABLE", value = 9}, --9	
+	{success = false, resultCode = "TIMED_OUT", 					expected_resultCode = "TIMED_OUT", value = 10}, --10
+	{success = false, resultCode = "INVALID_DATA", 				expected_resultCode = "INVALID_DATA", value = 11}, --11
+	{success = false, resultCode = "CHAR_LIMIT_EXCEEDED", 		expected_resultCode = "CHAR_LIMIT_EXCEEDED", value = 12}, --12
+	{success = false, resultCode = "INVALID_ID", 				expected_resultCode = "INVALID_ID", value = 13}, --13
+	{success = false, resultCode = "DUPLICATE_NAME", 			expected_resultCode = "DUPLICATE_NAME", value = 14}, --14
+	{success = false, resultCode = "APPLICATION_NOT_REGISTERED", expected_resultCode = "APPLICATION_NOT_REGISTERED", value = 15}, --15
+	{success = false, resultCode = "OUT_OF_MEMORY", 				expected_resultCode = "OUT_OF_MEMORY", value = 17}, --17
+	{success = false, resultCode = "TOO_MANY_PENDING_REQUESTS", 	expected_resultCode = "TOO_MANY_PENDING_REQUESTS", value = 18}, --18
+	{success = false, resultCode = "GENERIC_ERROR", 				expected_resultCode = "GENERIC_ERROR", value = 22}, --22
+	{success = false, resultCode = "TRUNCATED_DATA", 			expected_resultCode = "TRUNCATED_DATA", value = 24} --24
 }
 
 local successResultCodes = {
-	{success = true, resultCode = "SUCCESS"},
-	{success = true, resultCode = "WARNINGS"},
-	{success = true, resultCode = "WRONG_LANGUAGE"},
-	{success = true, resultCode = "RETRY"},
-	{success = true, resultCode = "SAVED"}							
+	{success = true, resultCode = "SUCCESS", value = 0},
+	{success = true, resultCode = "WARNINGS", value = 21},
+	{success = true, resultCode = "WRONG_LANGUAGE", value = 16},
+	{success = true, resultCode = "RETRY", value = 7},
+	{success = true, resultCode = "SAVED", value = 25}							
 }
 
 local erroneousResultCodes = {				
-	{success = false, resultCode = "UNSUPPORTED_REQUEST"},
-	{success = false, resultCode = "UNSUPPORTED_RESOURCE"},				
-	{success = false, resultCode = "DISALLOWED"},
-	{success = false, resultCode = "USER_DISALLOWED"},
-	{success = false, resultCode = "REJECTED"},
-	{success = false, resultCode = "ABORTED"},
-	{success = false, resultCode = "IGNORED"},
-	{success = false, resultCode = "IN_USE"},
-	{success = false, resultCode = "DATA_NOT_AVAILABLE"},	
-	{success = false, resultCode = "TIMED_OUT"},
-	{success = false, resultCode = "INVALID_DATA"},
-	{success = false, resultCode = "CHAR_LIMIT_EXCEEDED"},
-	{success = false, resultCode = "INVALID_ID"},
-	{success = false, resultCode = "DUPLICATE_NAME"},
-	{success = false, resultCode = "APPLICATION_NOT_REGISTERED"},
-	{success = false, resultCode = "OUT_OF_MEMORY"},
-	{success = false, resultCode = "TOO_MANY_PENDING_REQUESTS"},
-	{success = false, resultCode = "GENERIC_ERROR"},
-	{success = false, resultCode = "TRUNCATED_DATA"}
+	{success = false, resultCode = "UNSUPPORTED_REQUEST", value = 1},
+	{success = false, resultCode = "UNSUPPORTED_RESOURCE", value = 2},				
+	{success = false, resultCode = "DISALLOWED", value = 3},
+	{success = false, resultCode = "USER_DISALLOWED", value = 23},
+	{success = false, resultCode = "REJECTED", value = 4},
+	{success = false, resultCode = "ABORTED", value = 5},
+	{success = false, resultCode = "IGNORED", value = 6},
+	{success = false, resultCode = "IN_USE", value = 8},
+	{success = false, resultCode = "DATA_NOT_AVAILABLE", value = 9},	
+	{success = false, resultCode = "TIMED_OUT", value = 10},
+	{success = false, resultCode = "INVALID_DATA", value = 11},
+	{success = false, resultCode = "CHAR_LIMIT_EXCEEDED", value = 12},
+	{success = false, resultCode = "INVALID_ID", value = 13},
+	{success = false, resultCode = "DUPLICATE_NAME", value = 14},
+	{success = false, resultCode = "APPLICATION_NOT_REGISTERED", value = 15},
+	{success = false, resultCode = "OUT_OF_MEMORY", value = 17},
+	{success = false, resultCode = "TOO_MANY_PENDING_REQUESTS", value = 18},
+	{success = false, resultCode = "GENERIC_ERROR", value = 22},
+	{success = false, resultCode = "TRUNCATED_DATA", value = 24}
 }
 
 ---------------------------------------------------------------------------------------------
@@ -179,7 +179,7 @@ function sleep(iTimeout)
 end
 
 function Test:initHMI_onReady_Navi_IsReady(case)
-	critical(true)
+	--critical(true)
 	local function ExpectRequest(name, mandatory, params)
 		xmlReporter.AddMessage(debug.getinfo(1, "n").name, tostring(name))
 		local event = events.Event()
@@ -642,36 +642,36 @@ end
 
 local function StopStartSDL_StartMobileSession(caseid)
 	--Stop SDL
-	Test[APIName .. TestCases[caseid].description .."_Precondition_StopSDL"] = function(self)
+	Test[APIName .."_Precondition_StopSDL"] = function(self)
 		StopSDL()
 	end
 	
 	--Start SDL
-	Test[APIName.. TestCases[caseid].description .. "_Precondition_StartSDL"] = function(self)
+	Test[APIName.."_Precondition_StartSDL"] = function(self)
 		StartSDL(config.pathToSDL, config.ExitOnCrash)
 	end
 	
 	--InitHMI
-	Test[APIName.. TestCases[caseid].description .. "_Precondition_InitHMI"] = function(self)
+	Test[APIName.."_Precondition_InitHMI"] = function(self)
 		self:initHMI()
 	end
 	
-	Test[APIName .. TestCases[caseid].description .. "_initHMI_OnReady"] = function(self)
+	Test[APIName .."_initHMI_OnReady"] = function(self)
 		self:initHMI_onReady_Navi_IsReady(caseid)	
 	end
 	
 	if (caseid > 1) then -- Wait for timeout (HMI does not response Navigation.IsReady)
-		Test[APIName .. TestCases[caseid].description .. "_DefaultTimeout"] = function(self)
+		Test[APIName .."_DefaultTimeout"] = function(self)
 			sleep(DefaultTimeout)
 		end
 	end	
 	
 	--ConnectMobile
-	Test[APIName .. TestCases[caseid].description .. "_ConnectMobile"] = function(self)
+	Test[APIName .."_ConnectMobile"] = function(self)
 		self:connectMobile()
 	end
 	--StartSession
-	Test[APIName .. TestCases[caseid].description .. "_StartSession"] = function(self)
+	Test[APIName .."_StartSession"] = function(self)
 		self.mobileSession= mobile_session.MobileSession(
 		self,
 		self.mobileConnection)
@@ -844,6 +844,13 @@ commonSteps:DeleteLogsFileAndPolicyTable()
 local function sequence_check_Result_Code_single_RPC(successValue, resultCodeValue, expected_resultCodeValue)
 	------------1. SendLocation		
 	Test[APIName .. "_SendLocation_" .. resultCodeValue] = function(self)
+		local HMI_result
+		for i = 1, #allResultCodes do
+			if(resultCodeValue == allResultCodes[i].resultCode) then
+				HMI_result = allResultCodes[i].value
+			end
+		end
+
 		local cid = self.mobileSession:SendRPC("SendLocation",
 		{ 
 			longitudeDegrees = 1.1,
@@ -853,11 +860,19 @@ local function sequence_check_Result_Code_single_RPC(successValue, resultCodeVal
 		EXPECT_HMICALL("Navigation.SendLocation")
 		:Do(function(_,data)
 			if (successValue == true) then
-				self.hmiConnection:SendResponse(data.id, data.method, resultCodeValue, {})
+				if(HMI_result == nil) then 
+					self.hmiConnection:SendResponse(data.id, data.method, resultCodeValue, {})
+				else
+					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"'..data.method..'","code":'..HMI_result..'}}')
+				end					
 				EXPECT_RESPONSE(cid, { success = true, resultCode = expected_resultCodeValue })
 				:Timeout(TimeoutValue)	
 			else
-				self.hmiConnection:SendError(data.id, data.method, resultCodeValue, "Navigation error message")
+				if(HMI_result == nil) then 
+					self.hmiConnection:SendError(data.id, data.method, resultCodeValue, "Navigation error message")
+				else
+					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"message":"Navigation error message", "method":"'..data.method..'","code":'..HMI_result..'}}')
+				end
 				EXPECT_RESPONSE(cid, { success = false, resultCode = expected_resultCodeValue, info = "Navigation error message" })
 				:Timeout(TimeoutValue)						
 			end
@@ -867,6 +882,12 @@ local function sequence_check_Result_Code_single_RPC(successValue, resultCodeVal
 	
 	------------2. ShowConstantTBT
 	Test[APIName .. "_ShowConstantTBT_" .. resultCodeValue] = function(self)
+		local HMI_result
+		for i = 1, #allResultCodes do
+			if(resultCodeValue == allResultCodes[i].resultCode) then
+				HMI_result = allResultCodes[i].value
+			end
+		end
 		local cid = self.mobileSession:SendRPC("ShowConstantTBT",
 		{ 
 			navigationText1 = "NavigationText1"
@@ -875,11 +896,19 @@ local function sequence_check_Result_Code_single_RPC(successValue, resultCodeVal
 		EXPECT_HMICALL("Navigation.ShowConstantTBT")
 		:Do(function(_,data)
 			if (successValue == true) then
-				self.hmiConnection:SendResponse(data.id, data.method, resultCodeValue, {})
+				if(HMI_result == nil) then 
+					self.hmiConnection:SendResponse(data.id, data.method, resultCodeValue, {})
+				else
+					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"'..data.method..'","code":'..HMI_result..'}}')
+				end
 				EXPECT_RESPONSE(cid, { success = true, resultCode = expected_resultCodeValue })
 				:Timeout(TimeoutValue)	
 			else
-				self.hmiConnection:SendError(data.id, data.method, resultCodeValue, "Navigation error message")
+				if(HMI_result == nil) then 
+					self.hmiConnection:SendError(data.id, data.method, resultCodeValue, "Navigation error message")
+				else
+					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"message": "Navigation error message", "method":"'..data.method..'","code":'..HMI_result..'}}')
+				end
 				EXPECT_RESPONSE(cid, { success = false, resultCode = expected_resultCodeValue, info = "Navigation error message" })
 				:Timeout(TimeoutValue)						
 			end
@@ -888,6 +917,12 @@ local function sequence_check_Result_Code_single_RPC(successValue, resultCodeVal
 	
 	------------4. UpdateTurnList
 	Test[APIName .. "_UpdateTurnList_" .. resultCodeValue] = function(self)
+		local HMI_result
+		for i = 1, #allResultCodes do
+			if(resultCodeValue == allResultCodes[i].resultCode) then
+				HMI_result = allResultCodes[i].value
+			end
+		end
 		local cid = self.mobileSession:SendRPC("UpdateTurnList",
 		{
 			--{
@@ -923,11 +958,19 @@ local function sequence_check_Result_Code_single_RPC(successValue, resultCodeVal
 		EXPECT_HMICALL("Navigation.UpdateTurnList")
 		:Do(function(_,data)
 			if (successValue == true) then
-				self.hmiConnection:SendResponse(data.id, data.method, resultCodeValue, {})
+				if(HMI_result == nil) then 
+					self.hmiConnection:SendResponse(data.id, data.method, resultCodeValue, {})
+				else
+					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{ "method":"'..data.method..'","code":'..HMI_result..'}}')
+				end
 				EXPECT_RESPONSE(cid, { success = true, resultCode = expected_resultCodeValue })
 				:Timeout(TimeoutValue)	
 			else
-				self.hmiConnection:SendError(data.id, data.method, resultCodeValue, "Navigation error message")
+				if(HMI_result == nil) then 
+					self.hmiConnection:SendError(data.id, data.method, resultCodeValue, "Navigation error message")
+				else
+					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"message":"Navigation error message", "method":"'..data.method..'","code":'..HMI_result..'}}')
+				end
 				EXPECT_RESPONSE(cid, { success = false, resultCode = expected_resultCodeValue, info = "Navigation error message" })
 				:Timeout(TimeoutValue)						
 			end
@@ -936,6 +979,12 @@ local function sequence_check_Result_Code_single_RPC(successValue, resultCodeVal
 	
 	------------5. GetWayPoints
 	Test[APIName .. "_GetWayPoints_" .. resultCodeValue] = function(self)
+		local HMI_result
+		for i = 1, #allResultCodes do
+			if(resultCodeValue == allResultCodes[i].resultCode) then
+				HMI_result = allResultCodes[i].value
+			end
+		end
 		local cid = self.mobileSession:SendRPC("GetWayPoints",
 		{
 			wayPointType = "ALL"
@@ -951,11 +1000,7 @@ local function sequence_check_Result_Code_single_RPC(successValue, resultCodeVal
 				longitudeDegrees = 1.1
 			},
 			locationName = "Hotel",
-			addressLines =
-			{
-				"Hotel Bora",
-				"Hotel 5 stars"
-			},
+			addressLines =	"Hotel 5 stars",
 			locationDescription = "VIP Hotel",
 			phoneNumber = "Phone39300434",
 			locationImage =
@@ -980,11 +1025,19 @@ local function sequence_check_Result_Code_single_RPC(successValue, resultCodeVal
 		EXPECT_HMICALL("Navigation.GetWayPoints")
 		:Do(function(_,data)
 			if (successValue == true) then
-				self.hmiConnection:SendResponse(data.id, data.method, resultCodeValue, response)
+				if(HMI_result == nil) then 
+					self.hmiConnection:SendResponse(data.id, data.method, resultCodeValue, response)
+				else
+					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"'..data.method..'","code":'..HMI_result..'}}')
+				end
 				EXPECT_RESPONSE(cid, { success = true, resultCode = expected_resultCodeValue, response })
 				:Timeout(TimeoutValue)	
 			else
-				self.hmiConnection:SendError(data.id, data.method, resultCodeValue, "Navigation error message")
+				if(HMI_result == nil) then 
+					self.hmiConnection:SendError(data.id, data.method, resultCodeValue, "Navigation error message")
+				else
+					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"message":"Navigation error message", "method":"'..data.method..'","code":'..HMI_result..'}}')
+				end
 				EXPECT_RESPONSE(cid, { success = false, resultCode = expected_resultCodeValue, info = "Navigation error message" })
 				:Timeout(TimeoutValue)						
 			end
@@ -993,6 +1046,12 @@ local function sequence_check_Result_Code_single_RPC(successValue, resultCodeVal
 	
 	------------6. SubscribeWayPoints
 	Test[APIName .. "_SubscribeWayPoints_" .. resultCodeValue] = function(self)
+		local HMI_result
+		for i = 1, #allResultCodes do
+			if(resultCodeValue == allResultCodes[i].resultCode) then
+				HMI_result = allResultCodes[i].value
+			end
+		end
 		local cid = self.mobileSession:SendRPC("SubscribeWayPoints",
 		{
 		})
@@ -1000,7 +1059,11 @@ local function sequence_check_Result_Code_single_RPC(successValue, resultCodeVal
 		EXPECT_HMICALL("Navigation.SubscribeWayPoints")
 		:Do(function(_,data)
 			if (successValue == true) then
-				self.hmiConnection:SendResponse(data.id, data.method, resultCodeValue, {})
+				if(HMI_result == nil) then 
+					self.hmiConnection:SendResponse(data.id, data.method, resultCodeValue, {})
+				else
+					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"'..data.method..'","code":'..HMI_result..'}}')
+				end
 
 				EXPECT_RESPONSE(cid, { success = true, resultCode = expected_resultCodeValue })
 				:Timeout(TimeoutValue)
@@ -1010,7 +1073,11 @@ local function sequence_check_Result_Code_single_RPC(successValue, resultCodeVal
 				:Timeout(TimeoutValue)				
 		
 			else
-				self.hmiConnection:SendError(data.id, data.method, resultCodeValue, "Navigation error message")
+				if(HMI_result == nil) then 
+					self.hmiConnection:SendError(data.id, data.method, resultCodeValue, "Navigation error message")
+				else
+					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"message":"Navigation error message", "method":"'..data.method..'","code":'..HMI_result..'}}')
+				end
 
 				EXPECT_RESPONSE(cid, { success = false, resultCode = expected_resultCodeValue, info = "Navigation error message" })
 				:Timeout(TimeoutValue)						
@@ -1021,23 +1088,6 @@ local function sequence_check_Result_Code_single_RPC(successValue, resultCodeVal
 			end
 		end)
 	end	
-	--Postcondition	
-	if (successValue == true) then 
-		Test[APIName .. "_Postcondition_UnsubscribeWayPoints_SUCCESS"] = function(self)
-			local cid1 = self.mobileSession:SendRPC("UnsubscribeWayPoints",{})
-			EXPECT_HMICALL("Navigation.UnsubscribeWayPoints")
-			:Do(function(_,data)
-				self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-			end)
-			EXPECT_RESPONSE(cid1, { success = true, resultCode = "SUCCESS" })
-			:Timeout(TimeoutValue)
-			
-			EXPECT_NOTIFICATION("OnHashChange")
-			:Times(1)				
-			:Timeout(TimeoutValue)			
-		end
-	end
-	--end Postcondition		
 	------------Additional check: HMI send OnWayPointChange notification
 	if (resultCodeValue == "SUCCESS") then
 		Test[APIName .. "_Additional_Check: OnWayPointChange"] = function(self)
@@ -1074,6 +1124,23 @@ local function sequence_check_Result_Code_single_RPC(successValue, resultCodeVal
 			EXPECT_NOTIFICATION("OnWayPointChange", notification)	
 		end
 	end
+	--Postcondition	
+	if (successValue == true) then 
+		Test[APIName .. "_Postcondition_UnsubscribeWayPoints_SUCCESS"] = function(self)
+			local cid1 = self.mobileSession:SendRPC("UnsubscribeWayPoints",{})
+			EXPECT_HMICALL("Navigation.UnsubscribeWayPoints")
+			:Do(function(_,data)
+				self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+			end)
+			EXPECT_RESPONSE(cid1, { success = true, resultCode = "SUCCESS" })
+			:Timeout(TimeoutValue)
+			
+			EXPECT_NOTIFICATION("OnHashChange")
+			:Times(1)				
+			:Timeout(TimeoutValue)			
+		end
+	end
+	--end Postcondition		
 	
 	------------7. UnsubscribeWayPoints
 	--Precondition	
@@ -1092,7 +1159,12 @@ local function sequence_check_Result_Code_single_RPC(successValue, resultCodeVal
 	end
 	--end Precondition	
 	Test[APIName .. "_UnsubscribeWayPoints_" .. resultCodeValue] = function(self)
-		
+		local HMI_result
+		for i = 1, #allResultCodes do
+			if(resultCodeValue == allResultCodes[i].resultCode) then
+				HMI_result = allResultCodes[i].value
+			end
+		end
 		local cid = self.mobileSession:SendRPC("UnsubscribeWayPoints",
 		{
 		})
@@ -1100,7 +1172,11 @@ local function sequence_check_Result_Code_single_RPC(successValue, resultCodeVal
 		EXPECT_HMICALL("Navigation.UnsubscribeWayPoints")
 		:Do(function(_,data)
 			if (successValue == true) then
-				self.hmiConnection:SendResponse(data.id, data.method, resultCodeValue, {})
+				if(HMI_result == nil) then 
+					self.hmiConnection:SendResponse(data.id, data.method, resultCodeValue, {})
+				else
+					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"'..data.method..'","code":'..HMI_result..'}}')
+				end
 
 				EXPECT_RESPONSE(cid, { success = true, resultCode = expected_resultCodeValue })
 				:Timeout(TimeoutValue)
@@ -1109,7 +1185,11 @@ local function sequence_check_Result_Code_single_RPC(successValue, resultCodeVal
 				:Times(1)				
 				:Timeout(TimeoutValue)				
 			else
-				self.hmiConnection:SendError(data.id, data.method, resultCodeValue, "Navigation error message")
+				if(HMI_result == nil) then 
+					self.hmiConnection:SendError(data.id, data.method, resultCodeValue, "Navigation error message")
+				else
+					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"message":"Navigation error message", "method":"'..data.method..'","code":'..HMI_result..'}}')
+				end
 
 				EXPECT_RESPONSE(cid, { success = false, resultCode = expected_resultCodeValue, info = "Navigation error message" })
 				:Timeout(TimeoutValue)
@@ -1142,13 +1222,22 @@ local function sequence_check_Result_Code_single_RPC(successValue, resultCodeVal
 	------------8. StartStream
 	--TODO: this code can make error for others because of APPLINK-22717. Currently in the suite should check it only with SUCCESS result code. For other result codes, please check separately.
 	Test[APIName .. "_StartStream_" .. resultCodeValue] = function(self)
-	
+		local HMI_result
+		for i = 1, #allResultCodes do
+			if(resultCodeValue == allResultCodes[i].resultCode) then
+				HMI_result = allResultCodes[i].value
+			end
+		end
 		if(resultCodeValue == "SUCCESS") then
 			self.mobileSession:StartService(11)
 		
 			EXPECT_HMICALL("Navigation.StartStream")
 			:Do(function(_,data)
-				self.hmiConnection:SendResponse(data.id, data.method, resultCodeValue, {})
+				if(HMI_result == nil) then 
+					self.hmiConnection:SendResponse(data.id, data.method, resultCodeValue, {})
+				else
+					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"'..data.method..'","code":'..HMI_result..'}}')
+				end
 			end)
 			
 			self.mobileSession:StartStreaming(11,"files/Wildlife.wmv")		
@@ -1203,53 +1292,65 @@ local function sequence_check_Result_Code_single_RPC(successValue, resultCodeVal
 	end
 	--end Precondition		
 	Test[APIName .. "_StopStream_" .. resultCodeValue] = function(self)		
-		self.mobileSession:StopService(11)
+		local HMI_result
+		for i = 1, #allResultCodes do
+			if(resultCodeValue == allResultCodes[i].resultCode) then
+				HMI_result = allResultCodes[i].value
+			end
+		end
+		commonTestCases:DelayedExp(TimeDelay)
+ 
+		xmlReporter.AddMessage("StopService", 11)
+		local stopService =
+			self.mobileSession:Send(
+			{
+				frameType = 0,
+				serviceType = 11,
+				frameInfo = 4,
+				sessionId = self.mobileSession.sessionId,
+				binaryData = self.mobileSession.hashCode,
+			})
+			
+
+		local event = events.Event()
+		-- prepare event to expect
+		event.matches = function(_, data)
+			return data.frameType == 0 and
+			data.serviceType == 11 and
+			(data.sessionId == self.mobileSession.sessionId) and
+			(data.frameInfo == 5 or -- End Service ACK
+			data.frameInfo == 6) -- End Service NACK
+		end
+
+		local ret = self.mobileSession:ExpectEvent(event, "EndService ACK")
+		:ValidIf(function(s, data)
+			if data.frameInfo == 5 then -- End Service ACK
+				print ("\27[32m End Service ACK received \27[0m ")				
+				return true
+			elseif data.frameInfo == 6 then -- End Service NACK
+				print ("\27[32m End Service NACK received \27[0m ")			
+				return false 
+			else 
+				return false 
+			end
+		end)
 		
 		EXPECT_HMICALL("Navigation.StopStream")
 		:Do(function(_,data)
 			if (successValue == true) then
-				self.hmiConnection:SendResponse(data.id, data.method, resultCodeValue, {})
-				
-				local event = events.Event()
-				event.matches = function(_, data)
-								return 	data.frameType   == 0 and
-										(data.serviceType == 11 or
-										data.serviceType == 10) and
-										data.sessionId   == self.mobileSession.sessionId and
-										(data.frameInfo   == 5 or -- End Service ACK
-										data.frameInfo   == 6)   -- End Service NACK
-								end
-				self.mobileSession:ExpectEvent(event, "EndService ACK")		
-				:Timeout(60000)
-				:ValidIf(function(_, data)
-					if data.serviceType == 11 and data.frameInfo == 5 then return true
-						else return false
-					end
-				end)
-		
+				if(HMI_result == nil) then 
+					self.hmiConnection:SendResponse(data.id, data.method, resultCodeValue, {})
+				else
+					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"'..data.method..'","code":'..HMI_result..'}}')
+				end
 			else
-				self.hmiConnection:SendError(data.id, data.method, resultCodeValue, "Navigation error message")
-
-				local event = events.Event()
-				event.matches = function(_, data)
-								return 	data.frameType   == 0 and
-										(data.serviceType == 11 or
-										data.serviceType == 10) and
-										data.sessionId   == self.mobileSession.sessionId and
-										(data.frameInfo   == 5 or -- End Service ACK
-										data.frameInfo   == 6)   -- End Service NACK
-								end
-				self.mobileSession:ExpectEvent(event, "EndService NACK")		
-				:Timeout(60000)
-				:ValidIf(function(_, data)
-					if data.serviceType == 11 and data.frameInfo == 6 then return true
-						else return false
-					end
-				end)
-				
+				if(HMI_result == nil) then 
+					self.hmiConnection:SendError(data.id, data.method, resultCodeValue, "Navigation error message")
+				else
+					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"message":"Navigation error message", "method":"'..data.method..'","code":'..HMI_result..'}}')
+				end
 			end
 		end)
-		
 	end	
 	
 	------------10. StartAudioStream
@@ -1317,54 +1418,66 @@ local function sequence_check_Result_Code_single_RPC(successValue, resultCodeVal
 		commonTestCases:DelayedExp(2000)
 	end
 	--end Precondition
-	Test[APIName .. "_StopAudioStream_" .. resultCodeValue] = function(self)				
-		self.mobileSession:StopService(10)
+	Test[APIName .. "_StopAudioStream_" .. resultCodeValue] = function(self)	
+		local HMI_result
+		for i = 1, #allResultCodes do
+			if(resultCodeValue == allResultCodes[i].resultCode) then
+				HMI_result = allResultCodes[i].value
+			end
+		end			
+		commonTestCases:DelayedExp(TimeDelay)
+		
+		xmlReporter.AddMessage("StopService", 10)
+		local stopService =
+			self.mobileSession:Send(
+			{
+				frameType = 0,
+				serviceType = 10,
+				frameInfo = 4,
+				sessionId = self.mobileSession.sessionId,
+				binaryData = self.mobileSession.hashCode,
+			})
+			
+		
+		local event = events.Event()
+		-- prepare event to expect
+		event.matches = function(_, data)
+			return data.frameType == 0 and
+			data.serviceType == 10 and
+			(data.sessionId == self.mobileSession.sessionId) and
+			(data.frameInfo == 5 or -- End Service ACK
+			data.frameInfo == 6) -- End Service NACK
+		end
+
+		local ret = self.mobileSession:ExpectEvent(event, "EndService ACK")
+		:ValidIf(function(s, data)
+			if data.frameInfo == 5 then -- End Service ACK
+				print ("\27[32m End Service ACK received \27[0m ")				
+				return true
+			elseif data.frameInfo == 6 then -- End Service NACK
+				print ("\27[32m End Service NACK received \27[0m ")			
+				return false 
+			else 
+				return false 
+			end
+		end)
 		
 		EXPECT_HMICALL("Navigation.StopAudioStream")
 		:Do(function(_,data)
 			if (successValue == true) then
-				self.hmiConnection:SendResponse(data.id, data.method, resultCodeValue, {})
-				
-				local event = events.Event()
-				event.matches = function(_, data)
-								return 	data.frameType   == 0 and
-										(data.serviceType == 11 or
-										data.serviceType == 10) and
-										data.sessionId   == self.mobileSession.sessionId and
-										(data.frameInfo   == 5 or -- End Service ACK
-										data.frameInfo   == 6)   -- End Service NACK
-								end
-				self.mobileSession:ExpectEvent(event, "EndService ACK")		
-				:Timeout(60000)
-				:ValidIf(function(_, data)
-					if data.serviceType == 10 and data.frameInfo == 5 then return true
-						else return false
-					end
-				end)
-				
+				if(HMI_result == nil) then 
+					self.hmiConnection:SendResponse(data.id, data.method, resultCodeValue, {})	
+				else
+					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"'..data.method..'","code":'..HMI_result..'}}')		
+				end
 			else
-				self.hmiConnection:SendError(data.id, data.method, resultCodeValue, "Navigation error message")
-				
-				local event = events.Event()
-				event.matches = function(_, data)
-								return 	data.frameType   == 0 and
-										(data.serviceType == 11 or
-										data.serviceType == 10) and
-										data.sessionId   == self.mobileSession.sessionId and
-										(data.frameInfo   == 5 or -- End Service ACK
-										data.frameInfo   == 6)   -- End Service NACK
-								end
-				self.mobileSession:ExpectEvent(event, "EndService NACK")		
-				:Timeout(60000)
-				:ValidIf(function(_, data)
-					if data.serviceType == 10 and data.frameInfo == 6 then return true
-						else return false
-					end
-				end)				
-				
+				if(HMI_result == nil) then 
+					self.hmiConnection:SendError(data.id, data.method, resultCodeValue, "Navigation error message")		
+				else
+					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"message":"Navigation error message", "method":"'..data.method..'","code":'..HMI_result..'}}')
+				end
 			end
 		end)
-		
 	end			
 	
 	------------Additional check: HMI send OnTBTClientState notification
@@ -1387,22 +1500,14 @@ end
 for i= 2, 2 do --TODO: Remove this row and use the row above after APPLINK-25898 closed. Currently, replace numbers "2" by value of TestCases.caseID you want to test.
 	commonFunctions:newTestCasesGroup(APIName .. "_Test_suite: " .. TestCases[i].description)
 	
-	StopStartSDL_StartMobileSession(i)
+	StopStartSDL_StartMobileSession(TestCases[i].caseID)
 	commonSteps:RegisterAppInterface(APIName .. TestCases[i].description .. "_RegisterAppInterface")
 	commonSteps:ActivationAppGenivi(_,APIName .. TestCases[i].description .. "_ActivationApp")
 	commonSteps:PutFile("Precondition_PutFile", "icon.png")
 	
---	for j=1, #allResultCodes do
-	for j=2, 2 do
+	for j=1, #allResultCodes do
 		commonFunctions:newTestCasesGroup(APIName .. TestCases[i].description .. " (" .. allResultCodes[j].resultCode ..")")
 		sequence_check_Result_Code_single_RPC(allResultCodes[j].success, allResultCodes[j].resultCode, allResultCodes[j].expected_resultCode)
-
-		--TODO: Currently check all result codes for invalid HMI response take so much time. So only check full incase HMI does not respond and in 1 case HMI responds invalid data. 
-		--Remove this break if want to check all ResultCodes for all cases of HMI responds invalid data
-		if (i>3) then
-			break
-		end		
-		
 	end
 	
 	commonSteps:UnregisterApplication(APIName .. TestCases[i].description .. "_UnregisterAppInterface")	

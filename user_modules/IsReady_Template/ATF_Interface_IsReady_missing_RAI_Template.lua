@@ -1,4 +1,5 @@
 print("\27[31m SDL crushes with DCHECK. Some tests are commented. After resolving uncomment tests!\27[0m")
+--ATF defect: APPLINK-28830 : Worng check of RAI params in TC for regsiter app interface(TC0x)
 
 config.defaultProtocolVersion = 2
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
@@ -40,7 +41,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 ---------------------------------------------------------------------------------------------
 -------------------------------------------Common variables-----------------------------------
 ---------------------------------------------------------------------------------------------
-	local params_RAI = commonFunctions:cloneTable(isReady.paramsRAI)
+	local params_RAI = commonFunctions:cloneTable(isReady.params_RAI)
 
 ---------------------------------------------------------------------------------------------
 -------------------------------------------Preconditions-------------------------------------
@@ -626,16 +627,6 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 				self.appName=data.params.application.appName
 				self.applications[config.application1.registerAppInterfaceParams.appName]=data.params.application.appID
 			end)
-			
-			
-			-- Read VR parameters from hmi_capabilities.json
-			local HmiCapabilities_file = config.pathToSDL .. "hmi_capabilities.json"
-			f = assert(io.open(HmiCapabilities_file, "r"))
-			fileContent = f:read("*all")
-			f:close()
-			
-			local json = require("modules/json")
-			local HmiCapabilities = json.decode(fileContent)
 
 			--mobile side: expect response
 			-- SDL sends VR-related parameters to mobile app with value from HMI_capabilities_json
@@ -695,6 +686,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 	end
 
 	for i=1, #TestData do
+	--for i=10, 10 do
 		--for i=1, 2 do
 
 		local TestCaseName = "Case_" .. TestData[i].caseID.."_" ..TestData[i].description 
@@ -782,7 +774,10 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 -----------------------------------------TEST BLOCK VII---------------------------------------
 --------------------------------------Different HMIStatus-------------------------------------
 ----------------------------------------------------------------------------------------------
-
 -- Not applicable
+
+	function Test:Postcondition_RestorePreloadedFile()
+		commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
+	end
 
 return Test

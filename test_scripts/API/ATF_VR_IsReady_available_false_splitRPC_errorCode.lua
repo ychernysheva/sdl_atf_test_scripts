@@ -16,8 +16,7 @@ local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
 
 
-DefaultTimeout = 3
-local iTimeout = 10000
+local iTimeout = 12000
 local commonPreconditions = require ('/user_modules/shared_testcases/commonPreconditions')
 
 
@@ -538,7 +537,7 @@ function Test:initHMI_onReady_VR_IsReady(case)
 	self.hmiConnection:SendNotification("BasicCommunication.OnReady")
 end 
 
-local function StopStartSDL_HMI_MOBILE()
+local function StopStartSDL_HMI_MOBILE(TestCaseName)
 	
 	--Stop SDL
 	Test[tostring(TestCaseName) .. "_Precondition_StopSDL"] = function(self)
@@ -617,18 +616,18 @@ end
 -- transfer only <Interface>.RPC to HMI (in case <Interface> is supported by system)
 -- respond with '<received_errorCode_from_HMI>' to mobile app IN CASE <Interface>.RPC got any erroneous resultCode from HMI (please see list with resultCodes below)		
 
+--APPLINK-26900 Clarify info parameter in CRQ APPLINK-25043
+
 --Print new line to separate new test cases group
 commonFunctions:newTestCasesGroup("VR_IsReady_availabe_false_split_RPC_Unsuccess")
 
-StopStartSDL_HMI_MOBILE()
+StopStartSDL_HMI_MOBILE("VR_IsReady_availabe_false_split_RPC_Unsuccess")
 
 commonSteps:RegisterAppInterface()
 
 commonSteps:ActivationApp()
 
 
-
---ToDo: Update according to question APPLINK-26900
 
 -- List of erroneous resultCodes (success:false)
 local TestData = {
@@ -695,7 +694,7 @@ for i = 1, #TestData do
 			EXPECT_RESPONSE(cid, {success = false, resultCode = "GENERIC_ERROR"})
 			:Timeout(12000)
 		else
-			EXPECT_RESPONSE(cid, {success = false, resultCode = TestData[i].resultCode, info = TestData[i].info..", ".."Error Messages"})
+			EXPECT_RESPONSE(cid, {success = false, resultCode = TestData[i].resultCode, info = "Error Messages"})
 		end
 		
 		--mobile side: expect OnHashChange notification
@@ -707,25 +706,75 @@ end
 
 -- DeleteCommand	
 commonFunctions:newTestCasesGroup("DeleteCommand_UNSUPPORTED_RESOURCE_true_Other_Interfaces_Responds_ERROR")
+
+--Precondition: AddCommand 1000
+Test["Precondition_AddCommand_1000"] = function(self)
+
+
+	--mobile side: sending AddCommand request
+	local cid = self.mobileSession:SendRPC("AddCommand",
+	{
+		cmdID = 1000,
+		vrCommands = {"vrCommands_1000"},
+		menuParams = {position = 1, menuName = "Command 1000"}
+	})
+		
+
+	--hmi side: expect UI.AddCommand request 
+	EXPECT_HMICALL("UI.AddCommand", 
+	{ 
+		cmdID = 1000,		
+		menuParams = {position = 1, menuName ="Command 1000"}
+	})
+	:Do(function(_,data)
+		--hmi side: sending UI.AddCommand response
+		self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+	end)
+	
+	--hmi side: expect VR.AddCommand request
+	EXPECT_HMICALL("VR.AddCommand", {})
+	:Times(0)
+		
+	--mobile side: expect AddCommand response
+	EXPECT_RESPONSE(cid, {success = true, resultCode = "UNSUPPORTED_RESOURCE", info = "VR is not supported by system"})
+
+	--mobile side: expect OnHashChange notification
+	EXPECT_NOTIFICATION("OnHashChange")
+		
+end
+
 for i = 1, #TestData do
+
+
 	Test["DeleteCommand_UNSUPPORTED_RESOURCE_true_Incase_UI_responds_" .. TestData[i].resultCode] = function(self)
 		
 		commonTestCases:DelayedExp(iTimeout)
 		
 		--mobile side: sending DeleteCommand request
-		local cid = self.mobileSession:SendRPC("DeleteCommand", {cmdID = i})
+		local cid = self.mobileSession:SendRPC("DeleteCommand", {cmdID = 1000})
 		
 		--hmi side: expect UI.DeleteCommand request
 		EXPECT_HMICALL("UI.DeleteCommand", {})
-		:Times(0)
+		:Do(function(_,data)
+			--hmi side: sending UI.AddCommand response 
+			if TestData[i].resultCode == "NOT_RESPOND" then
+				--UI does not respond
+			else
+				self.hmiConnection:SendError(data.id, data.method, TestData[i].resultCode, "Error Messages")
+			end
+		end)	
 		
 		--hmi side: expect VR.DeleteCommand request
 		EXPECT_HMICALL("VR.DeleteCommand", {})
 		:Times(0)
 		
 		--mobile side: expect DeleteCommand response 
-		--APPLINK-19401
-		EXPECT_RESPONSE(cid, {success = false, resultCode = "INVALID_ID"})				
+		if TestData[i].resultCode == "NOT_RESPOND" then
+			EXPECT_RESPONSE(cid, {success = false, resultCode = "GENERIC_ERROR"})
+			:Timeout(12000)
+		else
+			EXPECT_RESPONSE(cid, {success = false, resultCode = TestData[i].resultCode, info = "Error Messages"})
+		end			
 		
 		EXPECT_NOTIFICATION("OnHashChange")
 		:Times(0)
