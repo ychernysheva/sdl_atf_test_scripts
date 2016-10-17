@@ -673,4 +673,9 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 		commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 	end
 
+	Test["ForceKill" .. tostring(i)] = function (self)
+		os.execute("ps aux | grep smart | awk \'{print $2}\' | xargs kill -9")
+		os.execute("sleep 1")
+	end
+
 return Test
