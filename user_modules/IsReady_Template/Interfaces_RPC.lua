@@ -1,5 +1,6 @@
 local interfaces = { }
--- TODO: APPLINK-28518: Script is updated according to clarification. Update of requirement is waiting. After update RPCs should be checked again.
+-- APPLINK-28518: Script is updated according to clarification. Update of requirement is waiting. After update RPCs should be checked again.
+
 
 -- Read paramaters from hmi_capabilities.json
 local HmiCapabilities_file = config.pathToSDL .. "hmi_capabilities.json"
@@ -716,7 +717,7 @@ interfaces.mobile_req = {
                             splitted = false,
                             single = true,
                             description = "StartStream as result of StartService(11)",
-                            hashChange = true,
+                            hashChange = false,
                             params = { }-- no parameters 
                           },
                           --StopStream
@@ -725,7 +726,25 @@ interfaces.mobile_req = {
                             splitted = false,
                             single = true,
                             description = "StartStream as result of StartService(11)",
-                            hashChange = true,
+                            hashChange = false,
+                            params = { }-- no parameters 
+                          },
+                          --StartAudioStream
+                          {
+                            name = "StartAudioStream",
+                            splitted = false,
+                            single = true,
+                            description = "StartAudioStream as result of StartService(11)",
+                            hashChange = false,
+                            params = { }-- no parameters 
+                          },
+                          --StopAudioStream
+                          {
+                            name = "StopAudioStream",
+                            splitted = false,
+                            single = true,
+                            description = "StopAudioStream as result of StartService(11)",
+                            hashChange = false,
                             params = { }-- no parameters 
                           }
                           -- GetSupportedLanguages is not sent by application
@@ -743,18 +762,6 @@ interfaces.mobile_req = {
                           -- ClosePopUp is not sent by application
                           -- GetVehicleType is not sent by application
                             --Checked in initHMI_onReady_Interfaces_IsReady
-                          -- StartStream is not sent by application
-                            -- RPC is not covered
-                          -- StopStream is not sent by application
-                            -- RPC is not covered
-                          --StartAudioStream
-                            -- RPC is not covered
-                          --StopAudioStream
-                            -- RPC is not covered
-                          
-                          
-                          
-                          
                         }
 
 interfaces.RPC = {
@@ -952,6 +959,26 @@ interfaces.RPC = {
                                     name = "Not applicable"
                                   },
                                   --UnsubscribeWayPoints
+                                  {
+                                    
+                                    name = "Not applicable"
+                                  },
+                                  --StartStream
+                                  {
+                                    
+                                    name = "Not applicable"
+                                  },
+                                  --StopStream
+                                  {
+                                    
+                                    name = "Not applicable"
+                                  },
+                                  --StartAudioStream
+                                  {
+                                    
+                                    name = "Not applicable"
+                                  },
+                                  --StopAudioStream
                                   {
                                     
                                     name = "Not applicable"
@@ -1311,6 +1338,26 @@ interfaces.RPC = {
                                   {
                                     
                                     name = "Not applicable"
+                                  },
+                                  --StartStream
+                                  {
+                                    
+                                    name = "Not applicable"
+                                  },
+                                  --StopStream
+                                  {
+                                    
+                                    name = "Not applicable"
+                                  },
+                                  --StartAudioStream
+                                  {
+                                    
+                                    name = "Not applicable"
+                                  },
+                                  --StopAudioStream
+                                  {
+                                    
+                                    name = "Not applicable"
                                   }
                                 }
                     },
@@ -1502,6 +1549,26 @@ interfaces.RPC = {
                                   {
                                     
                                     name = "Not applicable"
+                                  },
+                                  --StartStream
+                                  {
+                                    
+                                    name = "Not applicable"
+                                  },
+                                  --StopStream
+                                  {
+                                    
+                                    name = "Not applicable"
+                                  },
+                                  --StartAudioStream
+                                  {
+                                    
+                                    name = "Not applicable"
+                                  },
+                                  --StopAudioStream
+                                  {
+                                    
+                                    name = "Not applicable"
                                   }
                                 }
                     },
@@ -1682,6 +1749,26 @@ interfaces.RPC = {
                                     name = "Not applicable"
                                   },
                                   --UnsubscribeWayPoints
+                                  {
+                                    
+                                    name = "Not applicable"
+                                  },
+                                  --StartStream
+                                  {
+                                    
+                                    name = "Not applicable"
+                                  },
+                                  --StopStream
+                                  {
+                                    
+                                    name = "Not applicable"
+                                  },
+                                  --StartAudioStream
+                                  {
+                                    
+                                    name = "Not applicable"
+                                  },
+                                  --StopAudioStream
                                   {
                                     
                                     name = "Not applicable"
@@ -1988,6 +2075,33 @@ interfaces.RPC = {
                                     name = "UnsubscribeWayPoints",
                                     splitted = false,
                                     params = {} -- no parameters
+                                  },
+                                  --StartStream
+                                  {
+                                    
+                                    name = "StartStream",
+                                    splitted = false,
+                                    params = {""} -- no parameters
+                                  },
+                                  --StopStream
+                                  {
+                                    
+                                    name = "StopStream",
+                                    splitted = false,
+                                    params = {""} -- no parameters
+                                  },
+                                  --StartAudioStream
+                                  {
+                                    
+                                    name = "StartAudioStream",
+                                    splitted = false,
+                                    params = {""} -- no parameters
+                                  },
+                                  --StopAudioStream
+                                  {
+                                    name = "StopAudioStream",
+                                    splitted = false,
+                                    params = {""} -- no parameters
                                   }
                                 }
                     }
