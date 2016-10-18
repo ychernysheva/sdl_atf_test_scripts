@@ -578,7 +578,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 									--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"'..data.method..'","code":'..TestData[i].value..'}}')					
 								end)		
 
-								if(mob_request.name == "Alert" or mob_request.name == "PerformAudioPassThru") then
+								if(mob_request.name == "Alert" or mob_request.name == "PerformAudioPassThru" or mob_request.name == "AlertManeuver") then
 									local SpeakId
 									
 									--hmi side: TTS.Speak request 
@@ -825,7 +825,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 								 	end --for cnt_rpc = 1, #NotTestedInterfaces[cnt].usedRPC do
 								end --for cnt = 1, #NotTestedInterfaces do
 
-								if(mob_request.name == "Alert" or mob_request.name == "PerformAudioPassThru") then
+								if(mob_request.name == "Alert" or mob_request.name == "PerformAudioPassThru" or mob_request.name == "AlertManeuver") then
 									local SpeakId
 									
 									--hmi side: TTS.Speak request 
@@ -971,10 +971,10 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 		commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 	end
 
-	Test["ForceKill" .. tostring(i)] = function (self)
-			-- body
-			os.execute("ps aux | grep smart | awk \'{print $2}\' | xargs kill -9")
-			os.execute("sleep 1")
+	Test["ForceKill"] = function (self)
+		print("------------------------ Positions --------------------------")
+		os.execute("ps aux | grep smart | awk \'{print $2}\' | xargs kill -9")
+		os.execute("sleep 1")
 	end
 
 return Test

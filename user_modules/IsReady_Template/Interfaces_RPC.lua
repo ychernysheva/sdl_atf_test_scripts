@@ -625,11 +625,11 @@ interfaces.mobile_req = {
                                                         { 
                                                           type = "BOTH",
                                                           text = "Close",
-                                                          -- image = 
-                                                          -- { 
-                                                          --   value = "icon.png",
-                                                          --   imageType = "DYNAMIC",
-                                                          -- }, 
+                                                           image = 
+                                                           { 
+                                                             value = "icon.png",
+                                                             imageType = "DYNAMIC",
+                                                          }, 
                                                           isHighlighted = true,
                                                           softButtonID = 821,
                                                           systemAction = "DEFAULT_ACTION",
@@ -637,11 +637,11 @@ interfaces.mobile_req = {
                                                         { 
                                                           type = "BOTH",
                                                           text = "AnotherClose",
-                                                          -- image = 
-                                                          -- { 
-                                                          --   value = "icon.png",
-                                                          --   imageType = "DYNAMIC",
-                                                          -- }, 
+                                                          image = 
+                                                          { 
+                                                            value = "icon.png",
+                                                            imageType = "DYNAMIC",
+                                                          }, 
                                                           isHighlighted = false,
                                                           softButtonID = 822,
                                                           systemAction = "DEFAULT_ACTION",

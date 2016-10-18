@@ -122,81 +122,151 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 		for count_RPC = 1, #RPCs do
 				
 			local mob_request = mobile_request[count_RPC]
+			local hmi_call = RPCs[count_RPC]
+			local hmi_method_call = TestedInterface.."."..hmi_call.name
+
 			if(mob_request.single == true)then
-
-				-- All applicable RPCs
-				Test["TC_".. RPCs[count_RPC].name .. "_UNSUPPORTED_RESOURCE_false" ..TestCaseName] = function(self)
-					local menuparams = ""
-					local vrCmd = ""
-					local ltimeout = ""
-					local helpPrompt = ""
-					userPrint(33, "Testing RPC = "..RPCs[count_RPC].name)
-					--print("=============== Test: "..TestedInterface.."."..RPCs[count_RPC].name)
-					local hmi_call = RPCs[count_RPC]
-					local hmi_method_call = TestedInterface.."."..hmi_call.name
-
-					if ( hmi_call.params.appID ~= nil ) then hmi_call.params.appID = self.applications[config.application1.registerAppInterfaceParams.appName] end
-						
-						
-					if ( TestedInterface == "VR") then 
-							-- APPLINK-19333: AddCommand should not to be splitted to UI.AddCommand
-							if (mob_request.params.menuParams ~= nil ) then 
-								menuparams = mob_request.params.menuParams 
-								mob_request.params.menuParams =  nil 
-							end
+				if( (mob_request.name ~= "StartStream") and (mob_request.name ~= "StopStream") and 
+					(mob_request.name ~= "StartAudioStream") and (mob_request.name ~= "StopAudioStream")) then
+					-- All applicable RPCs
+					if(TestedInterface == "TTS" and (mob_request.name == "SetGlobalProperties") ) then
+						mob_request.single = false 
 					end
-					if( TestedInterface == "UI") then
-							-- APPLINK-19329: AddCommand should not to be splitted to VR.AddCommand
-							if ( mob_request.params.vrCommands ~= nil ) then 
-								vrCmd = mob_request.params.vrCommands
-								mob_request.params.vrCommands = nil
-							end
-							if (mob_request.params.timeoutPrompt ~= nil ) then
-								ltimeout = mob_request.params.timeoutPrompt
-								mob_request.params.timeoutPrompt = nil
-							end
-							if (mob_request.params.helpPrompt ~= nil ) then
-								helpPrompt = mob_request.params.helpPrompt
-								mob_request.params.helpPrompt = nil
-							end
-					end
-
-					commonTestCases:DelayedExp(iTimeout)
-				
-					--mobile side: sending AddCommand request
-					local cid = self.mobileSession:SendRPC(mob_request.name, mob_request.params)
+					if(mob_request.single == true) then
+						Test["TC_".. RPCs[count_RPC].name .. "_UNSUPPORTED_RESOURCE_false" ..TestCaseName] = function(self)
+							local menuparams = ""
+							local vrCmd = ""
+							local ltimeout = ""
+							local helpPrompt = ""
+							userPrint(33, "Testing RPC = "..RPCs[count_RPC].name)
+							--print("=============== Test: "..TestedInterface.."."..RPCs[count_RPC].name)
 							
-					--hmi side: expect SDL does not send Interface.RPC request
-					EXPECT_HMICALL(hmi_method_call, {})
-					:Times(0)
 
-					if(mob_request.name == "DeleteCommand" or mob_request.name == "DeleteSubMenu") then
-						-- According to APPLINK-27079; APPLNIK-19401
-						--mobile side: expect RPC response
-						EXPECT_RESPONSE(cid, {success = false, resultCode = "INVALID_ID"})
+							if ( hmi_call.params.appID ~= nil ) then hmi_call.params.appID = self.applications[config.application1.registerAppInterfaceParams.appName] end
+								
+								
+							if ( TestedInterface == "VR") then 
+									-- APPLINK-19333: AddCommand should not to be splitted to UI.AddCommand
+									if (mob_request.params.menuParams ~= nil ) then 
+										menuparams = mob_request.params.menuParams 
+										mob_request.params.menuParams =  nil 
+									end
+							end
+							if( TestedInterface == "UI") then
+									-- APPLINK-19329: AddCommand should not to be splitted to VR.AddCommand
+									if ( mob_request.params.vrCommands ~= nil ) then 
+										vrCmd = mob_request.params.vrCommands
+										mob_request.params.vrCommands = nil
+									end
+									if (mob_request.params.timeoutPrompt ~= nil ) then
+										ltimeout = mob_request.params.timeoutPrompt
+										mob_request.params.timeoutPrompt = nil
+									end
+									if (mob_request.params.helpPrompt ~= nil ) then
+										helpPrompt = mob_request.params.helpPrompt
+										mob_request.params.helpPrompt = nil
+									end
+							end
+
+							commonTestCases:DelayedExp(iTimeout)
+
+							local cid
 						
-					elseif(mob_request.name == "UnsubscribeVehicleData") then
-						-- According to APPLINK-27872 and APPLINK-20043
-						-- mobile side: expect RPC response
-						EXPECT_RESPONSE(cid, {success = false, resultCode = "IGNORED"})
-					else
-						--mobile side: expect RPC response
-						EXPECT_RESPONSE(cid, {success = false, resultCode = "UNSUPPORTED_RESOURCE", info =  TestedInterface .." is not supported by system"})
-						
+							--mobile side: sending AddCommand request
+							cid = self.mobileSession:SendRPC(mob_request.name, mob_request.params)
+									
+							--hmi side: expect SDL does not send Interface.RPC request
+							EXPECT_HMICALL(hmi_method_call, {})
+							:Times(0)
+
+							if(mob_request.name == "DeleteCommand" or mob_request.name == "DeleteSubMenu") then
+								-- According to APPLINK-27079; APPLNIK-19401
+								--mobile side: expect RPC response
+								EXPECT_RESPONSE(cid, {success = false, resultCode = "INVALID_ID"})
+								
+							elseif(mob_request.name == "UnsubscribeVehicleData") then
+								-- According to APPLINK-27872 and APPLINK-20043
+								-- mobile side: expect RPC response
+								EXPECT_RESPONSE(cid, {success = false, resultCode = "IGNORED"})
+							
+							else
+								--mobile side: expect RPC response
+								EXPECT_RESPONSE(cid, {success = false, resultCode = "UNSUPPORTED_RESOURCE", info =  TestedInterface .." is not supported by system"})
+								
+							end
+
+							--mobile side: expect OnHashChange notification
+							EXPECT_NOTIFICATION("OnHashChange")
+							:Times(0)
+
+							--In some reason when assign global variable to local one and local var becomes nil, global var also becomes nil!!!! The solution is temporary until resolving the problem. 
+							if(menuparams ~= "") then mob_request.params.menuParams = menuparams end
+							if(vrCmd ~= "") 	 then mob_request.params.vrCommands = vrCmd end
+							if(ltimeout ~= "")   then mob_request.params.timeoutPrompt = ltimeout end
+							if(helpPrompt ~= "") then mob_request.params.helpPrompt = helpPrompt end
+						end		
 					end
+				elseif ( (mob_request.name == "StartStream") or (mob_request.name == "StartAudioStream") ) then
+					Test["TC_".. RPCs[count_RPC].name .. "_UNSUPPORTED_RESOURCE_false" ..TestCaseName] = function(self)
+						local serType = 11
+						if (mob_request.name ~= "StartAudioStream") then
+							serType = 10
+						end
+						local startSession =
+												{
+													frameType = 0,
+													serviceType = serType,
+													frameInfo = 1,
+													sessionId = self.mobileSession.sessionId,
+												}
 
-					--mobile side: expect OnHashChange notification
-					EXPECT_NOTIFICATION("OnHashChange")
-					:Times(0)
+						self.mobileSession:Send(startSession)
+					  
+						EXPECT_HMICALL(hmi_method_call, {})
+						:Times(0)
+							
+						if (mob_request.name == "StartStream") then
+							self.mobileSession:StartStreaming(11,"files/Wildlife.wmv")	
+						else
+							self.mobileSession:StartStreaming(10,"files/Kalimba.mp3")
+						end
+							
+						EXPECT_HMINOTIFICATION("Navigation.OnVideoDataStreaming")
+						:Times(0)
 
-					--In some reason when assign global variable to local one and local var becomes nil, global var also becomes nil!!!! The solution is temporary until resolving the problem. 
-					if(menuparams ~= "") then mob_request.params.menuParams = menuparams end
-					if(vrCmd ~= "") 	 then mob_request.params.vrCommands = vrCmd end
-					if(ltimeout ~= "")   then mob_request.params.timeoutPrompt = ltimeout end
-					if(helpPrompt ~= "") then mob_request.params.helpPrompt = helpPrompt end
-					
-					
-				end		
+						EXPECT_HMINOTIFICATION("Navigation.OnAudioDataStreaming")
+						:Times(0)
+
+						-- prepare event to expect
+						local startserviceEvent = events.Event()
+							
+						startserviceEvent.matches = 
+							function(_, data)
+								return data.frameType == 0 and
+										data.serviceType == serType and
+										(data.sessionId == self.mobileSession.sessionId) and
+										(data.frameInfo == 2 or -- Start Service ACK
+										data.frameInfo == 3) -- Start Service NACK
+							end
+
+						local ret = self.mobileSession:ExpectEvent(startserviceEvent, "StartService ACK")
+										:ValidIf(function(s, data)
+											if data.frameInfo == 2 then -- Start Service ACK
+												xmlReporter.AddMessage("StartService", "StartService ACK", "True")
+												print ("\27[32m Start Service ACK received \27[0m ")				
+												return false
+											elseif data.frameInfo == 3 then -- Start Service NACK
+												print ("\27[32m Start Service NACK received \27[0m ")			
+												return true 
+											else 
+												print ("\27[32m Start Service ACK / NACK is not received \27[0m ")
+												return false 
+											end
+										end)						
+					end
+				else 
+					print( hmi_method_call .. " can not be tested because preconditions have result UNSUPPORTED_RESOURCE")
+				end
 			end --if(mob_request.single == true)then	
 		end -- for count_RPC = 1, #RPCs do
 	end
@@ -361,7 +431,8 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 		commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 	end
 
-	Test["ForceKill" .. tostring(i)] = function (self)
+	Test["ForceKill"] = function (self)
+		print("----------------- Postconditions ----------------------------")
 		os.execute("ps aux | grep smart | awk \'{print $2}\' | xargs kill -9")
 		os.execute("sleep 1")
 	end

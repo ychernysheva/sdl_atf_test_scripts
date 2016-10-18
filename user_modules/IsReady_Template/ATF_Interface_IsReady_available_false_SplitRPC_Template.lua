@@ -129,8 +129,8 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 	commonSteps:PutFile("PutFile_icon.png", "icon.png")
 	commonSteps:PutFile("PutFile_action.png", "action.png")
 
-	-- For VehicleInfo and Navigation specified requirements are not applicable.
-	if( (TestedInterface ~= "VehicleInfo") and (TestedInterface~="Navigation") ) then
+	-- For VehicleInfo specified requirements are not applicable.
+	if(TestedInterface ~= "VehicleInfo") then
 		--local function VR_IsReady_response_availabe_false_check_split_RPC_Other_Interfaces_Responds_SUCCESS(TestCaseName)
 		local function Interface_IsReady_response_availabe_false_check_split_RPC_Other_Interfaces_Responds_SUCCESS(TestCaseName)
 
@@ -254,7 +254,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 							 		end--for cnt_rpc = 1, #NotTestedInterfaces[cnt].usedRPC do
 								end--for cnt = 1, #NotTestedInterfaces do
 
-								if(mob_request.name == "Alert" or mob_request.name == "PerformAudioPassThru") then
+								if(mob_request.name == "Alert" or mob_request.name == "PerformAudioPassThru" or mob_request.name == "AlertManeuver" ) then
 									local SpeakId
 									
 									--hmi side: TTS.Speak request 
@@ -299,7 +299,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 		Interface_IsReady_response_availabe_false_check_split_RPC_Other_Interfaces_Responds_SUCCESS(TestedInterface .."_IsReady_availabe_false_split_RPC_SUCCESS")
 	else
 		print("\27[31m This case is not applicable for "..TestedInterface .." \27[0m")
-	end -- if( (TestedInterface ~= "VehicleInfo") and (TestedInterface~="Navigation") ) then
+	end -- if( (TestedInterface ~= "VehicleInfo") then
 		
 		
 	-----------------------------------------------------------------------------------------------	
@@ -319,8 +319,8 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 		-- respond with '<received_errorCode_from_HMI>' to mobile app IN CASE <Interface>.RPC got any erroneous resultCode from HMI (please see list with resultCodes below)
 	-----------------------------------------------------------------------------------------------	
 	--ToDo: Update according to question APPLINK-26900
-	-- For VehicleInfo and Navigation specified requirements are not applicable.
-	if( (TestedInterface ~= "VehicleInfo") and (TestedInterface~="Navigation") ) then	
+	-- For VehicleInfo specified requirements are not applicable.
+	if (TestedInterface ~= "VehicleInfo")  then	
 
 			--local function VR_IsReady_response_availabe_false_check_split_RPC_Other_Interfaces_Responds_Error(TestCaseName)
 			local function Interface_IsReady_response_availabe_false_check_split_RPC_Other_Interfaces_Responds_Error(TestCaseName)
@@ -546,7 +546,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 								 	end --for cnt_rpc = 1, #NotTestedInterfaces[cnt].usedRPC do
 								end --for cnt = 1, #NotTestedInterfaces do
 								
-								if(mob_request.name == "Alert" or mob_request.name == "PerformAudioPassThru") then
+								if(mob_request.name == "Alert" or mob_request.name == "PerformAudioPassThru" or mob_request.name == "AlertManeuver") then
 									
 									--hmi side: TTS.Speak request 
 									EXPECT_HMICALL("TTS.Speak", {})
@@ -632,7 +632,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 			--end
 	else
 		print("\27[31m This case is not applicable for "..TestedInterface .." \27[0m")
-	end --if( (TestedInterface ~= "VehicleInfo") and (TestedInterface~="Navigation") ) then	
+	end --if (TestedInterface ~= "VehicleInfo")  then
 	
 
 
@@ -673,7 +673,8 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 		commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 	end
 
-	Test["ForceKill" .. tostring(i)] = function (self)
+	Test["ForceKill"] = function (self)
+		print("------------------ Postconditions ---------------------------")
 		os.execute("ps aux | grep smart | awk \'{print $2}\' | xargs kill -9")
 		os.execute("sleep 1")
 	end
