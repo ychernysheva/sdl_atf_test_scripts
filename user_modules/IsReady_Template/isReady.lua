@@ -13,6 +13,7 @@ local interface = require('user_modules/IsReady_Template/Interfaces_RPC')
 local events = require('events')  
 local mobile_session = require('mobile_session')
 local commonPreconditions = require ('/user_modules/shared_testcases/commonPreconditions')
+local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
 
 --User output
 local function userPrint( color, message)
@@ -22,6 +23,105 @@ end
 ---------------------------------------------------------------------------------------------
 -----------------------------------Backup, updated preloaded file ---------------------------
 ---------------------------------------------------------------------------------------------
+	local function UpdatePolicy()
+		
+		local PermissionForSendLocation = 
+		[[				
+		"SendLocation": {
+			"hmi_levels": [
+			"BACKGROUND",
+			"FULL",
+			"LIMITED"
+			]
+		}
+		]].. ", \n"
+		local PermissionForShowConstantTBT = 
+		[[				
+		"ShowConstantTBT": {
+			"hmi_levels": [
+			"BACKGROUND",
+			"FULL",
+			"LIMITED"
+			]
+		}
+		]].. ", \n"
+		local PermissionForAlertManeuver = 
+		[[				
+		"AlertManeuver": {
+			"hmi_levels": [
+			"BACKGROUND",
+			"FULL",
+			"LIMITED"
+			]
+		}
+		]].. ", \n"
+		local PermissionForUpdateTurnList = 
+		[[				
+		"UpdateTurnList": {
+			"hmi_levels": [
+			"BACKGROUND",
+			"FULL",
+			"LIMITED"
+			]
+		}
+		]].. ", \n"
+		local PermissionForGetWayPoints = 
+		[[				
+		"GetWayPoints": {
+			"hmi_levels": [
+			"BACKGROUND",
+			"FULL",
+			"LIMITED"
+			]
+		}
+		]].. ", \n"
+		local PermissionForSubscribeWayPoints = 
+		[[				
+		"SubscribeWayPoints": {
+			"hmi_levels": [
+			"BACKGROUND",
+			"FULL",
+			"LIMITED"
+			]
+		}
+		]].. ", \n"		
+		local PermissionForUnsubscribeWayPoints = 
+		[[				
+		"UnsubscribeWayPoints": {
+			"hmi_levels": [
+			"BACKGROUND",
+			"FULL",
+			"LIMITED"
+			]
+		}
+		]].. ", \n"	
+		local PermissionForOnWayPointChange = 
+		[[				
+		"OnWayPointChange": {
+			"hmi_levels": [
+			"BACKGROUND",
+			"FULL",
+			"LIMITED"
+			]
+		}
+		]].. ", \n"	
+		local PermissionForOnTBTClientState = 
+		[[				
+		"OnTBTClientState": {
+			"hmi_levels": [
+			"BACKGROUND",
+			"FULL",
+			"LIMITED"
+			]
+		}
+		]].. ", \n"					
+		local PermissionLinesForBase4 = PermissionForSendLocation..PermissionForShowConstantTBT..PermissionForAlertManeuver..PermissionForUpdateTurnList..PermissionForGetWayPoints..PermissionForSubscribeWayPoints..PermissionForUnsubscribeWayPoints..PermissionForOnWayPointChange..PermissionForOnTBTClientState
+		local PTName = testCasesForPolicyTable:createPolicyTableFile_temp(PermissionLinesForBase4, nil, nil, {"SendLocation","ShowConstantTBT","AlertManeuver","UpdateTurnList","GetWayPoints","SubscribeWayPoints","UnsubscribeWayPoints","OnWayPointChange","OnTBTClientState"})	
+		-- TODO: Remove after implementation policy update
+		--testCasesForPolicyTable:updatePolicy(PTName)	
+		testCasesForPolicyTable:Precondition_updatePolicy_By_overwriting_preloaded_pt(PTName)
+	end
+
 	commonPreconditions:BackupFile("sdl_preloaded_pt.json")
 	f = assert(io.open(config.pathToSDL.. "/sdl_preloaded_pt.json", "r"))
 	fileContent = f:read("*all")
@@ -42,6 +142,8 @@ end
 	
 	f:write(fileContent)
 	f:close()
+
+	UpdatePolicy()
 
 --Interfaces and RPCs that will be tested:
 ---------------------------------------------------------------------------

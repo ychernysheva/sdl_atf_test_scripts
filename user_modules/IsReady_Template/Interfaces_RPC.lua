@@ -527,39 +527,39 @@ interfaces.mobile_req = {
                             params = {
                                         longitudeDegrees = 1.1,--<param name="longitudeDegrees" type="Double" minvalue="-180" maxvalue="180" mandatory="false">
                                         latitudeDegrees = 1.1, --<param name="latitudeDegrees" type="Double" minvalue="-90" maxvalue="90" mandatory="false">
-                                        locationName = "location Name",-- <param name="locationName" type="String" maxlength="500" mandatory="false">
-                                        locationDescription = "location Description", --<param name="locationDescription" type="String" maxlength="500" mandatory="false">
-                                        addressLines = { 
-                                                            "line1",
-                                                            "line2",
-                                                          },--<param name="addressLines" type="String" maxlength="500" minsize="0" maxsize="4" array="true" mandatory="false">
-                                        phoneNumber = "phone Number",--<param name="phoneNumber" type="String" maxlength="500" mandatory="false">
-                                        locationImage =  { -- <param name="locationImage" type="Image" mandatory="false">
-                                                            value = "icon.png",
-                                                            imageType = "DYNAMIC",
-                                                          },
-                                        timestamp = {--<param name="timeStamp" type="DateTime" mandatory="false">
-                                                      second = 40,
-                                                      minute = 30,
-                                                      hour = 14,
-                                                      day = 25,
-                                                      month = 5,
-                                                      year = 2017,
-                                                      tz_hour = 5,
-                                                      tz_minute = 30
-                                                    },
-                                        address = {--<param name="address" type="OASISAddress" mandatory="false">
-                                                    countryName = "countryName",
-                                                    countryCode = "countryName",
-                                                    postalCode = "postalCode",
-                                                    administrativeArea = "administrativeArea",
-                                                    subAdministrativeArea = "subAdministrativeArea",
-                                                    locality = "locality",
-                                                    subLocality = "subLocality",
-                                                    thoroughfare = "thoroughfare",
-                                                    subThoroughfare = "subThoroughfare"
-                                                  },
-                                        deliveryMode = "PROMPT"--<param name="deliveryMode" type="DeliveryMode" mandatory="false">
+                                        -- locationName = "location Name",-- <param name="locationName" type="String" maxlength="500" mandatory="false">
+                                        -- locationDescription = "location Description", --<param name="locationDescription" type="String" maxlength="500" mandatory="false">
+                                        -- addressLines = { 
+                                        --                     "line1",
+                                        --                     "line2",
+                                        --                   },--<param name="addressLines" type="String" maxlength="500" minsize="0" maxsize="4" array="true" mandatory="false">
+                                        -- phoneNumber = "phone Number",--<param name="phoneNumber" type="String" maxlength="500" mandatory="false">
+                                        -- locationImage =  { -- <param name="locationImage" type="Image" mandatory="false">
+                                        --                     value = "icon.png",
+                                        --                     imageType = "DYNAMIC",
+                                        --                   },
+                                        -- timestamp = {--<param name="timeStamp" type="DateTime" mandatory="false">
+                                        --               second = 40,
+                                        --               minute = 30,
+                                        --               hour = 14,
+                                        --               day = 25,
+                                        --               month = 5,
+                                        --               year = 2017,
+                                        --               tz_hour = 5,
+                                        --               tz_minute = 30
+                                        --             },
+                                        -- address = {--<param name="address" type="OASISAddress" mandatory="false">
+                                        --             countryName = "countryName",
+                                        --             countryCode = "countryName",
+                                        --             postalCode = "postalCode",
+                                        --             administrativeArea = "administrativeArea",
+                                        --             subAdministrativeArea = "subAdministrativeArea",
+                                        --             locality = "locality",
+                                        --             subLocality = "subLocality",
+                                        --             thoroughfare = "thoroughfare",
+                                        --             subThoroughfare = "subThoroughfare"
+                                        --           },
+                                        -- deliveryMode = "PROMPT"--<param name="deliveryMode" type="DeliveryMode" mandatory="false">
                                       }
                           },
                           --ShowConstantTBT
@@ -605,8 +605,8 @@ interfaces.mobile_req = {
                           --AlertManeuver
                           {
                             name = "AlertManeuver",
-                            splitted = false,
-                            single = true,
+                            splitted = true,
+                            single = false,
                             description = "AlertManeuver with gps parameter",
                             hashChange = false,
                             params = {
@@ -660,22 +660,22 @@ interfaces.mobile_req = {
                                         turnList = { --<param name="turnList" type="Turn" minsize="1" maxsize="100" array="true" mandatory="false">
                                                       {
                                                         navigationText ="Text",
-                                                        -- turnIcon =
-                                                        -- {
-                                                        --   value ="icon.png",
-                                                        --   imageType ="DYNAMIC",
-                                                        -- }
+                                                        turnIcon =
+                                                        {
+                                                          value ="icon.png",
+                                                          imageType ="DYNAMIC",
+                                                        }
                                                       }
                                                     },
                                         softButtons = { --<param name="softButtons" type="SoftButton" minsize="0" maxsize="1" array="true" mandatory="false">
                                                         {
                                                           type ="BOTH",
                                                           text ="Close",
-                                                          -- image =
-                                                          -- {
-                                                          --   value ="icon.png",
-                                                          --   imageType ="DYNAMIC",
-                                                          -- },
+                                                          image =
+                                                          {
+                                                            value ="icon.png",
+                                                            imageType ="DYNAMIC",
+                                                          },
                                                           isHighlighted = true,
                                                           softButtonID = 111,
                                                           systemAction ="DEFAULT_ACTION",
@@ -690,9 +690,7 @@ interfaces.mobile_req = {
                             single = true,
                             description = "GetWayPoints with all parameters",
                             hashChange = false,
-                            params = {
-                                        wayPointType = "DESTINATION" --<param name="wayPointType" type="WayPointType" defvalue="ALL" mandatory="false"> 
-                                      }
+                            params = { wayPointType = "ALL" }
                           },
                           --SubscribeWayPoints
                           {
@@ -709,6 +707,24 @@ interfaces.mobile_req = {
                             splitted = false,
                             single = true,
                             description = "UnsubscribeWayPoints with all parameters",
+                            hashChange = true,
+                            params = { }-- no parameters 
+                          },
+                          --StartStream
+                          {
+                            name = "StartStream",
+                            splitted = false,
+                            single = true,
+                            description = "StartStream as result of StartService(11)",
+                            hashChange = true,
+                            params = { }-- no parameters 
+                          },
+                          --StopStream
+                          {
+                            name = "StopStream",
+                            splitted = false,
+                            single = true,
+                            description = "StartStream as result of StartService(11)",
                             hashChange = true,
                             params = { }-- no parameters 
                           }
@@ -1799,39 +1815,39 @@ interfaces.RPC = {
                                                 appID = 1,--<param name="appID" type="Integer" mandatory="true">
                                                 longitudeDegrees = 1.1,--<param name="longitudeDegrees" type="Float" minvalue="-180" maxvalue="180" mandatory="false">
                                                 latitudeDegrees = 1.1, --<param name="latitudeDegrees" type="Float" minvalue="-90" maxvalue="90" mandatory="false">
-                                                locationName = "location Name",--<param name="locationName" type="String" maxlength="500" mandatory="false">
-                                                locationDescription = "location Description",--<param name="locationDescription" type="String" maxlength="500" mandatory="false">
-                                                addressLines = { --<param name="addressLines" type="String" maxlength="500" minsize="0" maxsize="4" array="true" mandatory="false">
-                                                                 "line1",
-                                                                 "line2",
-                                                               },
-                                                phoneNumber = "phone Number",--<param name="phoneNumber" type="String" maxlength="500" mandatory="false">
-                                                locationImage =  { --<param name="locationImage" type="Common.Image" mandatory="false">
-                                                                   value = "icon.png",
-                                                                   imageType = "DYNAMIC",
-                                                                 },
-                                                timestamp = {--<param name="timeStamp" type="Common.DateTime" mandatory="false">
-                                                              second = 40,
-                                                              minute = 30,
-                                                              hour = 14,
-                                                              day = 25,
-                                                              month = 5,
-                                                              year = 2017,
-                                                              tz_hour = 5,
-                                                              tz_minute = 30
-                                                            },
-                                                 address = {--<param name="address" type="Common.OASISAddress" mandatory="false">
-                                                              countryName = "countryName",
-                                                              countryCode = "countryName",
-                                                              postalCode = "postalCode",
-                                                              administrativeArea = "administrativeArea",
-                                                              subAdministrativeArea = "subAdministrativeArea",
-                                                              locality = "locality",
-                                                              subLocality = "subLocality",
-                                                              thoroughfare = "thoroughfare",
-                                                              subThoroughfare = "subThoroughfare"
-                                                            },
-                                                deliveryMode = "PROMPT"--<param name="deliveryMode" type="Common.DeliveryMode" mandatory="false">
+                                                -- locationName = "location Name",--<param name="locationName" type="String" maxlength="500" mandatory="false">
+                                                -- locationDescription = "location Description",--<param name="locationDescription" type="String" maxlength="500" mandatory="false">
+                                                -- addressLines = { --<param name="addressLines" type="String" maxlength="500" minsize="0" maxsize="4" array="true" mandatory="false">
+                                                --                  "line1",
+                                                --                  "line2",
+                                                --                },
+                                                -- phoneNumber = "phone Number",--<param name="phoneNumber" type="String" maxlength="500" mandatory="false">
+                                                -- locationImage =  { --<param name="locationImage" type="Common.Image" mandatory="false">
+                                                --                    value = "icon.png",
+                                                --                    imageType = "DYNAMIC",
+                                                --                  },
+                                                -- timestamp = {--<param name="timeStamp" type="Common.DateTime" mandatory="false">
+                                                --               second = 40,
+                                                --               minute = 30,
+                                                --               hour = 14,
+                                                --               day = 25,
+                                                --               month = 5,
+                                                --               year = 2017,
+                                                --               tz_hour = 5,
+                                                --               tz_minute = 30
+                                                --             },
+                                                --  address = {--<param name="address" type="Common.OASISAddress" mandatory="false">
+                                                --               countryName = "countryName",
+                                                --               countryCode = "countryName",
+                                                --               postalCode = "postalCode",
+                                                --               administrativeArea = "administrativeArea",
+                                                --               subAdministrativeArea = "subAdministrativeArea",
+                                                --               locality = "locality",
+                                                --               subLocality = "subLocality",
+                                                --               thoroughfare = "thoroughfare",
+                                                --               subThoroughfare = "subThoroughfare"
+                                                --             },
+                                                -- deliveryMode = "PROMPT"--<param name="deliveryMode" type="Common.DeliveryMode" mandatory="false">
                                             }
                                   },
                                   --ShowConstantTBT
@@ -1850,32 +1866,35 @@ interfaces.RPC = {
                                                                     },
                                                                     {
                                                                       fieldName = "ETA",
-                                                                      fieldText = "eta"
+                                                                      fieldText = "12:34"
                                                                     }
                                                                   },
                                                 turnIcon = {-- <param name="turnIcon" type="Common.Image" mandatory="false">
-                                                              value ="icon.png",
+                                                              --as verification should be done with ValidIf and is not in scope of these CRQ
+                                                              --value ="icon.png",
                                                               imageType ="DYNAMIC",
                                                             },
                                                 nextTurnIcon = {-- <param name="nextTurnIcon" type="Common.Image" mandatory="false">
-                                                                  value ="action.png",
+                                                                  --as verification should be done with ValidIf and is not in scope of these CRQ
+                                                                  --value ="action.png",
                                                                   imageType ="DYNAMIC",
                                                                 },                                                
                                                 distanceToManeuver = 50.5,--<param name="distanceToManeuver" type="Float" minvalue="0" maxvalue="1000000000" mandatory="true">
                                                 distanceToManeuverScale = 100.5,--<param name="distanceToManeuverScale" type="Float" minvalue="0" maxvalue="1000000000" mandatory="true">
                                                 maneuverComplete = false,--<param name="maneuverComplete" type="Boolean" mandatory="false">
-                                                softButtons = { --<param name="softButtons" type="Common.SoftButton" minsize="0" maxsize="3" array="true" mandatory="false">
-                                                                type ="BOTH",
-                                                                text ="Close",
-                                                                image =
-                                                                {
-                                                                  value ="icon.png",
-                                                                  imageType ="DYNAMIC",
-                                                                },
-                                                                isHighlighted = true,
-                                                                softButtonID = 44,
-                                                                systemAction ="DEFAULT_ACTION",
-                                                              },
+                                                -- softButtons = { --<param name="softButtons" type="Common.SoftButton" minsize="0" maxsize="3" array="true" mandatory="false">
+                                                --                 type ="BOTH",
+                                                --                 text ="Close",
+                                                --                 image =
+                                                --                 {
+                                                --                   --as verification should be done with ValidIf and is not in scope of these CRQ
+                                                --                   --value ="icon.png",
+                                                --                   imageType ="DYNAMIC",
+                                                --                 },
+                                                --                 isHighlighted = true,
+                                                --                 softButtonID = 44,
+                                                --                 systemAction ="DEFAULT_ACTION",
+                                                --               },
                                                 appID = 1--<param name="appID" type="Integer" mandatory="true">
                                               }
                                   },
@@ -1918,16 +1937,16 @@ interfaces.RPC = {
                                     name = "UpdateTurnList",
                                     splitted = false,
                                     params = {
-                                                turnList = { --<param name="turnList" type="Common.Turn" minsize="1" maxsize="100" array="true" mandatory="false">
-                                                              {
-                                                                navigationText ="Text",
-                                                                -- turnIcon =
-                                                                -- {
-                                                                --   value ="icon.png",
-                                                                --   imageType ="DYNAMIC",
-                                                                -- }
-                                                              }
-                                                            },
+                                                -- turnList = { --<param name="turnList" type="Common.Turn" minsize="1" maxsize="100" array="true" mandatory="false">
+                                                --               {
+                                                --                 navigationText ="Text",
+                                                --                 -- turnIcon =
+                                                --                 -- {
+                                                --                 --   value ="icon.png",
+                                                --                 --   imageType ="DYNAMIC",
+                                                --                 -- }
+                                                --               }
+                                                --             },
                                                 softButtons = { --<param name="softButtons" type="Common.SoftButton" minsize="0" maxsize="1" array="true" mandatory="false">
                                                               {
                                                                 type ="BOTH",
@@ -1950,9 +1969,13 @@ interfaces.RPC = {
                                     name = "GetWayPoints",
                                     splitted = false,
                                     params = {
-                                                wayPointType = "DESTINATION", --<param name="wayPointType" type="Common.WayPointType" defvalue="ALL" mandatory="false">
+                                                wayPointType = "ALL", --<param name="wayPointType" type="Common.WayPointType" defvalue="ALL" mandatory="false">
                                                 appID = 1-- <param name="appID" type="Integer" mandatory="true"> 
-                                              }
+                                              },
+                                    mandatory_params = {
+                                                          appID = 1
+                                                        },
+                                    string_mandatory_params = ' "appID" : '
                                   },
                                   --SubscribeWayPoints
                                   {

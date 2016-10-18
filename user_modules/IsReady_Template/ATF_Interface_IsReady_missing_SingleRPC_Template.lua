@@ -324,7 +324,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 
 
 				 			--hmi side: expect Interface.RPC request 	
-				 			if(hmi_method_call == "UI.EndAudioPassThru") then
+				 			if( (hmi_method_call == "UI.EndAudioPassThru") or (hmi_method_call == "Navigation.SubscribeWayPoints") or (hmi_method_call == "Navigation.UnsubscribeWayPoints") ) then
 				 				hmi_call.params = nil
 				 			end
 				 			if( (TestData[i].success == false) and 
@@ -342,6 +342,8 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 									else
 										if TestData[i].success == true then 
 											if(hmi_call.mandatory_params ~= nil) then
+												if(mob_request.name == "GetWayPoints") then mandatory_params = 'appID" : '.. tostring(self.applications[config.application1.registerAppInterfaceParams.appName]) end
+												print("mandatory_params = "..mandatory_params)
 												self.hmiConnection:SendResponse(data.id, data.method, TestData[i].resultCode, hmi_call.mandatory_params )
 											else
 												--self.hmiConnection:SendResponse(data.id, data.method, TestData[i].resultCode, {})
