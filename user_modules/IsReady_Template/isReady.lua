@@ -436,15 +436,15 @@ end
 								self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", params) 			
 							end
 			      	  	end)
-		    	else --if(mandatory == true) 
+		    else --if(mandatory == true) 
 		    		return
 			      		EXPECT_HMIEVENT(event, name)
 					    :Times(mandatory and 1 or AnyNumber())			      
 					    :Do(function(_, data)
 							self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", params) 			
 					    end)
-			  	end --if(mandatory == true) then
-	    	end
+			end --if(mandatory == true) then
+	    end
 
 		    ExpectRequest("BasicCommunication.MixingAudioSupported", true, { attenuatedSupported = true })
 		    ExpectRequest("BasicCommunication.GetSystemInfo", false, {
@@ -692,6 +692,7 @@ end
 			-- TODO: APPLINK-28499: Should VehicleInfo.GetVehicleData be expected with initHMI OnReady
 			-- Update after clarification if needed.
 			:Times(0)
+			:Timeout(10000)
 
 		    local function button_capability(name, shortPressAvailable, longPressAvailable, upDownAvailable)
 		      	xmlReporter.AddMessage(debug.getinfo(1, "n").name, tostring(name))
@@ -790,5 +791,5 @@ end
 				self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
 				self.mobileSession:StartService(7)
 			end
-		end
+	end
 return isReady

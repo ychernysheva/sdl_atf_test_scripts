@@ -57,6 +57,307 @@ local function update_sdl_preloaded_pt_json_allow_All_Related_RPCs()
 	file:close()
 end
 
+function StopStartSDL_HMI_MOBILE_VR_TTS(self)
+		
+	--Stop SDL
+	Test["Precondition_StopSDL_VR_TTS_available_false"] = function(self)
+
+		StopSDL()
+	end
+
+	function Test:Postcondition_RestorePreloadedFile()
+		commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
+	end
+			
+	--Start SDL
+	Test["Precondition_StartSDL_VR_TTS_available_false"] = function(self)
+
+		StartSDL(config.pathToSDL, config.ExitOnCrash)
+	end
+			
+	--InitHMI
+	Test["Precondition_InitHMI_VR_TTS_available_false"] = function(self)
+
+		self:initHMI()
+	end
+
+	Test["Precondition_initHMI_onReady_VR_TTS_available_false"] = function(self)
+	
+		local function ExpectRequest(name, mandatory, params)
+				
+		    xmlReporter.AddMessage(debug.getinfo(1, "n").name, tostring(name))
+		    local event = events.Event()
+		    event.level = 2
+		    event.matches = function(self, data) return data.method == name end
+		    
+		    if(mandatory == true) then
+		    	return
+			      	EXPECT_HMIEVENT(event, name)
+			      	:Times(1)-- or AtLeast(1))
+			      	:Do(function(_, data)
+						if (name == "VR.IsReady" or name == "TTS.IsReady") then
+							self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {available = false}) 
+							
+						else
+							self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", params) 			
+						end
+		      	  	end)
+		    else --if(mandatory == true) 
+		    		return
+			      		EXPECT_HMIEVENT(event, name)
+					    :Times(mandatory and 1 or AnyNumber())			      
+					    :Do(function(_, data)
+							self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", params) 			
+					    end)
+			end --if(mandatory == true) then
+	    end
+
+		local function ExpectNotification(name, mandatory)
+		    xmlReporter.AddMessage(debug.getinfo(1, "n").name, tostring(name))
+		    local event = events.Event()
+		    event.level = 2
+		    event.matches = function(self, data) return data.method == name end
+		    return
+		    EXPECT_HMIEVENT(event, name)
+		    :Times(mandatory and 1 or AnyNumber())
+		end
+
+		ExpectRequest("BasicCommunication.MixingAudioSupported",
+		    true,
+		    { attenuatedSupported = true })
+		ExpectRequest("BasicCommunication.GetSystemInfo", false,
+		    {
+		      ccpu_version = "ccpu_version",
+		      language = "EN-US",
+		      wersCountryCode = "wersCountryCode"
+		    })
+		ExpectRequest("UI.GetLanguage", true, { language = "EN-US" })
+		ExpectRequest("VR.GetLanguage", true, { language = "EN-US" })
+		:Times(0)
+		
+		ExpectRequest("TTS.GetLanguage", true, { language = "EN-US" })
+		:Times(0)
+		  
+		ExpectRequest("UI.ChangeRegistration", false, { }):Pin()
+		ExpectRequest("TTS.SetGlobalProperties", false, { }):Pin()
+		ExpectRequest("BasicCommunication.UpdateDeviceList", false, { }):Pin()
+		ExpectRequest("VR.ChangeRegistration", false, { })
+		:Times(0)
+		ExpectRequest("TTS.ChangeRegistration", false, { })
+		:Times(0)
+		
+		ExpectRequest("VR.GetSupportedLanguages", true, {})
+		:Times(0)
+		
+		ExpectRequest("TTS.GetSupportedLanguages", true, {})
+		:Times(0)
+
+	  	ExpectRequest("UI.GetSupportedLanguages", true, {}):Pin()
+
+	  	ExpectRequest("VehicleInfo.GetVehicleType", true, {
+	      vehicleType =
+	      {
+	        make = "Ford",
+	        model = "Fiesta",
+	        modelYear = "2013",
+	        trim = "SE"
+	      }
+	    })
+	  	ExpectRequest("VehicleInfo.GetVehicleData", true, { vin = "52-452-52-752" })
+
+		local function button_capability(name, shortPressAvailable, longPressAvailable, upDownAvailable)
+		    return
+		    {
+		      name = name,
+		      shortPressAvailable = shortPressAvailable == nil and true or shortPressAvailable,
+		      longPressAvailable = longPressAvailable == nil and true or longPressAvailable,
+		      upDownAvailable = upDownAvailable == nil and true or upDownAvailable
+		    }
+		end
+
+		local buttons_capabilities =
+		  {
+		    capabilities =
+		    {
+		      button_capability("PRESET_0"),
+		      button_capability("PRESET_1"),
+		      button_capability("PRESET_2"),
+		      button_capability("PRESET_3"),
+		      button_capability("PRESET_4"),
+		      button_capability("PRESET_5"),
+		      button_capability("PRESET_6"),
+		      button_capability("PRESET_7"),
+		      button_capability("PRESET_8"),
+		      button_capability("PRESET_9"),
+		      button_capability("OK", true, false, true),
+		      button_capability("SEEKLEFT"),
+		      button_capability("SEEKRIGHT"),
+		      button_capability("TUNEUP"),
+		      button_capability("TUNEDOWN")
+		    },
+		    presetBankCapabilities = { onScreenPresetsAvailable = true }
+		}
+	  
+	  	ExpectRequest("Buttons.GetCapabilities", true, buttons_capabilities)
+	  	ExpectRequest("VR.GetCapabilities", true, { vrCapabilities = { "TEXT" } })
+	  	:Times(0)
+	  	ExpectRequest("TTS.GetCapabilities", true, {})
+	  	:Times(0)
+
+	  	local function text_field(name, characterSet, width, rows)
+	    return
+	    {
+	      name = name,
+	      characterSet = characterSet or "TYPE2SET",
+	      width = width or 500,
+	      rows = rows or 1
+	    }
+	  	end
+	  	local function image_field(name, width, heigth)
+		    return
+		    {
+		      name = name,
+		      imageTypeSupported =
+		      {
+		        "GRAPHIC_BMP",
+		        "GRAPHIC_JPEG",
+		        "GRAPHIC_PNG"
+		      },
+		      imageResolution =
+		      {
+		        resolutionWidth = width or 64,
+		        resolutionHeight = height or 64
+		      }
+		    }
+
+		end
+
+	  	ExpectRequest("UI.GetCapabilities", true, {
+	      displayCapabilities =
+	      {
+	        displayType = "GEN2_8_DMA",
+	        textFields =
+	        {
+	          text_field("mainField1"),
+	          text_field("mainField2"),
+	          text_field("mainField3"),
+	          text_field("mainField4"),
+	          text_field("statusBar"),
+	          text_field("mediaClock"),
+	          text_field("mediaTrack"),
+	          text_field("alertText1"),
+	          text_field("alertText2"),
+	          text_field("alertText3"),
+	          text_field("scrollableMessageBody"),
+	          text_field("initialInteractionText"),
+	          text_field("navigationText1"),
+	          text_field("navigationText2"),
+	          text_field("ETA"),
+	          text_field("totalDistance"),
+	          text_field("navigationText"),
+	          text_field("audioPassThruDisplayText1"),
+	          text_field("audioPassThruDisplayText2"),
+	          text_field("sliderHeader"),
+	          text_field("sliderFooter"),
+	          text_field("notificationText"),
+	          text_field("menuName"),
+	          text_field("secondaryText"),
+	          text_field("tertiaryText"),
+	          text_field("timeToDestination"),
+	          text_field("turnText"),
+	          text_field("menuTitle"),
+	          text_field("locationName"),
+	          text_field("locationDescription"),
+	          text_field("addressLines"),
+	          text_field("phoneNumber")
+	        },
+	        imageFields =
+	        {
+	          image_field("softButtonImage"),
+	          image_field("choiceImage"),
+	          image_field("choiceSecondaryImage"),
+	          image_field("vrHelpItem"),
+	          image_field("turnIcon"),
+	          image_field("menuIcon"),
+	          image_field("cmdIcon"),
+	          image_field("showConstantTBTIcon"),
+	          image_field("locationImage")
+	        },
+	        mediaClockFormats =
+	        {
+	          "CLOCK1",
+	          "CLOCK2",
+	          "CLOCK3",
+	          "CLOCKTEXT1",
+	          "CLOCKTEXT2",
+	          "CLOCKTEXT3",
+	          "CLOCKTEXT4"
+	        },
+	        graphicSupported = true,
+	        imageCapabilities = { "DYNAMIC", "STATIC" },
+	        templatesAvailable = { "TEMPLATE" },
+	        screenParams =
+	        {
+	          resolution = { resolutionWidth = 800, resolutionHeight = 480 },
+	          touchEventAvailable =
+	          {
+	            pressAvailable = true,
+	            multiTouchAvailable = true,
+	            doublePressAvailable = false
+	          }
+	        },
+	        numCustomPresetsAvailable = 10
+	      },
+	      audioPassThruCapabilities =
+	      {
+	        samplingRate = "44KHZ",
+	        bitsPerSample = "8_BIT",
+	        audioType = "PCM"
+	      },
+	      hmiZoneCapabilities = "FRONT",
+	      softButtonCapabilities =
+	      {
+	        shortPressAvailable = true,
+	        longPressAvailable = true,
+	        upDownAvailable = true,
+	        imageSupported = true
+	      }
+	    })
+
+	  	ExpectRequest("VR.IsReady", true, { available = false })
+	  	ExpectRequest("TTS.IsReady", true, { available = false })
+	  	ExpectRequest("UI.IsReady", true, { available = true })
+	  	ExpectRequest("Navigation.IsReady", true, { available = true })
+	  	ExpectRequest("VehicleInfo.IsReady", true, { available = true })
+
+	  	self.applications = { }
+	  	ExpectRequest("BasicCommunication.UpdateAppList", false, { })
+	  	:Pin()
+	  	:Do(function(_, data)
+	      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", { })
+	      self.applications = { }
+	      for _, app in pairs(data.params.applications) do
+	        self.applications[app.appName] = app.appID
+	      end
+	    end)
+
+	  	self.hmiConnection:SendNotification("BasicCommunication.OnReady")
+	end
+			
+	--ConnectMobile
+	Test["Precondition_ConnectMobile_VR_TTS_available_false"] = function(self)
+
+		self:connectMobile()
+	end
+			
+	--StartSession
+	Test["Precondition_StartSession_VR_TTS_available_false"] = function(self)
+
+		self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
+		self.mobileSession:StartService(7)
+	end
+end
+
 ---------------------------------------------------------------------------------------------
 -------------------------------------------Preconditions-------------------------------------
 ---------------------------------------------------------------------------------------------
@@ -172,8 +473,9 @@ local function RAI_SUCCESS()
 				if ( data.payload.vrCapabilities and (TestedInterface == "VR") )then
 					errorMessage = errorMessage .. "SDL resends 'vrCapabilities' parameter to mobile app. "
 				end
-				if ( data.payload.language and (TestedInterface == "VR") )then
-					errorMessage = errorMessage .. "SDL resends 'language' parameter to mobile app"
+				-- The parameter will be sent in case TTS.IsReady is transmitted. Additional check is done in test RAI_Language_TTS_VR_available_false
+				if ( (data.payload.language == nil) and (TestedInterface == "VR") )then
+				 	errorMessage = errorMessage .. "SDL doesn't resend 'language' parameter because of TTS to mobile app"
 				end	
 				------------------------------------------------------------------------------------------
 				-- UI:
@@ -191,8 +493,9 @@ local function RAI_SUCCESS()
 				end						
 				------------------------------------------------------------------------------------------
 				-- TTS:
-				if ( data.payload.language and (TestedInterface == "TTS") )then
-					errorMessage = errorMessage .. "SDL resends 'language' parameter to mobile app"
+				--The parameter will be sent in case VR.IsReady is transmitted. Additional check is done in test RAI_Language_TTS_VR_available_false
+				if ( (data.payload.language == nil) and (TestedInterface == "TTS") )then
+				 	errorMessage = errorMessage .. "SDL doesn't resend 'language' parameter because of VR to mobile app"
 				end	
 				if ( data.payload.speechCapabilities and (TestedInterface == "TTS") )then
 					errorMessage = errorMessage .. "SDL resends 'speechCapabilities' parameter to mobile app"
@@ -271,8 +574,9 @@ local function RAI_WRONG_LANGUAGE()
 				if ( data.payload.vrCapabilities and (TestedInterface == "VR") )then
 					errorMessage = errorMessage .. "SDL resends 'vrCapabilities' parameter to mobile app. "
 				end
-				if ( data.payload.language and (TestedInterface == "VR") )then
-					errorMessage = errorMessage .. "SDL resends 'language' parameter to mobile app"
+				-- The parameter will be sent in case TTS.IsReady is transmitted. Additional check is done in test RAI_Language_TTS_VR_available_false
+				if ( (data.payload.language == nil) and (TestedInterface == "VR") )then
+				 	errorMessage = errorMessage .. "SDL doesn't resend 'language' parameter because of TTS to mobile app"
 				end	
 				------------------------------------------------------------------------------------------
 				-- UI:
@@ -290,9 +594,11 @@ local function RAI_WRONG_LANGUAGE()
 				end						
 				------------------------------------------------------------------------------------------
 				-- TTS:
-				if ( data.payload.language and (TestedInterface == "TTS") )then
-					errorMessage = errorMessage .. "SDL resends 'language' parameter to mobile app"
+				-- The parameter will be sent in case TTS.IsReady is transmitted. Additional check is done in test RAI_Language_TTS_VR_available_false
+				if ( (data.payload.language == nil) and (TestedInterface == "TTS") )then
+				 	errorMessage = errorMessage .. "SDL doesn't resend 'language' parameter because of VR to mobile app"
 				end	
+
 				if ( data.payload.speechCapabilities and (TestedInterface == "TTS") )then
 					errorMessage = errorMessage .. "SDL resends 'speechCapabilities' parameter to mobile app"
 				end
@@ -319,10 +625,7 @@ local function RAI_WRONG_LANGUAGE()
 		--mobile side: expect notification
 		self.mobileSession:ExpectNotification("OnHMIStatus", { systemContext="MAIN", hmiLevel="NONE", audioStreamingState="NOT_AUDIBLE"})
 	end	
-	
 end
-	
-	
 	
 -- APPLINK-16307 WARNINGS, true
 local function RAI_WARNINGS()	
@@ -407,9 +710,10 @@ local function RAI_WARNINGS()
 				if ( data.payload.vrCapabilities and (TestedInterface == "VR") )then
 					errorMessage = errorMessage .. "SDL resends 'vrCapabilities' parameter to mobile app. "
 				end
-				if ( data.payload.language and (TestedInterface == "VR") )then
-					errorMessage = errorMessage .. "SDL resends 'language' parameter to mobile app"
-				end	
+				-- The parameter will be sent in case TTS.IsReady is transmitted. Additional check is done in test RAI_Language_TTS_VR_available_false
+				if ( (data.payload.language == nil) and (TestedInterface == "VR") )then
+				 	errorMessage = errorMessage .. "SDL doesn't resend 'language' parameter because of TTS to mobile app"
+				end		
 				------------------------------------------------------------------------------------------
 				-- UI:
 				if ( data.payload.hmiDisplayLanguage and (TestedInterface == "UI") )then
@@ -426,8 +730,9 @@ local function RAI_WARNINGS()
 				end						
 				------------------------------------------------------------------------------------------
 				-- TTS:
-				if ( data.payload.language and (TestedInterface == "TTS") )then
-					errorMessage = errorMessage .. "SDL resends 'language' parameter to mobile app"
+				-- The parameter will be sent in case TTS.IsReady is transmitted. Additional check is done in test RAI_Language_TTS_VR_available_false
+				if ( (data.payload.language == nil) and (TestedInterface == "TTS") )then
+				 	errorMessage = errorMessage .. "SDL doesn't resend 'language' parameter because of VR to mobile app"
 				end	
 				if ( data.payload.speechCapabilities and (TestedInterface == "TTS") )then
 					errorMessage = errorMessage .. "SDL resends 'speechCapabilities' parameter to mobile app"
@@ -455,10 +760,7 @@ local function RAI_WARNINGS()
 		--mobile side: expect notification
 		self.mobileSession:ExpectNotification("OnHMIStatus", { systemContext="MAIN", hmiLevel="NONE", audioStreamingState="NOT_AUDIBLE"})
 	end	
-
-end
-	
-	
+end	
 	
 -- APPLINK-15686 RESUME_FAILED
 --////////////////////////////////////////////////////////////////////////////////////////////--
@@ -632,35 +934,35 @@ local function RAI_RESUME_FAILED()
 				vrHelpTitle = "VR help title",
 			})
 			
-			
-			--hmi side: expect TTS.SetGlobalProperties request
-			EXPECT_HMICALL("TTS.SetGlobalProperties",
-			{
-				timeoutPrompt = 
+			if(TestedInterface ~= "TTS") then
+				--hmi side: expect TTS.SetGlobalProperties request
+				EXPECT_HMICALL("TTS.SetGlobalProperties",
 				{
+					timeoutPrompt = 
 					{
-						text = "Timeout prompt",
-						type = "TEXT"
-					}
-				},
-				helpPrompt = 
-				{
+						{
+							text = "Timeout prompt",
+							type = "TEXT"
+						}
+					},
+					helpPrompt = 
 					{
-						text = "Help prompt",
-						type = "TEXT"
+						{
+							text = "Help prompt",
+							type = "TEXT"
+						}
 					}
-				}
-			})
-			:Do(function(_,data)
-				--hmi side: sending UI.SetGlobalProperties response
-				self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-			end)
+				})
+				:Do(function(_,data)
+					--hmi side: sending UI.SetGlobalProperties response
+					self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+				end)
+			end
 			
 			--hmi side: expect UI.SetGlobalProperties request
 			EXPECT_HMICALL("UI.SetGlobalProperties", {})
 			:Times(0)
-			
-			
+						
 			--mobile side: expect SetGlobalProperties response
 			EXPECT_RESPONSE(cid, { success = true, resultCode = "UNSUPPORTED_RESOURCE"})
 			
@@ -971,18 +1273,21 @@ local function RAI_RESUME_FAILED()
 				self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 			end)
 			
-			
-			--mobile side: expect SetGlobalProperties response
-			EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})
-			:Do(function(_,data)
-				
-				--Requirement id in JAMA/or Jira ID: APPLINK-15682
-				--[Data Resumption]: OnHashChange
-				EXPECT_NOTIFICATION("OnHashChange")
-				:Do(function(_, data)
-					self.currentHashID = data.payload.hashID
+			if( (TestedInterface ~= "TTS") and (TestedInterface ~= "UI") ) then
+				--mobile side: expect SetGlobalProperties response
+				EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})
+				:Do(function(_,data)
+					
+					--Requirement id in JAMA/or Jira ID: APPLINK-15682
+					--[Data Resumption]: OnHashChange
+					EXPECT_NOTIFICATION("OnHashChange")
+					:Do(function(_, data)
+						self.currentHashID = data.payload.hashID
+					end)
 				end)
-			end)
+			else
+				EXPECT_RESPONSE(cid, { resultCode = "UNSUPPORTED_RESOURCE"})
+			end
 		end
 		
 		function Test:Precondition_for_checking_RESUME_FAILED_AddResumptionData_SubscribeButton()
@@ -1130,8 +1435,9 @@ local function RAI_RESUME_FAILED()
 				if ( data.payload.vrCapabilities and (TestedInterface == "VR") )then
 					errorMessage = errorMessage .. "SDL resends 'vrCapabilities' parameter to mobile app. "
 				end
-				if ( data.payload.language and (TestedInterface == "VR") )then
-					errorMessage = errorMessage .. "SDL resends 'language' parameter to mobile app"
+				-- The parameter will be sent in case TTS.IsReady is transmitted. Additional check is done in test RAI_Language_TTS_VR_available_false
+				if ( (data.payload.language == nil) and (TestedInterface == "VR") )then
+				 	errorMessage = errorMessage .. "SDL doesn't resend 'language' parameter because of TTS to mobile app"
 				end	
 				------------------------------------------------------------------------------------------
 				-- UI:
@@ -1149,8 +1455,9 @@ local function RAI_RESUME_FAILED()
 				end						
 				------------------------------------------------------------------------------------------
 				-- TTS:
-				if ( data.payload.language and (TestedInterface == "TTS") )then
-					errorMessage = errorMessage .. "SDL resends 'language' parameter to mobile app"
+				-- The parameter will be sent in case TTS.IsReady is transmitted. Additional check is done in test RAI_Language_TTS_VR_available_false
+				if ( (data.payload.language == nil) and (TestedInterface == "TTS") )then
+				 	errorMessage = errorMessage .. "SDL doesn't resend 'language' parameter because of VR to mobile app"
 				end	
 				if ( data.payload.speechCapabilities and (TestedInterface == "TTS") )then
 					errorMessage = errorMessage .. "SDL resends 'speechCapabilities' parameter to mobile app"
@@ -1223,12 +1530,75 @@ local function RAI_RESUME_FAILED()
 		EXPECT_NOTIFICATION("OnHashChange")
 		:Times(0)
 	end
-
 end
 
+-- Parameter language is transmitted via VR and TTS.
+-- Goal: to check that parameter language will be ommited when TTS.IsReady(available = false) and VR.IsReady(available = false) 
+local function RAI_Language_TTS_VR_available_false()
+	commonFunctions:newTestCasesGroup("Verify resultCode SUCCESS when TTS.IsReady(available = false) and VR.IsReady(available = false)  ")
 
+	StopStartSDL_HMI_MOBILE_VR_TTS(self)
+		
+	Test["TC5_RegisterApplication_Check_"..TestedInterface.."_Parameters_IsOmitted_resultCode_SUCCESS_"..TestCaseName] = function(self)
+			
+		commonTestCases:DelayedExp(iTimeout)
+		
+		--mobile side: RegisterAppInterface request
+		local CorIdRegister=self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
+			
+		--hmi side: expect BasicCommunication.OnAppRegistered request
+		EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", 
+		{
+			application=
+			{
+				appName=config.application1.registerAppInterfaceParams.appName
+			}
+		})
+		:Do(function(_,data)
+			self.appName=data.params.application.appName
+			self.applications[config.application1.registerAppInterfaceParams.appName]=data.params.application.appID
+		end)
+		
+		--mobile side: expect response
+		-- SDL does not send VR-related param to mobile app	
+		self.mobileSession:ExpectResponse(CorIdRegister, {success=true})
+		:ValidIf (function(_,data)
+			local errorMessage = ""
+			------------------------------------------------------------------------------------------
+			-- VR and TTS are available = false
+			if ( data.payload.language)then
+			 	errorMessage = errorMessage .. "SDL resends 'language' parameter to mobile app"
+			end	
 
-
+			------------------------------------------------------------------------------------------
+			-- VR:
+			if ( data.payload.vrCapabilities)then
+				errorMessage = errorMessage .. "SDL resends 'vrCapabilities' parameter to mobile app. "
+			end
+										
+			------------------------------------------------------------------------------------------
+			-- TTS:
+			if ( data.payload.speechCapabilities)then
+				errorMessage = errorMessage .. "SDL resends 'speechCapabilities' parameter to mobile app"
+			end
+			--TODO: Check parameter name prerecordedSpeech or prerecordedSpeechCapabilities
+			if ( data.payload.prerecordedSpeech)then
+				errorMessage = errorMessage .. "SDL resends 'prerecordedSpeech' parameter to mobile app"
+			end
+			------------------------------------------------------------------------------------------
+					
+			if errorMessage == "" then
+				return true					
+			else
+				commonFunctions:printError(errorMessage)
+				return false
+			end
+		end)
+			
+		--mobile side: expect notification
+		self.mobileSession:ExpectNotification("OnHMIStatus", { systemContext="MAIN", hmiLevel="NONE", audioStreamingState="NOT_AUDIBLE"})
+	end	
+end
 
 if(TestedInterface ~= "NAVIGATION") then -- for NAVIGATION interface, there is no related parameters to check in RAI response so ignore this case.
 	
@@ -1243,6 +1613,11 @@ if(TestedInterface ~= "NAVIGATION") then -- for NAVIGATION interface, there is n
 	
 	RAI_WARNINGS()	
 	RAI_RESUME_FAILED()
+	
+	if(TestedInterface == "VR" or TestedInterface == "TTS") then
+	
+		RAI_Language_TTS_VR_available_false()
+	end
 	
 end --if(TestedInterface ~= "NAVIGATION") then 
 
@@ -1279,6 +1654,7 @@ function Test:Postcondition_RestorePreloadedFile()
 end
 
 Test["ForceKill" .. tostring(i)] = function (self)
+	print("-----------------------------------------------------------------------------------")
 	os.execute("ps aux | grep smart | awk \'{print $2}\' | xargs kill -9")
 	os.execute("sleep 1")
 end
