@@ -1231,29 +1231,30 @@ local function RAI_RESUME_FAILED()
 				vrHelpTitle = "VR help title",
 			})
 			
-			
-			--hmi side: expect TTS.SetGlobalProperties request
-			EXPECT_HMICALL("TTS.SetGlobalProperties",
-			{
-				timeoutPrompt = 
+			if(TestedInterface ~= "TTS") then 
+				--hmi side: expect TTS.SetGlobalProperties request
+				EXPECT_HMICALL("TTS.SetGlobalProperties",
 				{
+					timeoutPrompt = 
 					{
-						text = "Timeout prompt",
-						type = "TEXT"
-					}
-				},
-				helpPrompt = 
-				{
+						{
+							text = "Timeout prompt",
+							type = "TEXT"
+						}
+					},
+					helpPrompt = 
 					{
-						text = "Help prompt",
-						type = "TEXT"
+						{
+							text = "Help prompt",
+							type = "TEXT"
+						}
 					}
-				}
-			})
-			:Do(function(_,data)
-				--hmi side: sending UI.SetGlobalProperties response
-				self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-			end)
+				})
+				:Do(function(_,data)
+					--hmi side: sending UI.SetGlobalProperties response
+					self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+				end)
+			end
 			
 			--hmi side: expect UI.SetGlobalProperties request
 			EXPECT_HMICALL("UI.SetGlobalProperties",

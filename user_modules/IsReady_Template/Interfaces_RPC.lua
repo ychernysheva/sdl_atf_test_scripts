@@ -1477,6 +1477,7 @@ interfaces.RPC = {
                                     name = "Speak",
                                     splitted = false,
                                     params = {
+                                                appID = 1,
                                                 ttsChunks = {--<param name="ttsChunks" type="Common.TTSChunk" mandatory="true" array="true" minsize="1" maxsize="100">
                                                               {
                                                                 text ="a",

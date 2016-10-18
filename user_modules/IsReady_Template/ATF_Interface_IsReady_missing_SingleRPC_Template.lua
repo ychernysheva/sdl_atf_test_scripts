@@ -219,9 +219,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 				local other_interfaces_call = {}			
 				local hmi_method_call = TestedInterface.."."..hmi_call.name
 
-				--if(i == 1) then
-					
-				--end --if(i == 1) then
+				if(mob_request.name == "SetGlobalProperties" and TestedInterface == "TTS") then mob_request.single = false end
 
 				if( ( Tested_resultCode == "AllTested" ) or (Tested_resultCode == TestData[i].resultCode) ) then
 					if(mob_request.single == true)then
