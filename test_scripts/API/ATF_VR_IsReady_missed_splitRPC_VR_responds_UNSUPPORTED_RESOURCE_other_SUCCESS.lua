@@ -2,6 +2,9 @@
 -- Purpose: Covert a part of CRQ APPLINK-20918
 -- Verify functional requirement APPLINK-25044 (split RPCs)
 -- Specific case: VR responds UNSUPPORTED_RESOURCE, other responds SUCCESS
+--------------------------------------------------------------------------------------------
+-- Note: Open defect fails TC with DeleteCommand, PerformIteraction (APPLINK-28911)
+--		 Precondition tests with RAI failed by APPLINK-28276			
 ---------------------------------------------------------------------------------------------
 
 config.defaultProtocolVersion = 2
@@ -546,6 +549,12 @@ local function StopStartSDL_HMI_MOBILE(case, TestCaseName)
 	Test[tostring(TestCaseName) .. "_Precondition_StopSDL"] = function(self)
 		StopSDL()
 	end
+-- Workaround for defect APPLINK-25898. Remove after fix
+	Test["ForceKill" .. tostring(i)] = function (self)
+			-- body
+			os.execute("ps aux | grep smart | awk \'{print $2}\' | xargs kill -9")
+			os.execute("sleep 1")
+		end
 	
 	--Start SDL
 	Test[tostring(TestCaseName) .. "_Precondition_StartSDL"] = function(self)
