@@ -746,6 +746,22 @@ interfaces.mobile_req = {
                             description = "StopAudioStream as result of StartService(11)",
                             hashChange = false,
                             params = { }-- no parameters 
+                          },
+                          --StopSpeaking
+                          {
+                            name = "StopSpeaking",
+                            splitted = true,
+                            single = true,
+                            description = "StopSpeaking with all parameters",
+                            hashChange = false,
+                            params = {
+                                        ttsChunks = {
+                                                      {
+                                                        text ="a",
+                                                        type ="TEXT"
+                                                      }
+                                                    }--<param name="ttsChunks" type="TTSChunk" minsize="1" maxsize="100" array="true">
+                                      }
                           }
                           -- GetSupportedLanguages is not sent by application
                             --Checked in initHMI_onReady_Interfaces_IsReady
@@ -762,6 +778,7 @@ interfaces.mobile_req = {
                           -- ClosePopUp is not sent by application
                           -- GetVehicleType is not sent by application
                             --Checked in initHMI_onReady_Interfaces_IsReady
+                          --TTS.Started / TTS.Stoped are notifications sent by HMI. Not in scope of CRQ testing TTS interface. Behaviour is checked in RPC Alert.
                         }
 
 interfaces.RPC = {
@@ -982,8 +999,22 @@ interfaces.RPC = {
                                   {
                                     
                                     name = "Not applicable"
+                                  },
+                                  --StopSpeaking
+                                  {
+
+                                    name = "Not applicable"
+                                  },
+                                  --Started
+                                  {
+                                   
+                                    name = "Not applicable"
+                                  },
+                                  --Stopped
+                                  {
+                                    name = "Not applicable"
                                   }
-                                  
+                                          
                                 }
                     },
                     -- UI
@@ -1358,7 +1389,12 @@ interfaces.RPC = {
                                   {
                                     
                                     name = "Not applicable"
-                                  }
+                                  },
+                                  --StopSpeaking
+                                  {
+
+                                    name = "Not applicable"
+                                  },
                                 }
                     },
                     --TTS
@@ -1570,6 +1606,13 @@ interfaces.RPC = {
                                   {
                                     
                                     name = "Not applicable"
+                                  },
+                                  --StopSpeaking
+                                  {
+
+                                    name = "StopSpeaking",
+                                    splitted = false,
+                                    params = {""}
                                   }
                                 }
                     },
@@ -1773,7 +1816,13 @@ interfaces.RPC = {
                                   {
                                     
                                     name = "Not applicable"
-                                  }
+                                  },
+                                  --StopSpeaking
+                                  {
+
+                                    name = "Not applicable"
+                                  },
+                                  
                                 }
                     },
                     --Navigation
@@ -2103,7 +2152,13 @@ interfaces.RPC = {
                                     name = "StopAudioStream",
                                     splitted = false,
                                     params = {""} -- no parameters
-                                  }
+                                  },
+                                  --StopSpeaking
+                                  {
+
+                                    name = "Not applicable"
+                                  },
+                                  
                                 }
                     }
                 }
