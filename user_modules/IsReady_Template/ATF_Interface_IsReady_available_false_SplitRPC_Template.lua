@@ -40,6 +40,14 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 	local isReady = require('user_modules/IsReady_Template/isReady')
 
 ---------------------------------------------------------------------------------------------
+---------------------------------------- Local functions ------------------------------------
+---------------------------------------------------------------------------------------------
+	local function userPrint( color, message)
+	  print ("\27[" .. tostring(color) .. "m " .. tostring(message) .. " \27[0m")
+	end
+
+
+---------------------------------------------------------------------------------------------
 ------------------------------------ Common variables ---------------------------------------
 ---------------------------------------------------------------------------------------------
 	local RPCs = commonFunctions:cloneTable(isReady.RPCs)
@@ -202,6 +210,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 					
 
 							Test["TC01_"..TestCaseName .. "_"..mob_request.name.."_UNSUPPORTED_RESOURCE_true_Incase_OtherInterfaces_responds_" .. TestData[i].resultCode] = function(self)
+								userPrint(33, "Testing RPC = "..mob_request.name)
 								-- if(TestData[i].resultCode == "SAVED") then
 								-- 	 print ("\27[31m ATF defect should be created for HMI result_code SAVED. Please investigate! \27[0m")
 								-- end
@@ -487,6 +496,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 							--end --if( i == 1)
 						
 							Test["TC02_"..TestCaseName .. "_"..mob_request.name.."_" .. TestData[i].resultCode .. "_false_Incase_OtherInterfaces_responds" .. TestData[i].resultCode] = function(self)
+								userPrint(33, "Testing RPC = "..mob_request.name)
 								--======================================================================================================
 								-- Update of used params
 									if ( hmi_call.params.appID ~= nil ) then hmi_call.params.appID = self.applications[config.application1.registerAppInterfaceParams.appName] end

@@ -23,6 +23,9 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 
 	local print_msg = ""
 
+	TestedInterface = "Navigation"
+	Tested_resultCode = "SUCCESS"
+
 	if(Tested_resultCode ~= nil) then
 		print_msg = "Test will be executed for resultCode = " .. Tested_resultCode .. "; "
 	else
@@ -209,7 +212,9 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 		else
 			TestData = {	{success = true, resultCode = "SUCCESS", expected_resultCode = "SUCCESS", value = 0} }
 		end
-			
+		
+
+
 		local grammarID = 1
 		-- 1. All RPCs
 		for i = 1, #TestData do
@@ -406,12 +411,9 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 									if(vrCmd ~= "")      then mob_request.params.VRCommands = vrCmd end
 							end
 						else
-							--ToDo: Because of APPLINK-16610 resultCode SUCCESS is separated in other script.
-							-- when the defect is fixed if-end will be removed
-							if(TestData[i].resultCode ~= "SUCCESS") then
 							
-								--Preconditions:
-								if(mob_request.name == "StopStream" and TestData[i].success == false) then
+							--Preconditions:
+							if(mob_request.name == "StopStream" and TestData[i].success == false) then
 									Test["Precondition_StopStream_SUCCESS"] = function(self)
 										self.mobileSession:StartService(11)
 			
@@ -425,9 +427,9 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 										EXPECT_HMINOTIFICATION("Navigation.OnVideoDataStreaming",{available = true})
 										:Times(1) 
 									end
-								end
+							end
 
-								if(mob_request.name == "StopAudioStream" and TestData[i].success == false) then
+							if(mob_request.name == "StopAudioStream" and TestData[i].success == false) then
 									Test["Precondition_StopAudioStream_SUCCESS"] = function(self)
 										self.mobileSession:StartService(10)
 			
@@ -440,10 +442,10 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 										EXPECT_HMINOTIFICATION("Navigation.OnAudioDataStreaming",{available = true})
 										:Times(1) 
 									end
-								end
+							end
 
-								Test["TC_"..mob_request.name.."_Only_".. tostring(TestData[i].resultCode).."_"..TestCaseName] = function(self)
-									userPrint(33, "Testing RPC = "..mob_request.name)
+							Test["TC_"..mob_request.name.."_Only_".. tostring(TestData[i].resultCode).."_"..TestCaseName] = function(self)
+								userPrint(33, "Testing RPC = "..mob_request.name)
 										
 										local exTime = 1
 										if(TestData[i].success == true) then
@@ -497,9 +499,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 							    			EXPECT_HMINOTIFICATION("Navigation.OnAudioDataStreaming",{available = false})
 							    			:Times(exTime)
 							    		end
-								end			
-							end --if(TestData[i].resultCode ~= "SUCCESS") then
-							
+							end			
 						end --  if( (mob_request.name ~= "StartStream") and (mob_request.name ~= "StopStream") and 
 					end -- if(mob_request.single == true)then
 					if(IsExecutedAllRelatedRPCs == false) then
@@ -512,7 +512,8 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 
 	
 	--ToDo: Defect APPLINK-26394 Due to problem when stop and start SDL, script is debugged by updating user_modules/connecttest_VR_Isready.lua
-	for i=1, #TestData do
+	--for i=1, #TestData do
+	for i=1, 1 do
 	
 		local TestCaseName = "Case_" .. TestData[i].caseID .. "_IsReady_" ..TestData[i].description
 

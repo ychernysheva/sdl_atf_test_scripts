@@ -134,13 +134,11 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 					end
 					if(mob_request.single == true) then
 						Test["TC_".. RPCs[count_RPC].name .. "_UNSUPPORTED_RESOURCE_false" ..TestCaseName] = function(self)
+							userPrint(33, "Testing RPC = "..RPCs[count_RPC].name)
 							local menuparams = ""
 							local vrCmd = ""
 							local ltimeout = ""
 							local helpPrompt = ""
-							userPrint(33, "Testing RPC = "..RPCs[count_RPC].name)
-							--print("=============== Test: "..TestedInterface.."."..RPCs[count_RPC].name)
-							
 
 							if ( hmi_call.params.appID ~= nil ) then hmi_call.params.appID = self.applications[config.application1.registerAppInterfaceParams.appName] end
 								
@@ -208,6 +206,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 					end
 				elseif ( (mob_request.name == "StartStream") or (mob_request.name == "StartAudioStream") ) then
 					Test["TC_".. RPCs[count_RPC].name .. "_UNSUPPORTED_RESOURCE_false" ..TestCaseName] = function(self)
+						userPrint(33, "Testing RPC = "..mob_request.name)
 						local serType = 11
 						if (mob_request.name ~= "StartAudioStream") then
 							serType = 10
@@ -316,6 +315,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 
 	-- 					-- All applicable RPCs
 	-- 					Test["TC_".. RPCs[count_RPC].name .. "_UNSUPPORTED_RESOURCE_false" ..TestCaseName] = function(self)
+    --						userPrint(33, "Testing RPC = "..mob_request.name)
 	-- 						local menuparams = ""
 	-- 						local vrCmd = ""
 	-- 						local ltimeout = ""
