@@ -433,7 +433,6 @@ isReady:StopStartSDL_HMI_MOBILE(self, 0, TestCaseName)
 
 
 --List of resultCodes: APPLINK-16420 SUCCESS, APPLINK-16251 WRONG_LANGUAGE, APPLINK-16250 WRONG_LANGUAGE languageDesired, APPLINK-16249 WRONG_LANGUAGE hmiDisplayLanguageDesired, APPLINK-16320 UNSUPPORTED_RESOURCE unavailable/not supported component, APPLINK-15686 RESUME_FAILED, APPLINK-16307 WARNINGS, true
-
 	
 -- APPLINK-16420 SUCCESS
 -- Precondition: App has not been registered yet.			
@@ -524,10 +523,7 @@ local function RAI_SUCCESS()
 		--mobile side: expect notification
 		self.mobileSession:ExpectNotification("OnHMIStatus", { systemContext="MAIN", hmiLevel="NONE", audioStreamingState="NOT_AUDIBLE"})
 	end	
-	
 end
-	
-	
 
 -- APPLINK-16320 UNSUPPORTED_RESOURCE unavailable/not supported component: It is not applicable for RegisterAppInterface because RegisterAppInterface is not split able request		
 -- APPLINK-16251 WRONG_LANGUAGE
@@ -1619,6 +1615,8 @@ if(TestedInterface ~= "NAVIGATION") then -- for NAVIGATION interface, there is n
 	
 		RAI_Language_TTS_VR_available_false()
 	end
+else
+	userPrint(33,"Requirements for RAI are not applicable for Navigation.")
 	
 end --if(TestedInterface ~= "NAVIGATION") then 
 

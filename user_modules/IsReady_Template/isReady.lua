@@ -697,14 +697,19 @@ end
 											          audioType = "PCM"
 											        },
 											        hmiZoneCapabilities = "FRONT",
+											        hmiDisplayLanguage  = "EN-US",
 											        softButtonCapabilities =
 											        {
 											          shortPressAvailable = true,
 											          longPressAvailable = true,
 											          upDownAvailable = true,
 											          imageSupported = true
-											        }
-											    	}
+											        },
+											        hmiCapabilities = { 
+											        					navigation = false,
+											        					phoneCall  = false,
+											        				}
+											    }
 
 				local params_VR_GetCapabilities = {vrCapabilities = { "TEXT" }}
 

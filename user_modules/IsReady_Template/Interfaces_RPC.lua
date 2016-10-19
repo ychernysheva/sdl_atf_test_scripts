@@ -13,6 +13,36 @@ local HmiCapabilities = json.decode(fileContent)
 
 local storagePath = config.SDLStoragePath..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
 
+local function text_field(name, characterSet, width, rows)
+          xmlReporter.AddMessage(debug.getinfo(1, "n").name, tostring(name))
+          return
+          {
+            name = name,
+              characterSet = characterSet or "TYPE2SET",
+              width = width or 500,
+              rows = rows or 1
+          }
+end
+
+local function image_field(name, width, heigth)
+          xmlReporter.AddMessage(debug.getinfo(1, "n").name, tostring(name))
+          return
+          {
+              name = name,
+              imageTypeSupported =
+              {
+                "GRAPHIC_BMP",
+                "GRAPHIC_JPEG",
+                "GRAPHIC_PNG"
+              },
+              imageResolution =
+              {
+                resolutionWidth = width or 64,
+                resolutionHeight = height or 64
+              }
+          }
+end
+
 -- in case  interface is not responded expected parameters of RAI response shall be taken from HMI_capabilities files
 -- parameters that shall be checked
 interfaces.RAI = {
@@ -38,11 +68,86 @@ interfaces.RAI = {
                                   resultCode = "UNSUPPORTED_RESOURCE",
                                   info = "UI is not supported",
                                   --provide the value of UI related params. 
-                                  hmiDisplayLanguage        = HmiCapabilities.UI.language,
-                                  displayCapabilities       = HmiCapabilities.UI.displayCapabilities,
-                                  audioPassThruCapabilities = HmiCapabilities.UI.audioPassThruCapabilities,
-                                  -- TODO: Check the appropriate parameter in hmi_capabilities!
-                                  hmiCapabilities = ""
+                                  hmiDisplayLanguage        = "EN-US",
+                                  displayCapabilities       = {
+                                                                displayType = "GEN2_8_DMA",
+                                                                -- textFields =
+                                                                -- {
+                                                                --   text_field("mainField1"),
+                                                                --   text_field("mainField2"),
+                                                                --   text_field("mainField3"),
+                                                                --   text_field("mainField4"),
+                                                                --   text_field("statusBar"),
+                                                                --   text_field("mediaClock"),
+                                                                --   text_field("mediaTrack"),
+                                                                --   text_field("alertText1"),
+                                                                --   text_field("alertText2"),
+                                                                --   text_field("alertText3"),
+                                                                --   text_field("scrollableMessageBody"),
+                                                                --   text_field("initialInteractionText"),
+                                                                --   text_field("navigationText1"),
+                                                                --   text_field("navigationText2"),
+                                                                --   text_field("ETA"),
+                                                                --   text_field("totalDistance"),
+                                                                --   text_field("navigationText"),
+                                                                --   text_field("audioPassThruDisplayText1"),
+                                                                --   text_field("audioPassThruDisplayText2"),
+                                                                --   text_field("sliderHeader"),
+                                                                --   text_field("sliderFooter"),
+                                                                --   text_field("notificationText"),
+                                                                --   text_field("menuName"),
+                                                                --   text_field("secondaryText"),
+                                                                --   text_field("tertiaryText"),
+                                                                --   text_field("timeToDestination"),
+                                                                --   text_field("turnText"),
+                                                                --   text_field("menuTitle")
+                                                                -- },
+                                                                -- imageFields =
+                                                                -- {
+                                                                --   image_field("softButtonImage"),
+                                                                --   image_field("choiceImage"),
+                                                                --   image_field("choiceSecondaryImage"),
+                                                                --   image_field("vrHelpItem"),
+                                                                --   image_field("turnIcon"),
+                                                                --   image_field("menuIcon"),
+                                                                --   image_field("cmdIcon"),
+                                                                --   image_field("showConstantTBTIcon"),
+                                                                --   image_field("showConstantTBTNextTurnIcon")
+                                                                -- },
+                                                                mediaClockFormats =
+                                                                {
+                                                                  "CLOCK1",
+                                                                  "CLOCK2",
+                                                                  "CLOCK3",
+                                                                  "CLOCKTEXT1",
+                                                                  "CLOCKTEXT2",
+                                                                  "CLOCKTEXT3",
+                                                                  "CLOCKTEXT4"
+                                                                },
+                                                                graphicSupported = true,
+                                                                imageCapabilities = { "DYNAMIC", "STATIC" },
+                                                                templatesAvailable = { "TEMPLATE" },
+                                                                screenParams =
+                                                                {
+                                                                  resolution = { resolutionWidth = 800, resolutionHeight = 480 },
+                                                                  touchEventAvailable =
+                                                                  {
+                                                                    pressAvailable = true,
+                                                                    multiTouchAvailable = true,
+                                                                    doublePressAvailable = false
+                                                                  }
+                                                                },
+                                                                numCustomPresetsAvailable = 10
+                                                              },
+                                  audioPassThruCapabilities = {
+                                                                samplingRate = "44KHZ",
+                                                                bitsPerSample = "8_BIT",
+                                                                audioType = "PCM"
+                                                              },
+                                  hmiCapabilities = { 
+                                                        navigation = false,
+                                                        phoneCall  = false,
+                                                      }
                                 }
 
                     },
