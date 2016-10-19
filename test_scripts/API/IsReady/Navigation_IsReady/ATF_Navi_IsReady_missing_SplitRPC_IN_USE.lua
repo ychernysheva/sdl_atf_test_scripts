@@ -11,7 +11,6 @@ TestedInterface = "Navigation"
 Tested_resultCode = "IN_USE" 
 Tested_wrongJSON = false
 
-
-Test = require('user_modules/IsReady_Template/ATF_Interface_IsReady_missing_SingleRPC_Template')
+Test = require('user_modules/IsReady_Template/ATF_Interface_IsReady_missing_SplitRPC_Template')
 
 return Test
