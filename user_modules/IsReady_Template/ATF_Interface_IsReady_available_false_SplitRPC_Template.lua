@@ -224,8 +224,28 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 								--======================================================================================================
 								commonTestCases:DelayedExp(iTimeout)
 						
-								--mobile side: sending RPC request
-								local cid = self.mobileSession:SendRPC(mob_request.name, mob_request.params)
+								local cid
+								if( (hmi_method_call ~= "TTS.StopSpeaking") ) then
+									--mobile side: sending RPC request
+									cid = self.mobileSession:SendRPC(mob_request.name, mob_request.params)
+								else
+									--Clarification: APPLINK-29183
+									local DataID = 0
+									cid = self.mobileSession:SendRPC("Alert", { 
+																				alertText1 = "alertText1", alertText2 = "alertText2", alertText3 = "alertText3",
+                                        							            ttsChunks = { { text = "TTSChunk", type = "TEXT",} },
+                                        										duration = 3000,
+                                        										playTone = false,
+                                        										progressIndicator = false})
+									EXPECT_HMICALL("UI.Alert", {})
+									:Do(function(_,data)						
+										self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"'..data.method..'","code":'..TestData[i].value..'}}')
+									end)
+
+									EXPECT_HMICALL("TTS.Speak", {})
+									:Times(0)
+
+								end
 									
 								--hmi side: expect Interface.RPC request 	
 								for cnt = 1, #NotTestedInterfaces do
@@ -509,8 +529,37 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 								
 								commonTestCases:DelayedExp(iTimeout)
 						
-								--mobile side: sending RPC request
-								local cid = self.mobileSession:SendRPC(mob_request.name, mob_request.params)
+								local cid
+								if( (hmi_method_call ~= "TTS.StopSpeaking") ) then
+									--mobile side: sending RPC request
+									cid = self.mobileSession:SendRPC(mob_request.name, mob_request.params)
+								else
+									--Clarification: APPLINK-29183
+									local DataID = 0
+									cid = self.mobileSession:SendRPC("Alert", { 
+																				alertText1 = "alertText1", alertText2 = "alertText2", alertText3 = "alertText3",
+                                        							            ttsChunks = { { text = "TTSChunk", type = "TEXT",} },
+                                        										duration = 3000,
+                                        										playTone = false,
+                                        										progressIndicator = false})
+									EXPECT_HMICALL("UI.Alert", {})
+									:Do(function(_,data)						
+										if TestData[i].resultCode == "NOT_RESPOND" then
+													--HMI does not respond
+										else
+											-- self.hmiConnection:SendError(data.id, data.method, TestData[i].resultCode, TestData[i].info)
+											-- Use Send() function because it is required to verify resultCode is invalid (not in [0, 25])
+											if TestData[i].info == nil then													
+												self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"'.. data.method.. '","code":'..TestData[i].value..'}}')													
+											else													
+												self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"'.. data.method.. '","code":'..TestData[i].value..', "message":"'.. TestData[i].info .. '"}}')
+											end
+										end
+									end)
+
+									EXPECT_HMICALL("TTS.Speak", {})
+									:Times(0)
+								end
 									
 								--hmi side: expect UI.AddCommand request 
 								for cnt = 1, #NotTestedInterfaces do
