@@ -617,6 +617,7 @@ end
 												          "NEGATIVE_JINGLE"
 												        }
 													}
+				
 				local params_UI_GetCapabilities = {  
 													displayCapabilities =
 											        {
@@ -753,9 +754,8 @@ end
 					local params_GetCapabilities = params_VR_GetCapabilities
 					
 					if (TestedInterface == "UI")      then params_GetCapabilities = params_UI_GetCapabilities
-					elseif(TestedInterface == "TTS")  then params_GetCapabilities = params_TTS_GetCapabilities		
-					end
-					
+					elseif(TestedInterface == "TTS")  then params_GetCapabilities = params_TTS_GetCapabilities	end
+
 					ExpectRequest(TestedInterface ..".GetLanguage" , true, { language = "EN-US" })
 					:Timeout(20000)
 

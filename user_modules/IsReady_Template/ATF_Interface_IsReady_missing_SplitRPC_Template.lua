@@ -664,9 +664,13 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 									hmi_info = "Unsupported phoneme type was sent in an item"
 								end
 
-								
-								--mobile side: expect AddCommand response
-								EXPECT_RESPONSE(cid, { success = true, resultCode = "UNSUPPORTED_RESOURCE", info = hmi_info})
+								if (hmi_method_call == "TTS.StopSpeaking") then
+									--mobile side: expect mobile response
+									EXPECT_RESPONSE(cid, { success = true, resultCode = TestData[i].resultCode})
+								else
+									--mobile side: expect mobile response
+									EXPECT_RESPONSE(cid, { success = true, resultCode = "UNSUPPORTED_RESOURCE", info = hmi_info})
+								end
 
 								--mobile side: expect OnHashChange notification
 								if(mob_request.hashChange == true) then
@@ -938,7 +942,9 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 								if(mob_request.name == "Alert") then
 									--APPLINK-17008
 									EXPECT_RESPONSE(cid, { success = false, resultCode = "GENERIC_ERROR"})
-								
+								elseif (hmi_method_call == "TTS.StopSpeaking") then
+									--mobile side: expect mobile response
+									EXPECT_RESPONSE(cid, { success = true, resultCode = TestData[i].resultCode})
 								else
 									--TODO: APPLINK-27931: C;arification is expected
 									--mobile side: expect AddCommand response

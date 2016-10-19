@@ -24,9 +24,9 @@ interfaces.RAI = {
                                   resultCode = "UNSUPPORTED_RESOURCE",
                                   info = "VR is not supported",
                                   --provide the value of VR related params. 
-                                  vrCapabilities = HmiCapabilities.VR.capabilities,
+                                  vrCapabilities = { "TEXT" },
                                   -- TODO: If language from TTS is received shall be used?
-                                  language       = HmiCapabilities.VR.language
+                                  language       = "EN-US"
                                 }
 
                     },
@@ -54,11 +54,9 @@ interfaces.RAI = {
                                   resultCode = "UNSUPPORTED_RESOURCE",
                                   info = "TTS is not supported",
                                   --provide the value of TTS related params. 
-                                  -- TODO: If language from UI is received shall be used?
-                                  language           = HmiCapabilities.TTS.language,
-                                  speechCapabilities = HmiCapabilities.TTS.capabilities,
-                                  -- TODO: Check the appropriate parameter in hmi_capabilities!
-                                  prerecordedSpeech  = ""
+                                  language           = "EN-US" ,
+                                  speechCapabilities = { "TEXT", "PRE_RECORDED" },
+                                  prerecordedSpeechCapabilities = { "HELP_JINGLE","INITIAL_JINGLE","LISTEN_JINGLE","POSITIVE_JINGLE","NEGATIVE_JINGLE" }
                                 }
 
                     },
