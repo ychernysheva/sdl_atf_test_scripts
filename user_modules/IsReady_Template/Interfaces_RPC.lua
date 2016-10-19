@@ -751,7 +751,8 @@ interfaces.mobile_req = {
                           {
                             name = "StopSpeaking",
                             splitted = true,
-                            single = true,
+                            -- according to APPLINK-29183 StopSpeaking is part of SplitRPC
+                            single = false,
                             description = "StopSpeaking with all parameters",
                             hashChange = false,
                             params = {
