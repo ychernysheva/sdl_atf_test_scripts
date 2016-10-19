@@ -12,7 +12,7 @@
 
 TestedInterface = "TTS"
 Tested_resultCode = "SUCCESS" 
-Teted_wrongJSON = true
+Tested_wrongJSON = true
 
 
 Test = require('user_modules/IsReady_Template/ATF_Interface_IsReady_available_false_SplitRPC_Template')
