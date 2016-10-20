@@ -4,7 +4,7 @@
 --                     IsReady_request or respond with "available" = false
 --
 -- Requirement(s): APPLINK-25185 [Navigation Interface] SDL behavior in case HMI does not respond to Navi.IsReady_request 
---                 APPLINK-25301:[HMI_API] Navi.IsReady
+--                 		   APPLINK-25301:[HMI_API] Navi.IsReady
 ---------------------------------------------------------------------------------------------
 
 

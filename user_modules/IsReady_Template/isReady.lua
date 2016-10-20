@@ -70,6 +70,69 @@ end
 				]].. ", \n"
 				PermissionLinesForBase4 = PermissionForDeleteCommand..PermissionForShow..PermissionForAlert..PermissionForSpeak
 				PTName = testCasesForPolicyTable:createPolicyTableFile_temp(PermissionLinesForBase4, nil, nil, {"DeleteCommand","Show","Alert","Speak"})	
+			elseif(TestedInterface == "VehicleInfo") then
+				local PermissionForReadDID = 
+				[[				
+				"ReadDID": {
+				"hmi_levels": [
+				"BACKGROUND",
+				"FULL",
+				"LIMITED"
+				]
+				}
+				]].. ", \n"
+				local PermissionForGetDTCs = 
+				[[				
+				"GetDTCs": {
+				"hmi_levels": [
+				"BACKGROUND",
+				"FULL",
+				"LIMITED"
+				]
+				}
+				]].. ", \n"
+				local PermissionForDiagnosticMessage = 
+				[[				
+				"DiagnosticMessage": {
+				"hmi_levels": [
+				"BACKGROUND",
+				"FULL",
+				"LIMITED"
+				]
+				}
+				]].. ", \n"
+				local PermissionForSubscribeVehicleData = 
+				[[				
+				"SubscribeVehicleData": {
+				"hmi_levels": [
+				"BACKGROUND",
+				"FULL",
+				"LIMITED"
+				]
+				}
+				]].. ", \n"
+				local PermissionForGetVehicleData = 
+				[[				
+				"GetVehicleData": {
+				"hmi_levels": [
+				"BACKGROUND",
+				"FULL",
+				"LIMITED"
+				]
+				}
+				]].. ", \n"
+				local PermissionForUnsubscribeVehicleData = 
+				[[				
+				"UnsubscribeVehicleData": {
+				"hmi_levels": [
+				"BACKGROUND",
+				"FULL",
+				"LIMITED"
+				]
+				}
+				]].. ", \n"
+				PermissionLinesForBase4 = PermissionForReadDID..PermissionForGetDTCs..PermissionForDiagnosticMessage..PermissionForSubscribeVehicleData..PermissionForGetVehicleData..PermissionForUnsubscribeVehicleData
+				PTName = testCasesForPolicyTable:createPolicyTableFile_temp(PermissionLinesForBase4, nil, nil, {"ReadDID","GetDTCs","DiagnosticMessage","SubscribeVehicleData","GetVehicleData","UnsubscribeVehicleData"})	
 			else --if (TestedInterface == "Navigation")
 		
 				local PermissionForSendLocation = 
