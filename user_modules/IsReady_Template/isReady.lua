@@ -24,119 +24,170 @@ end
 -----------------------------------Backup, updated preloaded file ---------------------------
 ---------------------------------------------------------------------------------------------
 	local function UpdatePolicy()
+		--Updated because of APPLINK-26629
+		local PermissionLinesForBase4
+		local PTName
+			if (TestedInterface == "UI") then
+				local PermissionForDeleteCommand = 
+				[[				
+				"DeleteCommand": {
+				"hmi_levels": [
+				"BACKGROUND",
+				"FULL",
+				"LIMITED"
+				]
+				}
+				]].. ", \n"
+				local PermissionForShow = 
+				[[				
+				"Show": {
+					"hmi_levels": [
+					"BACKGROUND",
+					"FULL",
+					"LIMITED"
+					]
+				}
+				]].. ", \n"
+				local PermissionForAlert = 
+				[[				
+				"Alert": {
+					"hmi_levels": [
+					"BACKGROUND",
+					"FULL",
+					"LIMITED"
+					]
+				}
+				]].. ", \n"
+				local PermissionForSpeak = 
+				[[				
+				"Speak": {
+					"hmi_levels": [
+					"BACKGROUND",
+					"FULL",
+					"LIMITED"
+					]
+				}
+				]].. ", \n"
+				PermissionLinesForBase4 = PermissionForDeleteCommand..PermissionForShow..PermissionForAlert..PermissionForSpeak
+				PTName = testCasesForPolicyTable:createPolicyTableFile_temp(PermissionLinesForBase4, nil, nil, {"DeleteCommand","Show","Alert","Speak"})	
+			else --if (TestedInterface == "Navigation")
 		
-		local PermissionForSendLocation = 
-		[[				
-		"SendLocation": {
-			"hmi_levels": [
-			"BACKGROUND",
-			"FULL",
-			"LIMITED"
-			]
-		}
-		]].. ", \n"
-		local PermissionForShowConstantTBT = 
-		[[				
-		"ShowConstantTBT": {
-			"hmi_levels": [
-			"BACKGROUND",
-			"FULL",
-			"LIMITED"
-			]
-		}
-		]].. ", \n"
-		local PermissionForAlertManeuver = 
-		[[				
-		"AlertManeuver": {
-			"hmi_levels": [
-			"BACKGROUND",
-			"FULL",
-			"LIMITED"
-			]
-		}
-		]].. ", \n"
-		local PermissionForUpdateTurnList = 
-		[[				
-		"UpdateTurnList": {
-			"hmi_levels": [
-			"BACKGROUND",
-			"FULL",
-			"LIMITED"
-			]
-		}
-		]].. ", \n"
-		local PermissionForGetWayPoints = 
-		[[				
-		"GetWayPoints": {
-			"hmi_levels": [
-			"BACKGROUND",
-			"FULL",
-			"LIMITED"
-			]
-		}
-		]].. ", \n"
-		local PermissionForSubscribeWayPoints = 
-		[[				
-		"SubscribeWayPoints": {
-			"hmi_levels": [
-			"BACKGROUND",
-			"FULL",
-			"LIMITED"
-			]
-		}
-		]].. ", \n"		
-		local PermissionForUnsubscribeWayPoints = 
-		[[				
-		"UnsubscribeWayPoints": {
-			"hmi_levels": [
-			"BACKGROUND",
-			"FULL",
-			"LIMITED"
-			]
-		}
-		]].. ", \n"	
-		local PermissionForOnWayPointChange = 
-		[[				
-		"OnWayPointChange": {
-			"hmi_levels": [
-			"BACKGROUND",
-			"FULL",
-			"LIMITED"
-			]
-		}
-		]].. ", \n"	
-		local PermissionForOnTBTClientState = 
-		[[				
-		"OnTBTClientState": {
-			"hmi_levels": [
-			"BACKGROUND",
-			"FULL",
-			"LIMITED"
-			]
-		}
-		]].. ", \n"		
-		local PermissionForSpeak = 
-		[[				
-		"Speak": {
-			"hmi_levels": [
-			"BACKGROUND",
-			"FULL",
-			"LIMITED"
-			]
-		}
-		]].. ", \n"			
-		local PermissionForAlert = 
-		[[				
-		"Alert": {
-			"hmi_levels": [
-			"BACKGROUND",
-			"FULL",
-			"LIMITED"
-			]
-		}
-		]].. ", \n"
-		local PermissionLinesForBase4 = PermissionForSendLocation..PermissionForShowConstantTBT..PermissionForAlertManeuver..PermissionForUpdateTurnList..PermissionForGetWayPoints..PermissionForSubscribeWayPoints..PermissionForUnsubscribeWayPoints..PermissionForOnWayPointChange..PermissionForOnTBTClientState..PermissionForSpeak..PermissionForAlert
-		local PTName = testCasesForPolicyTable:createPolicyTableFile_temp(PermissionLinesForBase4, nil, nil, {"SendLocation","ShowConstantTBT","AlertManeuver","UpdateTurnList","GetWayPoints","SubscribeWayPoints","UnsubscribeWayPoints","OnWayPointChange","OnTBTClientState","Speak","Alert"})	
+				local PermissionForSendLocation = 
+				[[				
+				"SendLocation": {
+					"hmi_levels": [
+					"BACKGROUND",
+					"FULL",
+					"LIMITED"
+					]
+				}
+				]].. ", \n"
+				local PermissionForShowConstantTBT = 
+				[[				
+				"ShowConstantTBT": {
+					"hmi_levels": [
+					"BACKGROUND",
+					"FULL",
+					"LIMITED"
+					]
+				}
+				]].. ", \n"
+				local PermissionForAlertManeuver = 
+				[[				
+				"AlertManeuver": {
+					"hmi_levels": [
+					"BACKGROUND",
+					"FULL",
+					"LIMITED"
+					]
+				}
+				]].. ", \n"
+				local PermissionForUpdateTurnList = 
+				[[				
+				"UpdateTurnList": {
+					"hmi_levels": [
+					"BACKGROUND",
+					"FULL",
+					"LIMITED"
+					]
+				}
+				]].. ", \n"
+				local PermissionForGetWayPoints = 
+				[[				
+				"GetWayPoints": {
+					"hmi_levels": [
+					"BACKGROUND",
+					"FULL",
+					"LIMITED"
+					]
+				}
+				]].. ", \n"
+				local PermissionForSubscribeWayPoints = 
+				[[				
+				"SubscribeWayPoints": {
+					"hmi_levels": [
+					"BACKGROUND",
+					"FULL",
+					"LIMITED"
+					]
+				}
+				]].. ", \n"		
+				local PermissionForUnsubscribeWayPoints = 
+				[[				
+				"UnsubscribeWayPoints": {
+					"hmi_levels": [
+					"BACKGROUND",
+					"FULL",
+					"LIMITED"
+					]
+				}
+				]].. ", \n"	
+				local PermissionForOnWayPointChange = 
+				[[				
+				"OnWayPointChange": {
+					"hmi_levels": [
+					"BACKGROUND",
+					"FULL",
+					"LIMITED"
+					]
+				}
+				]].. ", \n"	
+				local PermissionForOnTBTClientState = 
+				[[				
+				"OnTBTClientState": {
+					"hmi_levels": [
+					"BACKGROUND",
+					"FULL",
+					"LIMITED"
+					]
+				}
+				]].. ", \n"		
+				local PermissionForSpeak = 
+				[[				
+				"Speak": {
+					"hmi_levels": [
+					"BACKGROUND",
+					"FULL",
+					"LIMITED"
+					]
+				}
+				]].. ", \n"			
+				local PermissionForAlert = 
+				[[				
+				"Alert": {
+					"hmi_levels": [
+					"BACKGROUND",
+					"FULL",
+					"LIMITED"
+					]
+				}
+				]].. ", \n"	
+				PermissionLinesForBase4 = PermissionForSendLocation..PermissionForShowConstantTBT..PermissionForAlertManeuver..PermissionForUpdateTurnList..PermissionForGetWayPoints..PermissionForSubscribeWayPoints..PermissionForUnsubscribeWayPoints..PermissionForOnWayPointChange..PermissionForOnTBTClientState..PermissionForSpeak..PermissionForAlert
+				PTName = testCasesForPolicyTable:createPolicyTableFile_temp(PermissionLinesForBase4, nil, nil, {"SendLocation","ShowConstantTBT","AlertManeuver","UpdateTurnList","GetWayPoints","SubscribeWayPoints","UnsubscribeWayPoints","OnWayPointChange","OnTBTClientState","Speak","Alert"})	
+			end
+			
+		
+		
 		-- TODO: Remove after implementation policy update
 		--testCasesForPolicyTable:updatePolicy(PTName)	
 		testCasesForPolicyTable:Precondition_updatePolicy_By_overwriting_preloaded_pt(PTName)
@@ -593,9 +644,9 @@ end
 			        name = name,
 			        imageTypeSupported =
 			       	{
-			          "GRAPHIC_BMP",
-			          "GRAPHIC_JPEG",
-			          "GRAPHIC_PNG"
+			          {"GRAPHIC_BMP"},
+			          {"GRAPHIC_JPEG"},
+			          {"GRAPHIC_PNG"}
 			        },
 			        imageResolution =
 			        {

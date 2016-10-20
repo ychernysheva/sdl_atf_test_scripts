@@ -113,7 +113,8 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 			Test["TC1_RegisterApplication_Check_"..TestedInterface.."_Parameters_IsAvailable_resultCode_SUCCESS_"..TestCaseName] = function(self)
 				
 				commonTestCases:DelayedExp(iTimeout)
-				
+				config.application1.registerAppInterfaceParams.appHMIType = {"NAVIGATION"}
+
 				--mobile side: RegisterAppInterface request
 				local CorIdRegister=self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
 				
@@ -234,7 +235,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 				commonSteps:DeletePolicyTable()
 			end
 			
-			isReady:StopStartSDL_HMI_MOBILE(self, 0, "RegisterApplication_Check_"..TestedInterface.."_Parameters_IsAvailable_resultCode_WARNINGS_Precondition")
+			isReady:StopStartSDL_HMI_MOBILE(self, 1, "RegisterApplication_Check_"..TestedInterface.."_Parameters_IsAvailable_resultCode_WARNINGS_Precondition")
 				
 			Test["TC3_Parameters_IsAvailable_resultCode_WARNINGS_RegisterApplication_Check_"..TestedInterface] = function(self)
 				
@@ -992,9 +993,17 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 		--for i=1, 2 do
 
 		TestCaseName = "Case_" .. TestData[i].caseID.."_" ..TestData[i].description 
-			
+		
 		--Print new line to separate new test cases group
 		commonFunctions:newTestCasesGroup(TestCaseName)
+
+		if ( i == 2) then
+			Test["Restore_Preloaded_Before_SUCCESS"] = function (self)
+				commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
+				commonSteps:DeletePolicyTable()
+				commonPreconditions:BackupFile("sdl_preloaded_pt.json")
+			end
+		end
 
 		isReady:StopStartSDL_HMI_MOBILE(self, TestData[i].caseID, TestCaseName)
 
@@ -1007,6 +1016,10 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 				--
 				--RAI_RESUME_FAILED(TestCaseName)
 			else
+				
+				
+				
+
 				RAI_SUCCESS(TestCaseName)
 			end
 		else

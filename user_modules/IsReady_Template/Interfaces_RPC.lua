@@ -13,17 +13,6 @@ local HmiCapabilities = json.decode(fileContent)
 
 local storagePath = config.SDLStoragePath..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
 
-local function text_field(name, characterSet, width, rows)
-          xmlReporter.AddMessage(debug.getinfo(1, "n").name, tostring(name))
-          return
-          {
-            name = name,
-              characterSet = characterSet or "TYPE2SET",
-              width = width or 500,
-              rows = rows or 1
-          }
-end
-
 local function image_field(name, width, heigth)
           xmlReporter.AddMessage(debug.getinfo(1, "n").name, tostring(name))
           return
@@ -71,60 +60,49 @@ interfaces.RAI = {
                                   hmiDisplayLanguage        = "EN-US",
                                   displayCapabilities       = {
                                                                 displayType = "GEN2_8_DMA",
-                                                                -- textFields =
-                                                                -- {
-                                                                --   text_field("mainField1"),
-                                                                --   text_field("mainField2"),
-                                                                --   text_field("mainField3"),
-                                                                --   text_field("mainField4"),
-                                                                --   text_field("statusBar"),
-                                                                --   text_field("mediaClock"),
-                                                                --   text_field("mediaTrack"),
-                                                                --   text_field("alertText1"),
-                                                                --   text_field("alertText2"),
-                                                                --   text_field("alertText3"),
-                                                                --   text_field("scrollableMessageBody"),
-                                                                --   text_field("initialInteractionText"),
-                                                                --   text_field("navigationText1"),
-                                                                --   text_field("navigationText2"),
-                                                                --   text_field("ETA"),
-                                                                --   text_field("totalDistance"),
-                                                                --   text_field("navigationText"),
-                                                                --   text_field("audioPassThruDisplayText1"),
-                                                                --   text_field("audioPassThruDisplayText2"),
-                                                                --   text_field("sliderHeader"),
-                                                                --   text_field("sliderFooter"),
-                                                                --   text_field("notificationText"),
-                                                                --   text_field("menuName"),
-                                                                --   text_field("secondaryText"),
-                                                                --   text_field("tertiaryText"),
-                                                                --   text_field("timeToDestination"),
-                                                                --   text_field("turnText"),
-                                                                --   text_field("menuTitle")
-                                                                -- },
-                                                                -- imageFields =
-                                                                -- {
-                                                                --   image_field("softButtonImage"),
-                                                                --   image_field("choiceImage"),
-                                                                --   image_field("choiceSecondaryImage"),
-                                                                --   image_field("vrHelpItem"),
-                                                                --   image_field("turnIcon"),
-                                                                --   image_field("menuIcon"),
-                                                                --   image_field("cmdIcon"),
-                                                                --   image_field("showConstantTBTIcon"),
-                                                                --   image_field("showConstantTBTNextTurnIcon")
-                                                                -- },
-                                                                mediaClockFormats =
+                                                                textFields =
                                                                 {
-                                                                  "CLOCK1",
-                                                                  "CLOCK2",
-                                                                  "CLOCK3",
-                                                                  "CLOCKTEXT1",
-                                                                  "CLOCKTEXT2",
-                                                                  "CLOCKTEXT3",
-                                                                  "CLOCKTEXT4"
+                                                                  { name = "mainField1", characterSet = "TYPE2SET", width = 500, rows = 1},
+                                                                  { name = "mainField2", characterSet = "TYPE2SET", width = 500, rows = 1},
+                                                                  { name = "mainField3", characterSet = "TYPE2SET", width = 500, rows = 1},
+                                                                  { name = "mainField4", characterSet = "TYPE2SET", width = 500, rows = 1},
+                                                                  { name = "statusBar", characterSet = "TYPE2SET", width = 500, rows = 1},
+                                                                  { name = "mediaClock", characterSet = "TYPE2SET", width = 500, rows = 1},
+                                                                  { name = "mediaTrack", characterSet = "TYPE2SET", width = 500, rows = 1},
+                                                                  { name = "alertText1", characterSet = "TYPE2SET", width = 500, rows = 1},
+                                                                  { name = "alertText2", characterSet = "TYPE2SET", width = 500, rows = 1},
+                                                                  { name = "alertText3", characterSet = "TYPE2SET", width = 500, rows = 1},
+                                                                  { name = "scrollableMessageBody", characterSet = "TYPE2SET", width = 500, rows = 1},
+                                                                  { name = "initialInteractionText", characterSet = "TYPE2SET", width = 500, rows = 1},
+                                                                  { name = "navigationText1", characterSet = "TYPE2SET", width = 500, rows = 1},
+                                                                  { name = "navigationText2", characterSet = "TYPE2SET", width = 500, rows = 1},
+                                                                  { name = "ETA",             characterSet = "TYPE2SET", width = 500, rows = 1},
+                                                                  { name = "totalDistance", characterSet = "TYPE2SET", width = 500, rows = 1},
+                                                                  --{ name = "audioPassThruDisplayText1", characterSet = "TYPE2SET", width = 500, rows = 1},
+                                                                  --{ name = "audioPassThruDisplayText2", characterSet = "TYPE2SET", width = 500, rows = 1},
+                                                                  --{ name = "sliderHeader", characterSet = "TYPE2SET", width = 500, rows = 1},
+                                                                  --{ name = "sliderFooter", characterSet = "TYPE2SET", width = 500, rows = 1},
+                                                                  --{ name = "notificationText", characterSet = "TYPE2SET", width = 500, rows = 1},
+                                                                  --{ name = "menuName", characterSet = "TYPE2SET", width = 500, rows = 1},
+                                                                  --{ name = "secondaryText", characterSet = "TYPE2SET", width = 500, rows = 1},
+                                                                  --{ name = "tertiaryText", characterSet = "TYPE2SET", width = 500, rows = 1},
+                                                                  --{ name = "timeToDestination", characterSet = "TYPE2SET", width = 500, rows = 1},
+                                                                  --{ name = "turnText", characterSet = "TYPE2SET", width = 500, rows = 1},
+                                                                  --{ name = "menuTitle", characterSet = "TYPE2SET", width = 500, rows = 1}
                                                                 },
-                                                                graphicSupported = true,
+                                                                --ToDo: Check parameters additional investigation. Commented because not in scope of CRQ, but may be SDL problem
+                                                                --[[imageFields =
+                                                                {
+                                                                  { name = "softButtonImage", imageTypeSupported = { "GRAPHIC_BMP", "GRAPHIC_JPEG", "GRAPHIC_PNG"}, imageResolution = { resolutionWidth = 64, resolutionHeight = 64} },
+                                                                  { name = "choiceImage", imageTypeSupported = { "GRAPHIC_BMP", "GRAPHIC_JPEG", "GRAPHIC_PNG"}, imageResolution = { resolutionWidth = 64, resolutionHeight = 64} },
+                                                                  { name = "choiceSecondaryImage", imageTypeSupported = { "GRAPHIC_BMP", "GRAPHIC_JPEG", "GRAPHIC_PNG"}, imageResolution = { resolutionWidth = 64, resolutionHeight = 64} },
+                                                                  { name = "vrHelpItem", imageTypeSupported = { "GRAPHIC_BMP", "GRAPHIC_JPEG", "GRAPHIC_PNG"}, imageResolution = { resolutionWidth = 64, resolutionHeight = 64} },
+                                                                  { name = "turnIcon", imageTypeSupported = { "GRAPHIC_BMP", "GRAPHIC_JPEG", "GRAPHIC_PNG"}, imageResolution = { resolutionWidth = 64, resolutionHeight = 64} },
+                                                                  { name = "menuIcon", imageTypeSupported = { "GRAPHIC_BMP", "GRAPHIC_JPEG", "GRAPHIC_PNG"}, imageResolution = { resolutionWidth = 64, resolutionHeight = 64} },
+                                                                  { name = "cmdIcon", imageTypeSupported = { "GRAPHIC_BMP", "GRAPHIC_JPEG", "GRAPHIC_PNG"}, imageResolution = { resolutionWidth = 64, resolutionHeight = 64} },
+                                                                  { name = "showConstantTBTIcon", imageTypeSupported = { "GRAPHIC_BMP", "GRAPHIC_JPEG", "GRAPHIC_PNG"}, imageResolution = { resolutionWidth = 64, resolutionHeight = 64} },
+                                                                  { name = "showConstantTBTNextTurnIcon", imageTypeSupported = { "GRAPHIC_BMP", "GRAPHIC_JPEG", "GRAPHIC_PNG"}, imageResolution = { resolutionWidth = 64, resolutionHeight = 64} }
+                                                                },
                                                                 imageCapabilities = { "DYNAMIC", "STATIC" },
                                                                 templatesAvailable = { "TEMPLATE" },
                                                                 screenParams =
@@ -137,13 +115,20 @@ interfaces.RAI = {
                                                                     doublePressAvailable = false
                                                                   }
                                                                 },
-                                                                numCustomPresetsAvailable = 10
+                                                                numCustomPresetsAvailable = 10]]
+                                                                mediaClockFormats =
+                                                                {
+                                                                  "CLOCK1",
+                                                                  "CLOCK2",
+                                                                  "CLOCK3",
+                                                                  "CLOCKTEXT1",
+                                                                  "CLOCKTEXT2",
+                                                                  "CLOCKTEXT3",
+                                                                  "CLOCKTEXT4"
+                                                                },
+                                                                graphicSupported = true
                                                               },
-                                  audioPassThruCapabilities = {
-                                                                samplingRate = "44KHZ",
-                                                                bitsPerSample = "8_BIT",
-                                                                audioType = "PCM"
-                                                              },
+                                  audioPassThruCapabilities = { { samplingRate = "44KHZ", bitsPerSample = "8_BIT", audioType = "PCM"} },
                                   hmiCapabilities = { 
                                                         navigation = false,
                                                         phoneCall  = false,
@@ -161,7 +146,7 @@ interfaces.RAI = {
                                   --provide the value of TTS related params. 
                                   language           = "EN-US" ,
                                   speechCapabilities = { "TEXT", "PRE_RECORDED" },
-                                  prerecordedSpeechCapabilities = { "HELP_JINGLE","INITIAL_JINGLE","LISTEN_JINGLE","POSITIVE_JINGLE","NEGATIVE_JINGLE" }
+                                  prerecordedSpeech = { "HELP_JINGLE","INITIAL_JINGLE","LISTEN_JINGLE","POSITIVE_JINGLE","NEGATIVE_JINGLE" }
                                 }
 
                     },
@@ -174,12 +159,13 @@ interfaces.RAI = {
                                   info = "VehicleInfo is not supported",
                                   --provide the value of VehicleInfo related params.                                   
                                   -- TODO: Check the appropriate parameter in hmi_capabilities!
-                                  vehicleType = {
-                                                  make      = HmiCapabilities.VehicleInfo.make,
-                                                  model     = HmiCapabilities.VehicleInfo.model,
-                                                  modelYear = HmiCapabilities.VehicleInfo.modelYear,
-                                                  trim      = HmiCapabilities.VehicleInfo.trim
-                                                } 
+                                  vehicleType =
+                                                {
+                                                  make = "Ford",
+                                                  model = "Fiesta",
+                                                  modelYear = "2013",
+                                                  trim = "SE"
+                                                }
                                 }
 
                     }
