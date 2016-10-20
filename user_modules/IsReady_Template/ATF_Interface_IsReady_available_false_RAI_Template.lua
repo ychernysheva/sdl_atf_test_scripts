@@ -1653,7 +1653,7 @@ function Test:Postcondition_RestorePreloadedFile()
 end
 
 Test["ForceKill" .. tostring(i)] = function (self)
-	print("-----------------------------------------------------------------------------------")
+	print("------------------ Postconditions ---------------------------")
 	os.execute("ps aux | grep smart | awk \'{print $2}\' | xargs kill -9")
 	os.execute("sleep 1")
 end

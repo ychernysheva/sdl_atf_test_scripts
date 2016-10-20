@@ -186,13 +186,14 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 			
 			-- All RPCs
 			for i = 1, #TestData do
-			--for i = 1, 1 do
+				local grammarID = 1
+
 				for count_RPC = 1, #RPCs do
 					local mob_request = mobile_request[count_RPC]
 					local hmi_call = RPCs[count_RPC]
 					local other_interfaces_call = {}			
 					local hmi_method_call = TestedInterface.."."..hmi_call.name
-					local grammarID = 1
+					
 
 					if(mob_request.splitted == true) then						
 						if( ( Tested_resultCode == "AllTested" ) or (Tested_resultCode == TestData[i].resultCode) ) then
@@ -347,12 +348,14 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 												
 												if ( local_params.menuParams ~= nil ) then local_params.menuParams =  {position = 1, menuName ="Command "..tostring(TestData[i].value)} end
 				 								if ( local_params.appID ~= nil )      then local_params.appID = self.applications[config.application1.registerAppInterfaceParams.appName] end
-				 								if ( local_params.grammarID ~= nil ) then 
+				 								if ( local_params.choiceSet ~= nil )  then local_params.choiceSet = { { choiceID = TestData[i].value, menuName = "Choice" ..tostring(TestData[i].value)  }} end
+				 								if ( local_params.grammarID ~= nil )  then 
 											  		if (mob_request.name == "DeleteCommand" ) then
 											  			local_params.grammarID =  grammarID  
 													else
 											  			local_params.grammarID[1] =  grammarID  
 											  		end
+
 											  	end
 											--======================================================================================================
 											if ( (TestData[i].success == false) and (mob_request.name == "DeleteSubMenu") ) then
@@ -387,6 +390,10 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 									if ( hmi_call.params.menuParams ~= nil ) then hmi_call.params.menuParams =  {position = 1, menuName ="Command "..tostring(TestData[i].value)} end
 									if ( hmi_call.params.vrCommands ~= nil ) then hmi_call.params.vrCommands = {"vrCommands_" .. tostring(TestData[i].value)} end
 									if ( hmi_call.params.choiceSet ~= nil)   then hmi_call.params.choiceSet = { { choiceID = TestData[i].value, menuName = "Choice"..tostring(TestData[i].value) } } end
+									if ( hmi_call.params.grammarID ~= nil )  then 
+										if (mob_request.name == "DeleteCommand" ) then hmi_call.params.grammarID = grammarID  
+										else hmi_call.params.grammarID[1] = grammarID  end
+									end
 								--======================================================================================================
 								if ( TestData[i].success == false and (mob_request.name == "DeleteSubMenu")) then
 									EXPECT_HMICALL(hmi_method_call, hmi_call.params)	
@@ -431,12 +438,14 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 									else
 										--mobile side: expect AddCommand response
 										EXPECT_RESPONSE(cid, { success = false, resultCode = "GENERIC_ERROR"})
-										:Timeout(12000)
+										--:Timeout(12000)
+										:Timeout(20000)
 									end
 								else
 									--mobile side: expect response to mobile
 									EXPECT_RESPONSE(cid, { success = false, resultCode = "GENERIC_ERROR"})
-									:Timeout(12000)
+									--:Timeout(12000)
+									:Timeout(20000)
 								end
 
 								--mobile side: expect OnHashChange notification
@@ -595,6 +604,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 					 							if ( local_params.appHMIType ~= nil ) then local_params.appHMIType = config.application1.registerAppInterfaceParams.appHMIType end
 					 							if ( local_params.appName ~= nil )    then local_params.appName = config.application1.registerAppInterfaceParams.appName end
 					 							if ( local_params.vrCommands ~= nil ) then local_params.vrCommands = { "vrCommands_" .. tostring(TestData[i].value + 1) }end
+					 							if ( local_params.choiceSet ~= nil)   then local_params.choiceSet = { { choiceID = (TestData[i].value + 1), menuName = "Choice"..tostring(TestData[i].value + 1) } } end
 					 							if ( local_params.grammarID ~= nil ) then 
 											  		if (mob_request.name == "DeleteCommand") then
 											  			local_params.grammarID =  grammarID  
@@ -628,13 +638,18 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 									if ( hmi_call.params.type ~= nil ) 		 then hmi_call.params.type = "Command" end
 									if ( hmi_call.params.vrCommands ~= nil ) then hmi_call.params.vrCommands = {"vrCommands_" .. tostring(TestData[i].value + 1)} end
 									if ( hmi_call.params.menuParams ~= nil ) then hmi_call.params.menuParams.menuName = "Command " .. tostring(TestData[i].value + 1) end
-									if ( hmi_call.params.choiceSet ~= nil)   then hmi_call.params.choiceSet = { { choiceID = TestData[i].value + 1, menuName = "Choice"..tostring(TestData[i].value + 1) } } end
+									if ( hmi_call.params.choiceSet ~= nil)   then hmi_call.params.choiceSet = { { choiceID = (TestData[i].value + 1), menuName = "Choice"..tostring(TestData[i].value + 1) } } end
+									if ( hmi_call.params.grammarID ~= nil ) then 
+										if (mob_request.name == "DeleteCommand") then hmi_call.params.grammarID =  grammarID  
+										else hmi_call.params.grammarID[1] =  grammarID  end
+									end
 								
 								--======================================================================================================
 								if (hmi_method_call == "TTS.StopSpeaking")  then hmi_call.params = nil end 
 
 								EXPECT_HMICALL(hmi_method_call, hmi_call.params)
 								:Do(function(_,data)
+									if(hmi_method_call == "VR.AddCommand") then grammarID = data.params.grammarID end
 									--hmi side: sending HMI response
 									self.hmiConnection:SendError(data.id, data.method, "UNSUPPORTED_RESOURCE", "error message")	
 									--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"'..data.method..'","code":'..TestData[i].value..'}}')					
@@ -667,9 +682,11 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 								if (hmi_method_call == "TTS.StopSpeaking") then
 									--mobile side: expect mobile response
 									EXPECT_RESPONSE(cid, { success = true, resultCode = TestData[i].resultCode})
+									:Timeout(20000)
 								else
 									--mobile side: expect mobile response
 									EXPECT_RESPONSE(cid, { success = true, resultCode = "UNSUPPORTED_RESOURCE", info = hmi_info})
+									:Timeout(20000)
 								end
 
 								--mobile side: expect OnHashChange notification
@@ -774,6 +791,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 									
 									--mobile side: expect AddCommand response
 									EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})
+
 
 									--mobile side: expect OnHashChange notification
 									if(mob_request.hashChange == true) then
@@ -942,9 +960,11 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 								if(mob_request.name == "Alert") then
 									--APPLINK-17008
 									EXPECT_RESPONSE(cid, { success = false, resultCode = "GENERIC_ERROR"})
+									:Timeout(20000)
 								elseif (hmi_method_call == "TTS.StopSpeaking") then
 									--mobile side: expect mobile response
 									EXPECT_RESPONSE(cid, { success = true, resultCode = TestData[i].resultCode})
+									:Timeout(20000)
 								else
 									--TODO: APPLINK-27931: C;arification is expected
 									--mobile side: expect AddCommand response
@@ -957,6 +977,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 											return false
 										end
 									end)
+									:Timeout(20000)
 								end
 
 								--mobile side: expect OnHashChange notification

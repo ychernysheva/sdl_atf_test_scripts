@@ -44,7 +44,6 @@ interfaces.RAI = {
                                   info = "VR is not supported",
                                   --provide the value of VR related params. 
                                   vrCapabilities = { "TEXT" },
-                                  -- TODO: If language from TTS is received shall be used?
                                   language       = "EN-US"
                                 }
 
