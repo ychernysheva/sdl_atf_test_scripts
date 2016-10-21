@@ -1387,7 +1387,7 @@ interfaces.RPC = {
                                     name = "EndAudioPassThru",
                                     splitted = false,
                                     --No params
-                                    params = {}
+                                    params = {fakeparams = nil}
                                   },
                                   --Speak
                                   {
