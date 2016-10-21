@@ -485,46 +485,48 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 							
 								--Precondition: for RPC PerformInteraction: CreateInteractionChoiceSet
 								if(mob_request.name == "PerformInteraction") then
-									Test["Precondition_PerformInteraction_CreateInteractionChoiceSet_" .. i.."_"..TestCaseName] = function(self)
-										--mobile side: sending CreateInteractionChoiceSet request
-										local cid = self.mobileSession:SendRPC("CreateInteractionChoiceSet",
-																			{
-																				interactionChoiceSetID = i,
-																				choiceSet = {{ 
-																									choiceID = i,
-																									menuName ="Choice" .. tostring(i),
-																									vrCommands = 
-																									{ 
-																										"VrChoice" .. tostring(i),
-																									}, 
-																									image =
-																									{ 
-																										value ="icon.png",
-																										imageType ="STATIC",
-																									}
-																							}}
-																			})
-									
-										--hmi side: expect VR.AddCommand
-										EXPECT_HMICALL("VR.AddCommand", 
-												{ 
-													cmdID = i,
-													type = "Choice",
-													vrCommands = {"VrChoice"..tostring(i) }
-												})
-										:Do(function(_,data)						
-											--hmi side: sending VR.AddCommand response
-											self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-
-											grammarID = data.params.grammarID
-										end)		
-									
-										--mobile side: expect CreateInteractionChoiceSet response
-										EXPECT_RESPONSE(cid, { resultCode = "SUCCESS", success = true  })
+									if(TestedInterface ~= "VR") then
+										Test["Precondition_PerformInteraction_CreateInteractionChoiceSet_" .. i.."_"..TestCaseName] = function(self)
+											--mobile side: sending CreateInteractionChoiceSet request
+											local cid = self.mobileSession:SendRPC("CreateInteractionChoiceSet",
+																				{
+																					interactionChoiceSetID = i,
+																					choiceSet = {{ 
+																										choiceID = i,
+																										menuName ="Choice" .. tostring(i),
+																										vrCommands = 
+																										{ 
+																											"VrChoice" .. tostring(i),
+																										}, 
+																										image =
+																										{ 
+																											value ="icon.png",
+																											imageType ="STATIC",
+																										}
+																								}}
+																				})
 										
-										--mobile side: expect OnHashChange notification
-										EXPECT_NOTIFICATION("OnHashChange")
-								
+											--hmi side: expect VR.AddCommand
+											EXPECT_HMICALL("VR.AddCommand", 
+													{ 
+														cmdID = i,
+														type = "Choice",
+														vrCommands = {"VrChoice"..tostring(i) }
+													})
+											:Do(function(_,data)						
+												--hmi side: sending VR.AddCommand response
+												self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+
+												grammarID = data.params.grammarID
+											end)		
+										
+											--mobile side: expect CreateInteractionChoiceSet response
+											EXPECT_RESPONSE(cid, { resultCode = "SUCCESS", success = true  })
+											
+											--mobile side: expect OnHashChange notification
+											EXPECT_NOTIFICATION("OnHashChange")
+									
+										end
 									end
 								end	-- if(mob_request.name == "PerformInteraction")					
 							--end --if( i == 1)
@@ -599,22 +601,27 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 											  		end
 											  	end
 											--======================================================================================================
-
-								 			EXPECT_HMICALL(local_interface.."."..local_rpc, local_params)
-											:Do(function(_,data)
-												--hmi side: sending Interface.RPC response 
-												if TestData[i].resultCode == "NOT_RESPOND" then
-													--HMI does not respond
-												else
-													-- self.hmiConnection:SendError(data.id, data.method, TestData[i].resultCode, TestData[i].info)
-													-- Use Send() function because it is required to verify resultCode is invalid (not in [0, 25])
-													if TestData[i].info == nil then													
-														self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"'.. data.method.. '","code":'..TestData[i].value..'}}')													
-													else													
-														self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"'.. data.method.. '","code":'..TestData[i].value..', "message":"'.. TestData[i].info .. '"}}')
+											if(hmi_method_call == "VR.PerformInteraction") then
+												--APPLINK-17062
+												EXPECT_HMICALL(local_interface.."."..local_rpc,{})
+												:Times(0)
+											else
+									 			EXPECT_HMICALL(local_interface.."."..local_rpc, local_params)
+												:Do(function(_,data)
+													--hmi side: sending Interface.RPC response 
+													if TestData[i].resultCode == "NOT_RESPOND" then
+														--HMI does not respond
+													else
+														-- self.hmiConnection:SendError(data.id, data.method, TestData[i].resultCode, TestData[i].info)
+														-- Use Send() function because it is required to verify resultCode is invalid (not in [0, 25])
+														if TestData[i].info == nil then													
+															self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"'.. data.method.. '","code":'..TestData[i].value..'}}')													
+														else													
+															self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"'.. data.method.. '","code":'..TestData[i].value..', "message":"'.. TestData[i].info .. '"}}')
+														end
 													end
-												end
-											end)	
+												end)	
+											end
 								 		end
 								 	end --for cnt_rpc = 1, #NotTestedInterfaces[cnt].usedRPC do
 								end --for cnt = 1, #NotTestedInterfaces do
@@ -651,6 +658,11 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 									EXPECT_RESPONSE(cid, {success = false, resultCode = "GENERIC_ERROR"})
 									:Timeout(12000)
 								-- APPLINK-15494 SDL must handle the invalid responses from HMI
+								elseif(hmi_method_call == "VR.PerformInteraction") then
+									--APPLINK-17062
+									--mobile side: expect RPC response
+									EXPECT_RESPONSE(cid, {success = false, resultCode = "INVALID_ID"})
+									:Timeout(iTimeout)
 								elseif ( TestData[i].resultCode == "IsNotExist" ) then
 
 									EXPECT_RESPONSE(cid, {success = false, resultCode = "GENERIC_ERROR", info = "Invalid message received from "})
