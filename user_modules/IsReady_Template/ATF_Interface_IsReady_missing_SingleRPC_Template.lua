@@ -329,7 +329,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 					 				hmi_call.params = nil
 					 			end
 					 			if( (TestData[i].success == false) and 
-					 				(mob_request.name == "DeleteCommand" or mob_request.name == "DeleteSubMenu") ) then
+					 				(mob_request.name == "DeleteCommand" or mob_request.name == "DeleteSubMenu" or mob_request.name == "UnsubscribeWayPoints") ) then
 					 				EXPECT_HMICALL( hmi_method_call, hmi_call.params)
 					 				:Times(0)
 					 			else
@@ -382,7 +382,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 										--mobile side: expect RPC response
 										EXPECT_RESPONSE(cid, {success = false, resultCode = "INVALID_ID"})
 										
-									elseif(mob_request.name == "UnsubscribeVehicleData") then
+									elseif(mob_request.name == "UnsubscribeVehicleData" or (mob_request.name == "UnsubscribeWayPoints")) then
 										-- According to APPLINK-27872 and APPLINK-20043
 										-- mobile side: expect RPC response
 										EXPECT_RESPONSE(cid, {success = false, resultCode = "IGNORED"})
@@ -405,7 +405,9 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 									if(menuparams ~= "") then mob_request.params.menuParams = menuparams end
 									if(vrCmd ~= "")      then mob_request.params.VRCommands = vrCmd end
 							end
-						else
+						
+						--TODO: Uncomment when APPLINK-29286 is resolved
+						--[[else
 							--ToDo: Because of APPLINK-16610 resultCode SUCCESS is separated in other script.
 							-- when the defect is fixed if-end will be removed
 							if(TestData[i].resultCode ~= "SUCCESS") then
@@ -499,7 +501,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 							    		end
 								end			
 							end --if(TestData[i].resultCode ~= "SUCCESS") then
-							
+							]]
 						end --  if( (mob_request.name ~= "StartStream") and (mob_request.name ~= "StopStream") and 
 					end -- if(mob_request.single == true)then
 					if(IsExecutedAllRelatedRPCs == false) then
