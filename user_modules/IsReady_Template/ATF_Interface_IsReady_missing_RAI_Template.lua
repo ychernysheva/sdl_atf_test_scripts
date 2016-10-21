@@ -554,7 +554,6 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 						--Requirement id in JAMA/or Jira ID: APPLINK-15682
 						--[Data Resumption]: OnHashChange
 						
-						--userPrint(31,"DEFECT ID: APPLINK-25808")
 						EXPECT_NOTIFICATION("OnHashChange")
 						:Do(function(_, data)
 							self.currentHashID = data.payload.hashID
@@ -870,7 +869,6 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 						--Requirement id in JAMA/or Jira ID: APPLINK-15682
 						--[Data Resumption]: OnHashChange
 						
-						--userPrint(31,"DEFECT ID: APPLINK-25808")
 						EXPECT_NOTIFICATION("OnHashChange")
 						:Do(function(_, data)
 							self.currentHashID = data.payload.hashID

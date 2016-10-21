@@ -2,8 +2,6 @@
 -- This script check parameters related to testing interface are omitted in RAI response when <testing interface>.IsReady (available = false)
 ---------------------------------------------------------------------------------------------
 
-print("\27[31m APPLINK-24414 - SDL crash on DCHECK via SDLActivateApp() - TC4 is commented.\27[0m")
-
 local commonPreconditions = require ('/user_modules/shared_testcases/commonPreconditions')
 commonPreconditions:Connecttest_without_ExitBySDLDisconnect("connecttest_IsReady.lua")
 --Test = require('connecttest')
@@ -762,8 +760,6 @@ end
 --////////////////////////////////////////////////////////////////////////////////////////////--
 -- Check absence of resumption in case HashID in RAI is not match
 --////////////////////////////////////////////////////////////////////////////////////////////--
---TODO: Uncomment when APPLINK-24414 - SDL crash on DCHECK via SDLActivateApp()!!!!!
-	
 local function RAI_RESUME_FAILED()	
 
 	commonFunctions:newTestCasesGroup("Verify resultCode RESUME_FAILED")

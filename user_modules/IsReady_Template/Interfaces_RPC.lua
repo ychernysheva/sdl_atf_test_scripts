@@ -1,5 +1,7 @@
 local interfaces = { }
 -- APPLINK-28518: Script is updated according to clarification. Update of requirement is waiting. After update RPCs should be checked again.
+-- APPLINK-29356: Can you clarify is there a priority from where SDL should take capabilities params when HMI does not reply to <Interface>.IsReady
+-- APPLINK-29351: Expected error message for Navigation Interface
 
 
 -- Read paramaters from hmi_capabilities.json
@@ -839,7 +841,7 @@ interfaces.mobile_req = {
                           {
                             name = "StopSpeaking",
                             splitted = true,
-                            -- according to APPLINK-29183 StopSpeaking is part of SplitRPC
+                            -- APPLINK-29183: StopSpeaking is part of SplitRPC
                             single = false,
                             description = "StopSpeaking with all parameters",
                             hashChange = false,
@@ -2198,6 +2200,7 @@ interfaces.RPC = {
                                                 wayPointType = "ALL", --<param name="wayPointType" type="Common.WayPointType" defvalue="ALL" mandatory="false">
                                                 appID = 1-- <param name="appID" type="Integer" mandatory="true"> 
                                               },
+                                    -- TODO: APPLINK-22999 Update should be done for release/5
                                     mandatory_params = {
                                                           appID = 1
                                                         },

@@ -1,3 +1,5 @@
+--TODO: APPLINK-29352: Genivi: SDL doesn't accept some error_codes from HMI when they are sending with type of protocol_message "error"
+--ToDo: shall be removed when APPLINK-16610 is fixed
 config.defaultProtocolVersion = 2
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 config.SDLStoragePath = config.pathToSDL .. "storage/"
@@ -231,7 +233,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 									--mobile side: sending RPC request
 									cid = self.mobileSession:SendRPC(mob_request.name, mob_request.params)
 								else
-									--Clarification: APPLINK-29183
+									--APPLINK-29183
 									local DataID = 0
 									cid = self.mobileSession:SendRPC("Alert", { 
 																				alertText1 = "alertText1", alertText2 = "alertText2", alertText3 = "alertText3",
@@ -361,7 +363,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 		-- transfer only <Interface>.RPC to HMI (in case <Interface> is supported by system)
 		-- respond with '<received_errorCode_from_HMI>' to mobile app IN CASE <Interface>.RPC got any erroneous resultCode from HMI (please see list with resultCodes below)
 	-----------------------------------------------------------------------------------------------	
-	--ToDo: Update according to question APPLINK-26900
+	-- Updated according to APPLINK-26900
 	-- For VehicleInfo specified requirements are not applicable.
 	if (TestedInterface ~= "VehicleInfo")  then	
 
@@ -550,7 +552,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 									--mobile side: sending RPC request
 									cid = self.mobileSession:SendRPC(mob_request.name, mob_request.params)
 								else
-									--Clarification: APPLINK-29183
+									--APPLINK-29183
 									local DataID = 0
 									cid = self.mobileSession:SendRPC("Alert", { 
 																				alertText1 = "alertText1", alertText2 = "alertText2", alertText3 = "alertText3",

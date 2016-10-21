@@ -1,3 +1,4 @@
+--TODO: APPLINK-29352: Genivi: SDL doesn't accept some error_codes from HMI when they are sending with type of protocol_message "error"
 --ToDo: shall be removed when APPLINK-16610 is fixed
 config.defaultProtocolVersion = 2
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
@@ -387,7 +388,6 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 										-- mobile side: expect RPC response
 										EXPECT_RESPONSE(cid, {success = false, resultCode = "IGNORED"})
 									else
-										--TODO: APPLINK-28492 - update after clarification
 										if (TestData[i].resultCode == "") then
 											EXPECT_RESPONSE(cid, { success = TestData[i].success , resultCode = TestData[i].expected_resultCode})
 										else
@@ -513,7 +513,6 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 	end
 
 	
-	--ToDo: Defect APPLINK-26394 Due to problem when stop and start SDL, script is debugged by updating user_modules/connecttest_VR_Isready.lua
 	for i=1, #TestData do
 	
 		local TestCaseName = "Case_" .. TestData[i].caseID .. "_IsReady_" ..TestData[i].description
