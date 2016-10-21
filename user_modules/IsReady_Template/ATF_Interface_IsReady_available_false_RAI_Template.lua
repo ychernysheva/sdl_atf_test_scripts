@@ -1053,110 +1053,112 @@ local function RAI_RESUME_FAILED()
 	else
 		-- Update this part for other interface: VR, VehicleInfo, TTS.
 		
-		function Test:Precondition_for_checking_RESUME_FAILED_AddResumptionData_AddCommand()
-			
-			--mobile side: sending AddCommand request
-			local cid = self.mobileSession:SendRPC("AddCommand",
-			{
-				cmdID = 1,
-				menuParams = 	
+		if(TestedInterface ~= "VR") then
+			function Test:Precondition_for_checking_RESUME_FAILED_AddResumptionData_AddCommand()
+				
+				--mobile side: sending AddCommand request
+				local cid = self.mobileSession:SendRPC("AddCommand",
 				{
-					position = 0,
-					menuName ="Command 1"
-				}, 
-				vrCommands = {"VRCommand 1"}
-			})
-			
-			--hmi side: expect UI.AddCommand request 
-			EXPECT_HMICALL("UI.AddCommand", 
-			{ 
-				cmdID = icmdID,		
-				menuParams = 
-				{
-					position = 0,
-					menuName ="Command 1"
-				}
-			})
-			:Do(function(_,data)
-				--hmi side: sending UI.AddCommand response 
-				self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-			end)
-			
-			--hmi side: expect VR.AddCommand request 
-			EXPECT_HMICALL("VR.AddCommand", 
-			{ 
-				cmdID = 1,							
-				type = "Command",
-				vrCommands = 
-				{
-					"VRCommand 1"
-				}
-			})
-			:Do(function(_,data)
-				--hmi side: sending VR.AddCommand response 
-				self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-			end)	
-			
-			
-			--mobile side: expect AddCommand response 
-			EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
-			:Do(function()
-				--mobile side: expect OnHashChange notification
-				--Requirement id in JAMA/or Jira ID: APPLINK-15682
-				--[Data Resumption]: OnHashChange
-				EXPECT_NOTIFICATION("OnHashChange")
-				:Do(function(_, data)
-					self.currentHashID = data.payload.hashID
-				end)
-			end)				
-		end
-		
-		function Test:Precondition_for_checking_RESUME_FAILED_AddResumptionData_CreateInteractionChoiceSet()
-			--mobile side: sending CreateInteractionChoiceSet request
-			local cid = self.mobileSession:SendRPC("CreateInteractionChoiceSet",
-			{
-				interactionChoiceSetID = 1,
-				choiceSet = 
+					cmdID = 1,
+					menuParams = 	
+					{
+						position = 0,
+						menuName ="Command 1"
+					}, 
+					vrCommands = {"VRCommand 1"}
+				})
+				
+				--hmi side: expect UI.AddCommand request 
+				EXPECT_HMICALL("UI.AddCommand", 
 				{ 
-					
+					cmdID = icmdID,		
+					menuParams = 
+					{
+						position = 0,
+						menuName ="Command 1"
+					}
+				})
+				:Do(function(_,data)
+					--hmi side: sending UI.AddCommand response 
+					self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+				end)
+				
+				--hmi side: expect VR.AddCommand request 
+				EXPECT_HMICALL("VR.AddCommand", 
+				{ 
+					cmdID = 1,							
+					type = "Command",
+					vrCommands = 
+					{
+						"VRCommand 1"
+					}
+				})
+				:Do(function(_,data)
+					--hmi side: sending VR.AddCommand response 
+					self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+				end)	
+				
+				
+				--mobile side: expect AddCommand response 
+				EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
+				:Do(function()
+					--mobile side: expect OnHashChange notification
+					--Requirement id in JAMA/or Jira ID: APPLINK-15682
+					--[Data Resumption]: OnHashChange
+					EXPECT_NOTIFICATION("OnHashChange")
+					:Do(function(_, data)
+						self.currentHashID = data.payload.hashID
+					end)
+				end)				
+			end
+			
+			function Test:Precondition_for_checking_RESUME_FAILED_AddResumptionData_CreateInteractionChoiceSet()
+				--mobile side: sending CreateInteractionChoiceSet request
+				local cid = self.mobileSession:SendRPC("CreateInteractionChoiceSet",
+				{
+					interactionChoiceSetID = 1,
+					choiceSet = 
 					{ 
-						choiceID = 1,
-						menuName = "Choice 1",
-						vrCommands = 
+						
 						{ 
-							"VrChoice 1",
+							choiceID = 1,
+							menuName = "Choice 1",
+							vrCommands = 
+							{ 
+								"VrChoice 1",
+							}
 						}
 					}
-				}
-			})
-			
-			
-			--hmi side: expect VR.AddCommand request
-			EXPECT_HMICALL("VR.AddCommand", 
-			{ 
-				cmdID = 1,
-				appID = self.applications[config.application1.registerAppInterfaceParams.appName],
-				type = "Choice",
-				vrCommands = {"VrChoice 1"}
-			})
-			:Do(function(_,data)
-				--hmi side: sending VR.AddCommand response
-				grammarIDValue = data.params.grammarID
-				self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-			end)
-			
-			--mobile side: expect CreateInteractionChoiceSet response
-			EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
-			:Do(function(_,data)
+				})
 				
-				--mobile side: expect OnHashChange notification
-				--Requirement id in JAMA/or Jira ID: APPLINK-15682
-				--[Data Resumption]: OnHashChange
-				EXPECT_NOTIFICATION("OnHashChange")
-				:Do(function(_, data)
-					self.currentHashID = data.payload.hashID
+				
+				--hmi side: expect VR.AddCommand request
+				EXPECT_HMICALL("VR.AddCommand", 
+				{ 
+					cmdID = 1,
+					appID = self.applications[config.application1.registerAppInterfaceParams.appName],
+					type = "Choice",
+					vrCommands = {"VrChoice 1"}
+				})
+				:Do(function(_,data)
+					--hmi side: sending VR.AddCommand response
+					grammarIDValue = data.params.grammarID
+					self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 				end)
-			end)
+				
+				--mobile side: expect CreateInteractionChoiceSet response
+				EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
+				:Do(function(_,data)
+					
+					--mobile side: expect OnHashChange notification
+					--Requirement id in JAMA/or Jira ID: APPLINK-15682
+					--[Data Resumption]: OnHashChange
+					EXPECT_NOTIFICATION("OnHashChange")
+					:Do(function(_, data)
+						self.currentHashID = data.payload.hashID
+					end)
+				end)
+			end
 		end
 		
 		function Test:Precondition_for_checking_RESUME_FAILED_AddResumptionData_AddSubMenu()
