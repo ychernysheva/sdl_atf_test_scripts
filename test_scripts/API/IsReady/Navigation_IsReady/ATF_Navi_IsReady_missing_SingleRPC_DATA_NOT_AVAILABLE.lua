@@ -9,7 +9,7 @@
 
 
 TestedInterface = "Navigation"
-Tested_resultCode = "VEHICLE_DATA_NOT_AVAILABLE" 
+Tested_resultCode = "DATA_NOT_AVAILABLE" 
 Tested_wrongJSON = false
 
 

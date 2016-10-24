@@ -1,15 +1,15 @@
 ---------------------------------------------------------------------------------------------
--- CRQ: APPLINK-25117: [GENIVI] TTS interface: SDL behavior in case HMI does not respond to 
+-- CRQ: APPLINK-20918 [GENIVI] VR interface: SDL behavior in case HMI does not respond to 
 --                     IsReady_request or respond with "available" = false
 --
--- Requirement(s): APPLINK-25131 [TTS Interface] SDL behavior in case HMI does not respond 
---                 to TTS.IsReady_request 
---                 APPLINK-25303:[HMI_API] TTS.IsReady
+-- Requirement(s): APPLINK-20932 [VR Interface] SDL behavior in case HMI does not respond 
+--                 to VR.IsReady_request 
+--                 APPLINK-25286:[HMI_API] VR.IsReady
 ---------------------------------------------------------------------------------------------
 
 
-TestedInterface = "TTS"
-Tested_resultCode = "VEHICLE_DATA_NOT_AVAILABLE" 
+TestedInterface = "VR"
+Tested_resultCode = "DATA_NOT_AVAILABLE" 
 Tested_wrongJSON = false
 
 

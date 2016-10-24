@@ -1,15 +1,15 @@
 ---------------------------------------------------------------------------------------------
--- CRQ: APPLINK-20918 [GENIVI] VR interface: SDL behavior in case HMI does not respond to 
+-- CRQ: APPLINK-25085: [GENIVI] UI interface: SDL behavior in case HMI does not respond to 
 --                     IsReady_request or respond with "available" = false
 --
--- Requirement(s): APPLINK-20932 [VR Interface] SDL behavior in case HMI does not respond 
---                 to VR.IsReady_request 
---                 APPLINK-25286:[HMI_API] VR.IsReady
+-- Requirement(s): APPLINK-25103 [UI Interface] SDL behavior in case HMI does not respond 
+--                 to UI.IsReady_request 
+--                 APPLINK-25299:[HMI_API] UI.IsReady
 ---------------------------------------------------------------------------------------------
 
 
-TestedInterface = "VR"
-Tested_resultCode = "VEHICLE_DATA_NOT_AVAILABLE" 
+TestedInterface = "UI"
+Tested_resultCode = "DATA_NOT_AVAILABLE" 
 Tested_wrongJSON = false
 
 
