@@ -195,7 +195,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 				{success = false, resultCode = "ABORTED", 						expected_resultCode = "ABORTED", value = 5},
 				{success = false, resultCode = "IGNORED", 						expected_resultCode = "IGNORED", value = 6},
 				{success = false, resultCode = "IN_USE", 						expected_resultCode = "IN_USE", value = 8},
-				--{success = false, resultCode = "VEHICLE_DATA_NOT_AVAILABLE",	expected_resultCode = "VEHICLE_DATA_NOT_AVAILABLE"},
+				{success = false, resultCode = "DATA_NOT_AVAILABLE",	        expected_resultCode = "DATA_NOT_AVAILABLE"},
 				{success = false, resultCode = "TIMED_OUT", 					expected_resultCode = "TIMED_OUT", value = 10},
 				{success = false, resultCode = "INVALID_DATA", 					expected_resultCode = "INVALID_DATA", value = 11},
 				{success = false, resultCode = "CHAR_LIMIT_EXCEEDED", 			expected_resultCode = "CHAR_LIMIT_EXCEEDED", value = 12},

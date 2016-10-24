@@ -1313,30 +1313,32 @@ local function RAI_RESUME_FAILED()
 			end)
 		end
 		
-		function Test:Precondition_for_checking_RESUME_FAILED_AddResumptionData_SubscribeVehicleData()
-			
-			--mobile side: sending SubscribeVehicleData request
-			local cid = self.mobileSession:SendRPC("SubscribeVehicleData",{gps = true})
-			
-			--hmi side: expect SubscribeVehicleData request
-			EXPECT_HMICALL("VehicleInfo.SubscribeVehicleData",{gps = true})
-			:Do(function(_,data)
-				--hmi side: sending VehicleInfo.SubscribeVehicleData response
-				self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", { gps = { resultCode = "SUCCESS", dataType = "VEHICLEDATA_GPS"}})	
-			end)
-			
-			--mobile side: expect SubscribeVehicleData response
-			EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})
-			:Do(function(_,data)
+		if(TestedInterface ~= "VehicleInfo") then
+			function Test:Precondition_for_checking_RESUME_FAILED_AddResumptionData_SubscribeVehicleData()
 				
-				--mobile side: expect OnHashChange notification
-				--Requirement id in JAMA/or Jira ID: APPLINK-15682
-				--[Data Resumption]: OnHashChange
-				EXPECT_NOTIFICATION("OnHashChange")
-				:Do(function(_, data)
-					self.currentHashID = data.payload.hashID
+				--mobile side: sending SubscribeVehicleData request
+				local cid = self.mobileSession:SendRPC("SubscribeVehicleData",{gps = true})
+				
+				--hmi side: expect SubscribeVehicleData request
+				EXPECT_HMICALL("VehicleInfo.SubscribeVehicleData",{gps = true})
+				:Do(function(_,data)
+					--hmi side: sending VehicleInfo.SubscribeVehicleData response
+					self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", { gps = { resultCode = "SUCCESS", dataType = "VEHICLEDATA_GPS"}})	
 				end)
-			end)
+				
+				--mobile side: expect SubscribeVehicleData response
+				EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})
+				:Do(function(_,data)
+					
+					--mobile side: expect OnHashChange notification
+					--Requirement id in JAMA/or Jira ID: APPLINK-15682
+					--[Data Resumption]: OnHashChange
+					EXPECT_NOTIFICATION("OnHashChange")
+					:Do(function(_, data)
+						self.currentHashID = data.payload.hashID
+					end)
+				end)
+			end
 		end
 		
 		function Test:Precondition_for_checking_RESUME_FAILED_AddResumptionData_SubscribeWayPoints()
