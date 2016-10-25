@@ -367,8 +367,8 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 	-- For VehicleInfo specified requirements are not applicable.
 	if (TestedInterface ~= "VehicleInfo")  then	
 
-			--local function VR_IsReady_response_availabe_false_check_split_RPC_Other_Interfaces_Responds_Error(TestCaseName)
-			local function Interface_IsReady_response_availabe_false_check_split_RPC_Other_Interfaces_Responds_Error(TestCaseName)
+		--local function VR_IsReady_response_availabe_false_check_split_RPC_Other_Interfaces_Responds_Error(TestCaseName)
+		local function Interface_IsReady_response_availabe_false_check_split_RPC_Other_Interfaces_Responds_Error(TestCaseName)
 				
 				-- List of erroneous resultCodes (success:false)
 				local TestData = {
@@ -712,11 +712,11 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 						end --if(mob_request.splitted == true) then
 					end --for count_RPC = 1, #RPCs do
 				end -- for i = 1, #TestData do
-			end
+		end
 			
-			--VR_IsReady_response_availabe_false_check_split_RPC_Other_Interfaces_Responds_Error("VR_IsReady_availabe_false_split_RPC_Unsuccess")
-			Interface_IsReady_response_availabe_false_check_split_RPC_Other_Interfaces_Responds_Error(TestedInterface .."_IsReady_availabe_false_split_RPC_Unsuccess")
-			--end
+		--VR_IsReady_response_availabe_false_check_split_RPC_Other_Interfaces_Responds_Error("VR_IsReady_availabe_false_split_RPC_Unsuccess")
+		Interface_IsReady_response_availabe_false_check_split_RPC_Other_Interfaces_Responds_Error(TestedInterface .."_IsReady_availabe_false_split_RPC_Unsuccess")
+		--end
 	else
 		print("\27[31m This case is not applicable for "..TestedInterface .." \27[0m")
 	end --if (TestedInterface ~= "VehicleInfo")  then

@@ -434,11 +434,12 @@ isReady:StopStartSDL_HMI_MOBILE(self, 0, TestCaseName)
 	
 -- APPLINK-16420 SUCCESS
 -- Precondition: App has not been registered yet.			
-local function RAI_SUCCESS()
+local function RAI_SUCCESS(count)
+	if(count == nil) then count = 0 end
 	
-	commonFunctions:newTestCasesGroup("Verify resultCode SUCCESS")
+	commonFunctions:newTestCasesGroup("Verify RAI: resultCode SUCCESS")
 	
-	Test["TC1_RegisterApplication_Check_"..TestedInterface.."_Parameters_IsOmitted_resultCode_SUCCESS_"..TestCaseName] = function(self)
+	Test["TC_"..count.."_RegisterApplication_Check_"..TestedInterface.."_Parameters_IsOmitted_resultCode_SUCCESS_"..TestCaseName] = function(self)
 		
 		commonTestCases:DelayedExp(iTimeout)
 		
@@ -528,7 +529,7 @@ end
 -- APPLINK-16250 WRONG_LANGUAGE languageDesired
 local function RAI_WRONG_LANGUAGE()
 
-	commonFunctions:newTestCasesGroup("Verify resultCode WRONG_LANGUAGE")
+	commonFunctions:newTestCasesGroup("Verify RAI: resultCode WRONG_LANGUAGE")
 	
 	commonSteps:UnregisterApplication("TC2_Precondition_UnregisterApplication")
 	
@@ -624,7 +625,7 @@ end
 -- APPLINK-16307 WARNINGS, true
 local function RAI_WARNINGS()	
 
-	commonFunctions:newTestCasesGroup("Verify resultCode WARNINGS")
+	commonFunctions:newTestCasesGroup("Verify RAI: resultCode WARNINGS")
 	
 	local function update_sdl_preloaded_pt_json()
 		pathToFile = config.pathToSDL .. 'sdl_preloaded_pt.json'
@@ -762,7 +763,7 @@ end
 --////////////////////////////////////////////////////////////////////////////////////////////--
 local function RAI_RESUME_FAILED()	
 
-	commonFunctions:newTestCasesGroup("Verify resultCode RESUME_FAILED")
+	commonFunctions:newTestCasesGroup("Verify RAI: resultCode RESUME_FAILED")
 	
 	--Precondition:
 	commonSteps:UnregisterApplication("Precondition_for_checking_RESUME_FAILED_UnregisterApp")
@@ -1532,7 +1533,7 @@ end
 -- Parameter language is transmitted via VR and TTS.
 -- Goal: to check that parameter language will be ommited when TTS.IsReady(available = false) and VR.IsReady(available = false) 
 local function RAI_Language_TTS_VR_available_false()
-	commonFunctions:newTestCasesGroup("Verify resultCode SUCCESS when TTS.IsReady(available = false) and VR.IsReady(available = false)  ")
+	commonFunctions:newTestCasesGroup("Verify RAI: resultCode SUCCESS when TTS.IsReady(available = false) and VR.IsReady(available = false)  ")
 
 	StopStartSDL_HMI_MOBILE_VR_TTS(self)
 		
@@ -1615,6 +1616,24 @@ if(TestedInterface ~= "NAVIGATION") then -- for NAVIGATION interface, there is n
 	
 		RAI_Language_TTS_VR_available_false()
 	end
+
+	for i = 1, #TestData_AvailableFalse do
+		
+		if ( i == 1) then
+			Test["Restore_Preloaded_Before_SUCCESS"] = function (self)
+				commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
+				commonSteps:DeletePolicyTable()
+				commonPreconditions:BackupFile("sdl_preloaded_pt.json")
+			end
+		end
+
+		commonFunctions:newTestCasesGroup("Case_"..i.."_" .. TestedInterface .."_"..TestData_AvailableFalse[i].description)
+
+		isReady:StopStartSDL_HMI_MOBILE_available_false(self, TestData_AvailableFalse[i].caseID, TestData_AvailableFalse[i].value, TestCaseName)
+		
+		RAI_SUCCESS(i)
+	end
+
 else
 	userPrint(33,"Requirements for RAI are not applicable for Navigation.")
 	

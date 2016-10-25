@@ -108,7 +108,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 	-- Precondition: App has not been registered yet.			
 	local function RAI_SUCCESS(TestCaseName)
 		local local_paramsRAI = params_RAI
-		commonFunctions:newTestCasesGroup("Verify resultCode SUCCESS")
+		commonFunctions:newTestCasesGroup("Verify RAI: resultCode SUCCESS")
 			
 			Test["TC1_RegisterApplication_Check_"..TestedInterface.."_Parameters_IsAvailable_resultCode_SUCCESS_"..TestCaseName] = function(self)
 				
@@ -148,7 +148,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 	-- APPLINK-16250 WRONG_LANGUAGE languageDesired
 	local function RAI_WRONG_LANGUAGE(TestCaseName)
 		local local_paramsRAI = params_RAI
-			commonFunctions:newTestCasesGroup("Verify resultCode WRONG_LANGUAGE")
+			commonFunctions:newTestCasesGroup("Verify RAI: resultCode WRONG_LANGUAGE")
 			
 			commonSteps:UnregisterApplication("TC2_Precondition_UnregisterApplication")
 			
@@ -191,7 +191,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 	-- APPLINK-16307 WARNINGS, true
 	local function RAI_WARNINGS(TestCaseName)	
 		local local_paramsRAI = params_RAI
-			commonFunctions:newTestCasesGroup("Verify resultCode WARNINGS")
+			commonFunctions:newTestCasesGroup("Verify RAI: resultCode WARNINGS")
 			
 			local function update_sdl_preloaded_pt_json()
 				pathToFile = config.pathToSDL .. 'sdl_preloaded_pt.json'
@@ -280,7 +280,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 			
 	local function RAI_RESUME_FAILED(TestCaseName)	
 		local local_paramsRAI = params_RAI
-			commonFunctions:newTestCasesGroup("Verify resultCode RESUME_FAILED")
+			commonFunctions:newTestCasesGroup("Verify RAI: resultCode RESUME_FAILED")
 			
 			--Precondition:
 			commonSteps:UnregisterApplication("Precondition_for_checking_RESUME_FAILED_UnregisterApp")
@@ -987,7 +987,6 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 	end
 
 	for i=1, #TestData do
-	--for i=1, 1 do
 		--for i=1, 2 do
 
 		TestCaseName = "Case_" .. TestData[i].caseID.."_" ..TestData[i].description 
@@ -1011,12 +1010,9 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 				RAI_WRONG_LANGUAGE(TestCaseName)
 	
 				RAI_WARNINGS(TestCaseName)	
-				--
+				-- TODO: Commented because of SDL DCheck
 				--RAI_RESUME_FAILED(TestCaseName)
 			else
-				
-				
-				
 
 				RAI_SUCCESS(TestCaseName)
 			end
