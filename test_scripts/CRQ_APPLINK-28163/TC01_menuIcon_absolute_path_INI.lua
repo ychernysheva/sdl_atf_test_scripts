@@ -75,7 +75,8 @@
 	end
 	-----------------------------------------------------------------------------------------
 	--This function update INI file according to specified parameter
-	-- parameters: NO
+	-- parameters: 
+	-- type_path: absolute, relative, empty
 	-----------------------------------------------------------------------------------------
 	local function UpdateINI(type_path)
 		if type_path == nil then type_path = "relative" end

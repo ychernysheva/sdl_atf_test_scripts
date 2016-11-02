@@ -6,7 +6,7 @@
 -- Requirement(s): APPLINK-22706: [INI file] [ApplicationManager] MenuTitle 
 -- GOAL: Goal of the test is to verify that SDL correctly retrievs menuTitle from INI file in
 --       case ResetGlobalProperties is sent only with MENUNAME in Properties array.
---       SetGlobalProperties is not sent at all.
+--       SetGlobalProperties is sent and resumption of mobile disconnect is done as precondition.
 ---------------------------------------------------------------------------------------------
 
 ---------------------------------------------------------------------------------------------

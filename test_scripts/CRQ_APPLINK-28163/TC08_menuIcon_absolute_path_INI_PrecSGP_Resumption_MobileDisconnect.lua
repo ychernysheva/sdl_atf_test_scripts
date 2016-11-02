@@ -6,8 +6,8 @@
 -- Requirement: APPLINK-22707: [INI file] [ApplicationManager] MenuIcon
 -- GOAL: Goal of the test is to verify that SDL correctly retrievs menuIcon from INI file in
 --       case ResetGlobalProperties is sent only with MENUICON in Properties array.
---       SetGlobalProperties is sent as precondition. Resumption of IGN_OFF->IGN_ON is done
---       menuIcon will be used as defined in INI file, like relative path
+--       SetGlobalProperties is sent as precondition. Resumption of mobile disconnect is done
+--       menuIcon will be re-written in INI file with absolute path
 ---------------------------------------------------------------------------------------------
 
 ---------------------------------------------------------------------------------------------
@@ -48,6 +48,7 @@
 	local SDLini        = config.pathToSDL .. tostring("smartDeviceLink.ini")
 	local absolute_path = os.capture("pwd")
 	local SGP_path      = absolute_path .. "/SDL_bin/./".. "storage/" ..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
+	local SGP_path1     = absolute_path .. "/SDL_bin/".. "storage/" ..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
 	local new_menuIcon  = "menuIcon = storage"
 	local icon_to_check
 
@@ -76,7 +77,8 @@
 	end
 	-----------------------------------------------------------------------------------------
 	--This function update INI file according to specified parameter
-	-- parameters: NO
+	-- parameters: 
+	-- type_path: absolute, relative, empty
 	-----------------------------------------------------------------------------------------
 	local function UpdateINI(type_path)
 		if type_path == nil then type_path = "relative" end
@@ -146,10 +148,23 @@
 		local cid = self.mobileSession:SendRPC("SetGlobalProperties",{	menuIcon = { value = "action.png", imageType = "DYNAMIC" } })
 					
 		--hmi side: expect UI.SetGlobalProperties request
-		EXPECT_HMICALL("UI.SetGlobalProperties", { menuIcon = { imageType = "DYNAMIC", value = SGP_path .. "action.png"} })
+		EXPECT_HMICALL("UI.SetGlobalProperties", { menuIcon = { imageType = "DYNAMIC" } })--, value = SGP_path .. "action.png"} })
 		:Do(function(_,data)
 			--hmi side: sending UI.SetGlobalProperties response
 			self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+		end)
+		:ValidIf(function(_,data)
+			if(data.params.menuIcon.value ~= nil) then 
+				if( (data.params.menuIcon.value == SGP_path .. "action.png") or (data.params.menuIcon.value == SGP_path1 .. "action.png") ) then
+					return true
+				else
+					commonFunctions:printError("menuIcon.value is: " ..data.params.menuIcon.value ..". Expected: " .. SGP_path1 .. "action.png")
+					return false	
+				end
+			else
+				commonFunctions:printError("menuIcon.value has a nil value")
+				return false
+			end
 		end)
 
 		--hmi side: expect TTS.SetGlobalProperties request

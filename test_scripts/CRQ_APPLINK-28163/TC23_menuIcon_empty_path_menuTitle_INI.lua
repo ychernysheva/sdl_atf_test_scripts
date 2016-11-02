@@ -6,19 +6,19 @@
 -- Requirement: APPLINK-20656: [ResetGlobalProperties] "MENUNAME" reset 
 -- Requirement: APPLINK-22706: [INI file] [ApplicationManager] MenuTitle 
 -- Requirement: APPLINK-22707: [INI file] [ApplicationManager] MenuIcon
--- GOAL: Goal of the test is to verify that SDL correctly retrievs menuIcon and menuTitle 
---       from INI file in
+-- GOAL: Goal of the test is to verify that SDL correctly retrievs menuTitle from INI file 
+--       and menuIcon is not sent
 --       case ResetGlobalProperties is sent with MENUICON and MENUNAME in Properties array.
---       SetGlobalProperties is sent and resumption of IGN_OFF->IGN_ON is done.
---       As precondition menuIcon will be re-written in INI file with absolute path
+--       SetGlobalProperties is not sent at all.
+--       As precondition menuIcon will be re-written in INI file with empty path
 ---------------------------------------------------------------------------------------------
 
 ---------------------------------------------------------------------------------------------
 ----------------------------General Settings for configuration-------------------------------
 ---------------------------------------------------------------------------------------------
 	config.deviceMAC      = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
-	--TODO: shall be removed when APPLINK-16610 is fixed
-	config.defaultProtocolVersion = 2
+--	config.SDLStoragePath = config.pathToSDL .. "storage/"
+	
 
 	-----------------------------------------------------------------------------------------
 	-- This function returns output in console as result of specific shell command.
@@ -47,14 +47,12 @@
 ---------------------------------------------------------------------------------------------
 ------------------------------- Local Variables ---------------------------------------------
 ---------------------------------------------------------------------------------------------
-	local strAppFolder  = config.pathToSDL .. "storage/" ..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
-	local SDLini        = config.pathToSDL .. tostring("smartDeviceLink.ini")
-	local absolute_path = os.capture("pwd")
-	local new_menuIcon  = "menuIcon = storage"
+	local strAppFolder   = config.pathToSDL .. "storage/" ..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
+	local SDLini         = config.pathToSDL .. tostring("smartDeviceLink.ini")
+	local absolute_path  = os.capture("pwd")
+	local new_menuIcon   = "menuIcon = storage"
 	local icon_to_check
 	local title_to_check = "MENU"
-	local SGP_path      = absolute_path .. "/SDL_bin/./".. "storage/" ..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
-	local SGP_path1    = absolute_path .. "/SDL_bin/".. "storage/" ..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
 
 ---------------------------------------------------------------------------------------------
 ------------------------------- Local Functions ---------------------------------------------
@@ -80,9 +78,9 @@
 		testCasesForPolicyTable:Precondition_updatePolicy_By_overwriting_preloaded_pt(PTName)
 	end
 	-----------------------------------------------------------------------------------------
-	-- This function update INI file according to specified parameter
-	-- parameters: 
-	-- type_path: absolute, relative, empty
+	--This function update INI file according to specified parameter
+	-- parameters:
+	-- type_path: relative; absolute; empty
 	-----------------------------------------------------------------------------------------
 	local function UpdateINI(type_path)
 		if type_path == nil then type_path = "relative" end
@@ -94,7 +92,6 @@
 		local menuIconContent = fileContent:match('menuIcon%s*=%s*[a-zA-Z%/0-9%_.]+[^\n]')
 		local default_path
 	 	
-	 	-- Check menuIcon
 		if not menuIconContent then
 			--APPLINK-29383 => APPLINK-13145, comment from Stefan
 			print ("\27[31m ERROR: menuIcon is not found in smartDeviceLink.ini \27[0m " )
@@ -111,28 +108,9 @@
 			if (type_path == "absolute") then
 				icon_to_check = absolute_path
 				fileContentUpdated = string.gsub(fileContent, menuIconContent, tostring("menuIcon = " ..absolute_path) )
+			elseif(type_path == "empty") then
+				fileContentUpdated = string.gsub(fileContent, menuIconContent, tostring("menuIcon = ") )
 			end
-		end
-
-		-- Check menuTitle
-		local menuTitleContent = fileContent:match('menuTitle%s*=%s*[a-zA-Z%/0-9%_.]+[^\n]')
-		local default_title
-	 	
-		if not menuTitleContent then
-			--APPLINK-29383 => APPLINK-13145, comment from Stefan
-			print ("\27[31m ERROR: menuTitle is not found in smartDeviceLink.ini \27[0m " )
-		else	
-			--for split_menuicon in string.gmatch(menuTitleContent,"[^=]*") do
-			for split_menuicon in string.gmatch(menuTitleContent,"[^%s]+") do
-				if( (split_menuicon ~= nil) and (#split_menuicon > 1) ) then
-					default_title = split_menuicon
-				end
-			end
-		end
-
-		if (default_title ~= "MENU") then
-			print ("\27[31m ERROR: menuTitle is not equal to MENU in smartDeviceLink.ini \27[0m " )
-			return false
 		end
 
 		if fileContentUpdated then
@@ -144,6 +122,7 @@
 		f:close()
 	end
 
+
 ---------------------------------------------------------------------------------------------
 ------------------------- General Precondition before ATF start -----------------------------
 ---------------------------------------------------------------------------------------------
@@ -153,7 +132,7 @@
 	commonPreconditions:BackupFile("smartDeviceLink.ini")
 	
 	UpdatePolicy()
-	UpdateINI("absolute")
+	UpdateINI("empty")
 
 ---------------------------------------------------------------------------------------------
 ---------------------------- General Settings for configuration----------------------------
@@ -167,186 +146,31 @@
 ------------------------------------ Preconditions ------------------------------------------
 ---------------------------------------------------------------------------------------------
 	commonSteps:ActivationApp(_, "Precondition_ActivateApp")	
-	commonSteps:PutFile("Precondition_PutFile_action.png", "action.png")
-	Test["Precondition_SetGlobalProperties_menuIcon_menuTitle"] = function(self)
-
-		--mobile side: sending SetGlobalProperties request
-		local cid = self.mobileSession:SendRPC("SetGlobalProperties",{	
-																		menuIcon = { value = "action.png", imageType = "DYNAMIC" },
-																		menuTitle = "Menu Title"
-																	 })
-					
-		--hmi side: expect UI.SetGlobalProperties request
-		EXPECT_HMICALL("UI.SetGlobalProperties", { 
-													menuIcon = { imageType = "DYNAMIC"},--, value = SGP_path .. "action.png"},
-													menuTitle = "Menu Title"
-												})
-		:Do(function(_,data)
-			--hmi side: sending UI.SetGlobalProperties response
-			self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-		end)
-		:ValidIf(function(_,data)
-			if(data.params.menuIcon.value ~= nil) then 
-				if( (data.params.menuIcon.value == SGP_path .. "action.png") or (data.params.menuIcon.value == SGP_path1 .. "action.png") ) then
-					return true
-				else
-					commonFunctions:printError("menuIcon.value is: " ..data.params.menuIcon.value ..". Expected: " .. SGP_path1 .. "action.png")
-					return false	
-				end
-			else
-				commonFunctions:printError("menuIcon.value has a nil value")
-				return false
-			end
-		end)
-		
-
-		--hmi side: expect TTS.SetGlobalProperties request
-		EXPECT_HMICALL("TTS.SetGlobalProperties",{})
-		:Times(0)
-				
-		--mobile side: expect SetGlobalProperties response
-		EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})
-			
-		--mobile side: expect OnHashChange notification
-		EXPECT_NOTIFICATION("OnHashChange")
-		:Do(function(_, data)
-						
-			self.currentHashID = data.payload.hashID
-		end)
-	end
-
-	Test["Precondition_Suspend"] = function(self)
-		self.hmiConnection:SendNotification("BasicCommunication.OnExitAllApplications", { reason = "SUSPEND" })
-		
-		-- hmi side: expect OnSDLPersistenceComplete notification
-		EXPECT_HMINOTIFICATION("BasicCommunication.OnSDLPersistenceComplete")
-	end
-
-	Test["Precondition_Ignion_OFF"] = function(self)
-
-		StopSDL()
-						
-		-- hmi side: sends OnExitAllApplications (IGNITION_OFF)
-		self.hmiConnection:SendNotification("BasicCommunication.OnExitAllApplications", { reason = "IGNITION_OFF"	})
-
-		-- hmi side: expect OnSDLClose notification
-		EXPECT_HMINOTIFICATION("BasicCommunication.OnSDLClose")
-
-		-- hmi side: expect OnAppUnregistered notification
-		EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered")
-	end
-			
-	Test["Precondition_StartSDL"] = function(self)
-					
-		StartSDL(config.pathToSDL, config.ExitOnCrash)
-	end
-
-	Test["Precondition_InitHMI"] = function(self)
-					
-		self:initHMI()
-	end
-
-	Test["Precondition_InitHMIOnReady"] = function(self)
-
-		self:initHMI_onReady()
-	end
-
-	Test["Precondition_ConnectMobile"] = function (self)
-
-		self:connectMobile()
-	end
-
-	Test["Precondition_StartSession"] = function(self)
-						
-		self.mobileSession = mobile_session.MobileSession( self, self.mobileConnection)
-	end
-
-	Test["Precondition_RegisterAppResumption"] = function (self)
-		config.application1.registerAppInterfaceParams.hashID = self.currentHashID
-
-		self.mobileSession:StartService(7)
-		:Do(function()	
-			local CorIdRegister = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
-			EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = {	appName = config.application1.registerAppInterfaceParams.appName }})
-			:Do(function(_,data)
-				HMIAppID = data.params.application.appID
-				self.applications[config.application1.registerAppInterfaceParams.appName] = data.params.application.appID
-			end)
-
-			EXPECT_HMICALL("BasicCommunication.ActivateApp")
-			:Do(function(_,data)
-			  	self.hmiConnection:SendResponse(data.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
-			end)
-
-			self.mobileSession:ExpectResponse(CorIdRegister, { success = true, resultCode = "SUCCESS" })		
-
-			EXPECT_NOTIFICATION("OnHMIStatus", 
-											{hmiLevel = "NONE", systemContext = "MAIN"},
-											{hmiLevel = "FULL", systemContext = "MAIN"})
-			:Do(function(exp,data)
-				if(exp.occurences == 2) then 
-					TimeHMILevel = timestamp()
-					print("HMI LEVEL is resumed")
-					return TimeHMILevel
-				end
-			end)
-			:Times(2)
-		end)
-
-		--hmi side: expect UI.SetGlobalProperties request
-		EXPECT_HMICALL("UI.SetGlobalProperties", { 
-													menuIcon = { imageType = "DYNAMIC"},--, value = SGP_path .. "action.png"},
-													menuTitle = "Menu Title"
-												})
-		:Do(function(_,data)
-			--hmi side: sending UI.SetGlobalProperties response
-			self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-		end)
-		:ValidIf(function(_,data)
-			if(data.params.menuIcon.value ~= nil) then 
-				if( (data.params.menuIcon.value == SGP_path .. "action.png") or (data.params.menuIcon.value == SGP_path1 .. "action.png") ) then
-					return true
-				else
-					commonFunctions:printError("menuIcon.value is: " ..data.params.menuIcon.value ..". Expected: " .. SGP_path1 .. "action.png")
-					return false	
-				end
-			else
-				commonFunctions:printError("menuIcon.value has a nil value")
-				return false
-			end
-		end)
-
-		--hmi side: expect TTS.SetGlobalProperties request
-		EXPECT_HMICALL("TTS.SetGlobalProperties",{})
-		:Times(0)
-
-		EXPECT_NOTIFICATION("OnHashChange")
-		:Do(function(_, data)
-			self.currentHashID = data.payload.hashID
-		end)
-
-	end
 
 ---------------------------------------------------------------------------------------------
 ------------------------------------------- Test --------------------------------------------
 ---------------------------------------------------------------------------------------------
-	Test["TC18_menuIcon_absolute_path_menuTitle_INI_PrecSGP_Resumption"] = function(self)
+	Test["TC23_menuIcon_empty_path_menuTitle_INI"] = function(self)
 
 		local cid = self.mobileSession:SendRPC("ResetGlobalProperties",{ properties = { 
 																						"MENUICON",
 																						"MENUNAME"
 																						}})
 			  			
-		EXPECT_HMICALL("UI.SetGlobalProperties",{
-													menuIcon = {
-																	imageType = "DYNAMIC",
-																	value = icon_to_check
-																},
-													menuTitle = title_to_check
-												})
+		EXPECT_HMICALL("UI.SetGlobalProperties",{ menuTitle = title_to_check})
 		:Do(function(_,data)
 			--hmi side: sending UI.SetGlobalProperties response
 			self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+		end)
+		:ValidIf(function(_,data)
+			if(data.params.menuIcon) then
+				self:FailTestCase("menuIcon is sent within ResetGlobalProperties response. Expected: nil, Real: " ..data.params.menuIcon.value)
+				return false
+			else
+				xmlReporter.AddMessage("EXPECT_HMIRESPONSE", {"EXPECTED_RESULT"}," menuIcon is nil")
+				return true
+			end
+			
 		end)
 
 		--hmi side: TTS.SetGlobalProperties request is not expected
