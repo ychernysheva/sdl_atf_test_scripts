@@ -1,0 +1,22 @@
+This instruction contains the information on how to install pre-commit git hook
+
+1. Luacheck installation
+ 1.1. Clone Luacheck git repository 
+  Run "git clone https://github.com/mpeterv/luacheck.git"
+ 1.2. Go to root directory of luacheck repository
+ 1.3. Install luacheck to <path>
+  Run "./install.lua <path>" 
+   For example for install luacheck to /opt/luacheck, run "./install.lua /opt/luacheck"
+ 1.4. Luacheck git repository can be removed.
+ 1.5. Add path to <path>/bin to your PATH variable
+  Run "gedit ~/.profile"
+  Add line: PATH="$PATH:<path>\bin" to the end of file
+   For example, if luacheck was installed to /opt/luacheck, add line: PATH="$PATH:/opt/luacheck/bin"
+ 1.6. Log out and log in back for apply changes
+
+2. Pre-commit git hook installation
+ 2.1. Go to tools directory of "sdl_atf_test_scripts" repository
+ 2.2. Insatall git hooks
+  Run "python install_hooks.py"  
+      
+Done!
