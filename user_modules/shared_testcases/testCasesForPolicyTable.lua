@@ -22,6 +22,10 @@ local PolicyTable = "user_modules/shared_testcases/PolicyTables/TestingPolicyTab
 local APINameKeyWord = "APIName"
 local appID = "0000001"
 local defaultFunctionGroupName = "group1"
+testCasesForPolicyTable.time_trigger = 0
+testCasesForPolicyTable.time_onstatusupdate = 0
+testCasesForPolicyTable.time_policyupdate = 0
+testCasesForPolicyTable.PTS_elements = {{}}
 
 ---------------------------------------------------------------------------------------------
 ------------------------------------------ Functions ----------------------------------------
@@ -33,6 +37,14 @@ local defaultFunctionGroupName = "group1"
 --3. updatePolicy
 --4. userConsent
 --5. updatePolicyAndAllowFunctionGroup
+--6. flow_PTU_SUCCEESS_EXTERNAL_PROPRIETARY
+--7. Update_PolicyFlag
+--8. CheckPolicyFlagAfterBuild
+--9. create_PTS
+--10. get_data_from_PTS
+--11. trigger_PTU_user_request_update_from_HMI
+--12. trigger_PTU_getting_device_consent
+--13. trigger_PTU_user_press_button_HMI
 ---------------------------------------------------------------------------------------------
 
 
@@ -389,7 +401,9 @@ function testCasesForPolicyTable:updatePolicy(PTName, iappID)
 					local RequestIdGetUserFriendlyMessage = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"StatusUpToDate"}})
 					
 					--hmi side: expect SDL.GetUserFriendlyMessage response
-					EXPECT_HMIRESPONSE(RequestIdGetUserFriendlyMessage,{result = {code = 0, method = "SDL.GetUserFriendlyMessage", messages = {{line1 = "Up-To-Date", messageCode = "StatusUpToDate", textBody = "Up-To-Date"}}}})
+					--EXPECT_HMIRESPONSE(RequestIdGetUserFriendlyMessage,{result = {code = 0, method = "SDL.GetUserFriendlyMessage", messages = {{line1 = "Up-To-Date", messageCode = "StatusUpToDate", textBody = "Up-To-Date"}}}})
+					-- textBody = "Up-To-Date" is not sent in SDL snapshot
+					EXPECT_HMIRESPONSE(RequestIdGetUserFriendlyMessage,{result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
 				end)
 				
 			end)
@@ -812,8 +826,6 @@ function testCasesForPolicyTable:Precondition_updatePolicy_By_overwriting_preloa
 		
 		--Delete policy table
 		commonSteps:DeletePolicyTable()
-
-	
 end	
 
 function testCasesForPolicyTable:Restore_preloaded_pt()
@@ -824,5 +836,162 @@ function testCasesForPolicyTable:Restore_preloaded_pt()
 		commonPreconditions:RestoreFile(pt_fileName)
 	end
 end	
-	
+
+function testCasesForPolicyTable:flow_PTU_SUCCEESS_EXTERNAL_PROPRIETARY()
+	function Test:Flow_PTU_SUCCEESS_EXTERNAL_PROPRIETARY()
+	    print(" \27[31m Test step Flow_PTU_SUCCEESS_EXTERNAL_PROPRIETARY is not implemented! \27[0m")							
+		return false
+    end 
+end
+
+function testCasesForPolicyTable:Update_PolicyFlag(flag, new_value_flag)
+
+    print(" \27[31m Function Update_PolicyFlag is under review! \27[0m")	
+    return false
+end
+
+function testCasesForPolicyTable:CheckPolicyFlagAfterBuild(flag, new_value_flag)
+	print(" \27[31m Function CheckPolicyFlagAfterBuild is under review! \27[0m")							
+    return false
+end
+
+function testCasesForPolicyTable:create_PTS(self, is_created)
+	print(" \27[31m TestStep create_PTS is not implemented! \27[0m")							
+	return false
+end
+
+function testCasesForPolicyTable:get_data_from_PTS(data)
+	print(" \27[31m TestStep get_data_from_PTS is not implemented! \27[0m")							
+	return false
+end
+
+
+function testCasesForPolicyTable:trigger_PTU_user_request_update_from_HMI()
+	function Test:TestStep_trigger_PTU_user_request_update_from_HMI()
+		testCasesForPolicyTable.time_trigger = 0
+		testCasesForPolicyTable.time_onstatusupdate = 0
+		testCasesForPolicyTable.time_policyupdate = 0
+
+		self.hmiConnection:SendNotification("SDL.OnPolicyUpdate", {} )
+		
+		testCasesForPolicyTable.time_trigger = timestamp()
+
+	    EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
+	    :Do(function(_,data) 
+	    	testCasesForPolicyTable.time_onstatusupdate = timestamp()
+	    end)
+
+	    testCasesForPolicyTable:create_PTS(true)
+	      
+	    local timeout_after_x_seconds = testCasesForPolicyTable:get_data_from_PTS("timeout_after_x_seconds")
+	    local seconds_between_retry = testCasesForPolicyTable:get_data_from_PTS("seconds_between_retry")
+	    EXPECT_HMICALL("BasicCommunication.PolicyUpdate", 
+	        {
+	          file = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate", 
+	          timeout = timeout_after_x_seconds, 
+	          retry = seconds_between_retry 
+	        })
+	    :Do(function(_,data)
+	    	testCasesForPolicyTable.time_policyupdate = timestamp()
+	        self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+	    end)
+
+    end
+end
+
+function testCasesForPolicyTable:trigger_PTU_getting_device_consent(app_name, device_ID)
+	function Test:TestStep_trigger_PTU_getting_device_consent()
+		testCasesForPolicyTable.time_trigger = 0
+		testCasesForPolicyTable.time_onstatusupdate = 0
+		testCasesForPolicyTable.time_policyupdate = 0
+		local ServerAddress = commonSteps:get_data_form_SDL_ini("ServerAddress")
+		    
+		--hmi side: sending SDL.ActivateApp request
+		local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.applications[app_name]})
+			      
+		EXPECT_HMIRESPONSE(RequestId)
+		:Do(function(_,data)
+		      
+		    EXPECT_HMICALL("SDL.OnSDLConsentNeeded", { device = { name = ServerAddress, id = device_ID, isSDLAllowed = false } })
+		      
+		    local RequestId = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
+		    
+		    --hmi side: expect SDL.GetUserFriendlyMessage message response
+		    EXPECT_HMIRESPONSE( RequestId, {result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
+		    :Do(function(_,data)   
+		        testCasesForPolicyTable.time_trigger = timestamp()
+		        
+		        --hmi side: send request SDL.OnAllowSDLFunctionality
+		        self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", 
+		          {allowed = true, source = "GUI", device = {id = device_ID, name = ServerAddress, isSDLAllowed = true}})
+		       
+		        EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", { status = "UPDATE_NEEDED" })
+		        :Do(function(_,data) 
+		          	testCasesForPolicyTable.time_onstatusupdate = timestamp()
+		        end)
+
+		        testCasesForPolicyTable:create_PTS(true)
+
+		        local timeout_after_x_seconds = testCasesForPolicyTable:get_data_from_PTS("timeout_after_x_seconds")
+		        local seconds_between_retry = testCasesForPolicyTable:get_data_from_PTS("seconds_between_retry")
+		        EXPECT_HMICALL("BasicCommunication.PolicyUpdate", 
+		        {
+		            file = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate", 
+		            timeout = timeout_after_x_seconds,
+		            retry = seconds_between_retry
+		        })
+		        :Do(function(_,data)
+		          	testCasesForPolicyTable.time_policyupdate = timestamp()
+		            self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+		        end)
+		    end)
+
+		    --hmi side: expect BasicCommunication.ActivateApp request
+		    EXPECT_HMICALL("BasicCommunication.ActivateApp")
+		    :Do(function(_,data)
+		      --hmi side: sending BasicCommunication.ActivateApp response
+		      self.hmiConnection:SendResponse(data.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
+		    end)
+		    :Times(1)
+		end)
+
+		--mobile side: expect notification
+		EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"}) 
+	end
+end
+
+function testCasesForPolicyTable:trigger_PTU_user_press_button_HMI()
+	function Test:TestStep_trigger_PTU_user_press_button_HMI()
+		testCasesForPolicyTable.time_trigger = 0
+		testCasesForPolicyTable.time_onstatusupdate = 0
+		testCasesForPolicyTable.time_policyupdate = 0
+
+		self.hmiConnection:SendNotification("SDL.UpdateSDL", {} )
+		
+		testCasesForPolicyTable.time_trigger = timestamp()
+
+	    EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
+	    :Do(function(_,data) 
+	    	testCasesForPolicyTable.time_onstatusupdate = timestamp()
+	    end)
+
+	    testCasesForPolicyTable:create_PTS(true)
+	      
+	    local timeout_after_x_seconds = testCasesForPolicyTable:get_data_from_PTS("timeout_after_x_seconds")
+	    local seconds_between_retry = testCasesForPolicyTable:get_data_from_PTS("seconds_between_retry")
+	    EXPECT_HMICALL("BasicCommunication.PolicyUpdate", 
+	        {
+	          file = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate", 
+	          timeout = timeout_after_x_seconds, 
+	          retry = seconds_between_retry 
+	        })
+	    :Do(function(_,data)
+	    	testCasesForPolicyTable.time_policyupdate = timestamp()
+	        self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+	    end)
+
+    end
+end
+
+
 return testCasesForPolicyTable
