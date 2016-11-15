@@ -102,7 +102,7 @@ function Test:ActivateApp_isSDLAllowed_false()
 				:Do(function(_,data)
 					self.hmiConnection:SendResponse(data.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
 				end)
-				:Times(2)
+				:Times(AtLeast(1)) 
 			end)
 		end
 	end)
