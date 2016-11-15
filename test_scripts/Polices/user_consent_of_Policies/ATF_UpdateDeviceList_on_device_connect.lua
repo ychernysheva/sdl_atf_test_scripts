@@ -58,10 +58,8 @@ function Test:UpdateDeviceList_on_device_connect()
 	):Do(function(_,data)
 		self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 	end)
-	:Times(2)
+	:Times(AtLeast(1)) 
 end
 
 --[[ Postconditions ]]
 commonFunctions:SDLForceStop()
-
-  
