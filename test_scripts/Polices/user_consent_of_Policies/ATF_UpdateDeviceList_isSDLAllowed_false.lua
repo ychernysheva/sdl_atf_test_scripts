@@ -65,5 +65,3 @@ end
 
 --[[ Postconditions ]]
 commonFunctions:SDLForceStop()
-
-  
