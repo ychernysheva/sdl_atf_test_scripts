@@ -16,7 +16,7 @@
 --[[ General Settings for configuration ]]
 Test = require('user_modules/connecttest_resumption')
 require('cardinalities')
-local mobile_session = require('mobile_session')
+require('mobile_session')
 
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
@@ -58,7 +58,7 @@ function Test:UpdateDeviceList_on_device_connect()
 	):Do(function(_,data)
 		self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 	end)
-	:Times(AtLeast(1))
+	:Times(2)
 end
 
 --[[ Postconditions ]]
