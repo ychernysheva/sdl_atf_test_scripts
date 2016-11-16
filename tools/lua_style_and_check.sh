@@ -30,37 +30,33 @@
 TEXT_DEFAULT="\\033[0;39m"
 TEXT_INFO="\\033[1;32m"
 TEXT_ERROR="\\033[1;31m"
-TEXT_UNDERLINE="\\0033[4m"
-TEXT_BOLD="\\0033[1m"
 
-GIT_DIFF_CHECK_LIST="/test_scripts/Policies" 
+EXIT_NORMAL=0
+EXIT_WHITESPACES_ERRORS=1
+EXIT_LUACHECK_NOT_FOUND=2
+EXIT_LUA_SCRIPT_HAS_ISSUES=3
 
+GIT_DIFF_CHECK_LIST="/test_scripts/Polices" 
 
-##################################################################
-### Check for odd whitespace
-##################################################################
+# Check for odd whitespace
 
-echo -e "$TEXT_INFO" "Checking odd whitespaces" "$TEXT_DEFAULT"
+echo -e $TEXT_INFO "Checking odd whitespaces" $TEXT_DEFAULT
 git diff --check --cached --color -- .$GIT_DIFF_CHECK_LIST | cat
 if [ "$?" -ne "0" ]; then
-  echo -e "$TEXT_ERROR" "Your changes introduce whitespace errors"
-  echo -e " Aborting commit." "$TEXT_DEFAULT"
+  echo -e $TEXT_ERROR "Your changes introduce whitespace errors"
+  echo -e " Aborting commit." $TEXT_DEFAULT
 
-  exit 1
+  exit $EXIT_WHITESPACES_ERRORS
 fi
-echo -e "$TEXT_INFO" "PASSED" "$TEXT_DEFAULT"
+echo -e $TEXT_INFO "PASSED" $TEXT_DEFAULT
 
-##################################################################
-### Get names of changed lua files
-##################################################################
+# Get names of changed lua files
 
 LUA_FILES=$(git diff --cached --name-only --diff-filter=ACM -- .$GIT_DIFF_CHECK_LIST | grep -e "\.lua$")
 
-##################################################################
-### Auto-update lua style with lua-beautifier
-##################################################################
+#Auto-update lua style with lua-beautifier
 
-echo -e "$TEXT_INFO" "Auto-update lua style with lua-beautifier" "$TEXT_DEFAULT"
+echo -e $TEXT_INFO "Auto-update lua style with lua-beautifier" $TEXT_DEFAULT
 
 if [ -n "$LUA_FILES" ]; then
   for lua_file in $LUA_FILES; 
@@ -70,31 +66,29 @@ if [ -n "$LUA_FILES" ]; then
   git add $LUA_FILES
 fi
 
-echo -e "$TEXT_INFO" "PASSED" "$TEXT_DEFAULT"
+echo -e $TEXT_INFO "PASSED" $TEXT_DEFAULT
 
-##################################################################
-### Auto-check lua code with luacheck
-##################################################################
+# Auto-check lua code with luacheck
 
-echo -e "$TEXT_INFO" "Checking lua code with luacheck" "$TEXT_DEFAULT"
+echo -e $TEXT_INFO "Checking lua code with luacheck" $TEXT_DEFAULT
 
 LUA_CHECK=$(command -v luacheck) 
 
 if [ ! -x "$LUA_CHECK" ]; then
-  echo -e "$TEXT_ERROR" "Error: luacheck executable not found." "$TEXT_DEFAULT"
-  echo -e " Aborting commit." "$TEXT_DEFAULT"
-  exit 2
+  echo -e $TEXT_ERROR "Error: luacheck executable not found." $TEXT_DEFAULT
+  echo -e " Aborting commit." $TEXT_DEFAULT
+  exit $EXIT_LUACHECK_NOT_FOUND
 fi
 
 if [ -n "$LUA_FILES" ]; then
   luacheck $LUA_FILES
   if [ "$?" -ne "0" ]; then
-    echo -e "$TEXT_ERROR" "Luacheck reports about issues in lua files"
-    echo -e " Aborting commit." "$TEXT_DEFAULT"
-    exit 3
+    echo -e $TEXT_ERROR "Luacheck reports about issues in lua files"
+    echo -e " Aborting commit." $TEXT_DEFAULT
+    exit $EXIT_LUA_SCRIPT_HAS_ISSUES
   fi
 fi
 
-echo -e "$TEXT_INFO" "PASSED" "$TEXT_DEFAULT"
+echo -e $TEXT_INFO "PASSED" $TEXT_DEFAULT
 
-exit 0
+exit $EXIT_NORMAL
