@@ -25,7 +25,10 @@ local defaultFunctionGroupName = "group1"
 testCasesForPolicyTable.time_trigger = 0
 testCasesForPolicyTable.time_onstatusupdate = 0
 testCasesForPolicyTable.time_policyupdate = 0
-testCasesForPolicyTable.PTS_elements = {{}}
+--testCasesForPolicyTable.PTS_elements = {{}}
+testCasesForPolicyTable.preloaded_elements = {}
+testCasesForPolicyTable.pts_elements = {}
+testCasesForPolicyTable.seconds_between_retries = {}
 
 ---------------------------------------------------------------------------------------------
 ------------------------------------------ Functions ----------------------------------------
@@ -913,8 +916,6 @@ local data_dictionary =
 
 }
 local json_elements = {}
-testCasesForPolicyTable.preloaded_elements = {}
-testCasesForPolicyTable.pts_elements = {}
 
 local function extract_json(pathToFile)
 	json_elements = {}
@@ -977,19 +978,30 @@ local function extract_json(pathToFile)
 	end
 end
 
+function testCasesForPolicyTable:extract_preloaded_pt()
+	preloaded_pt = 'SDL_bin/sdl_preloaded_pt.json'	
+	extract_json(preloaded_pt)
+	k = 1
+	for i = 1, #json_elements do
+		testCasesForPolicyTable.preloaded_elements[i] = { name = json_elements[i].name, value = json_elements[i].value }
+		if( string.sub(json_elements[i].name,1,string.len("module_config.seconds_between_retries.")) == "module_config.seconds_between_retries." ) then
+			testCasesForPolicyTable.seconds_between_retries[k] = { name = json_elements[i].name, value = json_elements[i].value}
+			k = k + 1
+		end
+	end
+end
+
 function testCasesForPolicyTable:create_PTS(is_created, app_IDs, device_IDs)
 	if(is_created == false) then
 		if ( commonSteps:file_exists( '/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json') ) then
 			print(" \27[31m /tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json is created \27[0m")	
 		end
 	else
-		preloaded_pt = 'SDL_bin/sdl_preloaded_pt.json'	
-		extract_json(preloaded_pt)
-
+		testCasesForPolicyTable:extract_preloaded_pt()
 		local j = 1
+		local k = 1
 		local length_data_dict = #data_dictionary
 		for i = 1, #json_elements do
-			testCasesForPolicyTable.preloaded_elements[i] = { name = json_elements[i].name, value = json_elements[i].value }
 			local str_1 = json_elements[i].name
 			if( string.sub(str_1,1,string.len("functional_groupings.")) == "functional_groupings." ) then
 				data_dictionary[length_data_dict + j] = { name = json_elements[i].name, value = json_elements[i].value, elem_required = "required" }
@@ -997,6 +1009,8 @@ function testCasesForPolicyTable:create_PTS(is_created, app_IDs, device_IDs)
 			end
 
 			if( string.sub(str_1,1,string.len("module_config.seconds_between_retries.")) == "module_config.seconds_between_retries." ) then
+				testCasesForPolicyTable.seconds_between_retries[k] = { name = json_elements[i].name, value = json_elements[i].value}
+				k = k + 1
 				data_dictionary[length_data_dict + j] = { name = json_elements[i].name, value = json_elements[i].value, elem_required = "required" }
 				j = j + 1
 			end
@@ -1124,9 +1138,25 @@ function testCasesForPolicyTable:create_PTS(is_created, app_IDs, device_IDs)
 	end --if(is_created == false) then
 end
 
-function testCasesForPolicyTable:get_data_from_PTS(data)
-	print(" \27[31m TestStep get_data_from_PTS is not implemented! \27[0m")							
-	return false
+function testCasesForPolicyTable:get_data_from_PTS(pts_element)
+	local value
+	local is_found = false
+	for i = 1, #testCasesForPolicyTable.pts_elements do
+		if (pts_element == testCasesForPolicyTable.pts_elements[i].name) then
+			value = testCasesForPolicyTable.pts_elements[i].value
+			is_found = true
+			break
+		end
+	end		
+	if(is_found == false) then 
+		print(" \27[31m Element "..pts_element.." is not found in PTS! \27[0m")
+	end
+	if (value == nil)	then
+		print(" \27[31m Value of "..pts_element.." is nil \27[0m")
+		value = 0
+	end
+
+	return value
 end
 
 function testCasesForPolicyTable:trigger_PTU_user_request_update_from_HMI()
