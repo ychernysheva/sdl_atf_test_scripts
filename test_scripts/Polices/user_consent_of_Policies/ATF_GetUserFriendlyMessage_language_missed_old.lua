@@ -168,6 +168,3 @@ end
 
 --[[ Postconditions ]]
 commonFunctions:SDLForceStop()
-
-
-  
