@@ -41,13 +41,12 @@ testCasesForPolicyTable.seconds_between_retries = {}
 --4. userConsent
 --5. updatePolicyAndAllowFunctionGroup
 --6. flow_PTU_SUCCEESS_EXTERNAL_PROPRIETARY
---7. Update_PolicyFlag
---8. CheckPolicyFlagAfterBuild
---9. create_PTS
---10. get_data_from_PTS
---11. trigger_PTU_user_request_update_from_HMI
---12. trigger_PTU_getting_device_consent
---13. trigger_PTU_user_press_button_HMI
+--7. extract_preloaded_pt
+--8 create_PTS
+--9. get_data_from_PTS
+--10. trigger_PTU_user_request_update_from_HMI
+--11. trigger_PTU_getting_device_consent
+--12. trigger_PTU_user_press_button_HMI
 ---------------------------------------------------------------------------------------------
 
 
@@ -845,22 +844,6 @@ function testCasesForPolicyTable:flow_PTU_SUCCEESS_EXTERNAL_PROPRIETARY()
 	    print(" \27[31m Test step Flow_PTU_SUCCEESS_EXTERNAL_PROPRIETARY is not implemented! \27[0m")							
 		return false
     end 
-end
-
-function testCasesForPolicyTable:Update_PolicyFlag(flag, new_value_flag)
-
-    print(" \27[31m Function Update_PolicyFlag is under review! \27[0m")	
-    return false
-end
-
-function testCasesForPolicyTable:CheckPolicyFlagAfterBuild(flag, new_value_flag)
-	print(" \27[31m Function CheckPolicyFlagAfterBuild is under review! \27[0m")							
-    return false
-end
-
-function testCasesForPolicyTable:CheckPolicyFlagAfterBuild(flag, new_value_flag)
-	print(" \27[31m Function CheckPolicyFlagAfterBuild is under review! \27[0m")							
-    return false
 end
 
 local data_dictionary = 
