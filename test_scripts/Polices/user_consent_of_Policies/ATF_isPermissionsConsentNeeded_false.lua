@@ -50,5 +50,3 @@ end
 commonFunctions:SDLForceStop()
 
 testCasesForPolicyTable:Restore_preloaded_pt()
-
-  
