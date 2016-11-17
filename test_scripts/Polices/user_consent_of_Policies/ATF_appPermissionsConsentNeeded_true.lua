@@ -80,7 +80,7 @@ end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
-commonFunctions:userPrint(34, "Test is intended to check that english is returned on GetUserFriendlyMessage")
+commonFunctions:userPrint(34, "Test is intended to check that Policies Manager notifies HMI about user-consent-required with appPermissionsConsentNeeded:true")
 
 function Test:PTU_appPermissionsConsentNeeded_true()
 	local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
