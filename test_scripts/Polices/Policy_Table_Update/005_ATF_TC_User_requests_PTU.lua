@@ -51,8 +51,10 @@ function Test:TestStep_User_requests_PTU()
   self.hmiConnection:SendNotification("SDL.OnPolicyUpdate", {} )
 
   EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
-  testCasesForPolicyTable:create_PTS(true)
-
+  testCasesForPolicyTable:create_PTS(true, 
+    {config.application1.registerAppInterfaceParams.appID}, 
+    {config.deviceMAC} )
+  
   local timeout_after_x_seconds = testCasesForPolicyTable:get_data_from_PTS("module_config.timeout_after_x_seconds")
   local seconds_between_retry = {}
   for i = 1, #testCasesForPolicyTable.seconds_between_retries do
