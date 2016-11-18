@@ -7,7 +7,7 @@ local common = {}
   local policy_file_path = "/tmp/fs/mp/images/ivsu_cache/"
   local policy_file_name = "PolicyTableUpdate"
 
-  local function check_on_status_update(test)  
+  local function checkOnStatusUpdate(test)  
     EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate")
     :ValidIf(function(exp, data)
       if (exp.occurences == 1 and data.params.status == "UPDATING") or
@@ -26,9 +26,9 @@ local common = {}
     :Times(Between(1,2))
   end  
 
-  function common:update_policy_table(test, file)     
+  function common:updatePolicyTable(test, file)     
     -- Check SDL.OnStatusUpdate
-    check_on_status_update(test)
+    checkOnStatusUpdate(test)
     -- HMI->SDL: SDL.GetURLs(service_type = 7)
     local requestId = test.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })      
     -- SDL->HMI: GetURLs(SUCCESS, urls: [appId, url])
