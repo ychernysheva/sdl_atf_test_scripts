@@ -44,6 +44,7 @@ testCasesForPolicyTable.time_policyupdate = 0
 --10. trigger_PTU_user_request_update_from_HMI
 --11. trigger_PTU_getting_device_consent
 --12. trigger_PTU_user_press_button_HMI
+--13. flow_PTU_SUCCEESS_EXTERNAL_HTTP
 ---------------------------------------------------------------------------------------------
 
 
@@ -974,5 +975,11 @@ function testCasesForPolicyTable:trigger_PTU_user_press_button_HMI()
     end
 end
 
+function testCasesForPolicyTable:flow_PTU_SUCCEESS_EXTERNAL_HTTP()
+	function Test:Flow_PTU_SUCCEESS_SUCCEESS_EXTERNAL_HTTP()
+	    print(" \27[31m Test step Flow_PTU_SUCCEESS_EXTERNAL_PROPRIETARY is not implemented! \27[0m")							
+		return false
+    end 
+end
 
 return testCasesForPolicyTable
