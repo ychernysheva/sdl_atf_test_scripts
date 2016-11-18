@@ -72,7 +72,7 @@ commonFunctions:userPrint(34, "Test is intended to check that isPermissionsConse
 function Test:PTU_with_app_permissions_require_consent()
 	local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
 	EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
-	:Do(function(_,data)
+	:Do(function()
 		self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",
 			{
 				requestType = "PROPRIETARY",
@@ -80,7 +80,7 @@ function Test:PTU_with_app_permissions_require_consent()
 			}
 		)
 		EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY" })
-		:Do(function(_,data)
+		:Do(function()
 				local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest",
 					{
 						fileName = "PolicyTableUpdate",
@@ -94,19 +94,19 @@ function Test:PTU_with_app_permissions_require_consent()
 					{
 						policyfile = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate"
 				})
-				function to_run()
-					self.hmiConnection:SendResponse(systemRequestId,"BasicCommunication.SystemRequest", "SUCCESS", {})
-				end			
-				RUN_AFTER(to_run, 500)
+			local function to_run()
+				self.hmiConnection:SendResponse(systemRequestId,"BasicCommunication.SystemRequest", "SUCCESS", {})
+			end			
+			RUN_AFTER(to_run, 500)
 			end)
 			EXPECT_HMINOTIFICATION("SDL.OnAppPermissionChanged", {appID = self.HMIAppID, appPermissionsConsentNeeded = true })
-			:Do(function(_,data)
+			:Do(function()
 				local RequestIdListOfPermissions = self.hmiConnection:SendRequest("SDL.GetListOfPermissions", { appID = self.HMIAppID })
 				EXPECT_HMIRESPONSE(RequestIdListOfPermissions,{result = {code = 0, method = "SDL.GetListOfPermissions", allowedFunctions = {{name = "Location-1"}, {name = "DrivingCharacteristics-3"}}}})
-				:Do(function(_,data)
+				:Do(function(_)
 					local ReqIDGetUserFriendlyMessage = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"allowedFunctions"}})
 					EXPECT_HMIRESPONSE(ReqIDGetUserFriendlyMessage)
-					:Do(function(_,data)
+					:Do(function()
 						print("SDL.GetUserFriendlyMessage is received")			
 					end)
 				end)
@@ -117,17 +117,17 @@ function Test:PTU_with_app_permissions_require_consent()
 end
 
 function Test:Activate_app_isPermissionsConsentNeeded_true()
-	local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.HMIAppID })
-	EXPECT_HMIRESPONSE(RequestId)
+	local RequestIdActivateApp = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.HMIAppID })
+	EXPECT_HMIRESPONSE(RequestIdActivateApp)
 	:Do(function(_,data)
 		if data.result.isPermissionsConsentNeeded ~= true then
 			commonFunctions:userPrint(31, "Wrong SDL behavior: isPermissionsConsentNeeded should be false for app permissions that require consent")	
 		else
 		    commonFunctions:userPrint(33, "isPermissionsConsentNeeded is true for app with permissions that require consent - expected behavior")
-		    local RequestId = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", 
+		    local RequestIdUserFriendlyMessage = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", 
 			{language = "EN-US", messageCodes = {"DataConsent"}})
-			EXPECT_HMIRESPONSE(RequestId)
-			:Do(function(_,data)
+			EXPECT_HMIRESPONSE(RequestIdUserFriendlyMessage)
+			:Do(function()
 				self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", 
 				{allowed = true, source = "GUI", device = {id = config.deviceMAC, name = "127.0.0.1"}})	
 			end)	
