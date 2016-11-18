@@ -16,7 +16,6 @@
 --[[ General Settings for configuration ]]
 Test = require('connecttest')
 require('cardinalities')
-local mobile_session = require('mobile_session')
 
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
@@ -48,5 +47,4 @@ end
 
 --[[ Postconditions ]]
 commonFunctions:SDLForceStop()
-
 testCasesForPolicyTable:Restore_preloaded_pt()
