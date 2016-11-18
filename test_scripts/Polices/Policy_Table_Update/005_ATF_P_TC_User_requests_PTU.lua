@@ -28,6 +28,7 @@ local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
 local testCasesForBuildingSDLPolicyFlag = require('user_modules/shared_testcases/testCasesForBuildingSDLPolicyFlag')
+local testCasesForPolicyTableSnapshot = require('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
 
 --[[ General Precondition before ATF start ]]
 testCasesForBuildingSDLPolicyFlag:Update_PolicyFlag("ENABLE_EXTENDED_POLICY", "OFF")
@@ -48,24 +49,28 @@ testCasesForPolicyTable:flow_PTU_SUCCEESS_EXTERNAL_PROPRIETARY()
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 function Test:TestStep_User_requests_PTU()
+  local hmi_app1_id = self.applications[config.application1.registerAppInterfaceParams.appName]
   self.hmiConnection:SendNotification("SDL.OnPolicyUpdate", {} )
 
   EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
-  testCasesForPolicyTable:create_PTS(true, 
-    {config.application1.registerAppInterfaceParams.appID}, 
-    {config.deviceMAC} )
-  
-  local timeout_after_x_seconds = testCasesForPolicyTable:get_data_from_PTS("module_config.timeout_after_x_seconds")
-  local seconds_between_retry = {}
-  for i = 1, #testCasesForPolicyTable.seconds_between_retries do
-    seconds_between_retry[i] = testCasesForPolicyTable.seconds_between_retries[i].value
+  testCasesForPolicyTableSnapshot:create_PTS(true, {
+      config.application1.registerAppInterfaceParams.appID,
+      config.application2.registerAppInterfaceParams.appID,
+    },
+    {config.deviceMAC},
+    {hmi_app1_id})
+
+  local timeout_after_x_seconds = testCasesForPolicyTableSnapshot:get_data_from_PTS("module_config.timeout_after_x_seconds")
+  local seconds_between_retries = {}
+  for i = 1, #testCasesForPolicyTableSnapshot.pts_seconds_between_retries do
+    seconds_between_retries[i] = testCasesForPolicyTableSnapshot.pts_seconds_between_retries[i].value
   end
 
   EXPECT_HMICALL("BasicCommunication.PolicyUpdate",
     {
       file = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate",
       timeout = timeout_after_x_seconds,
-      retry = seconds_between_retry
+      retry = seconds_between_retries
     })
   :Do(function(_,data)
       self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
