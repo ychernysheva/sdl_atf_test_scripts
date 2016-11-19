@@ -42,7 +42,6 @@ local data_dictionary =
 	{ name = "app_policies.default.heart_beat_timeout_ms", elem_required = "optional"},
 	{ name = "app_policies.default.RequestType", elem_required = "optional"},
 	{ name = "app_policies.pre_DataConsent.priority", elem_required = "required"},
-	{ name = "app_policies.pre_DataConsent.groups", elem_required = "required"},
 	{ name = "app_policies.pre_DataConsent.AppHMIType", elem_required = "optional"},
 	{ name = "app_policies.pre_DataConsent.memory_kb", elem_required = "optional"},
 	{ name = "app_policies.pre_DataConsent.heart_beat_timeout_ms", elem_required = "optional"},
@@ -166,6 +165,7 @@ function testCasesForPolicyTableSnapshot:create_PTS(is_created, app_IDs, device_
 
 			if( string.sub(str_1,1,string.len("app_policies.pre_DataConsent.groups.")) == "app_policies.pre_DataConsent.groups." ) then
 				data_dictionary[length_data_dict + 1] = { name = json_elements[i].name, value = json_elements[i].value, elem_required = "required" }
+				print("1: "..data_dictionary[length_data_dict + 1].value)
 			end
 
 			if( string.sub(str_1,1,string.len("module_config.seconds_between_retries.")) == "module_config.seconds_between_retries." ) then
@@ -193,33 +193,30 @@ function testCasesForPolicyTableSnapshot:create_PTS(is_created, app_IDs, device_
 
 		if(app_IDs ~= nil) then
 			for i = 1, #app_IDs do
-				local length_data_dict = #data_dictionary
-				data_dictionary[length_data_dict + 1] = { name = "module_config.endpoints."..tostring(app_IDs[i])..".nicknames", value = nil, elem_required = "required" }
-				data_dictionary[length_data_dict + 2] = { name = "module_config.endpoints."..tostring(app_IDs[i])..".priority", value = nil, elem_required = "required" }
-				data_dictionary[length_data_dict + 3] = { name = "module_config.endpoints."..tostring(app_IDs[i])..".groups", value = nil, elem_required = "required" }
-				data_dictionary[length_data_dict + 4] = { name = "module_config.endpoints."..tostring(app_IDs[i])..".AppHMIType", value = nil, elem_required = "optional" }
-				data_dictionary[length_data_dict + 5] = { name = "module_config.endpoints."..tostring(app_IDs[i])..".memory_kb", value = nil, elem_required = "optional" }
-				data_dictionary[length_data_dict + 6] = { name = "module_config.endpoints."..tostring(app_IDs[i])..".heart_beat_timeout_ms", value = nil, elem_required = "optional" }
-				data_dictionary[length_data_dict + 7] = { name = "module_config.endpoints."..tostring(app_IDs[i])..".RequestType", value = nil, elem_required = "optional" }
+				--app_policies.0000001
 
-				data_dictionary[length_data_dict + 8] = { name = "usage_and_error_counts.app_level."..tostring(app_IDs[i])..".count_of_tls_errors", value = nil, elem_required = "required" }
-				data_dictionary[length_data_dict + 9] = { name = "usage_and_error_counts.app_level."..tostring(app_IDs[i])..".nicknames", value = nil, elem_required = "required" }
-				data_dictionary[length_data_dict + 10] = { name = "usage_and_error_counts.app_level."..tostring(app_IDs[i])..".priority", value = nil, elem_required = "required" }
-				data_dictionary[length_data_dict + 11] = { name = "usage_and_error_counts.app_level."..tostring(app_IDs[i])..".groups", value = nil, elem_required = "required" }
-				data_dictionary[length_data_dict + 12] = { name = "usage_and_error_counts.app_level."..tostring(app_IDs[i])..".AppHMIType", value = nil, elem_required = "optional" }
-				data_dictionary[length_data_dict + 13] = { name = "usage_and_error_counts.app_level."..tostring(app_IDs[i])..".memory_kb", value = nil, elem_required = "optional" }
-				data_dictionary[length_data_dict + 14] = { name = "usage_and_error_counts.app_level."..tostring(app_IDs[i])..".heart_beat_timeout_ms", value = nil, elem_required = "optional" }
-				data_dictionary[length_data_dict + 15] = { name = "usage_and_error_counts.app_level."..tostring(app_IDs[i])..".RequestType", value = nil, elem_required = "optional" }
+				data_dictionary[#data_dictionary + 1] = { name = "usage_and_error_counts.app_level."..tostring(app_IDs[i])..".count_of_tls_errors", value = nil, elem_required = "required" }
+				data_dictionary[#data_dictionary + 1] = { name = "usage_and_error_counts.app_level."..tostring(app_IDs[i])..".nicknames", value = nil, elem_required = "required" }
+				data_dictionary[#data_dictionary + 1] = { name = "usage_and_error_counts.app_level."..tostring(app_IDs[i])..".priority", value = nil, elem_required = "required" }
+				--TODO(istoimenova): should be updated in future, due to luck of time
+				--data_dictionary[#data_dictionary + 1 + 11] = { name = "usage_and_error_counts.app_level."..tostring(app_IDs[i])..".groups", value = nil, elem_required = "required" }
+				data_dictionary[#data_dictionary + 1] = { name = "usage_and_error_counts.app_level."..tostring(app_IDs[i])..".AppHMIType", value = nil, elem_required = "optional" }
+				data_dictionary[#data_dictionary + 1] = { name = "usage_and_error_counts.app_level."..tostring(app_IDs[i])..".memory_kb", value = nil, elem_required = "optional" }
+				data_dictionary[#data_dictionary + 1] = { name = "usage_and_error_counts.app_level."..tostring(app_IDs[i])..".heart_beat_timeout_ms", value = nil, elem_required = "optional" }
+				data_dictionary[#data_dictionary + 1] = { name = "usage_and_error_counts.app_level."..tostring(app_IDs[i])..".RequestType", value = nil, elem_required = "optional" }
 				
-				data_dictionary[length_data_dict + 16] = { name = "app_policies."..tostring(app_IDs[i])..".count_of_tls_errors", value = nil, elem_required = "required" }
-				data_dictionary[length_data_dict + 17] = { name = "app_policies."..tostring(app_IDs[i])..".nicknames", value = nil, elem_required = "required" }
-				data_dictionary[length_data_dict + 18] = { name = "app_policies."..tostring(app_IDs[i])..".priority", value = nil, elem_required = "required" }
-				data_dictionary[length_data_dict + 19] = { name = "app_policies."..tostring(app_IDs[i])..".groups", value = nil, elem_required = "required" }
-				data_dictionary[length_data_dict + 20] = { name = "app_policies."..tostring(app_IDs[i])..".AppHMIType", value = nil, elem_required = "optional" }
-				data_dictionary[length_data_dict + 21] = { name = "app_policies."..tostring(app_IDs[i])..".memory_kb", value = nil, elem_required = "optional" }
-				data_dictionary[length_data_dict + 22] = { name = "app_policies."..tostring(app_IDs[i])..".heart_beat_timeout_ms", value = nil, elem_required = "optional" }
-				data_dictionary[length_data_dict + 23] = { name = "app_policies."..tostring(app_IDs[i])..".RequestType", value = nil, elem_required = "optional" }
-				data_dictionary[length_data_dict + 24] = { name = "app_policies."..tostring(app_IDs[i]), value = nil, elem_required = "optional" }
+				--TODO(istoimenova): should be updated in future, due to luck of time
+				data_dictionary[#data_dictionary + 1] = { name = "app_policies."..tostring(app_IDs[i]), value = nil, elem_required = "optional" }
+				data_dictionary[#data_dictionary + 1] = { name = "app_policies."..tostring(app_IDs[i])..".count_of_tls_errors", value = nil, elem_required = "required" }
+				data_dictionary[#data_dictionary + 1] = { name = "app_policies."..tostring(app_IDs[i])..".nicknames", value = nil, elem_required = "required" }
+				data_dictionary[#data_dictionary + 1] = { name = "app_policies."..tostring(app_IDs[i])..".priority", value = nil, elem_required = "required" }
+				--TODO(istoimenova): should be updated in future, due to luck of time
+				--data_dictionary[#data_dictionary + 1 + 19] = { name = "app_policies."..tostring(app_IDs[i])..".groups", value = nil, elem_required = "required" }
+				data_dictionary[#data_dictionary + 1] = { name = "app_policies."..tostring(app_IDs[i])..".AppHMIType", value = nil, elem_required = "optional" }
+				data_dictionary[#data_dictionary + 1] = { name = "app_policies."..tostring(app_IDs[i])..".memory_kb", value = nil, elem_required = "optional" }
+				data_dictionary[#data_dictionary + 1] = { name = "app_policies."..tostring(app_IDs[i])..".heart_beat_timeout_ms", value = nil, elem_required = "optional" }
+				data_dictionary[#data_dictionary + 1] = { name = "app_policies."..tostring(app_IDs[i])..".RequestType", value = nil, elem_required = "optional" }
+				data_dictionary[#data_dictionary + 1] = { name = "app_policies."..tostring(app_IDs[i]), value = nil, elem_required = "optional" }
 			end
 		else
 			data_dictionary[#data_dictionary + 1] = { name = "usage_and_error_counts", elem_required = "required"}
@@ -315,7 +312,7 @@ function testCasesForPolicyTableSnapshot:extract_pts(appID)
 	for i = 1, #json_elements do
 		length_seconds_between_retries = #testCasesForPolicyTableSnapshot.pts_seconds_between_retries
 		length_service_endpoints = #testCasesForPolicyTableSnapshot.pts_endpoints
-		length_app_endpoints = #testCasesForPolicyTableSnapshot.pts_endpoints_apps
+		--length_app_endpoints = #testCasesForPolicyTableSnapshot.pts_endpoints_apps
 		testCasesForPolicyTableSnapshot.pts_elements[i] = { name = json_elements[i].name, value = json_elements[i].value }
 
 		if( string.sub(json_elements[i].name,1,string.len("module_config.seconds_between_retries.")) == "module_config.seconds_between_retries." ) then
@@ -325,21 +322,27 @@ function testCasesForPolicyTableSnapshot:extract_pts(appID)
 			if( string.sub(json_elements[i].name,1,string.len("module_config.endpoints."..tostring(preloaded_pt_endpoints[j])..".default.")) == "module_config.endpoints."..tostring(preloaded_pt_endpoints[j])..".default." ) then
 				testCasesForPolicyTableSnapshot.pts_endpoints[length_service_endpoints + 1] = { name = json_elements[i].name, value = json_elements[i].value, service = preloaded_pt_endpoints[j]}
 			end
-		end
 
-		for j = 1, #appID do
-			if( string.sub(json_elements[i].name,1,string.len("module_config.endpoints.".. appID[j] .. ".default.")) == "module_config.endpoints.".. appID[j] .. ".default." ) then
-				testCasesForPolicyTableSnapshot.pts_endpoints_apps[length_app_endpoints + 1] = { name = json_elements[i].name, value = json_elements[i].value, app_id = appID }
-				--print("appID: " ..testCasesForPolicyTableSnapshot.pts_endpoints_apps[length_app_endpoints + 1].value)
-				is_app_endpoints_found[i] = true
+			--hmi appid
+			for j = 1, #appID do
+				if(preloaded_pt_endpoints[j] == "0x07") then
+					if( string.sub(json_elements[i].name,1,string.len("module_config.endpoints.0x07.".. appID[j] .. ".")) == "module_config.endpoints.0x07.".. appID[j] .. "." ) then
+						length_service_endpoints = #testCasesForPolicyTableSnapshot.pts_endpoints
+						testCasesForPolicyTableSnapshot.pts_endpoints[length_service_endpoints + 1] = { name = json_elements[i].name, value = json_elements[i].value, app_id = appID[j], service = "app1" }
+						--print("appID: " ..testCasesForPolicyTableSnapshot.pts_endpoints_apps[length_app_endpoints + 1].value)
+						is_app_endpoints_found[i] = true
+					end
+				end
 			end
 		end
+
+		
 	end
 
 	-- Check for section apps endpoint exist
 	for i = 1, #appID do
 		if (is_app_endpoints_found[i] == false ) then
-			print(" \27[31m module_config.endpoints.".. appID[i] .. ".default doesn't exist!\27[0m")	
+			print(" \27[31m module_config.endpoints.0x07.".. appID[i] .. " doesn't exist!\27[0m")	
 		end
 	end
 end
