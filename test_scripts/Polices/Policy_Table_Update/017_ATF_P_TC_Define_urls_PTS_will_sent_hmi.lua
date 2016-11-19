@@ -64,12 +64,11 @@ end
 
 function Test:TestStep_PolicyManager_sends_PTS_to_HMI()
   local is_test_fail = false
-  local hmi_app_id
   local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
 
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application1.appName } })
   :Do(function(_,data)
-      hmi_app_id = data.params.application.appID
+      local hmi_app_id = data.params.application.appID
       EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
 
       testCasesForPolicyTableSnapshot:create_PTS(true,
@@ -103,7 +102,7 @@ function Test:TestStep_PolicyManager_sends_PTS_to_HMI()
         end
 
         if (testCasesForPolicyTableSnapshot.pts_endpoints[i].service == "app1") then
-          endpoints[#endpoints + 1] = { url = testCasesForPolicyTableSnapshot.pts_endpoints[i].value, appID = hmi_app_id}
+          endpoints[#endpoints + 1] = { url = testCasesForPolicyTableSnapshot.pts_endpoints[i].value, appID = testCasesForPolicyTableSnapshot.pts_endpoints[i].appID}
           is_app_esxist = true
         end
       end
