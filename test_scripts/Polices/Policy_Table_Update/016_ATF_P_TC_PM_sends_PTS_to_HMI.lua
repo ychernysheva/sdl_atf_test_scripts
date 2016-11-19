@@ -63,6 +63,7 @@ end
 function Test:TestStep_PolicyManager_sends_PTS_to_HMI()
   local hmi_app_id = self.applications[config.application1.registerAppInterfaceParams.appName]
   local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
+  local is_test_fail = false
 
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application1.appName } })
   :Do(function(_,data)
@@ -82,7 +83,8 @@ function Test:TestStep_PolicyManager_sends_PTS_to_HMI()
         end
       end
       if ( timeout_pts ~= timeout_preloaded ) then
-        self:FailTestCase("timeout in PTS should be "..timeout_preloaded.."ms, real: "..timeout_pts.."ms")
+        commonFunctions:printError("timeout in PTS should be "..timeout_preloaded.."ms, real: "..timeout_pts.."ms")
+        is_test_fail = true
       end
       --timeout
 
@@ -100,12 +102,14 @@ function Test:TestStep_PolicyManager_sends_PTS_to_HMI()
       end
 
       if(#seconds_between_retries_preloaded ~= #seconds_between_retries_pts) then
-        self:FailTestCase("Numbers of seconds_between_retries should be "..#seconds_between_retries_preloaded ..", real: "..#seconds_between_retries_pts)
+        commonFunctions:printError("Numbers of seconds_between_retries should be "..#seconds_between_retries_preloaded ..", real: "..#seconds_between_retries_pts)
+        is_test_fail = true
       else
         for i = 1, #seconds_between_retries_preloaded do
           seconds_between_retries[i] = seconds_between_retries_pts[i].value
           if(seconds_between_retries_preloaded[i].value ~= seconds_between_retries_pts[i].value) then
-            self:FailTestCase("seconds_between_retries["..i.."] should be "..seconds_between_retries_preloaded[i].value ..", real: "..seconds_between_retries_pts[i].value)
+            commonFunctions:printError("seconds_between_retries["..i.."] should be "..seconds_between_retries_preloaded[i].value ..", real: "..seconds_between_retries_pts[i].value)
+            is_test_fail = true
           end
         end
       end
@@ -129,6 +133,10 @@ function Test:TestStep_PolicyManager_sends_PTS_to_HMI()
         end)
     end)
   self.mobileSession:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS"})
+
+  if(is_test_fail == true) then
+    self:FailTestCase("Test is FAILED. Check prints.")
+  end
 end
 
 --[[ Postconditions ]]
