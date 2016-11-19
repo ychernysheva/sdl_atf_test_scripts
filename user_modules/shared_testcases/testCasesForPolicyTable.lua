@@ -9,6 +9,7 @@ local mobile_session = require('mobile_session')
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
+local testCasesForPolicyTableSnapshot = require('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
 
 
 --Policy template
@@ -844,12 +845,10 @@ function testCasesForPolicyTable:flow_PTU_SUCCEESS_EXTERNAL_PROPRIETARY()
     end 
 end
 
-
-
-
-
 function testCasesForPolicyTable:trigger_PTU_user_request_update_from_HMI()
+	--function is created only for one app due to luck of time should not be updated at the moment.
 	function Test:TestStep_trigger_PTU_user_request_update_from_HMI()
+		local hmi_app1_id = self.applications[config.application1.registerAppInterfaceParams.appName]
 		testCasesForPolicyTable.time_trigger = 0
 		testCasesForPolicyTable.time_onstatusupdate = 0
 		testCasesForPolicyTable.time_policyupdate = 0
@@ -863,15 +862,22 @@ function testCasesForPolicyTable:trigger_PTU_user_request_update_from_HMI()
 	    	testCasesForPolicyTable.time_onstatusupdate = timestamp()
 	    end)
 
-	    testCasesForPolicyTable:create_PTS(true)
+	    testCasesForPolicyTableSnapshot:create_PTS(true, {
+          config.application1.registerAppInterfaceParams.appID
+        },
+        {config.deviceMAC},
+        {hmi_app1_id})
 	      
-	    local timeout_after_x_seconds = testCasesForPolicyTable:get_data_from_PTS("timeout_after_x_seconds")
-	    local seconds_between_retry = testCasesForPolicyTable:get_data_from_PTS("seconds_between_retry")
+	    local timeout_after_x_seconds = testCasesForPolicyTableSnapshot:get_data_from_PTS("module_config.timeout_after_x_seconds")
+	    local seconds_between_retries = {}
+	    for i = 1, #testCasesForPolicyTableSnapshot.pts_seconds_between_retries do
+	      seconds_between_retries[i] = testCasesForPolicyTableSnapshot.pts_seconds_between_retries[i].value
+	    end
 	    EXPECT_HMICALL("BasicCommunication.PolicyUpdate", 
 	        {
 	          file = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate", 
 	          timeout = timeout_after_x_seconds, 
-	          retry = seconds_between_retry 
+	          retry = seconds_between_retries 
 	        })
 	    :Do(function(_,data)
 	    	testCasesForPolicyTable.time_policyupdate = timestamp()
@@ -883,6 +889,7 @@ end
 
 function testCasesForPolicyTable:trigger_PTU_getting_device_consent(app_name, device_ID)
 	function Test:TestStep_trigger_PTU_getting_device_consent()
+		local hmi_app1_id = self.applications[config.application1.registerAppInterfaceParams.appName]
 		testCasesForPolicyTable.time_trigger = 0
 		testCasesForPolicyTable.time_onstatusupdate = 0
 		testCasesForPolicyTable.time_policyupdate = 0
@@ -912,15 +919,22 @@ function testCasesForPolicyTable:trigger_PTU_getting_device_consent(app_name, de
 		          	testCasesForPolicyTable.time_onstatusupdate = timestamp()
 		        end)
 
-		        testCasesForPolicyTable:create_PTS(true)
-
-		        local timeout_after_x_seconds = testCasesForPolicyTable:get_data_from_PTS("timeout_after_x_seconds")
-		        local seconds_between_retry = testCasesForPolicyTable:get_data_from_PTS("seconds_between_retry")
+		        testCasesForPolicyTableSnapshot:create_PTS(true, {
+		          config.application1.registerAppInterfaceParams.appID
+		        },
+		        {config.deviceMAC},
+		        {hmi_app1_id})
+			      
+			    local timeout_after_x_seconds = testCasesForPolicyTableSnapshot:get_data_from_PTS("module_config.timeout_after_x_seconds")
+			    local seconds_between_retries = {}
+			    for i = 1, #testCasesForPolicyTableSnapshot.pts_seconds_between_retries do
+			      seconds_between_retries[i] = testCasesForPolicyTableSnapshot.pts_seconds_between_retries[i].value
+			    end
 		        EXPECT_HMICALL("BasicCommunication.PolicyUpdate", 
 		        {
 		            file = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate", 
 		            timeout = timeout_after_x_seconds,
-		            retry = seconds_between_retry
+		            retry = seconds_between_retries
 		        })
 		        :Do(function(_,data)
 		          	testCasesForPolicyTable.time_policyupdate = timestamp()
@@ -944,6 +958,7 @@ end
 
 function testCasesForPolicyTable:trigger_PTU_user_press_button_HMI()
 	function Test:TestStep_trigger_PTU_user_press_button_HMI()
+		local hmi_app1_id = self.applications[config.application1.registerAppInterfaceParams.appName]
 		testCasesForPolicyTable.time_trigger = 0
 		testCasesForPolicyTable.time_onstatusupdate = 0
 		testCasesForPolicyTable.time_policyupdate = 0
@@ -957,10 +972,17 @@ function testCasesForPolicyTable:trigger_PTU_user_press_button_HMI()
 	    	testCasesForPolicyTable.time_onstatusupdate = timestamp()
 	    end)
 
-	    testCasesForPolicyTable:create_PTS(true)
+	    testCasesForPolicyTableSnapshot:create_PTS(true, {
+          config.application1.registerAppInterfaceParams.appID
+        },
+        {config.deviceMAC},
+        {hmi_app1_id})
 	      
-	    local timeout_after_x_seconds = testCasesForPolicyTable:get_data_from_PTS("timeout_after_x_seconds")
-	    local seconds_between_retry = testCasesForPolicyTable:get_data_from_PTS("seconds_between_retry")
+	    local timeout_after_x_seconds = testCasesForPolicyTableSnapshot:get_data_from_PTS("module_config.timeout_after_x_seconds")
+	    local seconds_between_retries = {}
+	    for i = 1, #testCasesForPolicyTableSnapshot.pts_seconds_between_retries do
+	      seconds_between_retries[i] = testCasesForPolicyTableSnapshot.pts_seconds_between_retries[i].value
+	    end
 	    EXPECT_HMICALL("BasicCommunication.PolicyUpdate", 
 	        {
 	          file = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate", 
@@ -981,5 +1003,6 @@ function testCasesForPolicyTable:flow_PTU_SUCCEESS_EXTERNAL_HTTP()
 		return false
     end 
 end
+
 
 return testCasesForPolicyTable
