@@ -85,7 +85,7 @@ function Test:TestStep_PTU_AppID_NotListed_PT_WiFi()
 
       EXPECT_HMICALL("BasicCommunication.PolicyUpdate",
         {
-          file = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate",
+          file = "/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json",
           timeout = timeout_after_x_seconds,
           retry = seconds_between_retries
         })
