@@ -58,20 +58,28 @@ testCasesForPolicyTable:trigger_PTU_user_request_update_from_HMI()
 
 --[[ Test ]]
 function Test:TestStep_PTU_GetURLs_NoAppRegistered()
-  local test_endpoint = 0
-  local index_endpoint = 0
   local endpoints = {}
-  local length_endpoints
+  local is_app_esxist = false
 
   for i = 1, #testCasesForPolicyTableSnapshot.pts_endpoints do
     if (testCasesForPolicyTableSnapshot.pts_endpoints[i].service == "0x07") then
-      endpoints[1] = { url = testCasesForPolicyTableSnapshot.pts_endpoints[i].value, appID = nil}
+      endpoints[#endpoints + 1] = { url = testCasesForPolicyTableSnapshot.pts_endpoints[i].value, appID = nil}
     end
-  end
+
+    if (testCasesForPolicyTableSnapshot.pts_endpoints[i].service == "app1") then
+      -- app id should be included in PTS but not to be used
+      is_app_esxist = true
+    end
+  end 
 
   local RequestId = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
 
   EXPECT_HMIRESPONSE(RequestId,{result = {code = 0, method = "SDL.GetURLS", urls = endpoints} } )
+  :Do(function(_,data) 
+    if(is_app_esxist == false) then
+      self:FailTestCase("endpoints for application doesn't exist!")
+    end
+  end)
 end
 
 return Test
