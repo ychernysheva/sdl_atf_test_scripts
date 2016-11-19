@@ -7,6 +7,7 @@ local commonSteps = require('user_modules/shared_testcases/commonSteps')
 testCasesForPolicyTableSnapshot.preloaded_elements = {}
 testCasesForPolicyTableSnapshot.pts_elements = {}
 testCasesForPolicyTableSnapshot.seconds_between_retries = {}
+testCasesForPolicyTableSnapshot.preloaded_pt = {}
 
 -- Data dictionary according to which PTS should be created. Will be automated export from xls.
 local data_dictionary = 
@@ -148,7 +149,7 @@ function testCasesForPolicyTableSnapshot:create_PTS(is_created, app_IDs, device_
 			end
 		end
 		for i = 1, #preloaded_pt_endpoints do
-			print("1: "..preloaded_pt_endpoints[i])
+		   testCasesForPolicyTableSnapshot.preloaded_pt[i] = preloaded_pt_endpoints[i]
 		end
 
 		for i = 1, #json_elements do
@@ -236,7 +237,6 @@ function testCasesForPolicyTableSnapshot:create_PTS(is_created, app_IDs, device_
 
 		local pts = '/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json'
 		if ( commonSteps:file_exists(pts) ) then
-			print("2: app_names = "..app_names[1])
 			testCasesForPolicyTableSnapshot:extract_pts(app_names)
 		else
 			print("/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json doesn't exits! ")

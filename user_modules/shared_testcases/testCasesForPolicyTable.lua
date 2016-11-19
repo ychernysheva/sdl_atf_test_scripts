@@ -412,12 +412,10 @@ function testCasesForPolicyTable:updatePolicy(PTName, iappID)
 		
 		
 	end
-	
 end
 
 --Precondition: update policy with specified policy file on Genivi
 function testCasesForPolicyTable:updatePolicyGenivi(self, PTName, iappID)
-	
 	-- Test["UpdatePolicy"] = function(self)
 
 		if not iappID then
@@ -503,7 +501,6 @@ function testCasesForPolicyTable:updatePolicyGenivi(self, PTName, iappID)
 		end)
 		
 	-- end
-	
 end
 
 --User allowed or disallowed group policy
@@ -875,7 +872,7 @@ function testCasesForPolicyTable:trigger_PTU_user_request_update_from_HMI()
 	    end
 	    EXPECT_HMICALL("BasicCommunication.PolicyUpdate", 
 	        {
-	          file = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate", 
+	          file = "/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json", 
 	          timeout = timeout_after_x_seconds, 
 	          retry = seconds_between_retries 
 	        })
@@ -932,7 +929,7 @@ function testCasesForPolicyTable:trigger_PTU_getting_device_consent(app_name, de
 			    end
 		        EXPECT_HMICALL("BasicCommunication.PolicyUpdate", 
 		        {
-		            file = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate", 
+		            file = "/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json", 
 		            timeout = timeout_after_x_seconds,
 		            retry = seconds_between_retries
 		        })
@@ -985,7 +982,7 @@ function testCasesForPolicyTable:trigger_PTU_user_press_button_HMI()
 	    end
 	    EXPECT_HMICALL("BasicCommunication.PolicyUpdate", 
 	        {
-	          file = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate", 
+	          file = "/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json", 
 	          timeout = timeout_after_x_seconds, 
 	          retry = seconds_between_retry 
 	        })
