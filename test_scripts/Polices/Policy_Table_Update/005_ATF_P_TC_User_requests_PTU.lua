@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------
+-- Requirements summary:
+-- [Policies]: SDL.OnPolicyUpdate initiation of PTU
+-- [HMI API] SDL.OnPolicyUpdate notification
+-- [HMI API] PolicyUpdate request/response
+--
 -- Description:
 -- SDL should request PTU in case user requests PTU
 -- 1. Used preconditions
@@ -8,11 +13,6 @@
 -- 2. Performed steps
 -- User requests PTU.
 -- HMI->SDL: SDL.OnPolicyUpdate
---
--- Requirements summary:
--- [Policies]: SDL.OnPolicyUpdate initiation of PTU
--- [HMI API] SDL.OnPolicyUpdate notification
--- [HMI API] PolicyUpdate request/response
 --
 -- Expected result:
 -- PTU is requested. PTS is created.
@@ -31,8 +31,8 @@ local testCasesForBuildingSDLPolicyFlag = require('user_modules/shared_testcases
 local testCasesForPolicyTableSnapshot = require('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
 
 --[[ General Precondition before ATF start ]]
-testCasesForBuildingSDLPolicyFlag:Update_PolicyFlag("ENABLE_EXTENDED_POLICY", "OFF")
-testCasesForBuildingSDLPolicyFlag:CheckPolicyFlagAfterBuild("ENABLE_EXTENDED_POLICY","OFF")
+testCasesForBuildingSDLPolicyFlag:Update_PolicyFlag("EXTENDED_POLICY", "EXTERNAL_PROPRIETARY")
+testCasesForBuildingSDLPolicyFlag:CheckPolicyFlagAfterBuild("EXTENDED_POLICY","EXTERNAL_PROPRIETARY")
 commonSteps:DeleteLogsFileAndPolicyTable()
 --TODD(istoimenova): Should be removed when issue "ATF does not stop HB timers by closing session and connection" is fixed
 config.defaultProtocolVersion = 2
@@ -51,7 +51,7 @@ commonFunctions:newTestCasesGroup("Test")
 function Test:TestStep_User_requests_PTU()
   local hmi_app1_id = self.applications[config.application1.registerAppInterfaceParams.appName]
   self.hmiConnection:SendNotification("SDL.OnPolicyUpdate", {} )
-
+  print("hmi_app1_id = "..hmi_app1_id)
   EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
   testCasesForPolicyTableSnapshot:create_PTS(true, {
       config.application1.registerAppInterfaceParams.appID,
@@ -68,7 +68,7 @@ function Test:TestStep_User_requests_PTU()
 
   EXPECT_HMICALL("BasicCommunication.PolicyUpdate",
     {
-      file = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate",
+      file = "/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json",
       timeout = timeout_after_x_seconds,
       retry = seconds_between_retries
     })
