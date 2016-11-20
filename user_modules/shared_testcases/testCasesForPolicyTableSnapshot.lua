@@ -301,7 +301,9 @@ testCasesForPolicyTableSnapshot.pts_endpoints_apps = {}
 testCasesForPolicyTableSnapshot.pts_seconds_between_retries = {}
 
 function testCasesForPolicyTableSnapshot:extract_pts(appID)
-	testCasesForPolicyTableSnapshot.pts_elements = {}
+	testCasesForPolicyTableSnapshot.pts_endpoints = {}
+	testCasesForPolicyTableSnapshot.pts_endpoints_apps = {}
+	testCasesForPolicyTableSnapshot.pts_seconds_between_retries = {}
 	local pts_json = '/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json'	
 	extract_json(pts_json)
 	local length_pts
