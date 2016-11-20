@@ -9,46 +9,7 @@ testCasesForPolicyTableSnapshot.pts_elements = {}
 testCasesForPolicyTableSnapshot.seconds_between_retries = {}
 testCasesForPolicyTableSnapshot.preloaded_pt = {}
 
--- Data dictionary according to which PTS should be created. Will be automated export from xls.
-local data_dictionary = 
-{
-	{ name = "module_meta.pt_exchanged_at_odometer_x", elem_required = "required"},
-	{ name = "module_meta.pt_exchanged_x_days_after_epoch", elem_required = "required"},
-	{ name = "module_meta.ignition_cycles_since_last_exchange", elem_required = "required"}	,
-
-	{ name = "module_config.preloaded_pt", elem_required = "optional"},
-	{ name = "module_config.preloaded_date", elem_required = "optional"},
-	{ name = "module_config.exchange_after_x_ignition_cycles", elem_required = "required"},
-	{ name = "module_config.exchange_after_x_kilometers", elem_required = "required"},
-	{ name = "module_config.exchange_after_x_days", elem_required = "required"},
-	{ name = "module_config.timeout_after_x_seconds", elem_required = "required"},
-	{ name = "module_config.notifications_per_minute_by_priority.EMERGENCY", elem_required = "required"},
-	{ name = "module_config.notifications_per_minute_by_priority.NAVIGATION", elem_required = "required"},
-	{ name = "module_config.notifications_per_minute_by_priority.VOICECOM", elem_required = "required"},
-	{ name = "module_config.notifications_per_minute_by_priority.COMMUNICATION", elem_required = "required"},
-	{ name = "module_config.notifications_per_minute_by_priority.NORMAL", elem_required = "required"},
-	{ name = "module_config.notifications_per_minute_by_priority.NONE", elem_required = "required"},
-	{ name = "module_config.certificate", elem_required = "optional"},
-	{ name = "module_config.vehicle_make", elem_required = "optional"},
-	{ name = "module_config.vehicle_model", elem_required = "optional"},
-	{ name = "module_config.vehicle_year", elem_required = "optional"},
-	{ name = "module_config.display_order", elem_required = "optional"},
-
-	{ name = "consumer_friendly_messages.version", elem_required = "required"},
-
-	{ name = "app_policies.default.priority", elem_required = "required"},
-	{ name = "app_policies.default.AppHMIType", elem_required = "optional"},
-	{ name = "app_policies.default.memory_kb", elem_required = "optional"},
-	{ name = "app_policies.default.heart_beat_timeout_ms", elem_required = "optional"},
-	{ name = "app_policies.default.RequestType", elem_required = "optional"},
-	{ name = "app_policies.pre_DataConsent.priority", elem_required = "required"},
-	{ name = "app_policies.pre_DataConsent.AppHMIType", elem_required = "optional"},
-	{ name = "app_policies.pre_DataConsent.memory_kb", elem_required = "optional"},
-	{ name = "app_policies.pre_DataConsent.heart_beat_timeout_ms", elem_required = "optional"},
-	{ name = "app_policies.pre_DataConsent.RequestType", elem_required = "optional"},
-	{ name = "app_policies.device.priority", elem_required = "required"},
-
-}
+-- --local data_dictionary = {}
 
 local json_elements = {}
 
@@ -113,6 +74,8 @@ local function extract_json(pathToFile)
 end
 
 function testCasesForPolicyTableSnapshot:extract_preloaded_pt()
+	testCasesForPolicyTableSnapshot.preloaded_elements = {}
+	testCasesForPolicyTableSnapshot.seconds_between_retries = {}
 	local preloaded_pt = 'SDL_bin/sdl_preloaded_pt.json'	
 	extract_json(preloaded_pt)
 	local k = 1
@@ -125,7 +88,58 @@ function testCasesForPolicyTableSnapshot:extract_preloaded_pt()
 	end
 end
 local preloaded_pt_endpoints = {}
+
 function testCasesForPolicyTableSnapshot:create_PTS(is_created, app_IDs, device_IDs, app_names)
+	preloaded_pt_endpoints = {}
+	local data_dictionary = {}
+	--local data_dictionary = {}
+	-- Data dictionary according to which PTS should be created. Will be automated export from xls.
+	local origin_data_dictionary = 
+	{
+		{ name = "module_meta.pt_exchanged_at_odometer_x", elem_required = "required"},
+		{ name = "module_meta.pt_exchanged_x_days_after_epoch", elem_required = "required"},
+		{ name = "module_meta.ignition_cycles_since_last_exchange", elem_required = "required"}	,
+
+		{ name = "module_config.preloaded_pt", elem_required = "optional"},
+		{ name = "module_config.preloaded_date", elem_required = "optional"},
+		{ name = "module_config.exchange_after_x_ignition_cycles", elem_required = "required"},
+		{ name = "module_config.exchange_after_x_kilometers", elem_required = "required"},
+		{ name = "module_config.exchange_after_x_days", elem_required = "required"},
+		{ name = "module_config.timeout_after_x_seconds", elem_required = "required"},
+		{ name = "module_config.notifications_per_minute_by_priority.EMERGENCY", elem_required = "required"},
+		{ name = "module_config.notifications_per_minute_by_priority.NAVIGATION", elem_required = "required"},
+		{ name = "module_config.notifications_per_minute_by_priority.VOICECOM", elem_required = "required"},
+		{ name = "module_config.notifications_per_minute_by_priority.COMMUNICATION", elem_required = "required"},
+		{ name = "module_config.notifications_per_minute_by_priority.NORMAL", elem_required = "required"},
+		{ name = "module_config.notifications_per_minute_by_priority.NONE", elem_required = "required"},
+		{ name = "module_config.certificate", elem_required = "optional"},
+		{ name = "module_config.vehicle_make", elem_required = "optional"},
+		{ name = "module_config.vehicle_model", elem_required = "optional"},
+		{ name = "module_config.vehicle_year", elem_required = "optional"},
+		{ name = "module_config.display_order", elem_required = "optional"},
+
+		{ name = "consumer_friendly_messages.version", elem_required = "required"},
+
+		{ name = "app_policies.default.priority", elem_required = "required"},
+		{ name = "app_policies.default.AppHMIType", elem_required = "optional"},
+		{ name = "app_policies.default.memory_kb", elem_required = "optional"},
+		{ name = "app_policies.default.heart_beat_timeout_ms", elem_required = "optional"},
+		{ name = "app_policies.default.RequestType", elem_required = "optional"},
+		{ name = "app_policies.pre_DataConsent.priority", elem_required = "required"},
+		{ name = "app_policies.pre_DataConsent.AppHMIType", elem_required = "optional"},
+		{ name = "app_policies.pre_DataConsent.memory_kb", elem_required = "optional"},
+		{ name = "app_policies.pre_DataConsent.heart_beat_timeout_ms", elem_required = "optional"},
+		{ name = "app_policies.pre_DataConsent.RequestType", elem_required = "optional"},
+		{ name = "app_policies.device.priority", elem_required = "required"},
+
+	}
+	data_dictionary = origin_data_dictionary
+	
+	testCasesForPolicyTableSnapshot.preloaded_elements = {}
+	testCasesForPolicyTableSnapshot.pts_elements = {}
+	testCasesForPolicyTableSnapshot.seconds_between_retries = {}
+	testCasesForPolicyTableSnapshot.preloaded_pt = {}
+
 	if(is_created == false) then
 		if ( commonSteps:file_exists( '/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json') ) then
 			print(" \27[31m /tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json is created \27[0m")	
@@ -165,7 +179,6 @@ function testCasesForPolicyTableSnapshot:create_PTS(is_created, app_IDs, device_
 
 			if( string.sub(str_1,1,string.len("app_policies.pre_DataConsent.groups.")) == "app_policies.pre_DataConsent.groups." ) then
 				data_dictionary[length_data_dict + 1] = { name = json_elements[i].name, value = json_elements[i].value, elem_required = "required" }
-				print("1: "..data_dictionary[length_data_dict + 1].value)
 			end
 
 			if( string.sub(str_1,1,string.len("module_config.seconds_between_retries.")) == "module_config.seconds_between_retries." ) then
@@ -221,7 +234,6 @@ function testCasesForPolicyTableSnapshot:create_PTS(is_created, app_IDs, device_
 		else
 			data_dictionary[#data_dictionary + 1] = { name = "usage_and_error_counts", elem_required = "required"}
 		end
-
 
 		if(device_IDs ~= nil) then
 			for i =1 , #device_IDs do
@@ -280,6 +292,7 @@ function testCasesForPolicyTableSnapshot:create_PTS(is_created, app_IDs, device_
 			end
 		end
 	end --if(is_created == false) then
+
 end
 
 
@@ -288,7 +301,7 @@ testCasesForPolicyTableSnapshot.pts_endpoints_apps = {}
 testCasesForPolicyTableSnapshot.pts_seconds_between_retries = {}
 
 function testCasesForPolicyTableSnapshot:extract_pts(appID)
-	
+	testCasesForPolicyTableSnapshot.pts_elements = {}
 	local pts_json = '/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json'	
 	extract_json(pts_json)
 	local length_pts
