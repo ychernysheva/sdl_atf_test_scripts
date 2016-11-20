@@ -835,11 +835,69 @@ function testCasesForPolicyTable:Restore_preloaded_pt()
 	end
 end	
 
-function testCasesForPolicyTable:flow_PTU_SUCCEESS_EXTERNAL_PROPRIETARY()
-	function Test:Flow_PTU_SUCCEESS_EXTERNAL_PROPRIETARY()
-	    print(" \27[31m Test step Flow_PTU_SUCCEESS_EXTERNAL_PROPRIETARY is not implemented! \27[0m")							
-		return false
-    end 
+-- The funcion will be used when PTU is triggered. 
+-- 1. It is assumed that notification is recevied: EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
+-- 2. It is assumed that request/response is received: EXPECT_HMICALL("BasicCommunication.PolicyUpdate", 
+-- 3. Function will use default endpoints
+function testCasesForPolicyTable:flow_PTU_SUCCEESS_EXTERNAL_PROPRIETARY(app_id, device_id, hmi_app_id, ptu_file_path, ptu_file_name)
+	function Test:TestStep_Flow_PTU_SUCCEESS_EXTERNAL_PROPRIETARY()
+		if (app_id == nil) then app_id = config.application1.registerAppInterfaceParams.appID end
+		if (device_id == nil) then device_id = config.deviceMAC end
+		if (hmi_app_id == nil) then hmi_app_id = self.applications[config.application1.registerAppInterfaceParams.appName] end 
+		if (ptu_file_path == nil) then ptu_file_path = "files/" end
+		if (ptu_file_name == nil) then ptu_file_name = "PolicyTableUpdate" end
+		local ptu_file = ptu_file_path.."ptu.json"
+
+		--[[Start get data from PTS]]
+		--TODO(istoimenova): function for reading INI file should be implemented
+        --local SystemFilesPath = commonSteps:get_data_form_SDL_ini("SystemFilesPath")
+        local SystemFilesPath = "/tmp/fs/mp/images/ivsu_cache/"
+        local file_pts = SystemFilesPath.."sdl_snapshot.json"
+
+		-- Check SDL snapshot is created correctly and get needed data 
+	    testCasesForPolicyTableSnapshot:create_PTS(true, {app_id}, {device_id}, {hmi_app_id})
+
+        --BasicCommunication.PolicyUpdate is sent immediatelly at triggering PTU. Should be checked in the scripts
+        -- EXPECT_HMICALL("BasicCommunication.PolicyUpdate", { file = file_pts, timeout = timeout_after_x_seconds, retry = seconds_between_retries})
+        -- :Do(function(_,data) self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {}) end)
+
+        local endpoints = {}
+        local is_app_esxist = false
+
+        for i = 1, #testCasesForPolicyTableSnapshot.pts_endpoints do
+          --using default URLs
+          if (testCasesForPolicyTableSnapshot.pts_endpoints[i].service == "0x07") then
+            endpoints[1] = { url = testCasesForPolicyTableSnapshot.pts_endpoints[i].value, appID = nil}
+          end
+        end
+        -- SDL.GetURLS => BasicCommunication.OnSystemRequest =>
+        -- SDL.OnStatusUpdate + 
+        -- app_id.SystemRequest => BasicCommunication.SystemRequest
+
+        local RequestId_GetUrls = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
+        EXPECT_HMIRESPONSE(RequestId_GetUrls,{result = {code = 0, method = "SDL.GetURLS", urls = endpoints} } )
+        :Do(function(_,data) 
+
+      	  self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",{ requestType = "PROPRIETARY", fileName = ptu_file_name})
+	      EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "PROPRIETARY"})
+	      :Do(function(_,data)
+			
+		    EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATING"})
+		    :Do(function(_,data) 
+		    end)--EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATING"})
+
+			local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest",  {requestType = "PROPRIETARY", fileName = ptu_file_name}, ptu_file)
+			EXPECT_HMICALL("BasicCommunication.SystemRequest",{ requestType = "PROPRIETARY", fileName = SystemFilesPath..ptu_file_name })
+            :Do(function(_,data) 
+            	self.hmiConnection:SendResponse(systemRequestId,"BasicCommunication.SystemRequest", "SUCCESS", {})
+            	self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate", { policyfile = SystemFilesPath..ptu_file_name})
+            	EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UP_TO_DATE"})
+            end) --EXPECT_HMICALL("BasicCommunication.SystemRequest",{ requestType = "PROPRIETARY", fileName = ptu_file })
+            --TODO(istoimenova): SDL returns GENERIC_ERROR. Should be checked. As not in scope will be commented
+			--EXPECT_RESPONSE(CorIdSystemRequest, { success = true, resultCode = "SUCCESS"})
+		  end) --EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "PROPRIETARY"})
+        end) --EXPECT_HMIRESPONSE(RequestId_GetUrls,{result = {code = 0, method = "SDL.GetURLS", urls = endpoints} } )
+    end -- function Test:Flow_PTU_SUCCEESS_EXTERNAL_PROPRIETARY()
 end
 
 function testCasesForPolicyTable:trigger_PTU_user_request_update_from_HMI()
