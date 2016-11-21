@@ -3,13 +3,13 @@
 --     [PolicyTableUpdate] Support of "http" flow of Policy Table Update
 --
 -- Description: 
--- SDL should be successfully built "-DEXTENDED_POLICY: OFF" flag
+-- SDL should be successfully built "-DEXTENDED_POLICY:HTTP" flag is empty
 -- 1. Performed steps
 -- Build SDL 
 --
 -- Expected result:
 -- SDL is successfully built
--- The flag -DEXTENDED_POLICY has no value
+-- The flag -DEXTENDED_POLICY:HTTP has no value
 -- PTU passes successfully 
 
 ---------------------------------------------------------------------------------------------
@@ -26,8 +26,8 @@ local testCasesForBuildingSDLPolicyFlag = require('user_modules/shared_testcases
   
 --[[ General Precondition before ATF start ]]
 -- commonFunctions:SDLForceStop()
-testCasesForBuildingSDLPolicyFlag:Update_PolicyFlag("ENABLE_EXTENDED_POLICY")
-testCasesForBuildingSDLPolicyFlag:CheckPolicyFlagAfterBuild("ENABLE_EXTENDED_POLICY")
+testCasesForBuildingSDLPolicyFlag:Update_PolicyFlag("ENABLE_HTTP_POLICY")
+testCasesForBuildingSDLPolicyFlag:CheckPolicyFlagAfterBuild("ENABLE_HTTP_POLICY")
 commonSteps:DeleteLogsFileAndPolicyTable()
 commonPreconditions:Connecttest_without_ExitBySDLDisconnect_WithoutOpenConnectionRegisterApp("connecttest_RAI.lua")
  
