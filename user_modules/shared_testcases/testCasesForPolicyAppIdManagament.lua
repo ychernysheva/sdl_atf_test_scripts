@@ -2,12 +2,33 @@
 -- Policy: AppID Management common module
 ---------------------------------------------------------------------------------------------
 
-local Common = {}
+local common = {}  
 
   local policy_file_path = "/tmp/fs/mp/images/ivsu_cache/"
   local policy_file_name = "PolicyTableUpdate"
 
-  function Common:UpdatePolicyTable(test, file) 
+  local function checkOnStatusUpdate(test)  
+    EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate")
+    :ValidIf(function(exp, data)
+      if (exp.occurences == 1 and data.params.status == "UPDATING") or
+        (data.params.status == "UP_TO_DATE") then
+        return true
+      else
+        local reason = "SDL.OnStatusUpdate came with wrong values. "
+        if exp.occurences == 1 then
+          reason = reason .. "Expected in first occurrences status 'UP_TO_DATE' or 'UPDATING', got '" .. tostring(data.params.status) .. "'"
+        elseif exp.occurences == 2 then
+          reason = reason .. "Expected in second occurrences status 'UP_TO_DATE', got '" .. tostring(data.params.status) .. "'"
+        end
+        return false, reason
+      end
+    end)
+    :Times(Between(1,2))
+  end  
+
+  function common:updatePolicyTable(test, file)     
+    -- Check SDL.OnStatusUpdate
+    checkOnStatusUpdate(test)
     -- HMI->SDL: SDL.GetURLs(service_type = 7)
     local requestId = test.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })      
     -- SDL->HMI: GetURLs(SUCCESS, urls: [appId, url])
@@ -39,14 +60,11 @@ local Common = {}
         -- HMI->SDL: SDL.OnReceivedPolicyTable(PTUFileName)
         test.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate",
           {          
-            --policyfile = "/home/dboltovskyi/git/open/sdl_core_build_4.2.0/bin/ivsu_cache/PolicyTableUpdate"
             policyfile = policy_file_path .. policy_file_name
           }
         )             
       end)
-      -- SDL->HMI: OnStatusUpdate(UP_TO_DATE)
-      EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", { status = "UP_TO_DATE" })
-      -- SDL->MOB: SUCCESS: SystemRequest
+      
       EXPECT_RESPONSE(corIdSystemRequest, { success = true, resultCode = "SUCCESS"})  
       :Do(function(_, _)
         requestId = test.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"StatusUpToDate"}})        
@@ -55,4 +73,4 @@ local Common = {}
     end)    
   end
 
-return Common
+return common
