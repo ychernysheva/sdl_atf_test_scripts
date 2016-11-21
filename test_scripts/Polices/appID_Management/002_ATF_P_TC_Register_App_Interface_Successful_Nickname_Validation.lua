@@ -30,8 +30,10 @@
   local common = require("user_modules/shared_testcases/testCasesForPolicyAppIdManagament")  
   local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
   local commonSteps = require("user_modules/shared_testcases/commonSteps")  
+  local testCasesForBuildingSDLPolicyFlag = require('user_modules/shared_testcases/testCasesForBuildingSDLPolicyFlag')
 
 --[[ General Precondition before ATF start ]]  
+  testCasesForBuildingSDLPolicyFlag:CheckPolicyFlagAfterBuild("EXTERNAL_PROPRIETARY")
   commonFunctions:SDLForceStop()  
   commonSteps:DeleteLogsFileAndPolicyTable()
 
