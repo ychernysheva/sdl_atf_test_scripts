@@ -5,7 +5,7 @@
 -- Description:
 -- SDL should request PTU in case new application is registered and is not listed in PT
 -- 1. Used preconditions
--- SDL is built with "-DEXTENDED_POLICY: HTTP" flag
+-- SDL is built with "EXTENDED_POLICY: HTTP" flag
 -- Connect mobile phone over WiFi.
 -- Register new application.
 -- Successful PTU.
