@@ -1,16 +1,12 @@
 {
     "policy_table": {        
         "app_policies": {
-            "0000001": {
-                "groups": ["Base-4", "Base-6"],
-                "priority": "NONE",
-                "nicknames": ["Test Application", "App1"]
-            },
-            "xyz": {
-                "groups": ["Base-4", "Base-6"],
+            "0000001": "default",
+            "123_xyz": {
+                "groups": ["Base-6"],
                 "priority": "NONE",
                 "nicknames": ["Media Application", "MediaApp"]                
-            },
+            },            
             "default": {
                 "keep_context": false,
                 "steal_focus": false,
