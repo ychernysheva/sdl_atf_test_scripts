@@ -23,7 +23,6 @@
 -- 4. SDL assigns the appropriate policies and notifies application:
 -- SDL->app: OnPermissionsChange (params) - as specified in "pre_DataConsent" section.
 ---------------------------------------------------------------------------------------------
-
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 --ToDo: shall be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
@@ -38,7 +37,7 @@ Test = require('connecttest')
 require('cardinalities')
 local mobile_session = require('mobile_session')
 
---[[ Local Functions ]]
+--[[ Preconditions ]]
 local function Precondition()
 
   commonFunctions:userPrint(34, "-- Precondition --")
@@ -80,7 +79,6 @@ local function Precondition()
 
 end
 
---[[ Preconditions ]]
 Precondition()
 
 --[[ Test ]]
@@ -107,7 +105,6 @@ function Test:Register_App_And_Check_Order_Of_Request_Response_Notiofications()
         maxNumberRFCOMMPorts = 1
       }
     })
-
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered",
     {
       application =
@@ -128,14 +125,12 @@ function Test:Register_App_And_Check_Order_Of_Request_Response_Notiofications()
   :Do(function(_,data)
       self.applications["SPT"] = data.params.application.appID
     end)
-
   EXPECT_RESPONSE(CorIdRAI, { success = true, resultCode = "SUCCESS"})
   EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
   EXPECT_NOTIFICATION("OnPermissionsChange", {})
-
 end
 
---[[ Preconditions ]]
+--[[ Postconditions ]]
 --ToDo: shall be removed when issue: "SDL doesn't stop at execution ATF function StopSDL()" is fixed
 function Test:SDLForceStop()
   commonFunctions:userPrint(34, "-- Postcondition --")
