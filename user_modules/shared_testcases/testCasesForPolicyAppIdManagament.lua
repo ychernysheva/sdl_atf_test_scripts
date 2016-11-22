@@ -73,8 +73,8 @@ local common = {}
     end)    
   end
 
-  function common:activateApp(test, applicationId)    
-    local requestId1 = test.hmiConnection:SendRequest("SDL.ActivateApp", { appID = applicationId})
+  function common:activateApp(test, mobile_session)    
+    local requestId1 = test.hmiConnection:SendRequest("SDL.ActivateApp", { appID = mobile_session.applicationId})
     EXPECT_HMIRESPONSE(requestId1)
     :Do(function(_, data1)
       if data1.result.isSDLAllowed ~= true then
@@ -92,7 +92,17 @@ local common = {}
         end)
       end
     end)
-    test.mobileSession2:ExpectNotification("OnHMIStatus", { hmiLevel = "FULL" })
+    mobile_session:ExpectNotification("OnHMIStatus", { hmiLevel = "FULL" })
+  end
+
+  function common:registerApp(test, mob_session, config_app)
+    local corId = mob_session:SendRPC("RegisterAppInterface", config_app.registerAppInterfaceParams)
+    EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered",
+      { application = { appName = config_app.registerAppInterfaceParams.appName }})
+    :Do(function(_, data)
+      mob_session.applicationId = data.params.application.appID
+    end)
+    mob_session:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
   end
 
 
