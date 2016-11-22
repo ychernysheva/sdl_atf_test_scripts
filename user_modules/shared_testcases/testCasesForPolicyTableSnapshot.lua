@@ -286,6 +286,7 @@ function testCasesForPolicyTableSnapshot:verify_PTS(is_created, app_IDs, device_
 					end
 				end
 				if (is_existing == false) then
+					--TODO(istoimenova): Update after "Clarification for elements in DataDictionary accoridng to current SDL behavior" is resolved
 					print(testCasesForPolicyTableSnapshot.pts_elements[i].name .. ": should NOT exist")
 				end
 			end
@@ -303,6 +304,7 @@ function testCasesForPolicyTableSnapshot:verify_PTS(is_created, app_IDs, device_
 						end
 					end
 					if (is_existing == false) then
+						--TODO(istoimenova): Update after "Clarification for elements in DataDictionary accoridng to current SDL behavior" is resolved
 						print(data_dictionary[i].name .. ": mandatory parameter does not exist in PTS")
 					end
 				end
