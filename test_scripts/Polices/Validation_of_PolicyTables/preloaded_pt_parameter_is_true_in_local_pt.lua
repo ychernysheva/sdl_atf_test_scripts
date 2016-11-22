@@ -6,7 +6,7 @@
 -- Start default SDL with valid PreloadedPT json file for create LocalPT(database) with "preloaded_pt" = "true"
 -- 2. Performed steps:
 -- Delete PreloadedPT json file
--- Start SDL only with LocalPT database and without PreloadedPT json file
+-- Start SDL only with LocalPT database and with corrupted PreloadedPT json file
 
 -- Requirement summary:
 -- [Policies]: PreloadedPolicyTable: "preloaded_pt: true"
@@ -25,20 +25,55 @@ local PRELOADED_PT_FILE_NAME = "sdl_preloaded_pt.json"
 --[[ Required Shared libraries ]]
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local SDL = require('modules/SDL')
+local json = require("modules/json")
 
 --[[ Preconditions ]]
 function Test.backup_preloaded_pt()
   os.execute(table.concat({"cp ", config.pathToSDL, PRELOADED_PT_FILE_NAME, ' ', config.pathToSDL, "backup_", PRELOADED_PT_FILE_NAME}))
 end
 
-function Test.remove_preloaded_pt()
-  os.execute(table.concat({"rm ", config.pathToSDL, PRELOADED_PT_FILE_NAME}))
+function Test.corrupt_preloaded_pt()
+  local changed_parameters = {
+    ["1234"] = {
+      [123] = "http://cloud.ford.com/global",
+      keep_context = false,
+      steal_focus = false,
+      -- priority = "NONE", -- removed required parameter
+      default_hmi = "NONE",
+      groups = {"BaseBeforeDataConsent"}
+    },
+    super = {
+      keep_context = false,
+      steal_focus = false,
+      priority = "NONE",
+      default_hmi = "NONE",
+      groups = {"BaseBeforeDataConsent"}
+    }
+  }
+
+  local pathToFile = config.pathToSDL .. PRELOADED_PT_FILE_NAME
+
+  local file = io.open(pathToFile, "r")
+  local json_data = file:read("*a")
+  file:close()
+
+  local data = json.decode(json_data)
+  if data then
+    for key, value in pairs(changed_parameters) do
+      data.policy_table.app_policies[key] = value
+    end
+  end
+
+  local dataToWrite = json.encode(data)
+  file = io.open(pathToFile, "w")
+  file:write(dataToWrite)
+  file:close()
 end
 
 function Test.check_sdl()
   local status = SDL:CheckStatusSDL()
   if status ~= SDL.RUNNING then
-    commonFunctions:userPrint(31, "Test failed: SDL aren't running only with LocalPT database and without PreloadedPT json file")
+    commonFunctions:userPrint(31, "Test failed: SDL aren't running only with LocalPT database and with corrupted PreloadedPT json file")
     return false
   end
   return true
@@ -50,7 +85,7 @@ end
 
 function Test:Precondition()
   self.backup_preloaded_pt()
-  self.remove_preloaded_pt()
+  self.corrupt_preloaded_pt()
 end
 
 --[[ Test ]]
