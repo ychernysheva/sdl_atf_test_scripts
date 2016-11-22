@@ -73,4 +73,27 @@ local common = {}
     end)    
   end
 
+  function common:activateApp(test, applicationId)    
+    local requestId1 = test.hmiConnection:SendRequest("SDL.ActivateApp", { appID = applicationId})
+    EXPECT_HMIRESPONSE(requestId1)
+    :Do(function(_, data1)
+      if data1.result.isSDLAllowed ~= true then
+        local requestId2 = test.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", 
+                    {language = "EN-US", messageCodes = {"DataConsent"}})
+        EXPECT_HMIRESPONSE(requestId2)
+        :Do(function(_, _)
+          test.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", 
+                {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = "127.0.0.1"}})
+          EXPECT_HMICALL("BasicCommunication.ActivateApp")
+          :Do(function(_, data2)
+            test.hmiConnection:SendResponse(data2.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
+          end)
+          :Times(1)
+        end)
+      end
+    end)
+    test.mobileSession2:ExpectNotification("OnHMIStatus", { hmiLevel = "FULL" })
+  end
+
+
 return common
