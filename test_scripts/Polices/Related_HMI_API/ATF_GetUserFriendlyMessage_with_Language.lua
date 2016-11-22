@@ -24,12 +24,6 @@ local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local testCasesForBuildingSDLPolicyFlag = require('user_modules/shared_testcases/testCasesForBuildingSDLPolicyFlag')
 require('user_modules/AppTypes')
  
---[[ Local Variables ]]
--- if not applicable remove this section
- 
---[[ Local Functions ]]
--- if not applicable remove this section
- 
 --[[ General Precondition before ATF start ]]
 testCasesForBuildingSDLPolicyFlag:Update_PolicyFlag("EXTENDED_POLICY", "EXTERNAL_PROPRIETARY")
 testCasesForBuildingSDLPolicyFlag:CheckPolicyFlagAfterBuild("EXTENDED_POLICY","EXTERNAL_PROPRIETARY")
