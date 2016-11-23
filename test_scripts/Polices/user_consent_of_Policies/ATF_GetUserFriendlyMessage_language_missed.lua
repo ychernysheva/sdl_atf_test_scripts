@@ -1,25 +1,20 @@
 ---------------------------------------------------------------------------------------------
+-- Requirement summary: 
+--    [Policies] language of the message requested doesn't exist in LocalPT
+--
 -- Description: 
 --     HMI requests a language for a particular prompt via GetUserFriendlyMessage and the language("JA-JP") is not present in policy table
 --     1. Used preconditions:	
---			Unregister default application
--- 			Register application 
---			Activate application
+--		Unregister default application
+-- 		Register application 
+--		Activate application
 --
 --     2. Performed steps
---		    Perform PTU with nickname not from policy table
---
--- Requirement summary: 
---    [Policies] language of the message requested doesn't exist in LocalPT
+--		Perform PTU with nickname not from policy table
 --
 -- Expected result:
 --     English ("en-us") prompt must be returned to HMI
 ---------------------------------------------------------------------------------------------
---[[ General Settings for configuration ]]
-Test = require('connecttest')
-require('cardinalities')
-local mobile_session = require('mobile_session')
-
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 
@@ -29,17 +24,22 @@ local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 require('user_modules/AppTypes')
 
+--[[ General Settings for configuration ]]
+Test = require('connecttest')
+require('cardinalities')
+local mobile_session = require('mobile_session')
+
 --[[ Preconditions ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
 
-function Test:Unregister_default_app() 
+function Test:Precondition_Unregister_default_app() 
 	local CorIdUAI = self.mobileSession:SendRPC("UnregisterAppInterface",{}) 
 	EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered", {appID = self.applications["SyncProxyTester"], unexpectedDisconnect = false})
 	EXPECT_RESPONSE(CorIdUAI, { success = true, resultCode = "SUCCESS"})
 	:Timeout(2000) 
 end
 
-function Test:Register_app()
+function Test:Precondition_Register_app()
 	commonTestCases:DelayedExp(3000)
 	self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
 	self.mobileSession:StartService(7)
@@ -54,7 +54,7 @@ function Test:Register_app()
 	end)
 end
 
-function Test:Activate_app()
+function Test:Precondition_Activate_app()
 	local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.HMIAppID})
 	EXPECT_HMIRESPONSE(RequestId)
 		:Do(function(_,data)
@@ -76,7 +76,6 @@ end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
-commonFunctions:userPrint(34, "Test is intended to check that english is returned on GetUserFriendlyMessage")
 
 function Test:GetUserFriendlyMessage_JA_JP_missed_in_PT()
 	local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
@@ -141,4 +140,8 @@ function Test:GetUserFriendlyMessage_JA_JP_missed_in_PT()
 end	
 
 --[[ Postconditions ]]
-commonFunctions:SDLForceStop()
+commonFunctions:newTestCasesGroup("Postconditions")
+											
+function Test:Postcondition_SDLForceStop()
+	commonFunctions:SDLForceStop()
+end	
