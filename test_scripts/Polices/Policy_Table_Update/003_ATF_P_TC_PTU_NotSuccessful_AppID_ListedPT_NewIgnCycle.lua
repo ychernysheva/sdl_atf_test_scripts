@@ -2,14 +2,13 @@
 -- Requirements summary:
 -- [PolicyTableUpdate] Policy Table Update in case of failed retry strategy during previour IGN_ON (SDL.PolicyUpdate)
 -- [HMI API] PolicyUpdate request/response
+-- Can you clarify the state of PTU(UPDATE_NEEDED) in previous ign_cycle according to ...
 --
 -- Description:
--- SDL should request in case of failed retry strategy during previour IGN_ON
+-- SDL should request PTU in case of failed retry strategy during previour IGN_ON
 -- 1. Used preconditions
 -- SDL is built with "-DEXTENDED_POLICY: EXTERNAL_PROPRIETARY" flag
 -- Connect mobile phone over WiFi.
--- Register new application.
--- Successful PTU. Device is consented.
 -- Register new application.
 -- PTU is requested.
 -- IGN OFF
@@ -26,57 +25,52 @@
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 
 --[[ Required Shared libraries ]]
-local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
-local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
-local testCasesForBuildingSDLPolicyFlag = require('user_modules/shared_testcases/testCasesForBuildingSDLPolicyFlag')
 local testCasesForPolicyTableSnapshot = require('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
+local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 
 --[[ Local Variables ]]
-local hmi_app1_id
-local hmi_app2_id
+local hmi_app_id
 
 --[[ General Precondition before ATF start ]]
--- commonFunctions:SDLForceStop()
-testCasesForBuildingSDLPolicyFlag:Update_PolicyFlag("EXTENDED_POLICY", "EXTERNAL_PROPRIETARY")
-testCasesForBuildingSDLPolicyFlag:CheckPolicyFlagAfterBuild("EXTENDED_POLICY","EXTERNAL_PROPRIETARY")
-commonSteps:DeleteLogsFileAndPolicyTable()
-
 --ToDo: shall be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
 config.defaultProtocolVersion = 2
+commonPreconditions:Connecttest_without_ExitBySDLDisconnect_WithoutOpenConnectionRegisterApp("connecttest_RAI.lua")
 
 --[[ General Settings for configuration ]]
-Test = require('connecttest')
+Test = require('user_modules/connecttest_RAI')
 require('cardinalities')
 require('user_modules/AppTypes')
 local mobile_session = require('mobile_session')
 
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
-testCasesForPolicyTable:flow_PTU_SUCCEESS_EXTERNAL_PROPRIETARY()
+function Test.Precondition_remove_user_connecttest()
+  os.execute( "rm -f ./user_modules/connecttest_RAI.lua" )
+end
+
+function Test:Precondition_ConnectMobile()
+  self:connectMobile()
+end
 
 function Test:Precondition_StartNewSession()
-  self.mobileSession1 = mobile_session.MobileSession(self, self.mobileConnection)
-  self.mobileSession1:StartService(7)
+  self.mobileSession = mobile_session.MobileSession( self, self.mobileConnection)
+  self.mobileSession:StartService(7)
 end
 
 function Test:Precondition_RegisterNewApplication()
-  hmi_app1_id = self.applications[config.application1.registerAppInterfaceParams.appName]
-  local correlationId = self.mobileSession1:SendRPC("RegisterAppInterface", config.application2.registerAppInterfaceParams)
+  local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
 
-  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application2.appName } })
-  :Do(function(_,data)
-      hmi_app2_id = data.params.application.appID
-      self.applications[config.application2.registerAppInterfaceParams.appName] = data.params.application.appID
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application1.appName } })
+  :Do(function(_,_data2)
+      hmi_app_id = _data2.params.application.appID
 
       EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
 
-      testCasesForPolicyTableSnapshot:create_PTS(true, {
-          config.application1.registerAppInterfaceParams.appID,
-          config.application2.registerAppInterfaceParams.appID,
-        },
+      testCasesForPolicyTableSnapshot:verify_PTS(true,
+        {config.application1.registerAppInterfaceParams.appID},
         {config.deviceMAC},
-        {hmi_app1_id, hmi_app2_id})
+        {hmi_app_id})
 
       local timeout_after_x_seconds = testCasesForPolicyTableSnapshot:get_data_from_PTS("module_config.timeout_after_x_seconds")
       local seconds_between_retries = {}
@@ -86,37 +80,31 @@ function Test:Precondition_RegisterNewApplication()
 
       EXPECT_HMICALL("BasicCommunication.PolicyUpdate",
         {
-          file = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate",
+          file = "/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json",
           timeout = timeout_after_x_seconds,
           retry = seconds_between_retries
         })
-      :Do(function(_,data)
-          self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+      :Do(function(_,_data3)
+          self.hmiConnection:SendResponse(_data3.id, _data3.method, "SUCCESS", {})
         end)
     end)
-  self.mobileSession1:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS"})
+  self.mobileSession:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS"})
 end
 
 function Test:Precondition_Suspend()
   self.hmiConnection:SendNotification("BasicCommunication.OnExitAllApplications", { reason = "SUSPEND" })
-
-  -- hmi side: expect OnSDLPersistenceComplete notification
   EXPECT_HMINOTIFICATION("BasicCommunication.OnSDLPersistenceComplete")
 end
 
 function Test:Precondition_IGNITION_OFF()
   StopSDL()
-
   self.hmiConnection:SendNotification("BasicCommunication.OnExitAllApplications", { reason = "IGNITION_OFF" })
-
   EXPECT_HMINOTIFICATION("BasicCommunication.OnSDLClose")
-
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered")
-  :Times(2)
 end
 
 function Test:Precondtion_StartSDL()
-  StartSDL(config.pathToSDL, config.ExitOnCrash)
+  StartSDL(config.pathToSDL, config.ExitOnCrash, self)
 end
 
 function Test:Precondtion_initHMI()
@@ -139,19 +127,16 @@ end
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 function Test:TestStep_PTU_NotSuccessful_AppID_ListedPT_NewIgnCycle()
-  -- hmi_app1_id = self.applications[config.application1.registerAppInterfaceParams.appName]
   local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
 
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application1.appName } })
-  :Do(function(_,data)
+  :Do(function(_,_)
       EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
 
-      testCasesForPolicyTableSnapshot:create_PTS(true, {
-          config.application1.registerAppInterfaceParams.appID,
-          config.application2.registerAppInterfaceParams.appID,
-        },
+      testCasesForPolicyTableSnapshot:verify_PTS(true,
+        {config.application1.registerAppInterfaceParams.appID},
         {config.deviceMAC},
-        {hmi_app1_id, hmi_app2_id})
+        {hmi_app_id})
 
       local timeout_after_x_seconds = testCasesForPolicyTableSnapshot:get_data_from_PTS("module_config.timeout_after_x_seconds")
       local seconds_between_retries = {}
@@ -161,12 +146,12 @@ function Test:TestStep_PTU_NotSuccessful_AppID_ListedPT_NewIgnCycle()
 
       EXPECT_HMICALL("BasicCommunication.PolicyUpdate",
         {
-          file = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate",
+          file = "/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json",
           timeout = timeout_after_x_seconds,
           retry = seconds_between_retries
         })
-      :Do(function(_,data)
-          self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+      :Do(function(_,_data4)
+          self.hmiConnection:SendResponse(_data4.id, _data4.method, "SUCCESS", {})
         end)
     end)
 
