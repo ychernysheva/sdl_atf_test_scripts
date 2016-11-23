@@ -1,4 +1,7 @@
 ---------------------------------------------------------------------------------------------
+-- Requirement summary: 
+--    [UpdateDeviceList] isSDLAllowed:false
+--
 -- Description: 
 --     SDL behavior if DataConsent status was never asked for the corresponding device.
 --     1. Used preconditions:
@@ -6,18 +9,10 @@
 --        Close current connection 
 --     2. Performed steps:
 --        Connect device 
-
--- Requirement summary: 
---    [UpdateDeviceList] isSDLAllowed:false
 --
 -- Expected result:
 --    PoliciesManager must provide "isSDLAllowed:false" param of "DeviceInfo" struct ONLY when sending "UpdateDeviceList" RPC to HMI
 ---------------------------------------------------------------------------------------------
---[[ General Settings for configuration ]]
-Test = require('user_modules/connecttest_resumption')
-require('cardinalities')
-require('mobile_session')
-
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 
@@ -27,17 +22,21 @@ local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 require('user_modules/AppTypes')
 
+--[[ General Settings for configuration ]]
+Test = require('user_modules/connecttest_resumption')
+require('cardinalities')
+require('mobile_session')
+
 --[[ Preconditions ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
 
-function Test:CloseConnection()
+function Test:Precondition_CloseConnection()
 	self.mobileConnection:Close()
 	commonTestCases:DelayedExp(3000)		
 end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
-commonFunctions:userPrint(34, "Test is intended to check that for unconsented device is sent isSDLAllowed:false")
 
 function Test:UpdateDeviceList_isSDLAllowed_false()
 	commonTestCases:DelayedExp(2000)
@@ -64,4 +63,8 @@ function Test:UpdateDeviceList_isSDLAllowed_false()
 end
 
 --[[ Postconditions ]]
-commonFunctions:SDLForceStop()
+commonFunctions:newTestCasesGroup("Postconditions")
+	
+function Test:Postcondition_SDLForceStop()
+	commonFunctions:SDLForceStop()
+end
