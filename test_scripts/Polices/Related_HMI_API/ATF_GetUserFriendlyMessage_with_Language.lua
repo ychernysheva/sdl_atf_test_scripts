@@ -9,13 +9,11 @@
 -- 2. Steps: Activate App, in SDL.GetUserFriendlyMessage parameter "language" should be present
 --
 -- Expected result:
--- PoliciesManager must respond with the information from the sub-section with the name correspondent to "language" value
+--    HMI->SDL: SDL.GetUserFriendlyMessage ("messageCodes": "AppPermissions")
+--    SDL->HMI: SDL.GetUserFriendlyMessage ("messages": {messageCode: "AppPermissions", ttsString: "%appName% is requesting the use of the following ....", line1: "Grant Requested", line2: "Permission(s)?"})
 ---------------------------------------------------------------------------------------------
  
 --[[ General configuration parameters ]]
-Test = require('connecttest')
-require('cardinalities')
-require('mobile_session')
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
  
 --[[ Required Shared libraries ]]
@@ -28,6 +26,11 @@ require('user_modules/AppTypes')
 testCasesForBuildingSDLPolicyFlag:Update_PolicyFlag("EXTENDED_POLICY", "EXTERNAL_PROPRIETARY")
 testCasesForBuildingSDLPolicyFlag:CheckPolicyFlagAfterBuild("EXTENDED_POLICY","EXTERNAL_PROPRIETARY")
 commonSteps:DeleteLogsFileAndPolicyTable()
+
+--[[ General Settings for configuration ]]
+Test = require('connecttest')
+require('cardinalities')
+require('mobile_session')
  
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
@@ -36,7 +39,7 @@ commonSteps:DeleteLogsFileAndPolicyTable()
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
-function Test:ActivateApp_with_language()
+function Test:TestStep_ActivateApp_with_Language_Message()
   local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.applications["Test Application"]})
   EXPECT_HMIRESPONSE(RequestId)
   :Do(function(_,data)
