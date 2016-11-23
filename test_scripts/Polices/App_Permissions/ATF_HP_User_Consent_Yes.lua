@@ -8,7 +8,7 @@
 -- 4. Local PT has permissions for <App> that require User`s consent.
 --
 -- Requirement summary:
--- On getting user consent information from HMI and storage into LocalPolicyTable , 
+-- On getting user consent information from HMI and storage into LocalPolicyTable ,
 -- SDL must notify an application about the current permissions active on HMI via onPermissionsChange() notification.
 --
 -- Actions:
@@ -17,13 +17,13 @@
 --
 -- Expected:
 -- 1. HMI->SDL: SDL.ActivateApp {appID}
---    SDL->HMI: SDL.ActivateApp_response{isPermissionsConsentNeeded: true, params}
---    HMI->SDL: GetUserFriendlyMessage{params},
---    SDL->HMI: GetUserFriendlyMessage_response{params}
---    HMI->SDL: GetListOfPermissions{appID}
---    SDL->HMI: GetListOfPermissions_response{}  
+-- SDL->HMI: SDL.ActivateApp_response{isPermissionsConsentNeeded: true, params}
+-- HMI->SDL: GetUserFriendlyMessage{params},
+-- SDL->HMI: GetUserFriendlyMessage_response{params}
+-- HMI->SDL: GetListOfPermissions{appID}
+-- SDL->HMI: GetListOfPermissions_response{}
 -- 2. HMI->SDL: OnAppPermissionConsent {params}
---    PoliciesManager: update "<appID>" subsection of "user_consent_records" subsection of "<device_identifier>" section of "device_data" section in Local PT.
+-- PoliciesManager: update "<appID>" subsection of "user_consent_records" subsection of "<device_identifier>" section of "device_data" section in Local PT.
 ---------------------------------------------------------------------------------------------
 
 --[[ General configuration parameters ]]
@@ -34,7 +34,6 @@ config.defaultProtocolVersion = 2
 --[[ Required Shared libraries ]]
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require ('user_modules/shared_testcases/commonSteps')
-
 
 --[[ General Settings for configuration ]]
 Test = require('connecttest')
@@ -69,9 +68,9 @@ local function SetPermissionsForPre_DataConsent()
       {hmi_levels = {"BACKGROUND", "FULL", "LIMITED", "NONE"}},
       OnPermissionsChange =
       {hmi_levels = {"BACKGROUND", "FULL", "LIMITED", "NONE"}},
-      OnSystemRequest = 
+      OnSystemRequest =
       {hmi_levels = {"BACKGROUND", "FULL", "LIMITED", "NONE"}},
-      SystemRequest = 
+      SystemRequest =
       {hmi_levels = {"BACKGROUND", "FULL", "LIMITED", "NONE"}},
   }}
   data = json.encode(data)
@@ -79,7 +78,6 @@ local function SetPermissionsForPre_DataConsent()
   file:write(data)
   file:close()
 end
-
 
 --[[ Precondition ]]
 local function Precondition()
@@ -135,108 +133,108 @@ local function Precondition()
 
   function Test:Activate_App_And_Consent_Device()
 
-  local CorIdRAI = self.mobileSession:SendRPC("RegisterAppInterface",
-    {
-      syncMsgVersion =
+    local CorIdRAI = self.mobileSession:SendRPC("RegisterAppInterface",
       {
-        majorVersion = 3,
-        minorVersion = 0
-      },
-      appName = "SPT",
-      isMediaApplication = true,
-      languageDesired = "EN-US",
-      hmiDisplayLanguageDesired = "EN-US",
-      appID = "1234567",
-      deviceInfo =
-      {
-        os = "Android",
-        carrier = "Megafon",
-        firmwareRev = "Name: Linux, Version: 3.4.0-perf",
-        osVersion = "4.4.2",
-        maxNumberRFCOMMPorts = 1
-      }
-    })
-  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered",
-    {
-      application =
-      {
+        syncMsgVersion =
+        {
+          majorVersion = 3,
+          minorVersion = 0
+        },
         appName = "SPT",
-        policyAppID = "1234567",
         isMediaApplication = true,
+        languageDesired = "EN-US",
         hmiDisplayLanguageDesired = "EN-US",
+        appID = "1234567",
         deviceInfo =
         {
-          name = "127.0.0.1",
-          id = config.deviceMAC,
-          transportType = "WIFI",
-          isSDLAllowed = false
+          os = "Android",
+          carrier = "Megafon",
+          firmwareRev = "Name: Linux, Version: 3.4.0-perf",
+          osVersion = "4.4.2",
+          maxNumberRFCOMMPorts = 1
         }
-      }
-    })
-  :Do(function(_,data)
-      self.applications["SPT"] = data.params.application.appID
-    EXPECT_RESPONSE(CorIdRAI, { success = true, resultCode = "SUCCESS"})
-
-  local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", {appID = self.applications["SPT"]})
-    
-  EXPECT_HMIRESPONSE(RequestId, { result = { 
-  code = 0, 
-  isSDLAllowed = false}, 
-  method = "SDL.ActivateApp"})
-  :Do(function(_,data)
-    local RequestId = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
-    EXPECT_HMIRESPONSE(RequestId,{result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
+      })
+    EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered",
+      {
+        application =
+        {
+          appName = "SPT",
+          policyAppID = "1234567",
+          isMediaApplication = true,
+          hmiDisplayLanguageDesired = "EN-US",
+          deviceInfo =
+          {
+            name = "127.0.0.1",
+            id = config.deviceMAC,
+            transportType = "WIFI",
+            isSDLAllowed = false
+          }
+        }
+      })
     :Do(function(_,data)
-      self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality",  {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = "127.0.0.1"}})
-        EXPECT_HMICALL("BasicCommunication.ActivateApp")
-        :Do(function(_,data)
-          self.hmiConnection:SendResponse(data.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
-            EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"})
-        end)
-      end)
-    end)
-  end)
-end
+        self.applications["SPT"] = data.params.application.appID
+        EXPECT_RESPONSE(CorIdRAI, { success = true, resultCode = "SUCCESS"})
 
-function Test:DeactivateApp()
+        local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", {appID = self.applications["SPT"]})
+
+        EXPECT_HMIRESPONSE(RequestId, { result = {
+              code = 0,
+              isSDLAllowed = false},
+            method = "SDL.ActivateApp"})
+        :Do(function(_,data)
+            local RequestId = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
+            EXPECT_HMIRESPONSE(RequestId,{result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
+            :Do(function(_,data)
+                self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = "127.0.0.1"}})
+                EXPECT_HMICALL("BasicCommunication.ActivateApp")
+                :Do(function(_,data)
+                    self.hmiConnection:SendResponse(data.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
+                    EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"})
+                  end)
+              end)
+          end)
+      end)
+  end
+
+  function Test:DeactivateApp()
     self.hmiConnection:SendNotification("BasicCommunication.OnAppDeactivated", {appID = self.applications["SPT"], reason = "GENERAL"})
     EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "LIMITED"})
-end
+  end
 
-function Test:UpdatePolicyWithPTU()
-local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
-  EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
-  :Do(function()
-    self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",
-      {
-        requestType = "PROPRIETARY",
-        fileName = "filename"
-      }
-    )
-    EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY" })
+  function Test:UpdatePolicyWithPTU()
+    local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
+    EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
     :Do(function()
-      local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest",
-        {
-          fileName = "PolicyTableUpdate",
-          requestType = "PROPRIETARY"
-        }, "files/PTU_with_permissions_for_app_1234567.json")
-      local systemRequestId
-      EXPECT_HMICALL("BasicCommunication.SystemRequest")
-      :Do(function(_,data)
-        systemRequestId = data.id
-        self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate",
-        {
-          policyfile = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate"
-      })
-    local function to_run()
-      self.hmiConnection:SendResponse(systemRequestId,"BasicCommunication.SystemRequest", "SUCCESS", {})
-    end     
-    RUN_AFTER(to_run, 800)
-      self.mobileSession:ExpectResponse(CorIdSystemRequest, {success = true, resultCode = "SUCCESS"})
+        self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",
+          {
+            requestType = "PROPRIETARY",
+            fileName = "filename"
+          }
+        )
+        EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY" })
+        :Do(function()
+            local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest",
+              {
+                fileName = "PolicyTableUpdate",
+                requestType = "PROPRIETARY"
+              }, "files/PTU_with_permissions_for_app_1234567.json")
+            local systemRequestId
+            EXPECT_HMICALL("BasicCommunication.SystemRequest")
+            :Do(function(_,data)
+                systemRequestId = data.id
+                self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate",
+                  {
+                    policyfile = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate"
+                  })
+                local function to_run()
+                  self.hmiConnection:SendResponse(systemRequestId,"BasicCommunication.SystemRequest", "SUCCESS", {})
+                end
+                RUN_AFTER(to_run, 800)
+                self.mobileSession:ExpectResponse(CorIdSystemRequest, {success = true, resultCode = "SUCCESS"})
+              end)
+          end)
       end)
-  end)
-end)
-end
+  end
 
 end
 Precondition()
@@ -244,36 +242,39 @@ Precondition()
 --[[ Test ]]
 function Test:Step1_User_Consents_New_Permissions_After_App_Activation()
 
- commonFunctions:userPrint(34, "-- Test --")
-local RequestIdActivateApp = self.hmiConnection:SendRequest("SDL.ActivateApp", {appID = self.applications["SPT"]})
+  commonFunctions:userPrint(34, "-- Test --")
+  local RequestIdActivateApp = self.hmiConnection:SendRequest("SDL.ActivateApp", {appID = self.applications["SPT"]})
 
-EXPECT_HMIRESPONSE(RequestIdActivateApp, 
-  { result = { 
-  code = 0, 
-  isPermissionsConsentNeeded = true, 
-  isAppPermissionsRevoked = false, 
-  isAppRevoked = false}, 
-  method = "SDL.ActivateApp"})
+  EXPECT_HMIRESPONSE(RequestIdActivateApp,
+    { result = {
+        code = 0,
+        isPermissionsConsentNeeded = true,
+        isAppPermissionsRevoked = false,
+        isAppRevoked = false},
+      method = "SDL.ActivateApp"})
 
-local RequestIdGetUserFriendlyMessage = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
-EXPECT_HMIRESPONSE(RequestIdGetUserFriendlyMessage, 
-  { result = { code = 0, 
-  messages = {{ messageCode = "DataConsent"}}, 
-  method = "SDL.GetUserFriendlyMessage"}})
+  local RequestIdGetUserFriendlyMessage = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
+  EXPECT_HMIRESPONSE(RequestIdGetUserFriendlyMessage,
+    { result = { code = 0,
+        messages = {{ messageCode = "DataConsent"}},
+        method = "SDL.GetUserFriendlyMessage"}})
 
-local RequestIdListOfPermissions = self.hmiConnection:SendRequest("SDL.GetListOfPermissions", { appID = self.applications["SPT"] })
-       EXPECT_HMIRESPONSE(RequestIdListOfPermissions, 
-         { result = { 
-      code = 0, 
-      allowedFunctions = {{name = "New_permissions"}} }, 
+  local RequestIdListOfPermissions = self.hmiConnection:SendRequest("SDL.GetListOfPermissions", { appID = self.applications["SPT"] })
+  EXPECT_HMIRESPONSE(RequestIdListOfPermissions,
+    { result = {
+        code = 0,
+        allowedFunctions = {{name = "New_permissions"}} },
       method = "SDL.GetListOfPermissions"})
 
-      :Do(function(_,data)
-          local functionalGroupID = data.result.allowedFunctions[1].id
-   self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent", 
-     { appID = self.applications["SPT"], source = "GUI", consentedFunctions = {{name = "New_permissions", allowed = true, id = functionalGroupID} }})
-end)
- end 
+  :Do(function(_,data)
+      local functionalGroupID = data.result.allowedFunctions[1].id
+      self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent",
+        { appID = self.applications["SPT"], source = "GUI", consentedFunctions = {{name = "New_permissions", allowed = true, id = functionalGroupID} }})
+    end)
+  EXPECT_NOTIFICATION("OnPermissionsChange", {})
+  -- Permissions based on preloaded_pt file
+  --ToDo: (vikhrov) develop functions for extracting permissions for specific groups and compare it with permissionItem from OnPermissionsChange
+end
 
 function Test:Step2_Check_Allowed_RPC()
 
