@@ -1,6 +1,19 @@
------ [GeneralResultCode] DISALLOWED. A request comes with appID which has "null" permissions in Policy Table
------ In case PolicyTable has "<appID>": "null" in the Local PolicyTable for the specified application with appID, 
------ PoliciesManager must return DISALLOWED resultCode and success:"false" to any RPC requested by such <appID> app.
+-- UNREADY---
+-- Iliana second_test have status PartlyReady I need your help with sent all avaliable RPCs, I sended 22 RPCs and received DISALLOWED responce, it is OK for the test.
+-- But I have 13 RPCs which come with INVALID_DATA (they commented) and 
+-- 3 RPCs come with INVALID_DATA also but with error "mandatory parameter spaceAvailable not present" - they also commented for run script
+
+-- Requirement summary:
+-- [GeneralResultCode] DISALLOWED. A request comes with appID which has "null" permissions in Policy Table
+-- 
+-- Description:
+--      In case PolicyTable has "<appID>": "null" in the Local PolicyTable for the specified application with appID, 
+--      PoliciesManager must return DISALLOWED resultCode and success:"false" to any RPC requested by such <appID> app.
+-- Performed steps
+--       Pre_step. Add in sdl_preloaded_pt application id with NULL policy
+--       1. MOB-SDL - Open new session and register application in this session
+--       2. MOB-SDL - send the list of RPCs
+--       3. SDL responce, success = false, resultCode = "DISALLOWED" 
 
  --[[ General configuration parameters ]]
 config.defaultProtocolVersion = 2
@@ -54,21 +67,21 @@ local RPC = {
  --{rpc = "PutFile", params = {syncFileName ="icon.png", fileType ="GRAPHIC_PNG", persistentFile =false, systemFile = false, offset =0, length =11600}},
  --{rpc = "DeleteFile", params = {syncFileName = "test.png"}},
 }
-
 --[[ General Precondition before ATF start ]]
---Copy attached json file in SDL_bin folder.
---Json contains application 123abc with NULL policies
 commonSteps:DeleteLogsFileAndPolicyTable()
---[[ Preconditions ]]
+commonFunctions:newTestCasesGroup("Preconditions")
+--[[ General Settings for configuration ]]
 Test = require('connecttest')
-function Test:OpenNewSession()
-commonFunctions:userPrint(33, "================= Precondition ==================")
+
+--[[ Preconditions ]]
+function Test:Preconditon_CreateNewSession()
+commonFunctions:userPrint(33, "Precondition")
   self.mobileSession2 = mobile_session.MobileSession(self, self.mobileConnection)
   self.mobileSession2:StartService(7)
 end
---[[Test_1]]
-function Test:RAI_InNewSession_WithNULL_Polices()
-commonFunctions:userPrint(33, "================= Test_Case1 ====================")
+
+function Test:TestStep_RAI_InNewSession_WithNULL_Polices()
+commonFunctions:userPrint(33, "Test_Case1")
   local registerAppInterfaceParams =
   {
     syncMsgVersion =
@@ -94,18 +107,19 @@ local corId = self.mobileSession2:SendRPC("RegisterAppInterface", registerAppInt
   self.mobileSession2:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
 end
 
---[[Test_2]]
-function Test:CheckRPCs_ForApp_withPolicyNull()
-  commonFunctions:userPrint(33, "================= Test_Case2 ====================")
+function Test:TestStep_CheckRPCs_ForApp_withPolicyNull()
+  commonFunctions:userPrint(33, "Test_Case2")
  for i = 1 , #RPC do
   local corId = self.mobileSession2:SendRPC(RPC[i].rpc, RPC[i].params) 
   self.mobileSession2:ExpectResponse(corId, {success = false, resultCode = "DISALLOWED" })
 end
 end
+
 --[[ Postconditions ]]
+commonFunctions:newTestCasesGroup("Postconditions")
 Test["StopSDL"] = function()
-commonFunctions:userPrint(33, "================= Postcondition ==================")
+   commonFunctions:userPrint(33, "Postcondition")
     StopSDL()
-  end
+end
 
 
