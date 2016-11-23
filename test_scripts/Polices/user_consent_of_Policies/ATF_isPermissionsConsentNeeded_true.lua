@@ -1,28 +1,23 @@
 ---------------------------------------------------------------------------------------------
+-- Requirement summary: 
+--    [Policies] SDL.ActivateApp from HMI and 'isPermissionsConsentNeeded' parameter in the response
+--
 -- Description: 
 --     SDL receives request for app activation from HMI and LocalPT contains permission that require User`s consent
 --     1. Used preconditions:
---			Delete SDL log file and policy table
---			Unregister default app
---			Register test app
+--		Delete SDL log file and policy table
+--		Unregister default app
+--		Register test app
 --   		Activate test app
---			Deactivate test app 
---			Update policies of app with new permissions that need consent
+--		Deactivate test app 
+--		Update policies of app with new permissions that need consent
 -- 			
 --     2. Performed steps
--- 			Activate app
---
--- Requirement summary: 
---    [Policies] SDL.ActivateApp from HMI and 'isPermissionsConsentNeeded' parameter in the response
+-- 		Activate app
 --
 -- Expected result:
 --      On receiving SDL.ActivateApp PoliciesManager must respond with "isPermissionsConsentNeeded:true" to HMI, consent for custom permissions should appeared
 ---------------------------------------------------------------------------------------------
---[[ General Settings for configuration ]]
-Test = require('connecttest')
-require('cardinalities')
-local mobile_session = require('mobile_session')
-
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 
@@ -32,17 +27,22 @@ local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 require('user_modules/AppTypes')
 
+--[[ General Settings for configuration ]]
+Test = require('connecttest')
+require('cardinalities')
+local mobile_session = require('mobile_session')
+
 --[[ Preconditions ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
 
-function Test:Unregister_default_app() 
+function Test:Precondition_Unregister_default_app() 
 	local CorIdUAI = self.mobileSession:SendRPC("UnregisterAppInterface",{}) 
 	EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered", {appID = self.applications["SyncProxyTester"], unexpectedDisconnect = false})
 	EXPECT_RESPONSE(CorIdUAI, { success = true, resultCode = "SUCCESS"})
 	:Timeout(2000) 
 end
 
-function Test:Register_app()
+function Test:Precondition_Register_app()
 	commonTestCases:DelayedExp(3000)
 	self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
 	self.mobileSession:StartService(7)
@@ -57,19 +57,15 @@ function Test:Register_app()
 	end)
 end
 
-function Test:Activate_app()
+function Test:Precondition_Activate_app()
 	local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.HMIAppID})
 	EXPECT_HMIRESPONSE(RequestId)
 	EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"})
 end
 
 commonSteps:DeactivateAppToNoneHmiLevel()
-
---[[ Test ]]
-commonFunctions:newTestCasesGroup("Test")
-commonFunctions:userPrint(34, "Test is intended to check that isPermissionsConsentNeeded:true for app permissions that require consent")
-
-function Test:PTU_with_app_permissions_require_consent()
+	
+function Test:Precondition_PTU_with_app_permissions_require_consent()
 	local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
 	EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
 	:Do(function()
@@ -114,7 +110,10 @@ function Test:PTU_with_app_permissions_require_consent()
 			end)
 		end)
 	end)
-end
+end	
+
+--[[ Test ]]
+commonFunctions:newTestCasesGroup("Test")
 
 function Test:Activate_app_isPermissionsConsentNeeded_true()
 	local RequestIdActivateApp = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.HMIAppID })
@@ -136,4 +135,8 @@ function Test:Activate_app_isPermissionsConsentNeeded_true()
 end
 
 --[[ Postconditions ]]
-commonFunctions:SDLForceStop()
+commonFunctions:newTestCasesGroup("Postconditions")
+										
+function Test:Postcondition_SDLForceStop()
+	commonFunctions:SDLForceStop()
+end	
