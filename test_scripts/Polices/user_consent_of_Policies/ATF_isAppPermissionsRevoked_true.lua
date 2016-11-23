@@ -39,7 +39,7 @@ local mobile_session = require('mobile_session')
 commonFunctions:newTestCasesGroup ("Preconditions")
 commonSteps:DeleteLogsFileAndPolicyTable()
 
-function Test:CloseConnection()
+function Test:Precondition_CloseConnection()
 	self.mobileConnection:Close()
 	commonTestCases:DelayedExp(3000)	
 end
@@ -47,7 +47,7 @@ end
 Preconditions:BackupFile("sdl_preloaded_pt.json")
 testCasesForPolicyTable:Precondition_updatePolicy_By_overwriting_preloaded_pt("files/GroupsForApp_preloaded_pt.json")
 
-function Test:ConnectDevice()
+function Test:Precondition_ConnectDevice()
 	commonTestCases:DelayedExp(2000)
 	self:connectMobile()
 	EXPECT_HMICALL("BasicCommunication.UpdateDeviceList",
@@ -67,7 +67,7 @@ function Test:ConnectDevice()
 	:Times(AtLeast(1))
 end
 
-function Test:RegisterApp1()
+function Test:Precondition_RegisterApp1()
 	commonTestCases:DelayedExp(3000)
 	self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
 	self.mobileSession:StartService(7)
@@ -82,7 +82,7 @@ function Test:RegisterApp1()
 	end)
 end
 
-function Test:PTU_revoke_app_group()
+function Test:Precondition_PTU_revoke_app_group()
 	local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
 	EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
 	:Do(function()
@@ -128,7 +128,6 @@ end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
-commonFunctions:userPrint(34, "Test is intended to check that Policies Manager responds isAppPermissionRevoked:true for revoked app permissions")
 
 function Test:Activate_app_isAppPermissionRevoked_true()
 	local RequestIdActivateAppAgain = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.HMIAppID })
@@ -145,9 +144,9 @@ end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
-function Test:SDLForceStop()
+function Test:Postcondition_SDLForceStop()
 	commonFunctions:SDLForceStop()
 end										
-function Test:RestorePreloadedPT()										
+function Test:Postcondition_RestorePreloadedPT()										
 	testCasesForPolicyTable:Restore_preloaded_pt()
 end										
