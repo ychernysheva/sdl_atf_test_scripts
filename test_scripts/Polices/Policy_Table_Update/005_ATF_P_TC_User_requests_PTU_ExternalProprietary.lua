@@ -44,19 +44,19 @@ require('user_modules/AppTypes')
 
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
-testCasesForPolicyTable:flow_PTU_SUCCEESS_EXTERNAL_PROPRIETARY()
+function Test:Precondition_flow_SUCCEESS_EXTERNAL_PROPRIETARY()
+  testCasesForPolicyTable:flow_SUCCEESS_EXTERNAL_PROPRIETARY(self)
+end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 function Test:TestStep_User_requests_PTU()
   local hmi_app1_id = self.applications[config.application1.registerAppInterfaceParams.appName]
   self.hmiConnection:SendNotification("SDL.OnPolicyUpdate", {} )
-  print("hmi_app1_id = "..hmi_app1_id)
   EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
-  testCasesForPolicyTableSnapshot:create_PTS(true, {
-      config.application1.registerAppInterfaceParams.appID,
-      config.application2.registerAppInterfaceParams.appID,
-    },
+
+  testCasesForPolicyTableSnapshot:verify_PTS(true,
+    {config.application1.registerAppInterfaceParams.appID},
     {config.deviceMAC},
     {hmi_app1_id})
 
