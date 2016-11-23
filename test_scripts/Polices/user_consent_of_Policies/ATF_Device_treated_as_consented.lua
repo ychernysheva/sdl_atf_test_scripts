@@ -1,4 +1,7 @@
 ---------------------------------------------------------------------------------------------
+-- Requirement summary: 
+--    [Policies] Treating the device as consented 
+--
 -- Description: 
 --     Condition for device to be consented
 --     1. Used preconditions:
@@ -9,17 +12,9 @@
 --     2. Performed steps
 -- 			Activate app: HMI->SDL: SDL.ActivateApp => Policies Manager treats the device as consented => no consent popup appears => SDL->HMI: SDL.ActivateApp(isSDLAllowed: true, params)
 --
--- Requirement summary: 
---    [Policies] Treating the device as consented 
---
 -- Expected result:
 --     Policies Manager must treat the device as consented If "device" sub-section of "app_policies" has its group listed in "preconsented_groups".
 ---------------------------------------------------------------------------------------------
---[[ General Settings for configuration ]]
-Test = require('user_modules/connecttest_resumption')
-require('cardinalities')
-local mobile_session = require('mobile_session')
-
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 
@@ -31,10 +26,15 @@ local Preconditions = require('user_modules/shared_testcases/commonPreconditions
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
 require('user_modules/AppTypes')
 
+--[[ General Settings for configuration ]]
+Test = require('user_modules/connecttest_resumption')
+require('cardinalities')
+local mobile_session = require('mobile_session')
+
 --[[ Preconditions ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
 
-function Test:CloseConnection()
+function Test:Precondition_CloseConnection()
 	self.mobileConnection:Close()
 	commonTestCases:DelayedExp(3000)
 		
@@ -44,7 +44,7 @@ Preconditions:BackupFile("sdl_preloaded_pt.json")
 
 testCasesForPolicyTable:Precondition_updatePolicy_By_overwriting_preloaded_pt("files/DeviceGroupInPreconsented_preloadedPT.json")
 
-function Test:ConnectDevice()
+function Test:Precondition_ConnectDevice()
 	commonTestCases:DelayedExp(2000)
 	self:connectMobile()
 	EXPECT_HMICALL("BasicCommunication.UpdateDeviceList",
@@ -64,7 +64,7 @@ function Test:ConnectDevice()
 	:Times(AtLeast(1))
 end
 
-function Test:RegisterApplication()
+function Test:Precondition_RegisterApplication()
 	commonTestCases:DelayedExp(3000)
 	self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
 	self.mobileSession:StartService(7)
@@ -81,19 +81,23 @@ end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
-
-commonFunctions:userPrint(34, "Test is intended to check condition for device to be consented")
-
+			
 function Test:TreatDeviceAsConsented()	
 	local Input_AppId
 	Input_AppId = self.applications[config.application1.registerAppInterfaceParams.appName]
-	local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = Input_AppId}) --hmi side: sending SDL.ActivateApp 
+	local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = Input_AppId}) 
 	EXPECT_HMICALL("SDL.ActivateApp", {isSDLAllowed = true, config.deviceMAC})
 	EXPECT_HMIRESPONSE(RequestId)
 	EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"})
 end
 
 --[[ Postconditions ]]
-commonFunctions:SDLForceStop()
-
-testCasesForPolicyTable:Restore_preloaded_pt()
+commonFunctions:newTestCasesGroup("Postconditions")
+			
+function Test:Postcondition_SDLForceStop()
+	commonFunctions:SDLForceStop()
+end
+			
+function Test:Postcondition_RestorePreloadedPT()										
+	testCasesForPolicyTable:Restore_preloaded_pt()
+end
