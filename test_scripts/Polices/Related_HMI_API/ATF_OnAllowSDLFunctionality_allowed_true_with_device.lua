@@ -1,53 +1,71 @@
+-- UNREADY
+-- should be updated after Question APPLINK-30264 is resolved
+
 ---------------------------------------------------------------------------------------------
--- Description: 
---     1. Preconditions: App is registered
---     2. Steps: Activate App, send SDL.OnAllowSDLFunctionality with 'allowed=true' and with 'device' to HMI
 -- Requirement summary: 
---     [Policy] "EXTERNAL_PROPRIETARY" flow: Related HMI API
 --     [Policies]: OnAllowSDLFunctionality with 'allowed=true' and with 'device' param from HMI
 --
+-- Description: 
+--     1. Preconditions: App is registered 
+--     2. Steps: Activate App, send SDL.OnAllowSDLFunctionality with 'allowed=true' and with 'device' to HMI
+--
 -- Expected result:
---     In case PoliciesManager receives _SDL.OnAllowSDLFunctionality_ with *'allowed=true'* and with *'device'* param from HMI, PoliciesManager must 
---     record the named device ('device' param) as consented in Local PT ("device_data"  section <device_id> subsection "user_consent_records"->"device" sub-section).
+--    app->SDL: RegisterAppInterface
+--    SDL->HMI: OnAppRegistered (appID)
+--    PoliciesManager: device needs consent; app is not present in Local PT.
+--    PoliciesManager: "<appID>": "pre_DataConsent" //that is, adds appID to the Local PT and assigns default policies to it
+--    SDL->HMI: SDL.OnSDLConsentNeeded
+--    HMI->SDL: SDL.GetUserFriendlyMessages ("DataConsent")
+--    SDL->HMI: SDL.GetUserFriendlyMessages_response
+--    HMI displays the device consent pormpt. User makes choice.
+--    HMI->SDL: OnAllowSDLFunctionality
 ---------------------------------------------------------------------------------------------
+--[[ General configuration parameters ]]
+config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
+
+--[[ Required Shared libraries ]]
+local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
+local commonSteps = require('user_modules/shared_testcases/commonSteps')
+local testCasesForBuildingSDLPolicyFlag = require('user_modules/shared_testcases/testCasesForBuildingSDLPolicyFlag')
+require('user_modules/AppTypes')
+
+--[[ General Precondition before ATF start ]]
+testCasesForBuildingSDLPolicyFlag:Update_PolicyFlag("EXTENDED_POLICY", "EXTERNAL_PROPRIETARY")
+testCasesForBuildingSDLPolicyFlag:CheckPolicyFlagAfterBuild("EXTENDED_POLICY","EXTERNAL_PROPRIETARY")
+commonSteps:DeleteLogsFileAndPolicyTable()
+
 --[[ General Settings for configuration ]]
 Test = require('connecttest') 
 require('cardinalities')
 require('mobile_session')
---[[ General configuration parameters ]]
-config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
+
 --[[ Local Functions ]]
 local function get_id_value() 
   local sql_select = "sqlite3 " .. tostring(SDLStoragePath) .. "policy.sqlite \"SELECT id FROM functional_group WHERE name = \"BaseBeforeDataConsent\"\""
-    local aHandle = assert( io.popen( sql_select , 'r'))
-    sql_output = aHandle:read( '*l' )   
-    local retvalue = tonumber(sql_output)    
-    if (retvalue == nil) then
+    local handle = assert( io.popen( sql_select , 'r'))
+    sql_output = handle:read( '*l' )   
+    local ret_value = tonumber(sql_output)    
+    if (ret_value == nil) then
        self:FailTestCase("device id can't be read")
     else 
-      return retvalue
+      return ret_value
     end
 end
---[[ Required Shared libraries ]]
-local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
-local commonSteps = require('user_modules/shared_testcases/commonSteps')
-require('user_modules/AppTypes')
+
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
-commonSteps:DeleteLogsFileAndPolicyTable()
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
-function Test:ActivateApp_allowed_true_with_device()
-  -- HMI -> SDL: SDL.ActivateApp
-  local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", {appID = self.HMIAppID})
+function Test:TestStep:ActivateApp_allowed_true_with_device()
+  local request_id = self.hmiConnection:SendRequest("SDL.ActivateApp", {appID = self.HMIAppID})
   -- SDL -> HMI: SDL.ActivateApp {isSDLAllowed: false, device is omitted}
-  EXPECT_HMIRESPONSE(RequestId,{isSDLAllowed = false, method = "SDL.ActivateApp"})
+  EXPECT_HMIRESPONSE(request_id,{isSDLAllowed = false, method = "SDL.ActivateApp"})
     -- HMI -> SDL: SDL.GetUserFriendlymessage {messageCodes: DataConsent}
-    local RequestId = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", 
+    local request_id = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", 
       {language = "EN-US", messageCodes = {"DataConsent"}})
     -- SDL -> HMI: SDL.GetUserFriendlymessage {messages}
-    EXPECT_HMIRESPONSE(RequestId,{result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
+    EXPECT_HMIRESPONSE(request_id,{result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
       -- HMI -> SDL: SDL.OnAllowSDLFunctionality {allowed: true, device, source}
       self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", 
       {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = "127.0.0.1"}})
@@ -63,7 +81,7 @@ function Test:ActivateApp_allowed_true_with_device()
   EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "NONE", systemContext = "MAIN"}) 
 end
 
-function Test:CheckValueOfDeviceID()
+function Test:TestStep_CheckValueOfDeviceID()
   device_id = get_id_value(self)
   print (device_id)  
   if (device_id == 0) then
@@ -72,6 +90,9 @@ function Test:CheckValueOfDeviceID()
 end
 
 --[[ Postconditions ]]
-commonFunctions:SDLForceStop()
+commonFunctions:newTestCasesGroup("Postconditions")
+function Test:Postcondition_Force_Stop_SDL()
+  commonFunctions:SDLForceStop(self)
+end
 
 return Test 
