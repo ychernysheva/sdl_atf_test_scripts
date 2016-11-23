@@ -26,51 +26,52 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 
 --[[ Required Shared libraries ]]
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
+local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
 local testCasesForPolicyTableSnapshot = require('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
-local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 
 --[[ Local Variables ]]
-local hmi_app_id
+local hmi_app_id1, hmi_app_id2
 
 --[[ General Precondition before ATF start ]]
 --ToDo: shall be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
 config.defaultProtocolVersion = 2
-commonPreconditions:Connecttest_without_ExitBySDLDisconnect_WithoutOpenConnectionRegisterApp("connecttest_RAI.lua")
 
 --[[ General Settings for configuration ]]
-Test = require('user_modules/connecttest_RAI')
+Test = require('connecttest')
 require('cardinalities')
 require('user_modules/AppTypes')
 local mobile_session = require('mobile_session')
 
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
-function Test.Precondition_remove_user_connecttest()
-  os.execute( "rm -f ./user_modules/connecttest_RAI.lua" )
+
+function Test:Precondition_trigger_getting_device_consent()
+  testCasesForPolicyTable:trigger_getting_device_consent(self, config.application1.registerAppInterfaceParams.appName, config.deviceMAC)
 end
 
-function Test:Precondition_ConnectMobile()
-  self:connectMobile()
+function Test:Precondition_flow_SUCCEESS_EXTERNAL_PROPRIETARY()
+  testCasesForPolicyTable:flow_SUCCEESS_EXTERNAL_PROPRIETARY(self)
 end
 
 function Test:Precondition_StartNewSession()
-  self.mobileSession = mobile_session.MobileSession( self, self.mobileConnection)
-  self.mobileSession:StartService(7)
+  self.mobileSession1 = mobile_session.MobileSession( self, self.mobileConnection)
+  self.mobileSession1:StartService(7)
 end
 
 function Test:Precondition_RegisterNewApplication()
-  local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
+  hmi_app_id1 = self.applications[config.application1.registerAppInterfaceParams.appName]
+  local correlationId = self.mobileSession1:SendRPC("RegisterAppInterface", config.application2.registerAppInterfaceParams)
 
-  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application1.appName } })
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application2.appName } })
   :Do(function(_,_data2)
-      hmi_app_id = _data2.params.application.appID
+      hmi_app_id2 = _data2.params.application.appID
 
       EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
 
       testCasesForPolicyTableSnapshot:verify_PTS(true,
-        {config.application1.registerAppInterfaceParams.appID},
+        {config.application1.registerAppInterfaceParams.appID, config.application2.registerAppInterfaceParams.appID},
         {config.deviceMAC},
-        {hmi_app_id})
+        {hmi_app_id1, hmi_app_id2})
 
       local timeout_after_x_seconds = testCasesForPolicyTableSnapshot:get_data_from_PTS("module_config.timeout_after_x_seconds")
       local seconds_between_retries = {}
@@ -88,7 +89,7 @@ function Test:Precondition_RegisterNewApplication()
           self.hmiConnection:SendResponse(_data3.id, _data3.method, "SUCCESS", {})
         end)
     end)
-  self.mobileSession:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS"})
+  self.mobileSession1:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS"})
 end
 
 function Test:Precondition_Suspend()
@@ -134,9 +135,9 @@ function Test:TestStep_PTU_NotSuccessful_AppID_ListedPT_NewIgnCycle()
       EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
 
       testCasesForPolicyTableSnapshot:verify_PTS(true,
-        {config.application1.registerAppInterfaceParams.appID},
+        {config.application1.registerAppInterfaceParams.appID, config.application2.registerAppInterfaceParams.appID},
         {config.deviceMAC},
-        {hmi_app_id})
+        {hmi_app_id1, hmi_app_id2})
 
       local timeout_after_x_seconds = testCasesForPolicyTableSnapshot:get_data_from_PTS("module_config.timeout_after_x_seconds")
       local seconds_between_retries = {}
