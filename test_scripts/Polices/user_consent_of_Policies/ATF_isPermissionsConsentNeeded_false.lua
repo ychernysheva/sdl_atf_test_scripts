@@ -1,22 +1,18 @@
 ---------------------------------------------------------------------------------------------
+-- Requirement summary: 
+--    [Policies] SDL.ActivateApp from HMI and 'isPermissionsConsentNeeded' parameter in the response
+--
 -- Description: 
 --     SDL receives request for app activation from HMI and LocalPT contains permission that don't require User`s consent
 --     1. Used preconditions:
---			Delete SDL log file and policy table
+--		Delete SDL log file and policy table
 -- 			
 --     2. Performed steps
--- 			Activate with default permissions
---
--- Requirement summary: 
---    [Policies] SDL.ActivateApp from HMI and 'isPermissionsConsentNeeded' parameter in the response
+-- 		Activate with default permissions
 --
 -- Expected result:
 --      On receiving SDL.ActivateApp PoliciesManager must respond with "isPermissionsConsentNeeded:false" to HMI, consent for custom permissions is not appeared
 ---------------------------------------------------------------------------------------------
---[[ General Settings for configuration ]]
-Test = require('connecttest')
-require('cardinalities')
-
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 
@@ -26,13 +22,15 @@ local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
 require('user_modules/AppTypes')
 
+--[[ General Settings for configuration ]]
+Test = require('connecttest')
+require('cardinalities')
+
 --[[ Preconditions ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
-
-commonFunctions:userPrint(34, "Test is intended to check isPermissionsConsentNeeded:false for app with PreConsented permissions.")
 
 function Test:IsPermissionsConsentNeeded_false_on_app_activation()
 	local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.applications["Test Application"]})
@@ -46,5 +44,11 @@ function Test:IsPermissionsConsentNeeded_false_on_app_activation()
 end
 
 --[[ Postconditions ]]
-commonFunctions:SDLForceStop()
-testCasesForPolicyTable:Restore_preloaded_pt()
+commonFunctions:newTestCasesGroup("Postconditions")
+	
+function Test:Postcondition_SDLForceStop()
+	commonFunctions:SDLForceStop()
+end										
+function Test:Postcondition_RestorePreloadedPT()										
+	testCasesForPolicyTable:Restore_preloaded_pt()
+end
