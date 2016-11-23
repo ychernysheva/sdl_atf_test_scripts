@@ -11,15 +11,11 @@
 -- 2. Steps: Start SDL, Activate App, in SDL.GetUserFriendlyMessage parameter "language" is present(de-de).
 --
 -- Expected result:
---    In case SDL.GetUserFriendlyMessage request comes with "language" parameter and requested <language> sub-section for the corresponding <messageCode> is not found in LocalPT , 
---    PoliciesManager must respond with the information from the sub-section <language> obtained previously by UI.GetLanguage( current UI language being active on HMI, 
---    see key "messages" under “consumer_friendly_messages”, sub-sections of <message code> section which name corresponds to the value of messageCodes param of SDL.GetUserFriendlyMessage request.)
+--    HMI->SDL: SDL.GetUserFriendlyMessage ("messageCodes": "AppPermissions")
+--    SDL->HMI: SDL.GetUserFriendlyMessage ("messages": {messageCode: "AppPermissions", ttsString: "%appName% is requesting the use of the following ....", line1: "Grant Requested", line2: "Permission(s)?"})
 ---------------------------------------------------------------------------------------------
  
 --[[ General configuration parameters ]]
-Test = require('connecttest')
-require('cardinalities')
-require('mobile_session')
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
  
 --[[ Required Shared libraries ]]
@@ -45,7 +41,12 @@ end
 testCasesForBuildingSDLPolicyFlag:Update_PolicyFlag("EXTENDED_POLICY", "EXTERNAL_PROPRIETARY")
 testCasesForBuildingSDLPolicyFlag:CheckPolicyFlagAfterBuild("EXTENDED_POLICY","EXTERNAL_PROPRIETARY")
 commonSteps:DeleteLogsFileAndPolicyTable()
- 
+
+--[[ General Settings for configuration ]]
+Test = require('connecttest')
+require('cardinalities')
+require('mobile_session')
+
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
 function Test:Precondition_StopSDL()
@@ -84,7 +85,7 @@ end
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
-function Test:ActivateApp_language_obtained_from_UI_GetLanguage()
+function Test:TestStep_ActivateApp_language_obtained_from_UI_GetLanguage()
   local request_id = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.applications["Test Application"]})
   EXPECT_HMIRESPONSE(request_id)
   :Do(function(_,data)
