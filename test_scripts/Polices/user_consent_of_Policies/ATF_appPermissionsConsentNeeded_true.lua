@@ -1,29 +1,24 @@
 ---------------------------------------------------------------------------------------------
+-- Requirement summary: 
+--    	[Policies]: User consent required on permissions change
+--	[Policies] GetListOfPermissions with appID
+--
 -- Description: 
 --     Local PT is successfully updated and there are new permissions that require User`s consent
 --     1. Used preconditions:	
---			Unregister default application
--- 			Register application 
---			Activate application
+--		Unregister default application
+-- 		Register application 
+--		Activate application
 --
 --     2. Performed steps
---		    Perform PTU with new permissions that require User consent
---
--- Requirement summary: 
---    	[Policies]: User consent required on permissions change
---		[Policies] GetListOfPermissions with appID
+--		Perform PTU with new permissions that require User consent
 --
 -- Expected result:
 --  	Policies Manager must notify HMI about 'user-consent-required' via SDL.OnAppPermissionChanged{appID, appPermissionsConsentNeeded:true, 
---		provide the list of permissions that require User`s consent upon request from HMI via GetListOfPermissions(appID);
--- 		PoliciesManager must respond with the list of <groupName>s that have the field "user_consent_prompt" in corresponding <functional grouping> and 
---		are assigned to the specified application (section "<appID>" -> "groups") 
+--	provide the list of permissions that require User`s consent upon request from HMI via GetListOfPermissions(appID);
+-- 	PoliciesManager must respond with the list of <groupName>s that have the field "user_consent_prompt" in corresponding <functional grouping> and 
+--	are assigned to the specified application (section "<appID>" -> "groups") 
 ---------------------------------------------------------------------------------------------
---[[ General Settings for configuration ]]
-Test = require('connecttest')
-require('cardinalities')
-local mobile_session = require('mobile_session')
-
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 
@@ -33,17 +28,22 @@ local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 require('user_modules/AppTypes')
 
+--[[ General Settings for configuration ]]
+Test = require('connecttest')
+require('cardinalities')
+local mobile_session = require('mobile_session')
+
 --[[ Preconditions ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
 
-function Test:Unregister_default_app() 
+function Test:Precondition_Unregister_default_app() 
 	local CorIdUAI = self.mobileSession:SendRPC("UnregisterAppInterface",{}) 
 	EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered", {appID = self.applications["SyncProxyTester"], unexpectedDisconnect = false})
 	EXPECT_RESPONSE(CorIdUAI, { success = true, resultCode = "SUCCESS"})
 	:Timeout(2000) 
 end
 
-function Test:Register_app()
+function Test:Precondition_Register_app()
 	commonTestCases:DelayedExp(3000)
 	self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
 	self.mobileSession:StartService(7)
@@ -58,7 +58,7 @@ function Test:Register_app()
 	end)
 end
 
-function Test:Activate_app()
+function Test:Precondition_Activate_app()
 	local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.HMIAppID})
 	EXPECT_HMIRESPONSE(RequestId)
 		:Do(function(_,data)
@@ -80,7 +80,6 @@ end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
-commonFunctions:userPrint(34, "Test is intended to check that Policies Manager notifies HMI about user-consent-required with appPermissionsConsentNeeded:true")
 
 function Test:PTU_appPermissionsConsentNeeded_true()
 	local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
@@ -130,4 +129,8 @@ function Test:PTU_appPermissionsConsentNeeded_true()
 end
 
 --[[ Postconditions ]]
-commonFunctions:SDLForceStop()
+commonFunctions:newTestCasesGroup("Postconditions")
+											
+function Test:Postcondition_SDLForceStop()
+	commonFunctions:SDLForceStop()
+end	
