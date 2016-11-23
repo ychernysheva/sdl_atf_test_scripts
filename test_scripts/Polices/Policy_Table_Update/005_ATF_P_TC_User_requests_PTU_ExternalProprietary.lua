@@ -42,12 +42,6 @@ Test = require('connecttest')
 require('cardinalities')
 require('user_modules/AppTypes')
 
---[[ Preconditions ]]
-commonFunctions:newTestCasesGroup("Preconditions")
-function Test:Precondition_flow_SUCCEESS_EXTERNAL_PROPRIETARY()
-  testCasesForPolicyTable:flow_SUCCEESS_EXTERNAL_PROPRIETARY(self)
-end
-
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 function Test:TestStep_User_requests_PTU()
