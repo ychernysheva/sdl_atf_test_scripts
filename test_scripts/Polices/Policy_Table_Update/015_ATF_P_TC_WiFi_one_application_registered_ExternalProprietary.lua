@@ -11,7 +11,7 @@
 -- appID of app is NOT listed at PolicyTable, etc.)
 -- 1. Used preconditions
 -- SDL is built with "-DEXTENDED_POLICY: EXTERNAL_PROPRIETARY" flag
--- Connect mobile phone over WiFi.
+-- Connect mobile phone over WiFi. Device is consented.
 -- Register new application.
 -- SDL->HMI: OnAppRegistered()
 --
@@ -24,57 +24,46 @@
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 
 --[[ Required Shared libraries ]]
-local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
-local commonPreconditions = require ('user_modules/shared_testcases/commonPreconditions')
-local testCasesForBuildingSDLPolicyFlag = require('user_modules/shared_testcases/testCasesForBuildingSDLPolicyFlag')
+local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
 local testCasesForPolicyTableSnapshot = require('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
 
---[[ General Precondition before ATF start ]]
--- commonFunctions:SDLForceStop()
-testCasesForBuildingSDLPolicyFlag:Update_PolicyFlag("EXTENDED_POLICY", "EXTERNAL_PROPRIETARY")
-testCasesForBuildingSDLPolicyFlag:CheckPolicyFlagAfterBuild("EXTENDED_POLICY","EXTERNAL_PROPRIETARY")
-commonSteps:DeleteLogsFileAndPolicyTable()
-commonPreconditions:Connecttest_without_ExitBySDLDisconnect_WithoutOpenConnectionRegisterApp("connecttest_RAI.lua")
-
---ToDo: shall be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
-config.defaultProtocolVersion = 2
-
 --[[ General Settings for configuration ]]
-Test = require('user_modules/connecttest_RAI')
+Test = require('connecttest')
 require('cardinalities')
 require('user_modules/AppTypes')
 local mobile_session = require('mobile_session')
 
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
-function Test:Precondition_remove_user_connecttest()
-  os.execute( "rm -f ./user_modules/connecttest_RAI.lua" )
+function Test:Precondition_Getting_device_consent()
+  testCasesForPolicyTable:trigger_getting_device_consent(self, config.application1.registerAppInterfaceParams.appName, config.deviceMAC)
+end
+
+function Test:Precondition_flow_SUCCEESS_EXTERNAL_PROPRIETARY()
+  testCasesForPolicyTable:flow_SUCCEESS_EXTERNAL_PROPRIETARY(self)
 end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
-function Test:TestStep_ConnectMobile()
-  self:connectMobile()
-end
-
 function Test:TestStep_StartNewSession()
-  self.mobileSession = mobile_session.MobileSession( self, self.mobileConnection)
-  self.mobileSession:StartService(7)
+  self.mobileSession1 = mobile_session.MobileSession( self, self.mobileConnection)
+  self.mobileSession1:StartService(7)
 end
 
 function Test:TestStep_PTU_AppID_NotListed_PT_WiFi()
-  local hmi_app_id = self.applications[config.application1.registerAppInterfaceParams.appName]
-  local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
-
-  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application1.appName } })
+  local hmi_app_id1 = self.applications[config.application1.registerAppInterfaceParams.appName]
+  local correlationId = self.mobileSession1:SendRPC("RegisterAppInterface", config.application2.registerAppInterfaceParams)
+  print("config.application2.registerAppInterfaceParams.appName = "..config.application2.registerAppInterfaceParams.appName)
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application2.registerAppInterfaceParams.appName } })
   :Do(function(_,data)
+      local hmi_app_id2 = data.params.application.appID
       EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
 
-      testCasesForPolicyTableSnapshot:create_PTS(true,
-        {config.application1.registerAppInterfaceParams.appID},
+      testCasesForPolicyTableSnapshot:verify_PTS(true,
+        {config.application1.registerAppInterfaceParams.appID, config.application1.registerAppInterfaceParams.appID},
         {config.deviceMAC},
-        {hmi_app_id})
+        {hmi_app_id1, hmi_app_id2})
 
       local timeout_after_x_seconds = testCasesForPolicyTableSnapshot:get_data_from_PTS("module_config.timeout_after_x_seconds")
       local seconds_between_retries = {}
@@ -89,11 +78,11 @@ function Test:TestStep_PTU_AppID_NotListed_PT_WiFi()
           timeout = timeout_after_x_seconds,
           retry = seconds_between_retries
         })
-      :Do(function(_,data)
-          self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+      :Do(function(_,data1)
+          self.hmiConnection:SendResponse(data1.id, data1.method, "SUCCESS", {})
         end)
     end)
-  self.mobileSession:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS"})
+  self.mobileSession1:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS"})
 end
 
 --[[ Postconditions ]]
