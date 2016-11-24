@@ -1,12 +1,12 @@
 ---------------------------------------------------------------------------------------------
 -- UNREADY: Only 6 RPCs are covered
 -- Requirement summary:
--- HMI Levels the notification is allowed to be processed in
+-- [GeneralResultCodes] DISALLOWED in case app's current HMI Level is not listed in assigned policies
 --
 -- Description:
--- SDL must not send/ transfer (in case got from HMI) notification to mobile application,
+-- SDL must return DISALLOWED resultCode and success = "false" to the RPC requested by the application
 -- in case Policy Table doesn't contain current application's HMILevel
--- defined in Policy Table "functional_groupings" section for a specified notification
+-- defined in Policy Table "functional_groupings" section for a specified RPC
 --
 -- Preconditions:
 -- 1. Application with <appID> is registered on SDL.
@@ -14,7 +14,8 @@
 -- 3. Policy Table contains section "functional_groupings",
 -- in which for a specified PRC there're defined HMILevels: HMILevel_2, HMILevel_3
 -- Steps:
--- 1. App -> SDL: RPC (params)
+-- 1. Send RPC App -> SDL
+-- 2. Verify status of response
 --
 -- Expected result:
 -- SDL -> App: RPC (DISALLOWED, success: "false")
