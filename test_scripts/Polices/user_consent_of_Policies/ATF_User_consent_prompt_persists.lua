@@ -1,3 +1,5 @@
+--UNREADY
+--Register app interface function should be corrected, currently OnHmiStatus is not received
 ---------------------------------------------------------------------------------------------
 -- Requirement summary: 
 --		[Policies]: "user_consent_prompt" field is included to the <appID>`s policies
