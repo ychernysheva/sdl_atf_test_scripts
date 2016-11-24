@@ -1,3 +1,5 @@
+--UNREADY
+-- Function for timestamp should be corrected
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
 --     [Policies] SDL must add a timestamp of the consent in a specific format
