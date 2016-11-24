@@ -19,6 +19,11 @@
 -- Expected result:
 --      PoliciesManager must respond with "isAppPermissionRevoked:true" and "AppRevokedPermissions" param containing the list of revoked permissions to HMI
 ---------------------------------------------------------------------------------------------
+--[[ General Settings for configuration ]]
+Test = require('user_modules/connecttest_resumption')
+require('cardinalities')
+local mobile_session = require('mobile_session')
+
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 
@@ -29,11 +34,6 @@ local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 local Preconditions = require('user_modules/shared_testcases/commonPreconditions')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
 require('user_modules/AppTypes')
-
---[[ General Settings for configuration ]]
-Test = require('user_modules/connecttest_resumption')
-require('cardinalities')
-local mobile_session = require('mobile_session')
 
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup ("Preconditions")
