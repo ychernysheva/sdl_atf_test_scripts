@@ -55,6 +55,8 @@ function Test:Test()
       fuelLevel_State = true,
       instantFuelConsumption = true,
     })
+  EXPECT_HMICALL("VehicleInfo.GetVehicleData")
+  :Times(0)
   self.mobileSession:ExpectResponse(corId, {success = false, resultCode = "DISALLOWED"})
 end
 
