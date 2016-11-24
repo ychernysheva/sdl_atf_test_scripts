@@ -1,5 +1,4 @@
 ---------------------------------------------------------------------------------------------
--- UNREADY: Only 6 RPCs are covered
 -- Requirement summary:
 -- [GeneralResultCodes] DISALLOWED in case app's current HMI Level is not listed in assigned policies
 --
