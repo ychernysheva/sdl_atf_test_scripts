@@ -1,3 +1,5 @@
+-- UNREADY
+--To be corrected check of LPT after master_reset
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
 --    [Policies] Master Reset
