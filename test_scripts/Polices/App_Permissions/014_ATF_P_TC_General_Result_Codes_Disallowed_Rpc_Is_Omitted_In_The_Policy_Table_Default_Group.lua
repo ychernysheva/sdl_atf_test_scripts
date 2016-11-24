@@ -1,5 +1,4 @@
 ---------------------------------------------------------------------------------------------
--- UNREADY: Only 6 RPCs and 3 notifications are covered
 -- Requirement summary:
 -- [GeneralResultCodes]DISALLOWED: RPC is omitted in the PolicyTable "default" group(s) assigned to the application
 --
