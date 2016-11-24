@@ -5,14 +5,14 @@
 -- Delete files and policy table from previous ignition cycle if any
 -- Do not start default SDL
 -- 2. Performed steps:
--- Add several values in "RequestType" array (one of them is invalid) in PreloadedPT json file
+-- Add several values in "RequestType" array (all of them is invalid) in PreloadedPT json file
 -- Start SDL with created PreloadedPT json file
 
 -- Requirement summary:
--- [Policies] PreloadPT one invalid and other valid values in "RequestType" array
+-- [Policies] PreloadPT all invalid values in "RequestType" array
 --
 -- Expected result:
--- SDL must cut off this invalid value and continue working.
+-- SDL must shutdown
 ---------------------------------------------------------------------------------------------
 --[[ General Settings for configuration ]]
 Test = require('connecttest')
