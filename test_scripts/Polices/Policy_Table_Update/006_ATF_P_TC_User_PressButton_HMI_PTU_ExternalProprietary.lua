@@ -1,4 +1,8 @@
 ---------------------------------------------------------------------------------------------
+-- Requirements summary:
+-- [PolicyTableUpdate] PoliciesManager must initiate PTU on a User request
+-- [HMI API] UpdateSDL request/response
+--
 -- Description:
 -- SDL should request PTU in case user requests PTU
 -- 1. Used preconditions
@@ -8,9 +12,6 @@
 -- 2. Performed steps
 -- User press button on HMI to request PTU.
 -- HMI->SDL: SDL.UpdateSDL
---
--- Requirements summary:
--- [PolicyTableUpdate] PoliciesManager must initiate PTU on a User request
 --
 -- Expected result:
 -- PTU is requested. PTS is created.
@@ -22,17 +23,10 @@
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 
 --[[ Required Shared libraries ]]
-local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
-local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
-local testCasesForBuildingSDLPolicyFlag = require('user_modules/shared_testcases/testCasesForBuildingSDLPolicyFlag')
 local testCasesForPolicyTableSnapshot = require('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
---[[ General Precondition before ATF start ]]
--- commonFunctions:SDLForceStop()
-testCasesForBuildingSDLPolicyFlag:Update_PolicyFlag("ENABLE_EXTENDED_POLICY", "OFF")
-testCasesForBuildingSDLPolicyFlag:CheckPolicyFlagAfterBuild("ENABLE_EXTENDED_POLICY","OFF")
-commonSteps:DeleteLogsFileAndPolicyTable()
 
+--[[ General Precondition before ATF start ]]
 --ToDo: shall be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
 config.defaultProtocolVersion = 2
 
@@ -40,10 +34,6 @@ config.defaultProtocolVersion = 2
 Test = require('connecttest')
 require('cardinalities')
 require('user_modules/AppTypes')
-
---[[ Preconditions ]]
-commonFunctions:newTestCasesGroup("Preconditions")
-testCasesForPolicyTable:flow_PTU_SUCCEESS_EXTERNAL_PROPRIETARY()
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
@@ -53,10 +43,8 @@ function Test:TC_User_PressButton_HMI_PTU()
 
   EXPECT_HMINOTIFICATION("SDL.UpdateSDL", {status = "UPDATE_NEEDED"})
 
-  testCasesForPolicyTableSnapshot:create_PTS(true, {
-      config.application1.registerAppInterfaceParams.appID,
-      config.application2.registerAppInterfaceParams.appID,
-    },
+  testCasesForPolicyTableSnapshot:verify_PTS(true,
+    {config.application1.registerAppInterfaceParams.appID},
     {config.deviceMAC},
     {hmi_app1_id})
 
@@ -67,7 +55,7 @@ function Test:TC_User_PressButton_HMI_PTU()
   end
   EXPECT_HMICALL("BasicCommunication.PolicyUpdate",
     {
-      file = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate",
+      file = "/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json",
       timeout = timeout_after_x_seconds,
       retry = seconds_between_retries
     })
