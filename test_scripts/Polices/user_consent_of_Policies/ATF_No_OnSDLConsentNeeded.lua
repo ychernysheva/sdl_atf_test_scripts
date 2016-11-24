@@ -6,12 +6,17 @@
 -- PTU is triggered by user, SDL generates PoliciesSnapshot and one unconsented device with registered app is found
 -- 1. Used preconditions
 --     SDL is built with "-DEXTENDED_POLICY: EXTERNAL_PROPRIETARY" flag
+--     DeleteLogsFileAndPolicyTable
+--     Close default connection
+--     Connect unconsented device (isSDLAllowed = false) 
+--     Register app
+--     
 -- 2. Performed steps
 --    User presses button on HMI to request PTU ->
 --      HMI -> SDL: SDL.UpdateSDL_request
 --      SDL -> HMI: SDL.UpdateSDL_response(UPDATE_NEEDED)
 --      SDL generates Policies Snapshot
---      SDL check that there no consented devices connected (one un-consented devices connected - isSDLAllowed = false)
+--      SDL check that there no consented devices connected (one un-consented devices connected)
 --    
 -- Expected result:
 --    SDL must NOT send the PoliciesSnapshot over OnSystemRequest to any of the apps,
@@ -37,15 +42,12 @@ local testCasesForPolicyTableSnapshot = require('user_modules/shared_testcases/t
 --[[ Preconditions ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
 
-function Test:CloseConnection()
+function Test:Precondition_CloseConnection()
   self.mobileConnection:Close()
   commonTestCases:DelayedExp(3000)  
 end
 
-Preconditions:BackupFile("sdl_preloaded_pt.json")
-testCasesForPolicyTable:Precondition_updatePolicy_By_overwriting_preloaded_pt("files/GroupsForApp_preloaded_pt.json")
-
-function Test:ConnectDevice()
+function Test:Precondition_ConnectDevice()
   commonTestCases:DelayedExp(2000)
   self:connectMobile()
   EXPECT_HMICALL("BasicCommunication.UpdateDeviceList",
@@ -65,7 +67,7 @@ function Test:ConnectDevice()
   :Times(AtLeast(1))
 end
 
-function Test:RegisterApp()
+function Test:Precondition_RegisterApp()
   commonTestCases:DelayedExp(3000)
   self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
   self.mobileSession:StartService(7)
@@ -83,7 +85,7 @@ end
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
-function Test:TestStep1_PTU_requested_through_HMI()
+function Test:PTU_requested_through_HMI()
   self.hmiConnection:SendNotification("SDL.UpdateSDL", {} )
   EXPECT_HMINOTIFICATION("SDL.UpdateSDL", {status = "UPDATE_NEEDED"})
     testCasesForPolicyTableSnapshot:verify_PTS(true,
