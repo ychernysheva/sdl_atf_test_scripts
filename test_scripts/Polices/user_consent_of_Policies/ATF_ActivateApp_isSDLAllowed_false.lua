@@ -9,7 +9,6 @@
 -- 			Overwrite preloaded Policy Table to ensure device is not preconsented
 -- 			Connect device
 -- 			Register application
---
 --     2. Performed steps
 --		    Activate application 
 --
@@ -17,6 +16,11 @@
 --     PoliciesManager must respond with 1)"isSDLAllowed:false", 2) "device" param containing the device`s name and ID previously sent by SDL via UpdateDeviceList
 --     in the response to HMI without consent request 
 ---------------------------------------------------------------------------------------------
+--[[ General Settings for configuration ]]
+Test = require('user_modules/connecttest_resumption')
+require('cardinalities')
+local mobile_session = require('mobile_session')
+
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 
@@ -27,11 +31,6 @@ local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 local Preconditions = require('user_modules/shared_testcases/commonPreconditions')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
 require('user_modules/AppTypes')
-
---[[ General Settings for configuration ]]
-Test = require('user_modules/connecttest_resumption')
-require('cardinalities')
-local mobile_session = require('mobile_session')
 
 --[[ Preconditions ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
