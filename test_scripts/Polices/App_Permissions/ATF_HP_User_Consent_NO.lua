@@ -1,31 +1,31 @@
 ---------------------------------------------------------------------------------------------
--- Description:
--- On getting negative user consent from HMI and storage this data into LocalPolicyTable, SDL must:
--- 1. assign only the permissions for which there is user consent in the local policy table and permissions (if any) that are listed in 'pre_DataConsent' section (that is, 'default_hmi', 'groups' and other) for this application 
--- 2. notify HMI via onPermissionsChange() notification about the applied permissions.
--- 3. notify mobile app via onPermissionsChange() notification about the applied permissions.
--- Preconditions:
--- 1. Delete policy.sqlite file, app_info.dat files
--- 2. <Device> is connected to SDL and consented by the User, <App> is running on that device.
--- 3. <App> is registered with SDL and is present in HMI list of registered aps.
--- 4. Local PT has permissions for <App> that require User`s consent.
---
 -- Requirement summary:
--- On getting user consent information from HMI and storage into LocalPolicyTable ,
+-- User-consent "NO"
 -- SDL must notify an application about the current permissions active on HMI via onPermissionsChange() notification.
 --
--- Actions:
--- 1. User choose <App> in the list of registered aps on HMI.
--- 2. The User allows definite permissions.
+-- Description:
+-- On getting negative user consent from HMI and storage this data into LocalPolicyTable, SDL must:
+-- a) assign only the permissions for which there is user consent in the local policy table and permissions (if any) that are listed in 'pre_DataConsent' section (that is, 'default_hmi', 'groups' and other) for this application
+-- b) notify HMI via onPermissionsChange() notification about the applied permissions.
+-- c) notify mobile app via onPermissionsChange() notification about the applied permissions.
+-- 1. Used preconditions:
+-- a) Delete policy.sqlite file, app_info.dat files
+-- b) <Device> is connected to SDL and consented by the User, <App> is running on that device.
+-- c) <App> is registered with SDL and is present in HMI list of registered aps.
+-- d) Local PT has permissions for <App> that require User`s consent.
+-- 2. Performed steps
+-- a) User choose <App> in the list of registered aps on HMI.
+-- b) The User disallows definite permissions.
+-- c) Send RPC to sure that it USER_DISALLOWED
 --
--- Expected:
--- 1. HMI->SDL: SDL.ActivateApp {appID}
+-- Expected result:
+-- a) HMI->SDL: SDL.ActivateApp {appID}
 -- SDL->HMI: SDL.ActivateApp_response{isPermissionsConsentNeeded: true, params}
 -- HMI->SDL: GetUserFriendlyMessage{params},
 -- SDL->HMI: GetUserFriendlyMessage_response{params}
 -- HMI->SDL: GetListOfPermissions{appID}
 -- SDL->HMI: GetListOfPermissions_response{}
--- 2. HMI->SDL: OnAppPermissionConsent {allowed = false}
+-- b) HMI->SDL: OnAppPermissionConsent {allowed = false}
 ---------------------------------------------------------------------------------------------
 
 --[[ General configuration parameters ]]
@@ -81,172 +81,162 @@ local function SetPermissionsForPre_DataConsent()
   file:close()
 end
 
---[[ Precondition ]]
-local function Precondition()
+--[[ Preconditions ]]
+function Test:Precondition_StopSDL()
+  StopSDL()
+end
 
-  commonFunctions:userPrint(34, "-- Precondition --")
+--ToDo: shall be removed when issue: "SDL doesn't stop at execution ATF function StopSDL()" is fixed
+function Test:Precondition_SDLForceStop()
+  commonFunctions:SDLForceStop()
+end
 
-  function Test:StopSDL()
-    StopSDL()
-  end
+function Test:Precondition_DeleteLogsAndPolicyTable()
+  commonSteps:DeleteLogsFiles()
+  commonSteps:DeletePolicyTable()
+end
 
-  --ToDo: shall be removed when issue: "SDL doesn't stop at execution ATF function StopSDL()" is fixed
-  function Test:SDLForceStop()
-    commonFunctions:SDLForceStop()
-  end
+function Test:Precondition_Backup_sdl_preloaded_pt()
+  BackupPreloaded()
+end
 
-  function Test:DeleteLogsAndPolicyTable()
-    commonSteps:DeleteLogsFiles()
-    commonSteps:DeletePolicyTable()
-  end
+function Test:Precondition_SetPermissionsForPre_DataConsent()
+  SetPermissionsForPre_DataConsent()
+end
 
-  function Test:Backup_sdl_preloaded_pt()
-    BackupPreloaded()
-  end
+function Test:Precondition_StartSDL_FirstLifeCycle()
+  StartSDL(config.pathToSDL, config.ExitOnCrash)
+end
 
-  function Test:SetPermissionsForPre_DataConsent()
-    SetPermissionsForPre_DataConsent()
-  end
+function Test:Precondition_InitHMI_FirstLifeCycle()
+  self:initHMI()
+end
 
-  function Test:StartSDL_FirstLifeCycle()
-    StartSDL(config.pathToSDL, config.ExitOnCrash)
-  end
+function Test:Precondition_InitHMI_onReady_FirstLifeCycle()
+  self:initHMI_onReady()
+end
 
-  function Test:InitHMI_FirstLifeCycle()
-    self:initHMI()
-  end
+function Test:Precondition_ConnectMobile_FirstLifeCycle()
+  self:connectMobile()
+end
 
-  function Test:InitHMI_onReady_FirstLifeCycle()
-    self:initHMI_onReady()
-  end
+function Test:Precondition_StartSession()
+  self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
+  self.mobileSession:StartService(7)
+end
 
-  function Test:ConnectMobile_FirstLifeCycle()
-    self:connectMobile()
-  end
+function Test:Precondition_RestorePreloadedPT()
+  RestorePreloadedPT()
+end
 
-  function Test:StartSession()
-    self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
-    self.mobileSession:StartService(7)
-  end
+function Test:Precondition_Activate_App_And_Consent_Device()
 
-  function Test:RestorePreloadedPT()
-    RestorePreloadedPT()
-  end
-
-  function Test:Activate_App_And_Consent_Device()
-
-    local CorIdRAI = self.mobileSession:SendRPC("RegisterAppInterface",
+  local CorIdRAI = self.mobileSession:SendRPC("RegisterAppInterface",
+    {
+      syncMsgVersion =
       {
-        syncMsgVersion =
-        {
-          majorVersion = 3,
-          minorVersion = 0
-        },
+        majorVersion = 3,
+        minorVersion = 0
+      },
+      appName = "SPT",
+      isMediaApplication = true,
+      languageDesired = "EN-US",
+      hmiDisplayLanguageDesired = "EN-US",
+      appID = "1234567",
+      deviceInfo =
+      {
+        os = "Android",
+        carrier = "Megafon",
+        firmwareRev = "Name: Linux, Version: 3.4.0-perf",
+        osVersion = "4.4.2",
+        maxNumberRFCOMMPorts = 1
+      }
+    })
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered",
+    {
+      application =
+      {
         appName = "SPT",
+        policyAppID = "1234567",
         isMediaApplication = true,
-        languageDesired = "EN-US",
         hmiDisplayLanguageDesired = "EN-US",
-        appID = "1234567",
         deviceInfo =
         {
-          os = "Android",
-          carrier = "Megafon",
-          firmwareRev = "Name: Linux, Version: 3.4.0-perf",
-          osVersion = "4.4.2",
-          maxNumberRFCOMMPorts = 1
+          name = "127.0.0.1",
+          id = config.deviceMAC,
+          transportType = "WIFI",
+          isSDLAllowed = false
         }
-      })
-    EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered",
-      {
-        application =
-        {
-          appName = "SPT",
-          policyAppID = "1234567",
-          isMediaApplication = true,
-          hmiDisplayLanguageDesired = "EN-US",
-          deviceInfo =
-          {
-            name = "127.0.0.1",
-            id = config.deviceMAC,
-            transportType = "WIFI",
-            isSDLAllowed = false
-          }
-        }
-      })
-    :Do(function(_,data)
-        self.applications["SPT"] = data.params.application.appID
-        EXPECT_RESPONSE(CorIdRAI, { success = true, resultCode = "SUCCESS"})
+      }
+    })
+  :Do(function(_,data)
+      self.applications["SPT"] = data.params.application.appID
+      EXPECT_RESPONSE(CorIdRAI, { success = true, resultCode = "SUCCESS"})
 
-        local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", {appID = self.applications["SPT"]})
-
-        EXPECT_HMIRESPONSE(RequestId, { result = {
-              code = 0,
-              isSDLAllowed = false},
-            method = "SDL.ActivateApp"})
-        :Do(function(_,data)
-            local RequestId = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
-            EXPECT_HMIRESPONSE(RequestId,{result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
-            :Do(function(_,data)
-                self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = "127.0.0.1"}})
-                EXPECT_HMICALL("BasicCommunication.ActivateApp")
-                :Do(function(_,data)
-                    self.hmiConnection:SendResponse(data.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
-                    EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"})
-                  end)
-              end)
-          end)
-      end)
-  end
-
-  function Test:DeactivateApp()
-    self.hmiConnection:SendNotification("BasicCommunication.OnAppDeactivated", {appID = self.applications["SPT"], reason = "GENERAL"})
-    EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "LIMITED"})
-  end
-
-  function Test:UpdatePolicyWithPTU()
-    local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
-    EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
-    :Do(function()
-        self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",
-          {
-            requestType = "PROPRIETARY",
-            fileName = "filename"
-          }
-        )
-        EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY" })
-        :Do(function()
-            local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest",
-              {
-                fileName = "PolicyTableUpdate",
-                requestType = "PROPRIETARY"
-              }, "files/PTU_with_permissions_for_app_1234567.json")
-            local systemRequestId
-            EXPECT_HMICALL("BasicCommunication.SystemRequest")
-            :Do(function(_,data)
-                systemRequestId = data.id
-                self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate",
-                  {
-                    policyfile = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate"
-                  })
-                local function to_run()
-                  self.hmiConnection:SendResponse(systemRequestId,"BasicCommunication.SystemRequest", "SUCCESS", {})
-                end
-                RUN_AFTER(to_run, 800)
-                self.mobileSession:ExpectResponse(CorIdSystemRequest, {success = true, resultCode = "SUCCESS"})
-              end)
-          end)
-      end)
-  end
-
+      local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", {appID = self.applications["SPT"]})
+      EXPECT_HMIRESPONSE(RequestId, { result = {
+            code = 0,
+            isSDLAllowed = false},
+          method = "SDL.ActivateApp"})
+      :Do(function(_,data)
+          local RequestId = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
+          EXPECT_HMIRESPONSE(RequestId,{result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
+          :Do(function(_,data)
+              self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = "127.0.0.1"}})
+              EXPECT_HMICALL("BasicCommunication.ActivateApp")
+              :Do(function(_,data)
+                  self.hmiConnection:SendResponse(data.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
+                  EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"})
+                end)
+            end)
+        end)
+    end)
 end
-Precondition()
+
+function Test:Precondition_DeactivateApp()
+  self.hmiConnection:SendNotification("BasicCommunication.OnAppDeactivated", {appID = self.applications["SPT"], reason = "GENERAL"})
+  EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "LIMITED"})
+end
+
+function Test:Precondition_UpdatePolicyWithPTU()
+  local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
+  EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
+  :Do(function()
+      self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",
+        {
+          requestType = "PROPRIETARY",
+          fileName = "filename"
+        }
+      )
+      EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY" })
+      :Do(function()
+          local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest",
+            {
+              fileName = "PolicyTableUpdate",
+              requestType = "PROPRIETARY"
+            }, "files/PTU_with_permissions_for_app_1234567.json")
+          local systemRequestId
+          EXPECT_HMICALL("BasicCommunication.SystemRequest")
+          :Do(function(_,data)
+              systemRequestId = data.id
+              self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate",
+                {
+                  policyfile = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate"
+                })
+              local function to_run()
+                self.hmiConnection:SendResponse(systemRequestId,"BasicCommunication.SystemRequest", "SUCCESS", {})
+              end
+              RUN_AFTER(to_run, 800)
+              self.mobileSession:ExpectResponse(CorIdSystemRequest, {success = true, resultCode = "SUCCESS"})
+            end)
+        end)
+    end)
+end
 
 --[[ Test ]]
-function Test:Step1_User_Disallow_New_Permissions_After_App_Activation()
+function Test:TestStep_User_Disallow_New_Permissions_After_App_Activation()
 
-  commonFunctions:userPrint(34, "-- Test --")
   local RequestIdActivateApp = self.hmiConnection:SendRequest("SDL.ActivateApp", {appID = self.applications["SPT"]})
-
   EXPECT_HMIRESPONSE(RequestIdActivateApp,
     { result = {
         code = 0,
@@ -278,32 +268,18 @@ function Test:Step1_User_Disallow_New_Permissions_After_App_Activation()
   --ToDo: (vikhrov) develop functions for extracting permissions for specific groups and compare it with permissionItem from OnPermissionsChange
 end
 
-function Test:Step2_Check_RPC_Disallowed_By_User()
+function Test:TestStep_Check_RPC_Disallowed_By_User()
 
   local CorIdRAI = self.mobileSession:SendRPC("Show",
     {
       mediaClock = "00:00:01",
       mainField1 = "Show1"
     })
-  EXPECT_HMICALL("UI.Show", {}):Do(function(_,data)
-      self.hmiConnection:SendResponse(data.id, "UI.Show", "SUCCESS", { })
-    end)
-  EXPECT_RESPONSE(CorIdRAI, { success = true, resultCode = "SUCCESS"})
-end
-
-function Test:Step3_Check_Disallowed_RPC()
-  local cid = self.mobileSession:SendRPC("AddSubMenu",
-    {
-      menuID = 1000,
-      position = 500,
-      menuName ="SubMenupositive"
-    })
-  EXPECT_RESPONSE(cid, { success = false, resultCode = "DISALLOWED" })
+  EXPECT_RESPONSE(CorIdRAI, { success = false, resultCode = "USER_DISALLOWED"})
 end
 
 --[[ Postcondition ]]
 --ToDo: shall be removed when issue: "SDL doesn't stop at execution ATF function StopSDL()" is fixed
-function Test:SDLForceStop()
-  commonFunctions:userPrint(34, "-- Postcondition --")
+function Test:Postcondition_SDLForceStop()
   commonFunctions:SDLForceStop()
 end
