@@ -1,3 +1,5 @@
+--UNREADY
+--Register app interface function should be corrected, currently OnHmiStatus is not received
 ---------------------------------------------------------------------------------------------
 -- Requirement summary: 
 --    	[Policies]: User-consent "YES"
