@@ -1,5 +1,4 @@
 ---------------------------------------------------------------------------------------------
--- UNREADY: Only 6 RPCs are covered
 -- Requirement summary:
 -- [GeneralResultCodes] DISALLOWED: RPC is omitted in the PolicyTable group(s) assigned to the application
 --
