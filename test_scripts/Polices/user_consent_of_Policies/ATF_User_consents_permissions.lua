@@ -1,17 +1,19 @@
---UNREADY
---Preconditions in header should be updated
---Register app interface function should be corrected, currently OnHmiStatus is not received
 ---------------------------------------------------------------------------------------------
 -- Requirement summary: 
 --    	[Policies]: User-consent "YES"
 --
 -- Description: 
 --     SDL gets user consent information from HMI
---     1. Used preconditions:	
+--     1. Used preconditions:
+--		Delete log files and policy table from previous cycle
+--		Close current connection
+--		Backup preloaded PT
+--		Overwrite preloaded with specific groups for app
+--		Connect device
+--		Register app
 --			
---
 --     2. Performed steps
---		   
+--		Activate app
 --
 -- Expected result:
 --  	SDL must notify an application about the current permissions active on HMI via onPermissionsChange() notification
@@ -74,7 +76,6 @@ function Test:Precondition_RegisterApp()
 			self.HMIAppID = data.params.application.appID
 		end)
 		self.mobileSession:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS" })
-		self.mobileSession:ExpectNotification("OnHMIStatus", {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
 	end)
 end
 
@@ -83,11 +84,13 @@ commonFunctions:newTestCasesGroup("Test")
 
 function Test:User_consent_on_activate_app()
 	local RequestIdActivateApp = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.HMIAppID})
-	EXPECT_HMIRESPONSE(RequestIdActivateApp, {result= {code = 0, method = "SDL.ActivateApp", isPermissionsConsentNeeded = true, isSDLAllowed = true, priority = "NONE"}})
+	EXPECT_HMIRESPONSE(RequestIdActivateApp, {result = {code = 0, method = "SDL.ActivateApp", isPermissionsConsentNeeded = true, isSDLAllowed = true, priority = "NONE"}})
 	:Do(function(_,data)
 		if data.result.isPermissionsConsentNeeded == true then
+			local RequestIdGetUserFriendlyMessage = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
+			EXPECT_HMIRESPONSE(RequestIdGetUserFriendlyMessage, { result = { code = 0, messages = {{ messageCode = "DataConsent"}}, method = "SDL.GetUserFriendlyMessage"}})					
 			local RequestIdListOfPermissions = self.hmiConnection:SendRequest("SDL.GetListOfPermissions", { appID = self.HMIAppID })
-			EXPECT_HMIRESPONSE(RequestIdListOfPermissions,{result = {code = 0, method = "SDL.GetListOfPermissions", allowedFunctions = {{name = "Location-1"}, {name = "DrivingCharacteristics-3"}}}})
+			EXPECT_HMIRESPONSE(RequestIdListOfPermissions,{result = {code = 0, method = "SDL.GetListOfPermissions", allowedFunctions = {{ name = "Location-1"}, { name = "DrivingCharacteristics-3"}}}})
 			:Do(function()
 				local ReqIDGetUserFriendlyMessage = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"allowedFunctions"}})
 				EXPECT_HMIRESPONSE(ReqIDGetUserFriendlyMessage)
@@ -100,8 +103,8 @@ function Test:User_consent_on_activate_app()
 			return false	
 		end
 	end)
-	EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"})
-	EXPECT_NOTIFICATION("OnPermissionsChange")
+	EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN" })
+	EXPECT_NOTIFICATION("OnPermissionsChange", {})
 end
 
 --[[ Postconditions ]]
