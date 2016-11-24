@@ -1,4 +1,5 @@
 --UNREADY
+--Preconditions in header should be updated
 --Register app interface function should be corrected, currently OnHmiStatus is not received
 ---------------------------------------------------------------------------------------------
 -- Requirement summary: 
