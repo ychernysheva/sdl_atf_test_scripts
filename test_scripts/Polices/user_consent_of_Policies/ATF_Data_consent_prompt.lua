@@ -16,6 +16,11 @@
 --      sub-sections of <message code> section which name corresponds to the value of messageCodes param of
 --      SDL.GetUserFriendlyMessage request
 ---------------------------------------------------------------------------------------------
+--[[ General Settings for configuration ]]
+Test = require('connecttest')
+require('cardinalities')
+local mobile_session = require('mobile_session')
+
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 
@@ -24,11 +29,6 @@ local commonFunctions = require ('user_modules/shared_testcases/commonFunctions'
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 require('user_modules/AppTypes')
-
---[[ General Settings for configuration ]]
-Test = require('connecttest')
-require('cardinalities')
-local mobile_session = require('mobile_session')
 
 --[[ Preconditions ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
