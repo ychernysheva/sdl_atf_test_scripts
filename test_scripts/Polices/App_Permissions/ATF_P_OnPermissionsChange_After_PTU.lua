@@ -1,3 +1,4 @@
+–UNREADY (unimplemented stub used)
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
 -- OnPermissionsChange send after app's permissions change by Policy Table Update
@@ -27,14 +28,15 @@ local commonFunctions = require ('user_modules/shared_testcases/commonFunctions'
 local commonSteps = require ('user_modules/shared_testcases/commonSteps')
 
 --[[ Local Functions ]]
+--[[ Stub functions ]]
+
 -- Function for comparing two tables
 -- tbl1, tbl2 - multylayer tables with diff orders of values. Type table
 -- return boolen
 local function compareTwoTables(tbl1, tbl2)
-return true
+  return true
 end
 
---[[ Stub functions ]]
 -- Function for selecting RPCs and their HMI levels
 -- jsonName - path to json file (preloaded or PTU). Type string
 -- groupName - name of group from which table will be created. Type string
@@ -63,37 +65,37 @@ end
 
 function Test:TestStep_Assign_To_App_Default_Permissions_And_Check_Them_In_OnPermissionsChange()
 
-      local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", {appID = self.applications["Test Application"]})
-      EXPECT_HMIRESPONSE(RequestId, { result = {
-            code = 0,
-            isSDLAllowed = false},
-          method = "SDL.ActivateApp"})
+  local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", {appID = self.applications["Test Application"]})
+  EXPECT_HMIRESPONSE(RequestId, { result = {
+        code = 0,
+        isSDLAllowed = false},
+      method = "SDL.ActivateApp"})
+  :Do(function(_,data)
+      local RequestId = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
+      EXPECT_HMIRESPONSE(RequestId,{result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
       :Do(function(_,data)
-          local RequestId = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
-          EXPECT_HMIRESPONSE(RequestId,{result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
+          self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = "127.0.0.1"}})
+          EXPECT_HMICALL("BasicCommunication.ActivateApp")
           :Do(function(_,data)
-              self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = "127.0.0.1"}})
-              EXPECT_HMICALL("BasicCommunication.ActivateApp")
-              :Do(function(_,data)
-                  self.hmiConnection:SendResponse(data.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
-                  EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"})
-                   
-                end)
-              EXPECT_NOTIFICATION("OnPermissionsChange", {})
-               :ValidIf(function(_,data)
-                local tableOfPolicyPermissions = convertPolicyPermissions(selectToTableRPCPermissions(config.pathToSDL .. "sdl_preloaded_pt.json", "Base-4"))
-                if compareTwoTables(tableOfPolicyPermissions, data.payload.permissionItem) then
-                  return true
-                else
-                  return false
-                end
-                end)
+              self.hmiConnection:SendResponse(data.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
+              EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"})
+
+            end)
+          EXPECT_NOTIFICATION("OnPermissionsChange", {})
+          :ValidIf(function(_,data)
+              local tableOfPolicyPermissions = convertPolicyPermissions(selectToTableRPCPermissions(config.pathToSDL .. "sdl_preloaded_pt.json", "Base-4"))
+              if compareTwoTables(tableOfPolicyPermissions, data.payload.permissionItem) then
+                return true
+              else
+                return false
+              end
             end)
         end)
-    end
+    end)
+end
 
-    function Test:TestStep_Update_Policy_With_New_Permissions_And_Check_Them_In_OnPermissionsChange()
- local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
+function Test:TestStep_Update_Policy_With_New_Permissions_And_Check_Them_In_OnPermissionsChange()
+  local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
   EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
   :Do(function()
       self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",
@@ -124,15 +126,15 @@ function Test:TestStep_Assign_To_App_Default_Permissions_And_Check_Them_In_OnPer
               self.mobileSession:ExpectResponse(CorIdSystemRequest, {success = true, resultCode = "SUCCESS"})
               EXPECT_NOTIFICATION("OnPermissionsChange", {})
               :ValidIf(function(_,data)
-                local tableOfPolicyPermissions = convertPolicyPermissions(selectToTableRPCPermissions(config.pathToSDL .. "files/ptu_general_0000001.json", "Emergency-1"))
-                if compareTwoTables(tableOfPolicyPermissions, data.payload.permissionItem) then
-                  return true
-                else
-                  return false
-                end
+                  local tableOfPolicyPermissions = convertPolicyPermissions(selectToTableRPCPermissions(config.pathToSDL .. "files/ptu_general_0000001.json", "Emergency-1"))
+                  if compareTwoTables(tableOfPolicyPermissions, data.payload.permissionItem) then
+                    return true
+                  else
+                    return false
+                  end
+                end)
             end)
         end)
     end)
-      end)
-    end
+end
 
