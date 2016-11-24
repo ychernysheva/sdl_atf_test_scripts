@@ -2296,27 +2296,13 @@
         "default_hmi": "NONE",
         "groups": ["Base-4"]
       },
-     "0000001": {
-            "keep_context": false,
-            "steal_focus": false,
-            "priority": "NONE",
-            "default_hmi": "NONE",
-            "groups": [
-              "Notifications",
-              "Location-1",
-              "PropriataryData-1",
-              "Base-4",
-              "VehicleInfo-3",
-              "DrivingCharacteristics-3",
-              "Emergency-1"
-            ]
-        },
+     "0000001":null,
       "device": {
         "keep_context": false,
         "steal_focus": false,
         "priority": "NONE",
         "default_hmi": "NONE",
-        "groups": ["DataConsent-2"]
+        "groups": ["SendLocation"]
       },
       "pre_DataConsent": {
         "keep_context": false,
