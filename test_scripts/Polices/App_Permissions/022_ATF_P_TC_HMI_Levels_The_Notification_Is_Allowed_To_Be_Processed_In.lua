@@ -1,5 +1,5 @@
 ---------------------------------------------------------------------------------------------
--- UNREADY: Only 6 RPCs are covered
+-- UNREADY: Only 5 notifications are covered
 -- Requirement summary:
 -- HMI Levels the notification is allowed to be processed in
 --
@@ -14,28 +14,15 @@
 -- 3. Policy Table contains section "functional_groupings",
 -- in which for a specified PRC there're defined HMILevels: HMILevel_2, HMILevel_3
 -- Steps:
--- 1. App -> SDL: RPC (params)
+-- 1. Send notification HMI -> SDL
+-- 2. Verify SDL not transfer notification to app
 --
 -- Expected result:
--- SDL -> App: RPC (DISALLOWED, success: "false")
+-- SDL -> App: There is no notification
 ---------------------------------------------------------------------------------------------
 
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
-
---[[ Local Functions ]]
-local function verifyResponse(test, corId)
-  test.mobileSession:ExpectResponse(corId)
-  :ValidIf(function(_, d)
-      local exp = {success = false, resultCode = "DISALLOWED"}
-      if (d.payload.success == exp.success) and (d.payload.resultCode == exp.resultCode) then
-        return true
-      else
-        return false, "Expected: {success = '" .. tostring(exp.success) .. "', resultCode = '" .. exp.resultCode
-        .. "'}, got: {success = '" .. tostring(d.payload.success) .. "', resultCode = '" .. d.payload.resultCode .. "'}"
-      end
-    end)
-end
 
 --[[ Required Shared libraries ]]
 local testCasesForPolicyAppIdManagament = require("user_modules/shared_testcases/testCasesForPolicyAppIdManagament")
@@ -60,34 +47,35 @@ end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
-function Test:SendRPC_AddCommand()
-  local corId = self.mobileSession:SendRPC("AddCommand", {cmdID = 1,menuParams = {menuName = "Options"}, vrCommands = {"Options"} })
-  verifyResponse(self, corId)
+
+for k, v in pairs({"UI", "VR"}) do
+  local notification = v .. ".OnCommand"
+  Test["SendNotification_" .. notification] = function(self)
+    self.mobileSession:SendRPC("AddCommand",
+      {
+        cmdID = k,
+        menuParams = {menuName ="UICommand100" .. k},
+        vrCommands = { "VRCommand100" .. k}
+      })
+    EXPECT_HMICALL("UI.AddCommand")
+    EXPECT_HMICALL("VR.AddCommand")
+    self.hmiConnection:SendNotification("VR.Started",{})
+    self.hmiConnection:SendNotification("UI.OnSystemContext",{ appID = self.applications["Test Application"], systemContext = "VRSESSION" })
+    self.hmiConnection:SendNotification(notification, {cmdID = k, appID = self.applications["Test Application"]})
+    EXPECT_NOTIFICATION("OnCommand")
+    :Times(0)
+    self.hmiConnection:SendNotification("VR.Stopped",{})
+    self.hmiConnection:SendNotification("UI.OnSystemContext",{ appID = self.applications["Test Application"], systemContext = "MAIN" })
+  end
 end
 
-function Test:SendRPC_AddSubMenu()
-  local corId = self.mobileSession:SendRPC("AddSubMenu", {menuID = 1000, position = 500, menuName ="SubMenupositive"})
-  verifyResponse(self, corId)
-end
-
-function Test:SendRPC_Alert()
-  local corId = self.mobileSession:SendRPC("Alert", {alertText1 = "alertText1"})
-  verifyResponse(self, corId)
-end
-
-function Test:SendRPC_Show()
-  local corId = self.mobileSession:SendRPC("Show", {mainField1 = "mainField1"})
-  verifyResponse(self, corId)
-end
-
-function Test:SendRPC_SystemRequest()
-  local corId = self.mobileSession:SendRPC("SystemRequest", {requestType = "PROPRIETARY", fileName = "PolicyTableUpdate"})
-  verifyResponse(self, corId)
-end
-
-function Test:SendRPC_UnregisterAppInterface()
-  local corId = self.mobileSession:SendRPC("UnregisterAppInterface",{})
-  verifyResponse(self, corId)
+for _, v in pairs({"TTS", "UI", "VR"}) do
+  local notification = v .. ".OnLanguageChange"
+  Test["SendNotification_" .. notification] = function(self)
+    self.hmiConnection:SendNotification(notification, {language = "EN-GB"})
+    EXPECT_NOTIFICATION("OnLanguageChange")
+    :Times(0)
+  end
 end
 
 return Test

@@ -30,13 +30,10 @@
         },
         "functional_groupings": {
             "SpecificPermissions": {
-                "rpcs": {
-                    "AddCommand": {"hmi_levels": ["FULL", "LIMITED", "BACKGROUND"]},
-                    "AddSubMenu": {"hmi_levels": ["FULL", "LIMITED", "BACKGROUND"]},
-                    "Alert": {"hmi_levels": ["FULL", "LIMITED", "BACKGROUND"]},                                        
-                    "Show":{"hmi_levels": ["FULL", "LIMITED", "BACKGROUND"]},
-                    "SystemRequest":{"hmi_levels": ["FULL", "LIMITED", "BACKGROUND"]},
-                    "UnregisterAppInterface":{"hmi_levels": ["FULL", "LIMITED", "BACKGROUND"]}
+                "rpcs": {                    
+                    "OnLanguageChange": {"hmi_levels": ["FULL", "LIMITED", "BACKGROUND"]},
+                    "OnCommand": {"hmi_levels": ["FULL", "LIMITED", "BACKGROUND"]},
+                    "AddCommand": {"hmi_levels": ["FULL", "LIMITED", "BACKGROUND", "NONE"]}
                 }
             },
             "BackgroundAPT": {
