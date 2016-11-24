@@ -1,3 +1,4 @@
+–UNREADY (unimplemented stub used)
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
 -- OnPermissionsChange send after app's permissions change by Policy Table Update
