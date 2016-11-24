@@ -1,5 +1,4 @@
 ---------------------------------------------------------------------------------------------
--- UNREADY: Only 5 notifications are covered
 -- Requirement summary:
 -- HMI Levels the notification is allowed to be processed in
 --
@@ -47,27 +46,6 @@ end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
-
-for k, v in pairs({"UI", "VR"}) do
-  local notification = v .. ".OnCommand"
-  Test["SendNotification_" .. notification] = function(self)
-    self.mobileSession:SendRPC("AddCommand",
-      {
-        cmdID = k,
-        menuParams = {menuName ="UICommand100" .. k},
-        vrCommands = { "VRCommand100" .. k}
-      })
-    EXPECT_HMICALL("UI.AddCommand")
-    EXPECT_HMICALL("VR.AddCommand")
-    self.hmiConnection:SendNotification("VR.Started",{})
-    self.hmiConnection:SendNotification("UI.OnSystemContext",{ appID = self.applications["Test Application"], systemContext = "VRSESSION" })
-    self.hmiConnection:SendNotification(notification, {cmdID = k, appID = self.applications["Test Application"]})
-    EXPECT_NOTIFICATION("OnCommand")
-    :Times(0)
-    self.hmiConnection:SendNotification("VR.Stopped",{})
-    self.hmiConnection:SendNotification("UI.OnSystemContext",{ appID = self.applications["Test Application"], systemContext = "MAIN" })
-  end
-end
 
 for _, v in pairs({"TTS", "UI", "VR"}) do
   local notification = v .. ".OnLanguageChange"
