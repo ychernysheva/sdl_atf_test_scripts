@@ -13,6 +13,10 @@
 -- Expected result:
 --      On receiving SDL.ActivateApp PoliciesManager must respond with "isPermissionsConsentNeeded:false" to HMI, consent for custom permissions is not appeared
 ---------------------------------------------------------------------------------------------
+--[[ General Settings for configuration ]]
+Test = require('connecttest')
+require('cardinalities')
+
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 
@@ -21,10 +25,6 @@ local commonFunctions = require ('user_modules/shared_testcases/commonFunctions'
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
 require('user_modules/AppTypes')
-
---[[ General Settings for configuration ]]
-Test = require('connecttest')
-require('cardinalities')
 
 --[[ Preconditions ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
