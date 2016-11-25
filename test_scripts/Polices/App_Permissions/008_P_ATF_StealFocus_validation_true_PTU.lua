@@ -4,15 +4,15 @@
 -- Description:
 -- In case the <app id> policies are assigned to the application, PoliciesManager must validate "steal_focus" section and in case "steal_focus:true",
 -- PoliciesManager must allow SDL to pass the RPC that contains the soft button with STEAL_FOCUS SystemAction.
--- Note: in sdl_preloaded_pt. json, should be "steal_focus:true".
+-- Note: in sdl_preloaded_pt. json, should be "steal_focus:true" for Policies.
 -- Note: in ptu.json, should be "steal_focus:true".
 
 -- 1. RunSDL. InitHMI. InitHMI_onReady. ConnectMobile. StartSession.
--- 2. Run/Finish PTU.
--- 3. Activiate Application for allow sendRPC Alert
+-- 2. Activiate Application for allow sendRPC Alert
+-- 3. Run With_Steal Focus TrueValue for Current_App
 -- 4. MOB-SDL: SendRPC with soft button, STEAL_FOCUS in SystemAction
 -- Expected result
--- SDL must response: success = true, resultCode = "SUCCESS
+-- SDL must response: success = true, resultCode = "SUCCESS"
 --------------------------------------------------------------------------------------------------------------------------------------------------------
 
 --[[ General configuration parameters ]]
@@ -67,6 +67,7 @@ local function policyUpdate(self)
         pathToSnaphot
       )
       EXPECT_HMICALL("BasicCommunication.SystemRequest")
+
       :Do(function(_,data)
           self.hmiConnection:SendResponse(data.id,"BasicCommunication.SystemRequest", "SUCCESS", {})
         end)
@@ -77,20 +78,13 @@ local function policyUpdate(self)
               policyfile = "/tmp/fs/mp/images/ivsu_cache/ptu.json"
             })
         end)
-
       :Do(function(_,_)
           EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UP_TO_DATE"})
         end)
     end)
 end
-
---[[Test]]
-commonFunctions:newTestCasesGroup("Test")
-function Test:TestStep_PTU_ASSIGN_Default_Policies()
-  policyUpdate(self, "/tmp/fs/mp/images/ivsu_cache/ptu.json")
-end
-
-function Test:TestStep_ActivateApplication()
+--[[Preconditions]]
+function Test:Precondition_ActivateApplication()
   local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", {appID = self.applications["Test Application"]})
   EXPECT_HMIRESPONSE(RequestId)
   :Do(function(_,data)
@@ -110,7 +104,13 @@ function Test:TestStep_ActivateApplication()
   EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", audioStreamingState = "AUDIBLE", systemContext = "MAIN"})
 end
 
-function Test:TestStep_SendRPC_with_StealFocus_ValueTrue()
+function Test:Preconditions_Update_Policy_With_Steal_Focus_TrueValue_for_Current_App()
+  policyUpdate(self, "/tmp/fs/mp/images/ivsu_cache/ptu.json")
+end
+
+--[[Test]]
+commonFunctions:newTestCasesGroup("Test")
+function Test:TestCase_SendRPC_with_STEAL_FOCUS_Value()
   local CorIdAlert = self.mobileSession:SendRPC("Alert",
     {
       alertText1 = "alertText1",
@@ -129,6 +129,14 @@ function Test:TestStep_SendRPC_with_StealFocus_ValueTrue()
       softButtons =
       {
         {
+          type = "TEXT",
+          text = "Keep",
+          isHighlighted = true,
+          softButtonID = 4,
+          systemAction = "STEAL_FOCUS",
+        },
+
+        {
           type = "IMAGE",
           image =
           {
@@ -139,7 +147,6 @@ function Test:TestStep_SendRPC_with_StealFocus_ValueTrue()
           systemAction = "STEAL_FOCUS",
         },
       }
-
     })
   local AlertId
   EXPECT_HMICALL("UI.Alert",
@@ -157,6 +164,13 @@ function Test:TestStep_SendRPC_with_StealFocus_ValueTrue()
       softButtons =
       {
         {
+          type = "TEXT",
+          text = "Keep",
+          isHighlighted = true,
+          softButtonID = 4,
+          systemAction = "STEAL_FOCUS",
+        },
+        {
           type = "IMAGE",
           softButtonID = 5,
           systemAction = "STEAL_FOCUS",
@@ -170,6 +184,7 @@ function Test:TestStep_SendRPC_with_StealFocus_ValueTrue()
         self.hmiConnection:SendResponse(AlertId, "UI.Alert", "SUCCESS", { })
         SendOnSystemContext(self,"MAIN")
       end
+
       RUN_AFTER(alertResponse, 3000)
     end)
   local SpeakId
@@ -190,10 +205,10 @@ function Test:TestStep_SendRPC_with_StealFocus_ValueTrue()
       SpeakId = data.id
       local function speakResponse()
         self.hmiConnection:SendResponse(SpeakId, "TTS.Speak", "SUCCESS", { })
+
         self.hmiConnection:SendNotification("TTS.Stopped")
       end
       RUN_AFTER(speakResponse, 2000)
-
     end)
   :ValidIf(function(_,data)
       if #data.params.ttsChunks == 1 then
@@ -203,7 +218,7 @@ function Test:TestStep_SendRPC_with_StealFocus_ValueTrue()
         return false
       end
     end)
-  EXPECT_RESPONSE(CorIdAlert, {success = true, resultCode = "SUCCESS"})
+  EXPECT_RESPONSE(CorIdAlert, { success = false, resultCode = "SUCCESS"})
 end
 
 --[[ Postconditions ]]
