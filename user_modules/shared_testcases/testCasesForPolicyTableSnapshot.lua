@@ -1,7 +1,5 @@
 local testCasesForPolicyTableSnapshot = {}
-local mobile_session = require('mobile_session')
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
-local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 
 testCasesForPolicyTableSnapshot.preloaded_elements = {}
@@ -112,7 +110,6 @@ local preloaded_pt_endpoints = {}
 -- testCasesForPTS.pts_seconds_between_retries = {}
 function testCasesForPolicyTableSnapshot:verify_PTS(is_created, app_IDs, device_IDs, app_names)
   preloaded_pt_endpoints = {}
-  local data_dictionary = {}
   --local data_dictionary = {}
   -- Data dictionary according to which PTS should be created. Will be automated export from xls.
   local origin_data_dictionary =
@@ -154,7 +151,7 @@ function testCasesForPolicyTableSnapshot:verify_PTS(is_created, app_IDs, device_
     { name = "app_policies.device.priority", elem_required = "required"},
 
   }
-  data_dictionary = origin_data_dictionary
+  local data_dictionary = origin_data_dictionary
 
   testCasesForPolicyTableSnapshot.preloaded_elements = {}
   testCasesForPolicyTableSnapshot.pts_elements = {}
@@ -345,7 +342,6 @@ function testCasesForPolicyTableSnapshot:extract_pts(appID)
 
   local length_seconds_between_retries
   local length_service_endpoints
-  local length_app_endpoints
   local is_app_endpoints_found = {}
   for i = 1, #appID do
     is_app_endpoints_found[i] = false
@@ -409,5 +405,31 @@ function testCasesForPolicyTableSnapshot:get_data_from_PTS(pts_element)
 
   return value
 end
+
+-----------------------------------------------------------------------------------------------------------------
+-- The function returns value of specific data from sdl preloaded_pt.json
+-- preloaded_element should be in format: module_config.timeout_after_x_seconds to define correct section of search
+function testCasesForPolicyTableSnapshot:get_data_from_Preloaded_PT(preloaded_element)
+  self.extract_preloaded_pt()
+  local value
+  local is_found = false
+  for i = 1, #testCasesForPolicyTableSnapshot.preloaded_elements do
+    if (preloaded_element == testCasesForPolicyTableSnapshot.preloaded_elements[i].name) then
+      value = testCasesForPolicyTableSnapshot.preloaded_elements[i].value
+      is_found = true
+      break
+    end
+  end
+  if(is_found == false) then
+    print(" \27[31m Element "..preloaded_element.." is not found in preloaded_pt.json! \27[0m")
+  end
+  if (value == nil) then
+    print(" \27[31m Value of "..preloaded_element.." is nil \27[0m")
+    value = 0
+  end
+
+  return value
+end
+
 
 return testCasesForPolicyTableSnapshot
