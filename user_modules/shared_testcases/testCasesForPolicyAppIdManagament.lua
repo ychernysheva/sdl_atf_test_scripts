@@ -6,7 +6,7 @@ local common = {}
 
 local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
 
-local policy_file_path = commonFunctions:read_parameter_from_ini("SystemFilesPath")
+local policy_file_path = commonFunctions:read_parameter_from_smart_device_link_ini("SystemFilesPath")
 local policy_file_name = "PolicyTableUpdate"
 
 local function checkOnStatusUpdate(test)
