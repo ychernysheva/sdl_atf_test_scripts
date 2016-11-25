@@ -22,15 +22,14 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 
+--[[ Local Variables ]]
+--NewTestSuiteNumber = 0
+
 --[[ General Precondition before ATF start]]
 commonSteps:DeleteLogsFileAndPolicyTable()
 
 --[[ General Settings for configuration ]]
 Test = require('connecttest')
-
-local function SendOnSystemContext(self, ctx)
-  self.hmiConnection:SendNotification("UI.OnSystemContext",{ appID = self.applications["Test Application"], systemContext = ctx })
-end
 
 function Test:ActivateApplication()
   commonFunctions:userPrint(33, "Precondition")
@@ -54,7 +53,7 @@ function Test:ActivateApplication()
 end
 
 function Test:TestCase_SendRPC_with_STEAL_FOCUS_FALSE()
-  commonFunctions:userPrint(33, "TEST_CASE")
+  commonFunctions:newTestCasesGroup("Test")
   local CorIdAlert = self.mobileSession:SendRPC("Alert",
     {
       alertText1 = "alertText1",
@@ -85,83 +84,13 @@ function Test:TestCase_SendRPC_with_STEAL_FOCUS_FALSE()
           image =
           {
             value = "icon.png",
-            imageType = "STATIC",
+            imageType = "DYNAMIC",
           },
           softButtonID = 5,
           systemAction = "STEAL_FOCUS",
         },
       }
     })
-  local AlertId
-  EXPECT_HMICALL("UI.Alert",
-    {
-      appID = self.applications["Test Application"],
-      alertStrings =
-      {
-        {fieldName = "alertText1", fieldText = "alertText1"},
-        {fieldName = "alertText2", fieldText = "alertText2"},
-        {fieldName = "alertText3", fieldText = "alertText3"}
-      },
-      alertType = "BOTH",
-      duration = 0,
-      progressIndicator = true,
-      softButtons =
-      {
-        {
-          type = "TEXT",
-          text = "Keep",
-          isHighlighted = true,
-          softButtonID = 4,
-          systemAction = "STEAL_FOCUS",
-        },
-        {
-          type = "IMAGE",
-          softButtonID = 5,
-          systemAction = "STEAL_FOCUS",
-        },
-      }
-    })
-  :Do(function(_,data)
-      SendOnSystemContext(self,"ALERT")
-      AlertId = data.id
-      local function alertResponse()
-        self.hmiConnection:SendResponse(AlertId, "UI.Alert", "DISALLOWED", { })
-        SendOnSystemContext(self,"MAIN")
-      end
-
-      RUN_AFTER(alertResponse, 3000)
-    end)
-  local SpeakId
-  EXPECT_HMICALL("TTS.Speak",
-    {
-      ttsChunks =
-      {
-        {
-          text = "TTSChunk",
-          type = "TEXT"
-        }
-      },
-      speakType = "ALERT",
-      playTone = true
-    })
-  :Do(function(_,data)
-      self.hmiConnection:SendNotification("TTS.Started")
-      SpeakId = data.id
-      local function speakResponse()
-        self.hmiConnection:SendResponse(SpeakId, "TTS.Speak", "DISALLOWED", { })
-
-        self.hmiConnection:SendNotification("TTS.Stopped")
-      end
-      RUN_AFTER(speakResponse, 2000)
-    end)
-  :ValidIf(function(_,data)
-      if #data.params.ttsChunks == 1 then
-        return true
-      else
-        print("ttsChunks array in TTS.Speak request has wrong element number. Expected 1")
-        return false
-      end
-    end)
   EXPECT_RESPONSE(CorIdAlert, { success = false, resultCode = "DISALLOWED"})
 end
 
