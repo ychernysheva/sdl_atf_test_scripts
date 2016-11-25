@@ -278,12 +278,10 @@ end
 commonFunctions:newTestCasesGroup("Test")
 
 function Test:Test_FirstStartSDL()
-  -- 5. Start SDL
   StartSDL(config.pathToSDL, true, self)
 end
 
 function Test:Test_InitialLocalPT()
-  -- -> Check data in LocalPT (must be "2000")
   os.execute("sleep 3")
   TestData:store("Initial Local PT is stored", constructPathToDatabase(), "initial_policy.sqlite")
   local checks = {
@@ -315,18 +313,15 @@ function Test:Test_FirstStopSDL()
 end
 
 function Test:Test_NewPreloadedPT()
-  -- 7. Update PreloadedPT with "data = 2016"
   self:prepareNewPreloadedPT()
   TestData:store("New Preloaded PT is stored", config.pathToSDL .. PRELOADED_PT_FILE_NAME, "new_" .. PRELOADED_PT_FILE_NAME)
 end
 
 function Test:Test_SecondStartSDL()
-  -- 8. Start SDL
   StartSDL(config.pathToSDL, true, self)
 end
 
 function Test:Test_NewLocalPT()
-  -- -> Check data in LocalPT (must be "2016")
   os.execute("sleep 3")
   TestData:store("New Local PT is stored", constructPathToDatabase(), "new_policy.sqlite")
   local checks = {
@@ -356,7 +351,6 @@ end
 commonFunctions:newTestCasesGroup("Postconditions")
 
 function Test:Postcondition()
-  -- 9. Restore PreloadedPT
   commonSteps:DeletePolicyTable()
   self.restorePreloadedPT("backup_")
   StopSDL()
