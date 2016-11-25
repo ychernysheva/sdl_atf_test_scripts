@@ -28,6 +28,30 @@ local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
 local commonSteps = require("user_modules/shared_testcases/commonSteps")
 local testCasesForBuildingSDLPolicyFlag = require('user_modules/shared_testcases/testCasesForBuildingSDLPolicyFlag')
 
+--[[ Local Variables ]]
+local rpc = {}
+rpc["AddCommand"] = {cmdID = 1, menuParams = {menuName = "Options"}, vrCommands = {"Options"}}
+rpc["AddSubMenu"] = {menuID = 1000, position = 500, menuName ="SubMenupositive"}
+rpc["Alert"] = {alertText1 = "alertText1"}
+rpc["Show"] = {mainField1 = "mainField1"}
+rpc["SystemRequest"] = {requestType = "PROPRIETARY", fileName = "PolicyTableUpdate"}
+
+local ntf = {}
+ntf["TTS.OnLanguageChange"] ={language = "EN-GB"}
+ntf["UI.OnLanguageChange"] = {language = "EN-GB"}
+ntf["VR.OnLanguageChange"] = {language = "EN-GB"}
+
+--[[ Local Functions ]]
+local function split(s, d)
+  local out = {}
+  local i = 1
+  for word in string.gmatch(s, '([^'.. d ..']+)') do
+    out[i] = word
+    i = i + 1
+  end
+  return out
+end
+
 --[[ General Precondition before ATF start ]]
 testCasesForBuildingSDLPolicyFlag:CheckPolicyFlagAfterBuild("EXTERNAL_PROPRIETARY")
 commonFunctions:SDLForceStop()
@@ -47,41 +71,17 @@ end
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
-function Test:SendRPC_AddCommand()
-  local corId = self.mobileSession:SendRPC("AddCommand", {cmdID = 1,menuParams = {menuName = "Options"}, vrCommands = {"Options"} })
-  self.mobileSession:ExpectResponse(corId, {success = false, resultCode = "DISALLOWED"})
+for k, v in pairs(rpc) do
+  Test["SendRPC_" .. k] = function(self)
+    local corId = self.mobileSession:SendRPC(k, v)
+    self.mobileSession:ExpectResponse(corId, {success = false, resultCode = "DISALLOWED"})
+  end
 end
 
-function Test:SendRPC_AddSubMenu()
-  local corId = self.mobileSession:SendRPC("AddSubMenu", {menuID = 1000, position = 500, menuName ="SubMenupositive"})
-  self.mobileSession:ExpectResponse(corId, {success = false, resultCode = "DISALLOWED"})
-end
-
-function Test:SendRPC_Alert()
-  local corId = self.mobileSession:SendRPC("Alert", {alertText1 = "alertText1"})
-  self.mobileSession:ExpectResponse(corId, {success = false, resultCode = "DISALLOWED"})
-end
-
-function Test:SendRPC_Show()
-  local corId = self.mobileSession:SendRPC("Show", {mainField1 = "mainField1"})
-  self.mobileSession:ExpectResponse(corId, {success = false, resultCode = "DISALLOWED"})
-end
-
-function Test:SendRPC_SystemRequest()
-  local corId = self.mobileSession:SendRPC("SystemRequest", {requestType = "PROPRIETARY", fileName = "PolicyTableUpdate"})
-  self.mobileSession:ExpectResponse(corId, {success = false, resultCode = "DISALLOWED"})
-end
-
-function Test:SendRPC_UnregisterAppInterface()
-  local corId = self.mobileSession:SendRPC("UnregisterAppInterface",{})
-  self.mobileSession:ExpectResponse(corId, {success = false, resultCode = "DISALLOWED"})
-end
-
-for _, v in pairs({"TTS", "UI", "VR"}) do
-  local notification = v .. ".OnLanguageChange"
-  Test["SendNotification_" .. notification] = function(self)
-    self.hmiConnection:SendNotification(notification, {language = "EN-GB"})
-    EXPECT_NOTIFICATION("OnLanguageChange")
+for k, v in pairs(ntf) do
+  Test["SendNotification_" .. k] = function(self)
+    self.hmiConnection:SendNotification(k, v.p)
+    EXPECT_NOTIFICATION(split(k, '.')[2])
     :Times(0)
   end
 end
