@@ -1,3 +1,5 @@
+--UNREADY
+--header and test should be updated
 ---------------------------------------------------------------------------------------------
 -- Description: 
 --     SDL receives request for app activation from HMI and the device the app is running on is consented by the User
@@ -15,7 +17,7 @@
 -- 			Activate 2nd application  
 --
 -- Requirement summary: 
---    [Policies] SDL.ActivateApp from HMI, the device this app is running on is CONSENTED 
+--    [UpdateDeviceList] isSDLAllowed:true 
 --
 -- Expected result:
 --     PoliciesManager must respond with "isSDLAllowed: true" in the response to HMI without consent request 
