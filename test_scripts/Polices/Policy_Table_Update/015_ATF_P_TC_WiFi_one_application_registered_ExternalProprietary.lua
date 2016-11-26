@@ -24,9 +24,13 @@
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 
 --[[ Required Shared libraries ]]
+local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
 local testCasesForPolicyTableSnapshot = require('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
+
+--[[ General Precondition before ATF start ]]
+commonSteps:DeleteLogsFileAndPolicyTable()
 
 --[[ General Settings for configuration ]]
 Test = require('connecttest')
@@ -54,7 +58,6 @@ end
 function Test:TestStep_PTU_AppID_NotListed_PT_WiFi()
   local hmi_app_id1 = self.applications[config.application1.registerAppInterfaceParams.appName]
   local correlationId = self.mobileSession1:SendRPC("RegisterAppInterface", config.application2.registerAppInterfaceParams)
-  print("config.application2.registerAppInterfaceParams.appName = "..config.application2.registerAppInterfaceParams.appName)
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application2.registerAppInterfaceParams.appName } })
   :Do(function(_,data)
       local hmi_app_id2 = data.params.application.appID
