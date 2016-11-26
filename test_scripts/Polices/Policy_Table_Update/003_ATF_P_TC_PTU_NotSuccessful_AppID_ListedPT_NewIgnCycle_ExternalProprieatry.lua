@@ -8,7 +8,7 @@
 -- SDL should request PTU in case of failed retry strategy during previour IGN_ON
 -- 1. Used preconditions
 -- SDL is built with "-DEXTENDED_POLICY: EXTERNAL_PROPRIETARY" flag
--- Connect mobile phone over WiFi.
+-- Connect mobile phone over WiFi. Device is consented.
 -- Register new application.
 -- PTU is requested.
 -- IGN OFF
