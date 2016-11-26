@@ -36,6 +36,9 @@ Test = require("connecttest")
 require("user_modules/AppTypes")
 local mobile_session = require("mobile_session")
 
+--[[ Local Variables ]]
+local HMIAppID
+
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
 function Test:Pecondition_trigger_getting_device_consent()
@@ -57,7 +60,7 @@ function Test:RegisterNewApp()
   local correlationId = self.mobileSession2:SendRPC("RegisterAppInterface", config.application2.registerAppInterfaceParams)
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
   :Do(function(_,data)
-      -- HMIAppID = data.params.application.appID
+      HMIAppID = data.params.application.appID
       self.applications[config.application2.registerAppInterfaceParams.appName] = data.params.application.appID
     end)
 
@@ -70,7 +73,7 @@ commonFunctions:newTestCasesGroup("Test")
 function Test:PerformPTU_Check_OnAppPermissionChanged()
   EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
   testCasesForPolicyAppIdManagament:updatePolicyTable(self, "files/jsons/Policies/appID_Management/ptu_23511.json")
-  EXPECT_HMINOTIFICATION("SDL.OnAppPermissionChanged", { appRevoked = true })
+  EXPECT_HMINOTIFICATION("SDL.OnAppPermissionChanged", { appRevoked = true, appID = HMIAppID})
 end
 
 --[[ Postconditions ]]
