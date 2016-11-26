@@ -26,6 +26,7 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 
 --[[ Required Shared libraries ]]
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
+local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
 local testCasesForPolicyTableSnapshot = require('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
 
@@ -35,6 +36,9 @@ local hmi_app_id1, hmi_app_id2
 --[[ General Precondition before ATF start ]]
 --ToDo: shall be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
 config.defaultProtocolVersion = 2
+
+--[[ General Precondition before ATF start ]]
+commonSteps:DeleteLogsFileAndPolicyTable()
 
 --[[ General Settings for configuration ]]
 Test = require('connecttest')
@@ -62,7 +66,7 @@ function Test:Precondition_RegisterNewApplication()
   hmi_app_id1 = self.applications[config.application1.registerAppInterfaceParams.appName]
   local correlationId = self.mobileSession1:SendRPC("RegisterAppInterface", config.application2.registerAppInterfaceParams)
 
-  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application2.appName } })
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application2.registerAppInterfaceParams.appName } })
   :Do(function(_,_data2)
       hmi_app_id2 = _data2.params.application.appID
 
@@ -101,7 +105,7 @@ function Test:Precondition_IGNITION_OFF()
   StopSDL()
   self.hmiConnection:SendNotification("BasicCommunication.OnExitAllApplications", { reason = "IGNITION_OFF" })
   EXPECT_HMINOTIFICATION("BasicCommunication.OnSDLClose")
-  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered")
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered"):Times(2)
 end
 
 function Test:Precondtion_StartSDL()
