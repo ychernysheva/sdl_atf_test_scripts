@@ -5,13 +5,11 @@
 -- [HMI API] GetURLs request/response
 --
 -- Description:
--- SDL should request PTU in case user requests PTU
+-- SDL should request PTU in case getting device consent
 -- 1. Used preconditions
 -- SDL is built with "-DEXTENDED_POLICY: EXTERNAL_PROPRIETARY" flag
 -- Application is registered.
--- No PTU is requested.
--- 2. Performed steps
--- User press button on HMI to request PTU.
+-- User request device consent
 -- HMI->SDL: SDL.GetURLs(service=0x07)
 --
 -- Expected result:
@@ -24,14 +22,11 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 
 --[[ Required Shared libraries ]]
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
+local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
-local testCasesForBuildingSDLPolicyFlag = require('user_modules/shared_testcases/testCasesForBuildingSDLPolicyFlag')
 local testCasesForPolicyTableSnapshot = require('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
 
 --[[ General Precondition before ATF start ]]
--- commonFunctions:SDLForceStop()
-testCasesForBuildingSDLPolicyFlag:Update_PolicyFlag("EXTENDED_POLICY", "EXTERNAL_PROPRIETARY")
-testCasesForBuildingSDLPolicyFlag:CheckPolicyFlagAfterBuild("EXTENDED_POLICY","EXTERNAL_PROPRIETARY")
 commonSteps:DeleteLogsFileAndPolicyTable()
 
 --ToDo: shall be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
@@ -41,15 +36,15 @@ config.defaultProtocolVersion = 2
 Test = require('connecttest')
 require('cardinalities')
 require('user_modules/AppTypes')
-local mobile_session = require('mobile_session')
 
 --[[ Preconditions ]]
-testCasesForPolicyTable:flow_PTU_SUCCEESS_EXTERNAL_PROPRIETARY()
-
--- Request PTU
-testCasesForPolicyTable:trigger_PTU_user_request_update_from_HMI()
+commonFunctions:newTestCasesGroup("Preconditions")
+function Test:Precondition_trigger_getting_device_consent()
+  testCasesForPolicyTable:trigger_getting_device_consent(self, config.application1.registerAppInterfaceParams.appName, config.deviceMAC)
+end
 
 --[[ Test ]]
+commonFunctions:newTestCasesGroup("Test")
 function Test:TestStep_PTU_GetURLs()
   local endpoints = {}
   local is_app_esxist = false
@@ -62,17 +57,23 @@ function Test:TestStep_PTU_GetURLs()
     if (testCasesForPolicyTableSnapshot.pts_endpoints[i].service == "app1") then
       endpoints[#endpoints + 1] = { url = testCasesForPolicyTableSnapshot.pts_endpoints[i].value, appID = nil}
       is_app_esxist = true
-  	end
-  end 
+    end
+  end
 
   local RequestId = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
 
   EXPECT_HMIRESPONSE(RequestId,{result = {code = 0, method = "SDL.GetURLS", urls = endpoints} } )
-  :Do(function(_,data) 
-  	if(is_app_esxist == false) then
-  	  self:FailTestCase("endpoints for application doesn't exist!")
-    end
-  end)
+  :Do(function(_,_)
+      if(is_app_esxist == false) then
+        self:FailTestCase("endpoints for application doesn't exist!")
+      end
+    end)
+end
+
+--[[ Postconditions ]]
+commonFunctions:newTestCasesGroup("Postconditions")
+function Test:Postcondition_Force_Stop_SDL()
+  commonFunctions:SDLForceStop(self)
 end
 
 return Test
