@@ -78,15 +78,15 @@ end
 -- The function extract sdl_preloaded_pt.json and returns array testCasesForPolicyTableSnapshot.preloaded_elements
 -- with parameters: name and value
 function testCasesForPolicyTableSnapshot:extract_preloaded_pt()
-  testCasesForPolicyTableSnapshot.preloaded_elements = {}
-  testCasesForPolicyTableSnapshot.seconds_between_retries = {}
+  self.preloaded_elements = {}
+  self.seconds_between_retries = {}
   local preloaded_pt = 'SDL_bin/sdl_preloaded_pt.json'
   extract_json(preloaded_pt)
   local k = 1
   for i = 1, #json_elements do
-    testCasesForPolicyTableSnapshot.preloaded_elements[i] = { name = json_elements[i].name, value = json_elements[i].value }
+    self.preloaded_elements[i] = { name = json_elements[i].name, value = json_elements[i].value }
     if( string.sub(json_elements[i].name,1,string.len("module_config.seconds_between_retries.")) == "module_config.seconds_between_retries." ) then
-      testCasesForPolicyTableSnapshot.seconds_between_retries[k] = { name = json_elements[i].name, value = json_elements[i].value}
+      self.seconds_between_retries[k] = { name = json_elements[i].name, value = json_elements[i].value}
       k = k + 1
     end
   end
@@ -108,7 +108,7 @@ local preloaded_pt_endpoints = {}
 -- testCasesForPTS.pts_elements – array of all elements in PTS.
 -- testCasesForPTS.pts_endpoints = {}
 -- testCasesForPTS.pts_seconds_between_retries = {}
-function testCasesForPolicyTableSnapshot:verify_PTS(is_created, app_IDs, device_IDs, app_names)
+function testCasesForPolicyTableSnapshot:verify_PTS(is_created, app_IDs, device_IDs, app_names, to_print)
   preloaded_pt_endpoints = {}
   --local data_dictionary = {}
   -- Data dictionary according to which PTS should be created. Will be automated export from xls.
@@ -153,17 +153,17 @@ function testCasesForPolicyTableSnapshot:verify_PTS(is_created, app_IDs, device_
   }
   local data_dictionary = origin_data_dictionary
 
-  testCasesForPolicyTableSnapshot.preloaded_elements = {}
-  testCasesForPolicyTableSnapshot.pts_elements = {}
-  testCasesForPolicyTableSnapshot.seconds_between_retries = {}
-  testCasesForPolicyTableSnapshot.preloaded_pt = {}
+  self.preloaded_elements = {}
+  self.pts_elements = {}
+  self.seconds_between_retries = {}
+  self.preloaded_pt = {}
 
   if(is_created == false) then
     if ( commonSteps:file_exists( '/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json') ) then
       print(" \27[31m /tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json is created \27[0m")
     end
   else
-    testCasesForPolicyTableSnapshot:extract_preloaded_pt()
+    self:extract_preloaded_pt()
 
     local k = 1
 
@@ -180,7 +180,7 @@ function testCasesForPolicyTableSnapshot:verify_PTS(is_created, app_IDs, device_
       end
     end
     for i = 1, #preloaded_pt_endpoints do
-      testCasesForPolicyTableSnapshot.preloaded_pt[i] = preloaded_pt_endpoints[i]
+      self.preloaded_pt[i] = preloaded_pt_endpoints[i]
     end
 
     for i = 1, #json_elements do
@@ -200,23 +200,23 @@ function testCasesForPolicyTableSnapshot:verify_PTS(is_created, app_IDs, device_
       end
 
       if( string.sub(str_1,1,string.len("module_config.seconds_between_retries.")) == "module_config.seconds_between_retries." ) then
-        testCasesForPolicyTableSnapshot.seconds_between_retries[k] = { name = json_elements[i].name, value = json_elements[i].value}
+        self.seconds_between_retries[k] = { name = json_elements[i].name, value = json_elements[i].value}
         k = k + 1
         data_dictionary[length_data_dict + 1] = { name = json_elements[i].name, value = json_elements[i].value, elem_required = "required" }
 
       end
 
       for cnt = 1, #preloaded_pt_endpoints do
-        length_data_dict = #data_dictionary
+       -- length_data_dict = #data_dictionary
         if( string.sub(str_1,1,string.len("module_config.endpoints."..preloaded_pt_endpoints[cnt]..".default.")) == "module_config.endpoints."..preloaded_pt_endpoints[cnt]..".default." ) then
           local element_default = "module_config.endpoints."..preloaded_pt_endpoints[cnt]..".default."
-          data_dictionary[length_data_dict + 1] = { name = json_elements[i].name, value = json_elements[i].value, elem_required = "required" }
-          data_dictionary[length_data_dict + 2] = { name = element_default.."priority", value = json_elements[i].value, elem_required = "required" }
-          data_dictionary[length_data_dict + 3] = { name = element_default.."groups", value = json_elements[i].value, elem_required = "required" }
-          data_dictionary[length_data_dict + 4] = { name = element_default.."AppHMIType", value = json_elements[i].value, elem_required = "optional" }
-          data_dictionary[length_data_dict + 5] = { name = element_default.."memory_kb", value = json_elements[i].value, elem_required = "optional" }
-          data_dictionary[length_data_dict + 6] = { name = element_default.."heart_beat_timeout_ms", value = json_elements[i].value, elem_required = "optional" }
-          data_dictionary[length_data_dict + 7] = { name = element_default.."RequestType", value = json_elements[i].value, elem_required = "optional" }
+          data_dictionary[#data_dictionary + 1] = { name = element_default, value = json_elements[i].value, elem_required = "optional" }
+          -- data_dictionary[length_data_dict + 2] = { name = element_default.."priority", value = json_elements[i].value, elem_required = "required" }
+          -- data_dictionary[length_data_dict + 3] = { name = element_default.."groups", value = json_elements[i].value, elem_required = "required" }
+          -- data_dictionary[length_data_dict + 4] = { name = element_default.."AppHMIType", value = json_elements[i].value, elem_required = "optional" }
+          -- data_dictionary[length_data_dict + 5] = { name = element_default.."memory_kb", value = json_elements[i].value, elem_required = "optional" }
+          -- data_dictionary[length_data_dict + 6] = { name = element_default.."heart_beat_timeout_ms", value = json_elements[i].value, elem_required = "optional" }
+          -- data_dictionary[length_data_dict + 7] = { name = element_default.."RequestType", value = json_elements[i].value, elem_required = "optional" }
 
         end
       end
@@ -263,20 +263,24 @@ function testCasesForPolicyTableSnapshot:verify_PTS(is_created, app_IDs, device_
 
     local pts = '/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json'
     if ( commonSteps:file_exists(pts) ) then
-      testCasesForPolicyTableSnapshot:extract_pts(app_names)
+      self:extract_pts(app_names)
 
       --Check for ommited parameters
-      for i = 1, #testCasesForPolicyTableSnapshot.pts_elements do
-        local str_1 = testCasesForPolicyTableSnapshot.pts_elements[i].name
+      for i = 1, #self.pts_elements do
+        local str_1 = self.pts_elements[i].name
         local is_existing = false
         for j = 1, #data_dictionary do
           local str_2 = data_dictionary[j].name
           if( str_1 == str_2 ) then
             is_existing = true
-            for k = 1, #testCasesForPolicyTableSnapshot.preloaded_elements do
-              if(testCasesForPolicyTableSnapshot.preloaded_elements[k].name == str_2) then
-                if(testCasesForPolicyTableSnapshot.pts_elements[i].value ~= testCasesForPolicyTableSnapshot.preloaded_elements[k].value) then
-                  print(testCasesForPolicyTableSnapshot.pts_elements[i].name .." = " .. tostring(testCasesForPolicyTableSnapshot.pts_elements[i].value) .. ". Should be " ..tostring(testCasesForPolicyTableSnapshot.preloaded_elements[k].value) )
+            for k1 = 1, #self.preloaded_elements do
+              if(self.preloaded_elements[k1].name == str_2) then
+                if(self.pts_elements[i].value ~= self.preloaded_elements[k1].value) then
+                  --TODO(istoimenova): Update after "Clarification for elements in DataDictionary accoridng to current SDL behavior" is resolved
+                  --Clarification is done. Due to luck of time will be used print until update is done
+                  if(to_print ~= nil) then
+                    print(self.pts_elements[i].name .." = " .. tostring(self.pts_elements[i].value) .. ". Should be " ..tostring(self.preloaded_elements[k1].value) )
+                  end
                 end
               end
             end
@@ -285,7 +289,10 @@ function testCasesForPolicyTableSnapshot:verify_PTS(is_created, app_IDs, device_
         end
         if (is_existing == false) then
           --TODO(istoimenova): Update after "Clarification for elements in DataDictionary accoridng to current SDL behavior" is resolved
-          print(testCasesForPolicyTableSnapshot.pts_elements[i].name .. ": should NOT exist")
+          --Clarification is done. Due to luck of time will be used print until update is done
+          if(to_print ~= nil) then
+            print(self.pts_elements[i].name .. ": should NOT exist")
+          end
         end
       end
 
@@ -294,8 +301,8 @@ function testCasesForPolicyTableSnapshot:verify_PTS(is_created, app_IDs, device_
         if(data_dictionary[i].elem_required == "required") then
           local str_2 = data_dictionary[i].name
           local is_existing = false
-          for j = 1, #testCasesForPolicyTableSnapshot.pts_elements do
-            local str_1 = testCasesForPolicyTableSnapshot.pts_elements[j].name
+          for j = 1, #self.pts_elements do
+            local str_1 = self.pts_elements[j].name
             if( str_1 == str_2 ) then
               is_existing = true
               break
@@ -303,7 +310,10 @@ function testCasesForPolicyTableSnapshot:verify_PTS(is_created, app_IDs, device_
           end
           if (is_existing == false) then
             --TODO(istoimenova): Update after "Clarification for elements in DataDictionary accoridng to current SDL behavior" is resolved
-            print(data_dictionary[i].name .. ": mandatory parameter does not exist in PTS")
+            --Clarification is done. Due to luck of time will be used print until update is done
+            if(to_print ~= nil) then
+              print(data_dictionary[i].name .. ": mandatory parameter does not exist in PTS")
+            end
           end
         end
       end
@@ -325,16 +335,16 @@ testCasesForPolicyTableSnapshot.pts_seconds_between_retries = {}
 -- testCasesForPolicyTableSnapshot.pts_seconds_between_retries
 -- testCasesForPolicyTableSnapshot.pts_endpoints including appID check of presence
 function testCasesForPolicyTableSnapshot:extract_pts(appID)
-  testCasesForPolicyTableSnapshot.pts_endpoints = {}
-  testCasesForPolicyTableSnapshot.pts_endpoints_apps = {}
-  testCasesForPolicyTableSnapshot.pts_seconds_between_retries = {}
+  self.pts_endpoints = {}
+  self.pts_endpoints_apps = {}
+  self.pts_seconds_between_retries = {}
   local pts_json = '/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json'
   extract_json(pts_json)
   local length_pts
 
   for i = 1, #json_elements do
-    length_pts = #testCasesForPolicyTableSnapshot.pts_elements
-    testCasesForPolicyTableSnapshot.pts_elements[length_pts + 1] = {
+    length_pts = #self.pts_elements
+    self.pts_elements[length_pts + 1] = {
       name = json_elements[i].name,
       value = json_elements[i].value
     }
@@ -348,24 +358,24 @@ function testCasesForPolicyTableSnapshot:extract_pts(appID)
   end
 
   for i = 1, #json_elements do
-    length_seconds_between_retries = #testCasesForPolicyTableSnapshot.pts_seconds_between_retries
-    length_service_endpoints = #testCasesForPolicyTableSnapshot.pts_endpoints
-    testCasesForPolicyTableSnapshot.pts_elements[i] = { name = json_elements[i].name, value = json_elements[i].value }
+    length_seconds_between_retries = #self.pts_seconds_between_retries
+    length_service_endpoints = #self.pts_endpoints
+    self.pts_elements[i] = { name = json_elements[i].name, value = json_elements[i].value }
 
     if( string.sub(json_elements[i].name,1,string.len("module_config.seconds_between_retries.")) == "module_config.seconds_between_retries." ) then
-      testCasesForPolicyTableSnapshot.pts_seconds_between_retries[length_seconds_between_retries + 1] = { name = json_elements[i].name, value = json_elements[i].value}
+      self.pts_seconds_between_retries[length_seconds_between_retries + 1] = { name = json_elements[i].name, value = json_elements[i].value}
     end
     for j = 1, #preloaded_pt_endpoints do
       if( string.sub(json_elements[i].name,1,string.len("module_config.endpoints."..tostring(preloaded_pt_endpoints[j])..".default.")) == "module_config.endpoints."..tostring(preloaded_pt_endpoints[j])..".default." ) then
-        testCasesForPolicyTableSnapshot.pts_endpoints[length_service_endpoints + 1] = { name = json_elements[i].name, value = json_elements[i].value, service = preloaded_pt_endpoints[j]}
+        self.pts_endpoints[length_service_endpoints + 1] = { name = json_elements[i].name, value = json_elements[i].value, service = preloaded_pt_endpoints[j]}
       end
 
       --hmi appid
-      for j = 1, #appID do
-        if(preloaded_pt_endpoints[j] == "0x07") then
-          if( string.sub(json_elements[i].name,1,string.len("module_config.endpoints.0x07.".. appID[j] .. ".")) == "module_config.endpoints.0x07.".. appID[j] .. "." ) then
+      for j1 = 1, #appID do
+        if(preloaded_pt_endpoints[j1] == "0x07") then
+          if( string.sub(json_elements[i].name,1,string.len("module_config.endpoints.0x07.".. appID[j1] .. ".")) == "module_config.endpoints.0x07.".. appID[j1] .. "." ) then
             length_service_endpoints = #testCasesForPolicyTableSnapshot.pts_endpoints
-            testCasesForPolicyTableSnapshot.pts_endpoints[length_service_endpoints + 1] = { name = json_elements[i].name, value = json_elements[i].value, app_id = appID[j], service = "app1" }
+            testCasesForPolicyTableSnapshot.pts_endpoints[length_service_endpoints + 1] = { name = json_elements[i].name, value = json_elements[i].value, app_id = appID[j1], service = "app1" }
             --print("appID: " ..testCasesForPolicyTableSnapshot.pts_endpoints_apps[length_app_endpoints + 1].value)
             is_app_endpoints_found[i] = true
           end
@@ -377,7 +387,7 @@ function testCasesForPolicyTableSnapshot:extract_pts(appID)
   -- Check for section apps endpoint exist
   for i = 1, #appID do
     if (is_app_endpoints_found[i] == false ) then
-      print(" \27[31m module_config.endpoints.0x07.".. appID[i] .. " doesn't exist!\27[0m")
+      print("module_config.endpoints.0x07.".. appID[i] .. " doesn't exist!")
     end
   end
 end
@@ -388,9 +398,9 @@ end
 function testCasesForPolicyTableSnapshot:get_data_from_PTS(pts_element)
   local value
   local is_found = false
-  for i = 1, #testCasesForPolicyTableSnapshot.pts_elements do
-    if (pts_element == testCasesForPolicyTableSnapshot.pts_elements[i].name) then
-      value = testCasesForPolicyTableSnapshot.pts_elements[i].value
+  for i = 1, #self.pts_elements do
+    if (pts_element == self.pts_elements[i].name) then
+      value = self.pts_elements[i].value
       is_found = true
       break
     end
@@ -430,6 +440,5 @@ function testCasesForPolicyTableSnapshot:get_data_from_Preloaded_PT(preloaded_el
 
   return value
 end
-
 
 return testCasesForPolicyTableSnapshot
