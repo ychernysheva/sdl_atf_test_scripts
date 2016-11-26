@@ -7,12 +7,12 @@
 -- 1. Used preconditions
 -- SDL is built with "-DEXTENDED_POLICY: EXTERNAL_PROPRIETARY" flag
 -- 2. Performed steps
--- Application is registered.
+-- Application is registered. Device consented by user
 -- PTU is requested.
 --
 -- Expected result:
--- The policies manager must store the PT snapshot as a JSON file which filename and 
--- filepath are defined in "PathToSnapshot" parameter of smartDeviceLink.ini file. 
+-- The policies manager must store the PT snapshot as a JSON file which filename and
+-- filepath are defined in "PathToSnapshot" parameter of smartDeviceLink.ini file.
 ---------------------------------------------------------------------------------------------
 
 --[[ General configuration parameters ]]
@@ -21,61 +21,42 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 --[[ Required Shared libraries ]]
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
-local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
-local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
-local testCasesForBuildingSDLPolicyFlag = require('user_modules/shared_testcases/testCasesForBuildingSDLPolicyFlag')
-local testCasesForPolicyTableSnapshot = require('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
 
 --[[ General Precondition before ATF start ]]
--- commonFunctions:SDLForceStop()
-testCasesForBuildingSDLPolicyFlag:Update_PolicyFlag("EXTENDED_POLICY", "EXTERNAL_PROPRIETARY")
-testCasesForBuildingSDLPolicyFlag:CheckPolicyFlagAfterBuild("EXTENDED_POLICY","EXTERNAL_PROPRIETARY")
 commonSteps:DeleteLogsFileAndPolicyTable()
-commonPreconditions:Connecttest_without_ExitBySDLDisconnect_WithoutOpenConnectionRegisterApp("connecttest_RAI.lua")
 
 --ToDo: shall be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
 config.defaultProtocolVersion = 2
 
 --[[ General Settings for configuration ]]
-Test = require('user_modules/connecttest_RAI')
+Test = require('connecttest')
 require('cardinalities')
 require('user_modules/AppTypes')
-local mobile_session = require('mobile_session')
-
---[[ Preconditions ]]
-commonFunctions:newTestCasesGroup("Preconditions")
-function Test:Precondition_remove_user_connecttest()
-  os.execute( "rm -f ./user_modules/connecttest_RAI.lua" )
-end
-
---TODO(istoimenova): function for reading INI file should be implemented
---local SystemFilesPath = commonSteps:get_data_form_SDL_ini("SystemFilesPath")
-local SystemFilesPath = "/tmp/fs/mp/images/ivsu_cache/"
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
-function Test:TestStep_ConnectMobile()
-  self:connectMobile()
-end
-
-function Test:TestStep_StartNewSession()
-  self.mobileSession = mobile_session.MobileSession( self, self.mobileConnection)
-  self.mobileSession:StartService(7)
-end
-
 function Test:TestStep_PTS_Storage_On_File_System()
-  local hmi_app_id = self.applications[config.application1.registerAppInterfaceParams.appName]
-  local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
+  local SystemFilesPath = commonFunctions:read_parameter_from_smart_device_link_ini("SystemFilesPath")
+  local PathToSnapshot = commonFunctions:read_parameter_from_smart_device_link_ini("PathToSnapshot")
+  local ServerAddress = commonFunctions:read_parameter_from_smart_device_link_ini("ServerAddress")
 
-  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application1.appName } })
-  :Do(function(_,data)
-      EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
+  local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.applications[config.application1.registerAppInterfaceParams.appName]})
+  EXPECT_HMIRESPONSE(RequestId)
+  :Do(function(_,_)
+      local RequestId1 = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
 
-      if ( commonSteps:file_exists( SystemFilesPath..'sdl_snapshot.json') == false ) then
-        self:FailTestCase(SystemFilesPath.."sdl_snapshot.json doesn't exist!")
-      end
+      EXPECT_HMIRESPONSE( RequestId1, {result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
+      :Do(function(_,_)
+
+          self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality",
+            {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = ServerAddress, isSDLAllowed = true}})
+
+          if ( commonSteps:file_exists( SystemFilesPath..'/' .. PathToSnapshot) == false ) then
+            self:FailTestCase(SystemFilesPath..'/' .. PathToSnapshot.."sdl_snapshot.json doesn't exist!")
+          end
+        end)
     end)
-  self.mobileSession:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS"})
+  EXPECT_HMICALL("BasicCommunication.PolicyUpdate",{})
 end
 
 --[[ Postconditions ]]
