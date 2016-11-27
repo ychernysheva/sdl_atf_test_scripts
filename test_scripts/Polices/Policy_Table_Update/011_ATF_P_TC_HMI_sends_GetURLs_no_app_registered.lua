@@ -24,14 +24,11 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 
 --[[ Required Shared libraries ]]
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
+local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
-local testCasesForBuildingSDLPolicyFlag = require('user_modules/shared_testcases/testCasesForBuildingSDLPolicyFlag')
 local testCasesForPolicyTableSnapshot = require('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
 
 --[[ General Precondition before ATF start ]]
--- commonFunctions:SDLForceStop()
-testCasesForBuildingSDLPolicyFlag:Update_PolicyFlag("EXTENDED_POLICY", "EXTERNAL_PROPRIETARY")
-testCasesForBuildingSDLPolicyFlag:CheckPolicyFlagAfterBuild("EXTENDED_POLICY","EXTERNAL_PROPRIETARY")
 commonSteps:DeleteLogsFileAndPolicyTable()
 
 --ToDo: shall be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
@@ -41,22 +38,31 @@ config.defaultProtocolVersion = 2
 Test = require('connecttest')
 require('cardinalities')
 require('user_modules/AppTypes')
-local mobile_session = require('mobile_session')
 
 --[[ Preconditions ]]
-testCasesForPolicyTable:flow_PTU_SUCCEESS_EXTERNAL_PROPRIETARY()
+commonFunctions:newTestCasesGroup("Preconditions")
+function Test:Precondition_trigger_getting_device_consent()
+  testCasesForPolicyTable:trigger_getting_device_consent(self, config.application1.registerAppInterfaceParams.appName, config.deviceMAC)
+end
+
+function Test:Precondition_flow_PTU_SUCCEESS_EXTERNAL_PROPRIETARY()
+  testCasesForPolicyTable:flow_SUCCEESS_EXTERNAL_PROPRIETARY(self)
+end
 
 function Test:Precondition_UnregisterApp()
-  local CorIdURAI = self.mobileSession:SendRPC("UnregisterAppInterface", {})
+  self.mobileSession:SendRPC("UnregisterAppInterface", {})
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered",
     {appID = self.applications[config.application1.registerAppInterfaceParams.appName], unexpectedDisconnect = false})
   EXPECT_RESPONSE("UnregisterAppInterface", {success = true , resultCode = "SUCCESS"})
 end
 
 -- Request PTU
-testCasesForPolicyTable:trigger_PTU_user_request_update_from_HMI()
+function Test:Precondition_trigger_PTU_user_request_update_from_HMI()
+  testCasesForPolicyTable:trigger_user_request_update_from_HMI(self)
+end
 
 --[[ Test ]]
+commonFunctions:newTestCasesGroup("Test")
 function Test:TestStep_PTU_GetURLs_NoAppRegistered()
   local endpoints = {}
   local is_app_esxist = false
@@ -70,16 +76,22 @@ function Test:TestStep_PTU_GetURLs_NoAppRegistered()
       -- app id should be included in PTS but not to be used
       is_app_esxist = true
     end
-  end 
+  end
 
   local RequestId = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
 
   EXPECT_HMIRESPONSE(RequestId,{result = {code = 0, method = "SDL.GetURLS", urls = endpoints} } )
-  :Do(function(_,data) 
-    if(is_app_esxist == false) then
-      self:FailTestCase("endpoints for application doesn't exist!")
-    end
-  end)
+  :Do(function(_,_)
+      if(is_app_esxist == false) then
+        self:FailTestCase("Used URLs are default as expected! Endpoints for application doesn't exist!")
+      end
+    end)
+end
+
+--[[ Postconditions ]]
+commonFunctions:newTestCasesGroup("Postconditions")
+function Test:Postcondition_Force_Stop_SDL()
+  commonFunctions:SDLForceStop(self)
 end
 
 return Test
