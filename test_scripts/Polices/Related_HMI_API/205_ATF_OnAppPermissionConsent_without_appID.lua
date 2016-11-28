@@ -74,7 +74,7 @@ function Test:TestStep_User_consent_on_activate_app()
                 end
               end
 
-              self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent", { appID = self.applications[config.application1.registerAppInterfaceParams.appName], consentedFunctions = groups, source = "GUI"})
+              self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent", { consentedFunctions = groups, source = "GUI"})
               EXPECT_NOTIFICATION("OnPermissionsChange")
               :Do(function(_,_)
                   testCasesForPolicyTableSnapshot:extract_pts({self.applications[config.application1.registerAppInterfaceParams.appName]})
