@@ -41,7 +41,7 @@ end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
-function Test:TestStep_Allowed_false_without_device()
+function Test:TestStep_Allowed_false_with_device()
 
   device_consent_group = testCasesForPolicyTableSnapshot:get_data_from_PTS("app_policies.device.groups.1")
   device_consent = testCasesForPolicyTableSnapshot:get_data_from_PTS("device_data."..config.deviceMAC..".user_consent_records.device.consent_groups.DataConsent-2")
@@ -54,8 +54,8 @@ function Test:TestStep_Allowed_false_without_device()
     if(device_consent ~= true) then
       self:FailTestCase("Device is not consented after user consent.")
     else
-      print("DeviceConsented!")
-      self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", {allowed = false, source = "GUI"})
+      self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", 
+        {allowed = false, source = "GUI",  device = {id = config.deviceMAC, name = ServerAddress, isSDLAllowed = false}})
     end
   end
 end
