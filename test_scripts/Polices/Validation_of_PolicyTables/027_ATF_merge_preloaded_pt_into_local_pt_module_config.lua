@@ -3,14 +3,15 @@
 -- [Policies] Merging rules for "module_config" section
 --
 -- Description:
--- Check of merging rules for "app_policies" section
+-- Check of merging rules for "module_config" section
 -- 1. Used preconditions
 -- Delete files and policy table from previous ignition cycle if any
--- Start SDL with PreloadedPT json file with "preloaded_date" parameter and one <appid> subsection and "default", "device", "pre_DataConsent" subsections
+-- Start SDL with PreloadedPT json file with "preloaded_date" parameter
+-- Add information about vehicle (vehicle_make, vehicle_model, vehicle_year)
 -- 2. Performed steps
 -- Stop SDL
 -- Start SDL with corrected PreloadedPT json file with "preloaded_date" parameter with bigger value
--- and one <appid> subsection and "default", "device", "pre_DataConsent" subsections with other data
+-- and updated information for "module_config" section with new fields and changed information for some other fields
 --
 -- Expected result:
 -- SDL must add new fields (known to PM) & sub-sections if such are present in the updated PreloadedPT to database
