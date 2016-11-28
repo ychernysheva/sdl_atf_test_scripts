@@ -6,10 +6,10 @@
 --     Providing the device`s DataConsent status (allowed) to HMI upon device connection to SDL
 --     1. Used preconditions:
 -- 	      Delete files and policy table from previous ignition cycle if any
---		  Connect new device
+--		    Connect new device
 --        Register App
---		  Activate app -> consent device
---		  Dusconnect device
+--		    Activate app -> consent device
+--		    Disconnect device
 --
 --     2. Performed steps:
 --        Connect device again
