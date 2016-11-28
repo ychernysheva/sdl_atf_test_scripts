@@ -1,3 +1,6 @@
+-- UNREADY: 
+--function Test:TestStep_PoliciesManager_changes_status_UPDATING()
+--should be applicable for HTTP flag as well
 ---------------------------------------------------------------------------------------------
 -- Requirements summary:
 -- [PolicyTableUpdate] PoliciesManager changes status to “UPDATING”
@@ -43,6 +46,7 @@ require('cardinalities')
 require('user_modules/AppTypes')
 
 --[[ Test ]]
+--TODO(mmihaylova-banska): Function should be implmented for HTTP flag 
 commonFunctions:newTestCasesGroup("Test")
 function Test:TestStep_PoliciesManager_changes_status_UPDATING()
   local SystemFilesPath = commonFunctions:read_parameter_from_smart_device_link_ini("SystemFilesPath")
@@ -62,15 +66,15 @@ function Test:TestStep_PoliciesManager_changes_status_UPDATING()
   local RequestId_GetUrls = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
   EXPECT_HMIRESPONSE(RequestId_GetUrls,{result = {code = 0, method = "SDL.GetURLS", urls = endpoints} } )
   :Do(function(_,_)
-      self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",{ requestType = "PROPRIETARY", fileName = "PolicyTableUpdate"})
-      EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "PROPRIETARY"})
+      self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",{ requestType = "HTTP", fileName = "PolicyTableUpdate"})
+      EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "HTTP"})
       :Do(function(_,_)
           local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest",
-            {requestType = "PROPRIETARY", fileName = "PolicyTableUpdate", appID = config.application1.registerAppInterfaceParams.appID}, "files/ptu.json")
+            {requestType = "HTTP", fileName = "PolicyTableUpdate", appID = config.application1.registerAppInterfaceParams.appID}, "files/ptu.json")
 
           EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATING"})
 
-          EXPECT_HMICALL("BasicCommunication.SystemRequest",{ requestType = "PROPRIETARY", fileName = SystemFilesPath.."/PolicyTableUpdate" })
+          EXPECT_HMICALL("BasicCommunication.SystemRequest",{ requestType = "HTTP", fileName = SystemFilesPath.."/PolicyTableUpdate" })
           :Do(function(_,_data1)
               self.hmiConnection:SendResponse(_data1.id,"BasicCommunication.SystemRequest", "SUCCESS", {})
               --self.hmiConnection:SendNotification ("SDL.OnReceivedPolicyUpdate", { policyfile = SystemFilesPath.."/PolicyTableUpdate"})
