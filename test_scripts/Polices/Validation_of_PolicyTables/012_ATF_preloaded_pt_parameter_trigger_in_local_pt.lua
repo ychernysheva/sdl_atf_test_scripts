@@ -41,62 +41,62 @@ local function constructPathToDatabase()
   end
 end
 
-local function executeSqliteQuery(raw_query_string, db_file_path)
-  if not db_file_path then
+local function executeSqliteQuery(rawQueryString, dbFilePath)
+  if not dbFilePath then
     return nil
   end
-  local query_execution_result = {}
-  local query_string = table.concat({"sqlite3 ", db_file_path, " '", raw_query_string, "'"})
-  local file = io.popen(query_string, 'r')
+  local queryExecutionResult = {}
+  local queryString = table.concat({"sqlite3 ", dbFilePath, " '", rawQueryString, "'"})
+  local file = io.popen(queryString, 'r')
   if file then
     local index = 1
     for line in file:lines() do
-      query_execution_result[index] = line
+      queryExecutionResult[index] = line
       index = index + 1
     end
     file:close()
-    return query_execution_result
+    return queryExecutionResult
   else
     return nil
   end
 end
 
-local function isValuesCorrect(actual_values, expected_values)
-  if #actual_values ~= #expected_values then
+local function isValuesCorrect(actualValues, expectedValues)
+  if #actualValues ~= #expectedValues then
     return false
   end
 
-  local tmp_expected_values = {}
-  for i = 1, #expected_values do
-    tmp_expected_values[i] = expected_values[i]
+  local tmpExpectedValues = {}
+  for i = 1, #expectedValues do
+    tmpExpectedValues[i] = expectedValues[i]
   end
 
-  local is_found
-  for j = 1, #actual_values do
-    is_found = false
-    for key, value in pairs(tmp_expected_values) do
-      if value == actual_values[j] then
-        is_found = true
-        tmp_expected_values[key] = nil
+  local isFound
+  for j = 1, #actualValues do
+    isFound = false
+    for key, value in pairs(tmpExpectedValues) do
+      if value == actualValues[j] then
+        isFound = true
+        tmpExpectedValues[key] = nil
         break
       end
     end
-    if not is_found then
+    if not isFound then
       return false
     end
   end
-  if next(tmp_expected_values) then
+  if next(tmpExpectedValues) then
     return false
   end
   return true
 end
 
 function Test.checkLocalPT()
-  local expected_local_pt_request_type_values = {DB_FALSE_VALUE}
-  local query_string = 'SELECT preloaded_pt FROM module_config'
-  local actual_local_pt_request_type_values = executeSqliteQuery(query_string, constructPathToDatabase())
-  if actual_local_pt_request_type_values then
-    local result = isValuesCorrect(actual_local_pt_request_type_values, expected_local_pt_request_type_values)
+  local expectedLocalPtRequestTypeValues = {DB_FALSE_VALUE}
+  local queryString = 'SELECT preloaded_pt FROM module_config'
+  local actualLocalPtRequestTypeValues = executeSqliteQuery(queryString, constructPathToDatabase())
+  if actualLocalPtRequestTypeValues then
+    local result = isValuesCorrect(actualLocalPtRequestTypeValues, expectedLocalPtRequestTypeValues)
     if not result then
       commonFunctions:userPrint(31, "Test failed: SDL don't change the value of preloaded_pt field to false after PTU")
     end
