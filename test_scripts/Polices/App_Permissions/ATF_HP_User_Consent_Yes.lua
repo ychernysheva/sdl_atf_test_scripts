@@ -171,26 +171,27 @@ function Test:Precondition_Activate_App_And_Consent_Device()
     })
   :Do(function(_,data)
       self.applications["SPT"] = data.params.application.appID
-      EXPECT_RESPONSE(CorIdRAI, { success = true, resultCode = "SUCCESS"})
 
       local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", {appID = self.applications["SPT"]})
       EXPECT_HMIRESPONSE(RequestId, { result = {
             code = 0,
             isSDLAllowed = false},
           method = "SDL.ActivateApp"})
-      :Do(function(_,data)
+      :Do(function(_,_)
           local RequestId = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
           EXPECT_HMIRESPONSE(RequestId,{result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
-          :Do(function(_,data)
+          :Do(function(_,_)
               self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = "127.0.0.1"}})
               EXPECT_HMICALL("BasicCommunication.ActivateApp")
-              :Do(function(_,data)
-                  self.hmiConnection:SendResponse(data.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
+              :Do(function(_,data1)
+                  self.hmiConnection:SendResponse(data1.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
                   EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"})
                 end)
             end)
         end)
     end)
+  EXPECT_RESPONSE(CorIdRAI, { success = true, resultCode = "SUCCESS"})
+
 end
 
 function Test:Precondition_DeactivateApp()
