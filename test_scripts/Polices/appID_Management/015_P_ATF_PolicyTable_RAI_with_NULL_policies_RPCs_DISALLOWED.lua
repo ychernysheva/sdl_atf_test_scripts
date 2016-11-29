@@ -1,30 +1,28 @@
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
 -- [GeneralResultCode] DISALLOWED. A request comes with appID which has "null" permissions in Policy Table
--- 
+-- [RegisterAppInterface] Allow only RegisterAppInterface for the application with NULL policies
+--
 -- Description:
---      In case PolicyTable has "<appID>": "null" in the Local PolicyTable for the specified application with appID, 
---      PoliciesManager must return DISALLOWED resultCode and success:"false" to any RPC requested by such <appID> app.
+-- In case PolicyTable has "<appID>": "null" in the Local PolicyTable for the specified application with appID,
+-- PoliciesManager must return DISALLOWED resultCode and success:"false" to any RPC requested by such <appID> app.
 -- Performed steps
---       Pre_step. Add in sdl_preloaded_pt application id with NULL policy
---       1. MOB-SDL - Open new session and register application in this session
---       2. MOB-SDL - send the list of RPCs
---       3. SDL responce, success = false, resultCode = "DISALLOWED" 
+-- Pre_step. Add in sdl_preloaded_pt application id with NULL policy
+-- 1. MOB-SDL - Open new session and register application in this session
+-- 2. MOB-SDL - send the list of RPCs
+-- 3. SDL responce, success = false, resultCode = "DISALLOWED"
 ---------------------------------------------------------------------------------------------
 
- --[[ General configuration parameters ]]
+--[[ General configuration parameters ]]
 config.defaultProtocolVersion = 2
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 
 --[[ Required Shared libraries ]]
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
-local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
 local testCasesForPolicyTableSnapshot = require('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
 local testCasesForPolicyAppIdManagament = require('user_modules/shared_testcases/testCasesForPolicyAppIdManagament')
-
-
 
 --[[ Local variables ]]
 local RPC_Base4 = {}
@@ -33,9 +31,9 @@ local HMIAppID
 --[[ Local functions ]]
 local function Get_RPCs()
   testCasesForPolicyTableSnapshot:extract_preloaded_pt()
-  
+
   for i = 1, #testCasesForPolicyTableSnapshot.preloaded_elements do
-    if ( string.sub(testCasesForPolicyTableSnapshot.preloaded_elements[i].name,1,string.len("functional_groupings.Base-4.rpcs.")) == "functional_groupings.Base-4.rpcs." ) then 
+    if ( string.sub(testCasesForPolicyTableSnapshot.preloaded_elements[i].name,1,string.len("functional_groupings.Base-4.rpcs.")) == "functional_groupings.Base-4.rpcs." ) then
       local str = string.match(testCasesForPolicyTableSnapshot.preloaded_elements[i].name, "functional_groupings%.Base%-4%.rpcs%.(%S+)%.%S+%.%S+")
       if(#RPC_Base4 == 0) then
         RPC_Base4[#RPC_Base4 + 1] = str
@@ -44,10 +42,10 @@ local function Get_RPCs()
       if(RPC_Base4[#RPC_Base4] ~= str) then
         RPC_Base4[#RPC_Base4 + 1] = str
       end
-    end  
-  end   
+    end
+  end
   -- for i = 1, #RPC_Base4 do
-  --      print ("RPC_Base4 = "..RPC_Base4[i])
+  -- print ("RPC_Base4 = "..RPC_Base4[i])
   -- end
 end
 
@@ -56,7 +54,6 @@ Get_RPCs()
 commonSteps:DeleteLogsFileAndPolicyTable()
 --ToDo: shall be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
 config.defaultProtocolVersion = 2
-
 
 --[[ General Settings for configuration ]]
 Test = require('connecttest')
@@ -102,10 +99,12 @@ function Test:TestStep_PerformPTU_Check_OnAppPermissionChanged()
 end
 
 for i = 1, #RPC_Base4 do
-  if(RPC_Base4[i] ~= "UnregisterAppInterface" and RPC_Base4[i] ~= "RegisterAppInterface") then
+
+  if( (RPC_Base4[i] ~= "UnregisterAppInterface") and (RPC_Base4[i] ~= "RegisterAppInterface")
+    and (string.sub (RPC_Base4[i], 1, string.len("On")) ~= "On") ) then
     function Test:TestStep_CheckRPCs_DISALLOWED()
       print("RPC_Base4: "..RPC_Base4[i])
-      
+
       local correlationId = self.mobileSession2:SendRPC(RPC_Base4[i], {})
       self.mobileSession2:ExpectResponse(correlationId, { success = false, resultCode = "DISALLOWED" })
     end
