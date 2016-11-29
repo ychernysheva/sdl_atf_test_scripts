@@ -96,7 +96,6 @@ function Test:TestStep_Start_Update_First_Time_And_Trigger_New_PTU_Via_UpdateSDL
           RUN_AFTER(to_run, 800)
           self.mobileSession:ExpectResponse(CorIdSystemRequest, {success = true, resultCode = "SUCCESS"})
           EXPECT_NOTIFICATION("OnPermissionsChange", {})
-          EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
         end)
     end)
 end
