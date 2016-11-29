@@ -7,12 +7,12 @@
 -- 1. Used preconditions:
 --    SDL and HMI are running
 --    Connect device not from LPT
---   
+--
 -- 2. Performed steps:
 --    Register app
 --
 -- Expected result:
---    SDL must add new <device identifier> section in "device_data" section 
+--    SDL must add new <device identifier> section in "device_data" section
 ---------------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
@@ -78,21 +78,17 @@ end
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
-function Test:TestStep_check_LocalPT_for_updates()
+function Test:Check_LocalPT_for_device_identifier()
   local is_test_fail = false
-    local device_data = testCasesForPolicyTableSnapshot:get_data_from_PTS("device_data")
-
-    print("device_data" ..tostring(device_data))
-
-    if(device_data ~= "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0") then
-      commonFunctions:printError("Error: device_data is missing")
-      is_test_fail = true
-    end
-
-    if(is_test_fail == true) then
-      self:FailTestCase("Test is FAILED. See prints.")
-    end 
-  
+  local device_data = testCasesForPolicyTableSnapshot:get_data_from_PTS("device_data")
+  print("device_data" ..tostring(device_data))
+  if(device_data ~= "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0") then
+    commonFunctions:printError("Error: device_data is missing")
+    is_test_fail = true
+  end
+  if(is_test_fail == true) then
+    self:FailTestCase("Test is FAILED")
+  end
 end
 
 --[[ Postconditions ]]
