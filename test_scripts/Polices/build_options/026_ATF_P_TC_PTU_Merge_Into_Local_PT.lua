@@ -80,13 +80,13 @@ function Test:TestStep_PTU_Merge ()
   :Do(function(_,_)
       self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",
         { requestType = "HTTP", fileName = ptu_file_name})
-      EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "PROPRIETARY"})
+      EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "HTTP"})
       :Do(function(_,_)
 
           EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",
             {status = "UPDATING"}, {status = "UP_TO_DATE"}):Times(2)
 
-          local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", {requestType = "PROPRIETARY", fileName = ptu_file_name, appID = app_id}, ptu_file_path..ptu_file)
+          local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", {requestType = "HTTP", fileName = ptu_file_name, appID = app_id}, ptu_file_path..ptu_file)
           EXPECT_HMICALL("BasicCommunication.SystemRequest",{ requestType = "HTTP", fileName = SystemFilesPath..ptu_file_name })
           :Do(function(_,_data1)
               self.hmiConnection:SendResponse(_data1.id,"BasicCommunication.SystemRequest", "SUCCESS", {})
