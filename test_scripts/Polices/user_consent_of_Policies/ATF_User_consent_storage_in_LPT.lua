@@ -3,6 +3,7 @@
 --     [Policies]:Storage of user-consent for device in LocalPT
 --
 -- Description:
+--    Storing by Policies Manager user consent for device
 -- 1. Used preconditions:
 --    SDL and HMI are running
 --    Local PT does not have user_consent_records for <Device>
@@ -115,10 +116,6 @@ end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
-
-function Test.Postcondition_Restore_PreloadedPT()
-  testCasesForPolicyTable:Restore_preloaded_pt()
-end
 
 function Test.Postcondition_SDLForceStop()
   commonFunctions:SDLForceStop()
