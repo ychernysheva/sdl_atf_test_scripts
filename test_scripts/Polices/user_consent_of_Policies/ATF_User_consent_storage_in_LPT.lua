@@ -41,7 +41,6 @@ local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 local mobile_session = require('mobile_session')
 local testCasesForPolicyTableSnapshot = require('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
-local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
