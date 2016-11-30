@@ -73,7 +73,7 @@ function Test:Precondition_PTU_revoke_app_group()
           EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UP_TO_DATE"})
           :Do(function(_,_)
               EXPECT_HMINOTIFICATION("SDL.OnAppPermissionChanged", {appID = HMIAppID, isAppPermissionsRevoked = true, appRevokedPermissions = {"DataConsent"}})
-              :Do(function()
+              :Do(function(_,_)
                   local RequestIdListOfPermissions = self.hmiConnection:SendRequest("SDL.GetListOfPermissions", { appID = HMIAppID })
                   EXPECT_HMIRESPONSE(RequestIdListOfPermissions)
                   :Do(function()
@@ -105,10 +105,10 @@ end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
-function Test.Postcondition_RestorePreloadedPT()
-  testCasesForPolicyTable:Restore_preloaded_pt()
+testCasesForPolicyTable:Restore_preloaded_pt()
+
+function Test.Postcondition_Stop()
+  StopSDL()
 end
 
-function Test.Postcondition_SDLForceStop()
-  commonFunctions:SDLForceStop()
-end
+return Test

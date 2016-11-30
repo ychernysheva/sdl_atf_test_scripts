@@ -66,13 +66,13 @@ function Test:TestStep_ChangeRegistration()
   self.mobileSession2:ExpectResponse(corId, { success = false, resultCode = "DISALLOWED" })
 
   self.mobileSession2:ExpectNotification("OnAppInterfaceUnregistered", {}):Times(0)
-  commonTestCases:DelayedExp(10000) 
+  commonTestCases:DelayedExp(10000)
 end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
-function Test:Postcondition_Force_Stop_SDL()
-  commonFunctions:SDLForceStop(self)
+function Test.Postcondition_Stop()
+  StopSDL()
 end
 
 return Test

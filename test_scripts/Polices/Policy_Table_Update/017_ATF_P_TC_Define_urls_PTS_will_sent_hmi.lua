@@ -65,16 +65,16 @@ function Test:TestStep_PolicyManager_sends_PTS_to_HMI()
 
   EXPECT_HMIRESPONSE(RequestId_GetUrls,{result = {code = 0, method = "SDL.GetURLS", urls = endpoints} } )
   :Do(function(_,_)
-    if(is_app_esxist == false) then
-      self:FailTestCase("endpoints for application doesn't exist!")
-    end
-  end)
+      if(is_app_esxist == false) then
+        self:FailTestCase("endpoints for application doesn't exist!")
+      end
+    end)
 end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
-function Test:Postcondition_Force_Stop_SDL()
-  commonFunctions:SDLForceStop(self)
+function Test.Postcondition_Stop()
+  StopSDL()
 end
 
 return Test

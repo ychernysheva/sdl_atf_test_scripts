@@ -57,4 +57,10 @@ function Test:TestStep_RegisterNewApp()
   self.mobileSession2:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
 end
 
+--[[ Postconditions ]]
+commonFunctions:newTestCasesGroup("Postconditions")
+function Test.Postcondition_Stop()
+  StopSDL()
+end
+
 return Test

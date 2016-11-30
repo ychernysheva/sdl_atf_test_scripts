@@ -81,4 +81,8 @@ function Test:TestStep_UpdatePolicy()
   self.mobileSession2:ExpectNotification("OnHMIStatus", { hmiLevel ="NONE", systemContext = "MAIN", audioStreamingState = "NOT_AUDIBLE" })
 end
 
+function Test.Postcondition_Stop()
+  StopSDL()
+end
+
 return Test

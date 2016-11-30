@@ -81,4 +81,10 @@ function Test:UpdatePolicy()
   self.mobileSession:ExpectNotification("OnAppInterfaceUnregistered", { reason = "APP_UNAUTHORIZED"})
 end
 
+--[[ Postconditions ]]
+commonFunctions:newTestCasesGroup("Postconditions")
+function Test.Postcondition_Stop()
+  StopSDL()
+end
+
 return Test

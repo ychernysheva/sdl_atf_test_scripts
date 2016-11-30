@@ -60,8 +60,6 @@ function Test:TestStep_Sending_PTS_to_mobile_application()
   local SystemFilesPath = commonFunctions:read_parameter_from_smart_device_link_ini("SystemFilesPath")
   local PathToSnapshot = commonFunctions:read_parameter_from_smart_device_link_ini("PathToSnapshot")
   local file_pts = SystemFilesPath.."/"..PathToSnapshot
-  local expect_PTU_status_update = 0
-  local expect_PTU_policy_update = 0
 
   for i = 1, #testCasesForPolicyTableSnapshot.pts_endpoints do
     if (testCasesForPolicyTableSnapshot.pts_endpoints[i].service == "0x07") then
@@ -125,8 +123,8 @@ end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
-function Test:Postcondition_Force_Stop_SDL()
-  commonFunctions:SDLForceStop(self)
+function Test.Postcondition_Stop()
+  StopSDL()
 end
 
 return Test

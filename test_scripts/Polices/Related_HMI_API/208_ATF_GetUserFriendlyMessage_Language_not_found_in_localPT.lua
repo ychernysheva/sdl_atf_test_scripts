@@ -8,8 +8,8 @@
 -- 2. Steps: Start SDL, Activate App, in SDL.GetUserFriendlyMessage parameter "language" is present(de-de).
 --
 -- Expected result:
---    HMI->SDL: SDL.GetUserFriendlyMessage ("messageCodes": "AppPermissions")
---    SDL->HMI: SDL.GetUserFriendlyMessage ("messages": {messageCode: "AppPermissions", ttsString: "%appName% is requesting the use of the following ....", line1: "Grant Requested", line2: "Permission(s)?"})
+-- HMI->SDL: SDL.GetUserFriendlyMessage ("messageCodes": "AppPermissions")
+-- SDL->HMI: SDL.GetUserFriendlyMessage ("messages": {messageCode: "AppPermissions", ttsString: "%appName% is requesting the use of the following ....", line1: "Grant Requested", line2: "Permission(s)?"})
 ---------------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
@@ -53,6 +53,7 @@ function Test:Precondition_InitHMI()
 end
 
 function Test:Precondtion_initHMI_OnReady()
+
   local function ExpectRequest(name, mandatory, params)
     local event = events.Event()
 
@@ -343,10 +344,10 @@ end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
-function Test.Postcondition_Restore_PreloadedPT()
-  testCasesForPolicyTable:Restore_preloaded_pt()
+testCasesForPolicyTable:Restore_preloaded_pt()
+
+function Test.Postcondition_Stop()
+  StopSDL()
 end
 
-function Test.Postcondition_SDLForceStop()
-  commonFunctions:SDLForceStop()
-end
+return Test

@@ -63,6 +63,7 @@ function Test:TestStep_PTS_Timeout_wait_response_PTU()
               timeout_preloaded = testCasesForPolicyTableSnapshot.preloaded_elements[i].value
             end
           end
+          if(timeout_preloaded == nil) then timeout_preloaded = 0 end
           if ( timeout_pts ~= timeout_preloaded ) then
             self:FailTestCase("timeout in PTS should be "..timeout_preloaded.."ms, real: "..timeout_pts.."ms")
           end
@@ -73,8 +74,8 @@ end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
-function Test:Postcondition_Force_Stop_SDL()
-  commonFunctions:SDLForceStop(self)
+function Test.Postcondition_Stop()
+  StopSDL()
 end
 
 return Test
