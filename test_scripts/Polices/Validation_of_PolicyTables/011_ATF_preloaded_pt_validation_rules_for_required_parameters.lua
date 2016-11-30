@@ -1,4 +1,7 @@
 ---------------------------------------------------------------------------------------------
+-- Requirement summary:
+-- [Policies]: PreloadedPolicyTable: Validation rules for required parameters
+--
 -- Description:
 -- Behavior of SDL during start SDL in case when PreloadedPT has no required parameters
 -- 1. Used preconditions:
@@ -7,20 +10,14 @@
 -- 2. Performed steps:
 -- Create PreloadedPolicyTable file without one required parameter
 -- Start SDL
-
--- Requirement summary:
--- [Policies]: PreloadedPolicyTable: Validation rules for required parameters
 --
 -- Expected result:
--- SDL shuted down
+-- SDL is shutdown
 ---------------------------------------------------------------------------------------------
---[[ General Settings for configuration ]]
+--[[ General configuration parameters ]]
 Test = require('connecttest')
 local config = require('config')
-
---[[ General configuration parameters ]]
 config.defaultProtocolVersion = 2
-local preloaded_pt_file_name = "sdl_preloaded_pt.json"
 
 --[[ Required Shared libraries ]]
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
@@ -28,35 +25,37 @@ local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local json = require("modules/json")
 local SDL = require('modules/SDL')
 
---[[ Preconditions ]]
-function Test.backup_preloaded_pt()
-  os.execute("cp " .. config.pathToSDL .. preloaded_pt_file_name .. ' ' .. config.pathToSDL .. "backup_" .. preloaded_pt_file_name)
-end
-
-function Test.restore_preloaded_pt()
-  os.execute("mv " .. config.pathToSDL .. "backup_" .. preloaded_pt_file_name .. " " .. config.pathToSDL .. preloaded_pt_file_name)
-end
-
-function Test.corrupt_preloaded_pt()
-  local changed_parameters = {
-    ["1234"] = {
-      [123] = "http://cloud.ford.com/global",
-      keep_context = false,
-      steal_focus = false,
-      -- priority = "NONE", -- removed required parameter
-      default_hmi = "NONE",
-      groups = {"BaseBeforeDataConsent"}
-    },
-    super = {
-      keep_context = false,
-      steal_focus = false,
-      priority = "NONE",
-      default_hmi = "NONE",
-      groups = {"BaseBeforeDataConsent"}
-    }
+--[[ Local Variables ]]
+local PRELOADED_PT_FILE_NAME = "sdl_preloaded_pt.json"
+local TEST_DATA = {
+  ["1234"] = {
+    [123] = "http://cloud.ford.com/global",
+    keep_context = false,
+    steal_focus = false,
+    -- priority = "NONE", -- removed required parameter
+    default_hmi = "NONE",
+    groups = {"BaseBeforeDataConsent"}
+  },
+  super = {
+    keep_context = false,
+    steal_focus = false,
+    priority = "NONE",
+    default_hmi = "NONE",
+    groups = {"BaseBeforeDataConsent"}
   }
+}
 
-  local pathToFile = config.pathToSDL .. preloaded_pt_file_name
+--[[ Local Functions ]]
+function Test.backupPreloadedPT()
+  os.execute("cp " .. config.pathToSDL .. PRELOADED_PT_FILE_NAME .. ' ' .. config.pathToSDL .. "backup_" .. PRELOADED_PT_FILE_NAME)
+end
+
+function Test.restorePreloadedPT()
+  os.execute("mv " .. config.pathToSDL .. "backup_" .. PRELOADED_PT_FILE_NAME .. " " .. config.pathToSDL .. PRELOADED_PT_FILE_NAME)
+end
+
+function Test.corruptPreloadedPT(changed_parameters)
+  local pathToFile = config.pathToSDL .. PRELOADED_PT_FILE_NAME
 
   local file = io.open(pathToFile, "r")
   local json_data = file:read("*a")
@@ -75,7 +74,7 @@ function Test.corrupt_preloaded_pt()
   file:close()
 end
 
-function Test.check_sdl()
+function Test.checkSdl()
   EXPECT_HMINOTIFICATION("BasicCommunication.OnSDLClose",{}):Times(1)
   local status = SDL:CheckStatusSDL()
   if status == SDL.RUNNING then
@@ -85,29 +84,31 @@ function Test.check_sdl()
   return true
 end
 
-function Test:Precondition_stop_sdl()
+--[[ Preconditions ]]
+function Test:Precondition_StopSdl()
   StopSDL(self)
 end
 
 function Test:Precondition()
   commonSteps:DeletePolicyTable()
-  self.backup_preloaded_pt()
-  self.corrupt_preloaded_pt()
+  self.backupPreloadedPT()
+  self.corruptPreloadedPT(TEST_DATA)
 end
 
 --[[ Test ]]
-
-function Test:Test_start_sdl()
+function Test:Test_StartSdl()
   StartSDL(config.pathToSDL, true, self)
 end
 
 function Test:Test()
-  self.check_sdl()
+  os.execute("sleep 3")
+  self.checkSdl()
 end
 
 --[[ Postconditions ]]
 function Test:Postconditions()
-  self.restore_preloaded_pt()
+  self.restorePreloadedPT()
 end
 
 commonFunctions:SDLForceStop()
+return Test
