@@ -59,4 +59,10 @@ function Test:RegisterNewApp()
   self.mobileSession2:ExpectResponse(corId, { success = false, resultCode = "DISALLOWED" })
 end
 
+--[[ Postconditions ]]
+commonFunctions:newTestCasesGroup("Postconditions")
+function Test.Postcondition_Stop()
+  StopSDL()
+end
+
 return Test

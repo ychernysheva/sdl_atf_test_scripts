@@ -133,9 +133,7 @@ end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
-Test["StopSDL"] = function()
-  commonFunctions:userPrint(33, "Postcondition")
+function Test.Postcondition_Stop()
   StopSDL()
 end
-
 return Test

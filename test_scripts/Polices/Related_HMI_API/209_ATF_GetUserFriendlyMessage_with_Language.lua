@@ -8,8 +8,8 @@
 -- 2. Steps: Activate App, in SDL.GetUserFriendlyMessage parameter "language" should be present
 --
 -- Expected result:
---    HMI->SDL: SDL.GetUserFriendlyMessage ("messageCodes": "AppPermissions")
---    SDL->HMI: SDL.GetUserFriendlyMessage ("messages": {messageCode: "AppPermissions", ttsString: "%appName% is requesting the use of the following ....", line1: "Grant Requested", line2: "Permission(s)?"})
+-- HMI->SDL: SDL.GetUserFriendlyMessage ("messageCodes": "AppPermissions")
+-- SDL->HMI: SDL.GetUserFriendlyMessage ("messages": {messageCode: "AppPermissions", ttsString: "%appName% is requesting the use of the following ....", line1: "Grant Requested", line2: "Permission(s)?"})
 ---------------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
@@ -57,8 +57,8 @@ end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
-function Test.Postcondition_SDLForceStop()
-  commonFunctions:SDLForceStop()
+function Test.Postcondition_Stop()
+  StopSDL()
 end
 
 return Test

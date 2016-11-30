@@ -85,10 +85,11 @@ function Test:TestStep_PTU_DeviceConsent_from_User()
 
     if(is_test_failed == true) then self:FailTestCase("Test is FAILED. See prints.") end
   end
+
   --[[ Postconditions ]]
   commonFunctions:newTestCasesGroup("Postconditions")
-  function Test:Postcondition_SDLForceStop()
-    commonFunctions:SDLForceStop(self)
+  function Test.Postcondition_Stop()
+    StopSDL()
   end
 
   return Test

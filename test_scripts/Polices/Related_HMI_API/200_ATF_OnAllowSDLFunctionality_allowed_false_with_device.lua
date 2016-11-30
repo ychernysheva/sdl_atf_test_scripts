@@ -54,39 +54,39 @@ function Test:TestStep_Allowed_false_with_device()
     if(device_consent ~= true) then
       self:FailTestCase("Device is not consented after user consent.")
     else
-      self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", 
-        {allowed = false, source = "GUI",  device = {id = config.deviceMAC, name = ServerAddress, isSDLAllowed = false}})
+      self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality",
+        {allowed = false, source = "GUI", device = {id = config.deviceMAC, name = ServerAddress, isSDLAllowed = false}})
     end
   end
 end
 
-function Test:TestStep_Check_Device_IsnotAllowed() 
+function Test:TestStep_Check_Device_IsnotAllowed()
   local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.applications[config.application1.registerAppInterfaceParams.appName]})
   EXPECT_HMIRESPONSE(RequestId)
   :Do(function(_,data)
       if (data.result.isSDLAllowed == true) then
         self:FailTestCase("Device is still consented after user disallowed access to it.")
       end
-  end)
+    end)
 end
 
 function Test:TestStep_Check_Device_IsNotAllowed_snapshot()
   self.hmiConnection:SendNotification("SDL.OnPolicyUpdate", {} )
   EXPECT_HMICALL("BasicCommunication.PolicyUpdate",{})
-  :Do(function(_,_)
-    testCasesForPolicyTableSnapshot:extract_pts({self.applications[config.application1.registerAppInterfaceParams.appName]})
-    device_consent = testCasesForPolicyTableSnapshot:get_data_from_PTS("device_data."..config.deviceMAC..".user_consent_records.device.consent_groups.DataConsent-2")
-    self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-    if(device_consent ~= false) then
-      self:FailTestCase("Device is still consented after user didn't consent device.")
-    end
-  end)
+  :Do(function(_,_data1)
+      testCasesForPolicyTableSnapshot:extract_pts({self.applications[config.application1.registerAppInterfaceParams.appName]})
+      device_consent = testCasesForPolicyTableSnapshot:get_data_from_PTS("device_data."..config.deviceMAC..".user_consent_records.device.consent_groups.DataConsent-2")
+      self.hmiConnection:SendResponse(_data1.id, _data1.method, "SUCCESS", {})
+      if(device_consent ~= false) then
+        self:FailTestCase("Device is still consented after user didn't consent device.")
+      end
+    end)
 end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
-function Test:Postcondition_Force_Stop_SDL()
-  commonFunctions:SDLForceStop(self)
+function Test.Postcondition_Stop()
+  StopSDL()
 end
 
 return Test

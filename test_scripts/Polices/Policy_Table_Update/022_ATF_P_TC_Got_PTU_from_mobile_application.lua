@@ -64,32 +64,33 @@ function Test:TestStep_Sending_PTS_to_mobile_application()
 
     if (testCasesForPolicyTableSnapshot.pts_endpoints[i].service == "app1") then
       endpoints[#endpoints + 1] = {
-      url = testCasesForPolicyTableSnapshot.pts_endpoints[i].value,
-      appID = testCasesForPolicyTableSnapshot.pts_endpoints[i].appID}
+        url = testCasesForPolicyTableSnapshot.pts_endpoints[i].value,
+        appID = testCasesForPolicyTableSnapshot.pts_endpoints[i].appID}
     end
   end
 
   local RequestId_GetUrls = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
   EXPECT_HMIRESPONSE(RequestId_GetUrls,{result = {code = 0, method = "SDL.GetURLS", urls = endpoints} } )
   :Do(function(_,_)
+      if(endpoints == nil) then endpoints[1].url = "http://policies.telematics.ford.com/api/policies" end
 
-    self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",{ fileName = "PolicyTableUpdate", requestType = "PROPRIETARY", url = endpoints[1].url})
-    EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY", fileType = "JSON", url = endpoints[1].url,appID = config.application1.registerAppInterfaceParams.appID })
-    :Do(function(_,_)
-      local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", {requestType = "PROPRIETARY", fileName = "PolicyTableUpdate"}, "files/ptu.json")
+      self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",{ fileName = "PolicyTableUpdate", requestType = "PROPRIETARY", url = endpoints[1].url})
+      EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY", fileType = "JSON", url = endpoints[1].url,appID = config.application1.registerAppInterfaceParams.appID })
+      :Do(function(_,_)
+          local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", {requestType = "PROPRIETARY", fileName = "PolicyTableUpdate"}, "files/ptu.json")
 
-      EXPECT_HMICALL("BasicCommunication.SystemRequest",{
-        requestType = "PROPRIETARY",
-        fileName = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate",
-        appID = hmi_app_id})
-      :Do(function(_,_data1)
-        self.hmiConnection:SendResponse(_data1.id,"BasicCommunication.SystemRequest", "SUCCESS", {})
-        --self.hmiConnection:SendNotification ("SDL.OnReceivedPolicyUpdate", { policyfile = SystemFilesPath.."/PolicyTableUpdate"})
-      end)
+          EXPECT_HMICALL("BasicCommunication.SystemRequest",{
+              requestType = "PROPRIETARY",
+              fileName = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate",
+              appID = hmi_app_id})
+          :Do(function(_,_data1)
+              self.hmiConnection:SendResponse(_data1.id,"BasicCommunication.SystemRequest", "SUCCESS", {})
+              --self.hmiConnection:SendNotification ("SDL.OnReceivedPolicyUpdate", { policyfile = SystemFilesPath.."/PolicyTableUpdate"})
+            end)
 
-      EXPECT_RESPONSE(CorIdSystemRequest, { success = true, resultCode = "SUCCESS"})
+          EXPECT_RESPONSE(CorIdSystemRequest, { success = true, resultCode = "SUCCESS"})
+        end)
     end)
-  end)
 
   if(is_test_fail == true) then
     self:FailTestCase("Test is FAILED. See prints.")
@@ -98,8 +99,8 @@ end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
-function Test:Postcondition_Force_Stop_SDL()
-  commonFunctions:SDLForceStop(self)
+function Test.Postcondition_Stop()
+  StopSDL()
 end
 
 return Test

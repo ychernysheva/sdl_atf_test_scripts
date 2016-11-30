@@ -79,7 +79,7 @@ function Test:TestStep_PTU_validation_rules()
   local RequestId_GetUrls = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
   EXPECT_HMIRESPONSE(RequestId_GetUrls,{result = {code = 0, method = "SDL.GetURLS", urls = endpoints} } )
   :Do(function(_,_)
-
+      if(endpoints == nil) then endpoints[1].url = "http://policies.telematics.ford.com/api/policies" end
       self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",{ fileName = "PolicyTableUpdate", requestType = "PROPRIETARY", url = endpoints[1].url})
       EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY", fileType = "JSON", url = endpoints[1].url,appID = config.application1.registerAppInterfaceParams.appID })
       :Do(function(_,_)
@@ -108,8 +108,8 @@ end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
-function Test:Postcondition_Force_Stop_SDL()
-  commonFunctions:SDLForceStop(self)
+function Test.Postcondition_Stop()
+  StopSDL()
 end
 
 return Test

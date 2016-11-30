@@ -88,4 +88,8 @@ function Test:TestStep_ActivateApp()
   self.mobileSession2:ExpectNotification("OnHMIStatus", { hmiLevel = "NONE" })
 end
 
+function Test.Postcondition_Stop()
+  StopSDL()
+end
+
 return Test
