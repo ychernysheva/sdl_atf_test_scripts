@@ -1,6 +1,7 @@
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
 -- [UpdateDeviceList] sending to HMI
+-- [HMI API] BasicCommunication.UpdateDeviceList request/response
 --
 -- Description:
 -- UpdateDeviceList request from SDl to HMI upon new device connection
@@ -37,7 +38,7 @@ commonFunctions:newTestCasesGroup("Test")
 
 function Test:UpdateDeviceList_on_device_connect()
   local ServerAddress = commonFunctions:read_parameter_from_smart_device_link_ini("ServerAddress")
-  commonTestCases:DelayedExp(2000)
+  
   self:connectMobile()
   EXPECT_HMICALL("BasicCommunication.UpdateDeviceList",
     {
@@ -53,13 +54,13 @@ function Test:UpdateDeviceList_on_device_connect()
     ):Do(function(_,data)
       self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
     end)
-  --:Times(AtLeast(1))
+  commonTestCases:DelayedExp(60*1000)
 end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
-function Test.Postcondition_SDLForceStop()
-  commonFunctions:SDLForceStop()
+function Test.Postcondition_Stop()
+  StopSDL()
 end
 
 return Test
