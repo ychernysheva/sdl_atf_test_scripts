@@ -86,7 +86,7 @@ function Test:Precondition_Backup_sdl_preloaded_pt()
 end
 
 function Test:Precondition_Set_NickName_Permissions_For_Specific_AppId()
-  SetNickNameForSpecificApp(appNickNamePermissions)
+  SetNickNameForSpecificApp()
 end
 
 function Test:Precondition_StartSDL_FirstLifeCycle()
