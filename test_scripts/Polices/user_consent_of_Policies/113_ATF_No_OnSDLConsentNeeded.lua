@@ -59,7 +59,8 @@ end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
-
-function Test:Postcondition_SDLForceStop()
-  commonFunctions:SDLForceStop(self)
+function Test.Postcondition_StopSDL()
+  StopSDL()
 end
+
+return Test
