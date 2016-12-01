@@ -8,8 +8,8 @@
 -- 
 -- Preconditions
 -- 1. LPT has non empty 'consumer_friendly_messages'
--- 1. Register new app
--- 2. Activate app
+-- 2. Register new app
+-- 3. Activate app
 -- Steps:
 -- 1. Perform PTU with specific data in 'consumer_friendly_messages' section
 -- 2. After PTU is finished verify consumer_friendly_messages.messages section in LPT
