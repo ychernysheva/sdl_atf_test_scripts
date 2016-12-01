@@ -80,7 +80,7 @@ end
 function testCasesForPolicyTableSnapshot:extract_preloaded_pt()
   testCasesForPolicyTableSnapshot.preloaded_elements = {}
   testCasesForPolicyTableSnapshot.seconds_between_retries = {}
-  local preloaded_pt = 'SDL_bin/sdl_preloaded_pt.json'
+  local preloaded_pt = config.pathToSDL ..'sdl_preloaded_pt.json'
   extract_json(preloaded_pt)
   local k = 1
   for i = 1, #json_elements do
