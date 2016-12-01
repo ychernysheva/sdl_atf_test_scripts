@@ -28,10 +28,11 @@ local testCasesForPolicyTable = require('user_modules/shared_testcases/testCases
 
 --[[ Local variables ]]
 local ServerAddress = commonFunctions:read_parameter_from_smart_device_link_ini("ServerAddress")
-local language = testCasesForPolicyTableSnapshot:get_data_from_Preloaded_PT("consumer_friendly_messages.messages.AppPermissions.languages.en-us.tts")
-local line1 = testCasesForPolicyTableSnapshot:get_data_from_Preloaded_PT("consumer_friendly_messages.messages.AppPermissions.languages.en-us.line1")
-local line2 = testCasesForPolicyTableSnapshot:get_data_from_Preloaded_PT("consumer_friendly_messages.messages.AppPermissions.languages.en-us.line2")
-local textBody = testCasesForPolicyTableSnapshot:get_data_from_Preloaded_PT("consumer_friendly_messages.messages.AppPermissions.languages.en-us.textBody")
+local language = testCasesForPolicyTableSnapshot:get_data_from_Preloaded_PT("consumer_friendly_messages.messages.DataConsent.languages.en-us.tts")
+local line1 = testCasesForPolicyTableSnapshot:get_data_from_Preloaded_PT("consumer_friendly_messages.messages.DataConsent.languages.en-us.line1")
+local line2 = testCasesForPolicyTableSnapshot:get_data_from_Preloaded_PT("consumer_friendly_messages.messages.DataConsent.languages.en-us.line2")
+local textBody = testCasesForPolicyTableSnapshot:get_data_from_Preloaded_PT("consumer_friendly_messages.messages.DataConsent.languages.en-us.textBody")
+local label = testCasesForPolicyTableSnapshot:get_data_from_Preloaded_PT("consumer_friendly_messages.messages.DataConsent.languages.en-us.label")
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
@@ -48,13 +49,19 @@ function Test:Precondition_Activate_app_EN_US()
   local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp",
     { appID = self.applications[config.application1.registerAppInterfaceParams.appName]})
 
+  if(language == 0) then language = nil end
+  if(line1 == 0) then line1 = nil end
+  if(line2 == 0) then line2 = nil end
+  if(textBody == 0) then textBody = nil end
+  if(label == 0) then label = nil end
+
   EXPECT_HMIRESPONSE(RequestId)
   :Do(function(_,data)
       if data.result.isSDLAllowed ~= true then
         local RequestId1 = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
         EXPECT_HMIRESPONSE(RequestId1,
           { messages = {
-              {messageCode = "DataConsent", ttsString = language, textBody = textBody, line1 = line1, line2 = line2}}})
+              {messageCode = "DataConsent", ttsString = language, textBody = textBody, line1 = line1, line2 = line2, label = label}}})
         :Do(function(_,_)
             -- Do not allow SDL to have again message GetUserFriendlyMessage
             self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality",
