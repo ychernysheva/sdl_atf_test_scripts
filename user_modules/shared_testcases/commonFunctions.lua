@@ -26,6 +26,7 @@ local json = require('json4lua/json/json')
 --15. Function sets parameter to smartDeviceLink.ini file
 --16. Function transform data from PTU to permission change data
 --17. Function gets data form policy.sqlite file
+--18. Function checks value of column from DB with input data
 ---------------------------------------------------------------------------------------------
 
 --return true if app is media or navigation
@@ -180,45 +181,52 @@ end
 
 --Compare 2 tables
 function commonFunctions:is_table_equal(table1, table2)
- -- compare value types
-  if type(table1) ~= type(table2) then return false end
-  if type(table1) == 'number' then return table1 == table2 end
-  if type(table1) == 'boolean' then return table1 == table2 end
-  if type(table1) == 'string' then return table1 == table2 end
-  -- non-table can't be comparing
-  if type(table1) ~= 'table' then return false end
-  if type(table1) == 'nil' then return true end
+	-- compare value types
+	local type1 = type(table1)
+	local type2 = type(table2)
+	if type1 ~= type2 then return false end
+	if type1 ~= 'table' and type2 ~= 'table' then return table1 == table2 end
+	local size_tab1 = TableSize(table1)
+	local size_tab2 = TableSize(table2)
+	if size_tab1 ~= size_tab2 then return false end
 
-  -- Now, on to tables.
-  -- If tables have different size they can't be equal
-  --calc size t1
-  local size_t1 = TableSize(table1)
-  --calc size t2
-  local size_t2 = TableSize(table2)
-  if (size_t1 ~= size_t2) then return false end
+	--compare arrays
+	if json.isArray(table1) and json.isArray(table2) then
+		local found_element
+		local copy_table2 = commonFunctions:cloneTable(table2)
+		for i, _  in pairs(table1) do
+			found_element = false
+			for j, _ in pairs(copy_table2) do
+				if commonFunctions:is_table_equal(table1[i], copy_table2[j]) then
+					copy_table2[j] = nil
+					found_element = true
+					break
+				end
+			end
+			if found_element == false then
+				break
+			end
+		end
+		if TableSize(copy_table2) == 0 then
+			return true
+		else
+			return false
+		end
+	end
 
-  --compare arrays. Order in array must be equal
-  if json.isArray(table1) and json.isArray(table2) then
-    for k1,v1 in table1 do
-      if not commonFunctions:is_table_equal(v1, table2[k1]) then -- get element  by the same index
-        return false
-      end
-    end
-    return true
-  end
-  -- compare tables by elements
-  local already_compared = {} --optimization
-  for _,v1 in pairs(table1) do
-    for k2,v2 in pairs(table2) do
-      if not already_compared[k2] and commonFunctions:is_table_equal(v1,v2) then
-        already_compared[k2] = true
-      end
-    end
-  end
-  if size_t2 ~= TableSize(already_compared) then
-    return false
-  end
-  return true
+	-- compare tables by elements
+	local already_compared = {} --optimization
+	for _,v1 in pairs(table1) do
+		for k2,v2 in pairs(table2) do
+			if not already_compared[k2] and commonFunctions:is_table_equal(v1,v2) then
+				already_compared[k2] = true
+			end
+		end
+	end
+	if size_tab2 ~= TableSize(already_compared) then
+		return false
+	end
+	return true
 end
 ---------------------------------------------------------------------------------------------
 
@@ -881,15 +889,38 @@ function commonFunctions:Get_data_policy_sql(statement)
 
   local sql_select = "sqlite3 " .. path_policy .." "..statement
   local handle = assert( io.popen( sql_select , 'r'))
-  local sql_output = handle:read( '*l' )   
-  local ret_value = tonumber(sql_output)    
+  local sql_output = handle:read( '*l' )
+  local ret_value = tonumber(sql_output)
   handle:close()
   if (ret_value == nil) then
     print("Parameter is not found!")
     return ret_value
-  else 
+  else
     return ret_value
   end
 end
 
+---------------------------------------------------------------------------------------------
+--18. Function checks value of column from DB with input data
+---------------------------------------------------------------------------------------------
+function commonFunctions:is_db_contains(db_path, sql_query, exp_result)
+	if string.match(sql_query, "^%a+%s*%*%s*%a+") ~= nil then
+		print("Please specife name of column, don't use *")
+		assert(false)
+	end
+	local commandToExecute = "sqlite3 "..db_path .." \""..sql_query.."\""
+	local db = assert(io.popen(commandToExecute, 'r'))
+	local selected_data = assert(db:read('*a'))
+	db:close()
+	local column_db = {}
+	local b, e = 1, 0
+	while e < string.len(selected_data) do
+		e = string.find(selected_data, "\n", b)
+		table.insert(column_db, string.sub(selected_data, b, e-1))
+		b = e+1
+	end
+	return commonFunctions:is_table_equal(column_db, exp_result)
+end
+
 return commonFunctions
+
