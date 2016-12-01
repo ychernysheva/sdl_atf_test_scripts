@@ -13,7 +13,7 @@
 --      Perform PTU
 --
 -- Expected result:
---     PoliciesManager must validate "preconsented_groups" sub-section in "default" and treat it as valid -> PTU invalid
+--     PoliciesManager must validate "preconsented_groups" sub-section in "default" and treat it as valid -> PTU is valid
 ---------------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
