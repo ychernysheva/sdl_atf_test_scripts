@@ -1,3 +1,9 @@
+--UNREADY: 
+-- from https://github.com/smartdevicelink/sdl_atf_test_scripts/pull/267/files
+-- should be added and reviwed the following 
+-- function commonSteps:ActivateAppInSpecificLevel
+-- function testCasesForPolicyTable:updatePolicyInDifferentSessions
+
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
 -- [PolicyTableUpdate] Apply PTU changes and OnPermissionChange notifying the apps
@@ -106,7 +112,7 @@ end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
-function Test:RegisterApp()
+function Test:TestStep_RegisterApp()
   self.mobileSession:StartService(7)
   :Do(function (_,_)
       local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
@@ -120,11 +126,11 @@ function Test:RegisterApp()
     end)
 end
 
-function Test:ActivateAppInFull()
+function Test:TestStep_ActivateAppInFull()
   commonSteps:ActivateAppInSpecificLevel(self,HMIAppID,"FULL")
 end
 
-function Test:UpdatePolicy_ExpectOnAppPermissionChangedWithAppID()
+function Test:TestStep_UpdatePolicy_ExpectOnAppPermissionChangedWithAppID()
   EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
 
   testCasesForPolicyTable:updatePolicyInDifferentSessions(Test, ptu_app_registered,
