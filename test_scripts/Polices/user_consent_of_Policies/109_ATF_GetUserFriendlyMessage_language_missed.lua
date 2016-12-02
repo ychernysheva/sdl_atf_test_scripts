@@ -80,7 +80,7 @@ function Test:TestStep_GetUserFriendlyMessage_DE_DE_missed_in_PT()
   EXPECT_HMIRESPONSE(RequestId)
   :Do(function(_,data)
       if data.result.isSDLAllowed ~= true then
-        local RequestId1 = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "DE_DE", messageCodes = {"DataConsent"}})
+        local RequestId1 = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "DE-DE", messageCodes = {"DataConsent"}})
         EXPECT_HMIRESPONSE(RequestId1,
           { messages = {
               {messageCode = "DataConsent", ttsString = language, textBody = textBody, line1 = line1, line2 = line2}}})
