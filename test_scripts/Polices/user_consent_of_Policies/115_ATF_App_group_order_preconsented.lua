@@ -15,10 +15,6 @@
 -- Expected result:
 --     App should have only "pre_DataConsent" groups allowed
 ---------------------------------------------------------------------------------------------
---[[ General Settings for configuration ]]
-Test = require('user_modules/connecttest_resumption')
-require('cardinalities')
-local mobile_session = require('mobile_session')
 
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
@@ -27,6 +23,17 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
+local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
+local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
+
+--[[ General Precondition before ATF start ]]
+commonSteps:DeleteLogsFileAndPolicyTable()
+commonPreconditions:Connecttest_without_ExitBySDLDisconnect_WithoutOpenConnectionRegisterApp("connecttest_RAI.lua")
+
+--[[ General Settings for configuration ]]
+Test = require('user_modules/connecttest_RAI')
+require('cardinalities')
+local mobile_session = require('mobile_session')
 require('user_modules/AppTypes')
 
 --[[ Local variables:
@@ -249,31 +256,16 @@ local arrayRegisterNewApp = {
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
 
-commonSteps:DeleteLogsFileAndPolicyTable()
-
-function Test:Precondition_CloseConnection()
-  self.mobileConnection:Close()
-  commonTestCases:DelayedExp(3000)
-end
-
 function Test:Precondition_ConnectDevice()
+  local ServerAddress = commonFunctions:read_parameter_from_smart_device_link_ini("ServerAddress")
   commonTestCases:DelayedExp(2000)
   self:connectMobile()
   EXPECT_HMICALL("BasicCommunication.UpdateDeviceList",
-  {
-    deviceList = {
-      {
-        id = config.deviceMAC,
-        isSDLAllowed = true,
-        name = "127.0.0.1",
-        transportType = "WIFI"
-      }
-    }
-  }
-  ):Do(function(_,data)
-  self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+  { deviceList = { { id = config.deviceMAC, isSDLAllowed = false, name = ServerAddress, transportType = "WIFI" }}})
+  :Do(function(_,data)
+    self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
   end)
-  :Times(AtLeast(1))
+
 end
 
 --[[ Test ]]
@@ -284,11 +276,20 @@ function Test:RegisterApp_PreConsented_group()
   self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
   self.mobileSession:StartService(7)
   :Do(function()
-  local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
-  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
-  :Do(function(_,data)
-  self.HMIAppID = data.params.application.appID
-  end)
+    local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
+    EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
+    :Do(function(_,data)
+      self.HMIAppID = data.params.application.appID
+      --TODO(istoimenova): Waiting for debug: pull 303
+      -- local pre_dataconsent = commonFunctions:Get_data_policy_sql(" \"SELECT id FROM functional_group WHERE name = \\\"BaseBeforeDataConsent\\\"\"")
+      -- --print("pre_dataconsent = "..pre_dataconsent)
+      -- local group_app_id = commonFunctions:Get_data_policy_sql(" \"SELECT functional_group_id FROM app_group where application_id = \\\"0000001\\\"")
+      -- --print("group_app_id = "..group_app_id)
+      -- if(group_app_id ~= pre_dataconsent) then
+      --   commonFunctions:printError("Application is not in pre_DataConsent. Group: "..group_app_id) 
+      -- end
+    end)
+
   self.mobileSession:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS" })
   self.mobileSession:ExpectNotification("OnHMIStatus", {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
   self.mobileSession:ExpectNotification("OnPermissionsChange", arrayRegisterNewApp )
@@ -296,8 +297,10 @@ function Test:RegisterApp_PreConsented_group()
 end
 
 --[[ Postconditions ]]
-commonFunctions:newTestCasesGroup("Postcondition")
-
-function Test.ForceStopSDL()
-  commonFunctions:SDLForceStop()
+commonFunctions:newTestCasesGroup("Postconditions")
+testCasesForPolicyTable:Restore_preloaded_pt()
+function Test.Postcondition_StopSDL()
+  StopSDL()
 end
+
+return Test
