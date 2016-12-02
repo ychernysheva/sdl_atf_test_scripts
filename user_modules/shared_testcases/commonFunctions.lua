@@ -871,13 +871,14 @@ function commonFunctions:Get_data_policy_sql(statement)
   local path_policy = config.pathToSDL.."storage/policy.sqlite"
   check_file_existing(path_policy)
 
-  local sql_select = "sqlite3 " .. path_policy ..statement
+  local sql_select = "sqlite3 " .. path_policy .." "..statement
   local handle = assert( io.popen( sql_select , 'r'))
   local sql_output = handle:read( '*l' )   
   local ret_value = tonumber(sql_output)    
     
   if (ret_value == nil) then
-    self:FailTestCase("device id can't be read")
+    print("Parameter is not found!")
+    return ret_value
   else 
     return ret_value
   end
