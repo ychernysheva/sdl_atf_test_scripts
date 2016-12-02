@@ -875,7 +875,7 @@ function commonFunctions:Get_data_policy_sql(statement)
   local handle = assert( io.popen( sql_select , 'r'))
   local sql_output = handle:read( '*l' )   
   local ret_value = tonumber(sql_output)    
-    
+  handle:close()
   if (ret_value == nil) then
     print("Parameter is not found!")
     return ret_value
