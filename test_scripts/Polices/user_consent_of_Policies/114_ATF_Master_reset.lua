@@ -50,7 +50,7 @@ function Test:TestStep_CheckLocalPT()
         {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = ServerAddress, isSDLAllowed = true}})
     end)
 
-    if ( commonSteps:file_exists( '/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json') == false) then
+    if ( commonSteps:file_exists('/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json')) then
       self:FailTestCase(" \27[31m /tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json is created \27[0m")
     else
       testCasesForPolicyTableSnapshot:verify_PTS(true, {config.application1.registerAppInterfaceParams.appID}, {config.deviceMAC},{hmi_app1_id}, "print")
