@@ -25,7 +25,7 @@ local json = require('json4lua/json/json')
 --14. Function gets parameter from smartDeviceLink.ini file
 --15. Function sets parameter to smartDeviceLink.ini file
 --16. Function transform data from PTU to permission change data
---17. Function gets data form policy.sqlite file
+--17. Function returns data from sqlite by query
 --18. Function checks value of column from DB with input data
 ---------------------------------------------------------------------------------------------
 
@@ -881,46 +881,49 @@ function os.capture(cmd, raw)
  end
 
 ---------------------------------------------------------------------------------------------
---17. Function returns data from sqlite based on statement
+--17. Function returns data from sqlite by query
 ---------------------------------------------------------------------------------------------
-function commonFunctions:Get_data_policy_sql(statement)
-  local path_policy = config.pathToSDL.."storage/policy.sqlite"
-  check_file_existing(path_policy)
+function commonFunctions:get_data_policy_sql(db_path, sql_query)
+	if string.match(sql_query, "^%a+%s*%*%s*%a+") ~= nil then
+		print("Please specife name of column, don't use *")
+		assert(false)
+	end
+	check_file_existing(db_path)
+	local commandToExecute = "sqlite3 "..db_path .." \""..sql_query.."\""
+	local db = nil
+	local time_to_wait_read_data = 1
+	local attempts_to_read = 10
+	local selected_data = ""
+	for i = 1, attempts_to_read do
+		sleep(time_to_wait_read_data)
+		db = io.popen(commandToExecute, 'r')
+		selected_data = assert(db:read('*a'))
+		db:close()
+		if string.len(selected_data) ~= 0 then
+			break
+		end
+	end
 
-  local sql_select = "sqlite3 " .. path_policy .." "..statement
-  local handle = assert( io.popen( sql_select , 'r'))
-  local sql_output = handle:read( '*l' )
-  local ret_value = tonumber(sql_output)
-  handle:close()
-  if (ret_value == nil) then
-    print("Parameter is not found!")
-    return ret_value
-  else
-    return ret_value
-  end
+	local column_db = {}
+	if string.len(selected_data) == 0 then
+		print("WARNING: script can not take data from DB. Please check query")
+	else
+		local b, e = 1, 0
+		while e < string.len(selected_data) do
+			e = string.find(selected_data, "\n", b)
+			table.insert(column_db, string.sub(selected_data, b, e-1))
+			b = e+1
+		end
+	end
+	return column_db
 end
 
 ---------------------------------------------------------------------------------------------
 --18. Function checks value of column from DB with input data
 ---------------------------------------------------------------------------------------------
 function commonFunctions:is_db_contains(db_path, sql_query, exp_result)
-	if string.match(sql_query, "^%a+%s*%*%s*%a+") ~= nil then
-		print("Please specife name of column, don't use *")
-		assert(false)
-	end
-	local commandToExecute = "sqlite3 "..db_path .." \""..sql_query.."\""
-	local db = assert(io.popen(commandToExecute, 'r'))
-	local selected_data = assert(db:read('*a'))
-	db:close()
-	local column_db = {}
-	local b, e = 1, 0
-	while e < string.len(selected_data) do
-		e = string.find(selected_data, "\n", b)
-		table.insert(column_db, string.sub(selected_data, b, e-1))
-		b = e+1
-	end
+	local column_db = commonFunctions:get_data_policy_sql(db_path, sql_query)
 	return commonFunctions:is_table_equal(column_db, exp_result)
 end
 
 return commonFunctions
-
