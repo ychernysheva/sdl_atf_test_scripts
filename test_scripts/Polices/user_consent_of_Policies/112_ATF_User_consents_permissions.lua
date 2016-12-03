@@ -1,6 +1,8 @@
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
 -- [Policies]: User-consent "YES"
+-- [Mobile API] OnPermissionsChange notification
+-- [HMI API] OnAppPermissionConsent notification
 --
 -- Description:
 -- SDL gets user consent information from HMI
@@ -26,10 +28,13 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
+local testCasesForPolicyTableSnapshot = require('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
-testCasesForPolicyTable:Precondition_updatePolicy_By_overwriting_preloaded_pt("files/GroupsForApp_preloaded_pt.json")
+testCasesForPolicyTable:Precondition_updatePolicy_By_overwriting_preloaded_pt("files/DeviceConsentedAndAppPermissionsForConsent_preloaded_pt.json")
+--TODO(istoimenova): shall be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
+config.defaultProtocolVersion = 2
 
 --[[ General Settings for configuration ]]
 Test = require('connecttest')
@@ -48,18 +53,43 @@ function Test:IsPermissionsConsentNeeded_false_on_app_activation()
         EXPECT_HMIRESPONSE(RequestIdGetUserFriendlyMessage, { result = { code = 0, messages = {{ messageCode = "DataConsent"}}, method = "SDL.GetUserFriendlyMessage"}})
 
         local RequestIdListOfPermissions = self.hmiConnection:SendRequest("SDL.GetListOfPermissions", { appID = self.HMIAppID })
-        EXPECT_HMIRESPONSE(RequestIdListOfPermissions,{result = {code = 0, method = "SDL.GetListOfPermissions", allowedFunctions = {{ name = "Location-1"}, { name = "DrivingCharacteristics-3"}}}})
+        EXPECT_HMIRESPONSE(RequestIdListOfPermissions,{result = {code = 0, method = "SDL.GetListOfPermissions",
+              --TODO(istoimenova): id should be read from policy.sqlite
+              -- allowed: If ommited - no information about User Consent is yet found for app.
+              allowedFunctions = {{ name = "DrivingCharacteristics", id = 4734356}}}})
         :Do(function()
-            local ReqIDGetUserFriendlyMessage = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"allowedFunctions"}})
-            EXPECT_HMIRESPONSE(ReqIDGetUserFriendlyMessage)
-            :Do(function()
-                self.hmiConnection:SendNotification("SDL.OnAppPermissionsConsent", {})
+            local ReqIDGetUserFriendlyMessage = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage",
+              {language = "EN-US", messageCodes = {"AppPermissions"}})
 
-                --TODO(istoimenova): Unclear how to check HMI state.
+            EXPECT_HMIRESPONSE(ReqIDGetUserFriendlyMessage,
+              { result = { code = 0, messages = {{ messageCode = "AppPermissions"}}, method = "SDL.GetUserFriendlyMessage"}})
+            :Do(function(_,_)
+                self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent",
+                  { appID = self.applications[config.application1.registerAppInterfaceParams.appName],
+                    consentedFunctions = {{ allowed = true, id = 4734356, name = "DrivingCharacteristics"}}, source = "GUI"})
+                EXPECT_NOTIFICATION("OnPermissionsChange",
+                  {permissionItem = {
+                      {rpcName = "GetVehicleData", hmiPermissions = {allowed = true, userDisallowed = false}, parameterPermissions = {allowed = true, userDisallowed = false} }}})
               end)
+
           end)
+      else
+        commonFunctions:userPrint(31, "Wrong SDL bahavior: there are app permissions for consent, isPermissionsConsentNeeded should be true")
+        return false
       end
     end)
+end
+
+-- Triger PTU to update sdl snapshot
+function Test:TestStep_trigger_user_request_update_from_HMI()
+  testCasesForPolicyTable:trigger_user_request_update_from_HMI(self)
+end
+
+function Test:TestStep_verify_PermissionConsent()
+  local app_permission = testCasesForPolicyTableSnapshot:get_data_from_PTS("device_data."..config.deviceMAC..".user_consent_records."..config.application1.registerAppInterfaceParams.appID..".consent_groups.DrivingCharacteristics-3")
+  if(app_permission ~= true) then
+    self:FailTestCase("DrivingCharacteristics-3 is not assigned to application, real: " ..app_permission)
+  end
 end
 
 --[[ Postconditions ]]
