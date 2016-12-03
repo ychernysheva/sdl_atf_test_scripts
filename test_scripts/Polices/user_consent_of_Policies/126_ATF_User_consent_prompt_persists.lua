@@ -256,11 +256,11 @@ function Test.TestStep_verify_PermissionConsent()
   local is_test_passed = true
   local app_permission_Location = testCasesForPolicyTableSnapshot:get_data_from_PTS("device_data."..config.deviceMAC..".user_consent_records."..config.application1.registerAppInterfaceParams.appID..".consent_groups.Location-1")
   local app_permission_Notifications = testCasesForPolicyTableSnapshot:get_data_from_PTS("device_data."..config.deviceMAC..".user_consent_records."..config.application1.registerAppInterfaceParams.appID..".consent_groups.Notifications")
-  if(app_permission_Location ~= 0) then
-    commonFunctions:printError("Location-1 should not be assigned to application")
+  if(app_permission_Location ~= false) then
+    commonFunctions:printError("Location-1 is not assigned to false of application, real: " ..app_permission_Location)
     is_test_passed = false
   end
-  if(app_permission_Notifications ~= false) then
+  if(app_permission_Notifications ~= true) then
     commonFunctions:printError("Notifications is not assigned to true of application, real: " ..app_permission_Notifications)
     is_test_passed = false
   end
