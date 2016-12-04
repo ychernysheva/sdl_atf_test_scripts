@@ -2268,6 +2268,7 @@
 				"steal_focus": true,
 				"priority": "NONE",
 				"default_hmi": "NONE",
+				"RequestType": ["PROPRIETARY"],
 				"groups": ["Base-4"]
 			},
 			"0000001": {

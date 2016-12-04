@@ -26,15 +26,15 @@ config.defaultProtocolVersion = 2
 --[[ Required Shared libraries ]]
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require ('user_modules/shared_testcases/commonSteps')
+local testCasesForPolicyTableSnapshot = require ('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
 
 --[[ General Precondition before ATF start ]]
-commonSteps:DeleteLogsFiles()
-commonSteps:DeletePolicyTable()
+commonSteps:DeleteLogsFileAndPolicyTable()
 
 --[[ General Settings for configuration ]]
 Test = require('connecttest')
 require('cardinalities')
-local mobile_session = require('mobile_session')
+require('user_modules/AppTypes')
 
 --[[ Preconditions ]]
 function Test:Preconditions_Activation_App_And_Consent_Device()
@@ -42,8 +42,8 @@ function Test:Preconditions_Activation_App_And_Consent_Device()
   local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", {appID = self.applications["Test Application"]})
   EXPECT_HMIRESPONSE(RequestId, { result = {code = 0, isSDLAllowed = false}, method = "SDL.ActivateApp"})
   :Do(function(_,_)
-      local RequestId = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
-      EXPECT_HMIRESPONSE(RequestId,{result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
+      local RequestId1 = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
+      EXPECT_HMIRESPONSE(RequestId1,{result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
       :Do(function(_,_)
           self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = "127.0.0.1"}})
           EXPECT_HMICALL("BasicCommunication.ActivateApp")
@@ -92,6 +92,20 @@ function Test:Preconditions_Update_Policy_With_RequestType_PROPRIETARY_For_Curre
     end)
 end
 
+function Test:TestStep_Verify_app_id_section()
+  local test_fail = false
+  local request_consent = testCasesForPolicyTableSnapshot:get_data_from_PTS("app_policies.default.RequestType")
+  print("request_consent = " ..tostring(request_consent))
+
+  if(request_consent ~= "PROPRIETARY") then
+    commonFunctions:printError("Error: RequestType is not PROPRIETARY")
+    test_fail = true
+  end
+  if(test_fail == true) then
+    self:FailTestCase("Test failed. See prints")
+  end
+end
+
 function Test:TestStep_SDL_Allow_SystemRequest_Of_PROPRIETARY_Type()
 
   local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", {fileName = "PolicyTableUpdate", requestType = "PROPRIETARY"}, "files/icon.png")
@@ -103,15 +117,17 @@ function Test:TestStep_SDL_Allow_SystemRequest_Of_PROPRIETARY_Type()
 
 end
 
-function Test:TestStep_SDL_Disallow_SystemRequest_Of_HTTP_Type()
+-- function Test:TestStep_SDL_Disallow_SystemRequest_Of_HTTP_Type()
 
-  local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", {fileName = "PolicyTableUpdate", requestType = "HTTP"}, "files/icon.png")
-  self.mobileSession:ExpectResponse(CorIdSystemRequest, {success = false, resultCode = "DISALLOWED"})
+--   local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", {fileName = "PolicyTableUpdate", requestType = "HTTP"}, "files/icon.png")
+--   self.mobileSession:ExpectResponse(CorIdSystemRequest, {success = false, resultCode = "DISALLOWED"})
+-- end
+
+--[[ Postconditions ]]
+commonFunctions:newTestCasesGroup("Postconditions")
+function Test.Postcondition_StopSDL()
+  StopSDL()
 end
 
---[[ Postcondition ]]
---ToDo: shall be removed when issue: "SDL doesn't stop at execution ATF function StopSDL()" is fixed
-function Test:Postcondition_SDLForceStop()
-  commonFunctions:SDLForceStop()
-end
+return Test
 
