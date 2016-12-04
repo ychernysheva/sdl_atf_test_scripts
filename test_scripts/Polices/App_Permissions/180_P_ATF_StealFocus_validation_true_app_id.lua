@@ -22,6 +22,7 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
+local testCasesForPolicyTableSnapshot = require('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
 
 --[[ Local Functions ]]
 local function SendOnSystemContext(self, ctx)
@@ -56,6 +57,19 @@ function Test:ActivateApplication()
           EXPECT_NOTIFICATION("OnPermissionsChange", {})
         end)
     end)
+end
+
+function Test:TestStep_Verify_default_section()
+  local test_fail = false
+  local steal_focus = testCasesForPolicyTableSnapshot:get_data_from_PTS("app_policies.default.steal_focus")
+
+  if(steal_focus ~= true) then
+    commonFunctions:printError("Error: steal_focus is not true")
+    test_fail = true
+  end
+  if(test_fail == true) then
+    self:FailTestCase("Test failed. See prints")
+  end
 end
 
 function Test:TestStep_SendRPC_with_StealFocus_ValueTrue()
