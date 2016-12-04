@@ -1,9 +1,11 @@
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
--- User-consent "NO"
--- SDL must notify an application about the current permissions active on HMI via onPermissionsChange() notification.
+-- [Policies]: User-consent "NO"
+-- [Mobile API] OnPermissionsChange notification
+-- [HMI API] OnAppPermissionConsent notification
 --
 -- Description:
+-- SDL must notify an application about the current permissions active on HMI via onPermissionsChange() notification.
 -- On getting negative user consent from HMI and storage this data into LocalPolicyTable, SDL must:
 -- a) assign only the permissions for which there is user consent in the local policy table and permissions (if any) that are listed in 'pre_DataConsent' section (that is, 'default_hmi', 'groups' and other) for this application
 -- b) notify HMI via onPermissionsChange() notification about the applied permissions.
@@ -36,99 +38,42 @@ config.defaultProtocolVersion = 2
 --[[ Required Shared libraries ]]
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require ('user_modules/shared_testcases/commonSteps')
+local commonTestCases = require ('user_modules/shared_testcases/commonTestCases')
+local commonPreconditions = require ('user_modules/shared_testcases/commonPreconditions')
+local testCasesForPolicyTable = require ('user_modules/shared_testcases/testCasesForPolicyTable')
+
+--[[ General Precondition before ATF start ]]
+commonSteps:DeleteLogsFileAndPolicyTable()
+commonPreconditions:Connecttest_without_ExitBySDLDisconnect_WithoutOpenConnectionRegisterApp("connecttest_connect_device.lua")
+--TODO(istoimenova): shall be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
+config.defaultProtocolVersion = 2
 
 --[[ General Settings for configuration ]]
-Test = require('connecttest')
+Test = require('user_modules/connecttest_connect_device')
 require('cardinalities')
+require('user_modules/AppTypes')
 local mobile_session = require('mobile_session')
 
---[[ Local Functions ]]
-local function BackupPreloaded()
-  os.execute('cp ' .. config.pathToSDL .. 'sdl_preloaded_pt.json' .. ' ' .. config.pathToSDL .. 'backup_sdl_preloaded_pt.json')
-  os.execute('rm ' .. config.pathToSDL .. 'policy.sqlite')
-end
-
-local function RestorePreloadedPT()
-  os.execute('rm ' .. config.pathToSDL .. 'sdl_preloaded_pt.json')
-  os.execute('cp ' .. config.pathToSDL .. 'backup_sdl_preloaded_pt.json' .. ' ' .. config.pathToSDL .. 'sdl_preloaded_pt.json')
-end
-
-local function SetPermissionsForPre_DataConsent()
-  local pathToFile = config.pathToSDL .. 'sdl_preloaded_pt.json'
-  local file = io.open(pathToFile, "r")
-  local json_data = file:read("*all") -- may be abbreviated to "*a";
-  file:close()
-  local json = require("modules/json")
-  local data = json.decode(json_data)
-
-  if data.policy_table.functional_groupings["DataConsent-2"] then
-    data.policy_table.functional_groupings["DataConsent-2"] = {rpcs = null}
-  end
-  -- set for group in pre_DataConsent section permissions with RPCs and HMI levels for them
-  data.policy_table.functional_groupings[data.policy_table.app_policies.default.groups[1]] = {rpcs = {
-      OnHMIStatus =
-      {hmi_levels = {"BACKGROUND", "FULL", "LIMITED", "NONE"}},
-      OnPermissionsChange =
-      {hmi_levels = {"BACKGROUND", "FULL", "LIMITED", "NONE"}},
-      OnSystemRequest =
-      {hmi_levels = {"BACKGROUND", "FULL", "LIMITED", "NONE"}},
-      SystemRequest =
-      {hmi_levels = {"BACKGROUND", "FULL", "LIMITED", "NONE"}},
-  }}
-  data = json.encode(data)
-  file = io.open(pathToFile, "w")
-  file:write(data)
-  file:close()
-end
-
 --[[ Preconditions ]]
-function Test:Precondition_StopSDL()
-  StopSDL()
-end
-
---ToDo: shall be removed when issue: "SDL doesn't stop at execution ATF function StopSDL()" is fixed
-function Test:Precondition_SDLForceStop()
-  commonFunctions:SDLForceStop()
-end
-
-function Test:Precondition_DeleteLogsAndPolicyTable()
-  commonSteps:DeleteLogsFiles()
-  commonSteps:DeletePolicyTable()
-end
-
-function Test:Precondition_Backup_sdl_preloaded_pt()
-  BackupPreloaded()
-end
-
-function Test:Precondition_SetPermissionsForPre_DataConsent()
-  SetPermissionsForPre_DataConsent()
-end
-
-function Test:Precondition_StartSDL_FirstLifeCycle()
-  StartSDL(config.pathToSDL, config.ExitOnCrash)
-end
-
-function Test:Precondition_InitHMI_FirstLifeCycle()
-  self:initHMI()
-end
-
-function Test:Precondition_InitHMI_onReady_FirstLifeCycle()
-  self:initHMI_onReady()
-end
-
-function Test:Precondition_ConnectMobile_FirstLifeCycle()
+commonFunctions:newTestCasesGroup("Preconditions")
+function Test:Precondition_Connect_device()
+  local ServerAddress = commonFunctions:read_parameter_from_smart_device_link_ini("ServerAddress")
+  commonTestCases:DelayedExp(2000)
   self:connectMobile()
+  EXPECT_HMICALL("BasicCommunication.UpdateDeviceList", {
+      deviceList = { { id = config.deviceMAC, name = ServerAddress, transportType = "WIFI", isSDLAllowed = false} } })
+  :Do(function(_,data)
+      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+    end)
 end
 
-function Test:Precondition_StartSession()
+function Test:Precondition_StartNewSession()
   self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
   self.mobileSession:StartService(7)
 end
 
-function Test:Precondition_RestorePreloadedPT()
-  RestorePreloadedPT()
-end
-
+--[[ Test ]]
+commonFunctions:newTestCasesGroup("Test")
 function Test:Precondition_Activate_App_And_Consent_Device()
 
   local CorIdRAI = self.mobileSession:SendRPC("RegisterAppInterface",
@@ -171,14 +116,15 @@ function Test:Precondition_Activate_App_And_Consent_Device()
     })
   :Do(function(_,data)
       self.applications["SPT"] = data.params.application.appID
+
       local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", {appID = self.applications["SPT"]})
       EXPECT_HMIRESPONSE(RequestId, { result = {
             code = 0,
             isSDLAllowed = false},
           method = "SDL.ActivateApp"})
       :Do(function(_,_)
-          local RequestIdGetUserFriendlyMessage = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
-          EXPECT_HMIRESPONSE(RequestIdGetUserFriendlyMessage,{result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
+          local RequestId1 = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
+          EXPECT_HMIRESPONSE(RequestId1,{result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
           :Do(function(_,_)
               self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = "127.0.0.1"}})
               EXPECT_HMICALL("BasicCommunication.ActivateApp")
@@ -190,7 +136,6 @@ function Test:Precondition_Activate_App_And_Consent_Device()
         end)
     end)
   EXPECT_RESPONSE(CorIdRAI, { success = true, resultCode = "SUCCESS"})
-
 end
 
 function Test:Precondition_DeactivateApp()
@@ -234,9 +179,9 @@ function Test:Precondition_UpdatePolicyWithPTU()
 end
 
 --[[ Test ]]
-function Test:TestStep_User_Disallow_New_Permissions_After_App_Activation()
-
+function Test:TestStep_User_Consents_New_Permissions_After_App_Activation()
   local RequestIdActivateApp = self.hmiConnection:SendRequest("SDL.ActivateApp", {appID = self.applications["SPT"]})
+
   EXPECT_HMIRESPONSE(RequestIdActivateApp,
     { result = {
         code = 0,
@@ -257,15 +202,12 @@ function Test:TestStep_User_Disallow_New_Permissions_After_App_Activation()
         code = 0,
         allowedFunctions = {{name = "New_permissions"}} },
       method = "SDL.GetListOfPermissions"})
-
   :Do(function(_,data)
       local functionalGroupID = data.result.allowedFunctions[1].id
       self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent",
         { appID = self.applications["SPT"], source = "GUI", consentedFunctions = {{name = "New_permissions", allowed = false, id = functionalGroupID} }})
     end)
-  EXPECT_NOTIFICATION("OnPermissionsChange", {})
-  -- Permissions based on preloaded_pt file
-  --ToDo: (vikhrov) develop functions for extracting permissions for specific groups and compare it with permissionItem from OnPermissionsChange
+  EXPECT_NOTIFICATION("OnPermissionsChange", {}):Times(0)
 end
 
 function Test:TestStep_Check_RPC_Disallowed_By_User()
@@ -278,8 +220,11 @@ function Test:TestStep_Check_RPC_Disallowed_By_User()
   EXPECT_RESPONSE(CorIdRAI, { success = false, resultCode = "USER_DISALLOWED"})
 end
 
---[[ Postcondition ]]
---ToDo: shall be removed when issue: "SDL doesn't stop at execution ATF function StopSDL()" is fixed
-function Test:Postcondition_SDLForceStop()
-  commonFunctions:SDLForceStop()
+--[[ Postconditions ]]
+commonFunctions:newTestCasesGroup("Postconditions")
+testCasesForPolicyTable:Restore_preloaded_pt()
+function Test.Postcondition_StopSDL()
+  StopSDL()
 end
+
+return Test
