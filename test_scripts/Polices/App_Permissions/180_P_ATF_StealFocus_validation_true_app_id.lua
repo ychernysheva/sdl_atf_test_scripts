@@ -21,41 +21,41 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 --[[ Required Shared libraries ]]
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
-
---[[ Local Variables ]]
---NewTestSuiteNumber = 0
-
---[[ General Precondition before ATF start]]
-commonSteps:DeleteLogsFileAndPolicyTable()
-
---[[ General Settings for configuration ]]
-Test = require('connecttest')
+local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
 
 --[[ Local Functions ]]
 local function SendOnSystemContext(self, ctx)
-  self.hmiConnection:SendNotification("UI.OnSystemContext",{ appID = self.applications["Test Application"], systemContext = ctx })
+  self.hmiConnection:SendNotification("UI.OnSystemContext",{ appID = self.applications[config.application1.registerAppInterfaceParams.appName], systemContext = ctx })
 end
 
---[[ Test ]]
-commonFunctions:newTestCasesGroup("Test")
-function Test:TestStep_ActivateApplication()
+--[[ General Precondition before ATF start]]
+commonSteps:DeleteLogsFileAndPolicyTable()
+testCasesForPolicyTable:Precondition_updatePolicy_By_overwriting_preloaded_pt("files/ptu_general_default_steal_focus_true.json")
+
+--[[ General Settings for configuration ]]
+Test = require('connecttest')
+require('cardinalities')
+require('user_modules/AppTypes')
+
+--[[ Preconditions ]]
+commonFunctions:newTestCasesGroup("Preconditions")
+function Test:ActivateApplication()
+
   local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", {appID = self.applications["Test Application"]})
-  EXPECT_HMIRESPONSE(RequestId)
-  :Do(function(_,data)
-      if data.result.isSDLAllowed ~= true then
-        RequestId = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
-        EXPECT_HMIRESPONSE(RequestId)
-        :Do(function(_,_)
-            self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = "127.0.0.1"}})
-            EXPECT_HMICALL("BasicCommunication.ActivateApp")
-            :Do(function(_,_)
-                self.hmiConnection:SendResponse(data.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
-              end)
-            :Times(2)
-          end)
-      end
+  EXPECT_HMIRESPONSE(RequestId, { result = {code = 0, isSDLAllowed = false}, method = "SDL.ActivateApp"})
+  :Do(function(_,_)
+      local RequestId1 = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
+      EXPECT_HMIRESPONSE(RequestId1,{result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
+      :Do(function(_,_)
+          self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = "127.0.0.1"}})
+          EXPECT_HMICALL("BasicCommunication.ActivateApp")
+          :Do(function(_,data)
+              self.hmiConnection:SendResponse(data.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
+              EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"})
+            end)
+          EXPECT_NOTIFICATION("OnPermissionsChange", {})
+        end)
     end)
-  EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", audioStreamingState = "AUDIBLE", systemContext = "MAIN"})
 end
 
 function Test:TestStep_SendRPC_with_StealFocus_ValueTrue()
@@ -156,6 +156,9 @@ end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
-Test["StopSDL"] = function()
+testCasesForPolicyTable:Restore_preloaded_pt()
+function Test.Postcondition_StopSDL()
   StopSDL()
 end
+
+return Test
