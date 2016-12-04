@@ -26,18 +26,11 @@ config.defaultProtocolVersion = 2
 --[[ Required Shared libraries ]]
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require ('user_modules/shared_testcases/commonSteps')
+local testCasesForPolicyTable = require ('user_modules/shared_testcases/testCasesForPolicyTable')
+local commonPreconditions = require ('user_modules/shared_testcases/commonPreconditions')
+local testCasesForPolicyTableSnapshot = require ('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
 
 --[[ Local Functions ]]
-local function BackupPreloaded()
-  os.execute('cp ' .. config.pathToSDL .. 'sdl_preloaded_pt.json' .. ' ' .. config.pathToSDL .. 'backup_sdl_preloaded_pt.json')
-  os.execute('rm ' .. config.pathToSDL .. 'policy.sqlite')
-end
-
-local function RestorePreloadedPT()
-  os.execute('rm ' .. config.pathToSDL .. 'sdl_preloaded_pt.json')
-  os.execute('cp ' .. config.pathToSDL .. 'backup_sdl_preloaded_pt.json' .. ' ' .. config.pathToSDL .. 'sdl_preloaded_pt.json')
-end
-
 local function SetRequestTypeForDefaultGroup()
   local pathToFile = config.pathToSDL .. 'sdl_preloaded_pt.json'
   local file = io.open(pathToFile, "r")
@@ -62,22 +55,22 @@ end
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFiles()
 commonSteps:DeletePolicyTable()
-BackupPreloaded()
+commonPreconditions:BackupFile("sdl_preloaded_pt.json")
 SetRequestTypeForDefaultGroup()
 
 --[[ General Settings for configuration ]]
 Test = require('connecttest')
 require('cardinalities')
-local mobile_session = require('mobile_session')
+require('user_modules/AppTypes')
 
 --[[ Preconditions ]]
 function Test:Preconditions_Assign_To_App_Default_RequestType_PROPRIETARY_Via_Activation_And_Consenting_Device()
 
-  local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", {appID = self.applications["Test Application"]})
+  local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", {appID = self.applications[config.application1.registerAppInterfaceParams.appName]})
   EXPECT_HMIRESPONSE(RequestId, { result = {code = 0, isSDLAllowed = false}, method = "SDL.ActivateApp"})
   :Do(function(_,_)
-      local RequestId = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
-      EXPECT_HMIRESPONSE(RequestId,{result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
+      local RequestId1 = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
+      EXPECT_HMIRESPONSE(RequestId1,{result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
       :Do(function(_,_)
           self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = "127.0.0.1"}})
           EXPECT_HMICALL("BasicCommunication.ActivateApp")
@@ -88,6 +81,19 @@ function Test:Preconditions_Assign_To_App_Default_RequestType_PROPRIETARY_Via_Ac
           EXPECT_NOTIFICATION("OnPermissionsChange", {})
         end)
     end)
+end
+
+function Test:TestStep_Verify_default_section()
+  local test_fail = false
+  local request_consent = testCasesForPolicyTableSnapshot:get_data_from_PTS("app_policies.default.RequestType.1")
+
+  if(request_consent ~= "PROPRIETARY") then
+    commonFunctions:printError("Error: RequestType is not PROPRIETARY")
+    test_fail = true
+  end
+  if(test_fail == true) then
+    self:FailTestCase("Test failed. See prints")
+  end
 end
 
 function Test:TestStep_SDL_Allow_SystemRequest_Of_PROPRIETARY_Type()
@@ -107,13 +113,11 @@ function Test:TestStep_SDL_Disallow_SystemRequest_Of_HTTP_Type()
   self.mobileSession:ExpectResponse(CorIdSystemRequest, {success = false, resultCode = "DISALLOWED"})
 end
 
---[[ Postcondition ]]
-function Test:Precondition_RestorePreloadedPT()
-  RestorePreloadedPT()
+--[[ Postconditions ]]
+commonFunctions:newTestCasesGroup("Postconditions")
+testCasesForPolicyTable:Restore_preloaded_pt()
+function Test.Postcondition_StopSDL()
+  StopSDL()
 end
 
---ToDo: shall be removed when issue: "SDL doesn't stop at execution ATF function StopSDL()" is fixed
-function Test:Postcondition_SDLForceStop()
-  commonFunctions:SDLForceStop()
-end
-
+return Test
