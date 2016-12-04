@@ -23,10 +23,9 @@
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 
 --[[ Required Shared libraries ]]
-local testCasesForPolicyAppIdManagament = require("user_modules/shared_testcases/testCasesForPolicyAppIdManagament")
 local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
 local commonSteps = require("user_modules/shared_testcases/commonSteps")
-local testCasesForBuildingSDLPolicyFlag = require('user_modules/shared_testcases/testCasesForBuildingSDLPolicyFlag')
+local testCasesForPolicyTable = require("user_modules/shared_testcases/testCasesForPolicyTable")
 
 --[[ Local Variables ]]
 local rpc = {}
@@ -36,26 +35,10 @@ rpc["Alert"] = {alertText1 = "alertText1"}
 rpc["Show"] = {mainField1 = "mainField1"}
 rpc["SystemRequest"] = {requestType = "PROPRIETARY", fileName = "PolicyTableUpdate"}
 
-local ntf = {}
-ntf["TTS.OnLanguageChange"] ={language = "EN-GB"}
-ntf["UI.OnLanguageChange"] = {language = "EN-GB"}
-ntf["VR.OnLanguageChange"] = {language = "EN-GB"}
-
---[[ Local Functions ]]
-local function split(s, d)
-  local out = {}
-  local i = 1
-  for word in string.gmatch(s, '([^'.. d ..']+)') do
-    out[i] = word
-    i = i + 1
-  end
-  return out
-end
 
 --[[ General Precondition before ATF start ]]
-testCasesForBuildingSDLPolicyFlag:CheckPolicyFlagAfterBuild("EXTERNAL_PROPRIETARY")
-commonFunctions:SDLForceStop()
 commonSteps:DeleteLogsFileAndPolicyTable()
+testCasesForPolicyTable:Precondition_updatePolicy_By_overwriting_preloaded_pt("files/jsons/Policies/App_Permissions/ptu_014.json")
 
 --[[ General Settings for configuration ]]
 Test = require("connecttest")
@@ -63,10 +46,13 @@ require("user_modules/AppTypes")
 
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
-
-function Test:UpdatePolicy()
-  testCasesForPolicyAppIdManagament:updatePolicyTable(self, "files/jsons/Policies/App_Permissions/ptu_014.json")
+function Test:Precondition_ActivateApplication()
+  testCasesForPolicyTable:trigger_getting_device_consent(self, config.application1.registerAppInterfaceParams.appName, config.deviceMAC)
 end
+
+-- function Test:UpdatePolicy()
+-- testCasesForPolicyAppIdManagament:updatePolicyTable(self, "files/jsons/Policies/App_Permissions/ptu_014.json")
+-- end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
@@ -78,12 +64,20 @@ for k, v in pairs(rpc) do
   end
 end
 
-for k, v in pairs(ntf) do
-  Test["SendNotification_" .. k] = function(self)
-    self.hmiConnection:SendNotification(k, v.p)
-    EXPECT_NOTIFICATION(split(k, '.')[2])
-    :Times(0)
-  end
+function Test:TestStep_PutFile_SUCCESS()
+
+  local CorIdPutFile = self.mobileSession:SendRPC( "PutFile",
+    { syncFileName = "action.png", fileType = "GRAPHIC_PNG", persistentFile = false, systemFile = false,},
+  "files/action.png")
+
+  EXPECT_RESPONSE(CorIdPutFile, { success = true, resultCode = "SUCCESS"})
+end
+
+--[[ Postconditions ]]
+commonFunctions:newTestCasesGroup("Postconditions")
+testCasesForPolicyTable:Restore_preloaded_pt()
+function Test.Postcondition_StopSDL()
+  StopSDL()
 end
 
 return Test

@@ -6,7 +6,7 @@
                 "steal_focus": false,
                 "priority": "NONE",
                 "default_hmi": "NONE",
-                "groups": ["SpecificPermissions"]
+                "groups": ["Base-4"]
             },
             "device": {
                 "keep_context": false,
@@ -25,7 +25,15 @@
         },
         "functional_groupings": {            
             "SpecificPermissions": {
-                "rpcs": {                                        
+                "rpcs": { 
+		    "PutFile": {
+                        "hmi_levels": [
+                            "BACKGROUND",
+                            "FULL",
+                            "LIMITED",
+                            "NONE"
+                        ]
+                    }                                       
                 }
             },
             "BackgroundAPT": {
@@ -49,26 +57,8 @@
             },
             "Base-4": {
                 "rpcs": {
-                    "AddCommand": {
-                        "hmi_levels": [
-                            "BACKGROUND",
-                            "FULL",
-                            "LIMITED"
-                        ]
-                    },
-                    "AddSubMenu": {
-                        "hmi_levels": [
-                            "BACKGROUND",
-                            "FULL",
-                            "LIMITED"
-                        ]
-                    },
-                    "Alert": {
-                        "hmi_levels": [
-                            "FULL",
-                            "LIMITED"
-                        ]
-                    },
+                    
+                    
                     "ChangeRegistration": {
                         "hmi_levels": [
                             "BACKGROUND",
@@ -306,13 +296,7 @@
                             "BACKGROUND"
                         ]
                     },
-                    "Show": {
-                        "hmi_levels": [
-                            "BACKGROUND",
-                            "FULL",
-                            "LIMITED"
-                        ]
-                    },
+                   
                     "Slider": {
                         "hmi_levels": [
                             "FULL"
@@ -331,14 +315,7 @@
                             "LIMITED"
                         ]
                     },
-                    "SystemRequest": {
-                        "hmi_levels": [
-                            "BACKGROUND",
-                            "FULL",
-                            "LIMITED",
-                            "NONE"
-                        ]
-                    },
+                   
                     "UnregisterAppInterface": {
                         "hmi_levels": [
                             "BACKGROUND",
