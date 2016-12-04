@@ -177,6 +177,7 @@ function Test:Precondition_PTU_user_consent_prompt_present()
               if(_data1.params.status == "UP_TO_DATE") then
                 EXPECT_NOTIFICATION("OnPermissionsChange",{})
                 :Do(function(_,_data2)
+                  if(_data2.payload.permissionItem ~= nil) then
                     -- Will be used to check if all needed RPC for permissions are received
                     local is_perm_item_receved = {}
                     for i = 1, #allowed_rps do
@@ -185,7 +186,7 @@ function Test:Precondition_PTU_user_consent_prompt_present()
 
                     -- will be used to check RPCs that needs permission
                     local is_perm_item_needed = {}
-                    for i = 1, #_data2.payload.permissionItem[1].rpcName do
+                    for i = 1, #_data2.payload.permissionItem do
                       is_perm_item_needed[i] = false
                     end
 
@@ -214,7 +215,8 @@ function Test:Precondition_PTU_user_consent_prompt_present()
                         is_test_passed = false
                       end
                     end
-                  end)
+                  end
+                end)
 
                 EXPECT_HMINOTIFICATION("SDL.OnAppPermissionChanged", {appID = self.HMIAppID, appPermissionsConsentNeeded = true })
                 :Do(function()
