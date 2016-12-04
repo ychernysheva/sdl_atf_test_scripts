@@ -2277,7 +2277,7 @@
 				"priority": "EMERGENCY",
 				"default_hmi": "BACKGROUND",
  				"RequestType": ["PROPRIETARY"],
-				"groups": ["DrivingCharacteristics-3"],
+				"groups": ["DrivingCharacteristics-3","Base-4"],
 				"nicknames": ["Test Application"]
 			},
 			"device": {
