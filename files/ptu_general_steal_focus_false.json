@@ -2271,13 +2271,14 @@
 				"RequestType": ["PROPRIETARY"],
 				"groups": ["Base-4"]
 			},
-			"0000001": {
+			"123456": {
 				"keep_context": true,
 				"steal_focus": false,
-				"priority": "NONE",
-				"default_hmi": "NONE",
+				"priority": "EMERGENCY",
+				"default_hmi": "BACKGROUND",
  				"RequestType": ["PROPRIETARY"],
-				"groups": ["Base-4", "Location-1"]
+				"groups": ["DrivingCharacteristics-3"],
+				"nicknames": ["Test Application"]
 			},
 			"device": {
 				"keep_context": false,
