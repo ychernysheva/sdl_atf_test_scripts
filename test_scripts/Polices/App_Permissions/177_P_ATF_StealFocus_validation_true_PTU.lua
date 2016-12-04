@@ -22,42 +22,77 @@ config.defaultProtocolVersion = 2
 --[[ Required Shared libraries ]]
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require ('user_modules/shared_testcases/commonSteps')
+local commonTestCases = require ('user_modules/shared_testcases/commonTestCases')
+local commonPreconditions = require ('user_modules/shared_testcases/commonPreconditions')
+local testCasesForPolicyTableSnapshot = require ('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
 
 --[[ Local Functions ]]
 local function SendOnSystemContext(self, ctx)
   self.hmiConnection:SendNotification("UI.OnSystemContext",{ appID = self.applications[config.application1.registerAppInterfaceParams.appName], systemContext = ctx })
 end
 
+--[[ Local variables ]]
+local ServerAddress = commonFunctions:read_parameter_from_smart_device_link_ini("ServerAddress")
+
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
+commonPreconditions:Connecttest_without_ExitBySDLDisconnect_WithoutOpenConnectionRegisterApp("connecttest_connect_device.lua")
 
 --[[ General Settings for configuration ]]
-Test = require('connecttest')
+Test = require('user_modules/connecttest_connect_device')
 require('cardinalities')
 require('user_modules/AppTypes')
+local mobile_session = require("mobile_session")
 
 --[[ Preconditions ]]
-commonFunctions:newTestCasesGroup("Preconditions")
-function Test:Precondition_ActivateApplication()
-
-  local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", {appID = self.applications["Test Application"]})
-  EXPECT_HMIRESPONSE(RequestId, { result = {code = 0, isSDLAllowed = false}, method = "SDL.ActivateApp"})
-  :Do(function(_,_)
-      local RequestId1 = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
-      EXPECT_HMIRESPONSE(RequestId1,{result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
-      :Do(function(_,_)
-          self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = "127.0.0.1"}})
-          EXPECT_HMICALL("BasicCommunication.ActivateApp")
-          :Do(function(_,data)
-              self.hmiConnection:SendResponse(data.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
-              EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"})
-            end)
-          EXPECT_NOTIFICATION("OnPermissionsChange", {})
-        end)
+function Test:Precondition_Connect_device()
+  commonTestCases:DelayedExp(2000)
+  self:connectMobile()
+  EXPECT_HMICALL("BasicCommunication.UpdateDeviceList", {
+      deviceList = { { id = config.deviceMAC, name = ServerAddress, transportType = "WIFI", isSDLAllowed = false} } })
+  :Do(function(_,data)
+      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
     end)
 end
 
-function Test:Preconditions_Update_Policy_With_Steal_Focus_True_Value_for_Current_App()
+function Test:Precondition_StartNewSession()
+  self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
+  self.mobileSession:StartService(7)
+end
+
+function Test:Precondition_ActivateApplication()
+  config.application1.registerAppInterfaceParams.appID = "123456"
+  local CorIdRAI = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { policyAppID = "123456"} })
+  :Do(function(_,data)
+    self.applications[config.application1.registerAppInterfaceParams.appName] = data.params.application.appID
+    local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", {appID = self.applications[config.application1.registerAppInterfaceParams.appName]})
+    EXPECT_HMIRESPONSE(RequestId, { result = {
+            code = 0,
+            isSDLAllowed = false},
+          method = "SDL.ActivateApp"})
+      :Do(function(_,_)
+          local RequestId1 = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
+          EXPECT_HMIRESPONSE(RequestId1,{result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
+          :Do(function(_,_)
+              self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = "127.0.0.1"}})
+              EXPECT_HMICALL("BasicCommunication.ActivateApp")
+              :Do(function(_,data1)
+                  self.hmiConnection:SendResponse(data1.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
+                  EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"})
+                end)
+            end)
+        end)
+    end)
+  EXPECT_RESPONSE(CorIdRAI, { success = true, resultCode = "SUCCESS"})
+end
+
+function Test:Precondition_DeactivateApp()
+  self.hmiConnection:SendNotification("BasicCommunication.OnAppDeactivated", {appID = self.applications[config.application1.registerAppInterfaceParams.appName], reason = "GENERAL"})
+  EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "LIMITED"})
+end
+
+function Test:Preconditions_Update_Policy_With_Steal_Focus_FalseValue_for_Current_App()
   local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
   EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
   :Do(function()
@@ -93,8 +128,23 @@ function Test:Preconditions_Update_Policy_With_Steal_Focus_True_Value_for_Curren
     end)
 end
 
+
 --[[Test]]
 commonFunctions:newTestCasesGroup("Test")
+
+function Test:TestStep_Verify_appid_section()
+  local test_fail = false
+  local steal_focus = testCasesForPolicyTableSnapshot:get_data_from_PTS("app_policies.123456.steal_focus")
+
+  if(steal_focus ~= true) then
+    commonFunctions:printError("Error: steal_focus is not true")
+    test_fail = true
+  end
+  if(test_fail == true) then
+    self:FailTestCase("Test failed. See prints")
+  end
+end
+
 function Test:TestCase_SendRPC_with_STEAL_FOCUS_Value()
   local CorIdAlert = self.mobileSession:SendRPC("Alert",
     {
