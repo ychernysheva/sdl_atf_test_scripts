@@ -58,13 +58,13 @@ require('cardinalities')
 
 --[[ Local Functions ]]
 local function GetCurrentTimeStampDeviceConsent()
-consentDeviceSystemTimeStamp = os.date("%Y-%m-%dT%H:%M:%SZ")
-return consentDeviceSystemTimeStamp
+  consentDeviceSystemTimeStamp = os.date("%Y-%m-%dT%H:%M:%SZ")
+  return consentDeviceSystemTimeStamp
 end
 
 local function GetCurrentTimeStampGroupConsent()
-consentGroupSystemTimeStamp = os.date("%Y-%m-%dT%H:%M:%SZ")
-return consentGroupSystemTimeStamp
+  consentGroupSystemTimeStamp = os.date("%Y-%m-%dT%H:%M:%SZ")
+  return consentGroupSystemTimeStamp
 end
 
 local function GetDataFromSnapshot(pathToFile)
@@ -73,13 +73,13 @@ local function GetDataFromSnapshot(pathToFile)
   file:close()
   local json = require("modules/json")
   local data = json.decode(json_data)
-local res = {
-  deviceConsentTimeStamp = data.policy_table.device_data[MACHash].user_consent_records.device.time_stamp,
-  deviceInput = data.policy_table.device_data[MACHash].user_consent_records.device.input,
-  deviceGroups = next(data.policy_table.device_data[MACHash].user_consent_records.device.consent_groups, nil),
-  inputOfAppIdConsent = data.policy_table.device_data[MACHash].user_consent_records[appID].input,
-  groupUserconsentTimeStamp = data.policy_table.device_data[MACHash].user_consent_records[appID].time_stamp,
-  userConsentGroup = next(data.policy_table.device_data[MACHash].user_consent_records[appID].consent_groups, nil)}
+  local res = {
+    deviceConsentTimeStamp = data.policy_table.device_data[MACHash].user_consent_records.device.time_stamp,
+    deviceInput = data.policy_table.device_data[MACHash].user_consent_records.device.input,
+    deviceGroups = next(data.policy_table.device_data[MACHash].user_consent_records.device.consent_groups, nil),
+    inputOfAppIdConsent = data.policy_table.device_data[MACHash].user_consent_records[appID].input,
+    groupUserconsentTimeStamp = data.policy_table.device_data[MACHash].user_consent_records[appID].time_stamp,
+    userConsentGroup = next(data.policy_table.device_data[MACHash].user_consent_records[appID].consent_groups, nil)}
   return res
 end
 
@@ -121,73 +121,73 @@ function Test:Precondition_Activate_App_Consent_Device_Make_PTU_Consent_Group()
     end)
 
   EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
-   :Do(function(_,_)   
-        local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
-        EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
-             :Do(function()
-                 self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",{requestType = "PROPRIETARY", fileName = "filename"})
-                 EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY" })
-                       :Do(function()
-                           local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", {fileName = "PolicyTableUpdate", requestType = "PROPRIETARY"}, "files/PTU_with_permissions_for_app_0000001.json")
-                           local systemRequestId
-                           EXPECT_HMICALL("BasicCommunication.SystemRequest")
-                              :Do(function(_,data)
-                                 systemRequestId = data.id
-                                   self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate",
-                                    {
-                                      policyfile = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate"
-                                    })                                     
-                                    self.hmiConnection:SendResponse(systemRequestId, "BasicCommunication.SystemRequest", "SUCCESS", {})
-                                   EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UP_TO_DATE"}):Timeout(500)
-                                  self.mobileSession:ExpectResponse(CorIdSystemRequest, {success = true, resultCode = "SUCCESS"})
+  :Do(function(_,_)
+      local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
+      EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
+      :Do(function()
+          self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",{requestType = "PROPRIETARY", fileName = "filename"})
+          EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY" })
+          :Do(function()
+              local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", {fileName = "PolicyTableUpdate", requestType = "PROPRIETARY"}, "files/PTU_with_permissions_for_app_0000001.json")
+              local systemRequestId
+              EXPECT_HMICALL("BasicCommunication.SystemRequest")
+              :Do(function(_,data)
+                  systemRequestId = data.id
+                  self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate",
+                    {
+                      policyfile = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate"
+                    })
+                  self.hmiConnection:SendResponse(systemRequestId, "BasicCommunication.SystemRequest", "SUCCESS", {})
+                  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UP_TO_DATE"}):Timeout(500)
+                  self.mobileSession:ExpectResponse(CorIdSystemRequest, {success = true, resultCode = "SUCCESS"})
 
-                               end)
-             end)
-     end)
-     end)
-   EXPECT_HMICALL("SDL.OnAppPermissionChanged", {appID = self.applications["Test Application"], appPermissionsConsentNeeded = true})
-   :Do(function(_,_)
-            local RequestIdListOfPermissions = self.hmiConnection:SendRequest("SDL.GetListOfPermissions", { appID = self.applications["Test Application"] })
-          EXPECT_HMIRESPONSE(RequestIdListOfPermissions,
-            { result = {
-              code = 0,
-              allowedFunctions = {{name = "Location"}} },
-              method = "SDL.GetListOfPermissions"})
-                  :Do(function(_,data1)
-                      local RequestIdGetUserFriendlyMessage = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"Location"}})
-                      EXPECT_HMIRESPONSE(RequestIdGetUserFriendlyMessage,{result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
-                      :Do(function(_,_)
-                      local functionalGroupID = data1.result.allowedFunctions[1].id
-                      self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent",
-                        { appID = self.applications["Test Application"], source = "GUI", consentedFunctions = {{name = "Location", allowed = true, id = functionalGroupID} }})
-                      GetCurrentTimeStampGroupConsent()
-                      end)
-                    end)
-          EXPECT_NOTIFICATION("OnPermissionsChange", {})
+                end)
+            end)
+        end)
     end)
- end
+  EXPECT_HMICALL("SDL.OnAppPermissionChanged", {appID = self.applications["Test Application"], appPermissionsConsentNeeded = true})
+  :Do(function(_,_)
+      local RequestIdListOfPermissions = self.hmiConnection:SendRequest("SDL.GetListOfPermissions", { appID = self.applications["Test Application"] })
+      EXPECT_HMIRESPONSE(RequestIdListOfPermissions,
+        { result = {
+            code = 0,
+            allowedFunctions = {{name = "Location"}} },
+          method = "SDL.GetListOfPermissions"})
+      :Do(function(_,data1)
+          local RequestIdGetUserFriendlyMessage = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"Location"}})
+          EXPECT_HMIRESPONSE(RequestIdGetUserFriendlyMessage,{result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
+          :Do(function(_,_)
+              local functionalGroupID = data1.result.allowedFunctions[1].id
+              self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent",
+                { appID = self.applications["Test Application"], source = "GUI", consentedFunctions = {{name = "Location", allowed = true, id = functionalGroupID} }})
+              GetCurrentTimeStampGroupConsent()
+            end)
+        end)
+      EXPECT_NOTIFICATION("OnPermissionsChange", {})
+    end)
+end
 
 --[[ Test ]]
 function Test:TestStep_Validate_Snapshot_Values()
   self.hmiConnection:SendNotification("SDL.OnPolicyUpdate")
   EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
-:ValidIf(function(_,data)
-   pathToSnapshot = data.params.file
-   local valuesFromPTS = GetDataFromSnapshot(pathToSnapshot)
-    if (valuesFromPTS["userConsentGroup"] == "Location-1" and 
-      valuesFromPTS["groupUserconsentTimeStamp"] == consentGroupSystemTimeStamp and 
-      valuesFromPTS["inputOfAppIdConsent"] == "GUI" and 
-      valuesFromPTS["deviceConsentTimeStamp"] == consentDeviceSystemTimeStamp and 
-      valuesFromPTS["deviceInput"] == "GUI" and 
-      valuesFromPTS["deviceGroups"] == "DataConsent-2") then return true
-    else 
+  :ValidIf(function(_,data)
+      pathToSnapshot = data.params.file
+      local valuesFromPTS = GetDataFromSnapshot(pathToSnapshot)
+      if (valuesFromPTS["userConsentGroup"] == "Location-1" and
+        valuesFromPTS["groupUserconsentTimeStamp"] == consentGroupSystemTimeStamp and
+        valuesFromPTS["inputOfAppIdConsent"] == "GUI" and
+        valuesFromPTS["deviceConsentTimeStamp"] == consentDeviceSystemTimeStamp and
+        valuesFromPTS["deviceInput"] == "GUI" and
+        valuesFromPTS["deviceGroups"] == "DataConsent-2") then return true
+    else
       print ("Wrong values in Snapshot")
       return false
     end
-end) 
+  end)
 end
 
 --[[ Postcondition ]]
 function Test:Postcondition_StopSDL()
-  StopSDL()
+StopSDL()
 end
