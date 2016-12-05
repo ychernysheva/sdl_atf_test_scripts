@@ -1,6 +1,8 @@
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
 -- [UnsubscribeVehicleData] General ResultCode and the individual result codes for a part of parameters disallowed by Policies
+-- [Mobile API] [GENIVI] UnsubscribeVehicleData request/response
+-- [HMI API] [GENIVI] VehicleInfo.UnsubscribeVehicleData request/response
 --
 -- Description:
 -- SDL must:
@@ -35,15 +37,43 @@
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 
 --[[ Required Shared libraries ]]
-local testCasesForPolicyAppIdManagament = require("user_modules/shared_testcases/testCasesForPolicyAppIdManagament")
 local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
 local commonSteps = require("user_modules/shared_testcases/commonSteps")
-local testCasesForBuildingSDLPolicyFlag = require('user_modules/shared_testcases/testCasesForBuildingSDLPolicyFlag')
+local testCasesForPolicyTable = require("user_modules/shared_testcases/testCasesForPolicyTable")
 
 --[[ General Precondition before ATF start ]]
-testCasesForBuildingSDLPolicyFlag:CheckPolicyFlagAfterBuild("EXTERNAL_PROPRIETARY")
-commonFunctions:SDLForceStop()
 commonSteps:DeleteLogsFileAndPolicyTable()
+--testCasesForPolicyTable:Precondition_updatePolicy_By_overwriting_preloaded_pt("files/jsons/Policies/App_Permissions/ptu_015.json")
+
+local function UpdatePolicy()
+  local PermissionForSubscribeVehicleData =
+  [[
+  "SubscribeVehicleData": {
+    "hmi_levels": ["BACKGROUND",
+    "FULL",
+    "LIMITED",
+    "NONE"],
+    "parameters": ["rpm", "fuelLevel",
+    "speed"]
+  }
+  ]].. ", \n"
+  local PermissionForUnsubscribeVehicleData =
+  [[
+  "UnsubscribeVehicleData": {
+    "hmi_levels": ["BACKGROUND",
+    "FULL",
+    "LIMITED",
+    "NONE"],
+    "parameters": ["rpm", "fuelLevel",
+    "speed"]
+  }
+  ]].. ", \n"
+
+  local PermissionLinesForBase4 = PermissionForSubscribeVehicleData..PermissionForUnsubscribeVehicleData
+  local PTName = testCasesForPolicyTable:createPolicyTableFile_temp(PermissionLinesForBase4, nil, nil, {"SubscribeVehicleData","UnsubscribeVehicleData"})
+  testCasesForPolicyTable:Precondition_updatePolicy_By_overwriting_preloaded_pt(PTName)
+end
+UpdatePolicy()
 
 --[[ General Settings for configuration ]]
 Test = require("connecttest")
@@ -51,12 +81,15 @@ require("user_modules/AppTypes")
 
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
-
-function Test:UpdatePolicy()
-  testCasesForPolicyAppIdManagament:updatePolicyTable(self, "files/jsons/Policies/App_Permissions/ptu_015.json")
+function Test:Precondition_trigger_getting_device_consent()
+  testCasesForPolicyTable:trigger_getting_device_consent(self, config.application1.registerAppInterfaceParams.appName, config.deviceMAC)
 end
 
-function Test:Subscribe()
+-- function Test:UpdatePolicy()
+-- testCasesForPolicyAppIdManagament:updatePolicyTable(self, "files/jsons/Policies/App_Permissions/ptu_015.json")
+-- end
+
+function Test:TestStep_SubscribeVehicleData()
   local corId = self.mobileSession:SendRPC("SubscribeVehicleData",
     {
       speed = true,
@@ -94,7 +127,7 @@ end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
-function Test:UnSubscribe()
+function Test:TestStep_UnsubscribeVehicleData()
   local corId = self.mobileSession:SendRPC("UnsubscribeVehicleData",
     {
       speed = true,
@@ -130,4 +163,9 @@ function Test:UnSubscribe()
     })
 end
 
-return Test
+--[[ Postconditions ]]
+commonFunctions:newTestCasesGroup("Postconditions")
+testCasesForPolicyTable:Restore_preloaded_pt()
+function Test.Postcondition_StopSDL()
+  StopSDL()
+end
