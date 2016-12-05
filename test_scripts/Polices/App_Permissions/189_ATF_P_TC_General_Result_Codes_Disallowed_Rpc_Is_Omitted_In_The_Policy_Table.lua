@@ -23,14 +23,11 @@
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 
 --[[ Required Shared libraries ]]
-local testCasesForPolicyAppIdManagament = require("user_modules/shared_testcases/testCasesForPolicyAppIdManagament")
+local testCasesForPolicyTable = require("user_modules/shared_testcases/testCasesForPolicyTable")
 local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
 local commonSteps = require("user_modules/shared_testcases/commonSteps")
-local testCasesForBuildingSDLPolicyFlag = require('user_modules/shared_testcases/testCasesForBuildingSDLPolicyFlag')
 
 --[[ General Precondition before ATF start ]]
-testCasesForBuildingSDLPolicyFlag:CheckPolicyFlagAfterBuild("EXTERNAL_PROPRIETARY")
-commonFunctions:SDLForceStop()
 commonSteps:DeleteLogsFileAndPolicyTable()
 
 --[[ General Settings for configuration ]]
@@ -39,24 +36,25 @@ require("user_modules/AppTypes")
 
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
-function Test:UpdatePolicy()
-  testCasesForPolicyAppIdManagament:updatePolicyTable(self, "files/jsons/Policies/App_Permissions/ptu_020.json")
+commonFunctions:newTestCasesGroup("Preconditions")
+function Test:Precondition_trigger_getting_device_consent()
+  testCasesForPolicyTable:trigger_getting_device_consent(self, config.application1.registerAppInterfaceParams.appName, config.deviceMAC)
 end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
-function Test:SendRPC_AddCommand()
-  local corId = self.mobileSession:SendRPC("AddCommand", {cmdID = 1,menuParams = {menuName = "Options"}, vrCommands = {"Options"} })
-  self.mobileSession:ExpectResponse(corId, {success = false, resultCode = "DISALLOWED"})
-end
-
-function Test:SendRPC_AddSubMenu()
-  local corId = self.mobileSession:SendRPC("AddSubMenu", {menuID = 1000, position = 500, menuName ="SubMenupositive"})
+function Test:SendRPC_SubscribeVehicleData()
+  local corId = self.mobileSession:SendRPC("SubscribeVehicleData", {})
   self.mobileSession:ExpectResponse(corId, {success = false, resultCode = "DISALLOWED"})
 end
 
 function Test:SendRPC_Alert()
-  local corId = self.mobileSession:SendRPC("Alert", {alertText1 = "alertText1"})
+  local corId = self.mobileSession:SendRPC("Alert", {})
+  self.mobileSession:ExpectResponse(corId, {success = false, resultCode = "DISALLOWED"})
+end
+
+function Test:SendRPC_SendLocation()
+  local corId = self.mobileSession:SendRPC("SendLocation", {})
   self.mobileSession:ExpectResponse(corId, {success = false, resultCode = "DISALLOWED"})
 end
 
@@ -65,14 +63,18 @@ function Test:SendRPC_Show()
   self.mobileSession:ExpectResponse(corId, {success = false, resultCode = "DISALLOWED"})
 end
 
-function Test:SendRPC_SystemRequest()
-  local corId = self.mobileSession:SendRPC("SystemRequest", {requestType = "PROPRIETARY", fileName = "PolicyTableUpdate"})
+function Test:SendRPC_AlertManeuver()
+  local corId = self.mobileSession:SendRPC("AlertManeuver", {})
   self.mobileSession:ExpectResponse(corId, {success = false, resultCode = "DISALLOWED"})
 end
 
-function Test:SendRPC_UnregisterAppInterface()
-  local corId = self.mobileSession:SendRPC("UnregisterAppInterface",{})
+function Test:SendRPC_DiagnosticMessage()
+  local corId = self.mobileSession:SendRPC("DiagnosticMessage",{})
   self.mobileSession:ExpectResponse(corId, {success = false, resultCode = "DISALLOWED"})
 end
 
-return Test
+--[[ Postconditions ]]
+commonFunctions:newTestCasesGroup("Postconditions")
+function Test.Postcondition_StopSDL()
+  StopSDL()
+end
