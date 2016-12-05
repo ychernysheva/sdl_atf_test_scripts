@@ -12,7 +12,7 @@
 -- Check LocalPT changes
 --
 -- Expected result:
--- SDL must: increment "count_sync_out_of_memory" section value of Local Policy Table.
+-- SDL must: increment "count_of_sync_reboots" section value of Local Policy Table.
 ---------------------------------------------------------------------------------------------
 
 --[[ General configuration parameters ]]
