@@ -26,14 +26,30 @@
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 
 --[[ Required Shared libraries ]]
-local testCasesForPolicyAppIdManagament = require("user_modules/shared_testcases/testCasesForPolicyAppIdManagament")
 local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
 local commonSteps = require("user_modules/shared_testcases/commonSteps")
-local testCasesForBuildingSDLPolicyFlag = require('user_modules/shared_testcases/testCasesForBuildingSDLPolicyFlag')
+local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
+
+--[[ Local functions ]]
+local function UpdatePolicy()
+  local PermissionForGetVehicleData =
+  [[
+  "GetVehicleData": {
+    "hmi_levels": ["BACKGROUND",
+    "FULL",
+    "LIMITED",
+    "NONE"],
+    "parameters": ["gps", "speed"]
+  }
+  ]].. ", \n"
+
+  local PermissionLinesForBase4 = PermissionForGetVehicleData
+  local PTName = testCasesForPolicyTable:createPolicyTableFile_temp(PermissionLinesForBase4, nil, nil, {"GetVehicleData"})
+  testCasesForPolicyTable:Precondition_updatePolicy_By_overwriting_preloaded_pt(PTName)
+end
+UpdatePolicy()
 
 --[[ General Precondition before ATF start ]]
-testCasesForBuildingSDLPolicyFlag:CheckPolicyFlagAfterBuild("EXTERNAL_PROPRIETARY")
-commonFunctions:SDLForceStop()
 commonSteps:DeleteLogsFileAndPolicyTable()
 
 --[[ General Settings for configuration ]]
@@ -42,14 +58,13 @@ require("user_modules/AppTypes")
 
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
-
-function Test:UpdatePolicy()
-  testCasesForPolicyAppIdManagament:updatePolicyTable(self, "files/jsons/Policies/App_Permissions/ptu_018.json")
+function Test:Precondition_trigger_getting_device_consent()
+  testCasesForPolicyTable:trigger_getting_device_consent(self, config.application1.registerAppInterfaceParams.appName, config.deviceMAC)
 end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
-function Test:Test()
+function Test:TestStep_GetVehicleData_DISALLOWED()
   local corId = self.mobileSession:SendRPC("GetVehicleData",
     {
       fuelLevel_State = true,
@@ -58,6 +73,25 @@ function Test:Test()
   EXPECT_HMICALL("VehicleInfo.GetVehicleData")
   :Times(0)
   self.mobileSession:ExpectResponse(corId, {success = false, resultCode = "DISALLOWED"})
+end
+
+function Test:TestStep_GetVehicleData_SUCCESS()
+  local corId = self.mobileSession:SendRPC("GetVehicleData",
+    {
+      speed = true,
+      fuelLevel_State = true,
+      instantFuelConsumption = true,
+    })
+  EXPECT_HMICALL("VehicleInfo.GetVehicleData", { speed = true })
+  :Do(function(_,data)
+    self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"code":0,"speed":55.5}')
+  end)
+  self.mobileSession:ExpectResponse(corId)
+  :Do(function(_,data)
+    if (data.payload.resultCode == "DISALLOWED") then
+      self:FailTestCase("GetVehicleData should not be DISALLOWED by policy")
+    end
+  end)
 end
 
 return Test
