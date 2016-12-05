@@ -112,4 +112,8 @@ function Test:TestStep_GetVehicleData()
     })
 end
 
-return Test
+--[[ Postconditions ]]
+commonFunctions:newTestCasesGroup("Postconditions")
+function Test.Postcondition_StopSDL()
+  StopSDL()
+end
