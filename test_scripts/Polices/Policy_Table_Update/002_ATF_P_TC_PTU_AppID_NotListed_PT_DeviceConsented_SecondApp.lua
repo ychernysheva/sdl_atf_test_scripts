@@ -1,23 +1,22 @@
 ---------------------------------------------------------------------------------------------
 -- Requirements summary:
--- [PolicyTableUpdate] WiFi/USB: At least one application is registered
--- [HMI API] OnStatusUpdate
--- [HMI API] PolicyUpdate request/response
+-- [PolicyTableUpdate] Request PTU - an app registered is not listed in PT (device consented)
 --
 -- Description:
--- PoliciesManager may initiate the PTUpdate sequence in case the first application has registered.
--- Clarification for first application registered: For WiFI and USB PTU sequence must be initiated
--- in case this sequence was triggered by existing rules (24 hour due to certificate`s expiration,
--- appID of app is NOT listed at PolicyTable, etc.)
+-- SDL should request PTU in case new application is registered and is not listed in PT
+-- and device is consented.
 -- 1. Used preconditions
 -- SDL is built with "-DEXTENDED_POLICY: EXTERNAL_PROPRIETARY" flag
--- Connect mobile phone over WiFi. Device is consented.
+-- Connect mobile phone over WiFi.
 -- Register new application.
--- SDL->HMI: OnAppRegistered()
+-- Successful PTU. Device is consented.
+-- 2. Performed steps
+-- Register new application
 --
 -- Expected result:
+-- PTU is requested. PTS is created.
 -- SDL->HMI: SDL.OnStatusUpdate(UPDATE_NEEDED)
--- SDL-> HMI: SDL.PolicyUpdate()
+-- SDL->HMI: BasicCommunication.PolicyUpdate
 ---------------------------------------------------------------------------------------------
 
 --[[ General configuration parameters ]]
@@ -32,6 +31,11 @@ local testCasesForPolicyTableSnapshot = require('user_modules/shared_testcases/t
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
 
+--ToDo: shall be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
+config.defaultProtocolVersion = 2
+testCasesForPolicyTable.Delete_Policy_table_snapshot()
+
+
 --[[ General Settings for configuration ]]
 Test = require('connecttest')
 require('cardinalities')
@@ -40,7 +44,8 @@ local mobile_session = require('mobile_session')
 
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
-function Test:Precondition_Getting_device_consent()
+
+function Test:Precondition_trigger_getting_device_consent()
   testCasesForPolicyTable:trigger_getting_device_consent(self, config.application1.registerAppInterfaceParams.appName, config.deviceMAC)
 end
 
@@ -55,33 +60,42 @@ function Test:TestStep_StartNewSession()
   self.mobileSession1:StartService(7)
 end
 
-function Test:TestStep_PTU_AppID_NotListed_PT_WiFi()
-  local hmi_app_id1 = self.applications[config.application1.registerAppInterfaceParams.appName]
+function Test:TestStep_PTU_AppID_SecondApp_NotListed_PT()
+  local is_test_fail = false
+  local hmi_app1_id = self.applications[config.application1.registerAppInterfaceParams.appName]
+
   local correlationId = self.mobileSession1:SendRPC("RegisterAppInterface", config.application2.registerAppInterfaceParams)
+
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application2.registerAppInterfaceParams.appName } })
   :Do(function(_,data)
-      local hmi_app_id2 = data.params.application.appID
+      local hmi_app2_id = data.params.application.appID
       EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
 
-      testCasesForPolicyTableSnapshot:verify_PTS(true,
-        {config.application1.registerAppInterfaceParams.appID, config.application1.registerAppInterfaceParams.appID},
-        {config.deviceMAC},
-        {hmi_app_id1, hmi_app_id2})
-
-      local timeout_after_x_seconds = testCasesForPolicyTableSnapshot:get_data_from_PTS("module_config.timeout_after_x_seconds")
-      local seconds_between_retries = {}
-
-      for i = 1, #testCasesForPolicyTableSnapshot.pts_seconds_between_retries do
-        seconds_between_retries[i] = testCasesForPolicyTableSnapshot.pts_seconds_between_retries[i].value
-      end
-
-      EXPECT_HMICALL("BasicCommunication.PolicyUpdate",
-        {
-          file = "/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json",
-          timeout = timeout_after_x_seconds,
-          retry = seconds_between_retries
-        })
+      EXPECT_HMICALL("BasicCommunication.PolicyUpdate",{ file = "/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json" })
       :Do(function(_,data1)
+         testCasesForPolicyTableSnapshot:verify_PTS(true, {
+            config.application1.registerAppInterfaceParams.appID,
+            config.application2.registerAppInterfaceParams.appID,
+          },
+          {config.deviceMAC},
+          {hmi_app1_id, hmi_app2_id})
+
+          local timeout_after_x_seconds = testCasesForPolicyTableSnapshot:get_data_from_PTS("module_config.timeout_after_x_seconds")
+          local seconds_between_retries = {}
+          for i = 1, #testCasesForPolicyTableSnapshot.pts_seconds_between_retries do
+            seconds_between_retries[i] = testCasesForPolicyTableSnapshot.pts_seconds_between_retries[i].value
+            if(seconds_between_retries[i] ~= data1.params.retry[i]) then
+              commonFunctions:printError("Error: data.params.retry["..i.."]: "..data1.params.retry[i] .."ms. Expected: "..seconds_between_retries[i].."ms")
+              is_test_fail = true
+            end
+          end
+          if(data1.params.timeout ~= timeout_after_x_seconds) then
+            commonFunctions:printError("Error: data.params.timeout = "..data1.params.timeout.."ms. Expected: "..timeout_after_x_seconds.."ms.")
+            is_test_fail = true
+          end
+          if(is_test_fail == true) then
+            self:FailTestCase("Test is FAILED. See prints.")
+          end
           self.hmiConnection:SendResponse(data1.id, data1.method, "SUCCESS", {})
         end)
     end)
