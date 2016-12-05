@@ -29,13 +29,13 @@ local commonSteps = require("user_modules/shared_testcases/commonSteps")
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
+testCasesForPolicyTable:Precondition_updatePolicy_By_overwriting_preloaded_pt("files/jsons/Policies/App_Permissions/DisallowedRPCs.json")
 
 --[[ General Settings for configuration ]]
 Test = require("connecttest")
 require("user_modules/AppTypes")
 
 --[[ Preconditions ]]
-commonFunctions:newTestCasesGroup("Preconditions")
 commonFunctions:newTestCasesGroup("Preconditions")
 function Test:Precondition_trigger_getting_device_consent()
   testCasesForPolicyTable:trigger_getting_device_consent(self, config.application1.registerAppInterfaceParams.appName, config.deviceMAC)
@@ -75,6 +75,7 @@ end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
+testCasesForPolicyTable:Restore_preloaded_pt()
 function Test.Postcondition_StopSDL()
   StopSDL()
 end
