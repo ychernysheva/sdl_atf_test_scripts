@@ -36,6 +36,7 @@ local defaultFunctionGroupName = "group1"
 --7. trigger_user_request_update_from_HMI
 --8. trigger_getting_device_consent
 --9. trigger_PTU_user_press_button_HMI
+--10. Delete_Policy_table_snapshot
 ---------------------------------------------------------------------------------------------
 
 --Create new policy table from a template without APIName
@@ -847,6 +848,7 @@ end
 ---------------------------------------------------------------------------------------------------------------------------
 -- The function is used as trigger to PTU when user request update from HMI: SDL.OnPolicyUpdate
 function testCasesForPolicyTable:trigger_user_request_update_from_HMI(self)
+  local is_test_fail = false
   --function is created only for one app due to luck of time should not be updated at the moment.
   local hmi_app1_id = self.applications[config.application1.registerAppInterfaceParams.appName]
   testCasesForPolicyTable.time_trigger = 0
@@ -857,31 +859,32 @@ function testCasesForPolicyTable:trigger_user_request_update_from_HMI(self)
 
   testCasesForPolicyTable.time_trigger = timestamp()
 
-  local timeout_after_x_seconds
-  local seconds_between_retries = {}
-
   EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
-  :Do(function(_,_) testCasesForPolicyTable.time_onstatusupdate = timestamp() 
+  :Do(function(_,_) testCasesForPolicyTable.time_onstatusupdate = timestamp() end)
 
+  EXPECT_HMICALL("BasicCommunication.PolicyUpdate", { file = "/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json"})
+  :Do(function(_,data)
     testCasesForPolicyTableSnapshot:verify_PTS(true,
-      {config.application1.registerAppInterfaceParams.appID },
-      {config.deviceMAC},
-      {hmi_app1_id})
+    {config.application1.registerAppInterfaceParams.appID },
+    {config.deviceMAC},
+    {hmi_app1_id})
 
-    timeout_after_x_seconds = testCasesForPolicyTableSnapshot:get_data_from_PTS("module_config.timeout_after_x_seconds")
-    seconds_between_retries = {}
+    local timeout_after_x_seconds = testCasesForPolicyTableSnapshot:get_data_from_PTS("module_config.timeout_after_x_seconds")
+    local seconds_between_retries = {}
     for i = 1, #testCasesForPolicyTableSnapshot.pts_seconds_between_retries do
       seconds_between_retries[i] = testCasesForPolicyTableSnapshot.pts_seconds_between_retries[i].value
+      if(seconds_between_retries[i] ~= data.params.retry[i]) then
+        commonFunctions:printError("Error: data.params.retry["..i.."]: "..data.params.retry[i] .."ms. Expected: "..seconds_between_retries[i].."ms")
+        is_test_fail = true
+      end
     end
-  end)
-
-  EXPECT_HMICALL("BasicCommunication.PolicyUpdate",
-  {
-    file = "/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json",
-    timeout = timeout_after_x_seconds,
-    retry = seconds_between_retries
-  })
-  :Do(function(_,data)
+    if(data.params.timeout ~= timeout_after_x_seconds) then
+      commonFunctions:printError("Error: data.params.timeout = "..data.params.timeout.."ms. Expected: "..timeout_after_x_seconds.."ms.")
+      is_test_fail = true
+    end
+    if(is_test_fail == true) then
+      self:FailTestCase("Test is FAILED. See prints.")
+    end
     testCasesForPolicyTable.time_policyupdate = timestamp()
     self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
   end)
@@ -893,20 +896,17 @@ end
 -- device_ID: ID of device that needs consent
 -- This function is applicable ONLY for EXTENDED_PROPRIETARY flow.
 function testCasesForPolicyTable:trigger_getting_device_consent(self, app_name, device_ID)
-  
+  local is_test_fail = false
   local hmi_app1_id = self.applications[config.application1.registerAppInterfaceParams.appName]
   testCasesForPolicyTable.time_trigger = 0
   testCasesForPolicyTable.time_onstatusupdate = 0
   testCasesForPolicyTable.time_policyupdate = 0
-  local ServerAddress = commonFunctions:read_parameter_from_smart_device_link_ini("ServerAddress")
-  local SystemFilesPath = commonFunctions:read_parameter_from_smart_device_link_ini("SystemFilesPath")
+  local ServerAddress = "127.0.0.1"--commonSteps:get_data_from_SDL_ini("ServerAddress")
 
   local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.applications[app_name]})
 
   EXPECT_HMIRESPONSE(RequestId)
   :Do(function(_,_)
-    local timeout_after_x_seconds
-    local seconds_between_retries = {}
 
     local RequestId1 = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
     --hmi side: expect SDL.GetUserFriendlyMessage message response
@@ -916,26 +916,32 @@ function testCasesForPolicyTable:trigger_getting_device_consent(self, app_name, 
 
       self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality",
         {allowed = true, source = "GUI", device = {id = device_ID, name = ServerAddress, isSDLAllowed = true}})
+    end)
 
+    EXPECT_HMICALL("BasicCommunication.PolicyUpdate", {file = "/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json"})
+    :Do(function(_,data)
       testCasesForPolicyTableSnapshot:verify_PTS(true,
-      {config.application1.registerAppInterfaceParams.appID},
+      {config.application1.registerAppInterfaceParams.appID },
       {config.deviceMAC},
       {hmi_app1_id})
 
-      timeout_after_x_seconds = testCasesForPolicyTableSnapshot:get_data_from_PTS("module_config.timeout_after_x_seconds")
-      seconds_between_retries = {}
+      local timeout_after_x_seconds = testCasesForPolicyTableSnapshot:get_data_from_PTS("module_config.timeout_after_x_seconds")
+      local seconds_between_retries = {}
       for i = 1, #testCasesForPolicyTableSnapshot.pts_seconds_between_retries do
         seconds_between_retries[i] = testCasesForPolicyTableSnapshot.pts_seconds_between_retries[i].value
+        if(seconds_between_retries[i] ~= data.params.retry[i]) then
+          commonFunctions:printError("Error: data.params.retry["..i.."]: "..data.params.retry[i] .."ms. Expected: "..seconds_between_retries[i].."ms")
+          is_test_fail = true
+        end
       end
-    end)
-    
-    EXPECT_HMICALL("BasicCommunication.PolicyUpdate",
-      {
-        file = SystemFilesPath.."/sdl_snapshot.json",
-        timeout = timeout_after_x_seconds,
-        retry = seconds_between_retries
-      })
-    :Do(function(_,data)
+      if(data.params.timeout ~= timeout_after_x_seconds) then
+        commonFunctions:printError("Error: data.params.timeout = "..data.params.timeout.."ms. Expected: "..timeout_after_x_seconds.."ms.")
+        is_test_fail = true
+      end
+      if(is_test_fail == true) then
+        self:FailTestCase("Test is FAILED. See prints.")
+      end
+
       testCasesForPolicyTable.time_policyupdate = timestamp()
       self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
     end)
@@ -951,6 +957,7 @@ end
 -- The function is used as trigger to PTU when user press button on HMI: SDL.UpdateSDL
 -- executed_mode: for EXTERNAL_PROPRIETARY, notification for UPDATE_NEEDED should not be sent
 function testCasesForPolicyTable:trigger_PTU_user_press_button_HMI(self, executed_mode)
+  local is_test_fail
   local hmi_app1_id = self.applications[config.application1.registerAppInterfaceParams.appName]
   testCasesForPolicyTable.time_trigger = 0
   testCasesForPolicyTable.time_onstatusupdate = 0
@@ -965,29 +972,41 @@ function testCasesForPolicyTable:trigger_PTU_user_press_button_HMI(self, execute
     :Do(function(_,_) testCasesForPolicyTable.time_onstatusupdate = timestamp() end)
   end
 
-  --TODO(istoimenova): Will fail in case of EXTERNAL_PROPRIETARY and snapshot is not created
-  testCasesForPolicyTableSnapshot:verify_PTS(true,
-    { config.application1.registerAppInterfaceParams.appID},
-    {config.deviceMAC},
-    {hmi_app1_id})
-
-  local timeout_after_x_seconds = testCasesForPolicyTableSnapshot:get_data_from_PTS("module_config.timeout_after_x_seconds")
-  local seconds_between_retries = {}
-  for i = 1, #testCasesForPolicyTableSnapshot.pts_seconds_between_retries do
-    seconds_between_retries[i] = testCasesForPolicyTableSnapshot.pts_seconds_between_retries[i].value
-  end
-
-  EXPECT_HMICALL("BasicCommunication.PolicyUpdate",
-  {
-    file = "/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json",
-    timeout = timeout_after_x_seconds,
-    retry = seconds_between_retries
-  })
+  EXPECT_HMICALL("BasicCommunication.PolicyUpdate", {file = "/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json"})
   :Do(function(_,data)
+    testCasesForPolicyTableSnapshot:verify_PTS(true,
+      {config.application1.registerAppInterfaceParams.appID },
+      {config.deviceMAC},
+      {hmi_app1_id})
+
+    local timeout_after_x_seconds = testCasesForPolicyTableSnapshot:get_data_from_PTS("module_config.timeout_after_x_seconds")
+    local seconds_between_retries = {}
+    for i = 1, #testCasesForPolicyTableSnapshot.pts_seconds_between_retries do
+      seconds_between_retries[i] = testCasesForPolicyTableSnapshot.pts_seconds_between_retries[i].value
+      if(seconds_between_retries[i] ~= data.params.retry[i]) then
+        commonFunctions:printError("Error: data.params.retry["..i.."]: "..data.params.retry[i] .."ms. Expected: "..seconds_between_retries[i].."ms")
+        is_test_fail = true
+      end
+    end
+    if(data.params.timeout ~= timeout_after_x_seconds) then
+      commonFunctions:printError("Error: data.params.timeout = "..data.params.timeout.."ms. Expected: "..timeout_after_x_seconds.."ms.")
+      is_test_fail = true
+    end
+    if(is_test_fail == true) then
+      self:FailTestCase("Test is FAILED. See prints.")
+    end
     testCasesForPolicyTable.time_policyupdate = timestamp()
     self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
   end)
+end
 
+function testCasesForPolicyTable.Delete_Policy_table_snapshot()
+  if( commonSteps:file_exists("/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json") ~= false) then
+    print("/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json exists will be deleted!")
+    os.execute("rm /tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json")
+  else
+    print("/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json does not exist")
+  end
 end
 
 return testCasesForPolicyTable
