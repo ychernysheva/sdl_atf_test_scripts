@@ -1,6 +1,8 @@
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
 -- [SubscribeVehicleData] DISALLOWED response when all parameters are not allowed in the request
+-- [Mobile API] [GENIVI] SubscribeVehicleData request/response
+-- [HMI API] [GENIVI] VehicleInfo.SubscribeVehicleData request/response
 --
 -- Description:
 -- SDL must:
@@ -27,15 +29,42 @@
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 
 --[[ Required Shared libraries ]]
-local testCasesForPolicyAppIdManagament = require("user_modules/shared_testcases/testCasesForPolicyAppIdManagament")
 local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
 local commonSteps = require("user_modules/shared_testcases/commonSteps")
-local testCasesForBuildingSDLPolicyFlag = require('user_modules/shared_testcases/testCasesForBuildingSDLPolicyFlag')
+local testCasesForPolicyTable = require("user_modules/shared_testcases/testCasesForPolicyTable")
 
 --[[ General Precondition before ATF start ]]
-testCasesForBuildingSDLPolicyFlag:CheckPolicyFlagAfterBuild("EXTERNAL_PROPRIETARY")
-commonFunctions:SDLForceStop()
 commonSteps:DeleteLogsFileAndPolicyTable()
+--testCasesForPolicyTable:Precondition_updatePolicy_By_overwriting_preloaded_pt("files/jsons/Policies/App_Permissions/ptu_015.json")
+
+--[[ Local functions ]]
+local function UpdatePolicy()
+  local PermissionForSubscribeVehicleData =
+  [[
+  "SubscribeVehicleData": {
+    "hmi_levels": ["BACKGROUND",
+    "FULL",
+    "LIMITED",
+    "NONE"],
+    "parameters": []
+  }
+  ]].. ", \n"
+  local PermissionForUnsubscribeVehicleData =
+  [[
+  "UnsubscribeVehicleData": {
+    "hmi_levels": ["BACKGROUND",
+    "FULL",
+    "LIMITED",
+    "NONE"],
+    "parameters": []
+  }
+  ]].. ", \n"
+
+  local PermissionLinesForBase4 = PermissionForSubscribeVehicleData..PermissionForUnsubscribeVehicleData
+  local PTName = testCasesForPolicyTable:createPolicyTableFile_temp(PermissionLinesForBase4, nil, nil, {"SubscribeVehicleData","UnsubscribeVehicleData"})
+  testCasesForPolicyTable:Precondition_updatePolicy_By_overwriting_preloaded_pt(PTName)
+end
+UpdatePolicy()
 
 --[[ General Settings for configuration ]]
 Test = require("connecttest")
@@ -43,36 +72,20 @@ require("user_modules/AppTypes")
 
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
-
-function Test:UpdatePolicy()
-  testCasesForPolicyAppIdManagament:updatePolicyTable(self, "files/jsons/Policies/App_Permissions/ptu_016.json")
+function Test:Precondition_trigger_getting_device_consent()
+  testCasesForPolicyTable:trigger_getting_device_consent(self, config.application1.registerAppInterfaceParams.appName, config.deviceMAC)
 end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
-function Test:Test()
+function Test:TestStep_SubscribeVehicleData()
   local corId = self.mobileSession:SendRPC("SubscribeVehicleData",
     {
       fuelLevel_State = true,
       instantFuelConsumption = true,
     })
-  EXPECT_HMICALL("VehicleInfo.SubscribeVehicleData")
-  :Times(0)
-  self.mobileSession:ExpectResponse(corId,
-    {
-      success = false,
-      resultCode = "DISALLOWED",
-      fuelLevel_State =
-      {
-        dataType = "VEHICLEDATA_FUELLEVEL_STATE",
-        resultCode = "DISALLOWED"
-      },
-      instantFuelConsumption =
-      {
-        dataType = "VEHICLEDATA_FUELCONSUMPTION",
-        resultCode = "DISALLOWED"
-      },
-    })
+  EXPECT_HMICALL("VehicleInfo.SubscribeVehicleData") :Times(0)
+  self.mobileSession:ExpectResponse(corId, { success = false, resultCode = "DISALLOWED" })
 end
 
 return Test
