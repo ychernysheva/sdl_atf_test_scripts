@@ -80,7 +80,7 @@ end
 function testCasesForPolicyTableSnapshot:extract_preloaded_pt()
   testCasesForPolicyTableSnapshot.preloaded_elements = {}
   testCasesForPolicyTableSnapshot.seconds_between_retries = {}
-  local preloaded_pt = 'SDL_bin/sdl_preloaded_pt.json'
+  local preloaded_pt = config.pathToSDL ..'sdl_preloaded_pt.json'
   extract_json(preloaded_pt)
   local k = 1
   for i = 1, #json_elements do
@@ -353,8 +353,10 @@ function testCasesForPolicyTableSnapshot:extract_pts(appID)
   local length_seconds_between_retries
   local length_service_endpoints
   local is_app_endpoints_found = {}
-  for i = 1, #appID do
-    is_app_endpoints_found[i] = false
+  if (appID ~= nil) then
+    for i = 1, #appID do
+      is_app_endpoints_found[i] = false
+    end
   end
 
   for i = 1, #json_elements do
@@ -371,13 +373,15 @@ function testCasesForPolicyTableSnapshot:extract_pts(appID)
       end
 
       --hmi appid
-      for j1 = 1, #appID do
-        if(preloaded_pt_endpoints[j1] == "0x07") then
-          if( string.sub(json_elements[i].name,1,string.len("module_config.endpoints.0x07.".. appID[j1] .. ".")) == "module_config.endpoints.0x07.".. appID[j1] .. "." ) then
-            length_service_endpoints = #testCasesForPolicyTableSnapshot.pts_endpoints
-            testCasesForPolicyTableSnapshot.pts_endpoints[length_service_endpoints + 1] = { name = json_elements[i].name, value = json_elements[i].value, app_id = appID[j1], service = "app1" }
-            --print("appID: " ..testCasesForPolicyTableSnapshot.pts_endpoints_apps[length_app_endpoints + 1].value)
-            is_app_endpoints_found[i] = true
+      if (appID ~= nil) then
+        for j1 = 1, #appID do
+          if(preloaded_pt_endpoints[j1] == "0x07") then
+            if( string.sub(json_elements[i].name,1,string.len("module_config.endpoints.0x07.".. appID[j1] .. ".")) == "module_config.endpoints.0x07.".. appID[j1] .. "." ) then
+              length_service_endpoints = #testCasesForPolicyTableSnapshot.pts_endpoints
+              testCasesForPolicyTableSnapshot.pts_endpoints[length_service_endpoints + 1] = { name = json_elements[i].name, value = json_elements[i].value, app_id = appID[j1], service = "app1" }
+              --print("appID: " ..testCasesForPolicyTableSnapshot.pts_endpoints_apps[length_app_endpoints + 1].value)
+              is_app_endpoints_found[i] = true
+            end
           end
         end
       end
@@ -385,9 +389,11 @@ function testCasesForPolicyTableSnapshot:extract_pts(appID)
   end
 
   -- Check for section apps endpoint exist
-  for i = 1, #appID do
-    if (is_app_endpoints_found[i] == false ) then
-      print("module_config.endpoints.0x07.".. appID[i] .. " doesn't exist!")
+  if (appID ~= nil) then
+    for i = 1, #appID do
+      if (is_app_endpoints_found[i] == false ) then
+        print("module_config.endpoints.0x07.".. appID[i] .. " doesn't exist!")
+      end
     end
   end
 end
@@ -396,6 +402,7 @@ end
 -- The function returns value of specific data from sdl snapshot
 -- pts_element should be in format: module_config.timeout_after_x_seconds to define correct section of search
 function testCasesForPolicyTableSnapshot:get_data_from_PTS(pts_element)
+  testCasesForPolicyTableSnapshot:extract_pts()
   local value
   local is_found = false
   for i = 1, #testCasesForPolicyTableSnapshot.pts_elements do
