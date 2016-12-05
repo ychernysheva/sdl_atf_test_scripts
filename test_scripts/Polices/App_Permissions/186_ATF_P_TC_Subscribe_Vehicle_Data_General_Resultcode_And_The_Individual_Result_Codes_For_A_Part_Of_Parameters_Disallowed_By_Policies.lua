@@ -89,9 +89,7 @@ function Test:TestStep_SubscribeVehicleData()
     {
       speed = true,
       rpm = true,
-      fuelLevel = true,
-      fuelLevel_State = true,
-      instantFuelConsumption = true,
+      fuelLevel = true
     })
   EXPECT_HMICALL("VehicleInfo.SubscribeVehicleData",
     {
