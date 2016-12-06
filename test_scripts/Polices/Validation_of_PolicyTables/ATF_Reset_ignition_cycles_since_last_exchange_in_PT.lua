@@ -3,7 +3,7 @@
 --   [Policies] "ignition_cycles_since_last_exchange" reset in LocalPT
 --
 -- Description:
---     Incrementing value in 'ignition_cycles_since_last_exchange' section of LocalPT
+--     Reseting value in 'ignition_cycles_since_last_exchange' section of LocalPT
 --     1. Used preconditions:
 --      Delete log file and policy table if any
 --      Start SDL and HMI
