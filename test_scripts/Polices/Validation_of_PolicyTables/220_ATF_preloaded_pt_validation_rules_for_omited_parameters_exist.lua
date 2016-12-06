@@ -42,6 +42,7 @@ end
 function Test.Precondition()
   local testParameters = {vehicle_model = "Fiesta", vehicle_make = "Ford", vehicle_year = 2015}
   commonSteps:DeletePolicyTable()
+  commonSteps:DeleteLogsFiles()
   commonPreconditions:BackupFile(PRELOADED_PT_FILE_NAME)
   testCasesForPolicySDLErrorsStops.updatePreloadedPT("data.policy_table.module_config", testParameters)
 end
@@ -49,12 +50,18 @@ end
 --[[ Test ]]
 function Test:TestStep_start_sdl()
   --TODO(istoimenova): Should be checked when ATF problem is fixed with SDL crash
-  --EXPECT_HMINOTIFICATION("BasicCommunication.OnSDLClose")
-  testCasesForPolicySDLErrorsStops:CheckSDLShutdown(self)
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnSDLClose")
+  local result = testCasesForPolicySDLErrorsStops:CheckSDLShutdown(self)
+  if (result == false) then
+    self:FailTestCase("Error: SDL doesn't stop.")
+  end
 end
 
-function Test.TestStep_CheckSDLLogError()
-  testCasesForPolicySDLErrorsStops.ReadSpecificMessage("Policy table is not initialized.")
+function Test:TestStep_CheckSDLLogError()
+  local result = testCasesForPolicySDLErrorsStops.ReadSpecificMessage("Policy table is not initialized.")
+  if (result == false) then
+    self:FailTestCase("Error: message 'Policy table is not initialized.' is not observed in smartDeviceLink.log.")
+  end
 end
 
 --[[ Postconditions ]]
