@@ -11,7 +11,7 @@ function testCasesForPolicySDLErrorsStops.ReadSpecificMessage(message)
 end
 
 --The function will corrupt specific 'section' with data 'specificParameters'
-function testCasesForPolicySDLErrorsStops.corruptPreloadedPT(section, specificParameters)
+function testCasesForPolicySDLErrorsStops.updatePreloadedPT(section, specificParameters)
 
   local pathToFile = config.pathToSDL .. "sdl_preloaded_pt.json"
 
