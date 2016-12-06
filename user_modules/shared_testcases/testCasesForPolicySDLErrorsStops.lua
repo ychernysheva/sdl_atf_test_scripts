@@ -1,5 +1,7 @@
 local testCasesForPolicySDLErrorsStops = {}
 local json = require("modules/json")
+local SDL = require('modules/SDL')
+local commonTestCases =  require ('user_modules/shared_testcases/commonTestCases')
 
 --The function will check if 'message' is printed in SmartDeviceLinkCore.log
 -- should return:
@@ -36,6 +38,51 @@ function testCasesForPolicySDLErrorsStops.updatePreloadedPT(section, specificPar
   file:close()
 end
 
+--The function checks when SDL will stop before ATF crush.
+--TODO(istoimenova): Will be removed when ATF issue is resolved.
+function testCasesForPolicySDLErrorsStops:CheckSDLShutdown(self)
+  os.execute ("chmod 755 ./files/StartSDLwithoutWait.sh")
+  local check_sdlstart = 1
+  local stop_test = 1      
+
+  local function Check()
+      local status = SDL:CheckStatusSDL()
+    
+      if status == SDL.STOPPED then
+        if(check_sdlstart == 1) then
+          check_sdlstart = 2
+          local result = os.execute ('./files/StartSDLwithoutWait.sh ../' .. config.pathToSDL .. ' ' .. config.SDL)
+          if result then
+            print( "SDL will be started" )
+            return true
+          end
+        else    
+          stop_test = 2
+          print( "SDL is STOPPED" )
+        end
+        return true
+      elseif(status == SDL.RUNNING) then
+        -- print( "SDL is still running" )
+        --EXPECT_HMINOTIFICATION("BasicCommunication.OnSDLClose"):Timeout(1000)
+      elseif(status == SDL.CRASH) then
+         --StopSDL(self)
+         SDL.CRASH = SDL.STOPPED
+         print( "SDL is CRASHED" )
+         os.execute ('./files/StartSDLwithoutWait.sh ../' ..config.pathToSDL .. ' ' .. config.SDL)
+         stop_test = 2
+         StopSDL(self)
+      end
+  end
+   
+  for _ = 1, 60000 do
+    if(stop_test == 1) then
+      Check()
+      commonTestCases:DelayedExp(1)
+    else
+      break
+    end
+  end
+
+end
+
 return testCasesForPolicySDLErrorsStops
-
-
