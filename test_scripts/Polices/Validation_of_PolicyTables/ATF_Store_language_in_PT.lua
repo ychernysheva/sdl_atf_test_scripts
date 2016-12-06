@@ -52,16 +52,15 @@ end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
-
 function Test:TestStep1_SDL_requests_systemInfo_on_InitHMI()
   self:initHMI_onReady()
-  EXPECT_HMICALL("BasicCommunication.GetSystemInfo"):Times(0)
+  EXPECT_HMICALL("BasicCommunication.GetSystemInfo"):Times(1)
   :Do(function(_,data)
   self.hmiConnection:SendResponse(data.id, "BasicCommunication.GetSystemInfo", "SUCCESS", {ccpu_version ="OpenS",
   language ="EN-US",wersCountryCode = "open_wersCountryCode"})
   end)
 end
-
+  
 function Test:TestStep2_Check_language_stored_in_PT()
   local query
   if commonSteps:file_exists(config.pathToSDL .. "storage/policy.sqlite") then
