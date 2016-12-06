@@ -26,18 +26,13 @@ config.defaultProtocolVersion = 2
 --[[ Required Shared libraries ]]
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require ('user_modules/shared_testcases/commonSteps')
+local commonPreconditions = require ('user_modules/shared_testcases/commonPreconditions')
+local testCasesForPolicyTable = require ('user_modules/shared_testcases/testCasesForPolicyTable')
+
+--[[ General Preconditions before ATF starts ]]
+commonPreconditions:Connecttest_without_ExitBySDLDisconnect_WithoutOpenConnectionRegisterApp("connecttest_ConnectMobile.lua")
 
 --[[ Local Functions ]]
-local function BackupPreloaded()
-  os.execute('cp ' .. config.pathToSDL .. 'sdl_preloaded_pt.json' .. ' ' .. config.pathToSDL .. 'backup_sdl_preloaded_pt.json')
-  os.execute('rm ' .. config.pathToSDL .. 'policy.sqlite')
-end
-
-local function RestorePreloadedPT()
-  os.execute('rm ' .. config.pathToSDL .. 'sdl_preloaded_pt.json')
-  os.execute('cp ' .. config.pathToSDL .. 'backup_sdl_preloaded_pt.json' .. ' ' .. config.pathToSDL .. 'sdl_preloaded_pt.json')
-end
-
 local function SetPriorityToPre_DataConsentNORMAL()
   local pathToFile = config.pathToSDL .. 'sdl_preloaded_pt.json'
   local file = io.open(pathToFile, "r")
@@ -62,17 +57,41 @@ end
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFiles()
 commonSteps:DeletePolicyTable()
-BackupPreloaded()
+commonPreconditions:BackupFile("sdl_preloaded_pt.json")
 SetPriorityToPre_DataConsentNORMAL()
 
 --[[ General Settings for configuration ]]
-Test = require('connecttest')
+Test = require('user_modules/connecttest_ConnectMobile')
 require('cardinalities')
+require('user_modules/AppTypes')
+local mobile_session = require('mobile_session')
 
 --[[ Preconditions ]]
+commonFunctions:newTestCasesGroup("Preconditions")
+function Test:Precondition_ConnectMobile_FirstLifeCycle()
+  self:connectMobile()
+end
+
+function Test:Precondition_StartSession()
+  self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
+  self.mobileSession:StartService(7)
+end
+
+--[[ Test ]]
+commonFunctions:newTestCasesGroup("Test")
+function Test:TestStep_Register_App_And_Check_Priority()
+  local CorIdRAI = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
+
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered",{ priority = "NORMAL" } )
+  :Do(function(_,data)
+    self.HMIapp = data.params.application.appID
+  end)
+  EXPECT_RESPONSE(CorIdRAI, { success = true, resultCode = "SUCCESS"})
+end
+
 function Test:TestStep_Activate_App_Consent_Device_And_Check_Priority_In_ActivateApp_And_OnAppPermissionChanged()
 
-  local RequestIdActivateApp = self.hmiConnection:SendRequest("SDL.ActivateApp", {appID = self.applications["Test Application"], priority = "NONE"})
+  local RequestIdActivateApp = self.hmiConnection:SendRequest("SDL.ActivateApp", {appID = self.HMIapp})
   EXPECT_HMIRESPONSE(RequestIdActivateApp, { result = {code = 0, isSDLAllowed = false}, method = "SDL.ActivateApp"})
   :Do(function(_,_)
       local RequestIdGetUserFriendlyMessage = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
@@ -90,10 +109,11 @@ function Test:TestStep_Activate_App_Consent_Device_And_Check_Priority_In_Activat
     end)
 end
 
---[[ Postcondition ]]
---ToDo: shall be removed when issue: "SDL doesn't stop at execution ATF function StopSDL()" is fixed
-function Test:Postcondition_SDLForceStop()
-  RestorePreloadedPT()
-  commonFunctions:SDLForceStop()
+--[[ Postconditions ]]
+commonFunctions:newTestCasesGroup("Postconditions")
+testCasesForPolicyTable:Restore_preloaded_pt()
+function Test.Postcondition_StopSDL()
+  StopSDL()
 end
 
+return Test
