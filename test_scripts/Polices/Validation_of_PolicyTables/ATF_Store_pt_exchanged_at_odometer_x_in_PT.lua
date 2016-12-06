@@ -3,7 +3,7 @@
 --   [Policies] "pt_exchanged_at_odometer_x" storage into PolicyTable
 --
 -- Description:
---     Incrementing value in 'ignition_cycles_since_last_exchange' section of LocalPT
+--     Storing value in 'pt_exchanged_at_odometer_x' section of LocalPT
 --     1. Used preconditions:
 --      Delete log file and policy table if any
 --      Start SDL and HMI
