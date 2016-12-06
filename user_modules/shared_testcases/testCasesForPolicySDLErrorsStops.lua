@@ -28,6 +28,8 @@ function testCasesForPolicySDLErrorsStops.updatePreloadedPT(section, specificPar
     	-- Example:
       if(section == "data.policy_table.module_config") then
         data.policy_table.module_config[key] = value
+      elseif(section == "data.policy_table.app_policies") then
+        data.policy_table.app_policies[key] = value
       end
     end
   end
@@ -47,16 +49,16 @@ function testCasesForPolicySDLErrorsStops:CheckSDLShutdown(self)
 
   local function Check()
       local status = SDL:CheckStatusSDL()
-    
       if status == SDL.STOPPED then
         if(check_sdlstart == 1) then
           check_sdlstart = 2
-          local result = os.execute ('./files/StartSDLwithoutWait.sh ../' .. config.pathToSDL .. ' ' .. config.SDL)
+          local result = os.execute ('./files/StartSDLwithoutWait.sh ' .. config.pathToSDL .. ' ' .. config.SDL)
+          --local result = os.execute ('./StartSDLwithoutWait.sh ' .. config.pathToSDL .. ' ' .. config.SDL)
           if result then
             print( "SDL will be started" )
             return true
           end
-        else    
+        else 
           stop_test = 2
           print( "SDL is STOPPED" )
         end
@@ -68,7 +70,8 @@ function testCasesForPolicySDLErrorsStops:CheckSDLShutdown(self)
          --StopSDL(self)
          SDL.CRASH = SDL.STOPPED
          print( "SDL is CRASHED" )
-         os.execute ('./files/StartSDLwithoutWait.sh ../' ..config.pathToSDL .. ' ' .. config.SDL)
+         os.execute ('./files/StartSDLwithoutWait.sh ' ..config.pathToSDL .. ' ' .. config.SDL)
+         --os.execute ('./StartSDLwithoutWait.sh ' ..config.pathToSDL .. ' ' .. config.SDL)
          stop_test = 2
          StopSDL(self)
       end

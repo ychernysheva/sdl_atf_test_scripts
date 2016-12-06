@@ -1,6 +1,6 @@
 #!/bin/bash
 dirSDL=$1
-dirATF=$(pwd)
+dirATF="$(pwd)"
 appName=$2
 cd $dirSDL
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:. export LD_LIBRARY_PATH
