@@ -1,6 +1,7 @@
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
 -- Registering the app the 1st time initiate promting the User about the event
+-- [RegisterAppInterface] Order of request/response/notifications on registering an application
 --
 -- Description:
 -- When the application is registered for the first time (no records in PT) PoliciesManager should not initiate promting the User about the event.
@@ -22,39 +23,21 @@ config.defaultProtocolVersion = 2
 --[[ Required Shared libraries ]]
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require ('user_modules/shared_testcases/commonSteps')
+local commonPreconditions = require ('user_modules/shared_testcases/commonPreconditions')
+local commonTestCases = require ('user_modules/shared_testcases/commonTestCases')
+
+
+--[[ General Preconditions before ATF starts ]]
+commonSteps:DeleteLogsFileAndPolicyTable()
+commonPreconditions:Connecttest_without_ExitBySDLDisconnect_WithoutOpenConnectionRegisterApp("connecttest_ConnectMobile.lua")
 
 --[[ General Settings for configuration ]]
-Test = require('connecttest')
+Test = require('user_modules/connecttest_ConnectMobile')
 require('cardinalities')
+require('user_modules/AppTypes')
 local mobile_session = require('mobile_session')
 
 --[[ Preconditions ]]
-function Test:Precondition_StopSDL()
-  StopSDL()
-end
-
---ToDo: shall be removed when issue: "SDL doesn't stop at execution ATF function StopSDL()" is fixed
-function Test:Precondition_SDLForceStop()
-  commonFunctions:SDLForceStop()
-end
-
-function Test:Precondition_DeleteLogsAndPolicyTable()
-  commonSteps:DeleteLogsFiles()
-  commonSteps:DeletePolicyTable()
-end
-
-function Test:Precondition_StartSDL_FirstLifeCycle()
-  StartSDL(config.pathToSDL, config.ExitOnCrash)
-end
-
-function Test:Precondition_InitHMI_FirstLifeCycle()
-  self:initHMI()
-end
-
-function Test:Precondition_InitHMI_onReady_FirstLifeCycle()
-  self:initHMI_onReady()
-end
-
 function Test:Precondition_ConnectMobile_FirstLifeCycle()
   self:connectMobile()
 end
@@ -65,7 +48,8 @@ function Test:Precondition_StartSession()
 end
 
 function Test:TestStep_Firs_Time_Register_App_And_Check_That_No_Permission_Notification_To_HMI()
-
+  local is_test_fail = false
+  local order_communication = 1
   local CorIdRAI = self.mobileSession:SendRPC("RegisterAppInterface",
     {
       syncMsgVersion =
@@ -105,16 +89,58 @@ function Test:TestStep_Firs_Time_Register_App_And_Check_That_No_Permission_Notif
       }
     })
   :Do(function(_,data)
+      if(order_communication ~= 1) then
+        commonFunctions:printError("BasicCommunication.OnAppRegistered is not received 1 in message order. Real: received number: "..order_communication)
+        is_test_fail = true
+      end
+      order_communication = order_communication + 1
+
       self.hmiConnection:SendResponse(data.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
     end)
   EXPECT_HMINOTIFICATION("SDL.OnAppPermissionChanged", {}):Times(0)
   EXPECT_HMINOTIFICATION("SDL.OnSDLConsentNeeded", {}) :Times(0)
+
   EXPECT_RESPONSE(CorIdRAI, { success = true, resultCode = "SUCCESS"})
+  :Do(function(_,_)
+      if(order_communication ~= 2) then
+        commonFunctions:printError("RAI response is not received 2 in message order. Real: received number: "..order_communication)
+        is_test_fail = true
+      end
+      order_communication = order_communication + 1
+    end)
+
+  EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
+  :Do(function(_,_)
+      if(order_communication ~= 3) then
+        commonFunctions:printError("OnHMIStatus is not received 3 in message order. Real: received number: "..order_communication)
+        is_test_fail = true
+      end
+      order_communication = order_communication + 1
+    end)
+
+  EXPECT_NOTIFICATION("OnPermissionsChange", {})
+  :Do(function(_,_)
+      if(order_communication ~= 4) then
+        commonFunctions:printError("OnPermissionsChange is not received 4 in message order. Real: received number: "..order_communication)
+        is_test_fail = true
+      end
+
+      order_communication = order_communication + 1
+    end)
+
+  local function verify_test_result()
+    if(is_test_fail == true) then
+        self:FailTestCase("Test is FAILED. See prints.")
+    end
+  end
+  RUN_AFTER(verify_test_result,10000)
+  commonTestCases:DelayedExp(11000)
 end
 
---[[ Postcondition ]]
---ToDo: shall be removed when issue: "SDL doesn't stop at execution ATF function StopSDL()" is fixed
-function Test:Postcondition_SDLForceStop()
-  commonFunctions:SDLForceStop()
+--[[ Postconditions ]]
+commonFunctions:newTestCasesGroup("Postconditions")
+function Test.Postcondition_StopSDL()
+  StopSDL()
 end
 
+return Test
