@@ -40,9 +40,9 @@ require('user_modules/AppTypes')
 local function Check_ignition_cycles_since_last_exchange_is_PT(self, value)
   local query
   if commonSteps:file_exists(config.pathToSDL .. "storage/policy.sqlite") then
-    query = "sqlite3 " .. config.pathToSDL .. "storage/policy.sqlite".. " \"select ignition_cycles_since_last_exchange from module_config\""
+    query = "sqlite3 " .. config.pathToSDL .. "storage/policy.sqlite".. " \"select ignition_cycles_since_last_exchange from module_meta\""
   elseif commonSteps:file_exists(config.pathToSDL .. "policy.sqlite") then
-    query = "sqlite3 " .. config.pathToSDL .. "policy.sqlite".. " \"select ignition_cycles_since_last_exchange from module_config\""
+    query = "sqlite3 " .. config.pathToSDL .. "policy.sqlite".. " \"select ignition_cycles_since_last_exchange from module_meta\""
   else commonFunctions:userPrint(31, "policy.sqlite is not found")
   end
 
