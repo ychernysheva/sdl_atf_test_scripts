@@ -50,46 +50,46 @@ commonFunctions:newTestCasesGroup("Test")
 function Test:IsPermissionsConsentNeeded_false_on_app_activation()
   local ServerAddress = commonFunctions:read_parameter_from_smart_device_link_ini("ServerAddress")
   local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.applications[config.application1.registerAppInterfaceParams.appName]})
-  
-  --Allow SDL functionality
-  EXPECT_HMIRESPONSE(RequestId,{ result = { code = 0, method = "SDL.ActivateApp", isPermissionsConsentNeeded = true, isSDLAllowed = false}})
-  :Do(function(_,data)
-    if(data.result.isSDLAllowed == false) then
-      local RequestId1 = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
-      EXPECT_HMIRESPONSE( RequestId1, {result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
-      :Do(function(_,_)
-        self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality",
-          {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = ServerAddress, isSDLAllowed = true}})
-      end)
-    end
 
-    if (data.result.isPermissionsConsentNeeded == true) then
-      local RequestIdListOfPermissions = self.hmiConnection:SendRequest("SDL.GetListOfPermissions", { appID = self.HMIAppID })
-      EXPECT_HMIRESPONSE(RequestIdListOfPermissions,{result = {code = 0, method = "SDL.GetListOfPermissions",
+  --Allow SDL functionality
+  EXPECT_HMIRESPONSE(RequestId,{ result = { code = 0, method = "SDL.ActivateApp", isPermissionsConsentNeeded = true, isSDLAllowed = true}})
+  :Do(function(_,data)
+      if(data.result.isSDLAllowed == false) then
+        local RequestId1 = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
+        EXPECT_HMIRESPONSE( RequestId1, {result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
+        :Do(function(_,_)
+            self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality",
+              {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = ServerAddress, isSDLAllowed = true}})
+          end)
+      end
+
+      if (data.result.isPermissionsConsentNeeded == true) then
+        local RequestIdListOfPermissions = self.hmiConnection:SendRequest("SDL.GetListOfPermissions", { appID = self.HMIAppID })
+        EXPECT_HMIRESPONSE(RequestIdListOfPermissions,{result = {code = 0, method = "SDL.GetListOfPermissions",
               --TODO(istoimenova): id should be read from policy.sqlite
               -- allowed: If ommited - no information about User Consent is yet found for app.
               allowedFunctions = {{ name = "DrivingCharacteristics", id = 4734356}}}})
-      :Do(function()
-        local ReqIDGetUserFriendlyMessage = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage",
-          {language = "EN-US", messageCodes = {"AppPermissions"}})
+        :Do(function()
+            local ReqIDGetUserFriendlyMessage = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage",
+              {language = "EN-US", messageCodes = {"AppPermissions"}})
 
-      EXPECT_HMIRESPONSE(ReqIDGetUserFriendlyMessage,
-        { result = { code = 0, messages = {{ messageCode = "AppPermissions"}}, method = "SDL.GetUserFriendlyMessage"}})
-      :Do(function(_,_)
-        self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent",
-          { appID = self.applications[config.application1.registerAppInterfaceParams.appName],
-                  consentedFunctions = {{ allowed = true, id = 4734356, name = "DrivingCharacteristics"}}, source = "GUI"})
-        EXPECT_NOTIFICATION("OnPermissionsChange",
-          {permissionItem = {
-            {rpcName = "GetVehicleData", hmiPermissions = {allowed = true, userDisallowed = false}, parameterPermissions = {allowed = true, userDisallowed = false} }}})
-        end)
+            EXPECT_HMIRESPONSE(ReqIDGetUserFriendlyMessage,
+              { result = { code = 0, messages = {{ messageCode = "AppPermissions"}}, method = "SDL.GetUserFriendlyMessage"}})
+            :Do(function(_,_)
+                self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent",
+                  { appID = self.applications[config.application1.registerAppInterfaceParams.appName],
+                    consentedFunctions = {{ allowed = true, id = 4734356, name = "DrivingCharacteristics"}}, source = "GUI"})
+                EXPECT_NOTIFICATION("OnPermissionsChange",
+                  {permissionItem = {
+                      {rpcName = "GetVehicleData", hmiPermissions = {allowed = true, userDisallowed = false}, parameterPermissions = {allowed = true, userDisallowed = false} }}})
+              end)
 
-      end)
-    else
-      commonFunctions:userPrint(31, "Wrong SDL bahavior: there are app permissions for consent, isPermissionsConsentNeeded should be true")
-      return false
-    end
-  end)
+          end)
+      else
+        commonFunctions:userPrint(31, "Wrong SDL bahavior: there are app permissions for consent, isPermissionsConsentNeeded should be true")
+        return false
+      end
+    end)
 end
 
 -- Triger PTU to update sdl snapshot
