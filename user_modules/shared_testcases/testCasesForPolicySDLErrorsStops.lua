@@ -24,8 +24,8 @@ function testCasesForPolicySDLErrorsStops.updatePreloadedPT(section, specificPar
   local data = json.decode(json_data)
   if data then
     for key, value in pairs(specificParameters) do
-    	-- TODO: should be done for all possible sections of preloaded_pt.json
-    	-- Example:
+	    -- TODO: should be done for all possible sections of preloaded_pt.json
+	    -- Example:
       if(section == "data.policy_table.module_config") then
         data.policy_table.module_config[key] = value
       elseif(section == "data.policy_table.app_policies") then
@@ -45,7 +45,8 @@ end
 function testCasesForPolicySDLErrorsStops:CheckSDLShutdown(self)
   os.execute ("chmod 755 ./files/StartSDLwithoutWait.sh")
   local check_sdlstart = 1
-  local stop_test = 1      
+  local stop_test = 1
+  local is_test_failed = false
 
   local function Check()
       local status = SDL:CheckStatusSDL()
@@ -58,12 +59,13 @@ function testCasesForPolicySDLErrorsStops:CheckSDLShutdown(self)
             print( "SDL will be started" )
             return true
           end
-        else 
+        else
           stop_test = 2
           print( "SDL is STOPPED" )
+          is_test_failed = true
         end
         return true
-      elseif(status == SDL.RUNNING) then
+      --elseif(status == SDL.RUNNING) then
         -- print( "SDL is still running" )
         --EXPECT_HMINOTIFICATION("BasicCommunication.OnSDLClose"):Timeout(1000)
       elseif(status == SDL.CRASH) then
@@ -74,9 +76,10 @@ function testCasesForPolicySDLErrorsStops:CheckSDLShutdown(self)
          --os.execute ('./StartSDLwithoutWait.sh ' ..config.pathToSDL .. ' ' .. config.SDL)
          stop_test = 2
          StopSDL(self)
+         is_test_failed = true
       end
   end
-   
+
   for _ = 1, 60000 do
     if(stop_test == 1) then
       Check()
@@ -86,6 +89,7 @@ function testCasesForPolicySDLErrorsStops:CheckSDLShutdown(self)
     end
   end
 
+  return is_test_failed
 end
 
 return testCasesForPolicySDLErrorsStops
