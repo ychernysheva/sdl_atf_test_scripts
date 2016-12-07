@@ -22,12 +22,13 @@ local json = require('json4lua/json/json')
 --10. Functions for updated .ini file
 --11. Function for updating PendingRequestsAmount in .ini file to test TOO_MANY_PENDING_REQUESTS resultCode
 --12. Functions array of structures
---13. Functions for SDL stop
---14. Function gets parameter from smartDeviceLink.ini file
---15. Function sets parameter to smartDeviceLink.ini file
---16. Function transform data from PTU to permission change data
---17. Function returns data from sqlite by query
---18. Function checks value of column from DB with input data
+--13. Functions for put to sleep thread
+--14. Functions for SDL stop
+--15. Function gets parameter from smartDeviceLink.ini file
+--16. Function sets parameter to smartDeviceLink.ini file
+--17. Function transform data from PTU to permission change data
+--18. Function returns data from sqlite by query
+--19. Function checks value of column from DB with input data
 ---------------------------------------------------------------------------------------------
 
 --return true if app is media or navigation
@@ -741,17 +742,26 @@ function commonFunctions:createArrayStruct(size, Struct)
   return temp
 
 end
+
+
 ---------------------------------------------------------------------------------------------
---13. Functions for SDL stop
+--13. Functions for put to sleep thread
+---------------------------------------------------------------------------------------------
+--! @brief Put to sleep thread for n seconds
+--! @param n contains ammount of seconds 
+function commonFunctions:sleep(n)
+  os.execute("sleep " .. tonumber(n))
+end
+
+
+---------------------------------------------------------------------------------------------
+--14. Functions for SDL stop
 ---------------------------------------------------------------------------------------------
 function commonFunctions:SDLForceStop(self)
   os.execute("ps aux | grep smart | awk \'{print $2}\' | xargs kill -9")
-  sleep(1)
+  commonFunctions:sleep(1)
 end
 
-function sleep(n)
-  os.execute("sleep " .. tonumber(n))
-end
 
 function check_file_existing(path)
   local file = io.open(path, "r")
@@ -760,7 +770,8 @@ function check_file_existing(path)
     assert(false)
   else
     local ok, err, code = file:read(1)
-    if code == 21 then
+    local res_code_for_dir = 21
+    if code == res_code_for_dir then
       print("It is path to directory")
       file:close()
       assert(false)
@@ -778,7 +789,7 @@ function concatenation_path(path1, path2)
 end
 
 ---------------------------------------------------------------------------------------------
---14. Function gets parameter from smartDeviceLink.ini file
+--15. Function gets parameter from smartDeviceLink.ini file
 ---------------------------------------------------------------------------------------------
 function commonFunctions:read_parameter_from_smart_device_link_ini(param_name)
   local path_to_ini_file = concatenation_path(config.pathToSDL, "smartDeviceLink.ini")
@@ -802,7 +813,7 @@ function commonFunctions:read_parameter_from_smart_device_link_ini(param_name)
 end
 
 ---------------------------------------------------------------------------------------------
---15. Function sets parameter to smartDeviceLink.ini file
+--16. Function sets parameter to smartDeviceLink.ini file
 ---------------------------------------------------------------------------------------------
 function commonFunctions:write_parameter_to_smart_device_link_ini(param_name, param_value)
   local path_to_ini_file = concatenation_path(config.pathToSDL, "smartDeviceLink.ini")
@@ -834,7 +845,7 @@ function commonFunctions:write_parameter_to_smart_device_link_ini(param_name, pa
 end
 
 ---------------------------------------------------------------------------------------------
---16. Function transform data from PTU to permission change data
+--17. Function transform data from PTU to permission change data
 ---------------------------------------------------------------------------------------------
 function commonFunctions:convert_ptu_to_permissions_change_data(path_to_ptu, group_name, is_user_allowed)
   local permission_item_json_template = [[{"rpcName":"",
@@ -893,7 +904,7 @@ function os.capture(cmd, raw)
  end
 
 ---------------------------------------------------------------------------------------------
---17. Function returns data from sqlite by query
+--18. Function returns data from sqlite by query
 ---------------------------------------------------------------------------------------------
 --! @brief Gets data from db
 --! @param db_path path to DB
@@ -911,7 +922,7 @@ function commonFunctions:get_data_policy_sql(db_path, sql_query)
   local attempts_to_read = 10
   local selected_data = ""
   for i = 1, attempts_to_read do
-    sleep(time_to_wait_read_data)
+    commonFunctions:sleep(time_to_wait_read_data)
     db = assert(io.popen(commandToExecute, 'r'))
     selected_data = assert(db:read('*a'))
     db:close()
@@ -935,7 +946,7 @@ function commonFunctions:get_data_policy_sql(db_path, sql_query)
 end
 
 ---------------------------------------------------------------------------------------------
---18. Function checks value of column from DB with input data
+--19. Function checks value of column from DB with input data
 ---------------------------------------------------------------------------------------------
 --! @brief Check if DB contains column with data
 --! @param db_path path to DB
