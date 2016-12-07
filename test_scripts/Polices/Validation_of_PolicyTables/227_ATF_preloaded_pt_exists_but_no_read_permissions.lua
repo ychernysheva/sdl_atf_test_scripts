@@ -14,15 +14,18 @@
 -- Expected result:
 -- PolicyManager shut SDL down
 ---------------------------------------------------------------------------------------------
---[[ General Settings for configuration ]]
-Test = require('connecttest')
-local config = require('config')
-config.defaultProtocolVersion = 2
-
 --[[ Required Shared libraries ]]
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local testCasesForPolicySDLErrorsStops = require('user_modules/shared_testcases/testCasesForPolicySDLErrorsStops')
+
+--[[ General Precondition before ATF start ]]
+commonSteps:DeleteLogsFileAndPolicyTable()
+config.defaultProtocolVersion = 2
+
+--[[ General Settings for configuration ]]
+Test = require('connecttest')
+require("user_modules/AppTypes")
 
 --[[ Local variables ]]
 local preloaded_pt_file_name = "sdl_preloaded_pt.json"
@@ -43,15 +46,12 @@ end
 
 function Test:Precondition()
   commonSteps:DeletePolicyTable()
+  commonSteps:DeleteLogsFiles()
   self.change_read_permissions_from_preloaded_pt_file(REVOKE)
 end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
-
-function Test:Test_StartSDL()
-  StartSDL(config.pathToSDL, false, self)
-end
 
 function Test:TestStep_checkSdl_Running()
   --In case SDL stops function will return true
@@ -66,7 +66,7 @@ end
 function Test:TestStep_CheckSDLLogError()
   --function will return true in case error is observed in smartDeviceLink.log
   local result = testCasesForPolicySDLErrorsStops.ReadSpecificMessage("Policy table is not initialized.")
-  if (result == true) then
+  if (result ~= true) then
     self:FailTestCase("Error: message 'Policy table is not initialized.' is not observed in smartDeviceLink.log.")
   end
 end
