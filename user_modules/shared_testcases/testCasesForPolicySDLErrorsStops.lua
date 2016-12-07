@@ -24,8 +24,8 @@ function testCasesForPolicySDLErrorsStops.updatePreloadedPT(section, specificPar
   local data = json.decode(json_data)
   if data then
     for key, value in pairs(specificParameters) do
-	    -- TODO: should be done for all possible sections of preloaded_pt.json
-	    -- Example:
+      -- TODO: should be done for all possible sections of preloaded_pt.json
+      -- Example:
       if(section == "data.policy_table.module_config") then
         data.policy_table.module_config[key] = value
       elseif(section == "data.policy_table.app_policies") then
@@ -47,6 +47,7 @@ function testCasesForPolicySDLErrorsStops:CheckSDLShutdown(self)
   local check_sdlstart = 1
   local stop_test = 1
   local is_test_failed = false
+  local timestart = timestamp()
 
   local function Check()
       local status = SDL:CheckStatusSDL()
@@ -80,7 +81,7 @@ function testCasesForPolicySDLErrorsStops:CheckSDLShutdown(self)
       end
   end
 
-  for _ = 1, 60000 do
+  for _ = 1, 5000 do
     if(stop_test == 1) then
       Check()
       commonTestCases:DelayedExp(1)
@@ -88,7 +89,11 @@ function testCasesForPolicySDLErrorsStops:CheckSDLShutdown(self)
       break
     end
   end
+  if(stop_test == 1) then
+    local timeend = timestamp()
 
+    print("SDL is still running. "..(timeend - timestart).." msec. elapsed. Verification will be stopped.")
+  end
   return is_test_failed
 end
 
