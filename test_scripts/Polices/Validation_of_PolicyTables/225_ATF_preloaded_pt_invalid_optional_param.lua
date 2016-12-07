@@ -14,55 +14,55 @@
 -- Expected result:
 -- PolicyManager shut SDL down
 ---------------------------------------------------------------------------------------------
-
---[[ General configuration parameters ]]
-Test = require('connecttest')
-local config = require('config')
-config.defaultProtocolVersion = 2
-
 --[[ Required Shared libraries ]]
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
 local testCasesForPolicySDLErrorsStops = require('user_modules/shared_testcases/testCasesForPolicySDLErrorsStops')
+local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 
---[[ Preconditions ]]
+--[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
+config.defaultProtocolVersion = 2
+
+--[[ General configuration parameters ]]
+Test = require('connecttest')
+require("user_modules/AppTypes")
 
 function Test:Precondition_StopSDL()
   StopSDL(self)
 end
 
-testCasesForPolicyTable:Backup_preloaded_pt()
-
-function Test:Precondition()
-  commonSteps:DeletePolicyTable(self)
-  testCasesForPolicySDLErrorsStops.updatePreloadedPT("data.policy_table.module_config", {certificate = {"HGLJGBB5570BJ89"}})
+function Test.Precondition()
+  commonSteps:DeletePolicyTable()
+  commonSteps:DeleteLogsFiles()
+  commonPreconditions:BackupFile("sdl_preloaded_pt.json")
+  testCasesForPolicySDLErrorsStops.updatePreloadedPT("data.policy_table.module_config", {certificate = 557089})
 end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
-
-function Test:StartSdl()
-  StartSDL(config.pathToSDL, false, self)
+function Test:TestStep_checkSdlShutdown()
+  -- function will return true if SDL stops
+  local result = testCasesForPolicySDLErrorsStops:CheckSDLShutdown(self)
+  if (result == false) then
+    self:FailTestCase("Error: SDL should stop.")
+  end
 end
 
-function Test:TestStep_checkSdlShutdown()
-  local result = testCasesForPolicySDLErrorsStops:CheckSDLShutdown(self)
-  if (result == true) then
-    self:FailTestCase("Error: SDL should stop.")
-  else
-    print("SDL is running with required parameter with invalid type in preloaded_pt.json")
+function Test:TestStep_CheckSDLLogError()
+  -- function will return true if error message is listed in log
+  local result = testCasesForPolicySDLErrorsStops.ReadSpecificMessage("Policy table is not initialized.")
+  if (result == false) then
+    self:FailTestCase("Error: message 'Policy table is not initialized.' is not observed in smartDeviceLink.log.")
   end
 end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
-
 testCasesForPolicyTable:Restore_preloaded_pt()
-
-function Test:Postconditions_StopSDL()
-  StopSDL(self)
+function Test.Postcondition_Stop()
+  StopSDL()
 end
 
 return Test
