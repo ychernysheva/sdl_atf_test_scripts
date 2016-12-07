@@ -1,6 +1,7 @@
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
 -- [Policy] log an error if PreloadedPT does not exist at the path defined in .ini file
+-- [INI file] [Policy]: PreloadedPT json location
 --
 -- Description:
 -- Behavior of SDL during start SDL in case when PreloadedPT does not exist at the path defined in .ini file
@@ -15,15 +16,18 @@
 -- Expected result:
 -- SDL shutted down
 ---------------------------------------------------------------------------------------------
---[[ General Settings for configuration ]]
-Test = require('connecttest')
-local config = require('config')
-config.defaultProtocolVersion = 2
-
 --[[ Required Shared libraries ]]
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local testCasesForPolicySDLErrorsStops = require('user_modules/shared_testcases/testCasesForPolicySDLErrorsStops')
+
+--[[ General Precondition before ATF start ]]
+commonSteps:DeleteLogsFileAndPolicyTable()
+config.defaultProtocolVersion = 2
+
+--[[ General Settings for configuration ]]
+Test = require('connecttest')
+require("user_modules/AppTypes")
 
 --[[ Local variables ]]
 local PPT_NEW_FOLDER = "newppt"
@@ -100,17 +104,21 @@ end
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
-function Test:Test_StartSDL()
-  StartSDL(config.pathToSDL, true, self)
-end
-
 function Test:TestStep_checkSdl_Running()
   --In case SDL stops function will return true
   local result = testCasesForPolicySDLErrorsStops:CheckSDLShutdown(self)
-  if (result == true) then
+  if (result ~= true) then
     self:FailTestCase("Error: SDL is running without access to preloaded_pt.json.")
   else
     print("SDL stopped")
+  end
+end
+
+function Test:TestStep_CheckSDLLogError()
+  --function will return true in case error is observed in smartDeviceLink.log
+  local result = testCasesForPolicySDLErrorsStops.ReadSpecificMessage("Policy table is not initialized.")
+  if (result ~= true) then
+    self:FailTestCase("Error: message 'Policy table is not initialized.' is not observed in smartDeviceLink.log.")
   end
 end
 
