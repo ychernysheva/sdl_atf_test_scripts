@@ -44,7 +44,9 @@ require('user_modules/AppTypes')
 local PRELOADED_PT_FILE_NAME = "sdl_preloaded_pt.json"
 local HMIAppId
 local N_MINUTES = 3
+local M_MINUTES = 1
 local X_MINUTES = 2
+local Y_MINUTES = 2
 local APP_ID = "0000001"
 
 local TESTED_DATA = {
@@ -284,6 +286,7 @@ end
 local function activateAppInSpecificLevel(self, HMIAppID, hmi_level)
   local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = HMIAppID, level = hmi_level})
 
+  EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = hmi_level, systemContext = "MAIN" })
   --hmi side: expect SDL.ActivateApp response
   EXPECT_HMIRESPONSE(RequestId)
   :Do(function(_,data)
@@ -307,10 +310,9 @@ local function activateAppInSpecificLevel(self, HMIAppID, hmi_level)
                 --hmi side: sending BasicCommunication.ActivateApp response
                 self.hmiConnection:SendResponse(data2.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
               end)
-          -- :Times()
+            -- :Times()
           end)
       end
-      EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = hmi_level, systemContext = "MAIN" })
     end)
 end
 
@@ -356,64 +358,80 @@ commonFunctions:newTestCasesGroup("Test")
 function Test:RegisterApp()
   self.mobileSession:StartService(7)
   :Do(function (_,_)
-    local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", TESTED_DATA.application.registerAppInterfaceParams)
-    EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
-    :Do(function(_,data)
-      HMIAppId = data.params.application.appID
+      local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", TESTED_DATA.application.registerAppInterfaceParams)
+      EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
+      :Do(function(_,data)
+          HMIAppId = data.params.application.appID
+        end)
+      EXPECT_RESPONSE(correlationId, { success = true })
+      EXPECT_NOTIFICATION("OnPermissionsChange")
     end)
-    EXPECT_RESPONSE(correlationId, { success = true })
-    EXPECT_NOTIFICATION("OnPermissionsChange")
-  end)
 end
 
-function Test:AppInNoneNMinutes()
+function Test.AppInNoneNMinutes()
   local delta = 8
   local sleepTime = N_MINUTES * 60 + delta
   wait(sleepTime)
+end
+
+function Test:ActivateApp()
   activateAppInSpecificLevel(self,HMIAppId,"FULL")
-  wait(70)
+end
+
+function Test.AppInFullMMinutes()
+  local delta = 4
+  local sleepTime = M_MINUTES * 60 + delta
+  wait(sleepTime)
 end
 
 function Test:StopSDL()
-    StopSDL(self)
-    TestData:store("Store first LocalPT ", constructPathToDatabase(), "first_policy.sqlite" )
-    os.remove(config.pathToSDL .. "app_info.dat")
+  StopSDL(self)
+  TestData:store("Store first LocalPT ", constructPathToDatabase(), "first_policy.sqlite" )
+  os.remove(config.pathToSDL .. "app_info.dat")
 end
 
 function Test:StartSDL()
-    StartSDL(config.pathToSDL, config.ExitOnCrash, self)
+  StartSDL(config.pathToSDL, config.ExitOnCrash, self)
 end
 
 function Test:InitHMI()
-    self:initHMI()
-    self:initHMI_onReady()
-    self:connectMobile()
-    self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
+  self:initHMI()
+  self:initHMI_onReady()
+  self:connectMobile()
+  self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
 end
 
 function Test:RegisterApp2()
   self.mobileSession:StartService(7)
   :Do(function (_,_)
-    local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", TESTED_DATA.application.registerAppInterfaceParams)
-    EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
-    :Do(function(_,data)
-      HMIAppId = data.params.application.appID
+      local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", TESTED_DATA.application.registerAppInterfaceParams)
+      EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
+      :Do(function(_,data)
+          HMIAppId = data.params.application.appID
+        end)
+      EXPECT_RESPONSE(correlationId, { success = true })
+      EXPECT_NOTIFICATION("OnPermissionsChange")
     end)
-    EXPECT_RESPONSE(correlationId, { success = true })
-    EXPECT_NOTIFICATION("OnPermissionsChange")
-  end)
 end
 
-function Test:AppInNoneXMinutes()
+function Test.AppInNoneXMinutes()
   local delta = 6
   local sleepTime = X_MINUTES * 60 + delta
   wait(sleepTime)
+end
+
+function Test:ActivateApp()
   activateAppInSpecificLevel(self,HMIAppId,"FULL")
+end
+
+function Test.AppInFullYMinutes()
+  local delta = 4
+  local sleepTime = Y_MINUTES * 60 + delta
   wait(sleepTime)
 end
 
 function Test:StopSDL2()
-    StopSDL(self)
+  StopSDL(self)
 end
 
 function Test:CheckPTUinLocalPT()
@@ -427,12 +445,12 @@ function Test:CheckPTUinLocalPT()
           '"'
         }),
       expectedValues = {table.concat(
-        {
-          TESTED_DATA.expected.policy_table.usage_and_error_counts.app_level[config.application1.registerAppInterfaceParams.appID].minutes_in_hmi_full, "|",
-          TESTED_DATA.expected.policy_table.usage_and_error_counts.app_level[config.application1.registerAppInterfaceParams.appID].minutes_in_hmi_limited, "|",
-          TESTED_DATA.expected.policy_table.usage_and_error_counts.app_level[config.application1.registerAppInterfaceParams.appID].minutes_in_hmi_background, "|",
-          TESTED_DATA.expected.policy_table.usage_and_error_counts.app_level[config.application1.registerAppInterfaceParams.appID].minutes_in_hmi_none
-        })
+          {
+            TESTED_DATA.expected.policy_table.usage_and_error_counts.app_level[config.application1.registerAppInterfaceParams.appID].minutes_in_hmi_full, "|",
+            TESTED_DATA.expected.policy_table.usage_and_error_counts.app_level[config.application1.registerAppInterfaceParams.appID].minutes_in_hmi_limited, "|",
+            TESTED_DATA.expected.policy_table.usage_and_error_counts.app_level[config.application1.registerAppInterfaceParams.appID].minutes_in_hmi_background, "|",
+            TESTED_DATA.expected.policy_table.usage_and_error_counts.app_level[config.application1.registerAppInterfaceParams.appID].minutes_in_hmi_none
+          })
       }
     }
   }
