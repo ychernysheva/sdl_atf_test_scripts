@@ -1,8 +1,4 @@
-./test_scripts/Polices/General_SDL_behavior/.gitkeep
-./test_scripts/Polices/Policies_Security/.gitkeep
-./test_scripts/Polices/build_options/.gitkeep
 ./test_scripts/Polices/ATF_QDB_initialization.lua
-./test_scripts/Polices/App_Permissions/.gitkeep
 ./test_scripts/Polices/App_Permissions/171_ATF_HP_OnPermissionsChange_With_Assigned_Policy_After_App_Registration.lua
 ./test_scripts/Polices/App_Permissions/170_ATF_HP_Order_Of_Request_Response_Notification_On_Registering_App.lua
 ./test_scripts/Polices/App_Permissions/175_ATF_P_DISALLOWED_app_Id_policies_And_RequestType_Validation.lua
@@ -19,7 +15,6 @@
 ./test_scripts/Polices/Related_HMI_API/206_ATF_OnAppPermissionConsent_with_appID.lua
 ./test_scripts/Polices/Related_HMI_API/201_ATF_OnAllowSDLFunctionality_allowed_false_without_device.lua
 ./test_scripts/Polices/Related_HMI_API/207_ATF_GetUserFriendlyMessage_language_section_is_absent_in_LocalPT.lua
-./test_scripts/Polices/Related_HMI_API/.gitkeep
 ./test_scripts/Polices/Related_HMI_API/204_ATF_OnAllowSDLFunctionality_allowed_true_with_device.lua
 ./test_scripts/Polices/Related_HMI_API/210_ATF_PolManager_provides_data_consent_prompt_on_HMI_request.lua
 ./test_scripts/Polices/Related_HMI_API/200_ATF_OnAllowSDLFunctionality_allowed_false_with_device.lua
@@ -29,7 +24,6 @@
 ./test_scripts/Polices/Related_HMI_API/208_ATF_GetUserFriendlyMessage_Language_not_found_in_localPT.lua
 ./test_scripts/Polices/Related_HMI_API/209_ATF_GetUserFriendlyMessage_with_Language.lua
 ./test_scripts/Polices/Related_HMI_API/212_ATF_GetListOfPermissions_with_appID.lua
-./test_scripts/Polices/user_consent_of_Policies/.gitkeep
 ./test_scripts/Polices/user_consent_of_Policies/112_ATF_User_consents_permissions.lua
 ./test_scripts/Polices/user_consent_of_Policies/102_ATF_UpdateDeviceList_on_device_connect.lua
 ./test_scripts/Polices/user_consent_of_Policies/122_ATF_User_consent_initing_after_PTU_LIMITED.lua
@@ -56,7 +50,6 @@
 ./test_scripts/Polices/Policy_Table_Update/020_ATF_P_TC_PoliciesManager_changes_status_UPDATING.lua
 ./test_scripts/Polices/Policy_Table_Update/022_ATF_P_TC_Got_PTU_from_mobile_application.lua
 ./test_scripts/Polices/Policy_Table_Update/017_ATF_P_TC_Define_urls_PTS_will_sent_hmi.lua
-./test_scripts/Polices/Policy_Table_Update/.gitkeep
 ./test_scripts/Polices/Policy_Table_Update/004_ATF_P_TC_PTU_DeviceConsent_from_User.lua
 ./test_scripts/Polices/Policy_Table_Update/013_ATF_P_TC_Timeout_to_wait_response_PTU.lua
 ./test_scripts/Polices/Policy_Table_Update/024_ATF_P_TC_PTU_validation_rules.lua
@@ -77,7 +70,6 @@
 ./test_scripts/Polices/Policy_Table_Update/012_ATF_P_TC_PTS_storage_on_file_system.lua
 ./test_scripts/Polices/Policy_Table_Update/011_ATF_P_TC_HMI_sends_GetURLs_no_app_registered.lua
 ./test_scripts/Polices/appID_Management/155_ATF_P_TC_Change_Registration_Disallowed.lua
-./test_scripts/Polices/appID_Management/.gitkeep
 ./test_scripts/Polices/appID_Management/163_ATF_P_TC_HMI_Status_Value_Of_AppId_In_PT_Is_Null.lua
 ./test_scripts/Polices/appID_Management/151_ATF_P_TC_Register_App_Interface_Successful_Nickname_Validation_Proprietary.lua
 ./test_scripts/Polices/appID_Management/160_ATF_P_TC_OnAppPermissionChanged_appRevoked_true.lua
@@ -92,5 +84,4 @@
 ./test_scripts/Polices/appID_Management/161_P_ATF_PolicyTable_RAI_with_NULL_policies_RPCs_DISALLOWED.lua
 ./test_scripts/Polices/appID_Management/156_ATF_P_TC_Register_App_Interface_Assign_Existing_Policies.lua
 ./test_scripts/Polices/ATF_Preloaded_PT_validation.lua
-./test_scripts/Polices/Validation_of_PolicyTables/.gitkeep
 ./test_scripts/Polices/Validation_of_PolicyTables/ATF_Validate_groups_default_policies.lua
