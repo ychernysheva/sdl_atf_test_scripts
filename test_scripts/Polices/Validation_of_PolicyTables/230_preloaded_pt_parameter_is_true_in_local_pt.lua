@@ -15,9 +15,9 @@
 -- SDL must consider LocalPT as PreloadedPolicyTable and start correctly
 ---------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
-local testCasesForPolicySDLErrorsStops = require ('user_modules/shared_testcases/testCasesForPolicySDLErrorsStops')
 local commonSteps = require ('user_modules/shared_testcases/commonSteps')
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
+local testCasesForPolicyTableSnapshot = require('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
 
 --[[ General configuration parameters ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
@@ -27,32 +27,15 @@ config.defaultProtocolVersion = 2
 Test = require('connecttest')
 require("user_modules/AppTypes")
 
---[[ Local variables ]]
-local preloaded_pt = 1
-local result_status
-
---[[ Preconditions ]]
-function Test:Precondition_stop_sdl()
-  StopSDL(self)
-end
-
-function Test:TestStep_CheckSDLStatus()
-  --TODO(istoimenova): Should be checked when ATF problem is fixed with SDL crash
-  --EXPECT_HMINOTIFICATION("BasicCommunication.OnSDLClose")
-  result_status = testCasesForPolicySDLErrorsStops:CheckSDLShutdown(self)
-end
-
 function Test:TestStep_CheckPolicy()
-  preloaded_pt = commonFunctions:get_data_policy_sql(config.pathToSDL.."/storage/policy.sqlite", "SELECT preloaded_pt FROM module_config")
-  --print("preloaded_pt = "..tostring(preloaded_pt))
-  if(preloaded_pt == 0) then
-    --SDL is stopped!
-    if (result_status == true) then
-      self:FailTestCase("Error: SDL is not running.")
-    end
+	local preloaded_pt_initial = testCasesForPolicyTableSnapshot:get_data_from_Preloaded_PT("module_config.preloaded_pt")
+  local preloaded_pt = commonFunctions:get_data_policy_sql(config.pathToSDL.."/storage/policy.sqlite", "SELECT preloaded_pt FROM module_config")
+  if(preloaded_pt_initial == true) then
+  	if(preloaded_pt ~= 1) then
+  		self:FailTestCase("Error: Value of preloaded_pt should be 1(true). Real: "..preloaded_pt)	
+  	end
   else
-     if (result_status == false) then
-      self:FailTestCase("Error: SDL doesn't stop.")
-    end
-  end
+  	self:FailTestCase("Error: preloaded_pt.json should be updated. Value of preloaded_pt should be true. Real: "..preloaded_pt_initial)
+  end    
+    
 end
