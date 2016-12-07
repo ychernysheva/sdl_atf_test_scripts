@@ -28,7 +28,7 @@ Test = require('connecttest')
 require("user_modules/AppTypes")
 
 --[[ Local variables ]]
-local preloaded_pt = false
+local preloaded_pt = 1
 local result_status
 
 --[[ Preconditions ]]
@@ -43,9 +43,9 @@ function Test:TestStep_CheckSDLStatus()
 end
 
 function Test:TestStep_CheckPolicy()
-  preloaded_pt = commonFunctions:get_data_policy_sql(config.pathToSDL.."/storage", "preloaded_pt")
-  print("preloaded_pt = "..tostring(preloaded_pt))
-  if(preloaded_pt == false) then
+  preloaded_pt = commonFunctions:get_data_policy_sql(config.pathToSDL.."/storage/policy.sqlite", "SELECT preloaded_pt FROM module_config")
+  --print("preloaded_pt = "..tostring(preloaded_pt))
+  if(preloaded_pt == 0) then
     --SDL is stopped!
     if (result_status == true) then
       self:FailTestCase("Error: SDL is not running.")
