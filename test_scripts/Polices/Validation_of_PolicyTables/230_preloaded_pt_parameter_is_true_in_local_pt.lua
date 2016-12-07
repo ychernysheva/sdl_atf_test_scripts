@@ -29,7 +29,11 @@ require("user_modules/AppTypes")
 
 function Test:TestStep_CheckPolicy()
 	local preloaded_pt_initial = testCasesForPolicyTableSnapshot:get_data_from_Preloaded_PT("module_config.preloaded_pt")
-  local preloaded_pt = commonFunctions:get_data_policy_sql(config.pathToSDL.."/storage/policy.sqlite", "SELECT preloaded_pt FROM module_config")
+  local preloaded_pt_table = commonFunctions:get_data_policy_sql(config.pathToSDL.."/storage/policy.sqlite", "SELECT preloaded_pt FROM module_config")
+  local preloaded_pt
+  for index, value in pairs(preloaded_pt_table) do
+		preloaded_pt = value
+  end
   if(preloaded_pt_initial == true) then
   	if(preloaded_pt ~= 1) then
   		self:FailTestCase("Error: Value of preloaded_pt should be 1(true). Real: "..preloaded_pt)	
