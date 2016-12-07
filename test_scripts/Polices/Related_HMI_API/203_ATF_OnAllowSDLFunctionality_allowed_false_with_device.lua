@@ -20,12 +20,15 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 --[[ Required Shared libraries ]]
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
+local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
 
 --[[ Local variables ]]
 local ServerAddress = commonFunctions:read_parameter_from_smart_device_link_ini("ServerAddress")
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
+testCasesForPolicyTable.Delete_Policy_table_snapshot()
+config.defaultProtocolVersion = 2
 
 --[[ General Settings for configuration ]]
 Test = require('connecttest')
@@ -49,18 +52,26 @@ function Test:TestStep_RegisterApp_allowed_false_without_device()
         end)
     end)
 
-  EXPECT_HMICALL("BasicCommunication.ActivateApp")
-  --TODO(istoimenova): Update when "What is expected response of BC.ActivateApp when user doesn't consent device?" is resolved.
-  :Do(function(_,data) self.hmiConnection:SendResponse(data.id,"BasicCommunication.ActivateApp", "SUCCESS", {}) end)
+  EXPECT_HMICALL("BasicCommunication.ActivateApp", {appID = self.applications[config.application1.registerAppInterfaceParams.appName], level = "NONE"})
+  :Do(function(_,data) 
+    self.hmiConnection:SendResponse(data.id,"BasicCommunication.ActivateApp", "SUCCESS", {}) 
+  end)
 
-  --Due to sdl_snapshot is not created default hmi_level of pre_DataConsent can't be read. Will be assumed as NONE.
-  EXPECT_NOTIFICATION("OnHMIStatus", {}):Times(0)
+  EXPECT_NOTIFICATION("OnHMIStatus"):Times(0)
+end
+
+function Test:TestStep_CheckDeviceConsentGroup()
+  os.execute("sleep 3")
+  local result = commonFunctions:is_db_contains(config.pathToSDL.."/storage/policy.sqlite", "SELECT is_consented FROM device_consent_group", {"0"} )
+  if(result ~= true) then
+    self:FailTestCase("Error: Value of is_consented on policy DB should be false(0).") 
+  end
 end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
-function Test:Postcondition_Force_Stop_SDL()
-  commonFunctions:SDLForceStop(self)
+function Test.Postcondition_Stop()
+  StopSDL()
 end
 
 return Test
