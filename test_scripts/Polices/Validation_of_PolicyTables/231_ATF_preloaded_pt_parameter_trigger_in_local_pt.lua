@@ -16,17 +16,27 @@
 ---------------------------------------------------------------------------------------------
 
 --[[ General configuration parameters ]]
-Test = require('connecttest')
-local config = require('config')
-require('user_modules/AppTypes')
-config.defaultProtocolVersion = 2
+config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 
 --[[ Required Shared libraries ]]
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require ('user_modules/shared_testcases/commonSteps')
+local testCasesForPolicyTable = require ('user_modules/shared_testcases/testCasesForPolicyTable')
+local testCasesForPolicyTableSnapshot = require ('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
+
+--[[ General configuration parameters ]]
+commonSteps:DeleteLogsFileAndPolicyTable()
+config.defaultProtocolVersion = 2
+testCasesForPolicyTable.Delete_Policy_table_snapshot()
+
+--[[ General configuration parameters ]]
+Test = require('connecttest')
+local config = require('config')
+require('user_modules/AppTypes')
+
 
 --[[ Local Variables ]]
-local PATH_TO_POLICY_FILE = "files/jsons/Policies/validationPT/ptu_012.json"
+local PATH_TO_POLICY_FILE = "files/jsons/Policies/PTU_ValidationRules/ptu_012.json"
 local DB_FALSE_VALUE = "0"
 
 --[[ Local Functions ]]
@@ -92,9 +102,12 @@ local function isValuesCorrect(actualValues, expectedValues)
 end
 
 function Test.checkLocalPT()
-  local expectedLocalPtRequestTypeValues = {DB_FALSE_VALUE}
+  local expectedLocalPtRequestTypeValues = DB_FALSE_VALUE
   local queryString = 'SELECT preloaded_pt FROM module_config'
   local actualLocalPtRequestTypeValues = executeSqliteQuery(queryString, constructPathToDatabase())
+  for k,v in pairs(actualLocalPtRequestTypeValues) do
+    print(k..": "..v)
+  end
   if actualLocalPtRequestTypeValues then
     local result = isValuesCorrect(actualLocalPtRequestTypeValues, expectedLocalPtRequestTypeValues)
     if not result then
@@ -169,24 +182,55 @@ commonFunctions:SDLForceStop()
 
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
-function Test:Precondition()
+
+function Test:Precondition_Check_preloaded_pt_true()
+  local preloaded_pt_initial = testCasesForPolicyTableSnapshot:get_data_from_Preloaded_PT("module_config.preloaded_pt")
+  local preloaded_pt_table = commonFunctions:get_data_policy_sql(config.pathToSDL.."/storage/policy.sqlite", "SELECT preloaded_pt FROM module_config")
+  local preloaded_pt
+  for _, value in pairs(preloaded_pt_table) do
+    preloaded_pt = value
+  end
+  if(preloaded_pt_initial == true) then
+    if(preloaded_pt ~= 1) then
+      self:FailTestCase("Error: Value of preloaded_pt should be 1(true). Real: "..preloaded_pt) 
+    end
+  else
+    self:FailTestCase("Error: preloaded_pt.json should be updated. Value of preloaded_pt should be true. Real: "..preloaded_pt_initial)
+  end    
+    
+end
+
+
+function Test:Precondition_trigger_getting_device_consent()
+  testCasesForPolicyTable:trigger_getting_device_consent(self, config.application1.registerAppInterfaceParams.appName, config.deviceMAC)
+end
+
+function Test:Precondition_Status_UP_TO_DATE()
   self:updatePolicyTable(PATH_TO_POLICY_FILE)
 end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
-function Test:Test()
+function Test:TestStep_Check_preloaded_pt_false_policyDB()
   os.execute("sleep 3")
-  self.checkLocalPT()
+  local result = commonFunctions:is_db_contains(config.pathToSDL.."/storage/policy.sqlite", "SELECT preloaded_pt FROM module_config", {DB_FALSE_VALUE} )
+  if(result ~= true) then
+    self:FailTestCase("Error: Value of preloaded_pt on policy DB should be false.") 
+  end
+end
+
+function Test:TestStep_Check_preloaded_pt_false_PTS()
+  local preloaded_pt =testCasesForPolicyTableSnapshot:get_data_from_PTS("module_config.preloaded_pt")
+  if(preloaded_pt ~= false) then
+    self:FailTestCase("Error: Value of preloaded_pt should be false. Real: "..tostring(preloaded_pt)) 
+  end
 end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
-
-function Test:Postcondition()
-  commonSteps:DeletePolicyTable(self)
+function Test.Postcondition_Stop()
+  StopSDL()
 end
 
-commonFunctions:SDLForceStop()
 return Test
