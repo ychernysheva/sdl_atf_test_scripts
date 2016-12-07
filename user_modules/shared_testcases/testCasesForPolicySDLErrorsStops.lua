@@ -81,6 +81,7 @@ function testCasesForPolicySDLErrorsStops:CheckSDLShutdown(self)
       end
   end
 
+  --TODO(istoimenova): should be checked again, for now 5000->(DelayedExp ~=60 sec)
   for _ = 1, 5000 do
     if(stop_test == 1) then
       Check()
