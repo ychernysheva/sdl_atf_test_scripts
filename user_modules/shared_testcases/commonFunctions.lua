@@ -5,6 +5,7 @@
 ---------------------------------------------------------------------------------------------
 local commonFunctions = {}
 local json = require('json4lua/json/json')
+
 ---------------------------------------------------------------------------------------------
 ------------------------------------------ Functions ----------------------------------------
 ---------------------------------------------------------------------------------------------
@@ -745,7 +746,11 @@ end
 ---------------------------------------------------------------------------------------------
 function commonFunctions:SDLForceStop(self)
   os.execute("ps aux | grep smart | awk \'{print $2}\' | xargs kill -9")
-  os.execute("sleep 1")
+  sleep(1)
+end
+
+function sleep(n)
+  os.execute("sleep " .. tonumber(n))
 end
 
 function check_file_existing(path)
@@ -753,6 +758,13 @@ function check_file_existing(path)
   if file == nil then
     print("File doesnt exist, path:"..path)
     assert(false)
+  else
+    local ok, err, code = file:read(1)
+    if code == 21 then
+      print("It is path to directory")
+      file:close()
+      assert(false)
+    end
   end
   file:close()
 end
@@ -900,7 +912,7 @@ function commonFunctions:get_data_policy_sql(db_path, sql_query)
   local selected_data = ""
   for i = 1, attempts_to_read do
     sleep(time_to_wait_read_data)
-    db = io.popen(commandToExecute, 'r')
+    db = assert(io.popen(commandToExecute, 'r'))
     selected_data = assert(db:read('*a'))
     db:close()
     if string.len(selected_data) ~= 0 then
@@ -929,7 +941,7 @@ end
 --! @param db_path path to DB
 --! @param sql_query contains select query with determine name of column. Don't use query with *
 --! @param exp_result contains data for comparing data from DB
---! @return Returns false if expected data are not equal with DB data, otherwise returns true. 
+--! @return Returns false if expected data are not equal with DB data, otherwise returns true.
 function commonFunctions:is_db_contains(db_path, sql_query, exp_result)
   local column_db = commonFunctions:get_data_policy_sql(db_path, sql_query)
   return commonFunctions:is_table_equal(column_db, exp_result)
