@@ -92,6 +92,7 @@ Get_RPCs()
 commonSteps:DeleteLogsFileAndPolicyTable()
 --TODO(istoimenova): shall be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
 config.defaultProtocolVersion = 2
+testCasesForPolicyTable.Delete_Policy_table_snapshot()
 
 --[[ General Settings for configuration ]]
 Test = require('connecttest')
@@ -145,7 +146,6 @@ function Test:Precondition_GetVehicleData_disallowed()
   EXPECT_RESPONSE(RequestiDGetVData, { success = false, resultCode = "DISALLOWED"})
 end
 
-
 function Test:Precondition_Alert_disallowed()
   local RequestiDGetVData = self.mobileSession:SendRPC("Alert",{speed = true})
   EXPECT_HMICALL("UI.Alert",{speed = true}):Times(0)
@@ -177,46 +177,46 @@ function Test:Precondition_PTU_user_consent_prompt_present()
               if(_data1.params.status == "UP_TO_DATE") then
                 EXPECT_NOTIFICATION("OnPermissionsChange",{})
                 :Do(function(_,_data2)
-                  if(_data2.payload.permissionItem ~= nil) then
-                    -- Will be used to check if all needed RPC for permissions are received
-                    local is_perm_item_receved = {}
-                    for i = 1, #allowed_rps do
-                      is_perm_item_receved[i] = false
-                    end
+                    if(_data2.payload.permissionItem ~= nil) then
+                      -- Will be used to check if all needed RPC for permissions are received
+                      local is_perm_item_receved = {}
+                      for i = 1, #allowed_rps do
+                        is_perm_item_receved[i] = false
+                      end
 
-                    -- will be used to check RPCs that needs permission
-                    local is_perm_item_needed = {}
-                    for i = 1, #_data2.payload.permissionItem do
-                      is_perm_item_needed[i] = false
-                    end
+                      -- will be used to check RPCs that needs permission
+                      local is_perm_item_needed = {}
+                      for i = 1, #_data2.payload.permissionItem do
+                        is_perm_item_needed[i] = false
+                      end
 
-                    for i = 1, #_data2.payload.permissionItem do
-                      for j = 1, #allowed_rps do
-                        if(_data2.payload.permissionItem[i].rpcName == allowed_rps[j]) then
-                          is_perm_item_receved[j] = true
-                          is_perm_item_needed[i] = true
-                          break
+                      for i = 1, #_data2.payload.permissionItem do
+                        for j = 1, #allowed_rps do
+                          if(_data2.payload.permissionItem[i].rpcName == allowed_rps[j]) then
+                            is_perm_item_receved[j] = true
+                            is_perm_item_needed[i] = true
+                            break
+                          end
+                        end
+                      end
+
+                      -- check that all RPCs from notification are requesting permission
+                      for i = 1,#is_perm_item_needed do
+                        if (is_perm_item_needed[i] == false) then
+                          commonFunctions:printError("RPC: ".._data2.payload.permissionItem[i].rpcName.." should not be sent")
+                          is_test_passed = false
+                        end
+                      end
+
+                      -- check that all RPCs that request permission are received
+                      for i = 1,#is_perm_item_receved do
+                        if (is_perm_item_receved[i] == false) then
+                          commonFunctions:printError("RPC: "..allowed_rps[i].." is not sent")
+                          is_test_passed = false
                         end
                       end
                     end
-
-                    -- check that all RPCs from notification are requesting permission
-                    for i = 1,#is_perm_item_needed do
-                      if (is_perm_item_needed[i] == false) then
-                        commonFunctions:printError("RPC: ".._data2.payload.permissionItem[i].rpcName.." should not be sent")
-                        is_test_passed = false
-                      end
-                    end
-
-                    -- check that all RPCs that request permission are received
-                    for i = 1,#is_perm_item_receved do
-                      if (is_perm_item_receved[i] == false) then
-                        commonFunctions:printError("RPC: "..allowed_rps[i].." is not sent")
-                        is_test_passed = false
-                      end
-                    end
-                  end
-                end)
+                  end)
 
                 EXPECT_HMINOTIFICATION("SDL.OnAppPermissionChanged", {appID = self.HMIAppID, appPermissionsConsentNeeded = true })
                 :Do(function()
@@ -271,14 +271,14 @@ end
 
 --Notification is allowed by user
 function Test:New_functional_grouping_applied_Alert_allowed()
-  local RequestAlert = self.mobileSession:SendRPC("Alert", {})
+  local RequestAlert = self.mobileSession:SendRPC("Alert", {alertText1 = "alertText1"})
 
   EXPECT_RESPONSE(RequestAlert, {success = false, resultCode = "GENERIC_ERROR"})
 end
 
 --Location-1 is disallowed by user
 function Test:Precondition_GetVehicleData_disallowed()
-  local RequestiDGetVData = self.mobileSession:SendRPC("GetVehicleData",{})
+  local RequestiDGetVData = self.mobileSession:SendRPC("GetVehicleData",{speed = true})
   EXPECT_HMICALL("VehicleInfo.GetVehicleData",{}):Times(0)
   EXPECT_RESPONSE(RequestiDGetVData, { success = false, resultCode = "DISALLOWED"})
 end
