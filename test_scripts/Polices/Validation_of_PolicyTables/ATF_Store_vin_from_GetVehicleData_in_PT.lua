@@ -28,13 +28,20 @@ Test = require('user_modules/connecttest_vin')
 require('cardinalities')
 require('user_modules/AppTypes')
 
+--[[ General precondition brfore ATF start]]
+commonSteps:DeleteLogsFileAndPolicyTable()
+
 --[[ Precondition ]]
 function Test.Precondition_StopSDL()
   StopSDL()
 end
 
-function Test.Precondition_DeleteLogsAndPolicyTable()
-  commonSteps:DeleteLogsFileAndPolicyTable()
+function Test.Precondition_DeletePolicyTable()
+  if commonSteps:file_exists(config.pathToSDL .. "storage/policy.sqlite") then
+    os.remove(config.pathToSDL .. "storage/policy.sqlite")
+  else
+    commonFunctions:userPrint(33, "policy.sqlite is not found")
+  end
 end
 
 function Test.Precondition_StartSDL()
@@ -49,6 +56,13 @@ end
 commonFunctions:newTestCasesGroup("Test")
 
 function Test:Step1_SDL_requests_vin_on_InitHMI_OnReady()
+  if commonSteps:file_exists(config.pathToSDL .. "storage/policy.sqlite") then
+    self:FailTestCase("policy.sqlite is found, VehicleInfo.GetVehicleData is sent after LPT created")
+    return false
+  else
+    commonFunctions:userPrint(33, "policy.sqlite is not found, VehicleInfo.GetVehicleData is requested before LPT created")
+    return true
+  end
   self:initHMI_onReady()
 end
 
@@ -72,7 +86,7 @@ function Test:Step2_Check_vin_stored_in_PT()
     if result == "55-555-66-777" then
       return true
     else
-      self:FailTestCase("vin in DB has unexpected value: " .. tostring(result))
+      self:FailTestCase("vin in DB has unexpected value: " .. tostring(result)..", expected: 55-555-66-777")
       return false
     end
   end
