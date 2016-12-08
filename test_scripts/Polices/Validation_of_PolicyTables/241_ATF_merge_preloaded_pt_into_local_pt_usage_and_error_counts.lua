@@ -1,35 +1,47 @@
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
--- [Policies] Merging rules for "usage_and_error_counts" section
+-- [Policies] Merging rules for "usage_and_error_count" section
 --
 -- Description:
--- Check of merging rules for "usage_and_error_counts" section
+-- Check of merging rules for "usage_and_error_count" section
 -- 1. Used preconditions
 -- Delete files and policy table from previous ignition cycle if any
 -- Start SDL with PreloadedPT json file with "preloaded_date" parameter
--- Change data in "usage_and_error_counts" section in LocalPT
+-- Change data in "usage_and_error_count" section in LocalPT
 -- 2. Performed steps
 -- Stop SDL
 -- Start SDL with corrected PreloadedPT json file with "preloaded_date" parameter with bigger value
 --
 -- Expected result:
--- SDL must leave all fields & their values of "usage_and_error_counts" section as it was in the database without changes
+-- SDL must leave all fields & their values of "usage_and_error_count" section as it was in the database without changes
 ---------------------------------------------------------------------------------------------
 
 --[[ General configuration parameters ]]
-Test = require('connecttest')
-local config = require('config')
-require('user_modules/AppTypes')
-config.defaultProtocolVersion = 2
+config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 
 --[[ Required Shared libraries ]]
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require ('user_modules/shared_testcases/commonSteps')
+local commonPreconditions = require ('user_modules/shared_testcases/commonPreconditions')
+local testCasesForPolicyTable = require ('user_modules/shared_testcases/testCasesForPolicyTable')
 local json = require("modules/json")
 
 --[[ Local Variables ]]
 local TESTED_DATA = {
   preloaded_date = {"1988-12-01","2015-05-02"},
+  usage_and_error_count = {
+      count_of_iap_buffer_full = "0",
+      count_sync_out_of_memory = "0",
+      count_of_sync_reboots = "0"
+    },
+  app_level = {
+      app_registration_language_gui = "FR-FR",
+      app_registration_language_vui = "ES-ES",
+      count_of_rejected_rpcs_calls = "0",
+      count_of_rejections_duplicate_name = "0",
+      count_of_rejections_nickname_mismatch = "0"
+  
+  }
 }
 local PRELOADED_PT_FILE_NAME = "sdl_preloaded_pt.json"
 
@@ -74,6 +86,50 @@ local TestData = {
 }
 
 --[[ Local Functions ]]
+local function updatePreloadedPt(updaters)
+  local pathToFile = config.pathToSDL .. PRELOADED_PT_FILE_NAME
+  local file = io.open(pathToFile, "r")
+  local json_data = file:read("*a")
+  file:close()
+
+  local data = json.decode(json_data)
+  if data then
+    for _, updateFunc in pairs(updaters) do
+      updateFunc(data)
+    end
+  end
+
+  local dataToWrite = json.encode(data)
+  file = io.open(pathToFile, "w")
+  file:write(dataToWrite)
+  file:close()
+end
+
+local function prepareInitialPreloadedPT()
+  local initialUpdaters = {
+    function(data)
+      for key, value in pairs(data.policy_table.functional_groupings) do
+        if not value.rpcs then
+          data.policy_table.functional_groupings[key] = nil
+        end
+      end
+    end,
+    function(data)
+      data.policy_table.module_config.preloaded_date = TESTED_DATA.preloaded_date[1]
+    end
+  }
+  updatePreloadedPt(initialUpdaters)
+end
+
+local function prepareNewPreloadedPT()
+  local newUpdaters = {
+    function(data)
+      data.policy_table.module_config.preloaded_date = TESTED_DATA.preloaded_date[2]
+    end,
+  }
+  updatePreloadedPt(newUpdaters)
+end
+
 local function constructPathToDatabase()
   if commonSteps:file_exists(config.pathToSDL .. "storage/policy.sqlite") then
     return config.pathToSDL .. "storage/policy.sqlite"
@@ -135,6 +191,25 @@ local function isValuesCorrect(actualValues, expectedValues)
   return true
 end
 
+--[[ General Precondition before ATF start ]]
+config.defaultProtocolVersion = 2
+--app_registration_language_gui
+config.application1.registerAppInterfaceParams.hmiDisplayLanguageDesired = "FR-FR"
+--app_registration_language_vui
+config.application1.registerAppInterfaceParams.languageDesired = "ES-ES"
+testCasesForPolicyTable.Delete_Policy_table_snapshot()
+commonSteps:DeleteLogsFileAndPolicyTable()
+commonPreconditions:BackupFile(PRELOADED_PT_FILE_NAME)
+prepareInitialPreloadedPT()
+commonPreconditions:Connecttest_without_ExitBySDLDisconnect_WithoutOpenConnectionRegisterApp("connecttest_ConnectMobile.lua")
+
+--[[ General configuration parameters ]]
+--Test = require('user_modules/connecttest_ConnectMobile')
+Test = require('connecttest')
+require('cardinalities')
+require('user_modules/AppTypes')
+
+
 function Test.checkLocalPT(checkTable)
   local expectedLocalPtValues
   local queryString
@@ -173,81 +248,10 @@ function Test.checkLocalPT(checkTable)
   return isTestPass
 end
 
-function Test.backupPreloadedPT(backupPrefix)
-  os.execute(table.concat({"cp ", config.pathToSDL, PRELOADED_PT_FILE_NAME, " ", config.pathToSDL, backupPrefix, PRELOADED_PT_FILE_NAME}))
-end
-
-function Test.restorePreloadedPT(backupPrefix)
-  os.execute(table.concat({"mv ", config.pathToSDL, backupPrefix, PRELOADED_PT_FILE_NAME, " ", config.pathToSDL, PRELOADED_PT_FILE_NAME}))
-end
-
-function Test.updatePreloadedPt(updaters)
-  local pathToFile = config.pathToSDL .. PRELOADED_PT_FILE_NAME
-  local file = io.open(pathToFile, "r")
-  local json_data = file:read("*a")
-  file:close()
-
-  local data = json.decode(json_data)
-  if data then
-    for _, updateFunc in pairs(updaters) do
-      updateFunc(data)
-    end
-  end
-
-  local dataToWrite = json.encode(data)
-  file = io.open(pathToFile, "w")
-  file:write(dataToWrite)
-  file:close()
-end
-
-function Test:prepareInitialPreloadedPT()
-  local initialUpdaters = {
-    function(data)
-      for key, value in pairs(data.policy_table.functional_groupings) do
-        if not value.rpcs then
-          data.policy_table.functional_groupings[key] = nil
-        end
-      end
-    end,
-    function(data)
-      data.policy_table.module_config.preloaded_date = TESTED_DATA.preloaded_date[1]
-    end
-  }
-  self.updatePreloadedPt(initialUpdaters)
-end
-
-function Test:prepareNewPreloadedPT()
-  local newUpdaters = {
-    function(data)
-      data.policy_table.module_config.preloaded_date = TESTED_DATA.preloaded_date[2]
-    end,
-  }
-  self.updatePreloadedPt(newUpdaters)
-end
-
---[[ Preconditions ]]
-commonFunctions:newTestCasesGroup("Preconditions")
-function Test:Precondition_StopSDL()
-  TestData:init()
-  StopSDL(self)
-end
-
-function Test:Precondition()
-  commonSteps:DeletePolicyTable()
-  self.backupPreloadedPT("backup_")
-
-  self:prepareInitialPreloadedPT()
-  TestData:store("Initial Preloaded PT is stored", config.pathToSDL .. PRELOADED_PT_FILE_NAME, "initial_" .. PRELOADED_PT_FILE_NAME)
-end
-
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
-function Test:Test_FirstStartSDL()
-  StartSDL(config.pathToSDL, true, self)
-end
-
-function Test:Test_InitialLocalPT()
+function Test:TestStep_VerifyInitialLocalPT()
   os.execute("sleep 3")
   TestData:store("Initial Local PT is stored", constructPathToDatabase(), "initial_policy.sqlite")
   local checks = {
@@ -256,8 +260,36 @@ function Test:Test_InitialLocalPT()
       expectedValues = {TESTED_DATA.preloaded_date[1]}
     },
     {
-      query = 'update usage_and_error_count set count_of_sync_reboots = 1 where count_of_sync_reboots = 0; select count_of_sync_reboots from usage_and_error_count;',
-      expectedValues = {"1"}
+      query = 'select count_of_iap_buffer_full from usage_and_error_count',
+      expectedValues = {TESTED_DATA.usage_and_error_count.count_of_iap_buffer_full}
+    },
+    {
+      query = 'select count_sync_out_of_memory from usage_and_error_count',
+      expectedValues = {TESTED_DATA.usage_and_error_count.count_sync_out_of_memory}
+    },
+    {
+      query = 'select count_of_sync_reboots from usage_and_error_count',
+      expectedValues = {TESTED_DATA.usage_and_error_count.count_of_sync_reboots}
+    },
+    {
+      query = 'select app_registration_language_gui from app_level',
+      expectedValues = {TESTED_DATA.app_level.app_registration_language_gui}
+    },
+    {
+      query = 'select app_registration_language_vui from app_level',
+      expectedValues = {TESTED_DATA.app_level.app_registration_language_vui}
+    },
+    {
+      query = 'select count_of_rejected_rpcs_calls from app_level',
+      expectedValues = {TESTED_DATA.app_level.count_of_rejected_rpcs_calls}
+    },
+    {
+      query = 'select count_of_rejections_duplicate_name from app_level',
+      expectedValues = {TESTED_DATA.app_level.count_of_rejections_duplicate_name}
+    },
+    {
+      query = 'select count_of_rejections_nickname_mismatch from app_level',
+      expectedValues = {TESTED_DATA.app_level.count_of_rejections_nickname_mismatch}
     }
   }
   if not self.checkLocalPT(checks) then
@@ -265,20 +297,19 @@ function Test:Test_InitialLocalPT()
   end
 end
 
-function Test:Test_FirstStopSDL()
+function Test:TestStep_StopSDL()
   StopSDL(self)
 end
 
-function Test:Test_NewPreloadedPT()
-  self:prepareNewPreloadedPT()
-  TestData:store("New Preloaded PT is stored", config.pathToSDL .. PRELOADED_PT_FILE_NAME, "new_" .. PRELOADED_PT_FILE_NAME)
+function Test.TestStep_LoadVerifyNewPreloadedPT()
+  prepareNewPreloadedPT()
 end
 
-function Test:Test_SecondStartSDL()
+function Test:TestStep_StartSDL()
   StartSDL(config.pathToSDL, true, self)
 end
 
-function Test:Test_NewLocalPT()
+function Test:TestStep_VerifyNewLocalPT()
   os.execute("sleep 3")
   TestData:store("New Local PT is stored", constructPathToDatabase(), "new_policy.sqlite")
   local checks = {
@@ -287,8 +318,36 @@ function Test:Test_NewLocalPT()
       expectedValues = {TESTED_DATA.preloaded_date[2]}
     },
     {
-      query = 'select count_of_sync_reboots from usage_and_error_count;',
-      expectedValues = {"1"}
+      query = 'select count_of_iap_buffer_full from usage_and_error_count',
+      expectedValues = {TESTED_DATA.usage_and_error_count.count_of_iap_buffer_full}
+    },
+    {
+      query = 'select count_sync_out_of_memory from usage_and_error_count',
+      expectedValues = {TESTED_DATA.usage_and_error_count.count_sync_out_of_memory}
+    },
+    {
+      query = 'select count_of_sync_reboots from usage_and_error_count',
+      expectedValues = {TESTED_DATA.usage_and_error_count.count_of_sync_reboots}
+    },
+    {
+      query = 'select app_registration_language_gui from app_level',
+      expectedValues = {TESTED_DATA.app_level.app_registration_language_gui}
+    },
+    {
+      query = 'select app_registration_language_vui from app_level',
+      expectedValues = {TESTED_DATA.app_level.app_registration_language_vui}
+    },
+    {
+      query = 'select count_of_rejected_rpcs_calls from app_level',
+      expectedValues = {TESTED_DATA.app_level.count_of_rejected_rpcs_calls}
+    },
+    {
+      query = 'select count_of_rejections_duplicate_name from app_level',
+      expectedValues = {TESTED_DATA.app_level.count_of_rejections_duplicate_name}
+    },
+    {
+      query = 'select count_of_rejections_nickname_mismatch from app_level',
+      expectedValues = {TESTED_DATA.app_level.count_of_rejections_nickname_mismatch}
     }
   }
   if not self.checkLocalPT(checks) then
@@ -298,13 +357,9 @@ end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
-
-function Test:Postcondition()
-  commonSteps:DeletePolicyTable()
-  self.restorePreloadedPT("backup_")
+testCasesForPolicyTable:Restore_preloaded_pt()
+function Test.Postcondition()
   StopSDL()
-  TestData:info()
 end
 
-commonFunctions:SDLForceStop()
 return Test
