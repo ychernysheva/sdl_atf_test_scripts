@@ -25,7 +25,7 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 local mobileSession = require("mobile_session")
 local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
 local commonSteps = require("user_modules/shared_testcases/commonSteps")
-local testCasesForBuildingSDLPolicyFlag = require('user_modules/shared_testcases/testCasesForBuildingSDLPolicyFlag')
+local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
 
 --[[ Local Variables ]]
 local r_expected
@@ -57,9 +57,9 @@ local function get_num_records()
 end
 
 --[[ General Precondition before ATF start ]]
-testCasesForBuildingSDLPolicyFlag:CheckPolicyFlagAfterBuild("EXTERNAL_PROPRIETARY")
-commonFunctions:SDLForceStop()
+testCasesForPolicyTable:Precondition_updatePolicy_By_overwriting_preloaded_pt("files/jsons/Policies/Policy_Table_Update/preloaded_18192.json")
 commonSteps:DeleteLogsFileAndPolicyTable()
+testCasesForPolicyTable.Delete_Policy_table_snapshot()
 
 --[[ General Settings for configuration ]]
 Test = require("connecttest")
@@ -68,15 +68,30 @@ require("user_modules/AppTypes")
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
 
-function Test.DeleteSnapshot()
-  os.remove(policy_file_path .. "/sdl_snapshot.json")
-end
-
-function Test.NoteNumOfRecords()
+function Test.Precondition_NoteNumOfRecords()
   r_expected = get_num_records()
 end
 
-function Test:ActivateApp()
+function Test.Precondition_ValidateResultBeforePTU()
+  EXPECT_ANY()
+  :ValidIf(function(_, _)
+      local expected_res = {
+            "1|TTS1_AppPermissions|LABEL_AppPermissions|LINE1_AppPermissions|LINE2_AppPermissions|TEXTBODY_AppPermissions|en-us|AppPermissions",
+            "2|||LINE1_DataConsent|LINE2_DataConsent|TEXTBODY_DataConsent|en-us|DataConsent" }
+      local query = "select id, tts, label, line1, line2, textBody, language_code, message_type_name from message"
+      local actual_res = commonFunctions:get_data_policy_sql(config.pathToSDL.."/storage/policy.sqlite", query)
+      local is_table_equal = commonFunctions:is_table_equal(expected_res, actual_res)
+
+      if not is_table_equal then
+        return false, "\nExpected:\n" .. commonFunctions:convertTableToString(expected_res, 1) .. "\nActual:\n" .. commonFunctions:convertTableToString(actual_res, 1)
+      end
+      return true
+    end)
+  :Times(1)
+end
+
+
+function Test:Precondition_ActivateApp()
   local requestId1 = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.applications["Test Application"] })
   EXPECT_HMIRESPONSE(requestId1)
   :Do(function(_, data1)
@@ -100,7 +115,7 @@ end
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
-function Test:PTU()
+function Test:TestStep_Perform_PTU_Success()
   local policy_file_name = "PolicyTableUpdate"
   local requestId = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
   EXPECT_HMIRESPONSE(requestId)
@@ -123,12 +138,12 @@ function Test:PTU()
     end)
 end
 
-function Test:StartNewMobileSession()
+function Test:TestStep_StartNewMobileSession()
   self.mobileSession2 = mobileSession.MobileSession(self, self.mobileConnection)
   self.mobileSession2:StartService(7)
 end
 
-function Test:RegisterNewApp()
+function Test:TestStep_RegisterNewApp()
   EXPECT_HMICALL("BasicCommunication.UpdateAppList")
   :Do(function(_, d)
       self.hmiConnection:SendResponse(d.id, d.method, "SUCCESS", { })
@@ -141,7 +156,7 @@ function Test:RegisterNewApp()
   self.mobileSession2:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
 end
 
-function Test:ValidateResult()
+function Test:TestStep_ValidateNumberMessages()
   self.mobileSession:ExpectAny()
   :ValidIf(function(_, _)
       r_actual = get_num_records()
@@ -153,9 +168,28 @@ function Test:ValidateResult()
   :Times(1)
 end
 
+function Test.TestStep_ValidateResultAfterPTU()
+  EXPECT_ANY()
+  :ValidIf(function(_, _)
+      local expected_res = {
+            "1|TTS1_AppPermissions|LABEL_AppPermissions|LINE1_AppPermissions|LINE2_AppPermissions|TEXTBODY_AppPermissions|en-us|AppPermissions",
+            "2|||LINE1_DataConsent|LINE2_DataConsent|TEXTBODY_DataConsent|en-us|DataConsent" }
+      local query = "select id, tts, label, line1, line2, textBody, language_code, message_type_name from message"
+      local actual_res = commonFunctions:get_data_policy_sql(config.pathToSDL.."/storage/policy.sqlite", query)
+      local is_table_equal = commonFunctions:is_table_equal(expected_res, actual_res)
+
+      if not is_table_equal then
+        return false, "\nExpected:\n" .. commonFunctions:convertTableToString(expected_res, 1) .. "\nActual:\n" .. commonFunctions:convertTableToString(actual_res, 1)
+      end
+      return true
+    end)
+  :Times(1)
+end
+
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
-function Test.StopSDL()
+testCasesForPolicyTable:Restore_preloaded_pt()
+function Test.Postcondition_StopSDL()
   StopSDL()
 end
 
