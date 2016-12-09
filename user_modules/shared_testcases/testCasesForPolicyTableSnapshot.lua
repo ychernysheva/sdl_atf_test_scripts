@@ -109,6 +109,7 @@ local preloaded_pt_endpoints = {}
 -- testCasesForPTS.pts_endpoints = {}
 -- testCasesForPTS.pts_seconds_between_retries = {}
 function testCasesForPolicyTableSnapshot:verify_PTS(is_created, app_IDs, device_IDs, app_names, to_print)
+  local is_verification_passed = true
   preloaded_pt_endpoints = {}
   --local data_dictionary = {}
   -- Data dictionary according to which PTS should be created. Will be automated export from xls.
@@ -279,6 +280,7 @@ function testCasesForPolicyTableSnapshot:verify_PTS(is_created, app_IDs, device_
                   --TODO(istoimenova): Update after "Clarification for elements in DataDictionary accoridng to current SDL behavior" is resolved
                   --Clarification is done. Due to luck of time will be used print until update is done
                   if(to_print ~= nil) then
+                    is_verification_passed = false
                     print(testCasesForPolicyTableSnapshot.pts_elements[i].name .." = " .. tostring(testCasesForPolicyTableSnapshot.pts_elements[i].value) .. ". Should be " ..tostring(testCasesForPolicyTableSnapshot.preloaded_elements[k1].value) )
                   end
                 end
@@ -291,6 +293,7 @@ function testCasesForPolicyTableSnapshot:verify_PTS(is_created, app_IDs, device_
           --TODO(istoimenova): Update after "Clarification for elements in DataDictionary accoridng to current SDL behavior" is resolved
           --Clarification is done. Due to luck of time will be used print until update is done
           if(to_print ~= nil) then
+            is_verification_passed = false
             print(testCasesForPolicyTableSnapshot.pts_elements[i].name .. ": should NOT exist")
           end
         end
@@ -312,15 +315,18 @@ function testCasesForPolicyTableSnapshot:verify_PTS(is_created, app_IDs, device_
             --TODO(istoimenova): Update after "Clarification for elements in DataDictionary accoridng to current SDL behavior" is resolved
             --Clarification is done. Due to luck of time will be used print until update is done
             if(to_print ~= nil) then
+              is_verification_passed = false
               print(data_dictionary[i].name .. ": mandatory parameter does not exist in PTS")
             end
           end
         end
       end
     else
+      is_verification_passed = false
       commonFunctions:printError("/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json doesn't exits! ")
     end
   end --if(is_created == false) then
+  return is_verification_passed
 end
 
 testCasesForPolicyTableSnapshot.pts_endpoints = {}
