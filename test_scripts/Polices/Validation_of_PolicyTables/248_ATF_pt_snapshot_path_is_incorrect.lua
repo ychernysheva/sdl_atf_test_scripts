@@ -1,6 +1,7 @@
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
 -- [Policies] Name defined in PathToSnapshot of .ini file is incorrect for the specific OS
+-- [INI file] [PolicyTableUpdate] PTS snapshot storage on a file system
 --
 -- Behavior of SDL during start SDL with correct path to PathToSnapshot in INI file for the specific OS (Linux)
 -- 1. Used preconditions:
@@ -19,12 +20,21 @@ config.defaultProtocolVersion = 2
 
 --[[ Required Shared libraries ]]
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
+local commonSteps = require ('user_modules/shared_testcases/commonSteps')
+local testCasesForPolicySDLErrorsStops = require ('user_modules/shared_testcases/testCasesForPolicySDLErrorsStops')
 local testCasesForPolicyTable = require ('user_modules/shared_testcases/testCasesForPolicyTable')
-local SDL = require('modules/SDL')
+
+--[[ General Precondition before ATF start ]]
+commonSteps:DeleteLogsFileAndPolicyTable()
+testCasesForPolicyTable.Delete_Policy_table_snapshot()
+
+--[[ General configuration parameters ]]
+Test = require('connecttest')
+local config = require('config')
+require('user_modules/AppTypes')
 
 --[[ Local Variables ]]
---local INCORRECT_LINUX_PATH_TO_POLICY_SNAPSHOT_FILE = "-\0sdl$snapshot.json"
-local INCORRECT_LINUX_PATH_TO_POLICY_SNAPSHOT_FILE = "sdl$ \tsnapshot.json"
+local INCORRECT_LINUX_PATH_TO_POLICY_SNAPSHOT_FILE = "-\tsdl$snapshot.json"
 local oldPathToPtSnapshot
 
 --[[ Local Functions ]]
@@ -62,7 +72,7 @@ local function setValueInSdlIni(parameterName, parameterValue)
   end
 end
 
-local function changePtsPathInSdlIni(newPath)
+function Test.changePtsPathInSdlIni(newPath)
   local result, oldPath = setValueInSdlIni("PathToSnapshot", newPath)
   if not result then
     commonFunctions:userPrint(31, "Test can't change SDL .ini file")
@@ -70,42 +80,43 @@ local function changePtsPathInSdlIni(newPath)
   return oldPath
 end
 
---[[ General preconditinons before ATF starts]]
-local function Precondition()
-  oldPathToPtSnapshot = changePtsPathInSdlIni(INCORRECT_LINUX_PATH_TO_POLICY_SNAPSHOT_FILE)
+--[[ Preconditions ]]
+commonFunctions:newTestCasesGroup("Preconditions")
+
+function Test:Precondition_StopSDL()
+  StopSDL(self)
 end
-Precondition()
 
---[[ General configuration parameters ]]
-Test = require('connecttest')
-require('user_modules/AppTypes')
-
-function Test.checkSdl()
-  EXPECT_HMINOTIFICATION("BasicCommunication.OnSDLClose",{}):Times(1)
-  local status = SDL:CheckStatusSDL()
-  if status == SDL.RUNNING then
-    commonFunctions:userPrint(31, "Test failed: SDL running with incorrect INI file")
-    return false
-  end
-  return true
+function Test:Precondition_ReloadNewINIFile()
+  oldPathToPtSnapshot = self.changePtsPathInSdlIni(INCORRECT_LINUX_PATH_TO_POLICY_SNAPSHOT_FILE)
 end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
-function Test:TestStep_trigger_getting_device_consent()
-  testCasesForPolicyTable:trigger_getting_device_consent(self, config.application1.registerAppInterfaceParams.appName, config.deviceMAC)
+function Test:TestStep_VerifySDL_Stops()
+  --TODO(istoimenova): Should be checked when ATF problem is fixed with SDL crash
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnSDLClose")
+  local result = testCasesForPolicySDLErrorsStops:CheckSDLShutdown(self)
+  if (result == false) then
+    self:FailTestCase("Error: SDL doesn't stop.")
+  end
 end
 
-function Test:Test()
-  os.execute("sleep 3")
-  self.checkSdl()
+function Test:TestStep_CheckSDLLogError()
+  local result = testCasesForPolicySDLErrorsStops.ReadSpecificMessage("PathToSnapshot is not correct")
+  if (result == false) then
+    self:FailTestCase("Error: message 'PathToSnapshot is not correct' is not observed in smartDeviceLink.log.")
+  end
 end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
+function Test:Postcondition()
+  self.changePtsPathInSdlIni(oldPathToPtSnapshot)
+end
+
 function Test.Postcondition_StopSDL()
-  changePtsPathInSdlIni(oldPathToPtSnapshot)
   StopSDL()
 end
 
