@@ -25,31 +25,31 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 --[[ Required Shared libraries ]]
 local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
 local commonSteps = require("user_modules/shared_testcases/commonSteps")
-local testCasesForBuildingSDLPolicyFlag = require('user_modules/shared_testcases/testCasesForBuildingSDLPolicyFlag')
+local testCasesForPolicyTable = require("user_modules/shared_testcases/testCasesForPolicyTable")
 
 --[[ Local Variables ]]
-local r_expected = { true, false } -- Expected file is created and then afterwards is deleted
-local r_actual = { }
+-- local r_expected = { true, false } -- Expected file is created and then afterwards is deleted
+-- local r_actual = { }
 local policy_file_name = "PolicyTableUpdate"
 local policy_file_path = commonFunctions:read_parameter_from_smart_device_link_ini("SystemFilesPath")
 local ptu_file = "files/jsons/Policies/Policy_Table_Update/ptu_19168.json"
 
 --[[ Local Functions ]]
-local function is_table_equal(t1, t2)
-  local ty1 = type(t1)
-  local ty2 = type(t2)
-  if ty1 ~= ty2 then return false end
-  if ty1 ~= 'table' and ty2 ~= 'table' then return t1 == t2 end
-  for k1, v1 in pairs(t1) do
-    local v2 = t2[k1]
-    if v2 == nil or not is_table_equal(v1, v2) then return false end
-  end
-  for k2, v2 in pairs(t2) do
-    local v1 = t1[k2]
-    if v1 == nil or not is_table_equal(v1, v2) then return false end
-  end
-  return true
-end
+-- local function is_table_equal(t1, t2)
+--   local ty1 = type(t1)
+--   local ty2 = type(t2)
+--   if ty1 ~= ty2 then return false end
+--   if ty1 ~= 'table' and ty2 ~= 'table' then return t1 == t2 end
+--   for k1, v1 in pairs(t1) do
+--     local v2 = t2[k1]
+--     if v2 == nil or not is_table_equal(v1, v2) then return false end
+--   end
+--   for k2, v2 in pairs(t2) do
+--     local v1 = t1[k2]
+--     if v1 == nil or not is_table_equal(v1, v2) then return false end
+--   end
+--   return true
+-- end
 
 local function check_file_exists(name)
   local f = io.open(name, "r")
@@ -57,15 +57,13 @@ local function check_file_exists(name)
     io.close(f)
     return true
   else
-    return
-    false
+    return false
   end
 end
 
 --[[ General Precondition before ATF start ]]
-testCasesForBuildingSDLPolicyFlag:CheckPolicyFlagAfterBuild("EXTERNAL_PROPRIETARY")
-commonFunctions:SDLForceStop()
 commonSteps:DeleteLogsFileAndPolicyTable()
+testCasesForPolicyTable.Delete_Policy_table_snapshot()
 
 --[[ General Settings for configuration ]]
 Test = require("connecttest")
@@ -74,12 +72,7 @@ require("user_modules/AppTypes")
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
 
-function Test.DeleteSnapshotAndPTUFiles()
-  os.remove(policy_file_path .. "/sdl_snapshot.json")
-  os.remove(policy_file_path .. "/" .. policy_file_name)
-end
-
-function Test:ActivateApp()
+function Test:Precondition_ActivateApp()
   local requestId1 = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.applications["Test Application"] })
   EXPECT_HMIRESPONSE(requestId1)
   :Do(function(_, data1)
@@ -103,7 +96,7 @@ end
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
-function Test:PTU()
+function Test:TestStep_PTU_Success_PTUfile_removed()
   local requestId = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
   EXPECT_HMIRESPONSE(requestId)
   :Do(function(_, _)
@@ -114,33 +107,32 @@ function Test:PTU()
           EXPECT_HMICALL("BasicCommunication.SystemRequest")
           :Do(function(_, data)
               self.hmiConnection:SendResponse(data.id, "BasicCommunication.SystemRequest", "SUCCESS", { })
-              table.insert(r_actual, check_file_exists(policy_file_path .. "/" .. policy_file_name))
+              --table.insert(r_actual, check_file_exists(policy_file_path .. "/" .. policy_file_name))
               self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate", { policyfile = policy_file_path .. "/" .. policy_file_name })
             end)
           EXPECT_RESPONSE(corIdSystemRequest, { success = true, resultCode = "SUCCESS" })
           :Do(function(_, _)
-              table.insert(r_actual, check_file_exists(policy_file_path .. "/" .. policy_file_name))
+              --table.insert(r_actual, check_file_exists(policy_file_path .. "/" .. policy_file_name))
               requestId = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", { language = "EN-US", messageCodes = { "StatusUpToDate" } })
               EXPECT_HMIRESPONSE(requestId)
             end)
         end)
-    end)
-end
-
-function Test:ValidateResult()
-  self.mobileSession:ExpectAny()
-  :ValidIf(function(_, _)
-      if not is_table_equal(r_expected, r_actual) then
-        return false, "Expected 'PolicyTableUpdate' file is created and then afterwards deleted, but it is not"
+  end)
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",
+    {status = "UPDATING"}, {status = "UP_TO_DATE"}):Times(2)
+  :Do(function(_,data)
+    if(data.params.status == "UP_TO_DATE") then
+      local result = check_file_exists(policy_file_path .. "/" .. policy_file_name)
+      if(result == true) then
+        self:FailTestCase("Error: PolicyTableUpdate is not deleted")
       end
-      return true
-    end)
-  :Times(1)
+    end
+  end)
 end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
-function Test.StopSDL()
+function Test.Postcondition_StopSDL()
   StopSDL()
 end
 
