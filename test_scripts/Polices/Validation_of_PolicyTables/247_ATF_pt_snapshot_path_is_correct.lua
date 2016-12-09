@@ -1,6 +1,7 @@
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
 -- [Policies] Name defined in PathToSnapshot of .ini file is correct for the specific OS
+-- [INI file] [PolicyTableUpdate] PTS snapshot storage on a file system
 --
 -- Behavior of SDL during start SDL with correct path to PathToSnapshot in INI file for the specific OS (Linux)
 -- 1. Used preconditions:
@@ -19,59 +20,14 @@ config.defaultProtocolVersion = 2
 
 --[[ Required Shared libraries ]]
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
+local testCasesForPolicyTable = require ('user_modules/shared_testcases/testCasesForPolicyTable')
+local commonSteps = require ('user_modules/shared_testcases/commonSteps')
 local SDL = require('modules/SDL')
 
---[[ Local Variables ]]
-local CORRECT_LINUX_PATH_TO_POLICY_SNAPSHOT_FILE = "storage/new_sdl_snapshot.json"
-local oldPathToPtSnapshot
+--[[ General Precondition before ATF start ]]
+commonSteps:DeleteLogsFileAndPolicyTable()
+testCasesForPolicyTable.Delete_Policy_table_snapshot()
 
---[[ Local Functions ]]
-
-local function setValueInSdlIni(parameterName, parameterValue)
-  local sdlIniFileName = config.pathToSDL .. "smartDeviceLink.ini"
-  local oldParameterValue
-  local file = assert(io.open(sdlIniFileName, "r"))
-  if file then
-    local fileContent = file:read("*a")
-    file:close()
-    oldParameterValue = string.match(fileContent, parameterName .. "%s*=%s*(%S+)")
-    if oldParameterValue then
-      fileContent = string.gsub(fileContent, parameterName .. "%s*=%s*%S+", parameterName .. " = " .. parameterValue)
-    else
-      local lastCharOfFile = string.sub(fileContent, string.len(fileContent))
-      if lastCharOfFile == "\n" then
-        lastCharOfFile = ""
-      else
-        lastCharOfFile = "\n"
-      end
-      fileContent = table.concat({fileContent, lastCharOfFile, parameterName, " = ", parameterValue, "\n"})
-      oldParameterValue = nil
-    end
-    file = assert(io.open(sdlIniFileName, "w"))
-    if file then
-      file:write(fileContent)
-      file:close()
-      return true, oldParameterValue
-    else
-      return false
-    end
-  else
-    return false
-  end
-end
-
-local function changePtsPathInSdlIni(newPath)
-  local result, oldPath = setValueInSdlIni("PathToSnapshot", newPath)
-  if not result then
-    commonFunctions:userPrint(31, "Test can't change SDL .ini file")
-  end
-  return oldPath
-end
-
-local function Precondition()
-  oldPathToPtSnapshot = changePtsPathInSdlIni(CORRECT_LINUX_PATH_TO_POLICY_SNAPSHOT_FILE)
-end
-Precondition()
 
 --[[ General configuration parameters ]]
 Test = require('connecttest')
@@ -89,6 +45,19 @@ end
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
+function Test:TestStep_trigger_getting_device_consent()
+  testCasesForPolicyTable:trigger_getting_device_consent(self, config.application1.registerAppInterfaceParams.appName, config.deviceMAC)
+end
+
+function Test:TestStep_Check_snapshot_created()
+  local PathToSnapshot = commonFunctions:read_parameter_from_smart_device_link_ini("PathToSnapshot")
+  local SystemFilesPath = commonFunctions:read_parameter_from_smart_device_link_ini("SystemFilesPath")
+  local result = commonFunctions:File_exists(SystemFilesPath.."/"..PathToSnapshot)
+  if (result == false) then
+    self:FailTestCase("ERROR: "..SystemFilesPath.."/"..PathToSnapshot.." doesn't exist!")
+  end
+end
+
 function Test:TestStep_CheckSDL_Running()
   os.execute("sleep 3")
   if not self.checkSdl() then
@@ -99,7 +68,6 @@ end
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
 function Test.Postcondition_StopSDL()
-  changePtsPathInSdlIni(oldPathToPtSnapshot)
   StopSDL()
 end
 
