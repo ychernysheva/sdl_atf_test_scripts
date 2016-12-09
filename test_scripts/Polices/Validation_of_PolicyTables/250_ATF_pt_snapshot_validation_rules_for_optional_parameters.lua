@@ -53,11 +53,14 @@ end
 commonFunctions:newTestCasesGroup("Test")
 
 function Test:TestStep_CheckPTS()
-   testCasesForPolicyTableSnapshot:verify_PTS(true,
+  local result = testCasesForPolicyTableSnapshot:verify_PTS(true,
             {config.application1.registerAppInterfaceParams.appID},
             {config.deviceMAC},
             {self.applications[config.application1.registerAppInterfaceParams.appName]},
             "print")
+   if(result == false) then
+    self:FailTestCase("Test is FAILED. See prints.")
+  end
 end
 
 --[[ Postconditions ]]
