@@ -27,19 +27,14 @@ local json = require("modules/json")
 local mobileSession = require("mobile_session")
 local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
 local commonSteps = require("user_modules/shared_testcases/commonSteps")
-local testCasesForBuildingSDLPolicyFlag = require('user_modules/shared_testcases/testCasesForBuildingSDLPolicyFlag')
+local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
 
 --[[ Local Variables ]]
 local policy_file_path = commonFunctions:read_parameter_from_smart_device_link_ini("SystemFilesPath")
 local policy_file_name = "PolicyTableUpdate"
 local ptu_file = "files/jsons/Policies/Policy_Table_Update/ptu_18190.json"
-local sequence = { }
-
+--"files/ptu_general.json")
 --[[ Local Functions ]]
-local function log(item)
-  table.insert(sequence, item)
-end
-
 local function json_to_table(file)
   local f = io.open(file, "r")
   if f == nil then error("File not found") end
@@ -65,102 +60,57 @@ local function is_table_equal(t1, t2)
 end
 
 --[[ General Precondition before ATF start ]]
-testCasesForBuildingSDLPolicyFlag:CheckPolicyFlagAfterBuild("EXTERNAL_PROPRIETARY")
-commonFunctions:SDLForceStop()
+testCasesForPolicyTable.Delete_Policy_table_snapshot()
 commonSteps:DeleteLogsFileAndPolicyTable()
 
 --[[ General Settings for configuration ]]
 Test = require("connecttest")
 require("user_modules/AppTypes")
 
---[[ Specific Notifications ]]
-EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate")
-:Do(function(_, d)
-    log("SDL->HMI: SDL.OnStatusUpdate(" .. d.params.status .. ")")
-  end)
-:Times(AnyNumber())
-:Pin()
-
-EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
-:Do(function(_, _)
-    log("SDL->HMI: BC.PolicyUpdate")
-  end)
-:Times(AnyNumber())
-:Pin()
-
-EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
-:Do(function(_, _)
-    log("SDL->HMI: BC.OnAppRegistered")
-  end)
-:Times(AnyNumber())
-:Pin()
-
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
-function Test:ActivateApp()
-  local requestId1 = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.applications["Test Application"] })
-  EXPECT_HMIRESPONSE(requestId1)
-  :Do(function(_, data1)
-      if data1.result.isSDLAllowed ~= true then
-        local requestId2 = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage",
-          { language = "EN-US", messageCodes = { "DataConsent" } })
-        EXPECT_HMIRESPONSE(requestId2)
-        :Do(function(_, _)
-            self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality",
-              { allowed = true, source = "GUI", device = { id = config.deviceMAC, name = "127.0.0.1" } })
-            EXPECT_HMICALL("BasicCommunication.ActivateApp")
-            :Do(function(_, data2)
-                self.hmiConnection:SendResponse(data2.id,"BasicCommunication.ActivateApp", "SUCCESS", { })
-              end)
-            :Times(1)
-          end)
-      end
-    end)
+function Test:Precondition_ActivateApp()
+  testCasesForPolicyTable:trigger_getting_device_consent(self, config.application1.registerAppInterfaceParams.appName, config.deviceMAC)
 end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
-function Test:PTU()
+function Test:TestStep_PTU()
 
   local requestId = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
-  log("HMI->SDL: SDL.GetURLS")
+
   EXPECT_HMIRESPONSE(requestId)
   :Do(function(_, _)
-      log("SDL->HMI: SDL.GetURLS")
-      self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest", {requestType = "PROPRIETARY", fileName = policy_file_name})
-      log("HMI->SDL: BC.OnSystemRequest")
-      EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "PROPRIETARY"})
-      :Do(function(_, _)
-          log("SDL->MOB: OnSystemRequest")
-          local corIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", {requestType = "PROPRIETARY", fileName = policy_file_name}, ptu_file)
-          log("MOB->SDL: SystemRequest")
-          EXPECT_HMICALL("BasicCommunication.SystemRequest")
-          :Do(function(_, data)
-              log("SDL->HMI: BC.SystemRequest")
-              self.hmiConnection:SendResponse(data.id, "BasicCommunication.SystemRequest", "SUCCESS", {})
-              log("HMI->SDL: BC.SystemRequest")
-              self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate", {policyfile = policy_file_path .. "/" .. policy_file_name})
-              log("HMI->SDL: SDL.OnReceivedPolicyUpdate")
-            end)
-          EXPECT_RESPONSE(corIdSystemRequest, { success = true, resultCode = "SUCCESS"})
-          :Do(function(_, _)
-              log("SDL->MOB: SystemRequest")
-              requestId = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"StatusUpToDate"}})
-              log("HMI->SDL: SDL.GetUserFriendlyMessage")
-              EXPECT_HMIRESPONSE(requestId)
-              log("SDL->HMI: SDL.GetUserFriendlyMessage")
-            end)
-        end)
+    self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest", {requestType = "PROPRIETARY", fileName = policy_file_name})
+
+    EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "PROPRIETARY"})
+    :Do(function(_, _)
+      local corIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", {requestType = "PROPRIETARY", fileName = policy_file_name},
+        ptu_file)
+      EXPECT_HMICALL("BasicCommunication.SystemRequest")
+      :Do(function(_, data)
+        self.hmiConnection:SendResponse(data.id, "BasicCommunication.SystemRequest", "SUCCESS", {})
+        self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate", {policyfile = policy_file_path .. "/" .. policy_file_name})
+      end)
+      EXPECT_RESPONSE(corIdSystemRequest, { success = true, resultCode = "SUCCESS"})
+      :Do(function(_,_)
+        local requestId1 = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"StatusUpToDate"}})
+        EXPECT_HMIRESPONSE(requestId1)
+      end)
     end)
+  end)
+
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",
+    {status = "UPDATING"}, {status = "UP_TO_DATE"}):Times(2)
 end
 
-function Test:StartNewMobileSession()
+function Test:TestStep_StartNewMobileSession()
   self.mobileSession2 = mobileSession.MobileSession(self, self.mobileConnection)
   self.mobileSession2:StartService(7)
 end
 
-function Test:RegisterNewApp()
+function Test:TestStep_RegisterNewApp()
   EXPECT_HMICALL("BasicCommunication.UpdateAppList")
   :Do(function(_, d)
       self.hmiConnection:SendResponse(d.id, d.method, "SUCCESS", { })
@@ -171,24 +121,23 @@ function Test:RegisterNewApp()
     end)
   local corId = self.mobileSession2:SendRPC("RegisterAppInterface", config.application2.registerAppInterfaceParams)
   self.mobileSession2:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
+
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
+  EXPECT_HMICALL("BasicCommunication.PolicyUpdate", {file = "/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json"})
+  :Do(function(_,data)
+    self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+  end)
 end
 
-function Test.ShowSequence()
-  print("--- Sequence -------------------------------------")
-  for k, v in pairs(sequence) do
-    print(k .. ": " .. v)
-  end
-  print("--------------------------------------------------")
-end
-
-function Test:ValidateResult()
+function Test:TestStep_ValidateResult()
   self.mobileSession:ExpectAny()
   :ValidIf(function(_, _)
       local pts = json_to_table(policy_file_path .. "/sdl_snapshot.json")
       local ptu = json_to_table(ptu_file)
       -- Reconcile expected vs actual
       ptu.policy_table.module_config.preloaded_pt = false
-      pts.policy_table.app_policies["0000002"] = nil
+      ptu.policy_table.app_policies["0000002"] = "default"
+
       -- Compare
       if not is_table_equal(ptu.policy_table.functional_groupings, pts.policy_table.functional_groupings) then
         return false, "Diffs in functional_groupings\nExpected:\n" .. commonFunctions:convertTableToString(ptu.policy_table.functional_groupings, 1) .. "\nActual:\n" .. commonFunctions:convertTableToString(pts.policy_table.functional_groupings, 1)
@@ -200,9 +149,19 @@ function Test:ValidateResult()
       if not is_table_equal(ptu.policy_table.app_policies["0000001"], pts.policy_table.app_policies["0000001"]) then
         return false, "Diffs in app_policies\nExpected:\n" .. commonFunctions:convertTableToString(ptu.policy_table.app_policies["0000001"], 1) .. "\nActual:\n" .. commonFunctions:convertTableToString(pts.policy_table.app_policies["0000001"], 1)
       end
+      -- Section app_policies verified for '0000002' app only
+      if not is_table_equal(ptu.policy_table.app_policies["0000002"], pts.policy_table.app_policies["0000002"]) then
+        return false, "Diffs in app_policies\nExpected:\n" .. commonFunctions:convertTableToString(ptu.policy_table.app_policies["0000002"], 1) .. "\nActual:\n" .. commonFunctions:convertTableToString(pts.policy_table.app_policies["0000002"], 1)
+      end
       return true
     end)
   :Times(1)
+end
+
+--[[ Postconditions ]]
+commonFunctions:newTestCasesGroup("Postconditions")
+function Test.Postcondition_Stop()
+  StopSDL()
 end
 
 return Test
