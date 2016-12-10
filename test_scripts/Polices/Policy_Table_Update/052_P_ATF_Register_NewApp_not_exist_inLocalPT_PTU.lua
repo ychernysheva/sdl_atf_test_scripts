@@ -22,9 +22,7 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local mobile_session = require('mobile_session')
-
---[[ Local Variables ]]
---NewTestSuiteNumber = 0
+local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
 
 --[[ Local Functions ]]
 local registerAppInterfaceParams =
@@ -52,32 +50,31 @@ local registerAppInterfaceParams =
 
 --[[ General Precondition before ATF start]]
 commonSteps:DeleteLogsFileAndPolicyTable()
+testCasesForPolicyTable.Delete_Policy_table_snapshot()
 
 --[[ General Settings for configuration ]]
 Test = require('connecttest')
+require("user_modules/AppTypes")
 
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup ("Preconditions")
+
+function Test:Precondition_trigger_getting_device_consent()
+  testCasesForPolicyTable:trigger_getting_device_consent(self, config.application1.registerAppInterfaceParams.appName, config.deviceMAC)
+end
+
 function Test:Precondition_PolicyUpdateStarted()
-  local pathToSnaphot = nil
-  EXPECT_HMICALL ("BasicCommunication.PolicyUpdate")
-  :Do(function(_,data)
-      pathToSnaphot = data.params.file
-      self.hmiConnection:SendResponse(data.id, "BasicCommunication.PolicyUpdate", "SUCCESS", {})
-    end)
+
   local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
   EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {url = "http://policies.telematics.ford.com/api/policies"}}})
   :Do(function(_,_)
-      self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",
-        {
+      self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",{
           requestType = "PROPRIETARY",
           url = "http://policies.telematics.ford.com/api/policies",
-          appID = self.applications ["Test Application"],
+          appID = self.applications [config.application1.registerAppInterfaceParams.appName],
           fileName = "sdl_snapshot.json"
-        },
-        pathToSnaphot
-      )
-    end)
+        })
+  end)
   EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "PROPRIETARY" })
 end
 
@@ -88,40 +85,62 @@ function Test:TestStep_OpenNewSession()
   self.mobileSession2:StartService(7)
 end
 
-function Test:Test_Step_RAI_NewSession()
+function Test:TestStep_RAI_NewSession()
   local corId = self.mobileSession2:SendRPC("RegisterAppInterface", registerAppInterfaceParams)
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = "Media Application" }})
   self.mobileSession2:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
-  self.mobileSession2:ExpectNotification("OnPermissionsChange")
+  self.mobileSession2:ExpectNotification("OnHMIStatus", {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
 end
 
-function Test:Test_Step_CheckThatAppID_BothApps_Present_In_DataBase()
-  local PolicyDBPath = nil
-  if commonSteps:file_exists(tostring(config.pathToSDL) .. "/storage/policy.sqlite") == true then
-    PolicyDBPath = tostring(config.pathToSDL) .. "/storage/policy.sqlite"
-  end
-  if commonSteps:file_exists(tostring(config.pathToSDL) .. "/storage/policy.sqlite") == false then
-    commonFunctions:userPrint(31, "policy.sqlite file is not found")
-    self:FailTestCase("PolicyTable is not avaliable" .. tostring(PolicyDBPath))
-  end
+function Test:TestStep_CheckThatAppID_BothApps_Present_In_DataBase()
+  local is_test_fail = false
+  local PolicyDBPath = tostring(config.pathToSDL) .. "/storage/policy.sqlite"
   os.execute(" sleep 2 ")
-  local AppId_1 = "sqlite3 " .. tostring(PolicyDBPath) .. "\"SELECT id FROM application WHERE id = '"..tostring(config.application1.registerAppInterfaceParams.appID).."'\""
-  local aHandle = assert( io.popen( AppId_1, 'r'))
-  local AppIdValue_1 = aHandle:read( '*l' )
-  if AppIdValue_1 == nil then
-    self:FailTestCase("Value in DB is unexpected value " .. tostring(AppIdValue_1))
+
+  local query = " select functional_group_id from app_group where application_id = '"..tostring(config.application1.registerAppInterfaceParams.appID).."' "
+  local AppId_1 = commonFunctions:get_data_policy_sql(PolicyDBPath, query)
+  local AppIdValue_1
+  for _,v in pairs(AppId_1) do
+    AppIdValue_1 = v
   end
-  local AppId_2 = "sqlite3 " .. tostring(PolicyDBPath) .. "\"SELECT id FROM application WHERE id = '"..tostring(registerAppInterfaceParams.appID).."'\""
-  local bHandle = assert( io.popen(AppId_2, 'r'))
-  local AppIdValue_2 = bHandle:read( '*l' )
+
+  if AppIdValue_1 == nil then
+    commonFunctions:printError("ERROR: Value in DB for app: "..tostring(config.application1.registerAppInterfaceParams.appID).."is unexpected value nil")
+    is_test_fail = true
+  else
+    -- default group
+    if(AppIdValue_1 ~= "686787169") then
+      commonFunctions:printError("ERROR: Application: "..tostring(config.application1.registerAppInterfaceParams.appID).."is not assigned to default group(686787169). Real: "..AppIdValue_1)
+      is_test_fail = true
+    end
+  end
+
+  query = " select functional_group_id from app_group where application_id = 'MyTestApp' "
+  local AppIdValue_2
+  local AppId_2 = commonFunctions:get_data_policy_sql(PolicyDBPath, query)
+  for _,v in pairs(AppId_2) do
+    AppIdValue_2 = v
+  end
+
   if AppIdValue_2 == nil then
-    self:FailTestCase("Value in DB is unexpected value " .. tostring(AppIdValue_2))
+    commonFunctions:printError("ERROR: Value in DB for app: MyTestApp is unexpected value nil")
+    is_test_fail = true
+  else
+    -- default group
+    if(AppIdValue_2 ~= "686787169") then
+      commonFunctions:printError("ERROR: Application: MyTestApp is not assigned to default group(686787169). Real: "..AppIdValue_2)
+      is_test_fail = true
+    end
+  end
+  if(is_test_fail == true) then
+    self:FailTestCase("Test is FAILED. See prints.")
   end
 end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
-Test["StopSDL"] = function()
+function Test.Postcondition_StopSDL()
   StopSDL()
 end
 
+return Test
