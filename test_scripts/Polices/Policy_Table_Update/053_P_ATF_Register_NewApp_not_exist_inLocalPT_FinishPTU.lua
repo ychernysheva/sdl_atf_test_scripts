@@ -114,7 +114,6 @@ function Test:TestStep_FinishPTU_ForAppId1()
           policyfile = SystemFilesPath.."/PolicyTableUpdate"
         })
     end)
-  --TODO(istoimenova): Clarification should be done.
   --PTU is restarted because of trigger new application added.
   :Do(function(_,_) EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"}) end)
 end
