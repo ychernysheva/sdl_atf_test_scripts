@@ -26,9 +26,11 @@ config.defaultProtocolVersion = 2
 
 --[[ Required Shared libraries ]]
 local commonSteps = require ('user_modules/shared_testcases/commonSteps')
+local testCasesForPolicyTableSnapshot = require ('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
+local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 
 --[[ Local Variables ]]
-local exchangeDays = 50
+local exchangeDays = testCasesForPolicyTableSnapshot:get_data_from_Preloaded_PT("module_config.exchange_after_x_days")
 local currentSystemDaysAfterEpoch
 
 --[[ General Precondition before ATF start ]]
@@ -42,25 +44,6 @@ end
 
 local function DeleteTmpPTU()
   os.execute('rm files/tmp_PTU.json')
-end
-
-local function SetExchangeAfterXdaysToPTU(daysForUpdate)
-  local pathToFile = 'files/tmp_PTU.json'
-  local file = io.open(pathToFile, "r")
-  local json_data = file:read("*all") -- may be abbreviated to "*a";
-  file:close()
-  local json = require("modules/json")
-  local data = json.decode(json_data)
-
-  if data.policy_table.functional_groupings["DataConsent-2"] then
-    data.policy_table.functional_groupings["DataConsent-2"] = {rpcs = json.null}
-  end
-  -- set for group in pre_DataConsent section permissions with RPCs and HMI levels for them
-  data.policy_table.module_config.exchange_after_x_days = daysForUpdate
-  data = json.encode(data)
-  file = io.open(pathToFile, "w")
-  file:write(data)
-  file:close()
 end
 
 local function getSystemDaysAfterEpoch()
@@ -77,15 +60,16 @@ end
 --[[ General Settings for configuration ]]
 Test = require('connecttest')
 require('cardinalities')
+require('user_modules/AppTypes')
 local mobile_session = require('mobile_session')
 
 --[[ Preconditions ]]
-function Test:Preconditions_Set_Exchange_After_X_Days_For_PTU()
+commonFunctions:newTestCasesGroup("Preconditions")
+function Test.Preconditions_Set_Exchange_After_X_Days_For_PTU()
   CreatePTUFromExisted()
-  SetExchangeAfterXdaysToPTU(exchangeDays)
 end
 
-function Test:Precondition_Activate_App_Consent_Device_And_Update_Policy_With_Exchange_After_X_Days_Value()
+function Test:Precondition_Activate_App_Consent_Device()
   local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", {appID = self.applications["Test Application"]})
   EXPECT_HMIRESPONSE(RequestId, {result = {code = 0, isSDLAllowed = false}, method = "SDL.ActivateApp"})
   :Do(function(_,_)
@@ -97,14 +81,14 @@ function Test:Precondition_Activate_App_Consent_Device_And_Update_Policy_With_Ex
           :Do(function(_,data1)
               self.hmiConnection:SendResponse(data1.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
               EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"})
-              :Do(function()
-                end)
-            end)
-        end)
-    end)
+          end)
+      end)
+  end)
   EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
-  :Do(function(_,_)
-      currentSystemDaysAfterEpoch = getSystemDaysAfterEpoch()
+end
+
+function Test:Precondition_Update_Policy_With_Exchange_After_X_Days_Value()
+  currentSystemDaysAfterEpoch = getSystemDaysAfterEpoch()
       local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
       EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
       :Do(function()
@@ -112,32 +96,29 @@ function Test:Precondition_Activate_App_Consent_Device_And_Update_Policy_With_Ex
           EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY" })
           :Do(function()
               local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", {fileName = "PolicyTableUpdate", requestType = "PROPRIETARY"}, "files/tmp_PTU.json")
-              local systemRequestId
+
               EXPECT_HMICALL("BasicCommunication.SystemRequest")
               :Do(function(_,data1)
-                  systemRequestId = data1.id
-                  self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate",
-                    {
-                      policyfile = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate"
-                    })
-                  self.hmiConnection:SendResponse(systemRequestId, "BasicCommunication.SystemRequest", "SUCCESS", {})
-                  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UP_TO_DATE"}):Timeout(500)
-                  self.mobileSession:ExpectResponse(CorIdSystemRequest, {success = true, resultCode = "SUCCESS"})
-                end)
-            end)
-        end)
-    end)
-end
 
-function Test:Precondition_StopSDL()
+                self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate", { policyfile = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate"})
+                self.hmiConnection:SendResponse(data1.id, "BasicCommunication.SystemRequest", "SUCCESS", {})
+                EXPECT_RESPONSE(CorIdSystemRequest, { success = true, resultCode = "SUCCESS"})
+              end)
+          end)
+      end)
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",
+    {status = "UPDATING"}, {status = "UP_TO_DATE"}):Times(2)
+  end
+
+function Test.Precondition_StopSDL()
   StopSDL()
 end
 
-function Test:SetExchangedXDaysInDB()
+function Test.SetExchangedXDaysInDB()
   setPtExchangedXDaysAfterEpochInDB(currentSystemDaysAfterEpoch - exchangeDays)
 end
 
-function Test:Precondition_StartSDL_FirstLifeCycle()
+function Test.Precondition_StartSDL_FirstLifeCycle()
   StartSDL(config.pathToSDL, config.ExitOnCrash)
 end
 
@@ -159,6 +140,7 @@ function Test:Precondition_StartSession()
 end
 
 --[[ Test ]]
+commonFunctions:newTestCasesGroup("Test")
 function Test:TestStep_Register_App_And_Check_That_PTU_Triggered()
   local CorIdRAI = self.mobileSession:SendRPC("RegisterAppInterface",
     {
@@ -199,18 +181,16 @@ function Test:TestStep_Register_App_And_Check_That_PTU_Triggered()
       }
     })
   EXPECT_RESPONSE(CorIdRAI, { success = true, resultCode = "SUCCESS"})
-  :Do(function(_,_)
-      local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetStatusUpdate")
-      EXPECT_HMIRESPONSE(RequestIdGetURLS, {status = "UPDATE_NEEDED"})
-    end)
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",{status = "UPDATE_NEEDED"})
   EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
 end
 
 --[[ Postcondition ]]
-function Test:Postcondition_DeleteTmpPTU()
+commonFunctions:newTestCasesGroup("Postconditions")
+function Test.Postcondition_DeleteTmpPTU()
   DeleteTmpPTU()
 end
 
-function Test:Postcondition_StopSDL()
+function Test.Postcondition_StopSDL()
   StopSDL()
 end
