@@ -4,7 +4,6 @@
 	--2. commonFunctions:createString(500) --example
 ---------------------------------------------------------------------------------------------
 local commonFunctions = {}
-local mobile_session = require('mobile_session')
 local json = require('json4lua/json/json')
 ---------------------------------------------------------------------------------------------
 ------------------------------------------ Functions ----------------------------------------
@@ -23,6 +22,9 @@ local json = require('json4lua/json/json')
 --11. Function for updating PendingRequestsAmount in .ini file to test TOO_MANY_PENDING_REQUESTS resultCode
 --12. Functions array of structures
 --13. Functions for SDL stop
+--14. Function gets parameter from smartDeviceLink.ini file
+--15. Function sets parameter to smartDeviceLink.ini file
+--16. Function transform data from PTU to permission change data
 ---------------------------------------------------------------------------------------------
 
 --return true if app is media or navigation
@@ -168,38 +170,55 @@ function commonFunctions:cloneTable(original)
     return copy
 end
 
---Compare 2 tables
-function commonFunctions:is_table_equal(t1,t2)
-
-   local ty1 = type(t1)
-   local ty2 = type(t2)
-
-
-   if ty1 ~= ty2 then return false end
-
-
-   -- non-table types can be directly compared
-   if ty1 ~= 'table' and ty2 ~= 'table' then return t1 == t2 end
-
-
-   -- as well as tables which have the metamethod __eq
-   --local mt = getmetatable(t1)
-   --if not ignore_mt and mt and mt.__eq then return t1 == t2 end
-
-   for k1,v1 in pairs(t1) do
-      local v2 = t2[k1]
-      if v2 == nil or not commonFunctions:is_table_equal(v1,v2) then return false end
-   end
-
-   for k2,v2 in pairs(t2) do
-      local v1 = t1[k2]
-
-      if v1 == nil or not commonFunctions:is_table_equal(v1,v2) then return false end
-   end
-
-   return true
+-- Get table size on top level
+local function TableSize(T)
+	local count = 0
+	for _ in pairs(T) do count = count + 1 end
+	return count
 end
 
+--Compare 2 tables
+function commonFunctions:is_table_equal(table1, table2)
+ -- compare value types
+  if type(table1) ~= type(table2) then return false end
+  if type(table1) == 'number' then return table1 == table2 end
+  if type(table1) == 'boolean' then return table1 == table2 end
+  if type(table1) == 'string' then return table1 == table2 end
+  -- non-table can't be comparing
+  if type(table1) ~= 'table' then return false end
+  if type(table1) == 'nil' then return true end
+
+  -- Now, on to tables.
+  -- If tables have different size they can't be equal
+  --calc size t1
+  local size_t1 = TableSize(table1)
+  --calc size t2
+  local size_t2 = TableSize(table2)
+  if (size_t1 ~= size_t2) then return false end
+
+  --compare arrays. Order in array must be equal
+  if json.isArray(table1) and json.isArray(table2) then
+    for k1,v1 in table1 do
+      if not commonFunctions:is_table_equal(v1, table2[k1]) then -- get element  by the same index
+        return false
+      end
+    end
+    return true
+  end
+  -- compare tables by elements
+  local already_compared = {} --optimization
+  for _,v1 in pairs(table1) do
+    for k2,v2 in pairs(table2) do
+      if not already_compared[k2] and commonFunctions:is_table_equal(v1,v2) then
+        already_compared[k2] = true
+      end
+    end
+  end
+  if size_t2 ~= TableSize(already_compared) then
+    return false
+  end
+  return true
+end
 ---------------------------------------------------------------------------------------------
 
 
@@ -718,6 +737,116 @@ end
 function commonFunctions:SDLForceStop(self)
 	os.execute("ps aux | grep smart | awk \'{print $2}\' | xargs kill -9")
 	os.execute("sleep 1")
+end
+
+function check_file_existing(path)
+	local file = io.open(path, "r")
+	if file == nil then
+		print("File doesnt exist, path:"..path)
+		assert(false)
+	end
+	file:close()
+end
+
+---------------------------------------------------------------------------------------------
+--14. Function gets parameter from smartDeviceLink.ini file
+---------------------------------------------------------------------------------------------
+function commonFunctions:read_parameter_from_smart_device_link_ini(param_name)
+	local path_to_ini_file = config.pathToSDL .. "smartDeviceLink.ini"
+	check_file_existing(path_to_ini_file)
+	local param_value  = nil
+	for line in io.lines(path_to_ini_file) do
+		if string.match(line, "^%s*"..param_name.."%s*=%s*") ~= nil then
+			if string.find(line, "%s*=%s*$") ~= nil then
+				param_value = ""
+				break
+			end
+			local b, e = string.find(line, "%s*=%s*.")
+			if b ~= nil then
+				local len = string.len(line)
+				param_value = string.sub(line, e, len)
+				break
+			end
+		end
+	end
+	return param_value
+end
+
+---------------------------------------------------------------------------------------------
+--15. Function sets parameter to smartDeviceLink.ini file
+---------------------------------------------------------------------------------------------
+function commonFunctions:write_parameter_to_smart_device_link_ini(param_name, param_value)
+	local path_to_ini_file = config.pathToSDL .. "smartDeviceLink.ini"
+	check_file_existing(path_to_ini_file)
+	local new_file_content = ""
+	local is_find_string = false
+	local result = false
+	for line in io.lines(path_to_ini_file) do
+		if is_find_string == false then
+			if string.match(line, "^%s*"..param_name.."%s*=%s*") ~= nil then
+				line = param_name.." = "..param_value
+				is_find_string = true
+			end
+		end
+		new_file_content = new_file_content..line.."\n"
+	end
+	if is_find_string == true then
+		local file = io.open(path_to_ini_file, "w")
+		if file then
+			file:write(new_file_content)
+			file:close()
+			result = true
+		else
+			print("File doesn't open, path:"..path_to_ini_file)
+			assert(false)
+		end
+	end
+	return result
+end
+
+---------------------------------------------------------------------------------------------
+--16. Function transform data from PTU to permission change data
+---------------------------------------------------------------------------------------------
+function commonFunctions:convert_ptu_to_permissions_change_data(path_to_ptu, group_name, is_user_allowed)
+	local permission_item_json_template = [[{"rpcName":"",
+	"parameterPermissions":{"userDisallowed":[], "allowed":[]},
+	"hmiPermissions":{"allowed":[], "userDisallowed":[]}}]]
+	local permission_item_table_template = json.decode(permission_item_json_template);
+	local file = io.open(path_to_ptu, "r")
+	if file == nil then
+		print("File doesnt exist, path:"..path_to_ptu)
+		assert(false)
+	end
+
+	local json_data = file:read("*a")
+	file:close()
+
+	local data = json.decode(json_data)
+	local rpcs = nil
+	for key in pairs(data.policy_table.functional_groupings) do
+		if key == group_name then
+			rpcs = data.policy_table.functional_groupings[key].rpcs
+			break
+		end
+	end
+	local permission_items = {}
+	local permission_item
+	if rpcs == nil then
+		print("Group name:"..group_name.." doesn't contain list of rpcs")
+		assert(false)
+	end
+
+	for key in pairs(rpcs) do
+		permission_item = commonFunctions:cloneTable(permission_item_table_template)
+		permission_item.rpcName = key
+		if is_user_allowed == true then
+			permission_item.hmiPermissions.allowed = rpcs[key].hmi_levels
+		else
+			permission_item.hmiPermissions.userDisallowed = rpcs[key].hmi_levels
+		end
+		table.insert(permission_items, permission_item)
+	end
+	return permission_items
 end
 
 return commonFunctions
