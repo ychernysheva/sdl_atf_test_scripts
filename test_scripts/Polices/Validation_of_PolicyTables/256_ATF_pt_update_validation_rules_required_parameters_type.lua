@@ -17,22 +17,25 @@
 -- SDL must invalidate this received PolicyTableUpdated and log corresponding error internally
 ---------------------------------------------------------------------------------------------
 
---[[ General configuration parameters ]]
-Test = require('connecttest')
-local config = require('config')
-config.defaultProtocolVersion = 2
-config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
-
 --[[ Required Shared libraries ]]
 local json = require("modules/json")
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require ('user_modules/shared_testcases/commonSteps')
-local mobile_session = require('mobile_session')
+local testCasesForPolicySDLErrorsStops = require ('user_modules/shared_testcases/testCasesForPolicySDLErrorsStops')
+
+--[[ General Precondition before ATF start ]]
+commonSteps:DeleteLogsFileAndPolicyTable()
+
+--[[ General configuration parameters ]]
+Test = require('connecttest')
+local config = require('config')
 require('cardinalities')
 require('user_modules/AppTypes')
+config.defaultProtocolVersion = 2
+config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 
 --[[ Local Variables ]]
-local basePtuFile = "files/ptu.json"
+--local basePtuFile = "files/ptu.json"
 local ptuAppRegistered = "files/ptu_app.json"
 local PRELOADED_PT_FILE_NAME = "sdl_preloaded_pt.json"
 local HMIAppId
@@ -96,25 +99,25 @@ local TestData = {
 
 --[[ Local Functions ]]
 
-local function addApplicationToPTJsonFile(basicFile, newPtFile, appName, app)
-  local pt = io.open(basicFile, "r")
-  if pt == nil then
-    error("PTU file not found")
-  end
-  local ptString = pt:read("*all")
-  pt:close()
+-- local function addApplicationToPTJsonFile(basicFile, newPtFile, appName, app)
+--   local pt = io.open(basicFile, "r")
+--   if pt == nil then
+--     error("PTU file not found")
+--   end
+--   local ptString = pt:read("*all")
+--   pt:close()
 
-  local ptTable = json.decode(ptString)
-  ptTable["policy_table"]["app_policies"][appName] = app
-  -- Workaround. null value in lua table == not existing value. But in json file it has to be
-  ptTable["policy_table"]["functional_groupings"]["DataConsent-2"]["rpcs"] = "tobedeletedinjsonfile"
-  local ptJson = json.encode(ptTable)
-  ptJson = string.gsub(ptJson, "\"tobedeletedinjsonfile\"", "null")
+--   local ptTable = json.decode(ptString)
+--   ptTable["policy_table"]["app_policies"][appName] = app
+--   -- Workaround. null value in lua table == not existing value. But in json file it has to be
+--   ptTable["policy_table"]["functional_groupings"]["DataConsent-2"]["rpcs"] = "tobedeletedinjsonfile"
+--   local ptJson = json.encode(ptTable)
+--   ptJson = string.gsub(ptJson, "\"tobedeletedinjsonfile\"", "null")
 
-  local newPtu = io.open(newPtFile, "w")
-  newPtu:write(ptJson)
-  newPtu:close()
-end
+--   local newPtu = io.open(newPtFile, "w")
+--   newPtu:write(ptJson)
+--   newPtu:close()
+-- end
 
 local function activateAppInSpecificLevel(self, HMIAppID, hmi_level)
   local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = HMIAppID, level = hmi_level})
@@ -149,18 +152,14 @@ local function activateAppInSpecificLevel(self, HMIAppID, hmi_level)
     end)
 end
 
-function Test:updatePolicyInDifferentSessions(PTName, appName, mobileSession)
+function Test:updatePolicyInDifferentSessions(_, appName, mobileSession)
 
   local iappID = self.applications[appName]
   local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
   EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
   :Do(function(_,_)
-      self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",
-        {
-          requestType = "PROPRIETARY",
-          fileName = "filename",
-        }
-      )
+      self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest", { requestType = "PROPRIETARY", fileName = "PolicyTableUpdate"} )
+
       mobileSession:ExpectNotification("OnSystemRequest", { requestType = "PROPRIETARY" })
       :Do(function(_,_)
           local CorIdSystemRequest = mobileSession:SendRPC("SystemRequest",
@@ -169,53 +168,28 @@ function Test:updatePolicyInDifferentSessions(PTName, appName, mobileSession)
               requestType = "PROPRIETARY",
               appID = iappID
             },
-            PTName)
+            "files/jsons/Policies/PTU_ValidationRules/PTU_invalid_required.json")
 
           local systemRequestId
           EXPECT_HMICALL("BasicCommunication.SystemRequest")
           :Do(function(_,_data1)
-              systemRequestId = _data1.id
-              self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate",
-                {
-                  policyfile = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate"
-                }
-              )
-              local function to_run()
-                self.hmiConnection:SendResponse(systemRequestId,"BasicCommunication.SystemRequest", "SUCCESS", {})
-              end
+            systemRequestId = _data1.id
+            self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate", { policyfile = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate"} )
+            local function to_run()
+              self.hmiConnection:SendResponse(systemRequestId,"BasicCommunication.SystemRequest", "SUCCESS", {})
+            end
 
               RUN_AFTER(to_run, 500)
-            end)
-
-          EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate")
-          :ValidIf(function(exp,data)
-              if
-              exp.occurences == 1 and
-              (data.params.status == "UP_TO_DATE" or data.params.status == "UPDATING"
-                or data.params.status == "UPDATE_NEEDED") then
-                return true
-              elseif
-                exp.occurences == 2 and
-                data.params.status == "UP_TO_DATE" then
-                  return true
-                else
-                  if exp.occurences == 2 then
-                    print ("\27[31m SDL.OnStatusUpdate came with wrong values. Expected in second occurrences status 'UP_TO_DATE', got '" .. tostring(data.params.status) .. "' \27[0m")
-                    return false
-                  end
-                end
-              end)
-            :Times(Between(1,2))
-
-            mobileSession:ExpectResponse(CorIdSystemRequest, { success = true, resultCode = "SUCCESS"})
-            :Do(function(_,_)
-                local RequestIdGetUserFriendlyMessage = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"StatusUpToDate"}})
-                EXPECT_HMIRESPONSE(RequestIdGetUserFriendlyMessage,{result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
-              end)
-
           end)
+          mobileSession:ExpectResponse(CorIdSystemRequest, { success = true, resultCode = "SUCCESS"})
       end)
-  end
+  end)
+
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",
+    {status = "UPDATING"}, {status = "UPDATE_NEEDED"}):Times(2)
+
+  EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
+end
 
   local function constructPathToDatabase()
     if commonSteps:file_exists(config.pathToSDL .. "storage/policy.sqlite") then
@@ -316,28 +290,28 @@ function Test:updatePolicyInDifferentSessions(PTName, appName, mobileSession)
     return isTestPass
   end
 
-  local function prepareJsonPTU(name, newPTUfile)
-    local json_app = [[ {
-      "keep_context": false,
-      "steal_focus": false,
-      "priority": "NONE",
-      "default_hmi": "NONE",
-      "groups": [
-      "Location-1"
-      ],
-      "RequestType":[
-      "TRAFFIC_MESSAGE_CHANNEL",
-      "PROPRIETARY",
-      "HTTP",
-      "QUERY_APPS"
-      ]
-    }]]
-    local app = json.decode(json_app)
-    -- ToDo (aderiabin): This function must be replaced by call
-    -- testCasesForPolicyTable:AddApplicationToPTJsonFile(basePtuFile, newPTUfile, name, app)
-    -- after merge of pull request #227
-    addApplicationToPTJsonFile(basePtuFile, newPTUfile, name, app)
-  end
+  -- local function prepareJsonPTU(name, newPTUfile)
+  --   local json_app = [[ {
+  --     "keep_context": false,
+  --     "steal_focus": false,
+  --     "priority": "NONE",
+  --     "default_hmi": "NONE",
+  --     "groups": [
+  --     "Location-1"
+  --     ],
+  --     "RequestType":[
+  --     "TRAFFIC_MESSAGE_CHANNEL",
+  --     "PROPRIETARY",
+  --     "HTTP",
+  --     "QUERY_APPS"
+  --     ]
+  --   }]]
+  --   local app = json.decode(json_app)
+  --   -- ToDo (aderiabin): This function must be replaced by call
+  --   -- testCasesForPolicyTable:AddApplicationToPTJsonFile(basePtuFile, newPTUfile, name, app)
+  --   -- after merge of pull request #227
+  --   addApplicationToPTJsonFile(basePtuFile, newPTUfile, name, app)
+  -- end
 
   function Test.backupPreloadedPT(backupPrefix)
     os.execute(table.concat({"cp ", config.pathToSDL, PRELOADED_PT_FILE_NAME, " ", config.pathToSDL, backupPrefix, PRELOADED_PT_FILE_NAME}))
@@ -386,105 +360,41 @@ function Test:updatePolicyInDifferentSessions(PTName, appName, mobileSession)
     updateJSON(ptuAppRegistered, PTUpdaters)
   end
 
-  --[[ Preconditions ]]
-  commonFunctions:newTestCasesGroup("Preconditions")
+--[[ Preconditions ]]
+commonFunctions:newTestCasesGroup("Preconditions")
 
-  function Test:Precondition_StopSDL()
-    TestData:init(self)
-    StopSDL()
-  end
-
-  function Test:Precondition_PreparePreloadedPT()
-    commonSteps:DeletePolicyTable()
-    TestData:store("Store initial PreloadedPT", config.pathToSDL .. PRELOADED_PT_FILE_NAME, "initial_" .. PRELOADED_PT_FILE_NAME)
-    self.backupPreloadedPT("backup_")
-    self:preparePreloadedPT()
-    TestData:store("Store updated PreloadedPT", config.pathToSDL .. PRELOADED_PT_FILE_NAME, "updated_" .. PRELOADED_PT_FILE_NAME)
-  end
-
-  function Test:Precondition_PreparePTUfile()
-    prepareJsonPTU(config.application1.registerAppInterfaceParams.appID, ptuAppRegistered)
-    self:preparePTUpdate()
-    TestData:store("Store prepared PTU", ptuAppRegistered, "prepared_ptu.json" )
-  end
-
-  function Test:Precondition_StartSDL()
-    StartSDL(config.pathToSDL, config.ExitOnCrash, self)
-  end
-
-  function Test:Precondition_InitHMIandMobileApp()
-    self:initHMI()
-    self:initHMI_onReady()
-    self:connectMobile()
-    self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
-  end
-
-  --[[ Test ]]
-  commonFunctions:newTestCasesGroup("Test")
-
-  function Test:RegisterApp()
-    self.mobileSession:StartService(7)
-    :Do(function (_,_)
-        local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
-
-        EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
-        :Do(function(_,data)
-            HMIAppId = data.params.application.appID
-          end)
-        EXPECT_RESPONSE(correlationId, { success = true })
-        EXPECT_NOTIFICATION("OnPermissionsChange")
-      end)
-  end
-
-  function Test:ActivateAppInFULL()
+function Test:Precondition_ActivateAppInFULL()
+  HMIAppId = self.applications[config.application1.registerAppInterfaceParams.appName]
     activateAppInSpecificLevel(self,HMIAppId,"FULL")
     TestData:store("Store LocalPT before PTU", constructPathToDatabase(), "beforePTU_policy.sqlite" )
   end
 
-  function Test:UpdatePolicy_ExpectOnAppPermissionChangedWithAppID()
-    EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
+ --[[ Test ]]
+commonFunctions:newTestCasesGroup("Test")
 
+function Test:UpdatePolicy_ExpectOnAppPermissionChangedWithAppID()
     -- ToDo (aderiabin): This function must be replaced by call
     -- testCasesForPolicyTable:updatePolicyInDifferentSessions(Test, ptuAppRegistered,
     -- config.application1.registerAppInterfaceParams.appName,
     -- self.mobileSession)
     -- after merge of pull request #227
-    self:updatePolicyInDifferentSessions(ptuAppRegistered,
-      config.application1.registerAppInterfaceParams.appName,
-      self.mobileSession)
+  self:updatePolicyInDifferentSessions(ptuAppRegistered,
+    config.application1.registerAppInterfaceParams.appName,
+    self.mobileSession)
+end
+
+  function Test:TestStep_CheckSDLLogError()
+  local result = testCasesForPolicySDLErrorsStops.ReadSpecificMessage("policy_table.policy_table.module_config.notifications_per_minute_by_priority.EMERGENCY: value initialized incorrectly")
+  local result1 = testCasesForPolicySDLErrorsStops.ReadSpecificMessage("policy_table.policy_table.module_config.exchange_after_x_ignition_cycles: value initialized incorrectly")
+  if (result == false or result1 == false) then
+    self:FailTestCase("Error: message 'policy_table.policy_table.module_config.certificate: value initialized incorrectly.' is not observed in smartDeviceLink.log.")
   end
+end
 
-  function Test:CheckPTUinLocalPT()
-    -- TestData:store("Store PT snapshot before its testing", realPathToSnapshot, CORRECT_LINUX_PATH_TO_POLICY_SNAPSHOT_FILE)
-    -- if (not self:checkPtsFile()) or (not self:checkSdl()) then
-    -- self:FailTestCase()
-    -- end
+--[[ Postconditions ]]
+commonFunctions:newTestCasesGroup("Postconditions")
+function Test.Postcondition_Stop()
+  StopSDL()
+end
 
-    -- Check that that PTU correctly performed and omitted parameters were ignored
-    TestData:store("Store LocalPT after PTU", constructPathToDatabase(), "afterPTU_policy.sqlite" )
-    local checks = {
-      {
-        query = 'select exchange_after_x_ignition_cycles from module_config',
-        expectedValues = {TESTED_DATA.preloaded.policy_table.module_config.exchange_after_x_ignition_cycles}
-      }
-    }
-    if not self.checkLocalPT(checks) then
-      self:FailTestCase("SDL has wrong values in LocalPT")
-    end
-  end
-
-  --[[ Postconditions ]]
-  commonFunctions:newTestCasesGroup("Postconditions")
-
-  function Test:Postcondition()
-    commonSteps:DeletePolicyTable()
-    self.restorePreloadedPT("backup_")
-    os.remove(ptuAppRegistered)
-    TestData:info()
-  end
-
-  function Test:Postcondition_StopSDL()
-    StopSDL(self)
-  end
-
-  return Test
+return Test
