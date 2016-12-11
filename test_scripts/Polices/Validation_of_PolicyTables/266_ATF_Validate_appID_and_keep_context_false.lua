@@ -107,13 +107,13 @@ function Test:Precondition_Register_app()
   self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
   self.mobileSession:StartService(7)
   :Do(function()
-  local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
-  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
-  :Do(function(_,data)
-  self.HMIAppID = data.params.application.appID
-  end)
-  self.mobileSession:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS" })
-  self.mobileSession:ExpectNotification("OnHMIStatus", {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
+    local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
+    EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
+    :Do(function(_,data)
+      self.HMIAppID = data.params.application.appID
+    end)
+    self.mobileSession:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS" })
+    self.mobileSession:ExpectNotification("OnHMIStatus", {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
   end)
 end
 
@@ -121,20 +121,19 @@ function Test:Precondition_Activate_app()
   local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", {appID = self.HMIAppID})
   EXPECT_HMIRESPONSE(RequestId,{})
   :Do(function(_,data)
-  if data.result.isSDLAllowed ~= true then
-    local RequestIdGetMes = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage",
-    {language = "EN-US", messageCodes = {"DataConsent"}})
-    EXPECT_HMIRESPONSE(RequestIdGetMes)
-    :Do(function()
-    self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality",
-    {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = "127.0.0.1"}})
-    EXPECT_HMICALL("BasicCommunication.ActivateApp")
-    :Do(function()
-    self.hmiConnection:SendResponse(data.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
-    end)
-    :Times(AtLeast(1))
-    end)
-  end
+    if data.result.isSDLAllowed ~= true then
+      local RequestIdGetMes = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage",
+      {language = "EN-US", messageCodes = {"DataConsent"}})
+      EXPECT_HMIRESPONSE(RequestIdGetMes)
+      :Do(function()
+        self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality",
+        {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = "127.0.0.1"}})
+        EXPECT_HMICALL("BasicCommunication.ActivateApp")
+        :Do(function(_,data1)
+          self.hmiConnection:SendResponse(data1.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
+        end)
+      end)
+    end
   end)
   EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN", audioStreamingState = "AUDIBLE"})
 end
@@ -174,10 +173,12 @@ end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
+function Test.Postcondition_Restore_preloaded()
+  Restore_preloaded()
+end
 
 function Test.Postcondition_SDLStop()
   StopSDL()
 end
-function Test.Postcondition_Restore_preloaded()
-  Restore_preloaded()
-end
+
+return Test
