@@ -28,6 +28,8 @@ config.defaultProtocolVersion = 2
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require ('user_modules/shared_testcases/commonSteps')
 local testCasesForPolicyTableSnapshot = require ('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
+local commonTestCases = require ('user_modules/shared_testcases/commonTestCases')
+local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 
 --[[ Local Variables ]]
 local exchangeDays = testCasesForPolicyTableSnapshot:get_data_from_Preloaded_PT("module_config.exchange_after_x_days")
@@ -36,6 +38,7 @@ local currentSystemDaysAfterEpoch
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFiles()
 commonSteps:DeletePolicyTable()
+commonPreconditions:Connecttest_without_ExitBySDLDisconnect_WithoutOpenConnectionRegisterApp("connecttest_ConnectMobile.lua")
 
 --[[ Local Functions ]]
 local function CreatePTUFromExisted()
@@ -58,7 +61,7 @@ local function setPtExchangedXDaysAfterEpochInDB(daysAfterEpochFromPTS)
 end
 
 --[[ General Settings for configuration ]]
-Test = require('connecttest')
+Test = require('user_modules/connecttest_ConnectMobile')
 require('cardinalities')
 require("user_modules/AppTypes")
 local mobile_session = require('mobile_session')
@@ -70,24 +73,45 @@ function Test.Preconditions_Set_Exchange_After_X_Days_For_PTU()
   CreatePTUFromExisted()
 end
 
-function Test:Precondition_Activate_App()
-  local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", {appID = self.applications["Test Application"]})
-  EXPECT_HMIRESPONSE(RequestId, {result = {code = 0, isSDLAllowed = false}, method = "SDL.ActivateApp"})
-  :Do(function(_,_)
-      local RequestIdGetUserFriendlyMessage = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
-      EXPECT_HMIRESPONSE(RequestIdGetUserFriendlyMessage,{result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
-      :Do(function(_,_)
-          EXPECT_HMICALL("BasicCommunication.ActivateApp")
-          :Do(function(_,data1)
-              self.hmiConnection:SendResponse(data1.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
-              EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"})
-          end)
-      end)
-  end)
+function Test:Preconditions_ConnectDevice()
+  local ServerAddress = commonFunctions:read_parameter_from_smart_device_link_ini("ServerAddress")
+  commonTestCases:DelayedExp(2000)
+  self:connectMobile()
+  EXPECT_HMICALL("BasicCommunication.UpdateDeviceList",
+    {
+      deviceList = {
+        {
+          id = config.deviceMAC,
+          isSDLAllowed = false,
+          name = ServerAddress,
+          transportType = "WIFI"
+        }
+      }
+    }
+    ):Do(function(_,data)
+      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+    end)
+end
+
+function Test:Precondition_RegisterApp()
+  commonTestCases:DelayedExp(3000)
+  self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
+  self.mobileSession:StartService(7)
+  :Do(function()
+      local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
+      EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
+      :Do(function(_,data)
+          self.HMIAppID = data.params.application.appID
+        end)
+      self.mobileSession:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS" })
+      self.mobileSession:ExpectNotification("OnHMIStatus", {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
+    end)
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",{status = "UPDATE_NEEDED"})
   EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
 end
 
 function Test:Precondition_Update_Policy_With_Exchange_After_X_Days_Value()
+
   currentSystemDaysAfterEpoch = getSystemDaysAfterEpoch()
   local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
   EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
@@ -114,7 +138,7 @@ function Test.Precondition_StopSDL()
   StopSDL()
 end
 
-function Test.SetExchangedXDaysInDB()
+function Test.Precondition_SetExchangedXDaysInDB()
   setPtExchangedXDaysAfterEpochInDB(currentSystemDaysAfterEpoch - exchangeDays)
 end
 
