@@ -17,11 +17,6 @@
 -- Expected result:
 --     PoliciesManager must provide to HMI the app`s priority value(NORMAL) taken from "priority" field in "pre_DataConsent" section of PolicyTable
 ---------------------------------------------------------------------------------------------
---[[ General Settings for configuration ]]
-Test = require('user_modules/connecttest_resumption')
-require('cardinalities')
-local mobile_session = require('mobile_session')
-
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 
@@ -29,21 +24,28 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
-local Preconditions = require('user_modules/shared_testcases/commonPreconditions')
+local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
-require('user_modules/AppTypes')
 
---[[ Preconditions ]]
+--[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
+testCasesForPolicyTable.Delete_Policy_table_snapshot()
+commonPreconditions:Connecttest_without_ExitBySDLDisconnect_WithoutOpenConnectionRegisterApp("connecttest_connect_device.lua")
+commonPreconditions:BackupFile("sdl_preloaded_pt.json")
+testCasesForPolicyTable:Precondition_updatePolicy_By_overwriting_preloaded_pt("files/PriorityNormal_preloaded_pt.json")
+--TODO(istoimenova): shall be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
+config.defaultProtocolVersion = 2
+
+--[[ General Settings for configuration ]]
+Test = require('user_modules/connecttest_connect_device')
+require('cardinalities')
+local mobile_session = require('mobile_session')
+require('user_modules/AppTypes')
 
 function Test:Precondition_Close_default_connection()
   self.mobileConnection:Close()
   commonTestCases:DelayedExp(3000)
-
 end
-
-Preconditions:BackupFile("sdl_preloaded_pt.json")
-testCasesForPolicyTable:Precondition_updatePolicy_By_overwriting_preloaded_pt("files/PriorityNormal_preloaded_pt.json")
 
 function Test:Precondition_Connect_device()
   commonTestCases:DelayedExp(2000)
@@ -61,7 +63,6 @@ function Test:Precondition_Connect_device()
   ):Do(function(_,data)
   self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
   end)
-  :Times(AtLeast(1))
 end
 
 --[[ Test ]]
@@ -72,13 +73,13 @@ function Test:TestStep1_Priority_NORMAL_OnAppRegistered()
   self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
   self.mobileSession:StartService(7)
   :Do(function()
-  local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
-  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", {priority ="NORMAL"})
-  :Do(function(_,data)
-  self.HMIAppID = data.params.application.appID
-  end)
-  self.mobileSession:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS" })
-  self.mobileSession:ExpectNotification("OnHMIStatus", {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
+    local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
+    EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", {priority ="NORMAL"})
+    :Do(function(_,data)
+      self.HMIAppID = data.params.application.appID
+    end)
+    self.mobileSession:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS" })
+    self.mobileSession:ExpectNotification("OnHMIStatus", {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
   end)
 end
 
@@ -86,16 +87,32 @@ function Test:TestStep2_Priority_NORMAL_ActivateApp()
   local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.applications["Test Application"]})
   EXPECT_HMIRESPONSE(RequestId, {result = { code = 0, method ="SDL.ActivateApp", priority ="NORMAL"}})
   :Do(function(_,data)
-  if data.result.priority ~= "NORMAL" then
-    commonFunctions:userPrint(31, "Error: wrong behavior of SDL - priority should be NORMAL")
-  end
-  EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN", audioStreamingState = "AUDIBLE"})
+    if data.result.priority ~= "NORMAL" then
+      commonFunctions:userPrint(31, "Error: wrong behavior of SDL - priority should be NORMAL")
+    end
+    EXPECT_NOTIFICATION("OnHMIStatus", {}):Times(0)
   end)
+end
+
+function Test:Precondition_Check_priority_pre_DataConsent()
+  local priority_id_table = commonFunctions:get_data_policy_sql(config.pathToSDL.."/storage/policy.sqlite", "select priority_value from application where id = 'pre_DataConsent'")
+
+  local priority_id
+  for _, value in pairs(priority_id_table) do
+    priority_id = value
+  end
+  --print("priority_id = "..priority_id)
+  if(priority_id ~= "NORMAL") then
+    self:FailTestCase("Priority for pre_DataConsent is not NONE. Real: "..priority_id)
+  end
 end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
+testCasesForPolicyTable:Restore_preloaded_pt()
+
 function Test.Postcondition_SDLStop()
   StopSDL()
 end
-testCasesForPolicyTable:Restore_preloaded_pt()
+
+return Test
