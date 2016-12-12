@@ -34,21 +34,21 @@ require('cardinalities')
 require('user_modules/AppTypes')
 
 --[[ Preconditions ]]
-    function Test.Precondition_StopSDL()
-      StopSDL()
-    end
-    
-    function Test.Precondition_DeleteLogsAndPolicyTable()
-      commonSteps:DeleteLogsFileAndPolicyTable()
-    end
-    
-    function Test.Precondition_StartSDL()
-      StartSDL(config.pathToSDL, config.ExitOnCrash)
-    end
-    
-    function Test:Precondition_InitHMI()
-      self:initHMI()
-    end
+function Test.Precondition_StopSDL()
+  StopSDL()
+end
+
+function Test.Precondition_DeleteLogsAndPolicyTable()
+  commonSteps:DeleteLogsFileAndPolicyTable()
+end
+
+function Test.Precondition_StartSDL()
+  StartSDL(config.pathToSDL, config.ExitOnCrash)
+end
+
+function Test:Precondition_InitHMI()
+  self:initHMI()
+end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
@@ -57,8 +57,8 @@ function Test:TestStep1_SDL_requests_systemInfo_on_InitHMI()
   self:initHMI_onReady()
   EXPECT_HMICALL("BasicCommunication.GetSystemInfo"):Times(1)
   :Do(function(_,data)
-  self.hmiConnection:SendResponse(data.id, "BasicCommunication.GetSystemInfo", "SUCCESS", {ccpu_version ="OpenS",
-  language ="EN-US",wersCountryCode = "open_wersCountryCode"})
+    self.hmiConnection:SendResponse(data.id, "BasicCommunication.GetSystemInfo", "SUCCESS",
+      {ccpu_version ="OpenS", language ="EN-US",wersCountryCode = "open_wersCountryCode"})
   end)
 end
 
@@ -93,3 +93,5 @@ commonFunctions:newTestCasesGroup("Postconditions")
 function Test.Postcondition_SDLStop()
   StopSDL()
 end
+
+return Test
