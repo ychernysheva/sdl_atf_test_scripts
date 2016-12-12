@@ -2259,7 +2259,7 @@
                 "priority": "NONE",
                 "default_hmi": "NONE",
                 "groups": ["Base-4"],
-                "AppHMIType": "MEDIA",
+                "AppHMIType": ["MEDIA","INFORMATION"]
             },
             "device": {
                 "keep_context": false,
