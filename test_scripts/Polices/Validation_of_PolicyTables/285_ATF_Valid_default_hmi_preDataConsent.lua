@@ -10,7 +10,7 @@
 --      Connect device
 --
 --     2. Performed steps
---			Add second session("pre_DataConsent" policies are assigned to the application)-> PTU is triggered 
+--			Add second session("pre_DataConsent" policies are assigned to the application)-> PTU is triggered
 --
 -- Expected result:
 --     PoliciesManager must validate "default_hmi"(BACKGROUND) sub-section in "pre_DataConsent" and treat it valid
@@ -23,7 +23,7 @@ config.defaultProtocolVersion = 2
 --[[ Required Shared libraries ]]
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require ('user_modules/shared_testcases/commonSteps')
-local testCasesForPolicyTableSnapshot = require('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
+local testCasesForPolicySDLErrorsStops = require('user_modules/shared_testcases/testCasesForPolicySDLErrorsStops')
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFiles()
@@ -32,7 +32,6 @@ commonSteps:DeletePolicyTable()
 --[[ General Settings for configuration ]]
 Test = require('connecttest')
 require('cardinalities')
-local mobile_session = require('mobile_session')
 require('user_modules/AppTypes')
 
 --[[ Local Functions ]]
@@ -90,65 +89,37 @@ function Test.Precondition_Set_default_hmi_background()
   Set_default_hmi_background()
 end
 
-function Test.Precondition_StartSDL()
-  StartSDL(config.pathToSDL, config.ExitOnCrash)
-end
-
-function Test:Precondition_InitHMI()
-  self:initHMI()
-end
-
-function Test:Precondition_InitHMI_onReady()
-  self:initHMI_onReady()
-end
-
-function Test:Precondition_Connect_device()
-  self:connectMobile()
-end
-
-function Test:Precondition_Start_session()
-  self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
-  self.mobileSession:StartService(7)
-end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
-function Test:Verify_valid_default_hmi_upon_PTU()
-  local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
-  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application1.appName } })
-  :Do(function(_,data)
-     local hmi_app_id = data.params.application.appID
-      EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
-      testCasesForPolicyTableSnapshot:create_PTS(true,
-      {config.application1.registerAppInterfaceParams.appID},
-      {config.deviceMAC},
-      {hmi_app_id})
-      local timeout_after_x_seconds = testCasesForPolicyTableSnapshot:get_data_from_PTS("module_config.timeout_after_x_seconds")
-      local seconds_between_retries = {}
+function Test:TestStep_Verify_valid_default_hmi_Preloaded()
+  --TODO(istoimenova): Should be checked when ATF problem is fixed with SDL crash
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnSDLClose"):Times(0)
+  local result = testCasesForPolicySDLErrorsStops:CheckSDLShutdown(self)
+  -- result is true in case SDL stops
+  if (result == true) then
+    self:FailTestCase("Error: SDL is not running.")
+  end
+end
 
-      for i = 1, #testCasesForPolicyTableSnapshot.pts_seconds_between_retries do
-        seconds_between_retries[i] = testCasesForPolicyTableSnapshot.pts_seconds_between_retries[i].value
-      end
-
-      EXPECT_HMICALL("BasicCommunication.PolicyUpdate",
-        {
-          file = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate",
-          timeout = timeout_after_x_seconds,
-          retry = seconds_between_retries
-        })
-      :Do(function()
-          self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-        end)
-    end)
-  self.mobileSession:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS"})
+function Test:TestStep_CheckSDLLogError()
+  local result = testCasesForPolicySDLErrorsStops.ReadSpecificMessage("Policy table is not initialized.")
+  -- result is true in case error is logged.
+  if (result == true) then
+    self:FailTestCase("Error: message 'Policy table is not initialized.' should not observed in smartDeviceLink.log.")
+  end
 end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
-function Test.Postcondition_SDLStop()
-  StopSDL()
-end
+
 function Test.Postcondition_Restore_preloaded()
   Restore_preloaded()
 end
+
+function Test.Postcondition_SDLStop()
+  StopSDL()
+end
+
+return Test
