@@ -3,13 +3,15 @@
 -- [PolicyTableUpdate] Support of "http" flow of Policy Table Update
 --
 -- Description:
--- SDL should be successfully built with empty flag "EXTENDED_POLICY:"
+-- In case SDL is built with -DEXTENDED_POLICY: HTTP" flag SDL must support 
+--"http" (normal) PolicyTableUpdate flow 
+
 -- 1. Performed steps
--- Build SDL
+-- Build SDL with flag above
 --
 -- Expected result:
 -- SDL is successfully built
--- The flag EXTENDED_POLICY: has no value set
+-- The flag -DEXTENDED_POLICY: is set to HTTP
 -- PTU passes successfully
 ---------------------------------------------------------------------------------------------
 
@@ -18,15 +20,11 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 
 --[[ Required Shared libraries ]]
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
+local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
-local testCasesForBuildingSDLPolicyFlag = require('user_modules/shared_testcases/testCasesForBuildingSDLPolicyFlag')
 
 --[[ General Precondition before ATF start ]]
-commonFunctions:SDLForceStop()
-testCasesForBuildingSDLPolicyFlag:Update_PolicyFlag("EXTENDED_POLICY","")
-testCasesForBuildingSDLPolicyFlag:CheckPolicyFlagAfterBuild("EXTENDED_POLICY","")
-
---TODO(mmihaylova-banska): Should be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
+commonSteps:DeleteLogsFileAndPolicyTable()
 config.defaultProtocolVersion = 2
 
 --[[ General Settings for configuration ]]
@@ -36,9 +34,9 @@ require('user_modules/AppTypes')
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
---TODO(mmihaylova-banska): Function still not implemented
+
 function Test:TestStep_HTTP_Flow_AfterBuild ()
-  testCasesForPolicyTable:flow_PTU_SUCCEESS_EXTERNAL_HTTP (self)
+  testCasesForPolicyTable.flow_PTU_SUCCEESS_HTTP (self)
 end
 
 --[[ Postconditions ]]
