@@ -1,7 +1,3 @@
--- UNREADY:
--- Hello Iliana, in this script I don't know how to create - from "timeout_after_x_seconds" field of LocalPT and recieve:
--- EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"}). Help please. Thanks a lot.
-
 ---------------------------------------------------------------------------------------------
 -- Requirements summary:
 -- [PolicyTableUpdate][GENIVI] PoliciesManager changes status to “UPDATE_NEEDED”
@@ -27,8 +23,6 @@ config.defaultProtocolVersion = 2
 --[[ Required Shared libraries ]]
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
--- local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
--- local testCasesForPolicyTableSnapshot = require ('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
@@ -37,9 +31,9 @@ commonSteps:DeleteLogsFileAndPolicyTable()
 Test = require('connecttest')
 require('cardinalities')
 require('user_modules/AppTypes')
+local mobile_session = require('mobile_session')
 
---[[ Local functions ]]
-
+--[[ Local Variables ]]
 local registerAppInterfaceParams =
 {
   syncMsgVersion =
@@ -63,24 +57,55 @@ local registerAppInterfaceParams =
   }
 }
 
+local attempts = 13
+local sequence = {}
+local r_expected = {
+  "UPDATE_NEEDED",
+  "UPDATING",
+  "UPDATE_NEEDED"
+}
+
+local r_actual = {}
+
+--[[ Local Functions ]]
+local function timestamp()
+  local f = io.popen("date +%H:%M:%S.%3N")
+  local o = f:read("*all")
+  f:close()
+  return (o:gsub("\n", ""))
+end
+
+local function log(event, ...)
+  table.insert(sequence, { ts = timestamp(), e = event, p = {...} })
+end
+
+local function is_table_equal(t1, t2)
+  local ty1 = type(t1)
+  local ty2 = type(t2)
+  if ty1 ~= ty2 then return false end
+  if ty1 ~= 'table' and ty2 ~= 'table' then return t1 == t2 end
+  for k1, v1 in pairs(t1) do
+    local v2 = t2[k1]
+    if v2 == nil or not is_table_equal(v1, v2) then return false end
+  end
+  for k2, v2 in pairs(t2) do
+    local v1 = t1[k2]
+    if v1 == nil or not is_table_equal(v1, v2) then return false end
+  end
+  return true
+end
+
 local function policyUpdate(self)
-  local pathToSnaphot = nil
-  EXPECT_HMICALL ("BasicCommunication.PolicyUpdate")
-  :Do(function(_,data)
-      pathToSnaphot = data.params.file
-      self.hmiConnection:SendResponse(data.id, "BasicCommunication.PolicyUpdate", "SUCCESS", {})
-    end)
+  local pathToSnaphot = "/tmp/fs/mp/images/ivsu_cache/ptu.json"
   local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
-  EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {url = "http://policies.telematics.ford.com/api/policies"}}})
+  EXPECT_HMIRESPONSE(RequestIdGetURLS)
   :Do(function(_,_)
       self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",
         {
           requestType = "PROPRIETARY",
-          url = "http://policies.telematics.ford.com/api/policies",
           appID = self.applications ["Test Application"],
-          fileName = "sdl_snapshot.json"
-        },
-        pathToSnaphot
+          fileName = "PTU"
+        }
       )
     end)
   EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "PROPRIETARY" })
@@ -88,12 +113,11 @@ local function policyUpdate(self)
       local CorIdSystemRequest = self.mobileSession:SendRPC ("SystemRequest",
         {
           requestType = "PROPRIETARY",
-          fileName = "sdl_snapshot.json"
+          fileName = "PTU"
         },
         pathToSnaphot
       )
       EXPECT_HMICALL("BasicCommunication.SystemRequest")
-
       :Do(function(_,data)
           self.hmiConnection:SendResponse(data.id,"BasicCommunication.SystemRequest", "SUCCESS", {})
         end)
@@ -101,7 +125,7 @@ local function policyUpdate(self)
       :Do(function(_,_)
           self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate",
             {
-              policyfile = "/tmp/fs/mp/images/ivsu_cache/ptu.json"
+              policyfile = "/tmp/fs/mp/images/ivsu_cache/PTU"
             })
         end)
       :Do(function(_,_)
@@ -110,43 +134,81 @@ local function policyUpdate(self)
     end)
 end
 
+--[[ Preconditions ]]
+commonFunctions:newTestCasesGroup("Preconditions")
 function Test:Preconditions_Update_Policy()
-  policyUpdate(self, "/tmp/fs/mp/images/ivsu_cache/ptu.json")
+  policyUpdate(self)
+end
+
+function Test.RegisterNotification()
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate")
+  :Do(function(_, s)
+      log("SDL->HMI: SDL.OnStatusUpdate()", s.params.status)
+      table.insert(r_actual, s.params.status)
+    end)
+  :Times(AnyNumber())
+  :Pin()
+end
+
+function Test:Precondition_CreationNewSession()
+  self.mobileSession1 = mobile_session.MobileSession(
+    self,
+    self.mobileConnection)
+  self.mobileSession1:StartService(7)
 end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup ("Test")
 function Test:TestStep_RegisterApplication_In_NewSession()
-  local corId = self.mobileSession2:SendRPC("RegisterAppInterface", registerAppInterfaceParams)
+  local corId = self.mobileSession1:SendRPC("RegisterAppInterface", registerAppInterfaceParams)
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = "Media Application" }})
-  self.mobileSession2:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
-  self.mobileSession2:ExpectNotification("OnPermissionsChange")
+  self.mobileSession1:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
+  self.mobileSession1:ExpectNotification("OnPermissionsChange")
 end
 
 function Test:TestStep_Start_New_PolicyUpdate_For_SecondApplication()
-  local pathToSnaphot = nil
-  EXPECT_HMICALL ("BasicCommunication.PolicyUpdate")
-  :Do(function(_,data)
-      pathToSnaphot = data.params.file
-      self.hmiConnection:SendResponse(data.id, "BasicCommunication.PolicyUpdate", "SUCCESS", {})
-    end)
   local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
-  EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {url = "http://policies.telematics.ford.com/api/policies"}}})
+  EXPECT_HMIRESPONSE(RequestIdGetURLS)
   :Do(function(_,_)
       self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",
         {
           requestType = "PROPRIETARY",
-          url = "http://policies.telematics.ford.com/api/policies",
-          appID = self.applications ["MyTestApp"],
-          fileName = "sdl_snapshot.json"
-        },
-        pathToSnaphot
+          fileName = "PTU"
+        }
       )
     end)
+  EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "PROPRIETARY" })
 end
 
---- Run Timeout 60sec.
--- :Do(function(_,_)
--- EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
--- end)
+Test["Begin of wait cycle [" .. attempts * 5 .. "] sec"] = function() end
+for i = 1, attempts do
+  Test["Waiting " .. i * 5 .. " sec"] = function()
+    os.execute("sleep 5")
+  end
+end
 
+function Test.ShowSequence()
+  print("--- Sequence -------------------------------------")
+  for k, v in pairs(sequence) do
+    local s = k .. ": " .. v.ts .. ": " .. v.e
+    for _, val in pairs(v.p) do
+      if val then s = s .. ": " .. val end
+    end
+    print(s)
+  end
+  print("--------------------------------------------------")
+end
+
+function Test:Validate_SystemStatus_UPDATE_NEEDED()
+  if not is_table_equal(r_expected, r_actual) then
+    self:FailTestCase(table.concat({"\nExpected: ", commonFunctions:convertTableToString(r_expected, 3), "\nActual: ", commonFunctions:convertTableToString(r_actual, 3), "\n"}))
+  end
+end
+
+--[[ Postconditions ]]
+commonFunctions:newTestCasesGroup("Postconditions")
+Test["StopSDL"] = function()
+  StopSDL()
+end
+
+return Test
