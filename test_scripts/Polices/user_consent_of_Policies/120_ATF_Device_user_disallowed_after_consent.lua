@@ -30,6 +30,10 @@ local testCasesForPolicyTable = require("user_modules/shared_testcases/testCases
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
 
+--[[ Local variables ]]
+local pre_dataconsent = "129372391"
+local base4 = "686787169"
+
 --[[ General Settings for configuration ]]
 Test = require("connecttest")
 require("user_modules/AppTypes")
@@ -37,35 +41,41 @@ require("user_modules/AppTypes")
 --[[ Precondition ]]
 function Test:Precondition_ActivateRegisteredApp()
   testCasesForPolicyTable:trigger_getting_device_consent(self, config.application1.registerAppInterfaceParams.appName, config.deviceMAC)
+end
 
-  --TODO(istoimenova): Waiting for debug: pull 303
-  -- local pre_dataconsent = commonFunctions:Get_data_policy_sql(" \"SELECT id FROM functional_group WHERE name = \\\"BaseBeforeDataConsent\\\"\"")
-  -- --print("pre_dataconsent = "..pre_dataconsent)
-  -- local group_app_id = commonFunctions:Get_data_policy_sql(" \"SELECT functional_group_id FROM app_group where application_id = \\\"0000001\\\"")
-  -- --print("group_app_id = "..group_app_id)
-  -- if(group_app_id ~= pre_dataconsent) then
-  -- commonFunctions:printError("Application is not in pre_DataConsent. Group: "..group_app_id)
+function Test:Precondition_Check_App_assigned_BASE4()
+  local group_app_id_table = commonFunctions:get_data_policy_sql(config.pathToSDL.."/storage/policy.sqlite", "SELECT functional_group_id FROM app_group where application_id = '0000001'")
 
+  local group_app_id
+  for _, value in pairs(group_app_id_table) do
+    group_app_id = value
+  end
+  if(group_app_id ~= base4) then
+    self:FailTestCase("Application is not assigned to Base-4. Group: "..group_app_id)
+  end
 end
 
 function Test:Precondition_Disallow_device()
-  --TODO(istoimenova): Waiting for debug: pull 303
-  -- local pre_dataconsent = commonFunctions:Get_data_policy_sql(" \"SELECT id FROM functional_group WHERE name = \\\"BaseBeforeDataConsent\\\"\"")
-  -- --print("pre_dataconsent = "..pre_dataconsent)
-  -- local group_app_id = commonFunctions:Get_data_policy_sql(" \"SELECT functional_group_id FROM app_group where application_id = \\\"0000001\\\"")
-  -- --print("group_app_id = "..group_app_id)
-  -- if(group_app_id ~= pre_dataconsent) then
-  -- commonFunctions:printError("Application is not in pre_DataConsent. Group: "..group_app_id)
   self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality",
     {allowed = false, source = "GUI", device = {id = config.deviceMAC , name = "127.0.0.1"}})
-  EXPECT_HMINOTIFICATION("SDL.OnAppPermissionChanged",{})
-
 end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
-function Test:TestStep1_Send_RPC_from_default()
+function Test:TestStep1_Check_App_assigned_PreDataConsent()
+  local group_app_id_table = commonFunctions:get_data_policy_sql(config.pathToSDL.."/storage/policy.sqlite", "SELECT functional_group_id FROM app_group where application_id = '0000001'")
+
+  local group_app_id
+  for _, value in pairs(group_app_id_table) do
+    group_app_id = value
+  end
+  if(group_app_id ~= pre_dataconsent) then
+    self:FailTestCase("Application is not assigned to BaseBeforeDataConsent. Group: "..group_app_id)
+  end
+end
+
+function Test:TestStep1_Send_RPC_from_default_disallowed()
   --AddCommand belongs to default permissions, so should be disallowed
   local RequestIDAddCommand = self.mobileSession:SendRPC("AddCommand", { cmdID = 111, menuParams = { position = 1, menuName ="Command111" } })
   EXPECT_HMICALL("UI.AddCommand",{})
@@ -77,18 +87,9 @@ end
 
 function Test:TestStep2_Allow_device()
   testCasesForPolicyTable:trigger_getting_device_consent(self, config.application1.registerAppInterfaceParams.appName, config.deviceMAC)
-  EXPECT_HMINOTIFICATION("SDL.OnAppPermissionChanged",{})
 end
 
 function Test:TestStep3_Send_RPC_from_default_again()
-  --TODO(istoimenova): Waiting for debug: pull 303
-  -- local pre_dataconsent = commonFunctions:Get_data_policy_sql(" \"SELECT id FROM functional_group WHERE name = \\\"BaseBeforeDataConsent\\\"\"")
-  -- --print("pre_dataconsent = "..pre_dataconsent)
-  -- local group_app_id = commonFunctions:Get_data_policy_sql(" \"SELECT functional_group_id FROM app_group where application_id = \\\"0000001\\\"")
-  -- --print("group_app_id = "..group_app_id)
-  -- if(group_app_id ~= pre_dataconsent) then
-  -- commonFunctions:printError("Application is not in pre_DataConsent. Group: "..group_app_id)
-  --AddCommand should be allowed
   local RequestIDAddCommand = self.mobileSession:SendRPC("AddCommand", { cmdID = 111, menuParams = { position = 1, menuName ="Command111" } })
   EXPECT_HMICALL("UI.AddCommand",{})
   :Do(function(_,data)
@@ -96,11 +97,26 @@ function Test:TestStep3_Send_RPC_from_default_again()
   end)
   EXPECT_RESPONSE(RequestIDAddCommand, { success = true, resultCode = "SUCCESS" })
   EXPECT_NOTIFICATION("OnHashChange")
+
+end
+
+function Test:Precondition_Check_App_assigned_BASE4()
+  local group_app_id_table = commonFunctions:get_data_policy_sql(config.pathToSDL.."/storage/policy.sqlite", "SELECT functional_group_id FROM app_group where application_id = '0000001'")
+  
+  local group_app_id
+  for _, value in pairs(group_app_id_table) do
+    group_app_id = value
+  end
+  if(group_app_id ~= base4) then
+    self:FailTestCase("Application is not assigned to Base-4. Group: "..group_app_id)
+  end
 end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
 
-function Test.Postcondition_SDLForceStop()
-  commonFunctions:SDLForceStop()
+function Test.Postcondition_Stop()
+  StopSDL()
 end
+
+return Test
