@@ -27,16 +27,21 @@ local commonFunctions = require ('user_modules/shared_testcases/commonFunctions'
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
 local testCasesForPolicyTableSnapshot = require('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
+local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 
 --[[ Local variables ]]
 local allowed_rps = {}
-local RPC_Base4 = {}
-local RPC_Notifications = {}
-local RPC_Location = {}
+local arrayNotifications = {}
+local arrayLocation = {}
+local array_allpermissions = {}
 
 --[[ Local functions ]]
 -- Function gets RPCs for Notification and Location-1
 local function Get_RPCs()
+  local RPC_Base4 = {}
+  local RPC_Notifications = {}
+  local RPC_Location = {}
+
   testCasesForPolicyTableSnapshot:extract_preloaded_pt()
 
   for i = 1, #testCasesForPolicyTableSnapshot.preloaded_elements do
@@ -83,6 +88,29 @@ local function Get_RPCs()
     end
   end
 
+  for i = 1, #RPC_Notifications do
+    arrayNotifications[i] = {
+      --permissionItem = {
+      --hmiPermissions = { userDisallowed = {}, allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" } },
+      --parameterPermissions = { userDisallowed = {}, allowed = {} },
+      rpcName = RPC_Notifications[i]
+      -- }
+    }
+  end
+
+  array_allpermissions = arrayNotifications
+
+  for i = 1, #RPC_Location do
+    arrayLocation[i] = {
+      -- permissionItem = {
+      --hmiPermissions = { userDisallowed = {}, allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" } },
+      --parameterPermissions = { userDisallowed = {}, allowed = {} },
+      rpcName = RPC_Location[i]
+    }
+    -- }
+    array_allpermissions[#array_allpermissions + 1] = arrayLocation[i]
+  end
+
   -- for i = 1, #allowed_rps do
   -- print("allowed_rps = "..allowed_rps[i])
   -- end
@@ -93,6 +121,7 @@ commonSteps:DeleteLogsFileAndPolicyTable()
 --TODO(istoimenova): shall be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
 config.defaultProtocolVersion = 2
 testCasesForPolicyTable.Delete_Policy_table_snapshot()
+testCasesForPolicyTable:Precondition_updatePolicy_By_overwriting_preloaded_pt("files/sdl_preloaded_pt_AlertOnlyNotifications.json")
 
 --[[ General Settings for configuration ]]
 Test = require('connecttest')
@@ -123,32 +152,29 @@ function Test:Precondition_IsPermissionsConsentNeeded_false_on_app_activation()
       end
     end)
 
-  EXPECT_HMICALL("BasicCommunication.ActivateApp"):Times(0)
-  EXPECT_NOTIFICATION("OnHMIStatus", {}):Times(0)
-end
+  EXPECT_HMICALL("BasicCommunication.ActivateApp")
+  :Do(function(_,data) self.hmiConnection:SendResponse(data.id,"BasicCommunication.ActivateApp", "SUCCESS", {}) end)
 
-function Test:TestStep_app_no_consent()
-  local app_permission = testCasesForPolicyTableSnapshot:get_data_from_PTS("device_data."..config.deviceMAC..".user_consent_records."..config.application1.registerAppInterfaceParams.appID)
-  if(app_permission ~= 0) then
-    self:FailTestCase("Consented gropus are assigned to application")
-  end
+  EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"})
+
+  EXPECT_HMICALL("BasicCommunication.PolicyUpdate", {file = "/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json"})
+  :Do(function()
+      local app_permission = testCasesForPolicyTableSnapshot:get_data_from_PTS("device_data."..config.deviceMAC..".user_consent_records."..config.application1.registerAppInterfaceParams.appID)
+      if(app_permission ~= 0) then
+        self:FailTestCase("Consented gropus are assigned to application")
+      end
+    end)
 end
 
 function Test:Precondition_Alert_disallowed()
-  local RequestiDGetVData = self.mobileSession:SendRPC("Alert",{speed = true})
+  local RequestiDGetVData = self.mobileSession:SendRPC("Alert",{alertText1 = "alertText1"})
   EXPECT_HMICALL("UI.Alert",{speed = true}):Times(0)
   EXPECT_RESPONSE(RequestiDGetVData, { success = false, resultCode = "DISALLOWED"})
 end
 
 function Test:Precondition_GetVehicleData_disallowed()
-  local RequestiDGetVData = self.mobileSession:SendRPC("GetVehicleData",{})
+  local RequestiDGetVData = self.mobileSession:SendRPC("GetVehicleData",{speed = true})
   EXPECT_HMICALL("VehicleInfo.GetVehicleData",{}):Times(0)
-  EXPECT_RESPONSE(RequestiDGetVData, { success = false, resultCode = "DISALLOWED"})
-end
-
-function Test:Precondition_Alert_disallowed()
-  local RequestiDGetVData = self.mobileSession:SendRPC("Alert",{speed = true})
-  EXPECT_HMICALL("UI.Alert",{speed = true}):Times(0)
   EXPECT_RESPONSE(RequestiDGetVData, { success = false, resultCode = "DISALLOWED"})
 end
 
@@ -171,121 +197,164 @@ function Test:Precondition_PTU_user_consent_prompt_present()
               end
               RUN_AFTER(to_run, 500)
             end)
-          EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",
-            {status = "UPDATING"}, {status = "UP_TO_DATE"}):Times(2)
-          :Do(function(_,_data1)
-              if(_data1.params.status == "UP_TO_DATE") then
-                EXPECT_NOTIFICATION("OnPermissionsChange",{})
-                :Do(function(_,_data2)
-                    if(_data2.payload.permissionItem ~= nil) then
-                      -- Will be used to check if all needed RPC for permissions are received
-                      local is_perm_item_receved = {}
-                      for i = 1, #allowed_rps do
-                        is_perm_item_receved[i] = false
-                      end
 
-                      -- will be used to check RPCs that needs permission
-                      local is_perm_item_needed = {}
-                      for i = 1, #_data2.payload.permissionItem do
-                        is_perm_item_needed[i] = false
-                      end
+          EXPECT_NOTIFICATION("OnPermissionsChange" --[[, {permissionItem = array_allpermissions}, {permissionItem = arrayNotifications}]]):Times(2)
+            :Do(function(exp,_data2)
+                if( (exp.occurences == 1) and (_data2.payload.permissionItem ~= nil) )then
+                  -- Will be used to check if all needed RPC for permissions are received
+                  local is_perm_item_receved = {}
+                  for i = 1, #array_allpermissions do
+                    is_perm_item_receved[i] = false
+                  end
 
-                      for i = 1, #_data2.payload.permissionItem do
-                        for j = 1, #allowed_rps do
-                          if(_data2.payload.permissionItem[i].rpcName == allowed_rps[j]) then
-                            is_perm_item_receved[j] = true
-                            is_perm_item_needed[i] = true
-                            break
-                          end
-                        end
-                      end
+                  -- will be used to check RPCs that needs permission
+                  local is_perm_item_needed = {}
+                  for i = 1, #_data2.payload.permissionItem do
+                    is_perm_item_needed[i] = false
+                  end
 
-                      -- check that all RPCs from notification are requesting permission
-                      for i = 1,#is_perm_item_needed do
-                        if (is_perm_item_needed[i] == false) then
-                          commonFunctions:printError("RPC: ".._data2.payload.permissionItem[i].rpcName.." should not be sent")
-                          is_test_passed = false
-                        end
-                      end
-
-                      -- check that all RPCs that request permission are received
-                      for i = 1,#is_perm_item_receved do
-                        if (is_perm_item_receved[i] == false) then
-                          commonFunctions:printError("RPC: "..allowed_rps[i].." is not sent")
-                          is_test_passed = false
-                        end
+                  for i = 1, #_data2.payload.permissionItem do
+                    for j = 1, #array_allpermissions do
+                      if(_data2.payload.permissionItem[i].rpcName == array_allpermissions[j]) then
+                        is_perm_item_receved[j] = true
+                        is_perm_item_needed[i] = true
+                        break
                       end
                     end
-                  end)
+                  end
 
-                EXPECT_HMINOTIFICATION("SDL.OnAppPermissionChanged", {appID = self.HMIAppID, appPermissionsConsentNeeded = true })
+                  -- check that all RPCs from notification are requesting permission
+                  for i = 1,#is_perm_item_needed do
+                    if (is_perm_item_needed[i] == false) then
+                      commonFunctions:printError("Occ1 RPC: ".._data2.payload.permissionItem[i].rpcName.." should not be sent")
+                      is_test_passed = false
+                    end
+                  end
+
+                  -- check that all RPCs that request permission are received
+                  for i = 1,#is_perm_item_receved do
+                    if (is_perm_item_receved[i] == false) then
+                      commonFunctions:printError("Occ1 RPC: "..array_allpermissions[i].rpcName.." is not sent")
+                      is_test_passed = false
+                    end
+                  end
+                end
+
+                if( (exp.occurences == 2) and (_data2.payload.permissionItem ~= nil) )then
+                  -- Will be used to check if all needed RPC for permissions are received
+                  local is_perm_item_receved = {}
+                  for i = 1, #arrayNotifications do
+                    is_perm_item_receved[i] = false
+                  end
+
+                  -- will be used to check RPCs that needs permission
+                  local is_perm_item_needed = {}
+                  for i = 1, #_data2.payload.permissionItem do
+                    is_perm_item_needed[i] = false
+                  end
+
+                  for i = 1, #_data2.payload.permissionItem do
+                    for j = 1, #arrayNotifications do
+                      if(_data2.payload.permissionItem[i].rpcName == arrayNotifications[j]) then
+                        is_perm_item_receved[j] = true
+                        is_perm_item_needed[i] = true
+                        break
+                      end
+                    end
+                  end
+
+                  -- check that all RPCs from notification are requesting permission
+                  for i = 1,#is_perm_item_needed do
+                    if (is_perm_item_needed[i] == false) then
+                      commonFunctions:printError("Occ2: RPC: ".._data2.payload.permissionItem[i].rpcName.." should not be sent")
+                      is_test_passed = false
+                    end
+                  end
+
+                  -- check that all RPCs that request permission are received
+                  for i = 1,#is_perm_item_receved do
+                    if (is_perm_item_receved[i] == false) then
+                      commonFunctions:printError("Occ2: RPC: "..arrayNotifications[i].rpcName.." is not sent")
+                      is_test_passed = false
+                    end
+                  end
+                end
+              end)
+
+            EXPECT_HMINOTIFICATION("SDL.OnAppPermissionChanged", {appID = self.HMIAppID, appPermissionsConsentNeeded = true })
+            :Do(function()
+                local RequestIdListOfPermissions = self.hmiConnection:SendRequest("SDL.GetListOfPermissions", { appID = self.HMIAppID })
+                EXPECT_HMIRESPONSE(RequestIdListOfPermissions,{result = {code = 0, method = "SDL.GetListOfPermissions"}})
                 :Do(function()
-                    local RequestIdListOfPermissions = self.hmiConnection:SendRequest("SDL.GetListOfPermissions", { appID = self.HMIAppID })
-                    EXPECT_HMIRESPONSE(RequestIdListOfPermissions,{result = {code = 0, method = "SDL.GetListOfPermissions",
-                          allowedFunctions = { {allowed_rps} }}})
+                    local ReqIDGetUserFriendlyMessage = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"allowedFunctions"}})
+                    EXPECT_HMIRESPONSE(ReqIDGetUserFriendlyMessage)
                     :Do(function()
-                        local ReqIDGetUserFriendlyMessage = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"allowedFunctions"}})
-                        EXPECT_HMIRESPONSE(ReqIDGetUserFriendlyMessage)
-                        :Do(function()
-                            self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent",
-                              { appID = self.applications[config.application1.registerAppInterfaceParams.appName],
-                                consentedFunctions = {
-                                  { allowed = true, id = 1809526495, name = "Notifications"},
-                                  { allowed = false, id = 156072572, name = "Location-1"}}, source = "GUI"})
-                            EXPECT_NOTIFICATION("OnPermissionsChange",
-                              {permissionItem = {RPC_Notifications} })
-                          end)
+                        self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent",
+                          { appID = self.applications[config.application1.registerAppInterfaceParams.appName],
+                            consentedFunctions = { { allowed = true, id = 1809526495, name = "Notifications"} },
+                            source = "GUI"})
                       end)
-                    self.mobileSession:ExpectResponse(CorIdSystemRequest, {success = true, resultCode = "SUCCESS"})
                   end)
-              end -- if(_data1.params.status == "UP_TO_DATE") then
-            end)
-        end)
-    end)
 
-  return is_test_passed
-end
+                self.mobileSession:ExpectResponse(CorIdSystemRequest, {success = true, resultCode = "SUCCESS"})
+              end)
+          end)
+      end)
+    local function check()
+      if(is_test_passed == false) then
+        self:FailTestCase("Test is FAILED. See prints.")
+      end
+    end
 
---[[ Test ]]
-commonFunctions:newTestCasesGroup("Test")
-
--- Triger PTU to update sdl snapshot
-function Test:TestStep_trigger_user_request_update_from_HMI()
-  testCasesForPolicyTable:trigger_user_request_update_from_HMI(self)
-end
-
-function Test.TestStep_verify_PermissionConsent()
-  local is_test_passed = true
-  local app_permission_Location = testCasesForPolicyTableSnapshot:get_data_from_PTS("device_data."..config.deviceMAC..".user_consent_records."..config.application1.registerAppInterfaceParams.appID..".consent_groups.Location-1")
-  local app_permission_Notifications = testCasesForPolicyTableSnapshot:get_data_from_PTS("device_data."..config.deviceMAC..".user_consent_records."..config.application1.registerAppInterfaceParams.appID..".consent_groups.Notifications")
-  if(app_permission_Location ~= false) then
-    commonFunctions:printError("Location-1 is not assigned to false of application, real: " ..app_permission_Location)
-    is_test_passed = false
+    RUN_AFTER(check, 10000)
+    commonTestCases:DelayedExp(11000)
   end
-  if(app_permission_Notifications ~= true) then
-    commonFunctions:printError("Notifications is not assigned to true of application, real: " ..app_permission_Notifications)
-    is_test_passed = false
+
+  --[[ Test ]]
+  commonFunctions:newTestCasesGroup("Test")
+
+  -- Triger PTU to update sdl snapshot
+  function Test:TestStep_trigger_user_request_update_from_HMI()
+    testCasesForPolicyTable:trigger_user_request_update_from_HMI(self)
   end
-  return is_test_passed
-end
 
---Notification is allowed by user
-function Test:New_functional_grouping_applied_Alert_allowed()
-  local RequestAlert = self.mobileSession:SendRPC("Alert", {alertText1 = "alertText1"})
+  function Test.TestStep_verify_PermissionConsent()
+    local is_test_passed = true
+    local app_permission_Location = testCasesForPolicyTableSnapshot:get_data_from_PTS("device_data."..config.deviceMAC..".user_consent_records."..config.application1.registerAppInterfaceParams.appID..".consent_groups.Location-1")
+    local app_permission_Notifications = testCasesForPolicyTableSnapshot:get_data_from_PTS("device_data."..config.deviceMAC..".user_consent_records."..config.application1.registerAppInterfaceParams.appID..".consent_groups.Notifications")
+    if(app_permission_Location ~= 0) then
+      commonFunctions:printError("Location-1 is assigned user_consent_records")
+      is_test_passed = false
+    end
+    if(app_permission_Notifications == 0) then
+      commonFunctions:printError("Notifications is not assigned user_consent_records")
+      is_test_passed = false
+    elseif(app_permission_Notifications ~= true) then
+      commonFunctions:printError("Notifications is not assigned to true of application, real: " ..app_permission_Notifications)
+      is_test_passed = false
+    end
+    return is_test_passed
+  end
 
-  EXPECT_RESPONSE(RequestAlert, {success = false, resultCode = "GENERIC_ERROR"})
-end
+  --Notification is allowed by user
+  function Test:TestStep_New_functional_grouping_applied_Alert_allowed()
+    local RequestAlert = self.mobileSession:SendRPC("Alert", {alertText1 = "alertText1"})
 
---Location-1 is disallowed by user
-function Test:Precondition_GetVehicleData_disallowed()
-  local RequestiDGetVData = self.mobileSession:SendRPC("GetVehicleData",{speed = true})
-  EXPECT_HMICALL("VehicleInfo.GetVehicleData",{}):Times(0)
-  EXPECT_RESPONSE(RequestiDGetVData, { success = false, resultCode = "DISALLOWED"})
-end
+    EXPECT_RESPONSE(RequestAlert, {success = false, resultCode = "GENERIC_ERROR"})
+  end
 
---[[ Postconditions ]]
-commonFunctions:newTestCasesGroup("Postconditions")
+  --Location-1 is disallowed by user
+  function Test:Precondition_GetVehicleData_disallowed()
+    local RequestiDGetVData = self.mobileSession:SendRPC("GetVehicleData",{speed = true})
+    EXPECT_HMICALL("VehicleInfo.GetVehicleData",{}):Times(0)
+    EXPECT_RESPONSE(RequestiDGetVData, { success = false, resultCode = "DISALLOWED"})
+  end
 
-function Test.Postcondition_SDLForceStop()
-  commonFunctions:SDLForceStop()
-end
+  --[[ Postconditions ]]
+  commonFunctions:newTestCasesGroup("Postconditions")
+
+  function Test.Postcondition_Stop()
+    StopSDL()
+  end
+
+  return Test
