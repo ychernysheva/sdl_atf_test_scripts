@@ -60,7 +60,7 @@ function Test:TestStep1_SDL_requests_systemInfo_on_InitHMI()
   language ="EN-US",wersCountryCode = "open_wersCountryCode"})
   end)
 end
-  
+
 function Test:TestStep2_Check_language_stored_in_PT()
   local query
   if commonSteps:file_exists(config.pathToSDL .. "storage/policy.sqlite") then
@@ -77,7 +77,7 @@ function Test:TestStep2_Check_language_stored_in_PT()
     local result = handler:read( '*l' )
     handler:close()
 
-    print(result)
+    --print("result:" ..result)
     if result == "EN-US" then
       return true
     else
@@ -92,3 +92,5 @@ commonFunctions:newTestCasesGroup("Postconditions")
 function Test.Postcondition_SDLStop()
   StopSDL()
 end
+
+return Test
