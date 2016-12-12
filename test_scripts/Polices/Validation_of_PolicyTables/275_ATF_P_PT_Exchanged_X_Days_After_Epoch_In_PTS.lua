@@ -22,6 +22,7 @@ config.defaultProtocolVersion = 2
 
 --[[ Required Shared libraries ]]
 local commonSteps = require ('user_modules/shared_testcases/commonSteps')
+local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFiles()
@@ -29,10 +30,12 @@ commonSteps:DeletePolicyTable()
 
 --[[ Local Variables ]]
 local pathToSnapshot
+local days_after_epoch_prev
 
 --[[ General Settings for configuration ]]
 Test = require('connecttest')
 require('cardinalities')
+require('user_modules/AppTypes')
 
 --[[ Local Functions ]]
 local function getDaysAfterEpochFromPTS(pathToFile)
@@ -42,6 +45,7 @@ local function getDaysAfterEpochFromPTS(pathToFile)
   local json = require("modules/json")
   local data = json.decode(json_data)
   local daysAfterEpochFromPTS = data.policy_table.module_meta.pt_exchanged_x_days_after_epoch
+
   return daysAfterEpochFromPTS
 end
 
@@ -50,6 +54,8 @@ local function getSystemDaysAfterEpoch()
 end
 
 --[[ Preconditions ]]
+commonFunctions:newTestCasesGroup("Preconditions")
+
 function Test:Precondition_Activate_App_Consent_Device_And_Update_Policy()
   local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", {appID = self.applications["Test Application"]})
   EXPECT_HMIRESPONSE(RequestId, {result = {code = 0, isSDLAllowed = false}, method = "SDL.ActivateApp"})
@@ -71,6 +77,8 @@ function Test:Precondition_Activate_App_Consent_Device_And_Update_Policy()
   EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
   :Do(function(_,data)
       pathToSnapshot = data.params.file
+      days_after_epoch_prev = getDaysAfterEpochFromPTS(pathToSnapshot)
+
       local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
       EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
       :Do(function()
@@ -96,19 +104,29 @@ function Test:Precondition_Activate_App_Consent_Device_And_Update_Policy()
 end
 
 --[[ Test ]]
+commonFunctions:newTestCasesGroup("Test")
 function Test:TestStep_Initiate_PTU_And_Check_Days_After_Epoch_In_PTS()
   self.hmiConnection:SendNotification("SDL.OnPolicyUpdate")
   EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
   :ValidIf(function()
+    local system_time = getSystemDaysAfterEpoch()
+    local days_after_epoch_current = getDaysAfterEpochFromPTS(pathToSnapshot)
+
+      if( days_after_epoch_current ~= (days_after_epoch_prev + 1)*system_time ) then
+        self:FailTestCase("Days_after_epoch are not changed. Previous: " .. days_after_epoch_prev .. ", Current: " .. days_after_epoch_current)
+      end
+
       if getDaysAfterEpochFromPTS(pathToSnapshot) == getSystemDaysAfterEpoch() then return true
       else
-        print("Wrong days after epoch. Expected: " .. getSystemDaysAfterEpoch() .. ", Actual: " .. getDaysAfterEpochFromPTS(pathToSnapshot))
-        return false
+        self:FailTestCase("Wrong days after epoch. Expected: " .. system_time .. ", Actual: " .. days_after_epoch_current)
       end
     end)
 end
 
---[[ Postcondition ]]
-function Test:Postcondition_StopSDL()
+--[[ Postconditions ]]
+commonFunctions:newTestCasesGroup("Postconditions")
+function Test.Postcondition_StopSDL()
   StopSDL()
 end
+
+return Test
