@@ -56,7 +56,7 @@ local function Set_empty_array_as_preconsented_groups()
   if data.policy_table.functional_groupings["DataConsent-2"] then
     data.policy_table.functional_groupings["DataConsent-2"] = nil
   end
-  data.policy_table.app_policies[config.application1.registerAppInterfaceParams.appID] = {
+  data.policy_table.app_policies["pre_DataConsent"] = {
     keep_context = false,
     steal_focus = false,
     priority = "NONE",
