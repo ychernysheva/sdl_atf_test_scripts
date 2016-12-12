@@ -89,7 +89,7 @@ function Test:Step1_SDL_requests_vin_on_InitHMI_OnReady()
             self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", params)
           end
           RUN_AFTER(run,500)
-          commonTestCases:DelayedExp(6000)
+          commonTestCases:DelayedExp(1000)
         else
           self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", params)
         end
