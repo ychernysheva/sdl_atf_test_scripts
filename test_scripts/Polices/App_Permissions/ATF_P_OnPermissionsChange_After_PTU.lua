@@ -1,4 +1,4 @@
-–UNREADY (unimplemented stub used)
+
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
 -- OnPermissionsChange send after app's permissions change by Policy Table Update
@@ -26,31 +26,6 @@ config.defaultProtocolVersion = 2
 --[[ Required Shared libraries ]]
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require ('user_modules/shared_testcases/commonSteps')
-
---[[ Local Functions ]]
---[[ Stub functions ]]
-
--- Function for comparing two tables
--- tbl1, tbl2 - multylayer tables with diff orders of values. Type table
--- return boolen
-local function compareTwoTables(tbl1, tbl2)
-  return true
-end
-
--- Function for selecting RPCs and their HMI levels
--- jsonName - path to json file (preloaded or PTU). Type string
--- groupName - name of group from which table will be created. Type string
--- return table
-local function selectToTableRPCPermissions(jsonName, groupName)
-  return tableOfPolicyPermissions
-end
-
--- Function to convert table with RPCs and their HMI levels from structure selected via selectToTableRPCPermissions() function to structure received in OnPermissionsChange
--- tableFromPolicyRPC - table returned from selectToTableRPCPermissions(), Type table
--- return table
-local function convertPolicyPermissions(tableFromPolicyRPC)
-  return tableOfPermissionsForNotification
-end
 
 --[[ General Settings for configuration ]]
 Test = require('connecttest')
@@ -83,8 +58,8 @@ function Test:TestStep_Assign_To_App_Default_Permissions_And_Check_Them_In_OnPer
             end)
           EXPECT_NOTIFICATION("OnPermissionsChange", {})
           :ValidIf(function(_,data)
-              local tableOfPolicyPermissions = convertPolicyPermissions(selectToTableRPCPermissions(config.pathToSDL .. "sdl_preloaded_pt.json", "Base-4"))
-              if compareTwoTables(tableOfPolicyPermissions, data.payload.permissionItem) then
+              local tableOfPolicyPermissions = commonFunctions:convert_ptu_to_permissions_change_data("files/ptu_general_0000001.json", "Base-4", true)
+              if commonFunctions:is_table_equal(tableOfPolicyPermissions, data.payload.permissionItem) then
                 return true
               else
                 return false
@@ -126,8 +101,9 @@ function Test:TestStep_Update_Policy_With_New_Permissions_And_Check_Them_In_OnPe
               self.mobileSession:ExpectResponse(CorIdSystemRequest, {success = true, resultCode = "SUCCESS"})
               EXPECT_NOTIFICATION("OnPermissionsChange", {})
               :ValidIf(function(_,data)
-                  local tableOfPolicyPermissions = convertPolicyPermissions(selectToTableRPCPermissions(config.pathToSDL .. "files/ptu_general_0000001.json", "Emergency-1"))
-                  if compareTwoTables(tableOfPolicyPermissions, data.payload.permissionItem) then
+                  local tableOfPolicyPermissions = commonFunctions:convert_ptu_to_permissions_change_data("files/ptu_general_0000001.json", "Emergency-1", true)
+
+                if commonFunctions:is_table_equal(tableOfPolicyPermissions, data.payload.permissionItem) then
                     return true
                   else
                     return false
