@@ -38,23 +38,22 @@ require('user_modules/AppTypes')
 commonFunctions:newTestCasesGroup("Preconditions")
 
 function Test:Precondition_Activate_app()
-  local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.applications["Test Application"]})
-  EXPECT_HMIRESPONSE(RequestId)
+  local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", {appID = self.applications[config.application1.registerAppInterfaceParams.appName]})
+  EXPECT_HMIRESPONSE(RequestId,{})
   :Do(function(_,data)
-  if data.result.isSDLAllowed ~= true then
-    local RequestIdgetmes = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage",
-    {language = "EN-US", messageCodes = {"DataConsent"}})
-    EXPECT_HMIRESPONSE(RequestIdgetmes)
-    :Do(function()
-    self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality",
-    {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = "127.0.0.1"}})
-    EXPECT_HMICALL("BasicCommunication.ActivateApp")
-    :Do(function()
-    self.hmiConnection:SendResponse(data.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
-    end)
-    :Times(2)
-    end)
-  end
+    if data.result.isSDLAllowed ~= true then
+      local RequestIdGetMes = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage",
+      {language = "EN-US", messageCodes = {"DataConsent"}})
+      EXPECT_HMIRESPONSE(RequestIdGetMes)
+      :Do(function()
+        self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality",
+        {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = "127.0.0.1"}})
+        EXPECT_HMICALL("BasicCommunication.ActivateApp")
+        :Do(function(_,data1)
+          self.hmiConnection:SendResponse(data1.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
+        end)
+      end)
+    end
   end)
   EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN", audioStreamingState = "AUDIBLE"})
 end
@@ -63,33 +62,31 @@ function Test:Precondition_PolicyUpdateRAI()
   local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
   EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
   :Do(function()
-  self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",
-  {
-    requestType = "PROPRIETARY",
-    fileName = "filename"
-  })
-  EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY" })
-  :Do(function()
-  local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest",
-  {
-    fileName = "PolicyTableUpdate",
-    requestType = "PROPRIETARY"
-  },
-  "files/ptu_RAI.json")
-  EXPECT_HMICALL("BasicCommunication.SystemRequest")
-  :Do(function(_,data)
-  self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate",
-  {
-    policyfile = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate"
-  })
-  EXPECT_HMICALL("VehicleInfo.GetVehicleData", { odometer = true })
-  :Do(function()
-  self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {odometer = 100})
+    self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",
+    { requestType = "PROPRIETARY", fileName = "filename"})
+
+    EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY" })
+    :Do(function()
+      local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest",
+        { fileName = "PolicyTableUpdate", requestType = "PROPRIETARY" },
+        "files/ptu_RAI.json")
+      EXPECT_HMICALL("BasicCommunication.SystemRequest")
+      :Do(function(_,_data1)
+        self.hmiConnection:SendResponse(_data1.id,"BasicCommunication.SystemRequest", "SUCCESS", {})
+        self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate", { policyfile = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate" })
+
+        EXPECT_HMICALL("VehicleInfo.GetVehicleData", { odometer = true })
+        :Do(function(_,data)
+          --print("VehicleInfo.GetVehicleData is received")
+          self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {odometer = 100})
+        end)
+      end)
+      EXPECT_RESPONSE(CorIdSystemRequest, { success = true, resultCode = "SUCCESS"})
+    end)
   end)
-  end)
-  EXPECT_RESPONSE(CorIdSystemRequest, { success = true, resultCode = "SUCCESS"})
-  end)
-  end)
+
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",
+    {status = "UPDATING"}, {status = "UP_TO_DATE"}):Times(2)
 end
 
 --[[ Test ]]
@@ -109,8 +106,8 @@ function Test:Check_pt_exchanged_at_odometer_x_stored_in_PT()
     os.execute("sleep 1")
     local result = handler:read( '*l' )
     handler:close()
-    print(result)
-    if result == 100 then
+    --print("result: "..result)
+    if result == tostring(100) then
       return true
     else
       self:FailTestCase("pt_exchanged_at_odometer_x in DB has wrong value: " .. tostring(result))
@@ -124,3 +121,5 @@ commonFunctions:newTestCasesGroup("Postconditions")
 function Test.Postcondition_SDLStop()
   StopSDL()
 end
+
+return Test
