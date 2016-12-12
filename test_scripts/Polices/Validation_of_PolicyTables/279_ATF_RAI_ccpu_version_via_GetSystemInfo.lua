@@ -49,7 +49,7 @@ end
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
-function Test:Step1_SDL_sends_GetSystemInfo_on_InitHMI()
+function Test:TestStep1_SDL_sends_GetSystemInfo_on_InitHMI()
   self:initHMI_onReady()
   EXPECT_HMICALL("BasicCommunication.GetSystemInfo"):Times(1)
   :Do(function(_,data)
@@ -58,7 +58,7 @@ function Test:Step1_SDL_sends_GetSystemInfo_on_InitHMI()
   end)
 end
 
-function Test:Step2_Check_ccpu_version_stored_in_PT()
+function Test:TestStep2_Check_ccpu_version_stored_in_PT()
   local query
   if commonSteps:file_exists(config.pathToSDL .. "storage/policy.sqlite") then
     query = "sqlite3 " .. config.pathToSDL .. "storage/policy.sqlite".. " \"select ccpu_version from module_meta\""
@@ -74,7 +74,7 @@ function Test:Step2_Check_ccpu_version_stored_in_PT()
     local result = handler:read( '*l' )
     handler:close()
 
-    print(result)
+    print("result: "..result)
     if result == "OpenS" then
       return true
     else
@@ -84,17 +84,17 @@ function Test:Step2_Check_ccpu_version_stored_in_PT()
   end
 end
 
-function Test:Step3_Check_ccpu_version_sent_on_RAI()
+function Test:TestStep3_Check_ccpu_version_sent_on_RAI()
   self:connectMobile()
   self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
   self.mobileSession:StartService(7)
   :Do(function()
-  local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
-  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
-  :Do(function(_,data)
-  self.HMIAppID = data.params.application.appID
-  end)
-  self.mobileSession:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS", systemSoftwareVersion = "OpenS"})
+    local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
+    EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
+    :Do(function(_,data)
+      self.HMIAppID = data.params.application.appID
+    end)
+    self.mobileSession:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS", systemSoftwareVersion = "OpenS"})
   end)
 end
 
@@ -104,3 +104,5 @@ commonFunctions:newTestCasesGroup("Postconditions")
 function Test.Postcondition_SDLStop()
   StopSDL()
 end
+
+return Test
