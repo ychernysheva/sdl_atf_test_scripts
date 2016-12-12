@@ -54,7 +54,7 @@ function Test:ActivateApp_on_unconsented_device()
   EXPECT_HMIRESPONSE(RequestId,
     {result = { code = 0,
         device = { id = config.deviceMAC, name = ServerAddress },
-        isAppPermissionsRevoked = false, isAppRevoked = false, isSDLAllowed = false, isPermissionsConsentNeeded = true, method ="SDL.ActivateApp"}})
+        isAppPermissionsRevoked = false, isAppRevoked = false, isSDLAllowed = false, isPermissionsConsentNeeded = false, method ="SDL.ActivateApp"}})
   :Do(function(_,data)
       --Consent for device is needed
       if data.result.isSDLAllowed ~= false then
@@ -68,8 +68,7 @@ function Test:ActivateApp_on_unconsented_device()
             self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality",
               {allowed = false, source = "GUI", device = {id = config.deviceMAC, name = ServerAddress}})
 
-            EXPECT_NOTIFICATION("OnPermissionsChange", {})
-            EXPECT_HMICALL("BasicCommunication.ActivateApp"):Times(0)
+            EXPECT_NOTIFICATION("OnPermissionsChange", {}):Times(0)
           end)
       end
     end)
@@ -78,14 +77,15 @@ function Test:ActivateApp_on_unconsented_device()
 end
 
 function Test:TestStep_application_assign_pre_dataConsent()
-  return false
-  --TODO(istoimenova): Waiting for debug: pull 303
-  -- local pre_dataconsent = commonFunctions:Get_data_policy_sql(" \"SELECT id FROM functional_group WHERE name = \\\"BaseBeforeDataConsent\\\"\"")
-  -- --print("pre_dataconsent = "..pre_dataconsent)
-  -- local group_app_id = commonFunctions:Get_data_policy_sql(" \"SELECT functional_group_id FROM app_group where application_id = \\\"0000001\\\"")
-  -- --print("group_app_id = "..group_app_id)
-  -- if(group_app_id ~= pre_dataconsent) then
-  -- commonFunctions:printError("Application is not in pre_DataConsent. Group: "..group_app_id)
+  local group_app_id_table = commonFunctions:get_data_policy_sql(config.pathToSDL.."/storage/policy.sqlite", "SELECT functional_group_id FROM app_group where application_id = '0000001'")
+
+  local group_app_id
+  for _, value in pairs(group_app_id_table) do
+    group_app_id = value
+  end
+  if(group_app_id ~= "129372391") then
+    self:FailTestCase("Application is not assigned to BaseBeforeDataConsent. Group: "..group_app_id)
+  end
 end
 
 --[[ Postconditions ]]
