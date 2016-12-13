@@ -979,8 +979,8 @@ function commonFunctions:check_ptu_sequence_partly(self, ptu_path, ptu_name)
       requestType = "HTTP",
       fileName = ptu_name,
     },ptu_path)
-  EXPECT_HMICALL("BasicCommunication.SystemRequest"):Times(0)
   EXPECT_RESPONSE(CorIdSystemRequest, { success = true, resultCode = "SUCCESS"})
+  EXPECT_HMICALL("BasicCommunication.SystemRequest"):Times(0)
   EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status="UP_TO_DATE"})
   EXPECT_HMICALL("VehicleInfo.GetVehicleData", {odometer=true}):Do(
     function(_,data)
@@ -1026,26 +1026,26 @@ end
 --! @param result_codes contains table with result code for vehicle data params
 --! @return Returns table with response parameters
 local function fill_parameters_for_vi_subscription_response(vehicle_data, result_codes)
-  local SVDValues = {gps           = "VEHICLEDATA_GPS",
-    speed         = "VEHICLEDATA_SPEED",
-    rpm           = "VEHICLEDATA_RPM",
-    fuelLevel       = "VEHICLEDATA_FUELLEVEL",
-    fuelLevel_State     = "VEHICLEDATA_FUELLEVEL_STATE",
-    instantFuelConsumption  = "VEHICLEDATA_FUELCONSUMPTION",
-    externalTemperature   = "VEHICLEDATA_EXTERNTEMP",
-    prndl         = "VEHICLEDATA_PRNDL",
-    tirePressure      = "VEHICLEDATA_TIREPRESSURE",
-    odometer        = "VEHICLEDATA_ODOMETER",
-    beltStatus        = "VEHICLEDATA_BELTSTATUS",
-    bodyInformation     = "VEHICLEDATA_BODYINFO",
-    deviceStatus      = "VEHICLEDATA_DEVICESTATUS",
-    driverBraking     = "VEHICLEDATA_BRAKING",
-    wiperStatus       = "VEHICLEDATA_WIPERSTATUS",
-    headLampStatus      = "VEHICLEDATA_HEADLAMPSTATUS",
-    engineTorque      = "VEHICLEDATA_ENGINETORQUE",
-    accPedalPosition    = "VEHICLEDATA_ACCPEDAL",
-    steeringWheelAngle    = "VEHICLEDATA_STEERINGWHEEL",
-    vin           = "VEHICLEDATA_VIN"
+  local SVDValues = {gps = "VEHICLEDATA_GPS",
+    speed = "VEHICLEDATA_SPEED",
+    rpm = "VEHICLEDATA_RPM",
+    fuelLevel = "VEHICLEDATA_FUELLEVEL",
+    fuelLevel_State = "VEHICLEDATA_FUELLEVEL_STATE",
+    instantFuelConsumption = "VEHICLEDATA_FUELCONSUMPTION",
+    externalTemperature = "VEHICLEDATA_EXTERNTEMP",
+    prndl = "VEHICLEDATA_PRNDL",
+    tirePressure = "VEHICLEDATA_TIREPRESSURE",
+    odometer = "VEHICLEDATA_ODOMETER",
+    beltStatus = "VEHICLEDATA_BELTSTATUS",
+    bodyInformation = "VEHICLEDATA_BODYINFO",
+    deviceStatus = "VEHICLEDATA_DEVICESTATUS",
+    driverBraking = "VEHICLEDATA_BRAKING",
+    wiperStatus = "VEHICLEDATA_WIPERSTATUS",
+    headLampStatus = "VEHICLEDATA_HEADLAMPSTATUS",
+    engineTorque = "VEHICLEDATA_ENGINETORQUE",
+    accPedalPosition = "VEHICLEDATA_ACCPEDAL",
+    steeringWheelAngle = "VEHICLEDATA_STEERINGWHEEL",
+    vin = "VEHICLEDATA_VIN"
   }
   local response_parameters={}
   for _, v in pairs(vehicle_data) do
