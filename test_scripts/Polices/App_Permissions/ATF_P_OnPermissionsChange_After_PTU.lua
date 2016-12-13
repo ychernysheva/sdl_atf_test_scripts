@@ -45,10 +45,10 @@ function Test:TestStep_Assign_To_App_Default_Permissions_And_Check_Them_In_OnPer
         code = 0,
         isSDLAllowed = false},
       method = "SDL.ActivateApp"})
-  :Do(function(_,data)
-      local RequestId = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
-      EXPECT_HMIRESPONSE(RequestId,{result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
-      :Do(function(_,data)
+  :Do(function(_,_)
+      local RequestIdGetUserFriendlyMessage = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
+      EXPECT_HMIRESPONSE(RequestIdGetUserFriendlyMessage,{result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
+      :Do(function(_,_)
           self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = "127.0.0.1"}})
           EXPECT_HMICALL("BasicCommunication.ActivateApp")
           :Do(function(_,data)
@@ -57,9 +57,11 @@ function Test:TestStep_Assign_To_App_Default_Permissions_And_Check_Them_In_OnPer
 
             end)
           EXPECT_NOTIFICATION("OnPermissionsChange", {})
-          :ValidIf(function(_,data)
+          :ValidIf(function(_,data1)
               local tableOfPolicyPermissions = commonFunctions:convert_ptu_to_permissions_change_data("files/ptu_general_0000001.json", "Base-4", true)
-              if commonFunctions:is_table_equal(tableOfPolicyPermissions, data.payload.permissionItem) then
+                               commonFunctions:printTable(tableOfPolicyPermissions)
+                  commonFunctions:printTable(data1.payload.permissionItem)
+              if commonFunctions:is_table_equal(tableOfPolicyPermissions, data1.payload.permissionItem) then
                 return true
               else
                 return false
@@ -100,10 +102,12 @@ function Test:TestStep_Update_Policy_With_New_Permissions_And_Check_Them_In_OnPe
               RUN_AFTER(to_run, 800)
               self.mobileSession:ExpectResponse(CorIdSystemRequest, {success = true, resultCode = "SUCCESS"})
               EXPECT_NOTIFICATION("OnPermissionsChange", {})
-              :ValidIf(function(_,data)
-                  local tableOfPolicyPermissions = commonFunctions:convert_ptu_to_permissions_change_data("files/ptu_general_0000001.json", "Emergency-1", true)
+              :ValidIf(function(_,data1)
+                  local tableOfPolicyPermissions = commonFunctions:convert_ptu_to_permissions_change_data("files/ptu_general_0000001.json", "Base-8", true)
+                  commonFunctions:printTable(tableOfPolicyPermissions)
+                  commonFunctions:printTable(data1.payload.permissionItem)
 
-                if commonFunctions:is_table_equal(tableOfPolicyPermissions, data.payload.permissionItem) then
+                if commonFunctions:is_table_equal(tableOfPolicyPermissions, data1.payload.permissionItem) then
                     return true
                   else
                     return false
@@ -114,3 +118,7 @@ function Test:TestStep_Update_Policy_With_New_Permissions_And_Check_Them_In_OnPe
     end)
 end
 
+--[[ Postcondition ]]
+function Test:Postcondition_StopSDL()
+StopSDL()
+end
