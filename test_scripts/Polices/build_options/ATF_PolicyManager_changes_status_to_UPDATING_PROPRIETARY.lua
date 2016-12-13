@@ -1,85 +1,83 @@
 ---------------------------------------------------------------------------------------------
--- UnReady
--- Should be correct after testCasesForPolicyTableSnapshot will be implemented
---
--- Requirements summary:
--- [PolicyTableUpdate] PoliciesManager changes status to “UPDATING”
+-- Requirement summary:
+-- [PolicyTableUpdate] PoliciesManager changes status to "UPDATING"
 -- [HMI API] OnStatusUpdate
 --
 -- Description:
--- PoliciesManager must change the status to “UPDATING” and notify HMI with
--- OnStatusUpdate("UPDATING") right after SnapshotPT is sent out to to mobile
--- app via OnSystemRequest() RPC.
--- 1. Used preconditions
 -- SDL is built with "-DEXTENDED_POLICY: PROPRIETARY" flag
--- Application is registered.
--- PTU is requested.
--- SDL->HMI: SDL.OnStatusUpdate(UPDATE_NEEDED)
--- SDL->HMI:SDL.PolicyUpdate(file, timeout, retry[])
--- HMI -> SDL: SDL.GetURLs (<service>)
--- HMI->SDL: BasicCommunication.OnSystemRequest ('url', requestType:PROPRIETARY, appID="default")
+-- PoliciesManager must change the status to "UPDATING" and notify HMI with OnStatusUpdate("UPDATING")
+-- right after SnapshotPT is sent out to to mobile app via OnSystemRequest() RPC.
 --
--- 2. Performed steps
--- SDL->app: OnSystemRequest ('url', requestType:PROPRIETARY, fileType="JSON", appID)
+-- Steps:
+-- 1. Register new app
+-- 2. Trigger PTU
+-- 3. SDL->HMI: Verify step of SDL.OnStatusUpdate(UPDATING) notification in PTU sequence
+--
 -- Expected result:
--- SDL->HMI: SDL.OnStatusUpdate(UPDATING) right after SDL->app: OnSystemRequest
+-- SDL.OnStatusUpdate(UPDATING) notification is send right after SDL->MOB: OnSystemRequest
 ---------------------------------------------------------------------------------------------
-
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 
 --[[ Required Shared libraries ]]
-local commonSteps = require('user_modules/shared_testcases/commonSteps')
-local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
---local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
-local testCasesForPolicyTableSnapshot = require('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
+local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
+local commonSteps = require("user_modules/shared_testcases/commonSteps")
+local testCasesForPolicyTable = require("user_modules/shared_testcases/testCasesForPolicyTable")
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
-
---ToDo: shall be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
-config.defaultProtocolVersion = 2
+testCasesForPolicyTable.Delete_Policy_table_snapshot()
 
 --[[ General Settings for configuration ]]
-Test = require('connecttest')
-require('cardinalities')
-require('user_modules/AppTypes')
+Test = require("connecttest")
+require("user_modules/AppTypes")
+
+--[[ Preconditions ]]
+commonFunctions:newTestCasesGroup("Precondition")
+
+function Test:Precondition_trigger_getting_device_consent()
+  testCasesForPolicyTable:trigger_getting_device_consent(self, config.application1.registerAppInterfaceParams.appName, config.deviceMAC)
+end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
-function Test:TestStep_PoliciesManager_changes_status_UPDATING()
-  local SystemFilesPath = commonFunctions:read_parameter_from_smart_device_link_ini("SystemFilesPath")
+function Test:TestStep_CheckMessagesSequence()
   local is_test_fail = false
-  local endpoints = {}
-
-  for i = 1, #testCasesForPolicyTableSnapshot.pts_endpoints do
-    if (testCasesForPolicyTableSnapshot.pts_endpoints[i].service == "0x07") then
-      endpoints[#endpoints + 1] = { url = testCasesForPolicyTableSnapshot.pts_endpoints[i].value, appID = nil}
-    end
-
-    if (testCasesForPolicyTableSnapshot.pts_endpoints[i].service == "app1") then
-      endpoints[#endpoints + 1] = { url = testCasesForPolicyTableSnapshot.pts_endpoints[i].value, appID = testCasesForPolicyTableSnapshot.pts_endpoints[i].appID}
-    end
-  end
-
+  local message_number = 1
   local RequestId_GetUrls = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
-  EXPECT_HMIRESPONSE(RequestId_GetUrls,{result = {code = 0, method = "SDL.GetURLS", urls = endpoints} } )
+  EXPECT_HMIRESPONSE(RequestId_GetUrls)
   :Do(function(_,_)
-      self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",{ requestType = "PROPRIETARY", fileName = "PolicyTableUpdate"})
-      EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "PROPRIETARY"})
-      :Do(function(_,_)
-          local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest",
-            {requestType = "PROPRIETARY", fileName = "PolicyTableUpdate", appID = config.application1.registerAppInterfaceParams.appID}, "files/ptu.json")
+      self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest", { requestType = "PROPRIETARY", fileName = "PolicyTableUpdate"})
 
-          EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATING"})
+      if(message_number ~= 1) then
+        commonFunctions:printError("Error: SDL.GetURLS reponse is not received as message 1 after SDL.GetURLS request. Real: "..message_number)
+        is_test_fail = true
+      else
+        print("SDL.GetURLS is received as message "..message_number.." after SDL.GetURLS request")
+      end
+      message_number = message_number + 1
+    end)
 
-          EXPECT_HMICALL("BasicCommunication.SystemRequest",{ requestType = "PROPRIETARY", fileName = SystemFilesPath.."/PolicyTableUpdate" })
-          :Do(function(_,_data1)
-              self.hmiConnection:SendResponse(_data1.id,"BasicCommunication.SystemRequest", "SUCCESS", {})
-              --self.hmiConnection:SendNotification ("SDL.OnReceivedPolicyUpdate", { policyfile = SystemFilesPath.."/PolicyTableUpdate"})
-            end)
-          EXPECT_RESPONSE(CorIdSystemRequest, { success = true, resultCode = "SUCCESS"})
-        end)
+  EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "PROPRIETARY"})
+  :Do(function(_,_)
+      if( (message_number ~= 2) and (message_number ~= 3)) then
+        commonFunctions:printError("Error: SDL.OnStatusUpdate reponse is not received as message 2/3 after SDL.GetURLS request. Real: "..message_number)
+        is_test_fail = true
+      else
+        print("OnSystemRequest is received as message "..message_number.." after SDL.GetURLS request")
+      end
+      message_number = message_number + 1
+    end)
+
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",{status = "UPDATING"})
+  :Do(function(_,data)
+      if( (message_number ~= 2) and (message_number ~= 3)) then
+        commonFunctions:printError("Error: SDL.OnStatusUpdate reponse is not received as message 2/3 after SDL.GetURLS request. Real: "..message_number)
+        is_test_fail = true
+      else
+        print("SDL.OnStatusUpdate("..data.params.status..") is received as message "..message_number.." after SDL.GetURLS request")
+      end
+      message_number = message_number + 1
     end)
 
   if(is_test_fail == true) then
@@ -89,6 +87,8 @@ end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
-Test["StopSDL"] = function()
+function Test.Postcondition_StopSDL()
   StopSDL()
 end
+
+return Test
