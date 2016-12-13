@@ -18,6 +18,7 @@
 --[[ General Settings for configuration ]]
 Test = require('connecttest')
 require('cardinalities')
+require('user_modules/AppTypes')
 
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
@@ -25,13 +26,11 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 --[[ Required Shared libraries ]]
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
-local Preconditions = require('user_modules/shared_testcases/commonPreconditions')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
-require('user_modules/AppTypes')
 
 --[[ Preconditions ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
-Preconditions:BackupFile("sdl_preloaded_pt.json")
+testCasesForPolicyTable.Delete_Policy_table_snapshot()
 testCasesForPolicyTable:Precondition_updatePolicy_By_overwriting_preloaded_pt("files/Base4InPreDataConsent_preloaded_pt.json")
 
 --[[ Test ]]
@@ -69,8 +68,9 @@ end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
-
+testCasesForPolicyTable:Restore_preloaded_pt()
 function Test.Postcondition_SDLStop()
   StopSDL()
 end
-testCasesForPolicyTable:Restore_preloaded_pt()
+
+return Test
