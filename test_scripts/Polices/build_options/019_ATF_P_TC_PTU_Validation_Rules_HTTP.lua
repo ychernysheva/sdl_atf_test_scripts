@@ -1,16 +1,10 @@
--- UNREADY: 
---function Test:TestStep_PTU_validation_rules
---should be applicable for HTTP flag as well
-
 ---------------------------------------------------------------------------------------------
 -- Requirements summary:
 -- [PolicyTableUpdate] PTU validation rules
--- [HMI API] OnStatusUpdate
--- [HMI API] OnReceivedPolicyUpdate notification
 --
 -- Description:
 -- After Base-64 decoding, SDL must validate the Policy Table Update according to
--- S13j_Applink_Policy_Table_Data_Dictionary_040.xlsx rules: "required" fields must be present, 
+-- S13j_Applink_Policy_Table_Data_Dictionary_040.xlsx rules: "required" fields must be present,
 -- "optional" may be present but not obligatory, "ommited" - accepted to be present in PTU (PTU won't be rejected if the fields with option "ommited" exists)
 -- 1. Used preconditions
 -- SDL is built with "-DEXTENDED_POLICY: HTTP" flag
@@ -44,8 +38,7 @@ local testCasesForPolicyTableSnapshot = require('user_modules/shared_testcases/t
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
-
---ToDo: shall be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
+--TODO: Should be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
 config.defaultProtocolVersion = 2
 
 --[[ General Settings for configuration ]]
@@ -105,8 +98,9 @@ end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
-function Test:Postcondition_Force_Stop_SDL()
-  commonFunctions:SDLForceStop(self)
+
+function Test.Postcondition_Stop_SDL()
+  StopSDL()
 end
 
 return Test
