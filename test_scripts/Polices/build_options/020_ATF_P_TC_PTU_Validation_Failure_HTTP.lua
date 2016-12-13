@@ -1,14 +1,6 @@
--- UNREADY:
---function Test:TestStep_PTU_validation_failure()
---should be applicable for HTTP flag as well
---please also note that parameter appID should be used only with requestType = LAUNCH_APP
---according to APPLINK-18219
-
 ---------------------------------------------------------------------------------------------
 -- Requirements summary:
 -- [PolicyTableUpdate] PTU validation failure
--- [HMI API] OnStatusUpdate
--- [HMI API] OnReceivedPolicyUpdate notification
 --
 -- Description:
 -- In case PTU validation fails, SDL must log the error locally and discard the policy table update
@@ -42,12 +34,9 @@ local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local testCasesForPolicyTableSnapshot = require('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
 
---local testCasesForPolicyTableUpdateFile = require('user_modules/shared_testcases/testCasesForPolicyTableUpdateFile')
-
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
-
---TODO(mmihaylova-banska): Should be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
+--TODO: Should be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
 config.defaultProtocolVersion = 2
 
 --[[ General Settings for configuration ]]
@@ -76,28 +65,20 @@ function Test:TestStep_PTU_validation_failure()
     end
   end
 
-  testCasesForPolicyTableSnapshot:extract_pts({hmi_app_id})
-  local timeout_after_x_seconds = testCasesForPolicyTableSnapshot:get_data_from_PTS("module_config.timeout_after_x_seconds")
   local RequestId_GetUrls = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
   EXPECT_HMIRESPONSE(RequestId_GetUrls,{result = {code = 0, method = "SDL.GetURLS", urls = endpoints} } )
   :Do(function(_,_)
 
-      self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",
-        { fileType = "JSON", timeout = timeout_after_x_seconds, requestType = "HTTP", url = endpoints[1].url})
-      EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "HTTP",
-          fileType = "JSON",
-          url = endpoints[1].url,
-          timeout = timeout_after_x_seconds
-        })
+      self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",{ fileName = "PolicyTableUpdate", requestType = "HTTP", url = endpoints[1].url})
+      EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "HTTP", fileType = "JSON", url = endpoints[1].url,appID = config.application1.registerAppInterfaceParams.appID })
       :Do(function(_,_)
           local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", {requestType = "HTTP", fileName = "PolicyTableUpdate"},
           "files/jsons/Policies/PTU_ValidationRules/invalid_PTU_missing_seconds_between_retries.json")
 
           EXPECT_HMICALL("BasicCommunication.SystemRequest",{
               requestType = "HTTP",
-              fileName = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate"
-              --,appID = hmi_app_id
-            })
+              fileName = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate",
+              appID = hmi_app_id})
           :Do(function(_,_data1)
               self.hmiConnection:SendResponse(_data1.id,"BasicCommunication.SystemRequest", "SUCCESS", {})
               self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate",
@@ -123,8 +104,9 @@ end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
-function Test:Postcondition_Force_Stop_SDL()
-  commonFunctions:SDLForceStop(self)
+
+function Test.Postcondition_Stop_SDL()
+  StopSDL()
 end
 
 return Test
