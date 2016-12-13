@@ -32,6 +32,8 @@ local testCasesForPolicyTableSnapshot = require('user_modules/shared_testcases/t
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
+testCasesForPolicyTable.Delete_Policy_table_snapshot()
+testCasesForPolicyTable:Precondition_updatePolicy_By_overwriting_preloaded_pt("files/jsons/Policies/Policy_Table_Update/endpoints_appId.json")
 
 --ToDo: shall be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
 config.defaultProtocolVersion = 2
@@ -55,12 +57,8 @@ function Test:TestStep_Sending_PTS_to_mobile_application()
   local endpoints = {}
 
   for i = 1, #testCasesForPolicyTableSnapshot.pts_endpoints do
-    if (testCasesForPolicyTableSnapshot.pts_endpoints[i].service == "0x07") then
+    if (testCasesForPolicyTableSnapshot.pts_endpoints[i].service == config.application1.registerAppInterfaceParams.appID) then
       endpoints[#endpoints + 1] = { url = testCasesForPolicyTableSnapshot.pts_endpoints[i].value, appID = nil}
-    end
-
-    if (testCasesForPolicyTableSnapshot.pts_endpoints[i].service == "app1") then
-      endpoints[#endpoints + 1] = { url = testCasesForPolicyTableSnapshot.pts_endpoints[i].value, appID = testCasesForPolicyTableSnapshot.pts_endpoints[i].appID}
     end
   end
 
@@ -72,8 +70,7 @@ function Test:TestStep_Sending_PTS_to_mobile_application()
           requestType = "PROPRIETARY",
           fileName = "PolicyTableUpdate",
           url = endpoints[1].url,
-          --TODO(istoimenova): Should be updated after clarification "How to assign appID = "default" for OnSystemRequest notification?"
-          appID = "default" })
+          appID = config.application1.registerAppInterfaceParams.appID })
 
       EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY", fileType = "JSON", url = endpoints[1].url})
     end)
@@ -85,8 +82,9 @@ end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
-function Test:Postcondition_Force_Stop_SDL()
-  commonFunctions:SDLForceStop(self)
+testCasesForPolicyTable:Restore_preloaded_pt()
+function Test.Postcondition_StopSDL()
+  StopSDL()
 end
 
 return Test
