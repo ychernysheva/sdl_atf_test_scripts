@@ -1,6 +1,3 @@
--- UNREADY: 
---function Test:TestStep_PoliciesManager_changes_status_UPDATING()
---should be applicable for HTTP flag as well
 ---------------------------------------------------------------------------------------------
 -- Requirements summary:
 -- [PolicyTableUpdate] PoliciesManager changes status to “UPDATING”
@@ -18,7 +15,7 @@
 -- SDL->HMI:SDL.PolicyUpdate(file, timeout, retry[])
 -- HMI -> SDL: SDL.GetURLs (<service>)
 -- HMI->SDL: BasicCommunication.OnSystemRequest ('url', requestType:HTTP, appID="default")
--- 
+--
 -- 2. Performed steps
 -- SDL->app: OnSystemRequest ('url', requestType:HTTP, fileType="JSON", appID)
 -- Expected result:
@@ -31,13 +28,11 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 --[[ Required Shared libraries ]]
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
-local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
 local testCasesForPolicyTableSnapshot = require('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
-
---ToDo: shall be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
+--TODO: Should be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
 config.defaultProtocolVersion = 2
 
 --[[ General Settings for configuration ]]
@@ -46,8 +41,8 @@ require('cardinalities')
 require('user_modules/AppTypes')
 
 --[[ Test ]]
---TODO(mmihaylova-banska): Function should be implmented for HTTP flag 
 commonFunctions:newTestCasesGroup("Test")
+
 function Test:TestStep_PoliciesManager_changes_status_UPDATING()
   local SystemFilesPath = commonFunctions:read_parameter_from_smart_device_link_ini("SystemFilesPath")
   local is_test_fail = false
@@ -90,8 +85,9 @@ end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
-function Test:Postcondition_Force_Stop_SDL()
-  commonFunctions:SDLForceStop(self)
+
+function Test.Postcondition_Stop_SDL()
+  StopSDL()
 end
 
 return Test
