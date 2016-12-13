@@ -2317,7 +2317,7 @@
         "steal_focus": false,
         "priority": "NONE",
         "default_hmi": "NONE",
-	"heart_beat_timeout_ms":2000,
+	"heart_beat_timeout_ms":4000,
         "groups": [
           "BaseBeforeDataConsent"
         ]
