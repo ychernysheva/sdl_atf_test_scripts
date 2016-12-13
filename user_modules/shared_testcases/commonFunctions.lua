@@ -5,6 +5,7 @@
 ---------------------------------------------------------------------------------------------
 local commonFunctions = {}
 local json = require('json4lua/json/json')
+local events = require('events')
 
 ---------------------------------------------------------------------------------------------
 ------------------------------------------ Functions ----------------------------------------
@@ -684,14 +685,24 @@ function commonFunctions:Directory_exist(DirectoryPath)
 end
 
 -- Check file existence
-function commonFunctions:File_exists(file_name) 
-    local file_found=io.open(file_name, "r")  
-    if file_found==nil then
+function commonFunctions:File_exists(path) 
+  local file = io.open(path, "r")
+  if file == nil then
+    print("File doesnt exist, path:"..path)
+    return false
+  else
+    local ok, err, code = file:read(1)
+    local res_code_for_dir = 21
+    if code == res_code_for_dir then
+      print("It is path to directory")
+      file:close()
       return false
-    else
-      return true
     end
+  end
+  file:close()
+  return true
 end
+
 ---------------------------------------------------------------------------------------------
 --10. Functions for updated .ini file
 ---------------------------------------------------------------------------------------------
@@ -768,24 +779,6 @@ function commonFunctions:SDLForceStop(self)
   commonFunctions:sleep(1)
 end
 
-
-local function check_file_existing(path)
-  local file = io.open(path, "r")
-  if file == nil then
-    print("File doesnt exist, path:"..path)
-    assert(false)
-  else
-    local ok, err, code = file:read(1)
-    local res_code_for_dir = 21
-    if code == res_code_for_dir then
-      print("It is path to directory")
-      file:close()
-      assert(false)
-    end
-  end
-  file:close()
-end
-
 local function concatenation_path(path1, path2)
   local len = string.len(path1)
   if string.sub(path1, len, len) == '/' then
@@ -799,7 +792,7 @@ end
 ---------------------------------------------------------------------------------------------
 function commonFunctions:read_parameter_from_smart_device_link_ini(param_name)
   local path_to_ini_file = concatenation_path(config.pathToSDL, "smartDeviceLink.ini")
-  check_file_existing(path_to_ini_file)
+  assert(commonFunctions:File_exists(path_to_ini_file))
   local param_value  = nil
   for line in io.lines(path_to_ini_file) do
     if string.match(line, "^%s*"..param_name.."%s*=%s*") ~= nil then
@@ -823,7 +816,7 @@ end
 ---------------------------------------------------------------------------------------------
 function commonFunctions:write_parameter_to_smart_device_link_ini(param_name, param_value)
   local path_to_ini_file = concatenation_path(config.pathToSDL, "smartDeviceLink.ini")
-  check_file_existing(path_to_ini_file)
+  assert(commonFunctions:File_exists(path_to_ini_file))
   local new_file_content = ""
   local is_find_string = false
   local result = false
@@ -925,7 +918,7 @@ function commonFunctions:get_data_policy_sql(db_path, sql_query)
     print("Please specife name of column, don't use *")
     assert(false)
   end
-  check_file_existing(db_path)
+  assert(commonFunctions:File_exists(db_path))
   local commandToExecute = "sqlite3 "..db_path .." \""..sql_query.."\""
   local db = nil
   local time_to_wait_read_data = 1
@@ -980,7 +973,7 @@ end
 --! @param ptu_path path to PTU file
 --! @param ptu_name contains name of PTU file
 function commonFunctions:check_ptu_sequence_partly(self, ptu_path, ptu_name)
-  check_file_existing(ptu_path)
+  assert(commonFunctions:File_exists(ptu_path))
   local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest",
     {
       requestType = "HTTP",
@@ -988,42 +981,36 @@ function commonFunctions:check_ptu_sequence_partly(self, ptu_path, ptu_name)
     },ptu_path)
   EXPECT_HMICALL("BasicCommunication.SystemRequest"):Times(0)
   EXPECT_RESPONSE(CorIdSystemRequest, { success = true, resultCode = "SUCCESS"})
-  :Timeout(10000)
-  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate")
-      :ValidIf(function(exp,data)
-        if
-          exp.occurences == 1 and
-          data.params.status == "UPDATING" then
-          return true
-        elseif
-          exp.occurences == 2 and
-          data.params.status == "UP_TO_DATE" then
-          return true
-        else
-          return false
-        end
-      end):Times(2)
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status="UP_TO_DATE"})
+  EXPECT_HMICALL("VehicleInfo.GetVehicleData", {odometer=true}):Do(
+    function(_,data)
+  --hmi side: sending VehicleInfo.GetVehicleData response
+  self.hmiConnection:SendResponse(data.id,"VehicleInfo.GetVehicleData", "SUCCESS", {odometer=0})
+  end)
 end
 
 --------------------------------------------------------------------------------------------
---21. Function checks PTU sequence fully need to call when PTU is UP_TO_DATE, and PTU was triggerd. 
+--21. Function checks PTU sequence fully need to call when PTU is UP_TO_DATE, and PTU was triggerd.
 ---------------------------------------------------------------------------------------------
 --! @brief Checks PTU HTTP flow fully sequence
 --! @param ptu_path path to PTU file
 --! @param ptu_name contains name of PTU file
 function commonFunctions:check_ptu_sequence_fully(self, ptu_path, ptu_name)
   EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status="UPDATE_NEEDED"})
-  EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "HTTP"}) 
-  commonFunctions:check_ptu_sequence_partly(self, ptu_path, ptu_name)
+  EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "HTTP"})
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status="UPDATING"}):Do(
+    function()
+    commonFunctions:check_ptu_sequence_partly(self, ptu_path, ptu_name)
+    end)
 end
 
 --------------------------------------------------------------------------------------------
 --Function fills request parameters for subscribe unsubscrive vehicle data
 ---------------------------------------------------------------------------------------------
---! @brief Fills table with parameter for subscribe unsubscribe vehicle data request 
---! @param vehicle_data contains name of parameters
+--! @brief Fills table with parameter for subscribe unsubscribe vehicle data request
+--! @param vehicle_data contains name of parameters. That must be subcribed to vi info from HMI.
 --! @return Returns table with request parameters
-local function fill_request_parameters(vehicle_data)
+local function fill_parameters_for_vi_subscription_request(vehicle_data)
   local request_parameters={}
   for _, v in pairs(vehicle_data) do
     request_parameters[v] = true
@@ -1034,11 +1021,11 @@ end
 --------------------------------------------------------------------------------------------
 --Function fills response parameters for subscribe unsubscrive vehicle data
 ---------------------------------------------------------------------------------------------
---! @brief Fills table with parameter for subscribe unsubscribe vehicle data response 
+--! @brief Fills table with parameter for subscribe unsubscribe vehicle data response
 --! @param vehicle_data contains name of parameters
 --! @param result_codes contains table with result code for vehicle data params
 --! @return Returns table with response parameters
-local function fill_response_parameters(vehicle_data, result_codes)
+local function fill_parameters_for_vi_subscription_response(vehicle_data, result_codes)
   local SVDValues = {gps           = "VEHICLEDATA_GPS",
     speed         = "VEHICLEDATA_SPEED",
     rpm           = "VEHICLEDATA_RPM",
@@ -1062,17 +1049,11 @@ local function fill_response_parameters(vehicle_data, result_codes)
   }
   local response_parameters={}
   for _, v in pairs(vehicle_data) do
-    if  v == "clusterModeStatus" then
-      response_parameters["clusterModes"] = {
+    local key = v ~= "clusterModeStatus" and v or "clusterModes"
+    response_parameters[key] = {
           resultCode = result_codes[v],
           dataType = SVDValues[v]
       }
-    else
-      response_parameters[v] = {
-        resultCode = result_codes[v],
-        dataType = SVDValues[v]
-    }
-    end
   end
   return response_parameters
 end
@@ -1087,8 +1068,8 @@ end
 --! @param hmi_function_id contains function id for request to HMI
 --! @param mob_function_id contains function id for request from mobile
 local function sub_unsub_vehicle_data(self, vehicle_data, result_codes, hmi_function_id, mob_function_id)
-  local request_parameters = fill_request_parameters(vehicle_data)
-  local response_parameters = fill_response_parameters(vehicle_data, result_codes)
+  local request_parameters = fill_parameters_for_vi_subscription_request(vehicle_data)
+  local response_parameters = fill_parameters_for_vi_subscription_response(vehicle_data, result_codes)
   local CorId = self.mobileSession:SendRPC(mob_function_id, request_parameters)
   --hmi side: expect SubscribeVehicleData request
   EXPECT_HMICALL(hmi_function_id, request_parameters)
@@ -1098,7 +1079,6 @@ local function sub_unsub_vehicle_data(self, vehicle_data, result_codes, hmi_func
     end)
 
   EXPECT_RESPONSE(CorId, { success = true, resultCode = "SUCCESS"})
-  :Timeout(10000)
   --mobile side: expect OnHashChange notification
   EXPECT_NOTIFICATION("OnHashChange")
 end
@@ -1137,14 +1117,6 @@ function commonFunctions:trigger_ptu_by_odometer(self)
     "SELECT pt_exchanged_at_odometer_x FROM module_meta")
   local pt_exchange_odometer = tonumber(exchange_after_x_kilometers[1]) +
   tonumber(pt_exchange_at_odometer_x[1]) + 1
-  local vehicle_data = {"odometer"}
-  local result_codes = {odometer = "SUCCESS"}
-  commonFunctions:subscribe_to_vehicle_data(self, vehicle_data, result_codes)
   --hmi side: Trigger PTU update
-  local function run()
-    self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", {odometer = pt_exchange_odometer})
-  end
-  RUN_AFTER(run, 10000)
+  self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", {odometer = pt_exchange_odometer})
 end
-
-return commonFunctions
