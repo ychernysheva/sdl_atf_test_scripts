@@ -27,7 +27,7 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 local json = require("modules/json")
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require ('user_modules/shared_testcases/commonSteps')
-local mobile_session = require('mobile_session')
+local testCasesForPolicyTableSnapshot = require ('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
 require('cardinalities')
 require('user_modules/AppTypes')
 
@@ -37,9 +37,9 @@ local HMIAppId
 local APP_ID = "0000001"
 local APP_LANGUAGE = "ES-MX"
 
+
 local basic_ptu_file = "files/ptu.json"
 local ptu_first_app_registered = "files/ptu1app.json"
-local snapshot_path = "/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json"
 
 local TESTED_DATA = {
   preloaded = {
@@ -94,6 +94,9 @@ local TESTED_DATA = {
     }
   }
 }
+config.application1.registerAppInterfaceParams.appID = APP_ID
+config.application1.registerAppInterfaceParams.languageDesired = APP_LANGUAGE
+
 
 local TestData = {
   path = config.pathToSDL .. "TestData",
@@ -272,27 +275,16 @@ function Test.preparePreloadedPT()
   updateJSON(config.pathToSDL .. PRELOADED_PT_FILE_NAME, preloadedUpdaters)
 end
 
-local function updatePolicyInDifferentSessions(self, PTName, appName, mobileSession)
+function Test:updatePolicyInDifferentSessions(PTName, appName, mobileSession)
 
   local iappID = self.applications[appName]
-  --hmi side: sending SDL.GetURLS request
   local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
-
-  --hmi side: expect SDL.GetURLS response from HMI
   EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
   :Do(function(_,_)
-      --hmi side: sending BasicCommunication.OnSystemRequest request to SDL
-      self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",
-        {
-          requestType = "PROPRIETARY",
-          fileName = "filename",
-        }
-      )
-      --mobile side: expect OnSystemRequest notification
+      self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest", { requestType = "PROPRIETARY", fileName = "PolicyTableUpdate"} )
 
       mobileSession:ExpectNotification("OnSystemRequest", { requestType = "PROPRIETARY" })
       :Do(function(_,_)
-          --mobile side: sending SystemRequest request
           local CorIdSystemRequest = mobileSession:SendRPC("SystemRequest",
             {
               fileName = "PolicyTableUpdate",
@@ -302,98 +294,58 @@ local function updatePolicyInDifferentSessions(self, PTName, appName, mobileSess
             PTName)
 
           local systemRequestId
-          --hmi side: expect SystemRequest request
           EXPECT_HMICALL("BasicCommunication.SystemRequest")
           :Do(function(_,_data1)
-              systemRequestId = _data1.id
-              --print("BasicCommunication.SystemRequest is received")
-
-              --hmi side: sending BasicCommunication.OnSystemRequest request to SDL
-              self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate",
-                {
-                  policyfile = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate"
-                }
-              )
-              local function to_run()
-                --hmi side: sending SystemRequest response
-                self.hmiConnection:SendResponse(systemRequestId,"BasicCommunication.SystemRequest", "SUCCESS", {})
-              end
+            systemRequestId = _data1.id
+            self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate", { policyfile = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate"} )
+            local function to_run()
+              self.hmiConnection:SendResponse(systemRequestId,"BasicCommunication.SystemRequest", "SUCCESS", {})
+            end
 
               RUN_AFTER(to_run, 500)
-            end)
-
-          --hmi side: expect SDL.OnStatusUpdate
-          EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate")
-          :ValidIf(function(exp,data)
-              if
-              exp.occurences == 1 and
-              (data.params.status == "UP_TO_DATE" or data.params.status == "UPDATING"
-                or data.params.status == "UPDATE_NEEDED") then
-                return true
-              elseif
-                exp.occurences == 2 and
-                data.params.status == "UP_TO_DATE" then
-                  return true
-                else
-                  if
-                  exp.occurences == 2 then
-                    -- print ("\27[31m SDL.OnStatusUpdate came with wrong values. Expected in first occurrences status 'UP_TO_DATE' or 'UPDATING', got '" .. tostring(data.params.status) .. "' \27[0m")
-                    -- elseif exp.occurences == 2 then
-                    print ("\27[31m SDL.OnStatusUpdate came with wrong values. Expected in second occurrences status 'UP_TO_DATE', got '" .. tostring(data.params.status) .. "' \27[0m")
-
-                    return false
-                  end
-                end
-              end)
-            :Times(Between(1,2))
-
-            --mobile side: expect SystemRequest response
-            mobileSession:ExpectResponse(CorIdSystemRequest, { success = true, resultCode = "SUCCESS"})
-            :Do(function(_,_)
-                --hmi side: sending SDL.GetUserFriendlyMessage request to SDL
-                local RequestIdGetUserFriendlyMessage = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"StatusUpToDate"}})
-
-                --hmi side: expect SDL.GetUserFriendlyMessage response
-                EXPECT_HMIRESPONSE(RequestIdGetUserFriendlyMessage,{result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
-              end)
-
           end)
+          mobileSession:ExpectResponse(CorIdSystemRequest, { success = true, resultCode = "SUCCESS"})
       end)
+  end)
 
-  end
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",
+    {status = "UPDATING"}, {status = "UPDATE_NEEDED"}):Times(2)
 
-  local function activateAppInSpecificLevel(self, HMIAppID, hmi_level)
-    local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = HMIAppID, level = hmi_level})
+  EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
+end
 
-    EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = hmi_level, systemContext = "MAIN" })
-    --hmi side: expect SDL.ActivateApp response
-    EXPECT_HMIRESPONSE(RequestId)
-    :Do(function(_,data)
-        --In case when app is not allowed, it is needed to allow app
-        if data.result.isSDLAllowed ~= true then
-          --hmi side: sending SDL.GetUserFriendlyMessage request
-          RequestId = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage",
-            {language = "EN-US", messageCodes = {"DataConsent"}})
+local function activateAppInSpecificLevel(self, HMIAppID, hmi_level)
+  local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = HMIAppID, level = hmi_level})
 
-          EXPECT_HMIRESPONSE(RequestId)
-          :Do(function(_,_)
+  --hmi side: expect SDL.ActivateApp response
+  EXPECT_HMIRESPONSE(RequestId)
+  :Do(function(_,data)
+      --In case when app is not allowed, it is needed to allow app
+      if data.result.isSDLAllowed ~= true then
+        --hmi side: sending SDL.GetUserFriendlyMessage request
+        RequestId = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage",
+          {language = "EN-US", messageCodes = {"DataConsent"}})
 
-              --hmi side: send request SDL.OnAllowSDLFunctionality
-              self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality",
-                {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = "127.0.0.1"}})
+        EXPECT_HMIRESPONSE(RequestId)
+        :Do(function(_,_)
 
-              --hmi side: expect BasicCommunication.ActivateApp request
-              EXPECT_HMICALL("BasicCommunication.ActivateApp")
-              :Do(function(_,data2)
+            --hmi side: send request SDL.OnAllowSDLFunctionality
+            self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality",
+              {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = "127.0.0.1"}})
 
-                  --hmi side: sending BasicCommunication.ActivateApp response
-                  self.hmiConnection:SendResponse(data2.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
-                end)
-              -- :Times()
-            end)
-        end
-      end)
-  end
+            --hmi side: expect BasicCommunication.ActivateApp request
+            EXPECT_HMICALL("BasicCommunication.ActivateApp")
+            :Do(function(_,data2)
+
+                --hmi side: sending BasicCommunication.ActivateApp response
+                self.hmiConnection:SendResponse(data2.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
+              end)
+            -- :Times()
+          end)
+        EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = hmi_level, systemContext = "MAIN" })
+      end
+    end)
+end
 
   local function addApplicationToPTJsonFile(basic_file, new_pt_file, app_name, app_)
     local pt = io.open(basic_file, "r")
@@ -434,69 +386,34 @@ local function updatePolicyInDifferentSessions(self, PTName, appName, mobileSess
     addApplicationToPTJsonFile(basic_ptu_file, new_ptufile, name, app)
   end
 
-  --[[ Preconditions ]]
-  commonFunctions:newTestCasesGroup("Preconditions")
-
-  function Test:Precondition_StopSDL()
-    TestData:init(self)
-    StopSDL()
-  end
-
-  function Test:Precondition_PreparePreloadedPT()
-    commonSteps:DeletePolicyTable()
-    TestData:store("Store initial PreloadedPT", config.pathToSDL .. PRELOADED_PT_FILE_NAME, "initial_" .. PRELOADED_PT_FILE_NAME)
-    self.backupPreloadedPT("backup_")
-    self:preparePreloadedPT()
-    TestData:store("Store updated PreloadedPT", config.pathToSDL .. PRELOADED_PT_FILE_NAME, "updated_" .. PRELOADED_PT_FILE_NAME)
-  end
-
-  function Test:Precondition_StartSDL()
-    StartSDL(config.pathToSDL, config.ExitOnCrash, self)
-  end
-
-  function Test:Precondition_InitHMIandMobileApp()
-    self:initHMI()
-    self:initHMI_onReady()
-    self:connectMobile()
-    self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
-  end
-
   --[[ Test ]]
   commonFunctions:newTestCasesGroup("Test")
-
-  function Test:RegisterApp()
-    self.mobileSession:StartService(7)
-    :Do(function (_,_)
-        local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", TESTED_DATA.application.registerAppInterfaceParams)
-        EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
-        :Do(function(_,data)
-            HMIAppId = data.params.application.appID
-          end)
-        EXPECT_RESPONSE(correlationId, { success = true })
-        EXPECT_NOTIFICATION("OnPermissionsChange")
-      end)
-  end
-
   function Test.PreparePTData()
     PrepareJsonPTU1(APP_ID, ptu_first_app_registered)
   end
 
   function Test:ActivateApp()
+    HMIAppId = self.applications[config.application1.registerAppInterfaceParams.appName]
     activateAppInSpecificLevel(self,HMIAppId,"FULL")
   end
 
-  function Test:InitiatePTUForGetSnapshot()
-    EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
-    updatePolicyInDifferentSessions(Test, ptu_first_app_registered,
-      TESTED_DATA.application.registerAppInterfaceParams.appName, self.mobileSession)
-  end
+function Test:TestStep_Check_app_registration_language_vui_PTS()
+  local app_registration_language_vui = testCasesForPolicyTableSnapshot:get_data_from_PTS("usage_and_error_counts.app_level.0000001.app_registration_language_vui")
 
-  function Test:StopSDL2()
-    StopSDL(self)
+  if (app_registration_language_vui ~= APP_LANGUAGE) then
+    self:FailTestCase("app_registration_language_vui is not as Expected: "..APP_LANGUAGE..". Real: "..app_registration_language_vui)
   end
+end
 
-  function Test:CheckPTUinLocalPT()
-    TestData:store("Store LocalPT after test", constructPathToDatabase(), "final_policy.sqlite" )
+function Test:InitiatePTUForGetSnapshot()
+    self:updatePolicyInDifferentSessions(ptu_first_app_registered,
+      config.application1.registerAppInterfaceParams.appName,
+      self.mobileSession)
+    -- updatePolicyInDifferentSessions(Test, ptu_first_app_registered,
+    --   TESTED_DATA.application.registerAppInterfaceParams.appName, self.mobileSession)
+end
+
+function Test:CheckPTUinLocalPT()
     local checks = {
       {
         query = table.concat(
@@ -515,20 +432,7 @@ local function updatePolicyInDifferentSessions(self, PTName, appName, mobileSess
     if not self.checkLocalPT(checks) then
       self:FailTestCase("SDL has wrong values in LocalPT")
     end
-  end
-
-  function Test:CheckValueFromPTAfterSecondRegistration()
-    TestData:store("Store PT Snapshot after test", snapshot_path, "final_sdl_snapshot.json" )
-    local snapshot = assert(io.open(snapshot_path, "r"))
-    local fileContent = snapshot:read("*all")
-    snapshot.close()
-    local snapshot_table = json.decode(fileContent)
-    local actual_value = snapshot_table["policy_table"]["usage_and_error_counts"]["app_level"]["0000001"]["app_registration_language_vui"]
-    if actual_value ~= APP_LANGUAGE then
-      self:FailTestCase("Unexpected value in DB is :" .. tostring(actual_value))
-    end
-
-  end
+end
 
   --[[ Postconditions ]]
   commonFunctions:newTestCasesGroup("Postconditions")
@@ -539,4 +443,10 @@ local function updatePolicyInDifferentSessions(self, PTName, appName, mobileSess
     TestData:info()
   end
 
-  return Test
+--[[ Postconditions ]]
+commonFunctions:newTestCasesGroup("Postconditions")
+function Test.Postcondition_Stop()
+  StopSDL()
+end
+
+return Test
