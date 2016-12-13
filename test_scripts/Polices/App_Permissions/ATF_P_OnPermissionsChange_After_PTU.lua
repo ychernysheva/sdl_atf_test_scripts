@@ -58,7 +58,7 @@ function Test:TestStep_Assign_To_App_Default_Permissions_And_Check_Them_In_OnPer
             end)
           EXPECT_NOTIFICATION("OnPermissionsChange", {})
           :ValidIf(function(_,data1)
-              local tableOfPolicyPermissions = commonFunctions:convert_ptu_to_permissions_change_data("files/ptu_general_0000001.json", "Base-4", true)
+              local tableOfPolicyPermissions = commonFunctions:convert_ptu_to_permissions_change_data(config.pathToSDL .. "sdl_preloaded_pt.json", "Base-4", true)
                                commonFunctions:printTable(tableOfPolicyPermissions)
                   commonFunctions:printTable(data1.payload.permissionItem)
               if commonFunctions:is_table_equal(tableOfPolicyPermissions, data1.payload.permissionItem) then

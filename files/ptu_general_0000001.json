@@ -385,223 +385,7 @@
 					}
 				}
 			},
-			"Base-6": {
-				"rpcs": {
-					"AddCommand": {
-						"hmi_levels": ["BACKGROUND",
-						"FULL",
-						"LIMITED"]
-					},
-					"AddSubMenu": {
-						"hmi_levels": ["BACKGROUND",
-						"FULL",
-						"LIMITED"]
-					},
-					"Alert": {
-						"hmi_levels": ["FULL",
-						"LIMITED"]
-					},
-					"ChangeRegistration": {
-						"hmi_levels": ["BACKGROUND",
-						"FULL",
-						"LIMITED",
-						"NONE"]
-					},
-					"CreateInteractionChoiceSet": {
-						"hmi_levels": ["BACKGROUND",
-						"FULL",
-						"LIMITED"]
-					},
-					"DeleteCommand": {
-						"hmi_levels": ["BACKGROUND",
-						"FULL",
-						"LIMITED"]
-					},
-					"DeleteFile": {
-						"hmi_levels": ["BACKGROUND",
-						"FULL",
-						"LIMITED",
-						"NONE"]
-					},
-					"DeleteInteractionChoiceSet": {
-						"hmi_levels": ["BACKGROUND",
-						"FULL",
-						"LIMITED"]
-					},
-					"DeleteSubMenu": {
-						"hmi_levels": ["BACKGROUND",
-						"FULL",
-						"LIMITED"]
-					},
-					"EncodedSyncPData": {
-						"hmi_levels": ["BACKGROUND",
-						"FULL",
-						"LIMITED",
-						"NONE"]
-					},
-					"EndAudioPassThru": {
-						"hmi_levels": ["BACKGROUND",
-						"FULL",
-						"LIMITED"]
-					},
-					"GenericResponse": {
-						"hmi_levels": ["BACKGROUND",
-						"FULL",
-						"LIMITED"]
-					},
-					"ListFiles": {
-						"hmi_levels": ["BACKGROUND",
-						"FULL",
-						"LIMITED",
-						"NONE"]
-					},
-					"OnAppInterfaceUnregistered": {
-						"hmi_levels": ["BACKGROUND",
-						"FULL",
-						"LIMITED",
-						"NONE"]
-					},
-					"OnAudioPassThru": {
-						"hmi_levels": ["BACKGROUND",
-						"FULL",
-						"LIMITED"]
-					},
-					"OnButtonEvent": {
-						"hmi_levels": ["FULL",
-						"LIMITED"]
-					},
-					"OnButtonPress": {
-						"hmi_levels": ["FULL",
-						"LIMITED"]
-					},
-					"OnCommand": {
-						"hmi_levels": ["FULL",
-						"LIMITED"]
-					},
-					"OnDriverDistraction": {
-						"hmi_levels": ["BACKGROUND",
-						"FULL",
-						"LIMITED"]
-					},
-					"OnEncodedSyncPData": {
-						"hmi_levels": ["BACKGROUND",
-						"FULL",
-						"LIMITED",
-						"NONE"]
-					},
-					"OnHMIStatus": {
-						"hmi_levels": ["BACKGROUND",
-						"FULL",
-						"LIMITED",
-						"NONE"]
-					},
-					"OnLanguageChange": {
-						"hmi_levels": ["BACKGROUND",
-						"FULL",
-						"LIMITED",
-						"NONE"]
-					},
-					"OnPermissionsChange": {
-						"hmi_levels": ["BACKGROUND",
-						"FULL",
-						"LIMITED",
-						"NONE"]
-					},
-					"OnSyncPData": {
-						"hmi_levels": ["BACKGROUND",
-						"FULL",
-						"LIMITED",
-						"NONE"]
-					},
-					"OnTBTClientState": {
-						"hmi_levels": ["BACKGROUND",
-						"FULL",
-						"LIMITED"]
-					},
-					"PerformAudioPassThru": {
-						"hmi_levels": ["FULL",
-						"LIMITED"]
-					},
-					"PerformInteraction": {
-						"hmi_levels": ["FULL",
-						"LIMITED"]
-					},
-					"PutFile": {
-						"hmi_levels": ["BACKGROUND",
-						"FULL",
-						"LIMITED",
-						"NONE"]
-					},
-					"RegisterAppInterface": {
-						"hmi_levels": ["BACKGROUND",
-						"FULL",
-						"LIMITED",
-						"NONE"]
-					},
-					"ResetGlobalProperties": {
-						"hmi_levels": ["BACKGROUND",
-						"FULL",
-						"LIMITED"]
-					},
-					"ScrollableMessage": {
-						"hmi_levels": ["FULL"]
-					},
-					"SetAppIcon": {
-						"hmi_levels": ["BACKGROUND",
-						"FULL",
-						"LIMITED",
-						"NONE"]
-					},
-					"SetDisplayLayout": {
-						"hmi_levels": ["BACKGROUND",
-						"FULL",
-						"LIMITED",
-						"NONE"]
-					},
-					"SetGlobalProperties": {
-						"hmi_levels": ["BACKGROUND",
-						"FULL",
-						"LIMITED"]
-					},
-					"SetMediaClockTimer": {
-						"hmi_levels": ["FULL"]
-					},
-					"Show": {
-						"hmi_levels": ["BACKGROUND",
-						"FULL",
-						"LIMITED"]
-					},
-					"Slider": {
-						"hmi_levels": ["FULL"]
-					},
-					"Speak": {
-						"hmi_levels": ["FULL",
-						"LIMITED"]
-					},
-					"SubscribeButton": {
-						"hmi_levels": ["BACKGROUND",
-						"FULL",
-						"LIMITED"]
-					},
-					"SyncPData": {
-						"hmi_levels": ["BACKGROUND",
-						"FULL",
-						"LIMITED",
-						"NONE"]
-					},
-					"UnregisterAppInterface": {
-						"hmi_levels": ["BACKGROUND",
-						"FULL",
-						"LIMITED",
-						"NONE"]
-					},
-					"UnsubscribeButton": {
-						"hmi_levels": ["BACKGROUND",
-						"FULL",
-						"LIMITED"]
-					}
-				}
-			},
+			
 			"OnKeyboardInputOnlyGroup": {
 				"rpcs": {
 					"OnKeyboardInput": {
@@ -631,55 +415,7 @@
 			},
 			"BaseBeforeDataConsent": {
 				"rpcs": {
-					"ChangeRegistration": {
-						"hmi_levels": ["BACKGROUND",
-						"FULL",
-						"LIMITED",
-						"NONE"]
-					},
-					"DeleteFile": {
-						"hmi_levels": ["BACKGROUND",
-						"FULL",
-						"LIMITED",
-						"NONE"]
-					},
-					"EncodedSyncPData": {
-						"hmi_levels": ["BACKGROUND",
-						"FULL",
-						"LIMITED",
-						"NONE"]
-					},
-					"ListFiles": {
-						"hmi_levels": ["BACKGROUND",
-						"FULL",
-						"LIMITED",
-						"NONE"]
-					},
-					"OnAppInterfaceUnregistered": {
-						"hmi_levels": ["BACKGROUND",
-						"FULL",
-						"LIMITED",
-						"NONE"]
-					},
-					"OnEncodedSyncPData": {
-						"hmi_levels": ["BACKGROUND",
-						"FULL",
-						"LIMITED",
-						"NONE"]
-					},
-					"OnHashChange": {
-						"hmi_levels": ["BACKGROUND",
-						"FULL",
-						"LIMITED",
-						"NONE"]
-					},
 					"OnHMIStatus": {
-						"hmi_levels": ["BACKGROUND",
-						"FULL",
-						"LIMITED",
-						"NONE"]
-					},
-					"OnLanguageChange": {
 						"hmi_levels": ["BACKGROUND",
 						"FULL",
 						"LIMITED",
@@ -697,37 +433,13 @@
 						"LIMITED",
 						"NONE"]
 					},
-					"PutFile": {
-						"hmi_levels": ["BACKGROUND",
-						"FULL",
-						"LIMITED",
-						"NONE"]
-					},
 					"RegisterAppInterface": {
 						"hmi_levels": ["BACKGROUND",
 						"FULL",
 						"LIMITED",
 						"NONE"]
 					},
-					"ResetGlobalProperties": {
-						"hmi_levels": ["BACKGROUND",
-						"FULL",
-						"LIMITED",
-						"NONE"]
-					},
-					"SetGlobalProperties": {
-						"hmi_levels": ["BACKGROUND",
-						"FULL",
-						"LIMITED",
-						"NONE"]
-					},
 					"SetAppIcon": {
-						"hmi_levels": ["BACKGROUND",
-						"FULL",
-						"LIMITED",
-						"NONE"]
-					},
-					"SetDisplayLayout": {
 						"hmi_levels": ["BACKGROUND",
 						"FULL",
 						"LIMITED",
@@ -2107,7 +1819,7 @@
 				"steal_focus": true,
 				"priority": "NONE",
 				"default_hmi": "NONE",
-				"groups": ["Base-4", "Emergency-1"]
+				"groups": ["Base-8"]
 			},
 			"device": {
 				"keep_context": false,
