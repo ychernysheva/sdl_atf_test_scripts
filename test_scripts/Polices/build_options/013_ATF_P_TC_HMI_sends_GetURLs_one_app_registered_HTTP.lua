@@ -1,21 +1,16 @@
--- UNREADY:
--- Please note still not implemented functions:
--- testCasesForPolicyTable:flow_PTU_SUCCEESS_HTTP() and testCasesForPolicyTable:trigger_PTU_user_press_button_HMI
--- testCasesForPolicyTable:flow_PTU_SUCCEESS_HTTP() is still not included in testCasesForPolicyTable
-
 ---------------------------------------------------------------------------------------------
 -- Requirements summary:
 -- In case HMI sends GetURLs and at least one app is registered SDL must return only default url and url related to registered app
--- [HMI API] GetURLs request/response
 --
 -- Description:
--- SDL should request PTU in case user requests PTU
+-- In case HMI sends GetURLs (<serviceType>) AND at least one mobile app is registered
+-- SDL must: check "endpoint" section in PolicyDataBase, retrieve all urls related to requested <serviceType>,
+-- return only default url and url related to registered mobile app
 -- 1. Used preconditions
--- SDL is built with "EXTENDED_POLICY: HTTP" flag
+-- SDL is built with "DEXTENDED_POLICY: HTTP" flag
 -- Application is registered.
--- No PTU is requested.
+-- PTU is requested.
 -- 2. Performed steps
--- User press button on HMI to request PTU.
 -- HMI->SDL: SDL.GetURLs(service=0x07)
 --
 -- Expected result:
@@ -34,8 +29,7 @@ local testCasesForPolicyTableSnapshot = require('user_modules/shared_testcases/t
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
-
---TODO(mmihaylova-banska): Should be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
+--TODO: Should be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
 config.defaultProtocolVersion = 2
 
 --[[ General Settings for configuration ]]
@@ -43,17 +37,17 @@ Test = require('connecttest')
 require('cardinalities')
 require('user_modules/AppTypes')
 
---[[ Preconditions ]]
-commonFunctions:newTestCasesGroup("Preconditions")
---TODO(mmihaylova-banska): Function still not implemented
-function Test.Precondition_PTU_SUCCESS ()
-  testCasesForPolicyTable:flow_PTU_SUCCEESS_HTTP()
-end
+-- --[[ Preconditions ]]
+-- commonFunctions:newTestCasesGroup("Preconditions")
+-- --TODO(mmihaylova-banska): Function still not implemented
+-- function Test.Precondition_PTU_SUCCESS ()
+-- testCasesForPolicyTable:flow_PTU_SUCCEESS_HTTP()
+-- end
 
---TODO(mmihaylova-banska): Function still not implemented
-function Test.Precondition_Request_PTU ()
-  testCasesForPolicyTable:trigger_PTU_user_press_button_HMI()
-end
+-- --TODO(mmihaylova-banska): Function still not implemented
+-- function Test.Precondition_Request_PTU ()
+-- testCasesForPolicyTable:trigger_PTU_user_press_button_HMI()
+-- end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
@@ -81,6 +75,13 @@ function Test:TestStep_PTU_GetURLs()
         self:FailTestCase("endpoints for application doesn't exist!")
       end
     end)
+end
+
+--[[ Postcondition ]]
+commonFunctions:newTestCasesGroup("Postconditions")
+
+function Test.Postcondition_Stop_SDL()
+  StopSDL()
 end
 
 return Test
