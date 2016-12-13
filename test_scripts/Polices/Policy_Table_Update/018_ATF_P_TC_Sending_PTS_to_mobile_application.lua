@@ -58,34 +58,20 @@ function Test:TestStep_Sending_PTS_to_mobile_application()
     if (testCasesForPolicyTableSnapshot.pts_endpoints[i].service == "0x07") then
       endpoints[#endpoints + 1] = { url = testCasesForPolicyTableSnapshot.pts_endpoints[i].value, appID = nil}
     end
-
-    if (testCasesForPolicyTableSnapshot.pts_endpoints[i].service == "app1") then
-      endpoints[#endpoints + 1] = { url = testCasesForPolicyTableSnapshot.pts_endpoints[i].value, appID = testCasesForPolicyTableSnapshot.pts_endpoints[i].appID}
-    end
   end
 
   local RequestId_GetUrls = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
 
   EXPECT_HMIRESPONSE(RequestId_GetUrls,{result = {code = 0, method = "SDL.GetURLS", urls = endpoints} } )
-  :Do(function(_,data)
-      local app_urls = {}
-      for i = 1, #data.result.urls do
-        if(data.result.urls[i].appID == self.applications[config.application1.registerAppInterfaceParams.appName]) then
-          app_urls = data.result.urls[i]
-        else
-          app_urls = endpoints[1]
-          commonFunctions:printError("endpoints for application doesn't exist!")
-          is_test_fail = true
-        end
-      end
+  :Do(function(_,_)
 
       self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",{
           requestType = "PROPRIETARY",
           fileName = "PolicyTableUpdate",
-          url = app_urls.url,
-          appID = app_urls.appID })
+          url = endpoints[1].url,
+          appID = endpoints[1].appID })
 
-      EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY", fileType = "JSON", url = {app_urls.url}})
+      EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY", fileType = "JSON", url = endpoints[1].url})
     end)
 
   if(is_test_fail == true) then
@@ -95,8 +81,8 @@ end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
-function Test:Postcondition_Force_Stop_SDL()
-  commonFunctions:SDLForceStop(self)
+function Test.Postcondition_StopSDL()
+  StopSDL()
 end
 
 return Test
