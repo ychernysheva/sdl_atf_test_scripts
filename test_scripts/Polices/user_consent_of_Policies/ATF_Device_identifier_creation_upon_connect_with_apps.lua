@@ -20,13 +20,11 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 --[[ Required Shared libraries ]]
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
-local testCasesForPolicyTableSnapshot = require('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
 local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 local mobile_session = require('mobile_session')
 
 --[[ Local variables ]]
---local ServerAddress = commonFunctions:read_parameter_from_smart_device_link_ini("ServerAddress")
 testCasesForPolicyTable:Precondition_updatePolicy_By_overwriting_preloaded_pt("files/jsons/Policy/Related_HMI_API/OnAppPermissionConsent.json")
 
 --[[ General Precondition before ATF start ]]
@@ -79,21 +77,33 @@ end
 commonFunctions:newTestCasesGroup("Test")
 
 function Test:Check_LocalPT_for_device_identifier()
-  local is_test_fail = false
-  local device_data = testCasesForPolicyTableSnapshot:get_data_from_PTS("device_data")
-  print("device_data" ..tostring(device_data))
-  if(device_data ~= "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0") then
-    commonFunctions:printError("Error: device_data is missing")
-    is_test_fail = true
+  local query
+  if commonSteps:file_exists(config.pathToSDL .. "storage/policy.sqlite") then
+    query = "sqlite3 " .. config.pathToSDL .. "storage/policy.sqlite".. " \"select device_identifier from device_data\""
+  elseif commonSteps:file_exists(config.pathToSDL .. "policy.sqlite") then
+    query = "sqlite3 " .. config.pathToSDL .. "policy.sqlite".. " \"select device_identifier from device_data\""
+  else commonFunctions:userPrint(31, "policy.sqlite is not found")
   end
-  if(is_test_fail == true) then
-    self:FailTestCase("Test is FAILED")
+
+  if query ~= nil then
+    os.execute("sleep 3")
+    local handler = io.popen(query, 'r')
+    os.execute("sleep 1")
+    local result = handler:read( '*l' )
+    handler:close()
+
+    print(result)
+    if result == "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0" then
+      return true
+    else
+      self:FailTestCase("device_identifier in DB has unexpected value: " .. tostring(result))
+      return false
+    end
   end
 end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
-
 function Test.Postcondition_SDLForceStop()
-  commonFunctions:SDLForceStop()
+  StopSDL()
 end
