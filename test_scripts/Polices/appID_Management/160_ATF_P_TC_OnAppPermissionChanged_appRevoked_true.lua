@@ -55,8 +55,8 @@ function Test:Pre_StartNewSession()
 end
 
 function Test:RegisterNewApp()
-  config.application1.registerAppInterfaceParams.appName = "App_test"
-  config.application1.registerAppInterfaceParams.appID = "123abc"
+  config.application2.registerAppInterfaceParams.appName = "App_test"
+  config.application2.registerAppInterfaceParams.appID = "123abc"
   local correlationId = self.mobileSession2:SendRPC("RegisterAppInterface", config.application2.registerAppInterfaceParams)
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
   :Do(function(_,data)
@@ -71,7 +71,6 @@ end
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 function Test:PerformPTU_Check_OnAppPermissionChanged()
-  EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
   testCasesForPolicyAppIdManagament:updatePolicyTable(self, "files/jsons/Policies/appID_Management/ptu_23511.json")
   EXPECT_HMINOTIFICATION("SDL.OnAppPermissionChanged", { appRevoked = true, appID = HMIAppID})
 end
