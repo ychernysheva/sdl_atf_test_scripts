@@ -4,7 +4,10 @@
             "0000001": {
                 "groups": ["Base-4", "Base-6"],
                 "priority": "NONE",
-                "nicknames": ["App1"]
+		"keep_context": false,
+                "steal_focus": false,
+		"default_hmi": "NONE",
+		"nicknames": ["App1"]	
             },
             "default": {
                 "keep_context": false,

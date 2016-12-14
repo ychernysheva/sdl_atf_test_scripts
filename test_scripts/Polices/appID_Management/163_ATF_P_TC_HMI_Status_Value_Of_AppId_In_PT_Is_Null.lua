@@ -74,7 +74,6 @@ function Test:ActivateApp()
 end
 
 function Test:Precondition_UpdatePolicy()
-  EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
   testCasesForPolicyAppIdManagament:updatePolicyTable(self, "files/jsons/Policies/appID_Management/ptu_013_2.json")
   self.mobileSession2:ExpectNotification("OnHMIStatus", { hmiLevel ="NONE", systemContext = "MAIN", audioStreamingState = "NOT_AUDIBLE" })
 end
@@ -84,7 +83,7 @@ commonFunctions:newTestCasesGroup("Test")
 function Test:TestStep_ActivateApp()
   local requestId = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = HMIAppID})
   -- code = 4: REJECTED
-  EXPECT_HMIRESPONSE(requestId,{result = {code = 4, method = "SDL.ActivateApp"}})
+  EXPECT_HMIRESPONSE(requestId,{result = {code = 4, isAppRevoked = true, method = "SDL.ActivateApp"}})
   self.mobileSession2:ExpectNotification("OnHMIStatus", { hmiLevel = "NONE" })
 end
 
