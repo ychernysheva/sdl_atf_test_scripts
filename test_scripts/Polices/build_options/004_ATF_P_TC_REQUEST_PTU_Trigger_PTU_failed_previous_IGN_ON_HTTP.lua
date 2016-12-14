@@ -46,10 +46,10 @@ require('user_modules/AppTypes')
 local mobile_session = require('mobile_session')
 
 --[[ Preconditions ]]
-commonFunctions:newTestCasesGroup("Preconditions")
+commonFunctions:newTestCasesGroup("Preconditions")  
 
 function Test:Precondition_HTTP_Successful_Flow ()
-  testCasesForPolicyTable.flow_PTU_SUCCEESS_HTTP (self)
+  commonFunctions:check_ptu_sequence_partly(self, "files/ptu_general.json", "ptu_general.json")
 end
 
 function Test:Precondition_StartNewSession()
@@ -60,12 +60,13 @@ end
 function Test:Precondition_RegisterNewApplication()
   hmi_app_id1 = self.applications[config.application1.registerAppInterfaceParams.appName]
   local correlationId = self.mobileSession1:SendRPC("RegisterAppInterface", config.application2.registerAppInterfaceParams)
+   EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
 
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application2.registerAppInterfaceParams.appName } })
   :Do(function(_,_data2)
       hmi_app_id2 = _data2.params.application.appID
 
-      EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
+      EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATING"})
 
       testCasesForPolicyTableSnapshot:verify_PTS(true,
         {config.application1.registerAppInterfaceParams.appID, config.application2.registerAppInterfaceParams.appID},
@@ -77,17 +78,7 @@ function Test:Precondition_RegisterNewApplication()
       for i = 1, #testCasesForPolicyTableSnapshot.pts_seconds_between_retries do
         seconds_between_retries[i] = testCasesForPolicyTableSnapshot.pts_seconds_between_retries[i].value
       end
-
-      EXPECT_HMICALL("BasicCommunication.PolicyUpdate",
-        {
-          file = "/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json",
-          timeout = timeout_after_x_seconds,
-          retry = seconds_between_retries
-        })
-      :Do(function(_,_data3)
-          self.hmiConnection:SendResponse(_data3.id, _data3.method, "SUCCESS", {})
-        end)
-    end)
+     end)
   self.mobileSession1:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS"})
 end
 
@@ -115,10 +106,6 @@ function Test:Precondtion_initHMI_onReady()
   self:initHMI_onReady()
 end
 
-function Test:Precondtion_initHMI_onReady()
-  self:connectMobile()
-end
-
 function Test:Precondtion_ConnectMobile()
   self:connectMobile()
 end
@@ -133,10 +120,11 @@ commonFunctions:newTestCasesGroup("Test")
 
 function Test:TestStep_PTU_NotSuccessful_AppID_ListedPT_NewIgnCycle()
   local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
+   EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
 
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application1.appName } })
   :Do(function(_,_)
-      EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
+      EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATING"})
 
       testCasesForPolicyTableSnapshot:verify_PTS(true,
         {config.application1.registerAppInterfaceParams.appID, config.application2.registerAppInterfaceParams.appID},
@@ -148,16 +136,6 @@ function Test:TestStep_PTU_NotSuccessful_AppID_ListedPT_NewIgnCycle()
       for i = 1, #testCasesForPolicyTableSnapshot.pts_seconds_between_retries do
         seconds_between_retries[i] = testCasesForPolicyTableSnapshot.pts_seconds_between_retries[i].value
       end
-
-      EXPECT_HMICALL("BasicCommunication.PolicyUpdate",
-        {
-          file = "/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json",
-          timeout = timeout_after_x_seconds,
-          retry = seconds_between_retries
-        })
-      :Do(function(_,_data4)
-          self.hmiConnection:SendResponse(_data4.id, _data4.method, "SUCCESS", {})
-        end)
     end)
 
   self.mobileSession:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS"})
