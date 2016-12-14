@@ -1,4 +1,5 @@
 ---------------------------------------------------------------------------------------------
+-- HTTP flow
 -- Requirements summary:
 -- [PolicyTableUpdate] PTU validation rules
 --
@@ -8,98 +9,155 @@
 -- "optional" may be present but not obligatory, "ommited" - accepted to be present in PTU (PTU won't be rejected if the fields with option "ommited" exists)
 -- 1. Used preconditions
 -- SDL is built with "-DEXTENDED_POLICY: HTTP" flag
--- Application is registered.
--- PTU is requested.
+-- Application is registered
+-- PTU is requested
 -- SDL->HMI: SDL.OnStatusUpdate(UPDATE_NEEDED)
--- SDL->HMI:SDL.PolicyUpdate(file, timeout, retry[])
--- HMI -> SDL: SDL.GetURLs (<service>)
--- HMI->SDL: BasicCommunication.OnSystemRequest ('url', requestType:HTTP, appID="default")
--- SDL->app: OnSystemRequest ('url', requestType:HTTP, fileType="JSON", appID)
--- app->SDL: SystemRequest(requestType=HTTP)
--- HMI->SDL: SystemRequest(SUCCESS)
+-- SDL->MOB: OnSystemRequest()
 -- SDL->HMI: SDL.OnStatusUpdate(UPDATING)
 -- 2. Performed steps
--- HMI->SDL: OnReceivedPolicyUpdate(policy_file): policy_file all sections in data dictionary + omit
+-- app->SDL:SystemRequest(requestType=HTTP), policy_file: all sections in data dictionary + optional + omit
 --
 -- Expected result:
 -- SDL->HMI: OnStatusUpdate(UP_TO_DATE)
 -- SDL stops timeout started by OnSystemRequest. No other OnSystemRequest messages are received.
 ---------------------------------------------------------------------------------------------
-
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 
 --[[ Required Shared libraries ]]
-local commonSteps = require('user_modules/shared_testcases/commonSteps')
-local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
-local testCasesForPolicyTableSnapshot = require('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
+local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
+local commonSteps = require("user_modules/shared_testcases/commonSteps")
+local testCasesForBuildingSDLPolicyFlag = require('user_modules/shared_testcases/testCasesForBuildingSDLPolicyFlag')
+local json = require("modules/json")
 
---local testCasesForPolicyTableUpdateFile = require('user_modules/shared_testcases/testCasesForPolicyTableUpdateFile')
+--[[ Local Variables ]]
+local sequence = { }
+local app_id = config.application1.registerAppInterfaceParams.appID
+local f_name = os.tmpname()
+local ptu
+local actual_request_type
+local actual_num_of_system_request = 0
+
+--[[ Local Functions ]]
+local function timestamp()
+  local f = io.popen("date +%H:%M:%S.%3N")
+  local o = f:read("*all")
+  f:close()
+  return (o:gsub("\n", ""))
+end
+
+local function log(event, ...)
+  table.insert(sequence, { ts = timestamp(), e = event, p = {...} })
+end
+
+local function show_log()
+  print("--- Sequence -------------------------------------")
+  for k, v in pairs(sequence) do
+    local s = k .. ": " .. v.ts .. ": " .. v.e
+    for _, val in pairs(v.p) do
+      if val then s = s .. ": " .. val end
+    end
+    print(s)
+  end
+  print("--------------------------------------------------")
+end
 
 --[[ General Precondition before ATF start ]]
+testCasesForBuildingSDLPolicyFlag:CheckPolicyFlagAfterBuild("PROPRIETARY")
+commonFunctions:SDLForceStop()
 commonSteps:DeleteLogsFileAndPolicyTable()
---TODO: Should be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
-config.defaultProtocolVersion = 2
 
 --[[ General Settings for configuration ]]
-Test = require('connecttest')
-require('cardinalities')
-require('user_modules/AppTypes')
+Test = require("connecttest")
+require("user_modules/AppTypes")
+config.defaultProtocolVersion = 2
 
---[[ Test ]]
-commonFunctions:newTestCasesGroup("Test")
-function Test:TestStep_PTU_validation_rules()
-  local is_test_fail = false
-  local endpoints = {}
-  local hmi_app_id = self.applications[config.application1.registerAppInterfaceParams.appName]
-  print("hmi_app_id = " ..hmi_app_id)
+--[[ Specific Notifications ]]
+EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate")
+:Do(function(_, d)
+    log("SDL->HMI: SDL.OnStatusUpdate()", d.params.status)
+  end)
+:Times(AnyNumber())
+:Pin()
 
-  for i = 1, #testCasesForPolicyTableSnapshot.pts_endpoints do
-    if (testCasesForPolicyTableSnapshot.pts_endpoints[i].service == "0x07") then
-      endpoints[#endpoints + 1] = { url = testCasesForPolicyTableSnapshot.pts_endpoints[i].value, appID = nil}
-    end
-
-    if (testCasesForPolicyTableSnapshot.pts_endpoints[i].service == "app1") then
-      endpoints[#endpoints + 1] = {
-        url = testCasesForPolicyTableSnapshot.pts_endpoints[i].value,
-        appID = testCasesForPolicyTableSnapshot.pts_endpoints[i].appID}
-    end
-  end
-
-  local RequestId_GetUrls = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
-  EXPECT_HMIRESPONSE(RequestId_GetUrls,{result = {code = 0, method = "SDL.GetURLS", urls = endpoints} } )
-  :Do(function(_,_)
-
-      self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",{ fileName = "PolicyTableUpdate", requestType = "HTTP", url = endpoints[1].url})
-      EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "HTTP", fileType = "JSON", url = endpoints[1].url,appID = config.application1.registerAppInterfaceParams.appID })
-      :Do(function(_,_)
-          local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", {requestType = "HTTP", fileName = "PolicyTableUpdate"}, "files/jsons/Policies/PTU_ValidationRules/valid_PTU_all_sections.json")
-
-          EXPECT_HMICALL("BasicCommunication.SystemRequest",{
-              requestType = "HTTP",
-              fileName = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate",
-              appID = hmi_app_id})
-          :Do(function(_,_data1)
-              self.hmiConnection:SendResponse(_data1.id,"BasicCommunication.SystemRequest", "SUCCESS", {})
-              self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate",
-                { policyfile = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate"})
-
-              EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UP_TO_DATE"})
-            end)
-
-          EXPECT_RESPONSE(CorIdSystemRequest, { success = true, resultCode = "SUCCESS"})
-        end)
+function Test:RegisterNotification()
+  self.mobileSession:ExpectNotification("OnSystemRequest")
+  :Do(function(_, d)
+      log("SDL->MOB: OnSystemRequest()", d.payload.requestType, d.payload.url)
+      ptu = json.decode(d.binaryData)
+      actual_request_type = d.payload.requestType
+      actual_num_of_system_request = actual_num_of_system_request + 1
     end)
+  :Times(AnyNumber())
+  :Pin()
+end
 
-  if(is_test_fail == true) then
-    self:FailTestCase("Test is FAILED. See prints.")
+--[[ Preconditions ]]
+commonFunctions:newTestCasesGroup("Preconditions")
+
+function Test:ValidatePTS()
+  if ptu.policy_table.consumer_friendly_messages.messages then
+    self:FailTestCase("Expected absence of 'consumer_friendly_messages.messages' section in PTS")
   end
+end
+
+function Test.UpdatePTS()
+  ptu.policy_table.device_data = nil
+  ptu.policy_table.usage_and_error_counts = nil
+  ptu.policy_table.app_policies[app_id] = { keep_context = false, steal_focus = false, priority = "NONE", default_hmi = "NONE" }
+  ptu.policy_table.app_policies[app_id]["groups"] = { "Base-4", "Base-6" }
+  ptu.policy_table.functional_groupings["DataConsent-2"].rpcs = json.null
+  -- optional fields
+  ptu.policy_table.module_config.vehicle_make = "Vehicle_Make"
+  ptu.policy_table.module_config.vehicle_model = "Vehicle_Model"
+  ptu.policy_table.module_config.vehicle_year = "2000"
+  ptu.policy_table.app_policies[app_id].memory_kb = 1024
+  ptu.policy_table.app_policies[app_id].heart_beat_timeout_ms = 5000
+end
+
+function Test.StorePTSInFile()
+  local f = io.open(f_name, "w")
+  f:write(json.encode(ptu))
+  f:close()
+end
+
+function Test:Update_LPT()
+  local corId = self.mobileSession:SendRPC("SystemRequest", { requestType = "HTTP", fileName = "PolicyTableUpdate" }, f_name)
+  EXPECT_RESPONSE(corId, { success = true, resultCode = "SUCCESS" })
+end
+
+function Test.Test_ShowSequence()
+  show_log()
 end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
 
-function Test.Postcondition_Stop_SDL()
+function Test:Validate_OnSystemRequest_Type()
+  local expected_request_type = "HTTP"
+  if expected_request_type ~= actual_request_type then
+    local msg = table.concat({
+        "\nExpected OnSystemRequest() type is '", expected_request_type,
+        "'\nActual: '", actual_request_type, "'"})
+    self:FailTestCase(msg)
+  end
+end
+
+function Test:Validate_OnSystemRequest_Quantity()
+  local expected_num_of_system_request = 1
+  if expected_num_of_system_request ~= actual_num_of_system_request then
+    local msg = table.concat({
+        "\nExpected number of OnSystemRequest() notifications is '", expected_num_of_system_request,
+        "'\nActual: '", actual_num_of_system_request, "'"})
+    self:FailTestCase(msg)
+  end
+end
+
+function Test.Clean()
+  os.remove(f_name)
+end
+
+function Test.Postconditions_StopSDL()
   StopSDL()
 end
 
