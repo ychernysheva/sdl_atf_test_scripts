@@ -1,5 +1,3 @@
---UNREADY
---Update function for checking LPT
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
 --    [Policies] Factory Reset
