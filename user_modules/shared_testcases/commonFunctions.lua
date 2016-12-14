@@ -258,10 +258,10 @@ function commonFunctions:setValueForParameter(Request, Parameter, Value)
   temp[Parameter[#Parameter]] = Value
 
 -- Due to Lua specific empty array defines as empty structure (APPLINK-15292). For testing addressLines in GetWayPoints (CRQ APPLINK-21610) response use next condition.
-  if  Value == nil and Parameter[#Parameter-1] == "addressLines" then 
+  if  Value == nil and Parameter[#Parameter-1] == "addressLines" then
 print("Check success response in SDL logs. Due to APPLINK-15292 ATF fails next case")
 
-    temp[Parameter[#Parameter]] = json.EMPTY_ARRAY 
+    temp[Parameter[#Parameter]] = json.EMPTY_ARRAY
   end
 
   --[=[print request if parameter matches Debug value
@@ -685,7 +685,7 @@ function commonFunctions:Directory_exist(DirectoryPath)
 end
 
 -- Check file existence
-function commonFunctions:File_exists(path) 
+function commonFunctions:File_exists(path)
   local file = io.open(path, "r")
   if file == nil then
     print("File doesnt exist, path:"..path)
@@ -765,7 +765,7 @@ end
 --13. Functions for put to sleep thread
 ---------------------------------------------------------------------------------------------
 --! @brief Put to sleep thread for n seconds
---! @param n contains ammount of seconds 
+--! @param n contains ammount of seconds
 function commonFunctions:sleep(n)
   os.execute("sleep " .. tonumber(n))
 end
@@ -784,7 +784,7 @@ local function concatenation_path(path1, path2)
   if string.sub(path1, len, len) == '/' then
     return path1..path2
   end
-  return path1..'/'..path2 
+  return path1..'/'..path2
 end
 
 ---------------------------------------------------------------------------------------------
@@ -912,7 +912,7 @@ function os.capture(cmd, raw)
 --! "SELECT functional_group_id FROM app_group WHERE application_id='0000001'"
 --! "SELECT functional_group_id FROM app_group WHERE application_id='0000001'"
 --! "SELECT functional_group_id FROM app_group WHERE application_id=\\\"0000001\\\""
---! @returns table with values from column with specified name 
+--! @returns table with values from column with specified name
 function commonFunctions:get_data_policy_sql(db_path, sql_query)
   if string.match(sql_query, "^%a+%s*%*%s*%a+") ~= nil then
     print("Please specife name of column, don't use *")
@@ -1120,3 +1120,6 @@ function commonFunctions:trigger_ptu_by_odometer(self)
   --hmi side: Trigger PTU update
   self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", {odometer = pt_exchange_odometer})
 end
+
+
+return commonFunctions
