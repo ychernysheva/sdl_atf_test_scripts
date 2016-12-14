@@ -46,6 +46,14 @@ require('user_modules/AppTypes')
 
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
+function Test:Precondition_trigger_getting_device_consent()
+  testCasesForPolicyTable:trigger_getting_device_consent(self, config.application1.registerAppInterfaceParams.appName, config.deviceMAC)
+end
+
+function Test:Precondition_ExitApplication()
+  self.hmiConnection:SendNotification("BasicCommunication.OnExitApplication", {appID = self.applications["Test Application"], reason = "USER_EXIT"})
+  EXPECT_NOTIFICATION("OnHMIStatus", { systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE"})
+end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
@@ -53,15 +61,13 @@ commonFunctions:newTestCasesGroup("Test")
 function Test:TestStep_User_consent_on_activate_app()
   local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.applications[config.application1.registerAppInterfaceParams.appName]})
 
-  EXPECT_HMIRESPONSE(RequestId)
+  EXPECT_HMIRESPONSE(RequestId,{ isPermissionsConsentNeeded = true })
   :Do(function(_,_)
 
-      local RequestId1 = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
+      local RequestId1 = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"allowedFunctions"}})
       --hmi side: expect SDL.GetUserFriendlyMessage message response
       EXPECT_HMIRESPONSE( RequestId1, {result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
       :Do(function(_,_)
-          self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality",
-            {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = ServerAddress, isSDLAllowed = true}})
 
           local request_id_list_of_permissions = self.hmiConnection:SendRequest("SDL.GetListOfPermissions", { appID = self.applications[config.application1.registerAppInterfaceParams.appName] })
           EXPECT_HMIRESPONSE(request_id_list_of_permissions)
@@ -69,7 +75,10 @@ function Test:TestStep_User_consent_on_activate_app()
               local groups = {}
               if #data.result.allowedFunctions > 0 then
                 for i = 1, #data.result.allowedFunctions do
-                  groups[i] = data.result.allowedFunctions[i]
+                   groups[i] = {
+                                name = data.result.allowedFunctions[i].name,
+                                id = data.result.allowedFunctions[i].id,
+                                allowed = true}
                 end
               end
 
@@ -83,9 +92,6 @@ function Test:TestStep_User_consent_on_activate_app()
         end)
     end)
 
-  EXPECT_HMICALL("BasicCommunication.ActivateApp")
-  :Do(function(_,data) self.hmiConnection:SendResponse(data.id,"BasicCommunication.ActivateApp", "SUCCESS", {}) end)
-
   EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"})
 end
 
@@ -97,14 +103,8 @@ function Test:TestStep_check_LocalPT_for_updates()
 
   EXPECT_HMICALL("BasicCommunication.PolicyUpdate",{})
   :Do(function(_,data)
-      testCasesForPolicyTableSnapshot:extract_pts({self.applications[config.application1.registerAppInterfaceParams.appName]})
       local app_consent_location = testCasesForPolicyTableSnapshot:get_data_from_PTS("device_data."..config.deviceMAC..".user_consent_records."..config.application1.registerAppInterfaceParams.appID..".consent_groups.Location")
       local app_consent_notifications = testCasesForPolicyTableSnapshot:get_data_from_PTS("device_data."..config.deviceMAC..".user_consent_records."..config.application1.registerAppInterfaceParams.appID..".consent_groups.Notifications")
-      local app_consent_Base4 = testCasesForPolicyTableSnapshot:get_data_from_PTS("device_data."..config.deviceMAC..".user_consent_records."..config.application1.registerAppInterfaceParams.appID..".consent_groups.Base-4")
-
-      print("app_consent_location" ..tostring(app_consent_location))
-      print("app_consent_notifications" ..tostring(app_consent_notifications))
-      print("app_consent_Base4" ..tostring(app_consent_Base4))
 
       if(app_consent_location ~= true) then
         commonFunctions:printError("Error: consent_groups.Location function for appID should be true")
@@ -115,16 +115,12 @@ function Test:TestStep_check_LocalPT_for_updates()
         commonFunctions:printError("Error: consent_groups.Notifications function for appID should be true")
         is_test_fail = true
       end
-
-      if(app_consent_Base4 ~= false) then
-        commonFunctions:printError("Error: consent_groups.Notifications function for appID should be false")
-        is_test_fail = true
-      end
       self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-    end)
-  if(is_test_fail == true) then
-    self:FailTestCase("Test is FAILED. See prints.")
-  end
+
+      if(is_test_fail == true) then
+        self:FailTestCase("Test is FAILED. See prints.")
+      end
+  end)
 end
 
 --[[ Postconditions ]]
