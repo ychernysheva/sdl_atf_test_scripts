@@ -44,8 +44,6 @@ Test = require('connecttest')
 require('cardinalities')
 require('user_modules/AppTypes')
 
---[[ Preconditions ]]
-commonFunctions:newTestCasesGroup("Preconditions")
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
@@ -71,17 +69,16 @@ function Test:TestStep_ActivateApp_TriggerPTU_Update_Needed()
 
           EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", { status = "UPDATE_NEEDED" })
 
+          EXPECT_HMICALL("BasicCommunication.PolicyUpdate",{})
+          :Do(function(_,data)
+              self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+          end)
+
           local language_status_needed = testCasesForPolicyTableSnapshot:get_data_from_Preloaded_PT("consumer_friendly_messages.messages.StatusNeeded.languages.en-us.line1")
 
           local request_id_status_needed = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"StatusNeeded"}})
           EXPECT_HMIRESPONSE(request_id_status_needed, { messages = { {messageCode = "StatusNeeded", line1 = language_status_needed}}})
 
-        end)
-
-      EXPECT_HMICALL("BasicCommunication.PolicyUpdate",{})
-      :Do(function(_,data)
-
-          self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
         end)
     end)
 
@@ -95,7 +92,7 @@ function Test:TestStep_PTU_SUCCESS()
   local SystemFilesPath = "/tmp/fs/mp/images/ivsu_cache/"
 
   local RequestId_GetUrls = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
-  EXPECT_HMIRESPONSE(RequestId_GetUrls,{result = {code = 0, method = "SDL.GetURLS",{}} })
+  EXPECT_HMIRESPONSE(RequestId_GetUrls,{result = {code = 0, method = "SDL.GetURLS"} })
   :Do(function(_,_)
       self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",{ requestType = "PROPRIETARY", fileName = "PolicyTableUpdate"})
       EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "PROPRIETARY"})
