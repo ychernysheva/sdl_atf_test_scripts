@@ -1,7 +1,3 @@
---UNREADY
--- should be updated after testCasesForPolicyTable.lua implementation
-
----------------------------------------------------------------------------------------------
 -- Requirement summary:
 -- [PTU] Trigger: kilometers
 --
@@ -26,103 +22,193 @@
 
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
+--ToDo: shall be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
+config.defaultProtocolVersion = 2
+
 --[[ Required Shared libraries ]]
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
-local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
-local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
-Test = require('connecttest')
-
---[[Local Functions]]
-local function genpattern2str(name, value_type)
-  return "(%s*\"" .. name .. "\"%s*:%s*)".. value_type
-end
- 
-local function modify_preloaded(pattern, value)
-  local preloaded_file = io.open(config.pathToSDL .. 'sdl_preloaded_pt.json', "r")
-  local content = preloaded_file:read("*a")
-  preloaded_file:close()
-  local res = string.gsub(content, pattern, "%1"..value, 1)
-  preloaded_file = io.open(config.pathToSDL .. 'sdl_preloaded_pt.json', "w+")
-  preloaded_file:write(res)
-  preloaded_file:close()
-  local check = string.find(res, value)
-  if ( check ~= nil) then
-    return true
-  end
-  return false
-end
+local commonSteps = require ('user_modules/shared_testcases/commonSteps')
+local testCasesForPolicyTable = require ('user_modules/shared_testcases/testCasesForPolicyTable')
 
 --[[ General Precondition before ATF start ]]
-commonFunctions:SDLForceStop()
+commonSteps:DeleteLogsFiles()
+commonSteps:DeletePolicyTable()
 
-commonPreconditions:BackupFile("sdl_preloaded_pt.json")
+--[[ Local Functions ]]
+local function UpdatePolicy()
 
-function Test.Preconditions_set_exchange_after_x_kilometers_to_1000()
-  modify_preloaded(genpattern2str("exchange_after_x_kilometers", "%d+"), "1000")
+  local PermissionForSubscribeVehicleData =
+        [[
+        "SubscribeVehicleData": {
+        "hmi_levels": [
+        "BACKGROUND",
+        "FULL",
+        "LIMITED"
+        ],
+        "parameters" : ["odometer"]
+        }
+        ]].. ", \n"
+  local PermissionForOnVehicleData =
+        [[
+        "OnVehicleData": {
+        "hmi_levels": [
+        "BACKGROUND",
+        "FULL",
+        "LIMITED"
+        ],
+        "parameters" : ["odometer"]
+        }
+        ]].. ", \n"
+
+  local PermissionLinesForBase4 = PermissionForSubscribeVehicleData..PermissionForOnVehicleData
+  local PTName = testCasesForPolicyTable:createPolicyTableFile_temp(PermissionLinesForBase4, nil, nil, {"SubscribeVehicleData","OnVehicleData"})
+  testCasesForPolicyTable:Precondition_updatePolicy_By_overwriting_preloaded_pt(PTName)
 end
+UpdatePolicy()
 
 --[[ General Settings for configuration ]]
+Test = require('connecttest')
+require('cardinalities')
 require('user_modules/AppTypes')
+require('mobile_session')
 
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
 
-function Test:Precondition_Set_odometer_to_1234()
-  self.hmiConnection:SendNotification("Vehicleinfo.OnVehicleData", { odometer = 1234 })
-
-  EXPECT_NOTIFICATION("OnVehicleData", { odometer = 1234 })
+function Test:Precondition_Activate_App_Start_PTU()
+  local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.applications["Test Application"], level = "FULL"})
+  EXPECT_HMIRESPONSE(RequestId)
+  :Do(function(_,data)
+      if data.result.isSDLAllowed ~= true then
+        RequestId = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage",
+          {language = "EN-US", messageCodes = {"DataConsent"}})
+        EXPECT_HMIRESPONSE(RequestId)
+        :Do(function(_,_)
+            self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality",
+              {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = "127.0.0.1"}})
+            EXPECT_HMICALL("BasicCommunication.ActivateApp")
+            :Do(function(_,data2)
+                self.hmiConnection:SendResponse(data2.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
+              end)
+            :Times(2)
+          end)
+        EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN" })
+      end
+    end)
 end
 
-function Test.Precondition_Successfull_PTU()
-  testCasesForPolicyTable.flow_PTU_SUCCESS_EXTERNAL_PROPRTIETARY()
+function Test:Preconditions_Set_Odometer_Value1()
+  local cid_vehicle = self.mobileSession:SendRPC("SubscribeVehicleData", {odometer = true})
+  EXPECT_HMICALL("VehicleInfo.SubscribeVehicleData")
+  :Do(function(_,data) self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {}) end)
+
+  EXPECT_RESPONSE(cid_vehicle, { success = true, resultCode = "SUCCESS" })
+  :Do(function()
+    self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", {odometer = 1234})
+    EXPECT_NOTIFICATION("OnVehicleData", {odometer = 1234})
+  end)
+end
+
+function Test:Precondition_Update_Policy_With_New_Exchange_After_X_Kilometers_Value()
+  local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
+  EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
+  :Do(function()
+      self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",
+        {
+          requestType = "PROPRIETARY",
+          fileName = "filename"
+        }
+      )
+      EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY" })
+      :Do(function()
+          local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest",
+            { fileName = "PolicyTableUpdate", requestType = "PROPRIETARY" },
+            "files/jsons/Policies/Policy_Table_Update/exchange_after_1000_kilometers_ptu.json")
+          local systemRequestId
+          EXPECT_HMICALL("BasicCommunication.SystemRequest")
+          :Do(function(_,data)
+              systemRequestId = data.id
+              self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate",
+                {
+                  policyfile = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate"
+                })
+              local function to_run()
+                self.hmiConnection:SendResponse(systemRequestId,"BasicCommunication.SystemRequest", "SUCCESS", {})
+              end
+              RUN_AFTER(to_run, 800)
+              self.mobileSession:ExpectResponse(CorIdSystemRequest, {success = true, resultCode = "SUCCESS"})
+              EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UP_TO_DATE"})
+            end)
+        end)
+    end)
 end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
+function Test:TestStep_Set_Odometer_Value_NO_PTU_Is_Triggered()
 
-function Test:TestStep_SubscribeVehicleData_odometer()
-  local CorIdSubscribeVD= self.mobileSession:SendRPC("SubscribeVehicleData", {odometer = true})
-  EXPECT_HMICALL("VehicleInfo.SubscribeVehicleData", {odometer = true})
-  :Do(function(_,data)
-    self.hmiConnection:SendResponse(data.id, "VehicleInfo.SubscribeVehicleData", "SUCCESS", 
-      {odometer = {dataType = "VEHICLEDATA_ODOMETER", resultCode = "SUCCESS"}})
+  self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", {odometer = 2200})
+  EXPECT_NOTIFICATION("OnVehicleData", {odometer = 2200})
+  EXPECT_HMICALL("BasicCommunication.PolicyUpdate"):Times(0)
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"}):Times(0)
+end
+
+function Test:TestStep_Set_Odometer_Value_And_Check_That_PTU_Is_Triggered()
+
+  self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", {odometer = 2250})
+  EXPECT_NOTIFICATION("OnVehicleData", {odometer = 2250})
+  EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
+end
+
+function Test:TestStep_Update_Policy_With_New_Exchange_After_X_Kilometers_Value()
+  local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
+  EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
+  :Do(function()
+      self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",
+        {
+          requestType = "PROPRIETARY",
+          fileName = "filename"
+        }
+      )
+      EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY" })
+      :Do(function()
+          local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest",
+            { fileName = "PolicyTableUpdate", requestType = "PROPRIETARY" },
+            "files/jsons/Policies/Policy_Table_Update/exchange_after_1000_kilometers_ptu.json")
+          local systemRequestId
+          EXPECT_HMICALL("BasicCommunication.SystemRequest")
+          :Do(function(_,data)
+              systemRequestId = data.id
+              self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate",
+                {
+                  policyfile = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate"
+                })
+              local function to_run()
+                self.hmiConnection:SendResponse(systemRequestId,"BasicCommunication.SystemRequest", "SUCCESS", {})
+              end
+              RUN_AFTER(to_run, 800)
+              self.mobileSession:ExpectResponse(CorIdSystemRequest, {success = true, resultCode = "SUCCESS"})
+              EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UP_TO_DATE"})
+            end)
+        end)
     end)
-  self.mobileSession:ExpectResponse(CorIdSubscribeVD, { success = true, resultCode = "SUCCESS", 
-    odometer = {dataType = "VEHICLEDATA_ODOMETER", resultCode = "SUCCESS"},
-    })
 end
 
-function Test:TestStep_Set_odometer_to_2200()
-  self.hmiConnection:SendNotification("Vehicleinfo.OnVehicleData", { odometer = 2200 })
+function Test:TestStep_Set_Odometer_Value_And_Check_That_PTU_Is_Triggered()
 
-  EXPECT_NOTIFICATION("OnVehicleData", { odometer = 2200 })
-end
-
--- ToDo(VVVakulenko): clarify is it needed to implement "SDL checks wether amount of kilometers sinse previous update is equal or greater "exchange_after_x_kilometers" 
-
-function Test:TestStep_Set_odometer_to_2500()
-  self.hmiConnection:SendNotification("Vehicleinfo.OnVehicleData", { odometer = 2500 })
-
-  EXPECT_NOTIFICATION("OnVehicleData", { odometer = 2500 })
-end
-
---ToDo(VVVakulenko): clarify is it needed to implement "SDL checks wether amount of kilometers sinse previous update is equal or greater "exchange_after_x_kilometers" 
-
--- ToDo(VVVakulenko): check wether any update needed after testCasesForPolicyTable.lua will be merged
-function Test.TestSTep_PTU_after_N_kilometers()
-  testCasesForPolicyTable.trigger_PTU_N_kilometers()
+  self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", {odometer = 2500})
+  EXPECT_NOTIFICATION("OnVehicleData", {odometer = 2500})
+  EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
 end
 
 --[[ Postconditions ]]
-
 commonFunctions:newTestCasesGroup("Postconditions")
+testCasesForPolicyTable:Restore_preloaded_pt()
 
-function Test.Postcondition_ForceStopSDL()
-  commonFunctions:SDLForceStop()
-end
-
-function Test.Postcondition_RestoreFile()
-  commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
+function Test.Postcondition_Stop()
+  StopSDL()
 end
 
 return Test
