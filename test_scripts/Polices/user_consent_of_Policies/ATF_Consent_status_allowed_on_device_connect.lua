@@ -6,7 +6,7 @@
 --     Providing the device`s DataConsent status (allowed) to HMI upon device connection to SDL
 --     1. Used preconditions:
 --        Delete files and policy table from previous ignition cycle if any
---        Overwrite preloaded to make device consenteds
+--        Overwrite preloaded to make device consented
 --     2. Performed steps:
 --        Connect device 
 --
