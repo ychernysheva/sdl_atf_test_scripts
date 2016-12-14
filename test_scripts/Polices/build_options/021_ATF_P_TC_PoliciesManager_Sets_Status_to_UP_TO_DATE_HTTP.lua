@@ -1,10 +1,3 @@
--- UNREADY:
---Test:TestStep_PoliciesManager_changes_UP_TO_DATE
---should be applicable for HTTP flag as well
---please also note that parameter appID should be used only with requestType = LAUNCH_APP
---according to APPLINK-18219
---function testCasesForPolicyTable.flow_PTU_SUCCEESS_HTTP should be added to testCasesForPolicyTable
-
 ---------------------------------------------------------------------------------------------
 -- Requirements summary:
 -- [PolicyTableUpdate] PoliciesManager changes status to “UP_TO_DATE”
@@ -12,7 +5,7 @@
 -- [HMI API] OnReceivedPolicyUpdate notification
 --
 -- Description:
---PoliciesManager must change the status to “UP_TO_DATE” and notify HMI with 
+--PoliciesManager must change the status to “UP_TO_DATE” and notify HMI with
 --OnStatusUpdate("UP_TO_DATE") right after successful validation of received PTU .
 -- 1. Used preconditions
 -- SDL is built with "-DEXTENDED_POLICY: HTTP" flag
@@ -40,12 +33,10 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
-local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
-
---ToDo: shall be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
+--TODO: Shouold be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
 config.defaultProtocolVersion = 2
 
 --[[ General Settings for configuration ]]
@@ -53,11 +44,12 @@ Test = require('connecttest')
 require('cardinalities')
 require('user_modules/AppTypes')
 
+
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
 function Test:TestStep_PoliciesManager_changes_UP_TO_DATE()
-  testCasesForPolicyTable:flow_PTU_SUCCEESS_HTTP(self)
+  commonFunctions:check_ptu_sequence_partly(self)
 
   EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {}):Times(0)
   EXPECT_HMICALL("BasicCommunication.PolicyUpdate",{}):Times(0)
@@ -66,8 +58,9 @@ end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
-function Test:Postcondition_Force_Stop_SDL()
-  commonFunctions:SDLForceStop(self)
+
+function Test.Postcondition_Stop_SDL()
+  StopSDL()
 end
 
 return Test
