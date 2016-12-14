@@ -1,26 +1,22 @@
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
---    [DeviceConsent] DataConsent status for each device is written in LocalP
+--    [DeviceConsent] DataConsent status for each device is written in LocalPT
 --
 -- Description:
 --     Providing the device`s DataConsent status (allowed) to HMI upon device connection to SDL
 --     1. Used preconditions:
--- 	      Delete files and policy table from previous ignition cycle if any
---		    Connect new device
---        Register App
---		    Activate app -> consent device
---		    Disconnect device
---
+--        Delete files and policy table from previous ignition cycle if any
+--        Overwrite preloaded to make device consenteds
 --     2. Performed steps:
---        Connect device again
+--        Connect device 
 --
 -- Expected result:
---     SDL must request DataConsent status of the corresponding device from the PoliciesManager to be taken from the Local PoliciesTable and provide it to HMI upon device connection
----------------------------------------------------------------------------------------------
+--     SDL/PoliciesManager must provide the device`s DataConsent status (allowed) to HMI upon device`s connection->
+--     SDL must request DataConsent status of the corresponding device from the PoliciesManager 
+-------------------------------------------------------------------------------------------------
 --[[ General Settings for configuration ]]
 Test = require('user_modules/connecttest_resumption')
 require('cardinalities')
-local mobile_session = require('mobile_session')
 
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
@@ -31,66 +27,60 @@ local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 require('user_modules/AppTypes')
 
---[[ Preconditions ]]
-commonSteps:DeleteLogsFileAndPolicyTable()
+--[[ Local Functions ]]
+local function Backup_preloaded()
+  os.execute('cp ' .. config.pathToSDL .. 'sdl_preloaded_pt.json' .. ' ' .. config.pathToSDL .. 'backup_sdl_preloaded_pt.json')
+  os.execute('rm ' .. config.pathToSDL .. 'policy.sqlite')
+end
 
-function Test:Precondition_ConnectDevice()
-  commonTestCases:DelayedExp(2000)
-  self:connectMobile()
-  EXPECT_HMICALL("BasicCommunication.UpdateDeviceList",
-  {
-    deviceList = {
-      {
-        id = config.deviceMAC,
-        isSDLAllowed = false,
-        name = "127.0.0.1",
-        transportType = "WIFI"
-      }
-    }
+local function Restore_preloaded()
+  os.execute('rm ' .. config.pathToSDL .. 'sdl_preloaded_pt.json')
+  os.execute('cp ' .. config.pathToSDL .. 'backup_sdl_preloaded_pt.json' .. ' ' .. config.pathToSDL .. 'sdl_preloaded_pt.json')
+end
+
+local function Set_consent_for_device()
+  local pathToFile = config.pathToSDL .. 'sdl_preloaded_pt.json'
+  local file = io.open(pathToFile, "r")
+  local json_data = file:read("*all") -- may be abbreviated to "*a";
+  file:close()
+  local json = require("modules/json")
+  local data = json.decode(json_data)
+
+  if data.policy_table.functional_groupings["DataConsent-2"] then
+    data.policy_table.functional_groupings["DataConsent-2"] = nil
+  end
+    data.policy_table.app_policies["device"] = {
+    keep_context = false,
+    steal_focus = false,
+    priority = "NONE",
+    default_hmi = "NONE",
+    groups = {"Base-4"},
+    preconsented_groups = {"Base-4"}
   }
-  ):Do(function(_,data)
-  self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-  end)
-  :Times(AtLeast(1))
+  data = json.encode(data)
+  file = io.open(pathToFile, "w")
+  file:write(data)
+  file:close()
 end
 
-function Test:Precondition_Register_app()
-  commonTestCases:DelayedExp(3000)
-  self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
-  self.mobileSession:StartService(7)
-  :Do(function()
-  local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
-  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
-  :Do(function(_,data)
-  self.HMIAppID = data.params.application.appID
-  end)
-  self.mobileSession:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS" })
-  self.mobileSession:ExpectNotification("OnHMIStatus", {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
-  end)
+--[[ Preconditions ]]
+commonFunctions:newTestCasesGroup("Preconditions")
+function Test.Precondition_DeleteLogsAndPolicyTable()
+  commonSteps:DeleteLogsFiles()
+  commonSteps:DeletePolicyTable()
 end
 
-function Test:Precondition_Activate_app()
-  local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.applications["Test Application"]})
-  EXPECT_HMIRESPONSE(RequestId, {result = { code = 0, device = { id = config.deviceMAC, name = "127.0.0.1" }, isSDLAllowed = false, isPermissionsConsentNeeded = true, method ="SDL.ActivateApp", priority ="NONE"}})
-  :Do(function()
-  local RequestIdGetMes = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
-  EXPECT_HMIRESPONSE(RequestIdGetMes)
-  :Do(function()
-  self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality",
-  {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = "127.0.0.1"}})
-  end)
-  end)
+function Test.Precondition_Backup_preloadedPT()
+  Backup_preloaded()
 end
 
-function Test:Precondition_Close_current_connection()
-  self.mobileConnection:Close()
-  commonTestCases:DelayedExp(3000)
+function Test.Precondition_Set_consent_for_device()
+  Set_consent_for_device()
 end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
-
-function Test:Consent_status_allowed_on_device_connect()
+function Test:Check_device_connects_as_consented()
   commonTestCases:DelayedExp(2000)
   self:connectMobile()
   EXPECT_HMICALL("BasicCommunication.UpdateDeviceList",
@@ -112,7 +102,9 @@ end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
-
-function Test.Postcondition_SDLForceStop()
-  commonFunctions:SDLForceStop()
+function Test.Postcondition_SDLStop()
+  StopSDL()
+end
+function Test.Postcondition_Restore_preloadedPT()
+  Restore_preloaded()
 end
