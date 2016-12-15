@@ -26,10 +26,6 @@ config.defaultProtocolVersion = 2
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require ('user_modules/shared_testcases/commonSteps')
 
---[[ General Precondition before ATF start ]]
-commonSteps:DeleteLogsFiles()
-commonSteps:DeletePolicyTable()
-
 --[[ General Settings for configuration ]]
 Test = require('connecttest')
 require('cardinalities')
@@ -139,17 +135,21 @@ function Test:Precondition_Register_New_App_Not_Listad_In_PT()
   EXPECT_RESPONSE(CorIdRAI, { success = true, resultCode = "SUCCESS"})  
 end
 
+function Test:Precondition_StartSession_2()
+  self.mobileSession2 = mobile_session.MobileSession(self, self.mobileConnection)
+  self.mobileSession2:StartService(7)
+end
+
 --[[ Test ]]
 function Test:TestStep_Register_DuplicateName_App_Listed_In_PT_But_With_Wrong_NickName_Check_DISALLOWED()    
-  self.mobileSession2 = mobile_session.MobileSession(self, self.mobileConnection)
-  local CorIdRAI = self.mobileSession2:SendRPC("RegisterAppInterface",
+  local CorIdRAI2 = self.mobileSession2:SendRPC("RegisterAppInterface",
     {
       syncMsgVersion =
       {
         majorVersion = 3,
         minorVersion = 0
       },
-      appName = "SPT",
+      appName = "First App",
       isMediaApplication = true,
       languageDesired = "EN-US",
       hmiDisplayLanguageDesired = "EN-US",
@@ -163,5 +163,10 @@ function Test:TestStep_Register_DuplicateName_App_Listed_In_PT_But_With_Wrong_Ni
         maxNumberRFCOMMPorts = 1
       }
     })
-  EXPECT_RESPONSE(CorIdRAI, { success = false, resultCode = "DISALLOWED"})  
+  self.mobileSession2:ExpectResponse(CorIdRAI2, { success = false, resultCode = "DISALLOWED"})
+end
+
+--[[ Postcondition ]]
+function Test:Postcondition_StopSDL()
+  StopSDL()
 end
