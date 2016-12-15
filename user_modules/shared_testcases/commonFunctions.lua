@@ -984,20 +984,16 @@ function commonFunctions:check_ptu_sequence_partly(self, ptu_path, ptu_name)
   EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate")
   :ValidIf(function(exp,data)
     if 
-              exp.occurences == 1 and
-              data.params.status == "UP_TO_DATE" then
-                return true
-            elseif
-              exp.occurences == 1 and
-              data.params.status == "UPDATING" then
-                return true
-            elseif
-              exp.occurences == 2 and
-              data.params.status == "UP_TO_DATE" then
-                return true
-            else 
-              return false
-            end
+      (exp.occurences == 1 or exp.occurences == 2) and
+      data.params.status == "UP_TO_DATE" then
+        return true
+    end
+    if
+      exp.occurences == 1 and
+      data.params.status == "UPDATING" then
+        return true
+    end             
+    return false
   end):Times(Between(1,2))
   EXPECT_HMICALL("VehicleInfo.GetVehicleData", {odometer=true}):Do(
     function(_,data)
@@ -1013,12 +1009,29 @@ end
 --! @param ptu_path path to PTU file
 --! @param ptu_name contains name of PTU file
 function commonFunctions:check_ptu_sequence_fully(self, ptu_path, ptu_name)
-  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status="UPDATE_NEEDED"})
+assert(commonFunctions:File_exists(ptu_path))
   EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "HTTP"})
-  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status="UPDATING"}):Do(
-    function()
-    commonFunctions:check_ptu_sequence_partly(self, ptu_path, ptu_name)
-    end)
+  :Do(function()
+  local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest",
+    {
+      requestType = "HTTP",
+      fileName = ptu_name,
+    },ptu_path)
+  end)
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate")
+   :ValidIf(function(exp,data)
+    if
+      exp.occurences == 1 and
+      data.params.status == "UPDATE_NEEDED" then
+    return true
+    elseif exp.occurences == 2 and
+      data.params.status == "UPDATING" then
+    return true
+    elseif data.params.status == "UP_TO_DATE" then
+      return true
+    end
+    return false
+    end):Times(3)
 end
 
 --------------------------------------------------------------------------------------------
