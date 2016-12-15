@@ -10,6 +10,7 @@
 --
 -- 2. Performed steps:
 --    Register app
+--    Check lpt for device identifier
 --
 -- Expected result:
 --    SDL must add new <device identifier> section in "device_data" section
@@ -20,12 +21,11 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 --[[ Required Shared libraries ]]
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
-local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
 local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 local mobile_session = require('mobile_session')
 
 --[[ Local variables ]]
-testCasesForPolicyTable:Precondition_updatePolicy_By_overwriting_preloaded_pt("files/jsons/Policy/Related_HMI_API/OnAppPermissionConsent.json")
+local pts_json = '/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json'
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
@@ -64,7 +64,18 @@ function Test:Precondition_Register_app()
   self.mobileSession:StartService(7)
   :Do(function()
   local RequestIDRai1 = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
-  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered",
+  {
+    application =
+    {
+      deviceInfo =
+      {
+        name = "127.0.0.1",
+        id = config.deviceMAC,
+        transportType = "WIFI"
+      }
+    }
+  })
   :Do(function(_,data)
   self.HMIAppID = data.params.application.appID
   end)
@@ -75,35 +86,25 @@ end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
-
-function Test:Check_LocalPT_for_device_identifier()
-  local query
-  if commonSteps:file_exists(config.pathToSDL .. "storage/policy.sqlite") then
-    query = "sqlite3 " .. config.pathToSDL .. "storage/policy.sqlite".. " \"select device_identifier from device_data\""
-  elseif commonSteps:file_exists(config.pathToSDL .. "policy.sqlite") then
-    query = "sqlite3 " .. config.pathToSDL .. "policy.sqlite".. " \"select device_identifier from device_data\""
-  else commonFunctions:userPrint(31, "policy.sqlite is not found")
+function Test:Check_device_identifier_added_to_lpt()
+  local is_test_fail = true
+  local file = io.open(pts_json, "r")
+  local json_data = file:read("*all") -- may be abbreviated to "*a";
+  file:close()
+  local json = require("modules/json")
+  local data = json.decode(json_data)
+  local deviceIdentificatorInPTS = next(data.policy_table.device_data, nil)
+  if (deviceIdentificatorInPTS == config.deviceMAC) then
+    commonFunctions:userPrint(33, "device_identifier ".. deviceIdentificatorInPTS.. " section is created")
+    is_test_fail = false
   end
-
-  if query ~= nil then
-    os.execute("sleep 3")
-    local handler = io.popen(query, 'r')
-    os.execute("sleep 1")
-    local result = handler:read( '*l' )
-    handler:close()
-
-    print(result)
-    if result == "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0" then
-      return true
-    else
-      self:FailTestCase("device_identifier in DB has unexpected value: " .. tostring(result))
-      return false
-    end
+  if(is_test_fail == true) then
+    self:FailTestCase("Test is FAILED.")
   end
 end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
-function Test.Postcondition_SDLForceStop()
+function Test.Postcondition_SDLStop()
   StopSDL()
 end
