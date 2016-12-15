@@ -145,6 +145,9 @@ local function prepareNewPreloadedPT()
       data.policy_table.module_config.preloaded_date = TESTED_DATA.preloaded_date[2]
     end,
     function(data)
+      for key,_ in pairs(data.policy_table.consumer_friendly_messages.messages.Location.languages) do
+        data.policy_table.consumer_friendly_messages.messages.Location.languages[key] = nil
+      end
       local obj = {label = TESTED_DATA[3].label, tts = TESTED_DATA[3].tts}
       data.policy_table.consumer_friendly_messages.messages.Location.languages[TESTED_DATA[3].key] = obj
     end
@@ -313,15 +316,15 @@ function Test:TestStep_VerifyNewLocalPT()
     },
     {
       query = 'select language_code from message where message_type_name = "Location"',
-      expectedValues = {TESTED_DATA[1].key, TESTED_DATA[3].key}
+      expectedValues = {TESTED_DATA[3].key}
     },
     {
       query = 'select tts from message where message_type_name = "Location"',
-      expectedValues = {TESTED_DATA[1].tts, TESTED_DATA[3].tts}
+      expectedValues = {TESTED_DATA[3].tts}
     },
     {
       query = 'select label from message where message_type_name = "Location"',
-      expectedValues = {TESTED_DATA[1].label, TESTED_DATA[3].label}
+      expectedValues = {TESTED_DATA[3].label}
     }
   }
   if not self.checkLocalPT(checks) then
