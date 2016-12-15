@@ -32,7 +32,7 @@ local MACHash = nil
 --[[ General Settings for configuration ]]
 Test = require('connecttest')
 require('cardinalities')
-local mobile_session = require('mobile_session')
+require('user_modules/AppTypes')
 
 --[[ Local Functions ]]
 local function GetDeviceMacHashFromSnapshot(pathToFile)
@@ -49,40 +49,48 @@ end
 function Test:Precondition_Get_List_Of_Connected_Devices()
   self.hmiConnection:SendNotification("BasicCommunication.OnStartDeviceDiscovery")
   EXPECT_HMICALL("BasicCommunication.UpdateDeviceList",
-    {
-      deviceList = {
-        {
+  {
+    deviceList = {
+      {
 
-          name = "127.0.0.1",
-          transportType = "WIFI",
-          isSDLAllowed = false
-        }
+        name = "127.0.0.1",
+        transportType = "WIFI",
+        isSDLAllowed = false
       }
     }
-    ):Do(function(_,data)
-      MACHash = data.params.deviceList[1].id
-      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-    end)
+  }
+  ):Do(function(_,data)
+  MACHash = data.params.deviceList[1].id
+  self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+  end)
 end
 
 --[[ Test ]]
-function Test:TestStep_Initiate_PTU_And_Check_DeviceHashId_In_PTS()
+commonFunctions:newTestCasesGroup("Test")
+function Test:Initiate_PTU_And_Check_DeviceHashId_In_PTS()
   local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", {appID = self.applications["Test Application"]})
   EXPECT_HMIRESPONSE(RequestId, {result = {code = 0, isSDLAllowed = false}, method = "SDL.ActivateApp"})
   :Do(function(_,_)
-      local RequestIdGetUserFriendlyMessage = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
-      EXPECT_HMIRESPONSE(RequestIdGetUserFriendlyMessage,{result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
-      :Do(function(_,_)
-          self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", {allowed = true, source = "GUI", device = {id = MACHash, name = "127.0.0.1"}})
-          EXPECT_HMICALL("BasicCommunication.ActivateApp")
-          :Do(function(_,data1)
-              self.hmiConnection:SendResponse(data1.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
-              EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"})
-            end)
-        end)
-    end)
+  local RequestIdGetUserFriendlyMessage = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
+  EXPECT_HMIRESPONSE(RequestIdGetUserFriendlyMessage,{result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
+  :Do(function(_,_)
+  self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", {allowed = true, source = "GUI", device = {id = MACHash, name = "127.0.0.1"}})
+  EXPECT_HMICALL("BasicCommunication.ActivateApp")
+  :Do(function(_,data1)
+  self.hmiConnection:SendResponse(data1.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
+  end)
+  :Times(AtLeast(1))
+  end)
+  end)
   EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
   :ValidIf (function(_,data)
-      return GetDeviceMacHashFromSnapshot(data.params.file) == MACHash
-    end)
+  return GetDeviceMacHashFromSnapshot(data.params.file) == MACHash
+  end)
+  EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN", audioStreamingState = "AUDIBLE"})
+end
+
+--[[ Postconditions ]]
+commonFunctions:newTestCasesGroup("Postconditions")
+function Test.Postcondition_SDLStop()
+  StopSDL()
 end
