@@ -36,17 +36,16 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 --[[ Required Shared libraries ]]
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
-local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
-local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
+
 
 --[[ Local variables ]]
 local ServerAddress = commonFunctions:read_parameter_from_smart_device_link_ini("ServerAddress")
 local pre_dataconsent = "129372391"
-local base4 = "686787169"
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
+testCasesForPolicyTable.Delete_Policy_table_snapshot()
 
 --[[ General Settings for configuration ]]
 Test = require('connecttest')

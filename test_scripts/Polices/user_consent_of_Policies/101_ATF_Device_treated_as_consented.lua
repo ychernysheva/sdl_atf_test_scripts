@@ -43,8 +43,9 @@ function Test:TestStep_TreatDeviceAsConsented()
   local is_test_fail = false
   local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.applications[config.application1.registerAppInterfaceParams.appName]})
 
-  EXPECT_HMIRESPONSE(RequestId)
-  :Do(function(_,_)
+  EXPECT_HMIRESPONSE(RequestId, { isSDLAllowed = true } )
+  :Do(function(_,data)
+    if(data.result.isSDLAllowed == false) then
       local RequestId1 = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
 
       EXPECT_HMIRESPONSE( RequestId1, {result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
@@ -55,13 +56,12 @@ function Test:TestStep_TreatDeviceAsConsented()
           EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
 
           EXPECT_HMICALL("BasicCommunication.PolicyUpdate",{})
-          :Do(function(_,_)
+          :Do(function(_,_data1)
+              self.hmiConnection:SendResponse(_data1.id, _data1.method, "SUCCESS", {})
+
               testCasesForPolicyTableSnapshot:extract_pts({self.applications[config.application1.registerAppInterfaceParams.appName]})
               local device_consent_groups = testCasesForPolicyTableSnapshot:get_data_from_PTS("app_policies.device.groups.1")
               local device_preconsented_groups = testCasesForPolicyTableSnapshot:get_data_from_PTS("app_policies.device.preconsented_groups.1")
-
-              print("device_consent_groups = " ..tostring(device_consent_groups))
-              print("device_preconsented_groups = " ..tostring(device_preconsented_groups))
 
               if(device_consent_groups ~= "DataConsent-2") then
                 commonFunctions:printError("Error: app_policies.device.groups should be DataConsent-2")
@@ -72,23 +72,46 @@ function Test:TestStep_TreatDeviceAsConsented()
                 commonFunctions:printError("Error: app_policies.device.preconsented_groups should be DataConsent-2")
                 is_test_fail = true
               end
-            end)
+
+               if(is_test_fail == true) then
+                self:FailTestCase("Test is FAILED. See prints.")
+              end
+          end)
       end)
+    else
+      self.hmiConnection:SendNotification("SDL.UpdateSDL", {} )
+
+      EXPECT_HMICALL("BasicCommunication.PolicyUpdate",{}):Timeout(12000)
+          :Do(function(_,_data1)
+              self.hmiConnection:SendResponse(_data1.id, _data1.method, "SUCCESS", {})
+
+              testCasesForPolicyTableSnapshot:extract_pts({self.applications[config.application1.registerAppInterfaceParams.appName]})
+              local device_consent_groups = testCasesForPolicyTableSnapshot:get_data_from_PTS("app_policies.device.groups.1")
+              local device_preconsented_groups = testCasesForPolicyTableSnapshot:get_data_from_PTS("app_policies.device.preconsented_groups.1")
+
+              if(device_consent_groups ~= "DataConsent-2") then
+                commonFunctions:printError("Error: app_policies.device.groups should be DataConsent-2")
+                is_test_fail = true
+              end
+
+              if(device_preconsented_groups ~= "DataConsent-2") then
+                commonFunctions:printError("Error: app_policies.device.preconsented_groups should be DataConsent-2")
+                is_test_fail = true
+              end
+
+               if(is_test_fail == true) then
+                self:FailTestCase("Test is FAILED. See prints.")
+              end
+          end)
+    end
   end)
-  EXPECT_HMICALL("BasicCommunication.ActivateApp")
-  :Do(function(_,data) self.hmiConnection:SendResponse(data.id,"BasicCommunication.ActivateApp", "SUCCESS", {}) end)
 
   EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"})
-  if(is_test_fail == true) then
-    self:FailTestCase("Test is FAILED. See prints.")
-  end
 end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
 testCasesForPolicyTable:Restore_preloaded_pt()
-function Test.Postcondition_SDLForceStop()
-  commonFunctions:SDLForceStop()
+function Test.Postcondition_StopSDL()
+  StopSDL()
 end
-
-return Test
