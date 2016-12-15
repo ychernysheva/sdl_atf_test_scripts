@@ -5,11 +5,14 @@
 --
 -- Description:
 -- SDL must forward OnSystemRequest(request_type=PROPRIETARY, url, appID) with encrypted PTS
--- snapshot as a hybrid data to mobile application with <appID> value. "fileType" must be
+-- snapshot as a hybrid data to any connected mobile application. "fileType" must be
 -- assigned as "JSON" in mobile app notification.
 -- 1. Used preconditions
 -- SDL is built with "-DEXTENDED_POLICY: EXTERNAL_PROPRIETARY" flag
--- Application is registered.
+-- device an app with app_ID1 is running is consented
+-- application with <app ID> is running on SDL
+-- device an app with app_ID2 is running is consented
+-- application with <app ID2> is running on SDL
 -- PTU is requested.
 -- SDL->HMI: SDL.OnStatusUpdate(UPDATE_NEEDED)
 -- SDL->HMI:SDL.PolicyUpdate(file, timeout, retry[])
@@ -18,7 +21,8 @@
 -- HMI->SDL: BasicCommunication.OnSystemRequest ('url', requestType:PROPRIETARY, appID="default")
 --
 -- Expected result:
--- SDL->app: OnSystemRequest ('url', requestType:PROPRIETARY, fileType="JSON")
+--
+-- SDL-><app1\app2>: OnSystemRequest ('url', requestType:PROPRIETARY, fileType="JSON")
 ---------------------------------------------------------------------------------------------
 
 --[[ General configuration parameters ]]
@@ -28,7 +32,7 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
-local testCasesForPolicyTableSnapshot = require('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
+local mobileSession = require("mobile_session")
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
@@ -49,41 +53,36 @@ function Test:Precondition_trigger_getting_device_consent()
   testCasesForPolicyTable:trigger_getting_device_consent(self, config.application1.registerAppInterfaceParams.appName, config.deviceMAC)
 end
 
+function Test:StartNewSession()
+  self.mobileSession2 = mobileSession.MobileSession(self, self.mobileConnection)
+  self.mobileSession2:StartService(7)
+end
+
+function Test:Register2App()
+  local correlationId = self.mobileSession2:SendRPC("RegisterAppInterface", config.application2.registerAppInterfaceParams)
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
+  self.mobileSession2:ExpectResponse(correlationId, { success = true })
+end
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
 function Test:TestStep_Sending_PTS_to_mobile_application()
-  local is_test_fail = false
   local endpoints = {}
 
-  testCasesForPolicyTableSnapshot:extract_pts(
-    {config.application1.registerAppInterfaceParams.appID},
-    {self.applications[config.application1.registerAppInterfaceParams.appName]})
-
-  for i = 1, #testCasesForPolicyTableSnapshot.pts_endpoints do
-    if (testCasesForPolicyTableSnapshot.pts_endpoints[i].service == "0x07") then
-      endpoints[#endpoints + 1] = {
-        url = testCasesForPolicyTableSnapshot.pts_endpoints[i].value,
-        appID = testCasesForPolicyTableSnapshot.pts_endpoints[i].appID}
-    end
-  end
+  endpoints[1] ={}
+  endpoints[1].url = "http://policies.telematics.ford.com/api/policies"
 
   local RequestId_GetUrls = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
-
-  EXPECT_HMIRESPONSE(RequestId_GetUrls,{result = {code = 0, method = "SDL.GetURLS", urls = endpoints} } )
+  EXPECT_HMIRESPONSE(RequestId_GetUrls,{result = {code = 0, method = "SDL.GetURLS", urls = endpoints }} )
   :Do(function(_,_)
       self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",{
           requestType = "PROPRIETARY",
           fileName = "PolicyTableUpdate",
-          url = endpoints[1].url,
-          appID = config.application1.registerAppInterfaceParams.appID })
-
-      EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY", fileType = "JSON", url = endpoints[1].url})
+          url = endpoints[1].url})
+      -- no appID is send, so notification can came to any apps
     end)
-
-  if(is_test_fail == true) then
-    self:FailTestCase("Test is FAILED. See prints.")
-  end
+  EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY", fileType = "JSON", url = endpoints[1].url }):Times(Between(0,1))
+  self.mobileSession2:ExpectNotification("OnSystemRequest", { requestType = "PROPRIETARY", fileType = "JSON", url = endpoints[1].url }):Times(Between(0,1))
 end
 
 --[[ Postconditions ]]
