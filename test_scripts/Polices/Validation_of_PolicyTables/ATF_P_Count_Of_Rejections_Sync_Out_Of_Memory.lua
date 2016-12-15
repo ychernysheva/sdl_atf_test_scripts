@@ -105,7 +105,7 @@ function Test:Precondition_Backup_Ini_File()
 end
 
 function Test:SetAppDirectoryQuotaInIniFile()
-  commonFunctions:SetValuesInIniFile("AppDirectoryQuota = 104857600", "AppDirectoryQuota", GetAvaliableDiskSpase())
+  commonFunctions:SetValuesInIniFile("AppDirectoryQuota = 104857600", "AppDirectoryQuota", math.floor(GetAvaliableDiskSpase()*0.75))
 end
 
 function Test:Precondition_StartSDL_FirstLifeCycle()
