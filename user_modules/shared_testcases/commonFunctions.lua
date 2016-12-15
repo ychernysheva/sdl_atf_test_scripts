@@ -7,6 +7,8 @@ local commonFunctions = {}
 local json = require('json4lua/json/json')
 local events = require('events')
 
+
+local NewTestSuiteNumber = 0 -- use as subfix of test case "NewTestSuite" to make different test case name.
 ---------------------------------------------------------------------------------------------
 ------------------------------------------ Functions ----------------------------------------
 ---------------------------------------------------------------------------------------------
