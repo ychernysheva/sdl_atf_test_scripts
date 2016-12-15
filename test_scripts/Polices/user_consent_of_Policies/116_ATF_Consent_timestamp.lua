@@ -52,8 +52,10 @@ function Test:TimeStamp_in_userConsentRecords_table()
   local errorFlag = false
   local ErrorMessage = ""
   local TimeStamp_InUserConsentRecordsTable = testCasesForPolicyTableSnapshot:get_data_from_PTS("device_data."..config.deviceMAC..".user_consent_records.device.time_stamp")
-
-  if (TimeStamp_InUserConsentRecordsTable ) then
+  if type(TimeStamp_InUserConsentRecordsTable) ~= 'string' then
+    self:FailTestCase("TimeStamp in user_consent_records came wrong")
+  end
+  if (TimeStamp_InUserConsentRecordsTable ~= nil ) then
 
     commonFunctions:userPrint(33, "TimeStamp in user_consent_records " .. tostring(TimeStamp_InUserConsentRecordsTable))
 
