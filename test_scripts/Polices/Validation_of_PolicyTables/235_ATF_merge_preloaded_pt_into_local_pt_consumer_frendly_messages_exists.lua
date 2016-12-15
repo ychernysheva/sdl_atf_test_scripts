@@ -115,7 +115,7 @@ local function prepareNewPreloadedPT()
     end,
     function(data)
       for key,_ in pairs(data.policy_table.consumer_friendly_messages.messages.VehicleInfo.languages) do
-        if key ~= TESTED_DATA[2].key then
+        if (key == TESTED_DATA[2].key) or (key == TESTED_DATA[1].key) then
           data.policy_table.consumer_friendly_messages.messages.VehicleInfo.languages[key] = nil
         end
       end
@@ -301,7 +301,6 @@ end
 
 function Test:TestStep_VerifyNewLocalPT()
   os.execute("sleep 3")
-  TestData:store("New Local PT is stored", constructPathToDatabase(), "new_policy.sqlite")
   local checks = {
     {
       query = 'select preloaded_date from module_config',

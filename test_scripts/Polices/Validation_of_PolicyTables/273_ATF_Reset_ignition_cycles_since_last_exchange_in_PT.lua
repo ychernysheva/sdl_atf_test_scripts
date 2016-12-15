@@ -26,7 +26,6 @@ config.defaultProtocolVersion = 2
 --[[ Required Shared libraries ]]
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
-local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
 
 --[[ Local variables ]]
@@ -109,7 +108,7 @@ function Test:Precondition_Get_ignition_cycles_since_last_exchange()
       self:FailTestCase("ignition_cycles_since_last_exchange is reset at IGN_OFF->IGN_ON. Expected: " .. tostring(ignition_cycles_before_ptu)..". Real: "..tostring(result))
     end
   end
-    --print("2: ignition_cycles_before_ptu: "..tostring(ignition_cycles_before_ptu))
+  --print("2: ignition_cycles_before_ptu: "..tostring(ignition_cycles_before_ptu))
 end
 
 function Test:Precondition_Registering_app()
@@ -143,6 +142,10 @@ function Test:TestStep_Ignition_cycles_since_last_exchange_not_reset_after_RAI()
 end
 function Test:TestStep_trigger_getting_device_consent()
   testCasesForPolicyTable:trigger_getting_device_consent(self, config.application1.registerAppInterfaceParams.appName, config.deviceMAC)
+end
+
+function Test:TestStep_flow_SUCCEESS_EXTERNAL_PROPRIETARY()
+  testCasesForPolicyTable:flow_SUCCEESS_EXTERNAL_PROPRIETARY(self)
 end
 
 function Test:TestStep_Ignition_cycles_since_last_exchange_should_be_reset()
