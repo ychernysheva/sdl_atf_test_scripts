@@ -36,6 +36,7 @@ local events = require('events')
 --22. Function Subscribe sdl to vehicle data
 --23. Function Unsubscribe sdl from vehicle data
 --24. Function start PTU sequence HTTP flow
+--25. Function reads log file and find specific string in this file.
 ---------------------------------------------------------------------------------------------
 
 --return true if app is media or navigation
@@ -1108,7 +1109,7 @@ end
 --24. Function start PTU sequence HTTP flow
 -- ---------------------------------------------------------------------------------------------
 --! @brief Triggers PTU HTTP flow sequence by odometer
---! @brief param self contains Test
+--! @param self contains Test
 function commonFunctions:trigger_ptu_by_odometer(self)
   local path_to_policy_db = concatenation_path(config.pathToSDL, "storage/policy.sqlite")
   local exchange_after_x_kilometers = commonFunctions:get_data_policy_sql(path_to_policy_db,
@@ -1119,6 +1120,27 @@ function commonFunctions:trigger_ptu_by_odometer(self)
   tonumber(pt_exchange_at_odometer_x[1]) + 1
   --hmi side: Trigger PTU update
   self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", {odometer = pt_exchange_odometer})
+end
+
+-- ---------------------------------------------------------------------------------------------
+--25. Function reads log file and find specific string in this file.
+-- ---------------------------------------------------------------------------------------------
+--! @brief Reads log file and find specific string in this file.
+--! @param path contains path to log file.
+
+function commonFunctions:read_specific_message(path, message)
+local file = io.open(path, "r")
+if file == nil then
+    print("File doesnt exist, path:"..path)
+    assert(false)
+  end
+  local log_file = file:read("*a")
+  file:close()
+  local b, e = string.find(log_file, message)
+  if b ~= nil then
+    return true
+  end
+  return false
 end
 
 
