@@ -1,4 +1,5 @@
 ---------------------------------------------------------------------------------------------
+-- HTTP flow
 -- Requirements summary:
 -- [PolicyTableUpdate] PTU validation failure
 --
@@ -9,15 +10,10 @@
 -- 1. Used preconditions
 -- SDL is built with "-DEXTENDED_POLICY: HTTP" flag
 -- Application is registered.
--- PTU is requested.
+-- PTU is requested
 -- SDL->HMI: SDL.OnStatusUpdate(UPDATE_NEEDED)
--- SDL->HMI:SDL.PolicyUpdate(file, timeout, retry[])
--- HMI -> SDL: SDL.GetURLs (<service>)
--- HMI->SDL: BasicCommunication.OnSystemRequest ('url', requestType:HTTP)
--- SDL->app: OnSystemRequest ('url', requestType:HTTP, fileType="JSON")
--- app->SDL: SystemRequest(requestType=HTTP)
--- SDL->HMI: SystemRequest(requestType=HTTP, fileName)
--- HMI->SDL: SystemRequest(SUCCESS)
+-- SDL->MOB: OnSystemRequest()
+-- SDL->HMI: SDL.OnStatusUpdate(UPDATING)
 -- 2. Performed steps
 -- HMI->SDL: OnReceivedPolicyUpdate(policy_file): policy_file with missing mandatory seconds_between_retries.
 --
@@ -25,87 +21,179 @@
 -- SDL->HMI: OnStatusUpdate(UPDATE_NEEDED)
 -- SDL removes 'policyfile' from the directory
 ---------------------------------------------------------------------------------------------
-
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 
 --[[ Required Shared libraries ]]
-local commonSteps = require('user_modules/shared_testcases/commonSteps')
-local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
-local testCasesForPolicyTableSnapshot = require('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
+local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
+local commonSteps = require("user_modules/shared_testcases/commonSteps")
+local testCasesForBuildingSDLPolicyFlag = require('user_modules/shared_testcases/testCasesForBuildingSDLPolicyFlag')
+local json = require("modules/json")
+
+--[[ Local Variables ]]
+local sequence = { }
+local app_id = config.application1.registerAppInterfaceParams.appID
+local f_name = os.tmpname()
+local ptu
+local policy_file_name = "PolicyTableUpdate"
+local policy_file_path = commonFunctions:read_parameter_from_smart_device_link_ini("SystemFilesPath")
+local actual_status = { }
+local expected_status = { "UPDATE_NEEDED", "UPDATING", nil }
+
+--[[ Local Functions ]]
+local function timestamp()
+  local f = io.popen("date +%H:%M:%S.%3N")
+  local o = f:read("*all")
+  f:close()
+  return (o:gsub("\n", ""))
+end
+
+local function log(event, ...)
+  table.insert(sequence, { ts = timestamp(), e = event, p = {...} })
+end
+
+local function show_log()
+  print("--- Sequence -------------------------------------")
+  for k, v in pairs(sequence) do
+    local s = k .. ": " .. v.ts .. ": " .. v.e
+    for _, val in pairs(v.p) do
+      if val then s = s .. ": " .. val end
+    end
+    print(s)
+  end
+  print("--------------------------------------------------")
+end
+
+local function check_file_exists(name)
+  local f = io.open(name, "r")
+  if f ~= nil then
+    io.close(f)
+    return true
+  else
+    return false
+  end
+end
+
+local function clean_table(t)
+  for i = 0, #t do
+    t[i]=nil
+  end
+end
 
 --[[ General Precondition before ATF start ]]
+testCasesForBuildingSDLPolicyFlag:CheckPolicyFlagAfterBuild("PROPRIETARY")
+commonFunctions:SDLForceStop()
 commonSteps:DeleteLogsFileAndPolicyTable()
---TODO: Should be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
-config.defaultProtocolVersion = 2
 
 --[[ General Settings for configuration ]]
-Test = require('connecttest')
-require('cardinalities')
-require('user_modules/AppTypes')
+Test = require("connecttest")
+require("user_modules/AppTypes")
+config.defaultProtocolVersion = 2
+
+--[[ Specific Notifications ]]
+EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate")
+:Do(function(_, d)
+    log("SDL->HMI: SDL.OnStatusUpdate()", d.params.status)
+    table.insert(actual_status, d.params.status)
+  end)
+:Times(AnyNumber())
+:Pin()
+
+function Test:RegisterNotification()
+  self.mobileSession:ExpectNotification("OnSystemRequest")
+  :Do(function(_, d)
+      log("SDL->MOB: OnSystemRequest()", d.payload.requestType, d.payload.url)
+      ptu = json.decode(d.binaryData)
+    end)
+  :Times(AnyNumber())
+  :Pin()
+end
+
+--[[ Preconditions ]]
+commonFunctions:newTestCasesGroup("Preconditions")
+
+function Test.DeletePTUFile()
+  if check_file_exists(policy_file_path .. "/" .. policy_file_name) then
+    os.remove(policy_file_path .. "/" .. policy_file_name)
+    print("Policy file is removed")
+  end
+end
+
+function Test:ValidatePTS()
+  if ptu.policy_table.consumer_friendly_messages.messages then
+    self:FailTestCase("Expected absence of 'consumer_friendly_messages.messages' section in PTS")
+  end
+end
+
+function Test.UpdatePTS()
+  ptu.policy_table.device_data = nil
+  ptu.policy_table.usage_and_error_counts = nil
+  ptu.policy_table.app_policies[app_id] = { keep_context = false, steal_focus = false, priority = "NONE", default_hmi = "NONE" }
+  ptu.policy_table.app_policies[app_id]["groups"] = { "Base-4", "Base-6" }
+  ptu.policy_table.functional_groupings["DataConsent-2"].rpcs = json.null
+  -- remove mandatory field
+  ptu.policy_table.module_config.seconds_between_retries = nil
+end
+
+function Test.StorePTSInFile()
+  local f = io.open(f_name, "w")
+  f:write(json.encode(ptu))
+  f:close()
+end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
-function Test:TestStep_PTU_validation_failure()
-  local is_test_fail = false
-  local endpoints = {}
-  local hmi_app_id = self.applications[config.application1.registerAppInterfaceParams.appName]
-  print("hmi_app_id = " ..hmi_app_id)
-
-  for i = 1, #testCasesForPolicyTableSnapshot.pts_endpoints do
-    if (testCasesForPolicyTableSnapshot.pts_endpoints[i].service == "0x07") then
-      endpoints[#endpoints + 1] = { url = testCasesForPolicyTableSnapshot.pts_endpoints[i].value, appID = nil}
-    end
-
-    if (testCasesForPolicyTableSnapshot.pts_endpoints[i].service == "app1") then
-      endpoints[#endpoints + 1] = {
-        url = testCasesForPolicyTableSnapshot.pts_endpoints[i].value,
-        appID = testCasesForPolicyTableSnapshot.pts_endpoints[i].appID}
-    end
-  end
-
-  local RequestId_GetUrls = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
-  EXPECT_HMIRESPONSE(RequestId_GetUrls,{result = {code = 0, method = "SDL.GetURLS", urls = endpoints} } )
-  :Do(function(_,_)
-
-      self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",{ fileName = "PolicyTableUpdate", requestType = "HTTP", url = endpoints[1].url})
-      EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "HTTP", fileType = "JSON", url = endpoints[1].url,appID = config.application1.registerAppInterfaceParams.appID })
-      :Do(function(_,_)
-          local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", {requestType = "HTTP", fileName = "PolicyTableUpdate"},
-          "files/jsons/Policies/PTU_ValidationRules/invalid_PTU_missing_seconds_between_retries.json")
-
-          EXPECT_HMICALL("BasicCommunication.SystemRequest",{
-              requestType = "HTTP",
-              fileName = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate",
-              appID = hmi_app_id})
-          :Do(function(_,_data1)
-              self.hmiConnection:SendResponse(_data1.id,"BasicCommunication.SystemRequest", "SUCCESS", {})
-              self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate",
-                { policyfile = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate"})
-
-              EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
-              :Do(function(_,_)
-                  if( commonSteps:file_exists("/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate") == true) then
-                    is_test_fail = true
-                    commonFunctions:printError("File /tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate exists!")
-                  end
-                end)
-            end)
-
-          EXPECT_RESPONSE(CorIdSystemRequest, { success = true, resultCode = "SUCCESS"})
-        end)
+function Test:Update_LPT()
+  clean_table(actual_status)
+  local corId = self.mobileSession:SendRPC("SystemRequest", { requestType = "HTTP", fileName = policy_file_name }, f_name)
+  log("MOB->SDL: SystemRequest()")
+  EXPECT_RESPONSE(corId, { success = true, resultCode = "SUCCESS" })
+  :Do(function(_, _)
+      log("SDL->MOB: SystemRequest() response")
     end)
+end
 
-  if(is_test_fail == true) then
-    self:FailTestCase("Test is FAILED. See prints.")
+function Test.Test_ShowSequence()
+  show_log()
+end
+
+local function validate_status(self, id, expected, actual)
+  local literal_id = { "1st", "2nd", "3rd" }
+  if actual[id] ~= expected[id] then
+    local msg = table.concat({
+        "\nExpected ", literal_id[id], " SDL.OnStatusUpdate() status is '", tostring(expected[id]), "'",
+        "\nActual: '", tostring(actual[id]), "'" })
+    self:FailTestCase(msg)
+  end
+end
+
+function Test:Validate_Status_1st()
+  validate_status(self, 1, expected_status, actual_status)
+end
+
+function Test:Validate_Status_2nd()
+  validate_status(self, 2, expected_status, actual_status)
+end
+
+function Test:Validate_Status_3rd()
+  validate_status(self, 3, expected_status, actual_status)
+end
+
+function Test:Validate_PolicyFile()
+  if check_file_exists(policy_file_path .. "/" .. policy_file_name) then
+    self:FailTestCase("Expected absence of policy file, but it exists")
   end
 end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
 
-function Test.Postcondition_Stop_SDL()
+function Test.Clean()
+  os.remove(f_name)
+end
+
+function Test.Postconditions_StopSDL()
   StopSDL()
 end
 
