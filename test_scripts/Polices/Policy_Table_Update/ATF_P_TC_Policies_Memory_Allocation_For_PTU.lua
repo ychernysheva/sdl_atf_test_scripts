@@ -23,7 +23,7 @@
 --[[ Required Shared libraries ]]
   local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
   local commonSteps = require("user_modules/shared_testcases/commonSteps")
-  local testCasesForBuildingSDLPolicyFlag = require('user_modules/shared_testcases/testCasesForBuildingSDLPolicyFlag')
+
 
 --[[ Local Variables ]]
   local db_file = config.pathToSDL .. "/" .. commonFunctions:read_parameter_from_smart_device_link_ini("AppStorageFolder") .. "/policy.sqlite"
@@ -49,7 +49,6 @@
   end
 
 --[[ General Precondition before ATF start ]]
-  testCasesForBuildingSDLPolicyFlag:CheckPolicyFlagAfterBuild("EXTERNAL_PROPRIETARY")
   commonFunctions:SDLForceStop()
   commonSteps:DeleteLogsFileAndPolicyTable()
 
@@ -131,4 +130,4 @@
     StopSDL()
   end
 
-return Test
+return Test 
