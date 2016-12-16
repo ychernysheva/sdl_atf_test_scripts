@@ -135,3 +135,9 @@ function Test:TestStep_Register_App_Which_Name_Not_Listad_In_PT_DISALLOWED()
     })
   EXPECT_RESPONSE(CorIdRAI, { success = false, resultCode = "DISALLOWED"})  
 end
+
+--[[ Postconditions ]]
+commonFunctions:newTestCasesGroup("Postconditions")
+function Test.Postcondition_SDLStop()
+  StopSDL()
+end
