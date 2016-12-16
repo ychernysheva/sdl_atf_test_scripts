@@ -1,20 +1,20 @@
 ---------------------------------------------------------------------------------------------
--- Requirements summary:
--- [PolicyTableUpdate] OnStatusUpdate(UPDATE_NEEDED) on new PTU request
---
--- Note: copy PTUfilename - ptu.json on this way /tmp/fs/mp/images/ivsu_cache/
--- Description:
--- SDL should request PTU in case new application is registered and is not listed in PT
--- 1. Used preconditions
--- SDL is built with "-DEXTENDED_POLICY: PROPRIETARY" flag
--- Connect mobile phone over WiFi.
--- 2. Performed steps
--- Register new application
---
--- Expected result:
--- PTU is requested. PTS is created.
--- SDL->HMI: SDL.OnStatusUpdate(UPDATE_NEEDED)
--- SDL->HMI: BasicCommunication.PolicyUpdate
+ -- Requirements summary:
+ -- [PolicyTableUpdate] OnStatusUpdate(UPDATE_NEEDED) on new PTU request
+ --
+ -- Note: copy PTUfilename - ptu.json on this way /tmp/fs/mp/images/ivsu_cache/
+ -- Description:
+ -- SDL should request PTU in case new application is registered and is not listed in PT
+ -- 1. Used preconditions
+ -- SDL is built with "-DEXTENDED_POLICY: PROPRIETARY" flag
+ -- Connect mobile phone over WiFi.
+ -- 2. Performed steps
+ -- Register new application
+ --
+ -- Expected result:
+ -- PTU is requested. PTS is created.
+ -- SDL->HMI: SDL.OnStatusUpdate(UPDATE_NEEDED)
+ -- SDL->HMI: BasicCommunication.PolicyUpdate
 ---------------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
 config.defaultProtocolVersion = 2
@@ -33,6 +33,7 @@ commonSteps:DeleteLogsFileAndPolicyTable()
 
 --[[ General Settings for configuration ]]
 Test = require('connecttest')
+require('user_modules/AppTypes')
 
 --[[ Local Functions ]]
 local registerAppInterfaceParams =
@@ -59,30 +60,29 @@ local registerAppInterfaceParams =
 }
 
 local function policyUpdate(self)
+  local pathToSnaphot = "/tmp/fs/mp/images/ivsu_cache/ptu.json"
   local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
-  EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {url = "http://policies.telematics.ford.com/api/policies"}}})
+   EXPECT_HMIRESPONSE(RequestIdGetURLS)
   :Do(function(_,_)
       self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",
         {
           requestType = "PROPRIETARY",
-          url = "http://policies.telematics.ford.com/api/policies",
-          appID = self.applications ["MyTestApp"],
-          fileName = "sdl_snapshot.json"
-        },
-        "/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json"
+          appID = self.applications ["Test Application"],
+          fileName = "PTU"
+        }
       )
     end)
   EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "PROPRIETARY" })
   :Do(function(_,_)
-      os.execute("cp /home/anikolaev/OpenSDL_AUTOMATION/test_run/files/ptu.json /tmp/fs/mp/images/ivsu_cache/")
       local CorIdSystemRequest = self.mobileSession:SendRPC ("SystemRequest",
         {
           requestType = "PROPRIETARY",
-          fileName = "ptu.json"
+          fileName = "PTU"
         },
-        "/tmp/fs/mp/images/ivsu_cache/ptu.json"
+        pathToSnaphot
       )
-      EXPECT_HMICALL("BasicCommunication.SystemRequest")
+
+    EXPECT_HMICALL("BasicCommunication.SystemRequest")
       :Do(function(_,data)
           self.hmiConnection:SendResponse(data.id,"BasicCommunication.SystemRequest", "SUCCESS", {})
         end)
@@ -90,7 +90,7 @@ local function policyUpdate(self)
       :Do(function(_,_)
           self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate",
             {
-              policyfile = "/tmp/fs/mp/images/ivsu_cache/ptu.json"
+              policyfile = "/tmp/fs/mp/images/ivsu_cache/PTU"
             })
         end)
       :Do(function(_,_)
@@ -100,13 +100,13 @@ local function policyUpdate(self)
 end
 
 -- [[ Preconditions ]]
-commonFunctions:newTestCasesGroup("Preconditions")
+ commonFunctions:newTestCasesGroup("Preconditions")
 function Test:Precondition_ActivateApplication()
-  local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", {appID = self.applications["Test Application"]})
+   local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", {appID = self.applications["Test Application"]})
   EXPECT_HMIRESPONSE(RequestId)
   :Do(function(_,data)
       if data.result.isSDLAllowed ~= true then
-        RequestId = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
+         RequestId = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
         EXPECT_HMIRESPONSE(RequestId)
         :Do(function(_,_)
             self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = "127.0.0.1"}})
@@ -120,9 +120,9 @@ function Test:Precondition_ActivateApplication()
     end)
   EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", audioStreamingState = "AUDIBLE", systemContext = "MAIN"})
 end
-
+ 
 function Test:Precondition_MoveSystem_UP_TO_DATE()
-  policyUpdate(self, "/tmp/fs/mp/images/ivsu_cache/ptu.json")
+  policyUpdate(self)
 end
 
 function Test:Precondition_OpenNewSession()
@@ -131,7 +131,7 @@ function Test:Precondition_OpenNewSession()
 end
 
 --[[ Test ]]
-commonFunctions:newTestCasesGroup ("Test")
+commonFunctions:newTestCasesGroup("Test")
 function Test:TestStep_RegisterApplication_In_NewSession_Expect_UPDATE_NEEDED()
   local corId = self.mobileSession2:SendRPC("RegisterAppInterface", registerAppInterfaceParams)
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = "Media Application" }})
@@ -142,6 +142,6 @@ end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
-Test["StopSDL"] = function()
+function Test.Postcondition_SDLStop()
   StopSDL()
 end
