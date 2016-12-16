@@ -23,7 +23,7 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 --[[ Required Shared libraries ]]
 local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
 local commonSteps = require("user_modules/shared_testcases/commonSteps")
-local testCasesForBuildingSDLPolicyFlag = require('user_modules/shared_testcases/testCasesForBuildingSDLPolicyFlag')
+
 
 --[[ Local Variables ]]
 local db_file = config.pathToSDL .. "/" .. commonFunctions:read_parameter_from_smart_device_link_ini("AppStorageFolder") .. "/policy.sqlite"
@@ -75,7 +75,6 @@ local function execute_sqlite_query(file_db, query)
 end
 
 --[[ General Precondition before ATF start ]]
-testCasesForBuildingSDLPolicyFlag:CheckPolicyFlagAfterBuild("EXTERNAL_PROPRIETARY")
 commonFunctions:SDLForceStop()
 commonSteps:DeleteLogsFileAndPolicyTable()
 
@@ -86,7 +85,7 @@ require("user_modules/AppTypes")
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
-function Test:ActivateApp()
+function Test:TestStep_ActivateApp()
   local requestId1 = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.applications["Test Application"] })
   EXPECT_HMIRESPONSE(requestId1)
   :Do(function(_, data1)
@@ -108,7 +107,7 @@ function Test:ActivateApp()
 
 end
 
-function Test.FetchLPTDB()
+function Test.TestStep_FetchLPTDB()
   local query = "select fg.name from app_group ag inner join functional_group fg on fg.id = ag.functional_group_id where ag.application_id = "
   local i = 1
   while(#r_expected == 0) do
@@ -120,7 +119,7 @@ function Test.FetchLPTDB()
   end
 end
 
-function Test:ValidateResult()
+function Test:TestStep_ValidateResult()
   self.mobileSession:ExpectAny()
   :ValidIf(function(_, _)
       if not is_array_equal(r_expected, r_actual) then
@@ -133,7 +132,7 @@ end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
-function Test.StopSDL()
+function Test.Postcondition_StopSDL()
   StopSDL()
 end
 
