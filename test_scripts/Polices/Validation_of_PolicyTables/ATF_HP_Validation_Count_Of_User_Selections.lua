@@ -17,14 +17,19 @@
 -- Expected result:
 -- a) "count_of_user_selections" in PTS is equal actual numbers of app activation
 ---------------------------------------------------------------------------------------------
-
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 --ToDo: shall be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
 config.defaultProtocolVersion = 2
 
+--[[ General Settings for configuration ]]
+Test = require('connecttest')
+require('cardinalities')
+
 --[[ Required Shared libraries ]]
 local commonSteps = require ('user_modules/shared_testcases/commonSteps')
+local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
+require('user_modules/AppTypes')
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFiles()
@@ -35,10 +40,6 @@ local pathToSnapshot
 local appID = config.application1.registerAppInterfaceParams["appID"]
 local countAppActivation
 
---[[ General Settings for configuration ]]
-Test = require('connecttest')
-require('cardinalities')
-
 --[[ Local Functions ]]
 local function GetCountOfUserSelectionsFromPTS(pathToFile)
   local file = io.open(pathToFile, "r")
@@ -46,7 +47,6 @@ local function GetCountOfUserSelectionsFromPTS(pathToFile)
   file:close()
   local json = require("modules/json")
   local data = json.decode(json_data)
-
   local userSelectionsCounteFromPTS = data.policy_table.usage_and_error_counts.app_level[appID].count_of_user_selections
   return userSelectionsCounteFromPTS
 end
@@ -56,21 +56,21 @@ function Test:Precondition_Activate_App_Consent_Device()
   local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", {appID = self.applications["Test Application"]})
   EXPECT_HMIRESPONSE(RequestId, {result = {code = 0, isSDLAllowed = false}, method = "SDL.ActivateApp"})
   :Do(function(_,_)
-      local RequestIdGetUserFriendlyMessage = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
-      EXPECT_HMIRESPONSE(RequestIdGetUserFriendlyMessage,{result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
-      :Do(function(_,_)
-          self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = "127.0.0.1"}})
-          -- GetCurrentTimeStampDeviceConsent()
-          EXPECT_HMICALL("BasicCommunication.ActivateApp")
-          :Do(function(_,data1)
-              self.hmiConnection:SendResponse(data1.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
-              EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"})
-              :Do(function()
-                  countAppActivation = 1
-                end)
-            end)
-        end)
+    local RequestIdGetUserFriendlyMessage = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
+    EXPECT_HMIRESPONSE(RequestIdGetUserFriendlyMessage,{result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
+    :Do(function(_,_)
+      self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = "127.0.0.1"}})
+      EXPECT_HMICALL("BasicCommunication.ActivateApp")
+      :Do(function(_,data)
+        self.hmiConnection:SendResponse(data.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
+      end)
+      :Times(AtLeast(1))  
     end)
+  end)
+  EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"})
+  :Do(function()
+    countAppActivation = 1
+  end)
 end
 
 function Test:Precondition_Deactivate_App()
@@ -87,6 +87,7 @@ function Test:Precondition_Activate_App()
 end
 
 --[[ Test ]]
+commonFunctions:newTestCasesGroup("Test")
 function Test:TestStep_Get_New_PTS_And_Check_Counter()
   self.hmiConnection:SendNotification("SDL.OnPolicyUpdate")
   EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
@@ -97,6 +98,7 @@ function Test:TestStep_Get_New_PTS_And_Check_Counter()
 end
 
 --[[ Postcondition ]]
-function Test:Postcondition_StopSDL()
+commonFunctions:newTestCasesGroup("Postcondition")
+function Test.Postcondition_StopSDL()
   StopSDL()
 end
