@@ -23,7 +23,9 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 --[[ Required Shared libraries ]]
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require ('user_modules/shared_testcases/commonSteps')
+local commonPreconditions = require ('user_modules/shared_testcases/commonPreconditions')
 local testCasesForPolicyTable = require ('user_modules/shared_testcases/testCasesForPolicyTable')
+local json = require("modules/json")
 
 --[[ Local Variables ]]
 local TESTED_DATA = {
@@ -41,6 +43,8 @@ local TESTED_DATA = {
       count_of_rejections_nickname_mismatch = "0"
   }
 }
+
+local PRELOADED_PT_FILE_NAME = "sdl_preloaded_pt.json"
 
 local TestData = {
   path = config.pathToSDL .. "TestData",
@@ -83,6 +87,50 @@ local TestData = {
 }
 
 --[[ Local Functions ]]
+local function updatePreloadedPt(updaters)
+  local pathToFile = config.pathToSDL .. PRELOADED_PT_FILE_NAME
+  local file = io.open(pathToFile, "r")
+  local json_data = file:read("*a")
+  file:close()
+
+  local data = json.decode(json_data)
+  if data then
+    for _, updateFunc in pairs(updaters) do
+      updateFunc(data)
+    end
+  end
+
+  local dataToWrite = json.encode(data)
+  file = io.open(pathToFile, "w")
+  file:write(dataToWrite)
+  file:close()
+end
+
+local function prepareInitialPreloadedPT()
+  local initialUpdaters = {
+    function(data)
+      for key, value in pairs(data.policy_table.functional_groupings) do
+        if not value.rpcs then
+          data.policy_table.functional_groupings[key] = nil
+        end
+      end
+    end,
+    function(data)
+      data.policy_table.module_config.preloaded_date = TESTED_DATA.preloaded_date[1]
+    end
+  }
+  updatePreloadedPt(initialUpdaters)
+end
+
+local function prepareNewPreloadedPT()
+  local newUpdaters = {
+    function(data)
+      data.policy_table.module_config.preloaded_date = TESTED_DATA.preloaded_date[2]
+    end,
+  }
+  updatePreloadedPt(newUpdaters)
+end
+
 local function constructPathToDatabase()
   if commonSteps:file_exists(config.pathToSDL .. "storage/policy.sqlite") then
     return config.pathToSDL .. "storage/policy.sqlite"
@@ -152,6 +200,9 @@ config.application1.registerAppInterfaceParams.hmiDisplayLanguageDesired = "FR-F
 config.application1.registerAppInterfaceParams.languageDesired = "ES-ES"
 testCasesForPolicyTable.Delete_Policy_table_snapshot()
 commonSteps:DeleteLogsFileAndPolicyTable()
+commonPreconditions:BackupFile(PRELOADED_PT_FILE_NAME)
+prepareInitialPreloadedPT()
+commonPreconditions:Connecttest_without_ExitBySDLDisconnect_WithoutOpenConnectionRegisterApp("connecttest_ConnectMobile.lua")
 
 --[[ General configuration parameters ]]
 --Test = require('user_modules/connecttest_ConnectMobile')
@@ -203,8 +254,9 @@ commonFunctions:newTestCasesGroup("Test")
 
 function Test:TestStep_VerifyInitialLocalPT()
   os.execute("sleep 3")
-
+  TestData:store("Initial Local PT is stored", constructPathToDatabase(), "initial_policy.sqlite")
   local checks = {
+    { query = 'select preloaded_date from module_config', expectedValues = {TESTED_DATA.preloaded_date[1]} },
     { query = 'select count_of_iap_buffer_full from usage_and_error_count', expectedValues = {TESTED_DATA.usage_and_error_count.count_of_iap_buffer_full}},
     { query = 'select count_sync_out_of_memory from usage_and_error_count', expectedValues = {TESTED_DATA.usage_and_error_count.count_sync_out_of_memory}},
     { query = 'select count_of_sync_reboots from usage_and_error_count', expectedValues = {TESTED_DATA.usage_and_error_count.count_of_sync_reboots} },
@@ -215,24 +267,28 @@ function Test:TestStep_VerifyInitialLocalPT()
     { query = 'select count_of_rejections_nickname_mismatch from app_level', expectedValues = {TESTED_DATA.app_level.count_of_rejections_nickname_mismatch} },
     { query = 'select application_id from app_level', expectedValues = {} }
   }
-
   if not self.checkLocalPT(checks) then
     self:FailTestCase("SDL has wrong values in LocalPT")
   end
 end
 
-function Test:TestStep_trigger_getting_device_consent()
-  testCasesForPolicyTable:trigger_getting_device_consent(self, config.application1.registerAppInterfaceParams.appName, config.deviceMAC)
+function Test:TestStep_StopSDL()
+  StopSDL(self)
 end
 
-function Test:TestStep_flow_SUCCEESS_EXTERNAL_PROPRIETARY()
-  testCasesForPolicyTable:flow_SUCCEESS_EXTERNAL_PROPRIETARY(self)
+function Test.TestStep_LoadVerifyNewPreloadedPT()
+  prepareNewPreloadedPT()
 end
 
-function Test:TestStep_VerifyLocalPT_PTU()
+function Test:TestStep_StartSDL()
+  StartSDL(config.pathToSDL, true, self)
+end
+
+function Test:TestStep_VerifyNewLocalPT()
   os.execute("sleep 3")
-
+  TestData:store("New Local PT is stored", constructPathToDatabase(), "new_policy.sqlite")
   local checks = {
+    { query = 'select preloaded_date from module_config', expectedValues = {TESTED_DATA.preloaded_date[1]} },
     { query = 'select count_of_iap_buffer_full from usage_and_error_count', expectedValues = {TESTED_DATA.usage_and_error_count.count_of_iap_buffer_full}},
     { query = 'select count_sync_out_of_memory from usage_and_error_count', expectedValues = {TESTED_DATA.usage_and_error_count.count_sync_out_of_memory}},
     { query = 'select count_of_sync_reboots from usage_and_error_count', expectedValues = {TESTED_DATA.usage_and_error_count.count_of_sync_reboots} },
@@ -243,7 +299,6 @@ function Test:TestStep_VerifyLocalPT_PTU()
     { query = 'select count_of_rejections_nickname_mismatch from app_level', expectedValues = {TESTED_DATA.app_level.count_of_rejections_nickname_mismatch} },
     { query = 'select application_id from app_level', expectedValues = {} }
   }
-
   if not self.checkLocalPT(checks) then
     self:FailTestCase("SDL has wrong values in LocalPT")
   end
@@ -251,7 +306,8 @@ end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
-function Test.Postcondition_StopSDL()
+testCasesForPolicyTable:Restore_preloaded_pt()
+function Test.Postcondition()
   StopSDL()
 end
 
