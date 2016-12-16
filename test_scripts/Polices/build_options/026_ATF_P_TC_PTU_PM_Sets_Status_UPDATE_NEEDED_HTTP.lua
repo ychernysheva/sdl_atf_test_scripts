@@ -23,7 +23,6 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 --[[ Required Shared libraries ]]
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
-local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
 local testCasesForPolicyTableSnapshot = require ('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
 
 --[[ General Precondition before ATF start ]]
@@ -81,7 +80,7 @@ function Test:TestStep_ChangeStatus_Update_Needed()
         end)
     end)
 
-  commonTestCases:DelayedExp(time_wait)
+  commonTestCases.DelayedExp(time_wait)
 
   if(is_test_fail == true) then
     self:FailTestCase("Test is FAILED. See prints.")
