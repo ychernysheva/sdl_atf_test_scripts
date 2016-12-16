@@ -1027,7 +1027,8 @@ assert(commonFunctions:File_exists(ptu_path))
     elseif exp.occurences == 2 and
       data.params.status == "UPDATING" then
     return true
-    elseif data.params.status == "UP_TO_DATE" then
+    elseif exp.occurences == 3 and 
+      data.params.status == "UP_TO_DATE" then
       return true
     end
     return false
