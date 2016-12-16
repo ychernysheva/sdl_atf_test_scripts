@@ -14,14 +14,19 @@
 -- Expected result:
 -- a) App present in usage_and_error_counts section in PTS
 ---------------------------------------------------------------------------------------------
-
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 --ToDo: shall be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
 config.defaultProtocolVersion = 2
 
+--[[ General Settings for configuration ]]
+Test = require('connecttest')
+require('cardinalities')
+
 --[[ Required Shared libraries ]]
 local commonSteps = require ('user_modules/shared_testcases/commonSteps')
+local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
+require('user_modules/AppTypes')
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFiles()
@@ -31,10 +36,6 @@ commonSteps:DeletePolicyTable()
 local pathToSnapshot
 local appID = config.application1.registerAppInterfaceParams["appID"]
 
---[[ General Settings for configuration ]]
-Test = require('connecttest')
-require('cardinalities')
-
 --[[ Local Functions ]]
 local function isAppPresentInUsageAndErrorCountsSection(pathToFile)
   local file = io.open(pathToFile, "r")
@@ -42,14 +43,14 @@ local function isAppPresentInUsageAndErrorCountsSection(pathToFile)
   file:close()
   local json = require("modules/json")
   local data = json.decode(json_data)
-
   if next(data.policy_table.usage_and_error_counts.app_level, nil) == appID then return true
   else return false
   end
 end
 
 --[[ Test ]]
-function Test:TestStep_Activate_App_Consent_Device_And_Check_Error_Count_For_App_In_PTS()
+commonFunctions:newTestCasesGroup("Test")
+function Test:Activate_App_Consent_Device_And_Check_Error_Count_For_App_In_PTS()
   local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", {appID = self.applications["Test Application"]})
   EXPECT_HMIRESPONSE(RequestId, {result = {code = 0, isSDLAllowed = false}, method = "SDL.ActivateApp"})
   :Do(function(_,_)
@@ -57,14 +58,14 @@ function Test:TestStep_Activate_App_Consent_Device_And_Check_Error_Count_For_App
       EXPECT_HMIRESPONSE(RequestIdGetUserFriendlyMessage,{result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
       :Do(function(_,_)
           self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = "127.0.0.1"}})
-          -- GetCurrentTimeStampDeviceConsent()
           EXPECT_HMICALL("BasicCommunication.ActivateApp")
-          :Do(function(_,data1)
+           :Do(function(_,data1)
               self.hmiConnection:SendResponse(data1.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
-              EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"})
             end)
+             :Times(AtLeast(1)) 
         end)
     end)
+  EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"})
   EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
   :ValidIf(function(_,data)
       pathToSnapshot = data.params.file
@@ -73,6 +74,7 @@ function Test:TestStep_Activate_App_Consent_Device_And_Check_Error_Count_For_App
 end
 
 --[[ Postcondition ]]
-function Test:Postcondition_StopSDL()
+commonFunctions:newTestCasesGroup("Postcondition")
+function Test.Postcondition_StopSDL()
   StopSDL()
 end
