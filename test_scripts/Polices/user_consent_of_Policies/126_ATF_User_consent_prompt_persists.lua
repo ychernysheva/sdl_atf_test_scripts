@@ -34,6 +34,8 @@ local allowed_rps = {}
 local arrayNotifications = {}
 local arrayBase4 = {}
 local array_allpermissions = {}
+local array_without_Location = {}
+local arrayLocation = {}
 
 --[[ Local functions ]]
 -- Function gets RPCs for Notification and Location-1
@@ -97,6 +99,7 @@ local function Get_RPCs()
       -- }
     }
     array_allpermissions[#array_allpermissions + 1] = arrayBase4[i]
+    array_without_Location[#array_without_Location + 1] = arrayBase4[i]
   end
 
   for i = 1, #RPC_Notifications do
@@ -108,19 +111,20 @@ local function Get_RPCs()
       -- }
     }
     array_allpermissions[#array_allpermissions + 1] = arrayNotifications[i]
+    array_without_Location[#array_without_Location + 1] = arrayNotifications[i]
   end
   --Location will be not allowed
-  -- for i = 1, #RPC_Location do
-  --   arrayLocation[i] = {
-  --     -- permissionItem = {
-  --     --hmiPermissions = { userDisallowed = {}, allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" } },
-  --     --parameterPermissions = { userDisallowed = {}, allowed = {} },
-  --     rpcName = RPC_Location[i]
-  --   }
-  --   -- }
-  --   --Location will be not allowed
-  --   --array_allpermissions[#array_allpermissions + 1] = arrayLocation[i]
-  -- end
+  for i = 1, #RPC_Location do
+    arrayLocation[i] = {
+      -- permissionItem = {
+      --hmiPermissions = { userDisallowed = {}, allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" } },
+      --parameterPermissions = { userDisallowed = {}, allowed = {} },
+      rpcName = RPC_Location[i]
+    }
+    -- }
+    --Location will be not allowed
+    array_allpermissions[#array_allpermissions + 1] = arrayLocation[i]
+  end
 
   -- for i = 1, #allowed_rps do
   -- print("allowed_rps = "..allowed_rps[i])
@@ -215,46 +219,6 @@ function Test:Precondition_PTU_user_consent_prompt_present()
                 if( (exp.occurences == 1) and (_data2.payload.permissionItem ~= nil) )then
                   -- Will be used to check if all needed RPC for permissions are received
                   local is_perm_item_receved = {}
-                  for i = 1, #arrayBase4 do
-                    is_perm_item_receved[i] = false
-                  end
-
-                  -- will be used to check RPCs that needs permission
-                  local is_perm_item_needed = {}
-                  for i = 1, #_data2.payload.permissionItem do
-                    is_perm_item_needed[i] = false
-                  end
-
-                  for i = 1, #_data2.payload.permissionItem do
-                    for j = 1, #arrayBase4 do
-                      if(_data2.payload.permissionItem[i].rpcName == arrayBase4[j].rpcName) then
-                        is_perm_item_receved[j] = true
-                        is_perm_item_needed[i] = true
-                        break
-                      end
-                    end
-                  end
-
-                  -- check that all RPCs from notification are requesting permission
-                  for i = 1,#is_perm_item_needed do
-                    if (is_perm_item_needed[i] == false) then
-                      commonFunctions:printError("Occ1 RPC: ".._data2.payload.permissionItem[i].rpcName.." should not be sent")
-                      is_test_passed = false
-                    end
-                  end
-
-                  -- check that all RPCs that request permission are received
-                  for i = 1,#is_perm_item_receved do
-                    if (is_perm_item_receved[i] == false) then
-                      commonFunctions:printError("Occ1 RPC: "..arrayBase4[i].rpcName.." is not sent")
-                      is_test_passed = false
-                    end
-                  end
-                end
-
-                if( (exp.occurences == 2) and (_data2.payload.permissionItem ~= nil) )then
-                  -- Will be used to check if all needed RPC for permissions are received
-                  local is_perm_item_receved = {}
                   for i = 1, #array_allpermissions do
                     is_perm_item_receved[i] = false
                   end
@@ -278,6 +242,46 @@ function Test:Precondition_PTU_user_consent_prompt_present()
                   -- check that all RPCs from notification are requesting permission
                   for i = 1,#is_perm_item_needed do
                     if (is_perm_item_needed[i] == false) then
+                      commonFunctions:printError("Occ1 RPC: ".._data2.payload.permissionItem[i].rpcName.." should not be sent")
+                      is_test_passed = false
+                    end
+                  end
+
+                  -- check that all RPCs that request permission are received
+                  for i = 1,#is_perm_item_receved do
+                    if (is_perm_item_receved[i] == false) then
+                      commonFunctions:printError("Occ1 RPC: "..array_allpermissions[i].rpcName.." is not sent")
+                      is_test_passed = false
+                    end
+                  end
+                end
+
+                if( (exp.occurences == 2) and (_data2.payload.permissionItem ~= nil) )then
+                  -- Will be used to check if all needed RPC for permissions are received
+                  local is_perm_item_receved = {}
+                  for i = 1, #array_without_Location do
+                    is_perm_item_receved[i] = false
+                  end
+
+                  -- will be used to check RPCs that needs permission
+                  local is_perm_item_needed = {}
+                  for i = 1, #_data2.payload.permissionItem do
+                    is_perm_item_needed[i] = false
+                  end
+
+                  for i = 1, #_data2.payload.permissionItem do
+                    for j = 1, #array_without_Location do
+                      if(_data2.payload.permissionItem[i].rpcName == array_without_Location[j].rpcName) then
+                        is_perm_item_receved[j] = true
+                        is_perm_item_needed[i] = true
+                        break
+                      end
+                    end
+                  end
+
+                  -- check that all RPCs from notification are requesting permission
+                  for i = 1,#is_perm_item_needed do
+                    if (is_perm_item_needed[i] == false) then
                       commonFunctions:printError("Occ2: RPC: ".._data2.payload.permissionItem[i].rpcName.." should not be sent")
                       is_test_passed = false
                     end
@@ -286,7 +290,7 @@ function Test:Precondition_PTU_user_consent_prompt_present()
                   -- check that all RPCs that request permission are received
                   for i = 1,#is_perm_item_receved do
                     if (is_perm_item_receved[i] == false) then
-                      commonFunctions:printError("Occ2: RPC: "..array_allpermissions[i].rpcName.." is not sent")
+                      commonFunctions:printError("Occ2: RPC: "..array_without_Location[i].rpcName.." is not sent")
                       is_test_passed = false
                     end
                   end
