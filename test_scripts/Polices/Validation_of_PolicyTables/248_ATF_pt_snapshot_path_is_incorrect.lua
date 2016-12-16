@@ -23,6 +23,7 @@ local commonFunctions = require ('user_modules/shared_testcases/commonFunctions'
 local commonSteps = require ('user_modules/shared_testcases/commonSteps')
 local testCasesForPolicySDLErrorsStops = require ('user_modules/shared_testcases/testCasesForPolicySDLErrorsStops')
 local testCasesForPolicyTable = require ('user_modules/shared_testcases/testCasesForPolicyTable')
+local commonPreconditions = require ('user_modules/shared_testcases/commonPreconditions')
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
@@ -35,7 +36,6 @@ require('user_modules/AppTypes')
 
 --[[ Local Variables ]]
 local INCORRECT_LINUX_PATH_TO_POLICY_SNAPSHOT_FILE = "-\tsdl$snapshot.json"
-local oldPathToPtSnapshot
 
 --[[ Local Functions ]]
 
@@ -73,6 +73,7 @@ local function setValueInSdlIni(parameterName, parameterValue)
 end
 
 function Test.changePtsPathInSdlIni(newPath)
+  commonPreconditions:BackupFile("smartDeviceLink.ini")
   local result, oldPath = setValueInSdlIni("PathToSnapshot", newPath)
   if not result then
     commonFunctions:userPrint(31, "Test can't change SDL .ini file")
@@ -112,8 +113,8 @@ end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
-function Test:Postcondition()
-  self.changePtsPathInSdlIni(oldPathToPtSnapshot)
+function Test.Postcondition_Restore_INI()
+  commonPreconditions:RestoreFile("smartDeviceLink.ini")
 end
 
 function Test.Postcondition_StopSDL()
