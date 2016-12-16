@@ -1,4 +1,5 @@
 ---------------------------------------------------------------------------------------------
+-- TODO(istoimenova): Should be updated when "Can you clarify should section data be included in Local DB?" is resolved
 -- Requirement summary:
 -- [Policies] Merging rules for "device_data" section
 --
@@ -22,9 +23,7 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 --[[ Required Shared libraries ]]
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require ('user_modules/shared_testcases/commonSteps')
-local commonPreconditions = require ('user_modules/shared_testcases/commonPreconditions')
 local testCasesForPolicyTable = require ('user_modules/shared_testcases/testCasesForPolicyTable')
-local json = require("modules/json")
 
 --[[ General configuration parameters ]]
 Test = require('connecttest')
@@ -34,18 +33,17 @@ config.defaultProtocolVersion = 2
 config.application1.registerAppInterfaceParams.deviceInfo.hardware = "Nexus"
 
 --[[ Local Variables ]]
-local Device_timestamp
 local TESTED_DATA = {
-  preloaded_date = {"1988-12-01","2015-05-02"},
+  --preloaded_date = {"1988-12-01","2015-05-02"},
   device = {
+    --device_data
     id = tostring(config.deviceMAC),
     hardware = tostring(config.application1.registerAppInterfaceParams.deviceInfo.hardware),
     firmware_rev = tostring(config.application1.registerAppInterfaceParams.deviceInfo.firmwareRev),
     os = tostring(config.application1.registerAppInterfaceParams.deviceInfo.os),
     os_version = tostring(config.application1.registerAppInterfaceParams.deviceInfo.osVersion),
     carrier = tostring(config.application1.registerAppInterfaceParams.deviceInfo.carrier),
-    max_number_rfcom_ports = tostring(config.application1.registerAppInterfaceParams.deviceInfo.maxNumberRFCOMMPorts),
-    user_consent_records = "not_available"
+    max_number_rfcom_ports = tostring(config.application1.registerAppInterfaceParams.deviceInfo.maxNumberRFCOMMPorts)
   },
   device_consent_group = {
     device_id = tostring(config.deviceMAC),
@@ -55,7 +53,6 @@ local TESTED_DATA = {
     time_stamp = ""
   }
 }
-local PRELOADED_PT_FILE_NAME = "sdl_preloaded_pt.json"
 
 local TestData = {
   path = config.pathToSDL .. "TestData",
@@ -98,49 +95,6 @@ local TestData = {
 }
 
 --[[ Local Functions ]]
-local function updatePreloadedPt(updaters)
-  local pathToFile = config.pathToSDL .. PRELOADED_PT_FILE_NAME
-  local file = io.open(pathToFile, "r")
-  local json_data = file:read("*a")
-  file:close()
-
-  local data = json.decode(json_data)
-  if data then
-    for _, updateFunc in pairs(updaters) do
-      updateFunc(data)
-    end
-  end
-
-  local dataToWrite = json.encode(data)
-  file = io.open(pathToFile, "w")
-  file:write(dataToWrite)
-  file:close()
-end
-
-local function prepareInitialPreloadedPT()
-  local initialUpdaters = {
-    function(data)
-      for key, value in pairs(data.policy_table.functional_groupings) do
-        if not value.rpcs then
-          data.policy_table.functional_groupings[key] = nil
-        end
-      end
-    end,
-    function(data)
-      data.policy_table.module_config.preloaded_date = TESTED_DATA.preloaded_date[1]
-    end
-  }
-  updatePreloadedPt(initialUpdaters)
-end
-
-local function prepareNewPreloadedPT()
-  local newUpdaters = {
-    function(data)
-      data.policy_table.module_config.preloaded_date = TESTED_DATA.preloaded_date[2]
-    end,
-  }
-  updatePreloadedPt(newUpdaters)
-end
 
 local function constructPathToDatabase()
   if commonSteps:file_exists(config.pathToSDL .. "storage/policy.sqlite") then
@@ -246,14 +200,8 @@ config.defaultProtocolVersion = 2
 testCasesForPolicyTable.Delete_Policy_table_snapshot()
 commonSteps:DeleteLogsFileAndPolicyTable()
 --testCasesForPolicyTable:Precondition_updatePolicy_By_overwriting_preloaded_pt("files/jsons/Policies/PTU_ValidationRules/pre_dataconsent.json")
-commonPreconditions:BackupFile(PRELOADED_PT_FILE_NAME)
-prepareInitialPreloadedPT()
-
---[[ Preconditions ]]
-commonFunctions:newTestCasesGroup("Precondition")
-function Test:Precondition_trigger_getting_device_consent()
-  testCasesForPolicyTable:trigger_getting_device_consent(self, config.application1.registerAppInterfaceParams.appName, config.deviceMAC)
-end
+--commonPreconditions:BackupFile(PRELOADED_PT_FILE_NAME)
+--prepareInitialPreloadedPT()
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
@@ -262,7 +210,6 @@ function Test:TestStep_VerifyInitialLocalPT()
   os.execute("sleep 3")
   TestData:store("Initial Local PT is stored", constructPathToDatabase(), "initial_policy.sqlite")
   local checks = {
-    { query = 'select preloaded_date from module_config', expectedValues = {TESTED_DATA.preloaded_date[1]} },
     { query = 'select id from device', expectedValues = {TESTED_DATA.device.id} },
     { query = 'select hardware from device', expectedValues = {TESTED_DATA.device.hardware} },
     { query = 'select firmware_rev from device', expectedValues = {TESTED_DATA.device.firmware_rev} },
@@ -271,39 +218,26 @@ function Test:TestStep_VerifyInitialLocalPT()
     { query = 'select carrier from device', expectedValues = {TESTED_DATA.device.carrier} },
     { query = 'select max_number_rfcom_ports from device', expectedValues = {TESTED_DATA.device.max_number_rfcom_ports} },
     { query = 'select user_consent_records from device', expectedValues = {TESTED_DATA.device.user_consent_records} },
-    { query = 'select device_id from device_consent_group', expectedValues = {TESTED_DATA.device_consent_group.device_id} },
-    { query = 'select functional_group_id from device_consent_group', expectedValues = {TESTED_DATA.device_consent_group.functional_group_id} },
-    { query = 'select is_consented from device_consent_group', expectedValues = {TESTED_DATA.device_consent_group.is_consented} },
-    { query = 'select input from device_consent_group', expectedValues = {TESTED_DATA.device_consent_group.input} }
+    { query = 'select device_id from device_consent_group', expectedValues = {} },
+    { query = 'select functional_group_id from device_consent_group', expectedValues = {} },
+    { query = 'select is_consented from device_consent_group', expectedValues = {} },
+    { query = 'select input from device_consent_group', expectedValues = {} }
+    --TODO(istoimenova): Should be updated when "Can you clarify should section data be included in Local DB?" is resolved.
   }
 
-  local Device_table = executeSqliteQuery('select time_stamp from device_consent_group', constructPathToDatabase())
-  for _, v in pairs(Device_table) do
-    Device_timestamp = v
-  end 
-  
   if not self.checkLocalPT(checks) then
     self:FailTestCase("SDL has wrong values in LocalPT")
   end
 end
 
-function Test:TestStep_StopSDL()
-  StopSDL(self)
+function Test:TestStep_trigger_getting_device_consent()
+  testCasesForPolicyTable:trigger_getting_device_consent(self, config.application1.registerAppInterfaceParams.appName, config.deviceMAC)
 end
 
-function Test.TestStep_LoadNewPreloadedPT()
-  prepareNewPreloadedPT()
-end
-
-function Test:TestStep_StartSDL()
-  StartSDL(config.pathToSDL, true, self)
-end
-
-function Test:TestStep_VerifyNewLocalPT()
+function Test:TestStep_VerifyLocalPT_DeviceConsent()
   os.execute("sleep 3")
-  TestData:store("New Local PT is stored", constructPathToDatabase(), "new_policy.sqlite")
+  TestData:store("Initial Local PT is stored", constructPathToDatabase(), "initial_policy.sqlite")
   local checks = {
-    { query = 'select preloaded_date from module_config', expectedValues = {TESTED_DATA.preloaded_date[2]}},
     { query = 'select id from device', expectedValues = {TESTED_DATA.device.id} },
     { query = 'select hardware from device', expectedValues = {TESTED_DATA.device.hardware} },
     { query = 'select firmware_rev from device', expectedValues = {TESTED_DATA.device.firmware_rev} },
@@ -312,12 +246,44 @@ function Test:TestStep_VerifyNewLocalPT()
     { query = 'select carrier from device', expectedValues = {TESTED_DATA.device.carrier} },
     { query = 'select max_number_rfcom_ports from device', expectedValues = {TESTED_DATA.device.max_number_rfcom_ports} },
     { query = 'select user_consent_records from device', expectedValues = {TESTED_DATA.device.user_consent_records} },
+
+    --TODO(istoimenova): Should be updated when "Can you clarify should section data be included in Local DB?" is resolved.
     { query = 'select device_id from device_consent_group', expectedValues = {TESTED_DATA.device_consent_group.device_id} },
     { query = 'select functional_group_id from device_consent_group', expectedValues = {TESTED_DATA.device_consent_group.functional_group_id} },
     { query = 'select is_consented from device_consent_group', expectedValues = {TESTED_DATA.device_consent_group.is_consented} },
     { query = 'select input from device_consent_group', expectedValues = {TESTED_DATA.device_consent_group.input} },
-    { query = 'select time_stamp from device_consent_group', expectedValues = {Device_timestamp} },
+    { query = 'select * from device_consent_group', expectedValues = {} }
   }
+
+  if not self.checkLocalPT(checks) then
+    self:FailTestCase("SDL has wrong values in LocalPT")
+  end
+end
+
+function Test:TestStep_flow_SUCCEESS_EXTERNAL_PROPRIETARY()
+  testCasesForPolicyTable:flow_SUCCEESS_EXTERNAL_PROPRIETARY(self)
+end
+
+function Test:TestStep_VerifyLocalPT_PTU()
+  os.execute("sleep 3")
+  TestData:store("Initial Local PT is stored", constructPathToDatabase(), "initial_policy.sqlite")
+  local checks = {
+    { query = 'select id from device', expectedValues = {TESTED_DATA.device.id} },
+    { query = 'select hardware from device', expectedValues = {TESTED_DATA.device.hardware} },
+    { query = 'select firmware_rev from device', expectedValues = {TESTED_DATA.device.firmware_rev} },
+    { query = 'select os from device', expectedValues = {TESTED_DATA.device.os} },
+    { query = 'select os_version from device', expectedValues = {TESTED_DATA.device.os_version} },
+    { query = 'select carrier from device', expectedValues = {TESTED_DATA.device.carrier} },
+    { query = 'select max_number_rfcom_ports from device', expectedValues = {TESTED_DATA.device.max_number_rfcom_ports} },
+    { query = 'select user_consent_records from device', expectedValues = {TESTED_DATA.device.user_consent_records} },
+    --TODO(istoimenova): Should be updated when "Can you clarify should section data be included in Local DB?" is resolved.
+    { query = 'select device_id from device_consent_group', expectedValues = {TESTED_DATA.device_consent_group.device_id} },
+    { query = 'select functional_group_id from device_consent_group', expectedValues = {TESTED_DATA.device_consent_group.functional_group_id} },
+    { query = 'select is_consented from device_consent_group', expectedValues = {TESTED_DATA.device_consent_group.is_consented} },
+    { query = 'select input from device_consent_group', expectedValues = {TESTED_DATA.device_consent_group.input} },
+    { query = 'select * from device_consent_group', expectedValues = {} }
+  }
+
   if not self.checkLocalPT(checks) then
     self:FailTestCase("SDL has wrong values in LocalPT")
   end
@@ -325,8 +291,7 @@ end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
-testCasesForPolicyTable:Restore_preloaded_pt()
-function Test.Postcondition()
+function Test.Postcondition_StopSDL()
   StopSDL()
 end
 
