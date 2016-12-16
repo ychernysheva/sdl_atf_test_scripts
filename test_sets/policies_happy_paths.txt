@@ -1,6 +1,3 @@
-./test_scripts/Polices/Policies_Security/003_ATF_P_PolicyTable_Certificate_EMPTY_value.lua
-./test_scripts/Polices/Policies_Security/sdl_preloaded_pt.json
-./test_scripts/Polices/Policies_Security/002_ATF_P_Policies_Performance_Requirement.lua
 ./test_scripts/Polices/build_options/ATF_PM_change_status_UPDATE_NEEDED_after_timeout_expired.lua
 ./test_scripts/Polices/build_options/ATF_PolicyManager_changes_status_to_UPDATING_PROPRIETARY.lua
 ./test_scripts/Polices/build_options/004_ATF_P_TC_REQUEST_PTU_Trigger_PTU_failed_previous_IGN_ON_HTTP.lua
