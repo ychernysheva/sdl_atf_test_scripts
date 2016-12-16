@@ -92,11 +92,10 @@ local TESTED_DATA = {
       endpoints =
       {
         ["0x07"] = {
-          default = {"http://policies.telematics.ford.com/api/policies"},
-          new = {"http://policies.telematics.ford.com/api/policies2"}
+          default = {"http://policies.telematics.ford.com/api/updated_policies"},
         },
         ["0x04"] = {
-          default = {"http://ivsu.software.ford.com/api/getSoftwareUpdates"}
+          default = {"http://ivsu.software.ford.com/api/updated_getSoftwareUpdates"}
         },
         queryAppsUrl = {
           default = {"http://sdl.shaid.server"}
@@ -121,33 +120,35 @@ local TESTED_DATA = {
     module_config =
     {
       preloaded_pt = "0",
-      exchange_after_x_ignition_cycles = 100,
-      exchange_after_x_kilometers = 1800,
-      exchange_after_x_days = 30,
-      timeout_after_x_seconds = 60,
-      seconds_between_retries = {1, 5, 25, 125, 625},
+      exchange_after_x_ignition_cycles = 150,
+      exchange_after_x_kilometers = 2000,
+      exchange_after_x_days = 60,
+      timeout_after_x_seconds = 20,
+      seconds_between_retries = {2, 10, 25, 125, 625},
+      certificate = "MIIEpTCCA42gAwIBAgIKYSlrdAAAAAAAAjANBgkqhk",
       endpoints =
       {
-        ["0x07"] = {
-          default = {"http://policies.telematics.ford.com/api/policies"}
+       ["0x07"] = {
+          default = {"http://policies.telematics.ford.com/api/policies"},
+          new = {"http://policies.telematics.ford.com/api/policies2"}
         },
         ["0x04"] = {
-          default = {"http://ivsu.software.ford.com/api/getsoftwareupdates"}
+          default = {"http://ivsu.software.ford.com/api/getSoftwareUpdates"}
         },
-        ["0x0B"] = {
+        queryAppsUrl = {
           default = {"http://sdl.shaid.server"}
         },
-        ["lock_screen_icon_url"] = {
+        lock_screen_icon_url = {
           default = {"http://i.imgur.com/QwZ9uKG.png"}
         }
       },
       notifications_per_minute_by_priority =
       {
-        EMERGENCY = 60,
-        NAVIGATION = 15,
-        VOICECOM = 20,
-        COMMUNICATION = 6,
-        NORMAL = 4,
+        EMERGENCY = 90,
+        NAVIGATION = 18,
+        VOICECOM = 30,
+        COMMUNICATION = 8,
+        NORMAL = 5,
         NONE = 0
       }
     }
@@ -492,29 +493,29 @@ function Test:Test_NewLocalPT()
   os.execute("sleep 3")
 
   local checks = {
-    { query = 'select preloaded_date from module_config', expectedValues = { tostring(TESTED_DATA[1].module_config.preloaded_date) } },
-    { query = 'select exchange_after_x_ignition_cycles from module_config', expectedValues = {tostring( TESTED_DATA[1].module_config.exchange_after_x_ignition_cycles) } },
-    { query = 'select exchange_after_x_kilometers from module_config', expectedValues = {tostring(TESTED_DATA[1].module_config.exchange_after_x_kilometers)} },
-    { query = 'select exchange_after_x_days from module_config', expectedValues = {tostring(TESTED_DATA[1].module_config.exchange_after_x_days)} },
-    { query = 'select timeout_after_x_seconds from module_config', expectedValues = {tostring(TESTED_DATA[1].module_config.timeout_after_x_seconds)} },
-    { query = 'select certificate from module_config', expectedValues = {tostring(TESTED_DATA[1].module_config.certificate)} },
+    { query = 'select preloaded_date from module_config', expectedValues = { tostring(TESTED_DATA[2].module_config.preloaded_date) } },
+    { query = 'select exchange_after_x_ignition_cycles from module_config', expectedValues = {tostring( TESTED_DATA[2].module_config.exchange_after_x_ignition_cycles) } },
+    { query = 'select exchange_after_x_kilometers from module_config', expectedValues = {tostring(TESTED_DATA[2].module_config.exchange_after_x_kilometers)} },
+    { query = 'select exchange_after_x_days from module_config', expectedValues = {tostring(TESTED_DATA[2].module_config.exchange_after_x_days)} },
+    { query = 'select timeout_after_x_seconds from module_config', expectedValues = {tostring(TESTED_DATA[2].module_config.timeout_after_x_seconds)} },
+    { query = 'select certificate from module_config', expectedValues = {tostring(TESTED_DATA[2].module_config.certificate)} },
     { query = 'select * from notifications_by_priority where priority_value is "COMMUNICATION"',
-      expectedValues = {"COMMUNICATION|"..tostring(TESTED_DATA[1].module_config.notifications_per_minute_by_priority.COMMUNICATION)} },
+      expectedValues = {"COMMUNICATION|"..tostring(TESTED_DATA[2].module_config.notifications_per_minute_by_priority.COMMUNICATION)} },
     { query = 'select * from notifications_by_priority where priority_value is "EMERGENCY"',
-      expectedValues = {"EMERGENCY|"..tostring(TESTED_DATA[1].module_config.notifications_per_minute_by_priority.EMERGENCY)} },
+      expectedValues = {"EMERGENCY|"..tostring(TESTED_DATA[2].module_config.notifications_per_minute_by_priority.EMERGENCY)} },
     { query = 'select * from notifications_by_priority where priority_value is "NAVIGATION"',
-      expectedValues = {"NAVIGATION|"..tostring(TESTED_DATA[1].module_config.notifications_per_minute_by_priority.NAVIGATION)} },
+      expectedValues = {"NAVIGATION|"..tostring(TESTED_DATA[2].module_config.notifications_per_minute_by_priority.NAVIGATION)} },
     { query = 'select * from notifications_by_priority where priority_value is "VOICECOM"',
-      expectedValues = {"VOICECOM|"..tostring(TESTED_DATA[1].module_config.notifications_per_minute_by_priority.VOICECOM)} },
+      expectedValues = {"VOICECOM|"..tostring(TESTED_DATA[2].module_config.notifications_per_minute_by_priority.VOICECOM)} },
     { query = 'select * from notifications_by_priority where priority_value is "NORMAL"',
-      expectedValues = {"NORMAL|"..tostring(TESTED_DATA[1].module_config.notifications_per_minute_by_priority.NORMAL)} },
+      expectedValues = {"NORMAL|"..tostring(TESTED_DATA[2].module_config.notifications_per_minute_by_priority.NORMAL)} },
     { query = 'select * from notifications_by_priority where priority_value is "NONE"',
-      expectedValues = {"NONE|"..tostring(TESTED_DATA[1].module_config.notifications_per_minute_by_priority.NONE)} },
+      expectedValues = {"NONE|"..tostring(TESTED_DATA[2].module_config.notifications_per_minute_by_priority.NONE)} },
   }
 
   local notifications_per_minute_by_priority = executeSqliteQuery('select notifications_per_minute_by_priority from module_config', constructPathToDatabase())
   if(#notifications_per_minute_by_priority == 0) then
-    commonFunctions:printError("ERROR: notifications_per_minute_by_priority in not in module_config. Wrong name in DB: notifications_by_priority")
+    commonFunctions:printError("ERROR: notifications_per_minute_by_priority is not in module_config. Wrong name in DB: notifications_by_priority")
     is_test_fail = true
   end
 
@@ -533,11 +534,12 @@ function Test:Test_NewLocalPT()
   end
 
   local endpoints = {
-    "7|http://policies.telematics.ford.com/api/policies|default",
-    "4|http://ivsu.software.ford.com/api/getsoftwareupdates|default",
+    "7|http://policies.telematics.ford.com/api/updated_policies|default",
+    "4|http://ivsu.software.ford.com/api/updated_getSoftwareUpdates|default",
     "queryAppsUrl|http://sdl.shaid.server|default",
     "lock_screen_icon_url|http://i.imgur.com/QwZ9uKG.png|default"
   }
+
   local found_endpoint = {false,false,false,false}
   local endpoints_table = executeSqliteQuery('select * from endpoint', constructPathToDatabase())
   for k,v in pairs(endpoints_table) do
@@ -561,11 +563,11 @@ function Test:Test_NewLocalPT()
   end
 
   local seconds_between_retries = {
-    "0|".. tostring(TESTED_DATA[1].module_config.seconds_between_retries[1]),
-    "1|".. tostring(TESTED_DATA[1].module_config.seconds_between_retries[2]),
-    "2|".. tostring(TESTED_DATA[1].module_config.seconds_between_retries[3]),
-    "3|".. tostring(TESTED_DATA[1].module_config.seconds_between_retries[4]),
-    "4|".. tostring(TESTED_DATA[1].module_config.seconds_between_retries[5])
+    "0|".. tostring(TESTED_DATA[2].module_config.seconds_between_retries[1]),
+    "1|".. tostring(TESTED_DATA[2].module_config.seconds_between_retries[2]),
+    "2|".. tostring(TESTED_DATA[2].module_config.seconds_between_retries[3]),
+    "3|".. tostring(TESTED_DATA[2].module_config.seconds_between_retries[4]),
+    "4|".. tostring(TESTED_DATA[2].module_config.seconds_between_retries[5])
   }
   local seconds_between_retries_table = executeSqliteQuery('select * from seconds_between_retry', constructPathToDatabase())
   for k,v in pairs(seconds_between_retries_table) do
