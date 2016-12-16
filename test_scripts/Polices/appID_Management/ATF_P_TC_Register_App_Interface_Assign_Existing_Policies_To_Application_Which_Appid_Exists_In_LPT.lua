@@ -25,7 +25,6 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 local mobileSession = require("mobile_session")
 local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
 local commonSteps = require("user_modules/shared_testcases/commonSteps")
-local testCasesForBuildingSDLPolicyFlag = require('user_modules/shared_testcases/testCasesForBuildingSDLPolicyFlag')
 
 --[[ Local Variables ]]
 local policy_file_name = "PolicyTableUpdate"
@@ -52,7 +51,6 @@ local function is_table_equal(t1, t2)
 end
 
 --[[ General Precondition before ATF start ]]
-testCasesForBuildingSDLPolicyFlag:CheckPolicyFlagAfterBuild("EXTERNAL_PROPRIETARY")
 commonFunctions:SDLForceStop()
 commonSteps:DeleteLogsFileAndPolicyTable()
 
@@ -68,85 +66,84 @@ function Test:ActivateApp()
   local requestId1 = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.applications["Test Application"] })
   EXPECT_HMIRESPONSE(requestId1)
   :Do(function(_, data1)
-      if data1.result.isSDLAllowed ~= true then
-        local requestId2 = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage",
-          { language = "EN-US", messageCodes = { "DataConsent" } })
-        EXPECT_HMIRESPONSE(requestId2)
-        :Do(function(_, _)
-            self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality",
-              { allowed = true, source = "GUI", device = { id = config.deviceMAC, name = "127.0.0.1" } })
-            EXPECT_HMICALL("BasicCommunication.ActivateApp")
-            :Do(function(_, data2)
-                self.hmiConnection:SendResponse(data2.id,"BasicCommunication.ActivateApp", "SUCCESS", { })
-              end)
-            :Times(1)
-          end)
-      end
+  if data1.result.isSDLAllowed ~= true then
+    local requestId2 = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage",
+    { language = "EN-US", messageCodes = { "DataConsent" } })
+    EXPECT_HMIRESPONSE(requestId2)
+    :Do(function(_, _)
+    self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality",
+    { allowed = true, source = "GUI", device = { id = config.deviceMAC, name = "127.0.0.1" } })
+    EXPECT_HMICALL("BasicCommunication.ActivateApp")
+    :Do(function(_, data2)
+    self.hmiConnection:SendResponse(data2.id,"BasicCommunication.ActivateApp", "SUCCESS", { })
     end)
+    :Times(1)
+    end)
+  end
+  end)
 end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
-
-function Test:PTU()
+function Test:TestStep1_PTU()
   local requestId = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
   EXPECT_HMIRESPONSE(requestId)
   :Do(function(_, _)
-      self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest", { requestType = "PROPRIETARY", fileName = policy_file_name })
-      EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY" })
-      :Do(function(_, _)
-          local corIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", { requestType = "PROPRIETARY", fileName = policy_file_name }, ptu_file)
-          EXPECT_HMICALL("BasicCommunication.SystemRequest")
-          :Do(function(_, data)
-              self.hmiConnection:SendResponse(data.id, "BasicCommunication.SystemRequest", "SUCCESS", { })
-              self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate", { policyfile = policy_file_path .. "/" .. policy_file_name })
-            end)
-          EXPECT_RESPONSE(corIdSystemRequest, { success = true, resultCode = "SUCCESS" })
-          :Do(function(_, _)
-              requestId = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", { language = "EN-US", messageCodes = { "StatusUpToDate" } })
-              EXPECT_HMIRESPONSE(requestId)
-            end)
-        end)
-    end)
+  self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest", { requestType = "PROPRIETARY", fileName = policy_file_name })
+  EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY" })
+  :Do(function(_, _)
+  local corIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", { requestType = "PROPRIETARY", fileName = policy_file_name }, ptu_file)
+  EXPECT_HMICALL("BasicCommunication.SystemRequest")
+  :Do(function(_, data)
+  self.hmiConnection:SendResponse(data.id, "BasicCommunication.SystemRequest", "SUCCESS", { })
+  self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate", { policyfile = policy_file_path .. "/" .. policy_file_name })
+  end)
+  EXPECT_RESPONSE(corIdSystemRequest, { success = true, resultCode = "SUCCESS" })
+  :Do(function(_, _)
+  requestId = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", { language = "EN-US", messageCodes = { "StatusUpToDate" } })
+  EXPECT_HMIRESPONSE(requestId)
+  end)
+  end)
+  end)
 end
 
-function Test:StartNewMobileSession()
+function Test:TestStep2_StartNewSession()
   self.mobileSession2 = mobileSession.MobileSession(self, self.mobileConnection)
   self.mobileSession2:StartService(7)
 end
 
-function Test:RegisterOnPermissionsChangeNotification()
+function Test:TestStep3_RegisterOnPermissionsChangeNotification()
   self.mobileSession2:ExpectNotification("OnPermissionsChange")
   :Do(function(_, d)
-      for _, v in pairs(d.payload.permissionItem) do
-        table.insert(r_actual, v.rpcName)
-      end
-    end)
+  for _, v in pairs(d.payload.permissionItem) do
+    table.insert(r_actual, v.rpcName)
+  end
+  end)
   :Times(AnyNumber())
   :Pin()
 end
 
-function Test:RegisterNewApp()
+function Test:TestStep4_RegisterNewApp()
   EXPECT_HMICALL("BasicCommunication.UpdateAppList")
   :Do(function(_, d)
-      self.hmiConnection:SendResponse(d.id, d.method, "SUCCESS", { })
-      self.applications = { }
-      for _, app in pairs(d.params.applications) do
-        self.applications[app.appName] = app.appID
-      end
-    end)
+  self.hmiConnection:SendResponse(d.id, d.method, "SUCCESS", { })
+  self.applications = { }
+  for _, app in pairs(d.params.applications) do
+    self.applications[app.appName] = app.appID
+  end
+  end)
   local corId = self.mobileSession2:SendRPC("RegisterAppInterface", config.application2.registerAppInterfaceParams)
   self.mobileSession2:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
 end
 
-function Test:ValidateResult()
+function Test:TestStep5_ValidateResult()
   self.mobileSession:ExpectAny()
   :ValidIf(function(_, _)
-      if not is_table_equal(r_expected, r_actual) then
-        return false, "\nExpected RPCs:\n" .. commonFunctions:convertTableToString(r_expected, 1) .. "\nActual RPCs:\n" .. commonFunctions:convertTableToString(r_actual, 1)
-      end
-      return true
-    end)
+  if not is_table_equal(r_expected, r_actual) then
+    return false, "\nExpected RPCs:\n" .. commonFunctions:convertTableToString(r_expected, 1) .. "\nActual RPCs:\n" .. commonFunctions:convertTableToString(r_actual, 1)
+  end
+  return true
+  end)
   :Times(1)
 end
 
@@ -155,5 +152,3 @@ commonFunctions:newTestCasesGroup("Postconditions")
 function Test.StopSDL()
   StopSDL()
 end
-
-return Test
