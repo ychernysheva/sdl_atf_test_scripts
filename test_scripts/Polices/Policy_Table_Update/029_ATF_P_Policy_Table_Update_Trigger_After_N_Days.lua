@@ -28,6 +28,7 @@ config.defaultProtocolVersion = 2
 local commonSteps = require ('user_modules/shared_testcases/commonSteps')
 local testCasesForPolicyTableSnapshot = require ('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
+local testCasesForPolicyTable = require ('user_modules/shared_testcases/testCasesForPolicyTable')
 
 --[[ Local Variables ]]
 local exchangeDays = testCasesForPolicyTableSnapshot:get_data_from_Preloaded_PT("module_config.exchange_after_x_days")
@@ -36,6 +37,7 @@ local currentSystemDaysAfterEpoch
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFiles()
 commonSteps:DeletePolicyTable()
+testCasesForPolicyTable.Delete_Policy_table_snapshot()
 
 --[[ Local Functions ]]
 local function CreatePTUFromExisted()
@@ -108,7 +110,12 @@ function Test:Precondition_Update_Policy_With_Exchange_After_X_Days_Value()
       end)
   EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",
     {status = "UPDATING"}, {status = "UP_TO_DATE"}):Times(2)
-  end
+end
+
+function Test:Precondition_ExitApplication()
+  self.hmiConnection:SendNotification("BasicCommunication.OnExitApplication", {appID = self.applications[config.application1.registerAppInterfaceParams.appName], reason = "USER_EXIT"})
+  EXPECT_NOTIFICATION("OnHMIStatus", { systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE"})
+end
 
 function Test.Precondition_StopSDL()
   StopSDL()
@@ -142,44 +149,9 @@ end
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 function Test:TestStep_Register_App_And_Check_That_PTU_Triggered()
-  local CorIdRAI = self.mobileSession:SendRPC("RegisterAppInterface",
-    {
-      syncMsgVersion =
-      {
-        majorVersion = 3,
-        minorVersion = 0
-      },
-      appName = "Test Application",
-      isMediaApplication = true,
-      languageDesired = "EN-US",
-      hmiDisplayLanguageDesired = "EN-US",
-      appID = "0000001",
-      deviceInfo =
-      {
-        os = "Android",
-        carrier = "Megafon",
-        firmwareRev = "Name: Linux, Version: 3.4.0-perf",
-        osVersion = "4.4.2",
-        maxNumberRFCOMMPorts = 1
-      }
-    })
-  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered",
-    {
-      application =
-      {
-        appName = "Test Application",
-        policyAppID = "0000001",
-        isMediaApplication = true,
-        hmiDisplayLanguageDesired = "EN-US",
-        deviceInfo =
-        {
-          name = "127.0.0.1",
-          id = config.deviceMAC,
-          transportType = "WIFI",
-          isSDLAllowed = true
-        }
-      }
-    })
+  local CorIdRAI = self.mobileSession:SendRPC("RegisterAppInterface",config.application1.registerAppInterfaceParams)
+
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application1.registerAppInterfaceParams.appName}})
   EXPECT_RESPONSE(CorIdRAI, { success = true, resultCode = "SUCCESS"})
   EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",{status = "UPDATE_NEEDED"})
   EXPECT_HMICALL("BasicCommunication.PolicyUpdate")

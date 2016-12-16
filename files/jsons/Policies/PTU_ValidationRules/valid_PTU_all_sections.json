@@ -393,7 +393,6 @@
           }
         }
       },
-
       "Notifications": {
         "user_consent_prompt": "Notifications",
         "rpcs": {
@@ -2325,26 +2324,20 @@
         	"PROPRIETARY"	
         ]
       },
-       "0000001": {
+      "123456": {
         "keep_context": false,
         "steal_focus": false,
         "priority": "NONE",
         "default_hmi": "NONE",
-        "groups": ["Base-4"],
+        "groups": [
+          "Base-4"
+        ],
         "RequestType":[
           "TRAFFIC_MESSAGE_CHANNEL",
           "PROPRIETARY",
           "HTTP",
           "QUERY_APPS"  
         ]
-      },
-      "MyTestApp": {
-	"keep_context": false,
-        "steal_focus": false,
-        "priority": "NONE",
-        "default_hmi": "NONE",
-        "groups": ["Base-4"],
-        "nicknames": ["Media Application", "MediaApp"]
       }
     }
   }
