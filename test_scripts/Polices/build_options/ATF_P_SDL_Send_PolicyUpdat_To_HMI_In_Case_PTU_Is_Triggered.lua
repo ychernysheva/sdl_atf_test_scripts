@@ -24,6 +24,7 @@ config.defaultProtocolVersion = 2
 --[[ Required Shared libraries ]]
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require ('user_modules/shared_testcases/commonSteps')
+local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 
 --[[ Local Variables ]]
 local timeoutAfterXSeconds = 50
@@ -38,23 +39,13 @@ require('cardinalities')
 local mobile_session = require('mobile_session')
 
 --[[ Local Functions ]]
-local function GetValueFromIniFile(pathToIni, parameterName)
+local function getValueFromIniFile(pathToIni, parameterName)
   local f = assert(io.open(pathToIni, "r"))
   local fileContent = f:read("*all")
     local ParameterValue 
       ParameterValue = string.match(fileContent, parameterName .. " =.- (.-)\n")
       f:close()
 return ParameterValue
-end
-
-local function BackupPreloaded()
-  os.execute('cp ' .. config.pathToSDL .. 'sdl_preloaded_pt.json' .. ' ' .. config.pathToSDL .. 'backup_sdl_preloaded_pt.json')
-  os.execute('rm ' .. config.pathToSDL .. 'policy.sqlite')
-end
-
-local function RestorePreloadedPT()
-  os.execute('rm ' .. config.pathToSDL .. 'sdl_preloaded_pt.json')
-  os.execute('cp ' .. config.pathToSDL .. 'backup_sdl_preloaded_pt.json' .. ' ' .. config.pathToSDL .. 'sdl_preloaded_pt.json')
 end
 
 local function SetModuleconfigForPreDataConsent(timeout, retries)
@@ -79,29 +70,30 @@ end
 
 --[[ Preconditions ]]
 function Test:Precondition_StopSDL()
-  StopSDL()
+  StopSDL(self)
 end
 
 --ToDo: shall be removed when issue: "SDL doesn't stop at execution ATF function StopSDL()" is fixed
 function Test:Precondition_SDLForceStop()
-  commonFunctions:SDLForceStop()
+  commonFunctions:SDLForceStop(self)
 end
 
 function Test:Precondition_DeleteLogsAndPolicyTable()
-  commonSteps:DeleteLogsFiles()
-  commonSteps:DeletePolicyTable()
+  commonSteps:DeleteLogsFiles(self)
+  commonSteps:DeletePolicyTable(self)
 end
 
-function Test:Precondition_Backup_sdl_preloaded_pt()
-  BackupPreloaded()
+function Test.Precondition_Backup_preloadedPT()
+  commonPreconditions:BackupFile("sdl_preloaded_pt.json")
 end
+
 
 function Test:Precondition_SetP_Module_Config_Values_ForPre_DataConsent()
-  SetModuleconfigForPreDataConsent(timeoutAfterXSeconds, secondsBetweenRetries)
+  SetModuleconfigForPreDataConsent(timeoutAfterXSeconds, secondsBetweenRetries, self)
 end
 
 function Test:Precondition_StartSDL_FirstLifeCycle()
-  StartSDL(config.pathToSDL, config.ExitOnCrash)
+  StartSDL(config.pathToSDL, config.ExitOnCrash, self)
 end
 
 function Test:Precondition_InitHMI_FirstLifeCycle()
@@ -121,9 +113,7 @@ function Test:Precondition_StartSession()
   self.mobileSession:StartService(7)
 end
 
-function Test:Precondition_RestorePreloadedPT()
-  RestorePreloadedPT()
-end
+
 
 --[[ Test ]]
 function Test:TestStep_Register_App_And_Check_PolicyUpdate()
@@ -185,12 +175,14 @@ function Test:TestStep_Register_App_And_Check_PolicyUpdate()
   EXPECT_RESPONSE(CorIdRAI, { success = true, resultCode = "SUCCESS"})
   EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
   EXPECT_HMICALL("BasicCommunication.PolicyUpdate", {timeout = timeoutAfterXSeconds, retry = secondsBetweenRetries, file = getValueFromIniFile(pathToIni, parameterName) .. "/sdl_snapshot.json"})
-   :Do(function(_,data)
+   :Do(function(_,_)
     end)
 end
 
---[[ Postcondition ]]
---ToDo: shall be removed when issue: "SDL doesn't stop at execution ATF function StopSDL()" is fixed
-function Test:Postcondition_SDLForceStop()
-  commonFunctions:SDLForceStop()
+--[[ Postconditions ]]
+function Test.Postcondition_SDLStop()
+  StopSDL()
 end
+function Test.Postcondition_Restore_preloaded()
+  commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
+end 
