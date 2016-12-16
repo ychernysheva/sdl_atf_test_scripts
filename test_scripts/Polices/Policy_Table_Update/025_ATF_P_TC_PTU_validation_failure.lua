@@ -36,8 +36,7 @@ local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
 local testCasesForPolicyTableSnapshot = require('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
-
---local testCasesForPolicyTableUpdateFile = require('user_modules/shared_testcases/testCasesForPolicyTableUpdateFile')
+local testCasesForPolicySDLErrorsStops = require('user_modules/shared_testcases/testCasesForPolicySDLErrorsStops')
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
@@ -64,7 +63,6 @@ function Test:TestStep_PTU_validation_failure()
   local is_test_fail = false
   local endpoints = {}
   local hmi_app_id = self.applications[config.application1.registerAppInterfaceParams.appName]
-  print("hmi_app_id = " ..hmi_app_id)
 
   for i = 1, #testCasesForPolicyTableSnapshot.pts_endpoints do
     if (testCasesForPolicyTableSnapshot.pts_endpoints[i].service == "0x07") then
@@ -113,6 +111,38 @@ function Test:TestStep_PTU_validation_failure()
   if(is_test_fail == true) then
     self:FailTestCase("Test is FAILED. See prints.")
   end
+end
+
+function Test:TestStep_CheckSDLLogError()
+  local is_test_fail = false
+  local result = testCasesForPolicySDLErrorsStops.ReadSpecificMessage("policy_table.policy_table.device_data: should be ommited in PT_UPDATE")
+  if (result == false) then
+    commonFunctions:printError("Error: message 'policy_table.policy_table.device_data: should be ommited in PT_UPDATE' is not observed in smartDeviceLink.log.")
+    is_test_fail = true
+  end
+
+  result = testCasesForPolicySDLErrorsStops.ReadSpecificMessage("policy_table.policy_table.module_config.seconds_between_retries: object is not initialized")
+  if (result == false) then
+    commonFunctions:printError("Error: message 'policy_table.policy_table.module_config.seconds_between_retries: object is not initialized' is not observed in smartDeviceLink.log.")
+    is_test_fail = true
+  end
+
+  result = testCasesForPolicySDLErrorsStops.ReadSpecificMessage("policy_table.policy_table.module_meta: should be ommited in PT_UPDATE")
+  if (result == false) then
+    commonFunctions:printError("Error: message 'policy_table.policy_table.module_meta: should be ommited in PT_UPDATE' is not observed in smartDeviceLink.log.")
+    is_test_fail = true
+  end
+
+  result = testCasesForPolicySDLErrorsStops.ReadSpecificMessage("policy_table.policy_table.usage_and_error_counts: should be ommited in PT_UPDATE")
+  if (result == false) then
+    commonFunctions:printError("Error: message 'policy_table.policy_table.usage_and_error_counts: should be ommited in PT_UPDATE' is not observed in smartDeviceLink.log.")
+    is_test_fail = true
+  end
+
+  if(is_test_fail == true) then
+    self:FailTestCase("Test is FAILED. See prints.")
+  end
+
 end
 
 --[[ Postconditions ]]

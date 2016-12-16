@@ -48,27 +48,16 @@ end
 commonFunctions:newTestCasesGroup("Test")
 function Test:TestStep_PTU_GetURLs()
   local endpoints = {}
-  local is_app_esxist = false
 
   for i = 1, #testCasesForPolicyTableSnapshot.pts_endpoints do
     if (testCasesForPolicyTableSnapshot.pts_endpoints[i].service == "0x07") then
       endpoints[#endpoints + 1] = { url = testCasesForPolicyTableSnapshot.pts_endpoints[i].value, appID = nil}
-    end
-
-    if (testCasesForPolicyTableSnapshot.pts_endpoints[i].service == "app1") then
-      endpoints[#endpoints + 1] = { url = testCasesForPolicyTableSnapshot.pts_endpoints[i].value, appID = nil}
-      is_app_esxist = true
     end
   end
 
   local RequestId = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
 
   EXPECT_HMIRESPONSE(RequestId,{result = {code = 0, method = "SDL.GetURLS", urls = endpoints} } )
-  :Do(function(_,_)
-      if(is_app_esxist == false) then
-        self:FailTestCase("endpoints for application doesn't exist!")
-      end
-    end)
 end
 
 --[[ Postconditions ]]

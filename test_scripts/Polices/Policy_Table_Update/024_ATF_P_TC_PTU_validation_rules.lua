@@ -62,35 +62,29 @@ commonFunctions:newTestCasesGroup("Test")
 function Test:TestStep_PTU_validation_rules()
   local is_test_fail = false
   local endpoints = {}
-  local hmi_app_id = self.applications[config.application1.registerAppInterfaceParams.appName]
-  print("hmi_app_id = " ..hmi_app_id)
-
+  testCasesForPolicyTableSnapshot:verify_PTS(true,
+      {config.application1.registerAppInterfaceParams.appID },
+      {config.deviceMAC},
+      {""},
+      "print")
   for i = 1, #testCasesForPolicyTableSnapshot.pts_endpoints do
     if (testCasesForPolicyTableSnapshot.pts_endpoints[i].service == "0x07") then
       endpoints[#endpoints + 1] = { url = testCasesForPolicyTableSnapshot.pts_endpoints[i].value, appID = nil}
-    end
-
-    if (testCasesForPolicyTableSnapshot.pts_endpoints[i].service == "app1") then
-      endpoints[#endpoints + 1] = {
-        url = testCasesForPolicyTableSnapshot.pts_endpoints[i].value,
-        appID = testCasesForPolicyTableSnapshot.pts_endpoints[i].appID}
     end
   end
 
   local RequestId_GetUrls = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
   EXPECT_HMIRESPONSE(RequestId_GetUrls,{result = {code = 0, method = "SDL.GetURLS", urls = endpoints} } )
   :Do(function(_,_)
-      if(#endpoints == 0) then endpoints[1].url = "http://policies.telematics.ford.com/api/policies" end
       self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",{ fileName = "PolicyTableUpdate", requestType = "PROPRIETARY", url = endpoints[1].url})
-      EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY", fileType = "JSON", url = endpoints[1].url,appID = config.application1.registerAppInterfaceParams.appID })
+      EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY", fileType = "JSON", url = endpoints[1].url})
       :Do(function(_,_)
           local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", {requestType = "PROPRIETARY", fileName = "PolicyTableUpdate"},
             "files/jsons/Policies/PTU_ValidationRules/valid_PTU_all_sections.json")
 
           EXPECT_HMICALL("BasicCommunication.SystemRequest",{
               requestType = "PROPRIETARY",
-              fileName = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate",
-              appID = hmi_app_id})
+              fileName = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate"})
           :Do(function(_,_data1)
               self.hmiConnection:SendResponse(_data1.id,"BasicCommunication.SystemRequest", "SUCCESS", {})
               self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate",
