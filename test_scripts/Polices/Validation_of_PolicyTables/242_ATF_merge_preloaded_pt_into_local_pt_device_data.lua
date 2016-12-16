@@ -1,5 +1,6 @@
 ---------------------------------------------------------------------------------------------
 -- TODO(istoimenova): Should be updated when "Can you clarify should section data be included in Local DB?" is resolved
+-- TODO(istoimenova): Update when "[GENIVI] Local Policy Table DB is not created according to data dictionary" is fixed
 -- Requirement summary:
 -- [Policies] Merging rules for "device_data" section
 --
@@ -23,7 +24,9 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 --[[ Required Shared libraries ]]
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require ('user_modules/shared_testcases/commonSteps')
+local commonPreconditions = require ('user_modules/shared_testcases/commonPreconditions')
 local testCasesForPolicyTable = require ('user_modules/shared_testcases/testCasesForPolicyTable')
+local json = require("modules/json")
 
 --[[ General configuration parameters ]]
 Test = require('connecttest')
@@ -34,7 +37,7 @@ config.application1.registerAppInterfaceParams.deviceInfo.hardware = "Nexus"
 
 --[[ Local Variables ]]
 local TESTED_DATA = {
-  --preloaded_date = {"1988-12-01","2015-05-02"},
+  preloaded_date = {"1988-12-01","2015-05-02"},
   device = {
     --device_data
     id = tostring(config.deviceMAC),
@@ -53,6 +56,7 @@ local TESTED_DATA = {
     time_stamp = ""
   }
 }
+local PRELOADED_PT_FILE_NAME = "sdl_preloaded_pt.json"
 
 local TestData = {
   path = config.pathToSDL .. "TestData",
@@ -95,6 +99,49 @@ local TestData = {
 }
 
 --[[ Local Functions ]]
+local function updatePreloadedPt(updaters)
+  local pathToFile = config.pathToSDL .. PRELOADED_PT_FILE_NAME
+  local file = io.open(pathToFile, "r")
+  local json_data = file:read("*a")
+  file:close()
+
+  local data = json.decode(json_data)
+  if data then
+    for _, updateFunc in pairs(updaters) do
+      updateFunc(data)
+    end
+  end
+
+  local dataToWrite = json.encode(data)
+  file = io.open(pathToFile, "w")
+  file:write(dataToWrite)
+  file:close()
+end
+
+local function prepareInitialPreloadedPT()
+  local initialUpdaters = {
+    function(data)
+      for key, value in pairs(data.policy_table.functional_groupings) do
+        if not value.rpcs then
+          data.policy_table.functional_groupings[key] = nil
+        end
+      end
+    end,
+    function(data)
+      data.policy_table.module_config.preloaded_date = TESTED_DATA.preloaded_date[1]
+    end
+  }
+  updatePreloadedPt(initialUpdaters)
+end
+
+local function prepareNewPreloadedPT()
+  local newUpdaters = {
+    function(data)
+      data.policy_table.module_config.preloaded_date = TESTED_DATA.preloaded_date[2]
+    end,
+  }
+  updatePreloadedPt(newUpdaters)
+end
 
 local function constructPathToDatabase()
   if commonSteps:file_exists(config.pathToSDL .. "storage/policy.sqlite") then
@@ -200,8 +247,8 @@ config.defaultProtocolVersion = 2
 testCasesForPolicyTable.Delete_Policy_table_snapshot()
 commonSteps:DeleteLogsFileAndPolicyTable()
 --testCasesForPolicyTable:Precondition_updatePolicy_By_overwriting_preloaded_pt("files/jsons/Policies/PTU_ValidationRules/pre_dataconsent.json")
---commonPreconditions:BackupFile(PRELOADED_PT_FILE_NAME)
---prepareInitialPreloadedPT()
+commonPreconditions:BackupFile(PRELOADED_PT_FILE_NAME)
+prepareInitialPreloadedPT()
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
@@ -260,13 +307,21 @@ function Test:TestStep_VerifyLocalPT_DeviceConsent()
   end
 end
 
-function Test:TestStep_flow_SUCCEESS_EXTERNAL_PROPRIETARY()
-  testCasesForPolicyTable:flow_SUCCEESS_EXTERNAL_PROPRIETARY(self)
+function Test:TestStep_StopSDL()
+  StopSDL(self)
 end
 
-function Test:TestStep_VerifyLocalPT_PTU()
+function Test.TestStep_LoadNewPreloadedPT()
+  prepareNewPreloadedPT()
+end
+
+function Test:TestStep_StartSDL()
+  StartSDL(config.pathToSDL, true, self)
+end
+
+function Test:TestStep_VerifyNewLocalPT()
   os.execute("sleep 3")
-  TestData:store("Initial Local PT is stored", constructPathToDatabase(), "initial_policy.sqlite")
+  TestData:store("New Local PT is stored", constructPathToDatabase(), "new_policy.sqlite")
   local checks = {
     { query = 'select id from device', expectedValues = {TESTED_DATA.device.id} },
     { query = 'select hardware from device', expectedValues = {TESTED_DATA.device.hardware} },
@@ -276,6 +331,7 @@ function Test:TestStep_VerifyLocalPT_PTU()
     { query = 'select carrier from device', expectedValues = {TESTED_DATA.device.carrier} },
     { query = 'select max_number_rfcom_ports from device', expectedValues = {TESTED_DATA.device.max_number_rfcom_ports} },
     { query = 'select user_consent_records from device', expectedValues = {TESTED_DATA.device.user_consent_records} },
+
     --TODO(istoimenova): Should be updated when "Can you clarify should section data be included in Local DB?" is resolved.
     { query = 'select device_id from device_consent_group', expectedValues = {TESTED_DATA.device_consent_group.device_id} },
     { query = 'select functional_group_id from device_consent_group', expectedValues = {TESTED_DATA.device_consent_group.functional_group_id} },
@@ -283,7 +339,6 @@ function Test:TestStep_VerifyLocalPT_PTU()
     { query = 'select input from device_consent_group', expectedValues = {TESTED_DATA.device_consent_group.input} },
     { query = 'select * from device_consent_group', expectedValues = {} }
   }
-
   if not self.checkLocalPT(checks) then
     self:FailTestCase("SDL has wrong values in LocalPT")
   end
@@ -291,7 +346,8 @@ end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
-function Test.Postcondition_StopSDL()
+testCasesForPolicyTable:Restore_preloaded_pt()
+function Test.Postcondition()
   StopSDL()
 end
 
