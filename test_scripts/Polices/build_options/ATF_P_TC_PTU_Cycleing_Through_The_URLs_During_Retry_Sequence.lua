@@ -25,7 +25,6 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 local mobileSession = require("mobile_session")
 local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
 local commonSteps = require("user_modules/shared_testcases/commonSteps")
-local testCasesForBuildingSDLPolicyFlag = require('user_modules/shared_testcases/testCasesForBuildingSDLPolicyFlag')
 
 --[[ Local Variables ]]
 local policy_file_name = "PolicyTableUpdate"
@@ -51,7 +50,6 @@ local function log(event, ...)
 end
 
 --[[ General Precondition before ATF start ]]
-testCasesForBuildingSDLPolicyFlag:CheckPolicyFlagAfterBuild("PROPRIETARY")
 commonFunctions:SDLForceStop()
 commonSteps:DeleteLogsFileAndPolicyTable()
 
