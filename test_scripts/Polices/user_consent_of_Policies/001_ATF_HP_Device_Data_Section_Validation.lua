@@ -33,13 +33,18 @@
 -- Expected result:
 -- a) PTS has correct values.
 ---------------------------------------------------------------------------------------------
-
 --[[ General configuration parameters ]]
 --ToDo: shall be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
 config.defaultProtocolVersion = 2
 
+--[[ General Settings for configuration ]]
+Test = require('connecttest')
+require('cardinalities')
+
 --[[ Required Shared libraries ]]
 local commonSteps = require ('user_modules/shared_testcases/commonSteps')
+local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
+require('user_modules/AppTypes')
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFiles()
@@ -51,10 +56,6 @@ local consentDeviceSystemTimeStamp
 local consentGroupSystemTimeStamp
 local MACHash
 local appID = config.application1.registerAppInterfaceParams["appID"]
-
---[[ General Settings for configuration ]]
-Test = require('connecttest')
-require('cardinalities')
 
 --[[ Local Functions ]]
 local function GetCurrentTimeStampDeviceConsent()
@@ -84,6 +85,7 @@ local function GetDataFromSnapshot(pathToFile)
 end
 
 --[[ Preconditions ]]
+commonFunctions:newTestCasesGroup("Preconditions")
 function Test:Precondition_Get_List_Of_Connected_Devices()
   self.hmiConnection:SendNotification("BasicCommunication.OnStartDeviceDiscovery")
   EXPECT_HMICALL("BasicCommunication.UpdateDeviceList",
@@ -115,11 +117,11 @@ function Test:Precondition_Activate_App_Consent_Device_Make_PTU_Consent_Group()
           EXPECT_HMICALL("BasicCommunication.ActivateApp")
           :Do(function(_,data1)
               self.hmiConnection:SendResponse(data1.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
-              EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"})
             end)
+            :Times(AtLeast(1))
         end)
     end)
-
+  EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"})
   EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
   :Do(function(_,_)
       local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
@@ -132,20 +134,21 @@ function Test:Precondition_Activate_App_Consent_Device_Make_PTU_Consent_Group()
               local systemRequestId
               EXPECT_HMICALL("BasicCommunication.SystemRequest")
               :Do(function(_,data)
+                  self.HMIAppID = data.params.appID
                   systemRequestId = data.id
                   self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate",
                     {
                       policyfile = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate"
                     })
                   self.hmiConnection:SendResponse(systemRequestId, "BasicCommunication.SystemRequest", "SUCCESS", {})
-                  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UP_TO_DATE"}):Timeout(500)
+                  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UP_TO_DATE"}) 
+                  :Timeout(500)
                   self.mobileSession:ExpectResponse(CorIdSystemRequest, {success = true, resultCode = "SUCCESS"})
-
                 end)
             end)
         end)
     end)
-  EXPECT_HMICALL("SDL.OnAppPermissionChanged", {appID = self.applications["Test Application"], appPermissionsConsentNeeded = true})
+  EXPECT_HMINOTIFICATION("SDL.OnAppPermissionChanged", {appID = self.HMIAppID, appPermissionsConsentNeeded = true})
   :Do(function(_,_)
       local RequestIdListOfPermissions = self.hmiConnection:SendRequest("SDL.GetListOfPermissions", { appID = self.applications["Test Application"] })
       EXPECT_HMIRESPONSE(RequestIdListOfPermissions,
@@ -168,7 +171,8 @@ function Test:Precondition_Activate_App_Consent_Device_Make_PTU_Consent_Group()
 end
 
 --[[ Test ]]
-function Test:TestStep_Validate_Snapshot_Values()
+commonFunctions:newTestCasesGroup("Test")
+function Test:Validate_Snapshot_Values()
   self.hmiConnection:SendNotification("SDL.OnPolicyUpdate")
   EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
   :ValidIf(function(_,data)
@@ -188,6 +192,7 @@ function Test:TestStep_Validate_Snapshot_Values()
 end
 
 --[[ Postcondition ]]
-function Test:Postcondition_StopSDL()
-StopSDL()
+commonFunctions:newTestCasesGroup("Postcondition")
+function Test.Postcondition_StopSDL()
+  StopSDL()
 end
