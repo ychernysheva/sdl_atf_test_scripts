@@ -43,9 +43,9 @@ require('user_modules/AppTypes')
 --[[ Local Variables ]]
 local PRELOADED_PT_FILE_NAME = "sdl_preloaded_pt.json"
 local HMIAppId
-local N_MINUTES = 3
-local M_MINUTES = 1
-local X_MINUTES = 2
+local N_MINUTES = 4
+local M_MINUTES = 2
+local X_MINUTES = 3
 local Y_MINUTES = 1
 local APP_ID = "0000001"
 
@@ -76,7 +76,7 @@ local TESTED_DATA = {
           [APP_ID] = {
             minutes_in_hmi_full = 0,
             minutes_in_hmi_limited = 0,
-            minutes_in_hmi_background = 5,
+            minutes_in_hmi_background = 7,
             minutes_in_hmi_none = 0
           }
         }
@@ -263,10 +263,8 @@ local function updateJSON(pathToFile, updaters)
     for _, updateFunc in pairs(updaters) do
       updateFunc(data)
     end
-    -- Workaround. null value in lua table == not existing value. But in json file it has to be
-    data.policy_table.functional_groupings["DataConsent-2"].rpcs = "tobedeletedinjsonfile"
+    data.policy_table.functional_groupings["DataConsent-2"].rpcs = json.null
     local dataToWrite = json.encode(data)
-    dataToWrite = string.gsub(dataToWrite, "\"tobedeletedinjsonfile\"", "null")
     file = io.open(pathToFile, "w")
     file:write(dataToWrite)
     file:close()
@@ -278,6 +276,9 @@ function Test.preparePreloadedPT()
   local preloadedUpdaters = {
     function(data)
       data.policy_table.app_policies[APP_ID] = TESTED_DATA.preloaded.policy_table.app_policies[APP_ID]
+    end,
+    function(data)
+      data.policy_table.app_policies.pre_DataConsent.default_hmi = TESTED_DATA.preloaded.policy_table.app_policies[APP_ID].default_hmi
     end
   }
   updateJSON(config.pathToSDL .. PRELOADED_PT_FILE_NAME, preloadedUpdaters)
@@ -420,7 +421,7 @@ function Test.AppInBackgroundXMinutes()
   wait(sleepTime)
 end
 
-function Test:ActivateApp()
+function Test:ActivateApp2()
   activateAppInSpecificLevel(self,HMIAppId,"FULL")
 end
 
@@ -461,7 +462,7 @@ end
 commonFunctions:newTestCasesGroup("Postconditions")
 
 function Test.Postcondition()
-  --commonSteps:DeletePolicyTable()
+  commonSteps:DeletePolicyTable()
   Test.restorePreloadedPT("backup_")
   TestData:info()
 end
