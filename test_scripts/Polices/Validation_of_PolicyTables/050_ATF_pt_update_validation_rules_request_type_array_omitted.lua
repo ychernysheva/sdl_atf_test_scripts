@@ -143,10 +143,8 @@ local function addApplicationToPTJsonFile(basicFile, newPtFile, appName, app)
   local ptTable = json.decode(ptString)
   ptTable["policy_table"]["app_policies"][appName] = app
   -- Workaround. null value in lua table == not existing value. But in json file it has to be
-  ptTable["policy_table"]["functional_groupings"]["DataConsent-2"]["rpcs"] = "tobedeletedinjsonfile"
+  ptTable["policy_table"]["functional_groupings"]["DataConsent-2"]["rpcs"] = json.null
   local ptJson = json.encode(ptTable)
-  ptJson = string.gsub(ptJson, "\"tobedeletedinjsonfile\"", "null")
-
   local newPtu = io.open(newPtFile, "w")
   newPtu:write(ptJson)
   newPtu:close()
