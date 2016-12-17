@@ -27,10 +27,6 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 --[[ Required Shared libraries ]]
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
-local mobile_session = require('mobile_session')
-
---[[ Local Variables ]]
---NewTestSuiteNumber = 0
 
 --[[ Local Functions ]]
 local registerAppInterfaceParams =
@@ -61,30 +57,24 @@ commonSteps:DeleteLogsFileAndPolicyTable()
 
 --[[ General Settings for configuration ]]
 Test = require('connecttest')
+require('cardinalities')
+require('user_modules/AppTypes')
+local mobile_session = require('mobile_session')
 
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup ("Preconditions")
 function Test:Precondition_PolicyUpdateStarted()
-  local pathToSnaphot = nil
-  EXPECT_HMICALL ("BasicCommunication.PolicyUpdate")
-  :Do(function(_,data)
-      pathToSnaphot = data.params.file
-      self.hmiConnection:SendResponse(data.id, "BasicCommunication.PolicyUpdate", "SUCCESS", {})
-    end)
   local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
-  EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {url = "http://policies.telematics.ford.com/api/policies"}}})
-  :Do(function(_,_)
-      self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",
-        {
-          requestType = "PROPRIETARY",
-          url = "http://policies.telematics.ford.com/api/policies",
-          appID = self.applications ["Test Application"],
-          fileName = "sdl_snapshot.json"
-        },
-        pathToSnaphot
-      )
-    end)
-  EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "PROPRIETARY" })
+    EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})    :Do(function(_,_)
+        self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",
+          {
+            requestType = "PROPRIETARY",
+            url = "http://policies.telematics.ford.com/api/policies",
+            appID = self.applications ["Test Application"],
+            fileName = "sdl_snapshot.json"
+          })
+      end)
+    EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "PROPRIETARY" })
 end
 
 function Test:Precondition_OpenNewSession()
@@ -107,7 +97,7 @@ function Test:TestStep_FinishPTU_ForAppId1()
       requestType = "PROPRIETARY",
       fileName = "ptu.json"
     },
-    "/tmp/fs/mp/images/ivsu_cache/ptu.json"
+    "files/ptu.json"
   )
   EXPECT_HMICALL("BasicCommunication.SystemRequest")
   :Do(function(_,data)
@@ -121,8 +111,9 @@ function Test:TestStep_FinishPTU_ForAppId1()
         })
     end)
   :Do(function(_,_)
-      EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UP_TO_DATE"})
-    end)
+      -- PTU will be restarted because of new AppID is registered
+      EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
+  end)
 end
 
 function Test:TestStep_CheckThatAppID_Present_In_DataBase()
@@ -145,7 +136,8 @@ end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
-Test["StopSDL"] = function()
+function Test.Postcondition_StopSDL()
   StopSDL()
 end
 
+return Test
