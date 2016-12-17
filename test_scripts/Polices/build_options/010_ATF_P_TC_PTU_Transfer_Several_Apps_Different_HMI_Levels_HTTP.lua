@@ -36,6 +36,7 @@ local hmiLevels = { }
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
 testCasesForPolicyTable.Delete_Policy_table_snapshot()
+config.defaultProtocolVersion = 2
 
 --[[ General Settings for configuration ]]
 
@@ -90,33 +91,10 @@ for i = 2, 4 do
   end
 end
 
-for i = 1, 4 do
-  Test["Precondition_RegisterApplication_" .. i] = function()
-    config["application" .. i].registerAppInterfaceParams.appName = "App_" .. i
-    config.application3.registerAppInterfaceParams.appHMIType = { "DEFAULT" }
-    config.application4.registerAppInterfaceParams.appHMIType = { "DEFAULT" }
-    config.application2.registerAppInterfaceParams.isMediaApplication = false
-    config.application2.registerAppInterfaceParams.appHMIType = { "NAVIGATION" }
-  end
-end
-
 --Set particular HMILevel for each app
 function Test:Precondition_ActivateApp_2()
   local requestId1 = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.applications["App_2"] })
   EXPECT_HMIRESPONSE(requestId1)
-  :Do(function(_, data1)
-      if data1.result.isSDLAllowed ~= true then
-        local requestId2 = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage",
-          { language = "EN-US", messageCodes = { "DataConsent" } })
-        EXPECT_HMIRESPONSE(requestId2)
-        :Do(function(_, _)
-            self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality",
-              { allowed = true, source = "GUI", device = { id = config.deviceMAC, name = "127.0.0.1" } })
-          end)
-      end
-    end)
-  EXPECT_HMICALL("BasicCommunication.ActivateApp")
-  :Do(function(_,data) self.hmiConnection:SendResponse(data.id,"BasicCommunication.ActivateApp", "SUCCESS", {}) end)
 
   EXPECT_NOTIFICATION("OnHMIStatus", {}):Times(0)
   self["mobileSession2"]:ExpectNotification("OnHMIStatus", {hmiLevel = "FULL", audioStreamingState = "AUDIBLE", systemContext = "MAIN"})
@@ -134,6 +112,7 @@ function Test:Precondition_ActivateApp_3()
   EXPECT_HMIRESPONSE(requestId1)
 
   EXPECT_NOTIFICATION("OnHMIStatus", {}):Times(0)
+
   self["mobileSession2"]:ExpectNotification("OnHMIStatus", {hmiLevel = "LIMITED", audioStreamingState = "AUDIBLE", systemContext = "MAIN"})
   :Do(function(_,data) hmiLevels[2] = tostring(data.payload.hmiLevel) end)
   self["mobileSession3"]:ExpectNotification("OnHMIStatus", {hmiLevel = "FULL", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
