@@ -263,10 +263,8 @@ local function updateJSON(pathToFile, updaters)
     for _, updateFunc in pairs(updaters) do
       updateFunc(data)
     end
-    -- Workaround. null value in lua table == not existing value. But in json file it has to be
-    data.policy_table.functional_groupings["DataConsent-2"].rpcs = "tobedeletedinjsonfile"
+    data.policy_table.functional_groupings["DataConsent-2"].rpcs = json.null
     local dataToWrite = json.encode(data)
-    dataToWrite = string.gsub(dataToWrite, "\"tobedeletedinjsonfile\"", "null")
     file = io.open(pathToFile, "w")
     file:write(dataToWrite)
     file:close()
@@ -440,15 +438,12 @@ function Test:CheckPTUinLocalPT()
     {
       query = table.concat(
         {
-          'select minutes_in_hmi_full, minutes_in_hmi_limited, minutes_in_hmi_background, minutes_in_hmi_none from app_level where application_id = "',
+          'select minutes_in_hmi_none from app_level where application_id = "',
           config.application1.registerAppInterfaceParams.appID,
           '"'
         }),
       expectedValues = {table.concat(
           {
-            TESTED_DATA.expected.policy_table.usage_and_error_counts.app_level[config.application1.registerAppInterfaceParams.appID].minutes_in_hmi_full, "|",
-            TESTED_DATA.expected.policy_table.usage_and_error_counts.app_level[config.application1.registerAppInterfaceParams.appID].minutes_in_hmi_limited, "|",
-            TESTED_DATA.expected.policy_table.usage_and_error_counts.app_level[config.application1.registerAppInterfaceParams.appID].minutes_in_hmi_background, "|",
             TESTED_DATA.expected.policy_table.usage_and_error_counts.app_level[config.application1.registerAppInterfaceParams.appID].minutes_in_hmi_none
           })
       }
@@ -463,7 +458,7 @@ end
 commonFunctions:newTestCasesGroup("Postconditions")
 
 function Test.Postcondition()
-  --commonSteps:DeletePolicyTable()
+  commonSteps:DeletePolicyTable()
   Test.restorePreloadedPT("backup_")
   TestData:info()
 end
