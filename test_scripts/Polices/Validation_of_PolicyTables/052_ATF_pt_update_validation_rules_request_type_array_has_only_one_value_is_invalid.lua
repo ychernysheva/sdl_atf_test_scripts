@@ -373,10 +373,8 @@ function Test:updatePolicyInDifferentSessions(PTName, appName, mobileSession)
       for _, updateFunc in pairs(updaters) do
         updateFunc(data)
       end
-      -- Workaround. null value in lua table == not existing value. But in json file it has to be
-      data.policy_table.functional_groupings["DataConsent-2"].rpcs = "tobedeletedinjsonfile"
+      data.policy_table.functional_groupings["DataConsent-2"].rpcs = json.null
       local dataToWrite = json.encode(data)
-      dataToWrite = string.gsub(dataToWrite, "\"tobedeletedinjsonfile\"", "null")
       file = io.open(pathToFile, "w")
       file:write(dataToWrite)
       file:close()
