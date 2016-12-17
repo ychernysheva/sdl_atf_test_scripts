@@ -34,7 +34,7 @@ require('cardinalities')
 require('user_modules/AppTypes')
 
 --[[ Test ]]
-
+commonFunctions:newTestCasesGroup("Test")
 function Test:TestStep_Device_Consented()
   testCasesForPolicyTable:trigger_getting_device_consent(self, config.application1.registerAppInterfaceParams.appName, config.deviceMAC)
 end
