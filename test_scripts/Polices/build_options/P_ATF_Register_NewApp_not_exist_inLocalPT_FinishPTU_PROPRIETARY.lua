@@ -105,14 +105,9 @@ function Test:TestStep_FinishPTU_ForAppId1()
     end)
   EXPECT_RESPONSE(CorIdSystemRequest, {success = true, resultCode = "SUCCESS"})
   :Do(function(_,_)
-      self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate",
-        {
-          policyfile = "/tmp/fs/mp/images/ivsu_cache/ptu.json"
-        })
-    end)
-  :Do(function(_,_)
+      self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate", { policyfile = "/tmp/fs/mp/images/ivsu_cache/ptu.json" })
       -- PTU will be restarted because of new AppID is registered
-      EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
+      EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UP_TO_DATE"}, {status = "UPDATE_NEEDED"})
   end)
 end
 
@@ -125,7 +120,7 @@ function Test:TestStep_CheckThatAppID_Present_In_DataBase()
     commonFunctions:userPrint(31, "policy.sqlite file is not found")
     self:FailTestCase("PolicyTable is not avaliable" .. tostring(PolicyDBPath))
   end
-  os.execute(" sleep 2 ")
+ -- os.execute(" sleep 2 ")
   local AppId_2 = "sqlite3 " .. tostring(PolicyDBPath) .. "\"SELECT id FROM application WHERE id = '"..tostring(registerAppInterfaceParams.appID).."'\""
   local bHandle = assert( io.popen(AppId_2, 'r'))
   local AppIdValue_2 = bHandle:read( '*l' )
