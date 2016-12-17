@@ -20,65 +20,60 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 --[[ Required Shared libraries ]]
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
-local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
-local testCasesForPolicyTableSnapshot = require('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
+local commonPreconditions = require ('user_modules/shared_testcases/commonPreconditions')
+local testCasesForPolicyTableSnapshot = require ('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
---ToDo: Should be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
+commonPreconditions:Connecttest_without_ExitBySDLDisconnect_WithoutOpenConnectionRegisterApp("connecttest_ConnectMobile.lua")
+--TODO: Should be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
 config.defaultProtocolVersion = 2
 
 --[[ General Settings for configuration ]]
-Test = require('connecttest')
+Test = require('user_modules/connecttest_ConnectMobile')
 require('cardinalities')
 require('user_modules/AppTypes')
+local mobile_session = require('mobile_session')
+
+--[[ Preconditions ]]
+commonFunctions:newTestCasesGroup("Preconditions")
+
+function Test:Precondition_Connect_device()
+  self:connectMobile()
+end
+
+function Test:Precondition_StartSession()
+  self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
+  self.mobileSession:StartService(7)
+end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
-function Test:TestStep_PTS_Creation_rule()
-  local hmi_app1_id = self.applications[config.application1.registerAppInterfaceParams.appName]
-  local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.applications[config.application1.registerAppInterfaceParams.appName]})
+function Test:TestStep_OnStatusUpdate_UPDATE_NEEDED_new_PTU_request()
+  local is_test_passed = true
+  local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
 
-  EXPECT_HMIRESPONSE(RequestId)
-  :Do(function(_,_)
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", {application = { appName = config.application1.registerAppInterfaceParams.appName } })
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",
+    { status = "UPDATE_NEEDED" }, {status = "UPDATING"}):Times(2)
+  :Do(function(_,data)
+    if(data.params.status == "UPDATE_NEEDED") then
+      is_test_passed = testCasesForPolicyTableSnapshot:verify_PTS(true,
+              { config.application1.registerAppInterfaceParams.appID, config.application2.registerAppInterfaceParams.appID, },
+              {config.deviceMAC},
+              {""},
+              "print")
+    end
+  end)
+  EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "HTTP"})
 
-      local RequestId1 = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
-      EXPECT_HMIRESPONSE( RequestId1, {result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
-      -- :Do(function(_,_)
-      -- testCasesForPolicyTable.time_trigger = timestamp()
+  self.mobileSession:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS" })
+  self.mobileSession:ExpectNotification("OnHMIStatus", {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
 
-      -- self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality",
-      -- {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = ServerAddress, isSDLAllowed = true}})
-      -- end)
-      testCasesForPolicyTableSnapshot:verify_PTS(true,
-        {config.application1.registerAppInterfaceParams.appID},
-        {config.deviceMAC},
-        {hmi_app1_id},
-      "print")
-
-      local timeout_after_x_seconds = testCasesForPolicyTableSnapshot:get_data_from_PTS("module_config.timeout_after_x_seconds")
-      local seconds_between_retries = {}
-      for i = 1, #testCasesForPolicyTableSnapshot.pts_seconds_between_retries do
-        seconds_between_retries[i] = testCasesForPolicyTableSnapshot.pts_seconds_between_retries[i].value
-      end
-
-      EXPECT_HMICALL("BasicCommunication.PolicyUpdate",
-        {
-          file = "/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json",
-          timeout = timeout_after_x_seconds,
-          retry = seconds_between_retries
-        })
-      :Do(function(_,data)
-          testCasesForPolicyTable.time_policyupdate = timestamp()
-          self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-        end)
-    end)
-
-  EXPECT_HMICALL("BasicCommunication.ActivateApp")
-  :Do(function(_,data) self.hmiConnection:SendResponse(data.id,"BasicCommunication.ActivateApp", "SUCCESS", {}) end)
-
-  EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"})
+  if(is_test_passed == false) then
+    self:FailTestCase("Test is FAILED. See prints.")
+  end
 end
 
 --[[ Postconditions ]]
