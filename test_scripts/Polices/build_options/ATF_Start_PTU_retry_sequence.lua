@@ -73,40 +73,41 @@ function Test:Start_Retry_Sequence_PROPRIETARY()
       is_test_fail = true
       commonFunctions:printError("ERROR: timeout for retry sequence "..occurences.." is not as expected: "..timeout_preloaded.."msec(5sec tolerance). real: "..timeout.."ms")
     else
-      print("timeout is as expected for retry sequence "..occurences..": "..timeout_preloaded.."ms. real: "..timeout)
+      print("timeout is as expected for retry sequence "..occurences..": "..tostring(timeout_preloaded*1000).."ms. real: "..timeout)
     end
     return true
   end
 
   self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application1.appName } })
-    :Do(function(_,_)
-    local RequestId_GetUrls = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
+  :Do(function(_,_)
 
-    EXPECT_HMIRESPONSE(RequestId_GetUrls,{result = {code = 0, method = "SDL.GetURLS", urls = endpoints} } )
-    :Do(function(_,_)
-      self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",{ requestType = "PROPRIETARY", fileName = "PolicyTableUpdate" })
+      EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
+      :Do(function(_,data)
+        self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 
-    EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY", fileType = "JSON"})
-      :Do(function(_,_) time_system_request[#time_system_request + 1] = timestamp() end)
-    end)
+        local RequestId_GetUrls = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
+
+        EXPECT_HMIRESPONSE(RequestId_GetUrls,{result = {code = 0, method = "SDL.GetURLS", urls = endpoints} } )
+        :Do(function(_,_)
+          self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",{ requestType = "PROPRIETARY", fileName = "PolicyTableUpdate" })
+
+        EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY", fileType = "JSON"})
+          :Do(function(_,_)
+            time_system_request[#time_system_request + 1] = timestamp()
+          end)
+        end)
+      end)
   end)
 
   EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",
-        {status = "UPDATE_NEEDED"}, {status = "UPDATING"}, {status = "UPDATE_NEEDED"}, {status = "UPDATING"}):Times(4):Timeout(time_wait)
+        {status = "UPDATE_NEEDED"}, {status = "UPDATING"}, {status = "UPDATE_NEEDED"}):Times(3):Timeout(time_wait)
   :Do(function(exp_pu, data)
     if(data.params.status == "UPDATE_NEEDED" and exp_pu.occurences > 1) then
       verify_retry_sequence(1)
     end
   end)
-
-  EXPECT_HMICALL("BasicCommunication.PolicyUpdate"):Timeout(time_wait)
-  :Do(function(exp,data)
-    if(exp.occurences == 1) then
-      commonTestCases:DelayedExp(time_wait) -- tolerance 10 sec
-    end
-    self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-  end)
+  commonTestCases:DelayedExp(time_wait)
 
   if(is_test_fail == true) then
     self:FailTestCase("Test is FAILED. See prints.")
