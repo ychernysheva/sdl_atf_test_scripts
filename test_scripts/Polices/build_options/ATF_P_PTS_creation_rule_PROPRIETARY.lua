@@ -26,17 +26,10 @@ local testCasesForPolicyTableSnapshot = require('user_modules/shared_testcases/t
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
+testCasesForPolicyTable.Delete_Policy_table_snapshot()
 
 --ToDo: shall be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
 config.defaultProtocolVersion = 2
-
---[[ Local Functions ]]
-local function timestamp()
-  local f = io.popen("date +%s")
-  local o = f:read("*all")
-  f:close()
-  return (o:gsub("\n", ""))
-end
 
 --[[ General Settings for configuration ]]
 Test = require('connecttest')
@@ -45,58 +38,18 @@ require('user_modules/AppTypes')
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
-function Test:TestStep_PTS_Creation_rule()
-  local hmi_app1_id = self.applications[config.application1.registerAppInterfaceParams.appName]
-  local ServerAddress = commonFunctions:read_parameter_from_smart_device_link_ini("ServerAddress")
-
-  local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.applications[config.application1.registerAppInterfaceParams.appName]})
-
-  EXPECT_HMIRESPONSE(RequestId)
-  :Do(function(_,_)
-
-      local RequestId1 = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
-      EXPECT_HMIRESPONSE( RequestId1, {result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
-      :Do(function(_,_)
-          testCasesForPolicyTable.time_trigger = timestamp()
-
-          self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality",
-            {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = ServerAddress, isSDLAllowed = true}})
-        end)
-
-      testCasesForPolicyTableSnapshot:verify_PTS(true,
+function Test.TestStep_PTS_Creation_rule()
+  testCasesForPolicyTableSnapshot:verify_PTS(true,
         {config.application1.registerAppInterfaceParams.appID},
         {config.deviceMAC},
-        {hmi_app1_id},
-      "print")
-
-      local timeout_after_x_seconds = testCasesForPolicyTableSnapshot:get_data_from_PTS("module_config.timeout_after_x_seconds")
-      local seconds_between_retries = {}
-      for i = 1, #testCasesForPolicyTableSnapshot.pts_seconds_between_retries do
-        seconds_between_retries[i] = testCasesForPolicyTableSnapshot.pts_seconds_between_retries[i].value
-      end
-
-      EXPECT_HMICALL("BasicCommunication.PolicyUpdate",
-        {
-          file = "/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json",
-          timeout = timeout_after_x_seconds,
-          retry = seconds_between_retries
-        })
-      :Do(function(_,data)
-          testCasesForPolicyTable.time_policyupdate = timestamp()
-          self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-        end)
-    end)
-
-  EXPECT_HMICALL("BasicCommunication.ActivateApp")
-  :Do(function(_,data) self.hmiConnection:SendResponse(data.id,"BasicCommunication.ActivateApp", "SUCCESS", {}) end)
-
-  EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"})
+        {""},
+        "print")
 end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
-function Test:Postcondition_SDLForceStop()
-  commonFunctions:SDLForceStop(self)
+function Test.Postcondition_StopSDL()
+  StopSDL()
 end
 
 return Test
