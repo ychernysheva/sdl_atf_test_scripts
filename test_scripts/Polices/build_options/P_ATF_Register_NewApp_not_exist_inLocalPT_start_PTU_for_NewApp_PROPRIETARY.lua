@@ -66,10 +66,9 @@ Test = require('connecttest')
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup ("Preconditions")
 function Test:Precondition_PolicyUpdateStarted()
-  local pathToSnaphot = nil
+
   EXPECT_HMICALL ("BasicCommunication.PolicyUpdate")
   :Do(function(_,data)
-      pathToSnaphot = data.params.file
       self.hmiConnection:SendResponse(data.id, "BasicCommunication.PolicyUpdate", "SUCCESS", {})
     end)
   local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
@@ -81,8 +80,7 @@ function Test:Precondition_PolicyUpdateStarted()
           url = "http://policies.telematics.ford.com/api/policies",
           appID = self.applications ["Test Application"],
           fileName = "sdl_snapshot.json"
-        },
-        pathToSnaphot
+        }
       )
     end)
   EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "PROPRIETARY" })
@@ -108,7 +106,7 @@ function Test:TestStep_FinishPTU_For_FirstApplication()
       requestType = "PROPRIETARY",
       fileName = "ptu.json"
     },
-    "/tmp/fs/mp/images/ivsu_cache/ptu.json"
+    "files/ptu.json"
   )
   EXPECT_HMICALL("BasicCommunication.SystemRequest")
   :Do(function(_,data)
@@ -116,15 +114,10 @@ function Test:TestStep_FinishPTU_For_FirstApplication()
     end)
   EXPECT_RESPONSE(CorIdSystemRequest, {success = true, resultCode = "SUCCESS"})
   :Do(function(_,_)
-      os.execute("cp /home/anikolaev/OpenSDL_AUTOMATION/test_run/files/ptu.json /tmp/fs/mp/images/ivsu_cache/")
-      self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate",
-        {
-          policyfile = "/tmp/fs/mp/images/ivsu_cache/ptu.json"
-        })
-    end)
-  :Do(function(_,_)
-      EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UP_TO_DATE"})
-    end)
+      self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate", { policyfile = "/tmp/fs/mp/images/ivsu_cache/ptu.json" })
+      -- PTU will be restarted because of new AppID is registered
+      EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UP_TO_DATE"}, {status = "UPDATE_NEEDED"})
+  end)
 end
 
 function Test:TestStep_CheckThatAppID_Present_In_DataBase()
@@ -145,31 +138,28 @@ function Test:TestStep_CheckThatAppID_Present_In_DataBase()
   end
 end
 
-function Test:TestStep_Start_New_PolicyUpdate_For_SecondApplication()
-  local pathToSnaphot = nil
-  EXPECT_HMICALL ("BasicCommunication.PolicyUpdate")
-  :Do(function(_,data)
-      pathToSnaphot = data.params.file
-      self.hmiConnection:SendResponse(data.id, "BasicCommunication.PolicyUpdate", "SUCCESS", {})
-    end)
-  local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
-  EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {url = "http://policies.telematics.ford.com/api/policies"}}})
-  :Do(function(_,_)
-      self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",
-        {
-          requestType = "PROPRIETARY",
-          url = "http://policies.telematics.ford.com/api/policies",
-          appID = self.applications ["MyTestApp"],
-          fileName = "sdl_snapshot.json"
-        },
-        pathToSnaphot
-      )
-    end)
-  EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "PROPRIETARY" })
-  :Do(function(_,_)
-      EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
-    end)
-end
+-- function Test:TestStep_Start_New_PolicyUpdate_For_SecondApplication()
+--   EXPECT_HMICALL ("BasicCommunication.PolicyUpdate")
+--   :Do(function(_,data)
+--       self.hmiConnection:SendResponse(data.id, "BasicCommunication.PolicyUpdate", "SUCCESS", {})
+--     end)
+--   local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
+--   EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {url = "http://policies.telematics.ford.com/api/policies"}}})
+--   :Do(function(_,_)
+--       self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",
+--         {
+--           requestType = "PROPRIETARY",
+--           url = "http://policies.telematics.ford.com/api/policies",
+--           appID = self.applications ["MyTestApp"],
+--           fileName = "sdl_snapshot.json"
+--         }
+--       )
+--     end)
+--   EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "PROPRIETARY" })
+--   :Do(function(_,_)
+--       EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
+--     end)
+-- end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
@@ -177,3 +167,4 @@ Test["StopSDL"] = function()
   StopSDL()
 end
 
+return Test
