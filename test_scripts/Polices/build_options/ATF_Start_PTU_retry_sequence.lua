@@ -28,6 +28,7 @@ local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local commonPreconditions = require ('user_modules/shared_testcases/commonPreconditions')
 local testCasesForPolicyTableSnapshot = require ('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
+local commonTestCases = require ('user_modules/shared_testcases/commonTestCases')
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
@@ -53,59 +54,69 @@ end
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 function Test:Start_Retry_Sequence_PROPRIETARY()
-  local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
-  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application1.appName } })
-    :Do(function(_,data)
-    local hmi_app_id = data.params.application.appID
-    EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
+  local time_update_needed = {}
+  local time_system_request = {}
+  local endpoints = {}
+  local is_test_fail = false
+  local timeout_preloaded = testCasesForPolicyTableSnapshot:get_data_from_Preloaded_PT("module_config.timeout_after_x_seconds")
+  local seconds_between_retries1 = testCasesForPolicyTableSnapshot:get_data_from_Preloaded_PT("module_config.seconds_between_retries.1")
 
-    testCasesForPolicyTableSnapshot:create_PTS(true,
-    {config.application1.registerAppInterfaceParams.appID},
-    {config.deviceMAC},
-    {hmi_app_id})
+  local time_wait = (timeout_preloaded*seconds_between_retries1*1000 + 2000)
 
-    local timeout_after_x_seconds = testCasesForPolicyTableSnapshot:get_data_from_PTS("module_config.timeout_after_x_seconds")
-    local seconds_between_retries = {}
-    for i = 1, #testCasesForPolicyTableSnapshot.pts_seconds_between_retries do
-      seconds_between_retries[i] = testCasesForPolicyTableSnapshot.pts_seconds_between_retries[i].value
+  --first retry sequence
+  local function verify_retry_sequence(occurences)
+    time_update_needed[#time_update_needed + 1] = timestamp()
+    local time_1 = time_update_needed[#time_update_needed]
+    local time_2 = time_system_request[#time_system_request]
+    local timeout = (time_1 - time_2)
+    if( ( timeout > (timeout_preloaded*1000 + 2000) ) or ( timeout < (timeout_preloaded*1000 - 2000) )) then
+      is_test_fail = true
+      commonFunctions:printError("ERROR: timeout for retry sequence "..occurences.." is not as expected: "..timeout_preloaded.."msec(5sec tolerance). real: "..timeout.."ms")
+    else
+      print("timeout is as expected for retry sequence "..occurences..": "..timeout_preloaded.."ms. real: "..timeout)
     end
-    EXPECT_HMICALL("BasicCommunication.PolicyUpdate",
-    {
-      file = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate",
-      timeout = timeout_after_x_seconds,
-      retry = seconds_between_retries
-    })
+    return true
+  end
+
+  self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application1.appName } })
     :Do(function(_,_)
-      EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATING"})
-      :Times(1)
-      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-        :Do(function(_,_)
-        local ptu_file_path = "files/"
-        local ptu_file_name = "PolicyTableUpdate"
-        local ptu_file = "ptu.json"
-        local SystemFilesPath = "/tmp/fs/mp/images/ivsu_cache/"
-        local RequestId_GetUrls = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
-        EXPECT_HMIRESPONSE(RequestId_GetUrls,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
-          :Do(function(_,_)
-          self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",{ requestType = "PROPRIETARY", fileName = "PolicyTableUpdate"})
-          EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "PROPRIETARY"})
-            :Do(function(_,_)
-            local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", {requestType = "PROPRIETARY", fileName = "PolicyTableUpdate", hmi_app_id, ptu_file_path..ptu_file})
-            EXPECT_HMICALL("BasicCommunication.SystemRequest",{ requestType = "PROPRIETARY", fileName = SystemFilesPath..ptu_file_name })
-              :Do(function(_,_data1)
-              self.hmiConnection:SendResponse(_data1.id,"BasicCommunication.SystemRequest", "SUCCESS", {})
-              end)
-            EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
-            :Times(1)
-            end)
-          end)
-        end)
-      end)
+    local RequestId_GetUrls = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
+
+    EXPECT_HMIRESPONSE(RequestId_GetUrls,{result = {code = 0, method = "SDL.GetURLS", urls = endpoints} } )
+    :Do(function(_,_)
+      self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",{ requestType = "PROPRIETARY", fileName = "PolicyTableUpdate" })
+
+    EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY", fileType = "JSON"})
+      :Do(function(_,_) time_system_request[#time_system_request + 1] = timestamp() end)
     end)
+  end)
+
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",
+        {status = "UPDATE_NEEDED"}, {status = "UPDATING"}, {status = "UPDATE_NEEDED"}, {status = "UPDATING"}):Times(4):Timeout(time_wait)
+  :Do(function(exp_pu, data)
+    if(data.params.status == "UPDATE_NEEDED" and exp_pu.occurences > 1) then
+      verify_retry_sequence(1)
+    end
+  end)
+
+  EXPECT_HMICALL("BasicCommunication.PolicyUpdate"):Timeout(time_wait)
+  :Do(function(exp,data)
+    if(exp.occurences == 1) then
+      commonTestCases:DelayedExp(time_wait) -- tolerance 10 sec
+    end
+    self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+  end)
+
+  if(is_test_fail == true) then
+    self:FailTestCase("Test is FAILED. See prints.")
+  end
 end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
-function Test:Postcondition_Force_Stop_SDL()
-  commonFunctions:SDLForceStop(self)
+function Test.Postcondition_Stop()
+  StopSDL()
 end
+
+return Test
