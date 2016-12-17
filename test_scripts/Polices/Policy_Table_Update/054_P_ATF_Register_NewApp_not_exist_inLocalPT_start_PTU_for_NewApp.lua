@@ -117,7 +117,7 @@ function Test:TestStep_FinishPTU_ForAppId1()
     end)
 
   --PTU is restarted because of trigger new application added.
-  :Do(function(_,_) EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"}) end)
+  :Do(function(_,_) EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UP_TO_DATE"}, {status = "UPDATE_NEEDED"}) end)
 end
 
 function Test:TestStep_CheckThatAppID_BothApps_Present_In_DataBase()
