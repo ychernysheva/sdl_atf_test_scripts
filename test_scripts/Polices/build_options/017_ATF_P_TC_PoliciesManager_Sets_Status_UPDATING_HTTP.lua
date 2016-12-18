@@ -28,59 +28,82 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 --[[ Required Shared libraries ]]
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
-local testCasesForPolicyTableSnapshot = require('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
+local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
+commonPreconditions:Connecttest_without_ExitBySDLDisconnect_WithoutOpenConnectionRegisterApp("connecttest_ConnectMobile.lua")
 --TODO: Should be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
 config.defaultProtocolVersion = 2
 
 --[[ General Settings for configuration ]]
-Test = require('connecttest')
+Test = require('user_modules/connecttest_ConnectMobile')
 require('cardinalities')
 require('user_modules/AppTypes')
+local mobile_session = require('mobile_session')
+
+--[[ Preconditions ]]
+commonFunctions:newTestCasesGroup("Preconditions")
+
+function Test:Precondition_Connect_device()
+  self:connectMobile()
+end
+
+function Test:Precondition_StartSession()
+  self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
+  self.mobileSession:StartService(7)
+end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
 function Test:TestStep_PoliciesManager_changes_status_UPDATING()
-  local SystemFilesPath = commonFunctions:read_parameter_from_smart_device_link_ini("SystemFilesPath")
+  local message_order = 1
   local is_test_fail = false
-  local endpoints = {}
 
-  for i = 1, #testCasesForPolicyTableSnapshot.pts_endpoints do
-    if (testCasesForPolicyTableSnapshot.pts_endpoints[i].service == "0x07") then
-      endpoints[#endpoints + 1] = { url = testCasesForPolicyTableSnapshot.pts_endpoints[i].value, appID = nil}
-    end
+  self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
 
-    if (testCasesForPolicyTableSnapshot.pts_endpoints[i].service == "app1") then
-      endpoints[#endpoints + 1] = { url = testCasesForPolicyTableSnapshot.pts_endpoints[i].value, appID = testCasesForPolicyTableSnapshot.pts_endpoints[i].appID}
-    end
-  end
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", {application = { appName = config.application1.registerAppInterfaceParams.appName } })
+  :Do(function()
 
-  local RequestId_GetUrls = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
-  EXPECT_HMIRESPONSE(RequestId_GetUrls,{result = {code = 0, method = "SDL.GetURLS", urls = endpoints} } )
-  :Do(function(_,_)
-      self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",{ requestType = "HTTP", fileName = "PolicyTableUpdate"})
-      EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "HTTP"})
-      :Do(function(_,_)
-          local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest",
-            {requestType = "HTTP", fileName = "PolicyTableUpdate", appID = config.application1.registerAppInterfaceParams.appID}, "files/ptu.json")
-
-          EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATING"})
-
-          EXPECT_HMICALL("BasicCommunication.SystemRequest",{ requestType = "HTTP", fileName = SystemFilesPath.."/PolicyTableUpdate" })
-          :Do(function(_,_data1)
-              self.hmiConnection:SendResponse(_data1.id,"BasicCommunication.SystemRequest", "SUCCESS", {})
-              --self.hmiConnection:SendNotification ("SDL.OnReceivedPolicyUpdate", { policyfile = SystemFilesPath.."/PolicyTableUpdate"})
-            end)
-          EXPECT_RESPONSE(CorIdSystemRequest, { success = true, resultCode = "SUCCESS"})
-        end)
+    EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "HTTP"})
+    :Do(function()
+      if(message_order ~= 2) then
+        commonFunctions:printError("OnSystemRequest is not received as message 2 after OnAppRegistered. Received as message: "..message_order)
+        is_test_fail = true
+      else
+        print("OnSystemRequest received as message 2 after OnAppRegistered.")
+      end
+      message_order = message_order + 1
     end)
 
-  if(is_test_fail == true) then
-    self:FailTestCase("Test is FAILED. See prints.")
-  end
+    EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",
+    { status = "UPDATE_NEEDED" }, {status = "UPDATING"}):Times(2)
+    :Do(function(_,data)
+      if(data.params.status == "UPDATE_NEEDED") then
+        if(message_order ~= 1) then
+          commonFunctions:printError("SDL.OnStatusUpdate(UPDATE_NEEDED) is not received as message 1 after OnAppRegistered. Received as message: "..message_order)
+          is_test_fail = true
+        else
+          print("SDL.OnStatusUpdate(UPDATING) received as message 1 after OnAppRegistered.")
+        end
+        message_order = message_order + 1
+      elseif(data.params.status == "UPDATING") then
+        if(message_order ~= 3) then
+          commonFunctions:printError("SDL.OnStatusUpdate(UPDATING) is not received as message 3 after OnAppRegistered. Received as message: "..message_order)
+          is_test_fail = true
+        else
+          print("SDL.OnStatusUpdate(UPDATING) received as message 3 after OnAppRegistered.")
+        end
+        message_order = message_order + 1
+      end
+    end)
+
+    if(is_test_fail == true) then
+      self:FailTestCase("Test is FAILED. See prints.")
+    end
+
+  end)
 end
 
 --[[ Postconditions ]]
