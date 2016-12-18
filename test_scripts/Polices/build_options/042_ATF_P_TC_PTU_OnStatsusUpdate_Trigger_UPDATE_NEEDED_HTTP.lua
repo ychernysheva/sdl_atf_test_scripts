@@ -1,8 +1,3 @@
--- UNREADY:
---function Test:TestStep_PTU_UPDATED_NEEDED_Status is not developed
---function testCasesForPolicyTable.flow_PTU_SUCCEESS_HTTP
---should be developed and added to testCasesForPolicyTable
-
 ---------------------------------------------------------------------------------------------
 -- Requirements summary:
 -- [PolicyTableUpdate] OnStatusUpdate trigger
