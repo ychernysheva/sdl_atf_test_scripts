@@ -64,11 +64,12 @@ function Test:TestStep_PTU_GetURLs()
   local RequestId = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
 
   EXPECT_HMIRESPONSE(RequestId,{result = {code = 0, method = "SDL.GetURLS"} } )
-  :ValidIf(function(_,data)
+  :Do(function(_,data)
     local is_correct = {}
     for i = 1, #data.result.urls do
+      is_correct[i] = false
       for j = 1, #endpoints do
-        if ( data.result.urls[i] == endpoints[j] ) then
+        if ( data.result.urls[i].url == endpoints[j].url ) then
           is_correct[i] = true
         end
       end
@@ -78,7 +79,7 @@ function Test:TestStep_PTU_GetURLs()
     end
     for i = 1, #is_correct do
       if(is_correct[i] == false) then
-        self:FailTestCase("url: "..data.result.urls[i].url.." is not correct")
+        self:FailTestCase("url: "..data.result.urls[i].url.." is not correct. Expected: "..endpoints[i].url)
       end
     end
   end)
