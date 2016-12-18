@@ -48,7 +48,29 @@ function Test:Precondition_trigger_getting_device_consent()
 end
 
 function Test:Precondition_flow_PTU_SUCCEESS_EXTERNAL_PROPRIETARY()
-  testCasesForPolicyTable:flow_SUCCEESS_EXTERNAL_PROPRIETARY(self)
+  local SystemFilesPath = "/tmp/fs/mp/images/ivsu_cache/"
+
+  local RequestId_GetUrls = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
+  EXPECT_HMIRESPONSE(RequestId_GetUrls,{result = {code = 0, method = "SDL.GetURLS"} } )
+  :Do(function(_,_)
+    self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",
+    { requestType = "PROPRIETARY", fileName = "PolicyTableUpdate"})
+    EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "PROPRIETARY"})
+    :Do(function(_,_)
+
+      EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",
+        {status = "UPDATING"}, {status = "UP_TO_DATE"}):Times(2)
+
+      local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", {requestType = "PROPRIETARY", fileName = "PolicyTableUpdate", appID = config.application1.registerAppInterfaceParams.appID},
+        "files/ptu.json")
+      EXPECT_HMICALL("BasicCommunication.SystemRequest",{ requestType = "PROPRIETARY", fileName = SystemFilesPath.."PolicyTableUpdate" })
+      :Do(function(_,_data1)
+        self.hmiConnection:SendResponse(_data1.id,"BasicCommunication.SystemRequest", "SUCCESS", {})
+        self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate", { policyfile = SystemFilesPath.."PolicyTableUpdate"})
+      end)
+      EXPECT_RESPONSE(CorIdSystemRequest, { success = true, resultCode = "SUCCESS"})
+    end)
+  end)
 end
 
 function Test:Precondition_UnregisterApp()
@@ -58,13 +80,44 @@ function Test:Precondition_UnregisterApp()
   EXPECT_RESPONSE("UnregisterAppInterface", {success = true , resultCode = "SUCCESS"})
 end
 
-function Test.Precondition_Remove_PTS()
-  testCasesForPolicyTable.Delete_Policy_table_snapshot()
-end
-
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 function Test:TestStep_PTU_GetURLs_NoAppRegistered()
+  local endpoints = {}
+  testCasesForPolicyTableSnapshot:extract_pts()
+
+  for i = 1, #testCasesForPolicyTableSnapshot.pts_endpoints do
+    if (testCasesForPolicyTableSnapshot.pts_endpoints[i].service == "0x07") then
+      endpoints[#endpoints + 1] = {
+        url = testCasesForPolicyTableSnapshot.pts_endpoints[i].value,
+        appID = testCasesForPolicyTableSnapshot.pts_endpoints[i].appID}
+    end
+  end
+
+  local RequestId = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
+
+  EXPECT_HMIRESPONSE(RequestId,{result = {code = 0, method = "SDL.GetURLS"} } )
+  :ValidIf(function(_,data)
+    local is_correct = {}
+    for i = 1, #data.result.urls do
+      for j = 1, #endpoints do
+        if ( data.result.urls[i] == endpoints[j] ) then
+          is_correct[i] = true
+        end
+      end
+    end
+    if(#data.result.urls ~= #endpoints ) then
+      self:FailTestCase("Number of urls is not as expected: "..#endpoints..". Real: "..#data.result.urls)
+    end
+    for i = 1, #is_correct do
+      if(is_correct[i] == false) then
+        self:FailTestCase("url: "..data.result.urls[i].url.." is not correct")
+      end
+    end
+  end)
+end
+
+function Test:TestStep_PTU_DB_GetURLs_NoAppRegistered()
   local is_test_fail = false
   local policy_endpoints = {}
 
@@ -88,7 +141,6 @@ function Test:TestStep_PTU_GetURLs_NoAppRegistered()
   if(is_test_fail == true) then
     self:FailTestCase("Test is FAILED. See prints.")
   end
-
 end
 
 --[[ Postconditions ]]

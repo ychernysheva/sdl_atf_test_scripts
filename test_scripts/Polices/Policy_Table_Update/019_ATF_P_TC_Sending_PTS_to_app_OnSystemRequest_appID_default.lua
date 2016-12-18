@@ -56,9 +56,15 @@ function Test:TestStep_Sending_PTS_to_mobile_application()
   local is_test_fail = false
   local endpoints = {}
 
+  testCasesForPolicyTableSnapshot:extract_pts(
+    {config.application1.registerAppInterfaceParams.appID},
+    {self.applications[config.application1.registerAppInterfaceParams.appName]})
+
   for i = 1, #testCasesForPolicyTableSnapshot.pts_endpoints do
-    if (testCasesForPolicyTableSnapshot.pts_endpoints[i].service == config.application1.registerAppInterfaceParams.appID) then
-      endpoints[#endpoints + 1] = { url = testCasesForPolicyTableSnapshot.pts_endpoints[i].value, appID = nil}
+    if (testCasesForPolicyTableSnapshot.pts_endpoints[i].service == "0x07") then
+      endpoints[#endpoints + 1] = {
+        url = testCasesForPolicyTableSnapshot.pts_endpoints[i].value,
+        appID = testCasesForPolicyTableSnapshot.pts_endpoints[i].appID}
     end
   end
 

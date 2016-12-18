@@ -49,16 +49,39 @@ end
 commonFunctions:newTestCasesGroup("Test")
 function Test:TestStep_PTU_GetURLs()
   local endpoints = {}
+  testCasesForPolicyTableSnapshot:extract_pts(
+    {config.application1.registerAppInterfaceParams.appID},
+    {self.applications[config.application1.registerAppInterfaceParams.appName]})
 
   for i = 1, #testCasesForPolicyTableSnapshot.pts_endpoints do
     if (testCasesForPolicyTableSnapshot.pts_endpoints[i].service == "0x07") then
-      endpoints[#endpoints + 1] = { url = testCasesForPolicyTableSnapshot.pts_endpoints[i].value, appID = nil}
+      endpoints[#endpoints + 1] = {
+        url = testCasesForPolicyTableSnapshot.pts_endpoints[i].value,
+        appID = testCasesForPolicyTableSnapshot.pts_endpoints[i].appID}
     end
   end
 
   local RequestId = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
 
-  EXPECT_HMIRESPONSE(RequestId,{result = {code = 0, method = "SDL.GetURLS", urls = endpoints} } )
+  EXPECT_HMIRESPONSE(RequestId,{result = {code = 0, method = "SDL.GetURLS"} } )
+  :ValidIf(function(_,data)
+    local is_correct = {}
+    for i = 1, #data.result.urls do
+      for j = 1, #endpoints do
+        if ( data.result.urls[i] == endpoints[j] ) then
+          is_correct[i] = true
+        end
+      end
+    end
+    if(#data.result.urls ~= #endpoints ) then
+      self:FailTestCase("Number of urls is not as expected: "..#endpoints..". Real: "..#data.result.urls)
+    end
+    for i = 1, #is_correct do
+      if(is_correct[i] == false) then
+        self:FailTestCase("url: "..data.result.urls[i].url.." is not correct")
+      end
+    end
+  end)
 end
 
 --[[ Test ]]
