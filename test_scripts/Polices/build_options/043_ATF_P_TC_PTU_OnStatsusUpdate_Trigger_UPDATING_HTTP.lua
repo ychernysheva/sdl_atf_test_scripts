@@ -1,6 +1,3 @@
--- UNREADY: 
---function Test:TestStep_PoliciesManager_changes_status_UPDATING()
---should be applicable for HTTP flag as well
 ---------------------------------------------------------------------------------------------
 -- Requirements summary:
 -- [PolicyTableUpdate] OnStatusUpdate trigger
