@@ -31,85 +31,100 @@ local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 local testCasesForPolicyTableSnapshot = require('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
+local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
+commonPreconditions:Connecttest_without_ExitBySDLDisconnect_WithoutOpenConnectionRegisterApp("connecttest_ConnectMobile.lua")
 --TODO: Should be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
 config.defaultProtocolVersion = 2
 
+--[[ Local variables ]]
+local time_system_request_first = 0
+
 --[[ General Settings for configuration ]]
-Test = require('connecttest')
+Test = require('user_modules/connecttest_ConnectMobile')
 require('cardinalities')
 require('user_modules/AppTypes')
+local mobile_session = require('mobile_session')
+
+--[[ Preconditions ]]
+commonFunctions:newTestCasesGroup("Preconditions")
+
+function Test:Precondition_Connect_device()
+  self:connectMobile()
+end
+
+function Test:Precondition_StartSession()
+  self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
+  self.mobileSession:StartService(7)
+end
+
+--[[ Test ]]
+commonFunctions:newTestCasesGroup("Test")
+
+function Test:TestStep_OnStatusUpdate_UPDATE_NEEDED_new_PTU_request()
+  local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
+
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", {application = { appName = config.application1.registerAppInterfaceParams.appName } })
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",
+    { status = "UPDATE_NEEDED" }, {status = "UPDATING"}):Times(2)
+  EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "HTTP"})
+  :Do(function()
+    time_system_request_first = timestamp()
+  end)
+
+  self.mobileSession:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS" })
+  self.mobileSession:ExpectNotification("OnHMIStatus", {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
+end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
 function Test:TestStep_Sending_PTS_to_mobile_application()
-  local time_update_needed = {}
   local time_system_request = {}
-  local endpoints = {}
   local is_test_fail = false
-  local SystemFilesPath = commonFunctions:read_parameter_from_smart_device_link_ini("SystemFilesPath")
-  local PathToSnapshot = commonFunctions:read_parameter_from_smart_device_link_ini("PathToSnapshot")
-  local file_pts = SystemFilesPath.."/"..PathToSnapshot
-  local expect_PTU_status_update = 0
-  local expect_PTU_policy_update = 0
+  local timeout_pts
 
-  for i = 1, #testCasesForPolicyTableSnapshot.pts_endpoints do
-    if (testCasesForPolicyTableSnapshot.pts_endpoints[i].service == "0x07") then
-      endpoints[#endpoints + 1] = { url = testCasesForPolicyTableSnapshot.pts_endpoints[i].value, appID = nil}
+
+  local seconds_between_retries = {}
+  --TODO(istoimenova): Should be removed when "[GENIVI] HTTP: sdl_snapshot.json is not saved to file system" is fixed.
+  if ( commonSteps:file_exists( '/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json') ) then
+    timeout_pts = testCasesForPolicyTableSnapshot:get_data_from_PTS("module_config.timeout_after_x_seconds")
+    for i = 1, #testCasesForPolicyTableSnapshot.pts_seconds_between_retries do
+      seconds_between_retries[i] = testCasesForPolicyTableSnapshot.pts_seconds_between_retries[i].value
     end
-
-    if (testCasesForPolicyTableSnapshot.pts_endpoints[i].service == "app1") then
-      endpoints[#endpoints + 1] = { url = testCasesForPolicyTableSnapshot.pts_endpoints[i].value, appID = testCasesForPolicyTableSnapshot.pts_endpoints[i].appID}
+  else
+    timeout_pts = testCasesForPolicyTableSnapshot:get_data_from_Preloaded_PT("module_config.timeout_after_x_seconds")
+    for i = 1, #testCasesForPolicyTableSnapshot.seconds_between_retries do
+      seconds_between_retries[i] = testCasesForPolicyTableSnapshot.seconds_between_retries[i].value
     end
   end
 
-  local RequestId_GetUrls = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
+  local time_wait = (timeout_pts*seconds_between_retries[1]*1000 + 2000)
+  commonTestCases:DelayedExp(time_wait) -- tolerance 10 sec
 
-  EXPECT_HMIRESPONSE(RequestId_GetUrls,{result = {code = 0, method = "SDL.GetURLS", urls = endpoints} } )
-  :Do(function(_,_)
-      self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",{ requestType = "HTTP", fileName = "PolicyTableUpdate" })
-      --first retry sequence
-      local seconds_between_retries = {}
-      local timeout_pts = testCasesForPolicyTableSnapshot:get_data_from_PTS("module_config.timeout_after_x_seconds")
-      for i = 1, #testCasesForPolicyTableSnapshot.pts_seconds_between_retries do
-        seconds_between_retries[i] = testCasesForPolicyTableSnapshot.pts_seconds_between_retries[i].value
-      end
-      local time_wait = (timeout_pts*seconds_between_retries[1]*1000 + 10000)
-      commonTestCases:DelayedExp(time_wait) -- tolerance 10 sec
+  local function verify_retry_sequence(occurences)
+  --time_updating[#time_updating + 1] = testCasesForPolicyTable.time_trigger
 
-      local function verify_retry_sequence()
-        --time_update_needed[#time_update_needed + 1] = testCasesForPolicyTable.time_trigger
-        time_update_needed[#time_update_needed + 1] = timestamp()
-        local time_1 = time_update_needed[#time_update_needed]
-        local time_2 = time_system_request[#time_system_request]
-        local timeout = (time_1 - time_2)
-        if( ( timeout > (timeout_pts*1000 + 2000) ) or ( timeout < (timeout_pts*1000 - 2000) )) then
-          is_test_fail = true
-          commonFunctions:printError("ERROR: timeout for first retry sequence is not as expected: "..timeout_pts.."msec(5sec tolerance). real: "..timeout.."ms")
-        else
-          print("timeout is as expected: "..timeout_pts.."ms. real: "..timeout)
-        end
-      end
+    local time_1 = time_system_request[#time_system_request]
+    local time_2 = time_system_request_first
+    local timeout = (time_1 - time_2)
 
-      EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "HTTP", fileType = "JSON"})
-      :Do(function(_,_) time_system_request[#time_system_request + 1] = timestamp() end)
+    if( ( timeout > (timeout_pts*1000 + 2000) ) or ( timeout < (timeout_pts*1000 - 2000) )) then
+      is_test_fail = true
+      commonFunctions:printError("ERROR: timeout for retry sequence "..occurences.." is not as expected: "..(timeout_pts*1000).."msec(5sec tolerance). real: "..timeout.."ms")
+    else
+      print("timeout is as expected for retry sequence "..occurences..": "..(timeout_pts*1000).."ms. real: "..timeout)
+    end
+    return true
+  end
 
-      EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
-
-      EXPECT_HMICALL("BasicCommunication.PolicyUpdate", { file = file_pts, timeout = timeout_pts, retry = seconds_between_retries})
-      :Do(function(exp_pu,data)
-          --expect_PTU_policy_update = 1 print("expect_PTU_policy_update = "..expect_PTU_policy_update)
-          if(exp_pu.occurences > 1) then
-            is_test_fail = true
-            commonFunctions:printError("ERROR: PTU sequence is restarted again!")
-          end
-          verify_retry_sequence()
-          self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-        end)
-    end)
+  EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "HTTP", fileType = "JSON"})
+  :Do(function()
+    time_system_request[#time_system_request + 1] = timestamp()
+    verify_retry_sequence(1)
+  end)
 
   if(is_test_fail == true) then
     self:FailTestCase("Test is FAILED. See prints.")
