@@ -42,28 +42,33 @@ commonFunctions:newTestCasesGroup("Test")
 
 function Test:TestStep_PolicyManager_sends_PTS_to_HMI()
   local endpoints = {}
-  local is_app_esxist = false
+  local is_test_fail = false
 
-  for i = 1, #testCasesForPolicyTableSnapshot.pts_endpoints do
-    -- Take default endpoints
-    if (testCasesForPolicyTableSnapshot.pts_endpoints[i].service == "0x07") then
-      endpoints[#endpoints + 1] = { url = testCasesForPolicyTableSnapshot.pts_endpoints[i].value, appID = nil}
+  --TODO(istoimenova): Should be updated when "[GENIVI] HTTP: sdl_snapshot.json is not saved to file system" is fixed
+  if(#testCasesForPolicyTableSnapshot.pts_endpoints == 0) then
+    commonFunctions:printError("endpoints don't exist in PTS!")
+    is_test_fail = true
+    local endpoints_table = commonFunctions:get_data_policy_sql(config.pathToSDL.."/storage/policy.sqlite", "select url from endpoint where service = '0x07'")
+
+    for _,value in pairs(endpoints_table) do
+      endpoints[#endpoints + 1] = { url = value, appID = nil}
     end
-    -- Take appID endpoints
-    if (testCasesForPolicyTableSnapshot.pts_endpoints[i].service == "app1") then
-      endpoints[#endpoints + 1] = { url = testCasesForPolicyTableSnapshot.pts_endpoints[i].value, appID = testCasesForPolicyTableSnapshot.pts_endpoints[i].appID}
-      is_app_esxist = true
+  else
+    for i = 1, #testCasesForPolicyTableSnapshot.pts_endpoints do
+      -- Take default endpoints
+      if (testCasesForPolicyTableSnapshot.pts_endpoints[i].service == "0x07") then
+        endpoints[#endpoints + 1] = { url = testCasesForPolicyTableSnapshot.pts_endpoints[i].value, appID = nil}
+      end
     end
   end
 
   local RequestId_GetUrls = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
 
   EXPECT_HMIRESPONSE(RequestId_GetUrls,{result = {code = 0, method = "SDL.GetURLS", urls = endpoints} } )
-  :Do(function(_,_)
-      if(is_app_esxist == false) then
-        self:FailTestCase("endpoints for application doesn't exist!")
-      end
-    end)
+
+  if(is_test_fail == true) then
+    self:FailTestCase("Test is FAILED. See prints.")
+  end
 end
 
 --[[ Postconditions ]]
