@@ -69,31 +69,6 @@ Test = require('connecttest')
 require('cardinalities')
 require('user_modules/AppTypes')
 
---[[ Preconditions ]]
-commonFunctions:newTestCasesGroup ("Preconditions")
-function Test:Precondition_PolicyUpdateStarted()
-  local pathToSnaphot = nil
-  EXPECT_HMICALL ("BasicCommunication.PolicyUpdate")
-  :Do(function(_,data)
-      pathToSnaphot = data.params.file
-      self.hmiConnection:SendResponse(data.id, "BasicCommunication.PolicyUpdate", "SUCCESS", {})
-    end)
-  local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
-  EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {url = "http://policies.telematics.ford.com/api/policies"}}})
-  :Do(function(_,_)
-      self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",
-        {
-          requestType = "HTTP",
-          url = "http://policies.telematics.ford.com/api/policies",
-          appID = self.applications ["Test Application"],
-          fileName = "sdl_snapshot.json"
-        },
-        pathToSnaphot
-      )
-    end)
-  EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "HTTP" })
-end
-
 --[[ Test ]]
 commonFunctions:newTestCasesGroup ("Test")
 function Test:TestStep_OpenNewSession()
