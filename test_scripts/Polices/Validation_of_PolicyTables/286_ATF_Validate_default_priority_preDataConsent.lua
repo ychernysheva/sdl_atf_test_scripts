@@ -99,16 +99,37 @@ function Test:TestStep2_Priority_NONE_ActivateApp()
 end
 
 function Test:Precondition_Check_priority_pre_DataConsent()
-  local priority_id_table = commonFunctions:get_data_policy_sql(config.pathToSDL.."/storage/policy.sqlite", "select priority_value from application where id = 'pre_DataConsent'")
+  local app_group_table = commonFunctions:get_data_policy_sql(config.pathToSDL.."/storage/policy.sqlite", "select functional_group_id from app_group where application_id = '"..config.application1.registerAppInterfaceParams.appID.."'")
+  local app_group
+  for _,value in pairs(app_group_table) do
+    app_group = value
+  end
 
+  -- 129372391 - BaseBeforeDataConsent
+  if(app_group ~= "129372391") then
+    self:FailTestCase("Application is not assigned to pre_DataConsent. Real: "..app_group)
+  end
+
+  local priority_id_table = commonFunctions:get_data_policy_sql(config.pathToSDL.."/storage/policy.sqlite", "select priority_value from application where id = '"..config.application1.registerAppInterfaceParams.appID.."'")
   local priority_id
   for _, value in pairs(priority_id_table) do
     priority_id = value
   end
-  --print("priority_id = "..priority_id)
+
   if(priority_id ~= "NONE") then
     self:FailTestCase("Priority for pre_DataConsent is not NONE. Real: "..priority_id)
   end
+
+  local is_predata_table = commonFunctions:get_data_policy_sql(config.pathToSDL.."/storage/policy.sqlite", "select is_predata from application where id = '"..config.application1.registerAppInterfaceParams.appID.."'")
+  local is_predata
+  for _,value in pairs(is_predata_table) do
+    is_predata = value
+  end
+
+  if(is_predata ~= "1") then
+    self:FailTestCase("Application is not assigned to pre_DataConsent, is_predata = "..priority_id)
+  end
+
 end
 
 
