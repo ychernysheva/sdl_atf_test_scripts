@@ -93,7 +93,7 @@ end
 
 --[[ Postcondition ]]
 commonFunctions:newTestCasesGroup("Postconditions")
-
+testCasesForPolicyTable:Restore_preloaded_pt()
 function Test.Postcondition_Stop_SDL()
   StopSDL()
 end
