@@ -1,8 +1,3 @@
--- UNREADY:
---Test:TestStep_PoliciesManager_changes_UP_TO_DATE
---should be applicable for HTTP flag as well
---function testCasesForPolicyTable.flow_PTU_SUCCEESS_HTTP should be added to testCasesForPolicyTable
-
 ---------------------------------------------------------------------------------------------
 -- Requirements summary:
 -- [PolicyTableUpdate] OnStatusUpdate trigger
@@ -11,7 +6,7 @@
 -- [HMI API] OnReceivedPolicyUpdate notification
 --
 -- Description:
---PoliciesManager must change the status to “UP_TO_DATE” and notify HMI with 
+--PoliciesManager must change the status to “UP_TO_DATE” and notify HMI with
 --OnStatusUpdate("UP_TO_DATE") right after successful validation of received PTU .
 -- 1. Used preconditions
 -- SDL is built with "-DEXTENDED_POLICY: HTTP" flag
@@ -38,8 +33,6 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 --[[ Required Shared libraries ]]
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
-local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
-local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
@@ -56,11 +49,13 @@ require('user_modules/AppTypes')
 commonFunctions:newTestCasesGroup("Test")
 
 function Test:TestStep_PoliciesManager_changes_UP_TO_DATE()
-  testCasesForPolicyTable:flow_PTU_SUCCEESS_HTTP(self)
+  assert(commonFunctions:File_exists("files/ptu.json"))
+  local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest",
+    { requestType = "HTTP", fileName = "PolicyTableUpdate" },"files/ptu.json")
 
-  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {}):Times(0)
-  EXPECT_HMICALL("BasicCommunication.PolicyUpdate",{}):Times(0)
-  commonTestCases:DelayedExp(60*1000)
+  EXPECT_RESPONSE(CorIdSystemRequest, { success = true, resultCode = "SUCCESS"})
+  EXPECT_HMICALL("BasicCommunication.SystemRequest"):Times(0)
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UP_TO_DATE"})
 end
 
 --[[ Postconditions ]]
