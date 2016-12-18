@@ -23,52 +23,62 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local testCasesForPolicyTableSnapshot = require('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
+local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
+local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
+testCasesForPolicyTable.Delete_Policy_table_snapshot()
+commonPreconditions:Connecttest_without_ExitBySDLDisconnect_WithoutOpenConnectionRegisterApp("connecttest_ConnectMobile.lua")
 --TODO: Should be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
 config.defaultProtocolVersion = 2
 
 --[[ General Settings for configuration ]]
-Test = require('connecttest')
+Test = require('user_modules/connecttest_ConnectMobile')
 require('cardinalities')
 require('user_modules/AppTypes')
+local mobile_session = require('mobile_session')
+
+--[[ Preconditions ]]
+commonFunctions:newTestCasesGroup("Preconditions")
+
+function Test:Precondition_Connect_device()
+  self:connectMobile()
+end
+
+function Test:Precondition_StartSession()
+  self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
+  self.mobileSession:StartService(7)
+end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
+
 function Test:TestStep_PTS_Timeout_wait_response_PTU()
-  local hmi_app_id = self.applications[config.application1.registerAppInterfaceParams.appName]
-  local ServerAddress = commonFunctions:read_parameter_from_smart_device_link_ini("ServerAddress")
+  local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
 
-  local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.applications[config.application1.registerAppInterfaceParams.appName]})
-  EXPECT_HMIRESPONSE(RequestId)
-  :Do(function(_,_)
-      local RequestId1 = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", {application = { appName = config.application1.registerAppInterfaceParams.appName } })
+  EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "HTTP"})
 
-      EXPECT_HMIRESPONSE( RequestId1, {result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
-      :Do(function(_,_)
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",
+    { status = "UPDATE_NEEDED" }, {status = "UPDATING"}):Times(2)
+  :Do(function(_,data)
+    if(data.params.status == "UPDATE_NEEDED") then
+      local function check()
+        local timeout_pts = testCasesForPolicyTableSnapshot:get_data_from_PTS("module_config.timeout_after_x_seconds")
+        local timeout_preloaded = testCasesForPolicyTableSnapshot:get_data_from_Preloaded_PT("module_config.timeout_after_x_seconds")
 
-          self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality",
-            {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = ServerAddress, isSDLAllowed = true}})
+        if ( timeout_pts ~= timeout_preloaded ) then
+          self:FailTestCase("timeout in PTS should be "..tostring(timeout_preloaded).."s, real: "..tostring(timeout_pts).."s")
+        end
+      end
 
-          testCasesForPolicyTableSnapshot:verify_PTS(true,
-            {config.application1.registerAppInterfaceParams.appID},
-            {config.deviceMAC},
-            {hmi_app_id})
+      RUN_AFTER(check, 600)
+    end
+  end)
 
-          local timeout_pts = testCasesForPolicyTableSnapshot:get_data_from_PTS("module_config.timeout_after_x_seconds")
-          local timeout_preloaded
-          for i = 1, #testCasesForPolicyTableSnapshot.preloaded_elements do
-            if(testCasesForPolicyTableSnapshot.preloaded_elements[i].name == "module_config.timeout_after_x_seconds") then
-              timeout_preloaded = testCasesForPolicyTableSnapshot.preloaded_elements[i].value
-            end
-          end
-          if ( timeout_pts ~= timeout_preloaded ) then
-            self:FailTestCase("timeout in PTS should be "..timeout_preloaded.."ms, real: "..timeout_pts.."ms")
-          end
-        end)
-    end)
-  EXPECT_HMICALL("BasicCommunication.PolicyUpdate",{})
+  self.mobileSession:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS" })
+  self.mobileSession:ExpectNotification("OnHMIStatus", {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
 end
 
 --[[ Postconditions ]]
