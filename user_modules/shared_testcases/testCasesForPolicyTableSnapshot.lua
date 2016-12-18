@@ -252,7 +252,6 @@ function testCasesForPolicyTableSnapshot:verify_PTS(is_created, app_IDs, device_
     local k = 1
 
     for i = 1, #json_elements do
-      local length = #preloaded_pt_endpoints
       if( string.sub(json_elements[i].name,1,string.len("module_config.endpoints.")) == "module_config.endpoints." ) then
         local substr = {}
         local j = 1
@@ -260,12 +259,17 @@ function testCasesForPolicyTableSnapshot:verify_PTS(is_created, app_IDs, device_
           substr[j] = each_element
           j = j+1
         end
-        preloaded_pt_endpoints[length + 1] = substr[5]
+        if(preloaded_pt_endpoints == nil) then
+          preloaded_pt_endpoints[#preloaded_pt_endpoints + 1] = substr[5]
+        elseif(preloaded_pt_endpoints[#preloaded_pt_endpoints] ~= substr[5]) then
+          preloaded_pt_endpoints[#preloaded_pt_endpoints + 1] = substr[5]
+        end
       end
     end
     for i = 1, #preloaded_pt_endpoints do
       testCasesForPolicyTableSnapshot.preloaded_pt[i] = preloaded_pt_endpoints[i]
     end
+
     local consent_groups = {}
     for i = 1, #json_elements do
       local str_1 = json_elements[i].name
@@ -361,7 +365,7 @@ function testCasesForPolicyTableSnapshot:verify_PTS(is_created, app_IDs, device_
 
     local pts = '/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json'
     if ( commonSteps:file_exists(pts) ) then
-      testCasesForPolicyTableSnapshot:extract_pts(app_names)
+      testCasesForPolicyTableSnapshot:extract_pts()
 
       --Check for ommited parameters
       for i = 1, #testCasesForPolicyTableSnapshot.pts_elements do
@@ -433,7 +437,7 @@ testCasesForPolicyTableSnapshot.pts_seconds_between_retries = {}
 -- Returns global variables:
 -- testCasesForPolicyTableSnapshot.pts_seconds_between_retries
 -- testCasesForPolicyTableSnapshot.pts_endpoints including appID check of presence
-function testCasesForPolicyTableSnapshot:extract_pts()
+function testCasesForPolicyTableSnapshot:extract_pts(app_IDs, hmi_IDs)
   testCasesForPolicyTableSnapshot.pts_endpoints = {}
   testCasesForPolicyTableSnapshot.pts_endpoints_apps = {}
   testCasesForPolicyTableSnapshot.pts_seconds_between_retries = {}
@@ -450,19 +454,25 @@ function testCasesForPolicyTableSnapshot:extract_pts()
   end
 
   local length_seconds_between_retries
-  local length_service_endpoints
-
   for i = 1, #json_elements do
     length_seconds_between_retries = #testCasesForPolicyTableSnapshot.pts_seconds_between_retries
-    length_service_endpoints = #testCasesForPolicyTableSnapshot.pts_endpoints
     testCasesForPolicyTableSnapshot.pts_elements[i] = { name = json_elements[i].name, value = json_elements[i].value }
 
     if( string.sub(json_elements[i].name,1,string.len("module_config.seconds_between_retries.")) == "module_config.seconds_between_retries." ) then
       testCasesForPolicyTableSnapshot.pts_seconds_between_retries[length_seconds_between_retries + 1] = { name = json_elements[i].name, value = json_elements[i].value}
     end
+
     for j = 1, #preloaded_pt_endpoints do
       if( string.sub(json_elements[i].name,1,string.len("module_config.endpoints."..tostring(preloaded_pt_endpoints[j])..".default.")) == "module_config.endpoints."..tostring(preloaded_pt_endpoints[j])..".default." ) then
-        testCasesForPolicyTableSnapshot.pts_endpoints[length_service_endpoints + 1] = { name = json_elements[i].name, value = json_elements[i].value, service = preloaded_pt_endpoints[j]}
+        testCasesForPolicyTableSnapshot.pts_endpoints[#testCasesForPolicyTableSnapshot.pts_endpoints + 1] = { name = json_elements[i].name, value = json_elements[i].value, service = preloaded_pt_endpoints[j], appID = nil}
+      end
+
+      if(app_IDs ~= nil) then
+        for k2 = 1, #app_IDs do
+          if( string.sub(json_elements[i].name,1,string.len("module_config.endpoints."..tostring(preloaded_pt_endpoints[j]).."."..app_IDs[k2]..".")) == "module_config.endpoints."..tostring(preloaded_pt_endpoints[j]).."."..app_IDs[k2].."." ) then
+            testCasesForPolicyTableSnapshot.pts_endpoints[#testCasesForPolicyTableSnapshot.pts_endpoints + 1] = { name = json_elements[i].name, value = json_elements[i].value, service = preloaded_pt_endpoints[j], appID = hmi_IDs[k2]}
+          end
+        end
       end
     end
   end
