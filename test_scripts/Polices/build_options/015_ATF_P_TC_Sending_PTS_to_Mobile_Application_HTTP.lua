@@ -26,67 +26,62 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 --[[ Required Shared libraries ]]
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
-local testCasesForPolicyTableSnapshot = require('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
+local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
+local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
+commonPreconditions:Connecttest_without_ExitBySDLDisconnect_WithoutOpenConnectionRegisterApp("connecttest_ConnectMobile.lua")
 --TODO: Should be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
 config.defaultProtocolVersion = 2
 
 --[[ General Settings for configuration ]]
-Test = require('connecttest')
+Test = require('user_modules/connecttest_ConnectMobile')
 require('cardinalities')
 require('user_modules/AppTypes')
+local mobile_session = require('mobile_session')
+
+--[[ Preconditions ]]
+commonFunctions:newTestCasesGroup("Preconditions")
+
+function Test:Precondition_Connect_device()
+  self:connectMobile()
+end
+
+function Test:Precondition_StartSession()
+  self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
+  self.mobileSession:StartService(7)
+end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
 function Test:TestStep_Sending_PTS_to_mobile_application()
-  local is_test_fail = false
-  local endpoints = {}
+  local endpoints_url
+  local timeout = 0
 
-  for i = 1, #testCasesForPolicyTableSnapshot.pts_endpoints do
-    if (testCasesForPolicyTableSnapshot.pts_endpoints[i].service == "0x07") then
-      endpoints[#endpoints + 1] = { url = testCasesForPolicyTableSnapshot.pts_endpoints[i].value, appID = nil}
+  self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
+
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", {application = { appName = config.application1.registerAppInterfaceParams.appName } })
+  :Do(function()
+    local endpoints_table = commonFunctions:get_data_policy_sql(config.pathToSDL.."/storage/policy.sqlite", "select url from endpoint where service = '0x07' and application_id = 'default'")
+    for _,v in pairs(endpoints_table) do
+      endpoints_url = v
     end
 
-    if (testCasesForPolicyTableSnapshot.pts_endpoints[i].service == "app1") then
-      endpoints[#endpoints + 1] = { url = testCasesForPolicyTableSnapshot.pts_endpoints[i].value, appID = testCasesForPolicyTableSnapshot.pts_endpoints[i].appID}
+    local timeout_table = commonFunctions:get_data_policy_sql(config.pathToSDL.."/storage/policy.sqlite", "select timeout_after_x_seconds from module_config")
+    for _,v in pairs(timeout_table) do
+      timeout = v
     end
-  end
 
-  local RequestId_GetUrls = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
+    EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "HTTP", url = endpoints_url, timeout = timeout})
+  end)
 
-  EXPECT_HMIRESPONSE(RequestId_GetUrls,{result = {code = 0, method = "SDL.GetURLS", urls = endpoints} } )
-  :Do(function(_,data)
-      local app_urls = {}
-      for i = 1, #data.result.urls do
-        if(data.result.urls[i].appID == self.applications[config.application1.registerAppInterfaceParams.appName]) then
-          app_urls = data.result.urls[i]
-        else
-          app_urls = endpoints[1]
-          commonFunctions:printError("endpoints for application doesn't exist!")
-          is_test_fail = true
-        end
-      end
-
-      self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",{
-          requestType = "HTTP",
-          fileName = "PolicyTableUpdate",
-          url = app_urls.url,
-          appID = app_urls.appID })
-
-      EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "HTTP", fileType = "JSON", url = {app_urls.url}})
-    end)
-
-  if(is_test_fail == true) then
-    self:FailTestCase("Test is FAILED. See prints.")
-  end
 end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
-
+testCasesForPolicyTable:Restore_preloaded_pt()
 function Test.Postcondition_Stop_SDL()
   StopSDL()
 end
