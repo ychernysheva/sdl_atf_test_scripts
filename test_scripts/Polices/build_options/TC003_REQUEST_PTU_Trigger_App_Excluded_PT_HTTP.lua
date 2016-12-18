@@ -66,26 +66,27 @@ function Test:TestStep_PTU_AppID_SecondApp_NotListed_PT()
   local correlationId = self.mobileSession1:SendRPC("RegisterAppInterface", config.application2.registerAppInterfaceParams)
 
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application2.registerAppInterfaceParams.appName } })
+  :Do(function()
 
-  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",
-        { status = "UPDATE_NEEDED" }, {status = "UPDATING"}):Times(2)
-  :Do(function(_,data)
-    if(data.params.status == "UPDATE_NEEDED") then
-      is_test_passed = testCasesForPolicyTableSnapshot:verify_PTS(true,
-              { config.application1.registerAppInterfaceParams.appID, config.application2.registerAppInterfaceParams.appID, },
-              {config.deviceMAC},
-              {""},
-              "print")
+    EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",
+          { status = "UPDATE_NEEDED" }, {status = "UPDATING"}):Times(2)
+    :Do(function(_,data)
+      if(data.params.status == "UPDATE_NEEDED") then
+        is_test_passed = testCasesForPolicyTableSnapshot:verify_PTS(true,
+                { config.application1.registerAppInterfaceParams.appID, config.application2.registerAppInterfaceParams.appID, },
+                {config.deviceMAC},
+                {""},
+                "print")
+      end
+    end)
+    EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "HTTP"})
+
+    if(is_test_passed == false) then
+      self:FailTestCase("Test is FAILED. See prints.")
     end
   end)
-  EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "HTTP"})
-
   self.mobileSession1:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS"})
   self.mobileSession1:ExpectNotification("OnHMIStatus", {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
-
-  if(is_test_passed == false) then
-    self:FailTestCase("Test is FAILED. See prints.")
-  end
 end
 
 --[[ Postconditions ]]
