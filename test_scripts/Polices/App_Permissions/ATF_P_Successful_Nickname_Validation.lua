@@ -1,4 +1,4 @@
----------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------
 -- Requirement summary:
 -- [RegisterAppInterface] Successful nickname validation
 --
@@ -21,8 +21,10 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 config.defaultProtocolVersion = 2
 
 --[[ Required Shared libraries ]]
+--[[ Required Shared libraries ]]
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
-local commonSteps = require ('user_modules/shared_testcases/commonSteps')
+local commonSteps = require('user_modules/shared_testcases/commonSteps')
+local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFiles()
@@ -34,16 +36,6 @@ require('cardinalities')
 local mobile_session = require('mobile_session')
 
 --[[ Local Functions ]]
-local function BackupPreloaded()
-  os.execute('cp ' .. config.pathToSDL .. 'sdl_preloaded_pt.json' .. ' ' .. config.pathToSDL .. 'backup_sdl_preloaded_pt.json')
-  os.execute('rm ' .. config.pathToSDL .. 'policy.sqlite')
-end
-
-local function RestorePreloadedPT()
-  os.execute('rm ' .. config.pathToSDL .. 'sdl_preloaded_pt.json')
-  os.execute('cp ' .. config.pathToSDL .. 'backup_sdl_preloaded_pt.json' .. ' ' .. config.pathToSDL .. 'sdl_preloaded_pt.json')
-end
-
 local function SetNickNameForSpecificApp()
   local pathToFile = config.pathToSDL .. 'sdl_preloaded_pt.json'
   local file = io.open(pathToFile, "r")
@@ -68,27 +60,26 @@ local function SetNickNameForSpecificApp()
   file:write(data)
   file:close()
 end
-
+ 
 --[[ Preconditions ]]
-function Test:Precondition_StopSDL()
+commonFunctions:newTestCasesGroup("Preconditions")
+function Test.Precondition_StopSDL()
   StopSDL()
 end
 
-function Test:Precondition_DeleteLogsAndPolicyTable()
-  commonSteps:DeleteLogsFiles()
-  commonSteps:DeletePolicyTable()
+function Test.Precondition_DeleteLogsAndPolicyTable()
+commonSteps:DeleteLogsFileAndPolicyTable()
 end
 
-function Test:Precondition_Backup_sdl_preloaded_pt()
-  BackupPreloaded()
+function Test.Precondition_Backup_preloadedPT()
+  commonPreconditions:BackupFile("sdl_preloaded_pt.json")
 end
-
 function Test:Precondition_Set_NickName_Permissions_For_Specific_AppId()
-  SetNickNameForSpecificApp()
+  SetNickNameForSpecificApp(self)
 end
 
 function Test:Precondition_StartSDL_FirstLifeCycle()
-  StartSDL(config.pathToSDL, config.ExitOnCrash)
+   StartSDL(config.pathToSDL, config.ExitOnCrash, self)
 end
 
 function Test:Precondition_InitHMI_FirstLifeCycle()
@@ -108,11 +99,9 @@ function Test:Precondition_StartSession()
   self.mobileSession:StartService(7)
 end
 
-function Test:Precondition_RestorePreloadedPT()
-  RestorePreloadedPT()
-end
 
 --[[ Test ]]
+commonFunctions:newTestCasesGroup("Test")
 function Test:TestStep_Register_App_With_Name_Listed_In_LPT()
   local CorIdRAI = self.mobileSession:SendRPC("RegisterAppInterface",
     {
@@ -152,5 +141,15 @@ function Test:TestStep_Register_App_With_Name_Listed_In_LPT()
         }
       }
     })
-  EXPECT_RESPONSE(CorIdRAI, { success = true, resultCode = "SUCCESS"})  
+  EXPECT_RESPONSE(CorIdRAI, {success = true, resultCode = "SUCCESS"})  
 end
+
+
+--[[ Postconditions ]]
+commonFunctions:newTestCasesGroup("Postconditions")
+function Test.Postcondition_SDLStop()
+  StopSDL()
+end
+function Test.Postcondition_Restore_preloaded()
+  commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
+end 
