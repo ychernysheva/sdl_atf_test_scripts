@@ -2,14 +2,14 @@ local testCasesForPolicySDLErrorsStops = {}
 local json = require("modules/json")
 local SDL = require('modules/SDL')
 local commonTestCases =  require ('user_modules/shared_testcases/commonTestCases')
+local commonFunctions =  require ('user_modules/shared_testcases/commonFunctions')
 
 --The function will check if 'message' is printed in SmartDeviceLinkCore.log
 -- should return:
 --               true if 'message' is found
 --               false if 'message' is not found
---TODO: DEV team should give list of [ERROR] messages printed from ApplicationManager
 function testCasesForPolicySDLErrorsStops.ReadSpecificMessage(message)
-  return false
+  return commonFunctions:read_specific_message(config.pathToSDL.."/SmartDeviceLinkCore.log", message)
 end
 
 --The function will corrupt specific 'section' with data 'specificParameters'
