@@ -52,7 +52,7 @@ function Test:CheckDB_updated_count_of_rejections_duplicate_name()
   local sql_query = "SELECT count_of_rpcs_sent_in_hmi_none FROM app_level WHERE application_id = '0000001'"
   local exp_result = {"1"}
   if commonFunctions:is_db_contains(db_path, sql_query, exp_result) ==false then
-    self:FailTestCase("DB doesn't include expected value")
+    self:FailTestCase("DB doesn't include expected value for count_of_rpcs_sent_in_hmi_none. Exp: "..exp_result[1])
   end
 end
 
