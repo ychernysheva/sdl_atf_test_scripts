@@ -4,6 +4,9 @@
             "0000001": "default",
             "123_xyz": {
                 "groups": ["Base-6"],
+				"keep_context": false,
+                "steal_focus": false,
+				"default_hmi": "NONE",
                 "priority": "NONE",
                 "nicknames": ["Media Application", "MediaApp"]                
             },            

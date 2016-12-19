@@ -31,7 +31,6 @@ local testCasesForPolicyTable = require('user_modules/shared_testcases/testCases
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
-testCasesForPolicyTable:Precondition_updatePolicy_By_overwriting_preloaded_pt("files/PTU_GetUserFriendlyMessage_without_DE_DE.json")
 
 --TODO(vvvakulenko): Should be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
 config.defaultProtocolVersion = 2
@@ -57,7 +56,7 @@ function Test:TestStep_PTU_appPermissionsConsentNeeded_true()
 
       EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY" })
       :Do(function(_,_)
-          local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", { fileName = "PolicyTableUpdate", requestType = "PROPRIETARY"}, "files/PTU_NewPermissionsForUserConsent.json")
+          self.mobileSession:SendRPC("SystemRequest", { fileName = "PolicyTableUpdate", requestType = "PROPRIETARY"}, "files/PTU_NewPermissionsForUserConsent.json")
 
           local systemRequestId
           EXPECT_HMICALL("BasicCommunication.SystemRequest")
@@ -81,17 +80,24 @@ function Test:TestStep_PTU_appPermissionsConsentNeeded_true()
                     local RequestIdListOfPermissions = self.hmiConnection:SendRequest("SDL.GetListOfPermissions",
                       { appID = self.applications[config.application1.registerAppInterfaceParams.appName] })
 
-                    EXPECT_HMIRESPONSE(RequestIdListOfPermissions,
-                      {result = {code = 0, method = "SDL.GetListOfPermissions", allowedFunctions = {{name = "Location"}, {name = "DrivingCharacteristics"}}}})
-                    :Do(function(_,_)
-                        local ReqIDGetUserFriendlyMessage = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage",
-                          {language = "EN-US", messageCodes = {"allowedFunctions"}})
-                        EXPECT_HMIRESPONSE(ReqIDGetUserFriendlyMessage)
-                      end)
-                    self.mobileSession:ExpectResponse(CorIdSystemRequest, {success = true, resultCode = "SUCCESS"})
-                  end)
+                    EXPECT_HMIRESPONSE(RequestIdListOfPermissions)
+                    :Do(function(_,data1)
+                      local groups = {}
+                      if #data1.result.allowedFunctions > 0 then
+                        for i = 1, #data1.result.allowedFunctions do
+                          groups[i] = {
+                                        name = data1.result.allowedFunctions[i].name,
+                                        id = data1.result.allowedFunctions[i].id,
+                                        allowed = true}
+                        end
+                      end
+
+                      self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent", { appID = self.applications[config.application1.registerAppInterfaceParams.appName], consentedFunctions = groups, source = "GUI"})
+                      EXPECT_NOTIFICATION("OnPermissionsChange")
+                    end)
+                end)
               end
-            end)
+          end)
         end)
     end)
 end

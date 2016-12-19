@@ -1105,31 +1105,4 @@ function testCasesForPolicyTable.Delete_Policy_table_snapshot()
   end
 end
 
---! @brief Add specific application to policy file
---! @param basic_file - basic json file which include all nessesary params. E.g. can be used files/json.lua
---! @param new_pt_file - file which will include new application
---! @param app_name - appID
---! @param app_ - parameters for appID
-function testCasesForPolicyTable:AddApplicationToPTJsonFile(basic_file, new_pt_file, app_name, app_)
-  local pt = io.open(basic_file, "r")
-    if pt == nil then
-      error("PTU file not found")
-    end
-  local pt_string = pt:read("*all")
-  pt:close()
-
-  local pt_table = json.decode(pt_string)
-  pt_table["policy_table"]["app_policies"][app_name] = app_
-  -- Workaround. null value in lua table == not existing value. But in json file it has to be
-  pt_table["policy_table"]["functional_groupings"]["DataConsent-2"]["rpcs"] = "tobedeletedinjsonfile"
-  pt_json = json.encode(pt_table)
-
-  local pt_json = string.gsub(pt_json, "\"tobedeletedinjsonfile\"", "null")
-  local new_ptu = io.open(new_pt_file, "w")
-  
-  new_ptu:write(pt_json)
-  new_ptu:close()
-end
-
-
 return testCasesForPolicyTable

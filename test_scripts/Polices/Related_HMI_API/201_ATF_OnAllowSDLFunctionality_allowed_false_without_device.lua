@@ -67,17 +67,16 @@ function Test:TestStep_Check_Device_IsnotAllowed()
     end)
 end
 
-function Test:TestStep_Check_Device_IsNotAllowed_snapshot()
-  self.hmiConnection:SendNotification("SDL.OnPolicyUpdate", {} )
-  EXPECT_HMICALL("BasicCommunication.PolicyUpdate",{})
-  :Do(function(_,_data1)
-      testCasesForPolicyTableSnapshot:extract_pts({self.applications[config.application1.registerAppInterfaceParams.appName]})
-      device_consent = testCasesForPolicyTableSnapshot:get_data_from_PTS("device_data."..config.deviceMAC..".user_consent_records.device.consent_groups.DataConsent-2")
-      self.hmiConnection:SendResponse(_data1.id, _data1.method, "SUCCESS", {})
-      if(device_consent ~= false) then
-        self:FailTestCase("Device is still consented after user didn't consent device.")
-      end
-    end)
+function Test:TestStep_Check_Device_IsNotAllowed_policDB()
+  local device_consent_table = commonFunctions:get_data_policy_sql(config.pathToSDL.."/storage/policy.sqlite", "select is_consented from device_consent_group")
+
+  local device_consent1
+  for _, value in pairs(device_consent_table) do
+    device_consent1 = value
+  end
+  if(device_consent1 == "1") then
+    self:FailTestCase("Device is consented after user consent.")
+  end
 end
 
 --[[ Postconditions ]]
