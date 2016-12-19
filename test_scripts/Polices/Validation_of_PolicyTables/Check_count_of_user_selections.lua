@@ -16,9 +16,11 @@
 
 -- Expected:
 -- 3. PoliciesMananger increments "count_of_rejections_duplicate_name" filed at PolicyTable
-
+---------------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
+--ToDo: shall be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
+config.defaultProtocolVersion = 2
 
 --[[ Required Shared libraries ]]
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
@@ -35,15 +37,11 @@ local mobile_session = require('mobile_session')
 require('cardinalities')
 require('user_modules/AppTypes')
 
---[[ Common variables ]]
-
+--[[ Local variables ]]
 local HMIAppID
--- Basic PTU file
 local basic_ptu_file = "files/ptu.json"
--- PTU for first app
 local ptu_first_app_registered = "files/ptu1app.json"
 
--- Basic applications. Using in Register tests
 local application2 =
 {
   registerAppInterfaceParams =
@@ -97,6 +95,12 @@ commonFunctions:newTestCasesGroup("Preconditions")
 function Test.Precondition_StopSDL()
   StopSDL()
 end
+
+function Test.Precondition_DeleteLogsAndPolicyTable()
+  commonSteps:DeleteLogsFiles()
+  commonSteps:DeletePolicyTable()
+end
+
 function Test.Precondition_StartSDL()
   StartSDL(config.pathToSDL, config.ExitOnCrash)
 end
@@ -121,61 +125,64 @@ function Test.Precondition_PreparePTData()
   PrepareJsonPTU1(config.application1.registerAppInterfaceParams.appID, ptu_first_app_registered)
 end
 
-function Test:RegisterFirstApp()
+function Test:Precondition_RegisterFirstApp()
   self.mobileSession:StartService(7)
   :Do(function (_,_)
-      local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
+  local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
 
-      EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
-      :Do(function(_,data)
-          HMIAppID = data.params.application.appID
-        end)
-      EXPECT_RESPONSE(correlationId, { success = true })
-      EXPECT_NOTIFICATION("OnPermissionsChange")
-    end)
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
+  :Do(function(_,data)
+  HMIAppID = data.params.application.appID
+  end)
+  EXPECT_RESPONSE(correlationId, { success = true })
+  EXPECT_NOTIFICATION("OnPermissionsChange")
+  end)
 end
 
 function Test.Precondition_PreparePTData()
   PrepareJsonPTU1(config.application1.registerAppInterfaceParams.appID, ptu_first_app_registered)
 end
---[[ end of Preconditions ]]
 
 --[[ Test ]]
-function Test:RegisterSecondApp_DuplicateData()
+commonFunctions:newTestCasesGroup("Test")
+function Test:TestStep1_RegisterSecondApp_DuplicateData()
   self.mobileSession1 = mobile_session.MobileSession(self, self.mobileConnection)
-
   self.mobileSession1:StartService(7)
   :Do(function (_,_)
-      local correlationId = self.mobileSession1:SendRPC("RegisterAppInterface", application2.registerAppInterfaceParams)
-      self.mobileSession1:ExpectResponse(correlationId, { success = false, resultCode = "DUPLICATE_NAME" })
-    end)
+  local correlationId = self.mobileSession1:SendRPC("RegisterAppInterface", application2.registerAppInterfaceParams)
+  self.mobileSession1:ExpectResponse(correlationId, { success = false, resultCode = "DUPLICATE_NAME" })
+  end)
 end
 
-function Test:ActivateAppInSpecificLevel()
+function Test:TestStep2_ActivateAppInSpecificLevel()
   commonSteps:ActivateAppInSpecificLevel(self,HMIAppID,"FULL")
 end
 
-function Test:InitiatePTUForGetSnapshot()
-  EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
+function Test:TestStep3_InitiatePTUForGetSnapshot()
   testCasesForPolicyTable:updatePolicyInDifferentSessions(Test, ptu_first_app_registered,
-    config.application1.registerAppInterfaceParams.appName, self.mobileSession)
+  config.application1.registerAppInterfaceParams.appName, self.mobileSession)
 end
 
-function Test:CheckDB_updated_count_of_rejections_duplicate_name()
-  local db_path = config.pathToSDL.."storage/policy.sqlite"
-  local sql_query = "SELECT count_of_rejections_duplicate_name FROM app_level WHERE application_id = 0000003"
-  local exp_result = 1
-  if commonFunctions:is_db_contains(db_path, sql_query, exp_result) ==false then
-    self:FailTestCase("DB doesn't include expected value")
+function Test:TestStep2_Check_count_of_rejections_duplicate_name_incremented_in_PT()
+  local appID = "0000003"
+  local file = io.open("/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json", "r")
+  local json_data = file:read("*all") -- may be abbreviated to "*a";
+  file:close()
+  local data = json.decode(json_data)
+  local CountOfRejectionsDuplicateName = data.policy_table.usage_and_error_counts.app_level[appID].count_of_rejections_duplicate_name
+  if CountOfRejectionsDuplicateName == 1 then
+    return true
+  else
+    self:FailTestCase("Wrong count_of_run_attempts_while_revoked. Expected: " .. 1 .. ", Actual: " .. CountOfRejectionsDuplicateName)
   end
 end
+
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
 function Test.Postcondition_RemovePTUfiles()
   os.remove(ptu_first_app_registered)
 end
+
 function Test.Postcondition_Stop_SDL()
   StopSDL()
 end
-
-return Test
