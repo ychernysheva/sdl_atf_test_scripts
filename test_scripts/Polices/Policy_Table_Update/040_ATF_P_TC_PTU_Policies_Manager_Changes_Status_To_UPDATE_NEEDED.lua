@@ -62,6 +62,9 @@ function Test:TestStep_ChangeStatus_Update_Needed()
   for i = 1, #testCasesForPolicyTableSnapshot.pts_seconds_between_retries do
     seconds_between_retries[i] = testCasesForPolicyTableSnapshot.pts_seconds_between_retries[i].value
   end
+  if seconds_between_retries[1] == nil then
+    self:FailTestCase("Problem with accessing in Policy table snapshot. Value not exists")
+  end
   local time_wait = (timeout_pts*seconds_between_retries[1]*1000)
 
   local function verify_retry_sequence()
@@ -80,19 +83,19 @@ function Test:TestStep_ChangeStatus_Update_Needed()
   local RequestId_GetUrls = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
   EXPECT_HMIRESPONSE(RequestId_GetUrls,{result = {code = 0, method = "SDL.GetURLS", urls = endpoints} } )
   :Do(function(_,_)
-    self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",{ requestType = "PROPRIETARY", fileName = "PolicyTableUpdate" })
+      self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",{ requestType = "PROPRIETARY", fileName = "PolicyTableUpdate" })
 
-    EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY", fileType = "JSON"}):Timeout(12000)
-    :Do(function(_,_) time_system_request[#time_system_request + 1] = timestamp() end)
+      EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY", fileType = "JSON"}):Timeout(12000)
+      :Do(function(_,_) time_system_request[#time_system_request + 1] = timestamp() end)
 
-    EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATING"}, {status = "UPDATE_NEEDED"}):Times(2):Timeout(time_wait)
-    :Do(function(_,data)
-      if(data.params.status == "UPDATE_NEEDED" ) then
-        --first retry sequence
-        verify_retry_sequence()
-      end
+      EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATING"}, {status = "UPDATE_NEEDED"}):Times(2):Timeout(time_wait)
+      :Do(function(_,data)
+          if(data.params.status == "UPDATE_NEEDED" ) then
+            --first retry sequence
+            verify_retry_sequence()
+          end
+        end)
     end)
-  end)
 
   commonTestCases:DelayedExp(time_wait)
 

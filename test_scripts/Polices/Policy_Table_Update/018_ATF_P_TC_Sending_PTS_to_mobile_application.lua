@@ -59,7 +59,9 @@ function Test:TestStep_Sending_PTS_to_mobile_application()
       endpoints[#endpoints + 1] = { url = testCasesForPolicyTableSnapshot.pts_endpoints[i].value, appID = nil}
     end
   end
-
+  if #endpoints==0 then
+    self:FailTestCase("Problem with accessing in Policy table snapshot. Value not exists")
+  end
   local RequestId_GetUrls = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
 
   EXPECT_HMIRESPONSE(RequestId_GetUrls,{result = {code = 0, method = "SDL.GetURLS", urls = endpoints} } )
@@ -70,8 +72,7 @@ function Test:TestStep_Sending_PTS_to_mobile_application()
           fileName = "PolicyTableUpdate",
           url = endpoints[1].url,
           appID = endpoints[1].appID })
-
-      EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY", fileType = "JSON", url = endpoints[1].url})
+      EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY", fileType = "JSON", url = {endpoints[1].url}} )
     end)
 
   if(is_test_fail == true) then

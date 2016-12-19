@@ -29,7 +29,6 @@ local testCasesForPolicyTable = require('user_modules/shared_testcases/testCases
 
 --[[ Local Variables ]]
 local r_expected
-local r_actual
 local db_file = config.pathToSDL .. "/" .. commonFunctions:read_parameter_from_smart_device_link_ini("AppStorageFolder") .. "/policy.sqlite"
 local policy_file_path = commonFunctions:read_parameter_from_smart_device_link_ini("SystemFilesPath")
 local ptu_file = "files/jsons/Policies/Policy_Table_Update/ptu_22734.json"
@@ -57,7 +56,7 @@ local function get_num_records()
 end
 
 --[[ General Precondition before ATF start ]]
-testCasesForPolicyTable:Precondition_updatePolicy_By_overwriting_preloaded_pt("files/jsons/Policies/Policy_Table_Update/preloaded_18192.json")
+-- testCasesForPolicyTable:Precondition_updatePolicy_By_overwriting_preloaded_pt("files/jsons/Policies/Policy_Table_Update/preloaded_18192.json")
 commonSteps:DeleteLogsFileAndPolicyTable()
 testCasesForPolicyTable.Delete_Policy_table_snapshot()
 
@@ -71,25 +70,6 @@ commonFunctions:newTestCasesGroup("Preconditions")
 function Test.Precondition_NoteNumOfRecords()
   r_expected = get_num_records()
 end
-
-function Test.Precondition_ValidateResultBeforePTU()
-  EXPECT_ANY()
-  :ValidIf(function(_, _)
-      local expected_res = {
-            "1|TTS1_AppPermissions|LABEL_AppPermissions|LINE1_AppPermissions|LINE2_AppPermissions|TEXTBODY_AppPermissions|en-us|AppPermissions",
-            "2|||LINE1_DataConsent|LINE2_DataConsent|TEXTBODY_DataConsent|en-us|DataConsent" }
-      local query = "select id, tts, label, line1, line2, textBody, language_code, message_type_name from message"
-      local actual_res = commonFunctions:get_data_policy_sql(config.pathToSDL.."/storage/policy.sqlite", query)
-      local is_table_equal = commonFunctions:is_table_equal(expected_res, actual_res)
-
-      if not is_table_equal then
-        return false, "\nExpected:\n" .. commonFunctions:convertTableToString(expected_res, 1) .. "\nActual:\n" .. commonFunctions:convertTableToString(actual_res, 1)
-      end
-      return true
-    end)
-  :Times(1)
-end
-
 
 function Test:Precondition_ActivateApp()
   local requestId1 = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.applications["Test Application"] })
@@ -157,33 +137,11 @@ function Test:TestStep_RegisterNewApp()
 end
 
 function Test:TestStep_ValidateNumberMessages()
-  self.mobileSession:ExpectAny()
-  :ValidIf(function(_, _)
-      r_actual = get_num_records()
-      if r_expected ~= r_actual then
-        return false, "Expected number of records: " .. r_expected .. ", got: " .. r_actual
-      end
-      return true
-    end)
-  :Times(1)
-end
+  local r_actual = get_num_records()
+  if r_expected ~= r_actual then
+    self:FailTestCase("Expected number of records: " .. tostring(r_expected) .. ", got: " .. tostring(r_actual))
+  end
 
-function Test.TestStep_ValidateResultAfterPTU()
-  EXPECT_ANY()
-  :ValidIf(function(_, _)
-      local expected_res = {
-            "1|TTS1_AppPermissions|LABEL_AppPermissions|LINE1_AppPermissions|LINE2_AppPermissions|TEXTBODY_AppPermissions|en-us|AppPermissions",
-            "2|||LINE1_DataConsent|LINE2_DataConsent|TEXTBODY_DataConsent|en-us|DataConsent" }
-      local query = "select id, tts, label, line1, line2, textBody, language_code, message_type_name from message"
-      local actual_res = commonFunctions:get_data_policy_sql(config.pathToSDL.."/storage/policy.sqlite", query)
-      local is_table_equal = commonFunctions:is_table_equal(expected_res, actual_res)
-
-      if not is_table_equal then
-        return false, "\nExpected:\n" .. commonFunctions:convertTableToString(expected_res, 1) .. "\nActual:\n" .. commonFunctions:convertTableToString(actual_res, 1)
-      end
-      return true
-    end)
-  :Times(1)
 end
 
 --[[ Postconditions ]]
