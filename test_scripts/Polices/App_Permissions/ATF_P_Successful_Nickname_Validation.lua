@@ -2,6 +2,8 @@
 -- Requirement summary:
 -- [RegisterAppInterface] Successful nickname validation
 --
+-- Note: SDL must build with EXTENDED_POLICY flag
+--
 -- Description:
 -- In case the application sends RegisterAppInterface request with 
 -- a) the "appName" value that is listed in this app's specific policies
@@ -10,7 +12,7 @@
 -- a) First SDL life cycle with loaded permissions for specific appId and nickname
 -- 2. Performed steps
 -- a) Register app with name listed in policy table for this app
---
+-- 
 -- Expected result:
 -- a) RegisterAppInterface_response (<applicable resultCode>, success: true)
 ---------------------------------------------------------------------------------------------
