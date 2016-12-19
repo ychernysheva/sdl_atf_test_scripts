@@ -34,11 +34,6 @@ require('cardinalities')
 require('user_modules/AppTypes')
 
 --[[ Test ]]
-
-function Test:TestStep_Device_Consented()
-  testCasesForPolicyTable:trigger_getting_device_consent(self, config.application1.registerAppInterfaceParams.appName, config.deviceMAC)
-end
-
 function Test:TestStep_SUCCEESS_Flow_EXTERNAL_PROPRIETARY()
   testCasesForPolicyTable:flow_SUCCEESS_EXTERNAL_PROPRIETARY(self)
 end
