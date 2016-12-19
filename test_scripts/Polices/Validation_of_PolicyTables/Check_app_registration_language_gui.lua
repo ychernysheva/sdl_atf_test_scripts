@@ -155,10 +155,14 @@ function Test:InitiatePTUForGetSnapshot()
     application1.registerAppInterfaceParams.appName, self.mobileSession)
 end
 
+-- function Test.Test_Stop_SDL()
+-- StopSDL()
+-- end
+
 function Test:CheckDB_app_registration_language_gui()
   local db_path = config.pathToSDL.."storage/policy.sqlite"
-  local sql_query = "SELECT app_registration_language_gui FROM app_level WHERE application_id = 0000001"
-  local exp_result = language_desired
+  local sql_query = "SELECT app_registration_language_gui FROM app_level WHERE application_id = '0000001'"
+  local exp_result = {language_desired}
   if commonFunctions:is_db_contains(db_path, sql_query, exp_result) == false then
     self:FailTestCase("DB doesn't include expected value")
   end
@@ -174,7 +178,6 @@ function Test:CheckValueFromPTAfterSecondRegistration()
   if actual_value ~= language_desired then
     self:FailTestCase("Unexpected value in DB is :" .. tostring(actual_value))
   end
-
 end
 
 --[[ Postconditions ]]
