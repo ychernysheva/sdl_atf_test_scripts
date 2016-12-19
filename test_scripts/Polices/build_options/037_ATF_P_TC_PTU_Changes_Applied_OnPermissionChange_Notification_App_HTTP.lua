@@ -1,10 +1,3 @@
---UNREADY: 
--- from https://github.com/smartdevicelink/sdl_atf_test_scripts/pull/267/files
--- should be added and reviwed the following 
--- function commonSteps:ActivateAppInSpecificLevel
--- function testCasesForPolicyTable:updatePolicyInDifferentSessions
-
----------------------------------------------------------------------------------------------
 -- Requirement summary:
 -- [PolicyTableUpdate] Apply PTU changes and OnPermissionChange notifying the apps
 --
@@ -24,11 +17,9 @@
 --
 -- Expected:
 -- SDL->HMI:OnStatusUpdate("UP_TO_DATE")
--- 3. SDL replaces the following sections of the Local Policy Table with 
--- the corresponding sections from PTU: module_config, functional_groupings andapp_policies
--- 4. SDL removes 'policyfile' from the directory
--- 5. SDL->app: onPermissionChange(permisssions)
--- 6. SDL->HMI: SDL.OnAppPermissionChanged(app, permissions)
+-- SDL->app: onPermissionChange(permisssions)
+-- SDL->HMI: SDL.OnAppPermissionChanged(app, permissions)
+---------------------------------------------------------------------------------------------
 
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
@@ -41,9 +32,7 @@ local json = require('json')
 
 --[[ Local Variables ]]
 local HMIAppID
--- Basic PTU file
 local basic_ptu_file = "files/ptu.json"
--- PTU for registered app
 local ptu_app_registered = "files/ptu_app.json"
 
 -- Prepare parameters for app to save it in json file
@@ -68,8 +57,8 @@ local function PrepareJsonPTU1(name, new_ptufile)
 end
 
 --[[ General Precondition before ATF start ]]
-commonSteps:DeleteLogsFileAndPolicyTable()
-
+commonSteps:DeleteLogsFiles()
+commonSteps:DeletePolicyTable()
 --ToDo: should be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
 config.defaultProtocolVersion = 2
 
@@ -108,10 +97,10 @@ end
 function Test.Precondition_PreparePTData()
   PrepareJsonPTU1(config.application1.registerAppInterfaceParams.appID, ptu_app_registered)
 end
---[[ end of Preconditions ]]
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
+
 function Test:TestStep_RegisterApp()
   self.mobileSession:StartService(7)
   :Do(function (_,_)
@@ -154,6 +143,7 @@ commonFunctions:newTestCasesGroup("Postconditions")
 function Test.Postcondition_RemovePTUfiles()
   os.remove(ptu_app_registered)
 end
+
 function Test.Postcondition_Stop_SDL()
   StopSDL()
 end
