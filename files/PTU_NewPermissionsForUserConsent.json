@@ -2317,7 +2317,7 @@
         "steal_focus": false,
         "priority": "NONE",
         "default_hmi": "NONE",
-        "groups": ["Location-1", "DrivingCharacteristics-3"]
+        "groups": ["Base-4", "Location-1", "DrivingCharacteristics-3"]
       }
     }
   }
