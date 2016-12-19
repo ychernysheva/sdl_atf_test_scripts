@@ -26,7 +26,6 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 --[[ Required Shared libraries ]]
 local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
 local commonSteps = require("user_modules/shared_testcases/commonSteps")
-local testCasesForBuildingSDLPolicyFlag = require('user_modules/shared_testcases/testCasesForBuildingSDLPolicyFlag')
 
 --[[ Local Variables ]]
 local sequence = { }
@@ -34,7 +33,6 @@ local r_expected_1 = {
   retry = { 1, 5, 25, 125, 625 },
   timeout = 60,
   file = "/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json" }
-
 local r_actual_1 = { }
 local r_expected_2 = { "UPDATE_NEEDED", "UPDATING" }
 local r_actual_2 = { }
@@ -68,7 +66,6 @@ local function is_table_equal(t1, t2)
 end
 
 --[[ General Precondition before ATF start ]]
-testCasesForBuildingSDLPolicyFlag:CheckPolicyFlagAfterBuild("PROPRIETARY")
 commonFunctions:SDLForceStop()
 commonSteps:DeleteLogsFileAndPolicyTable()
 
@@ -113,12 +110,21 @@ function Test.ShowSequence()
   print("--------------------------------------------------")
 end
 
-function Test:ValidateResult()
+function Test:ValidatePolicyUpdate()
   if not is_table_equal(r_expected_1, r_actual_1) then
-    self:FailTestCase(table.concat({"\nExpected: ", commonFunctions:convertTableToString(r_expected_1, 1), "\nActual: ", commonFunctions:convertTableToString(r_actual_1, 1), "\n"}))
+    local msg = table.concat({
+        "\nExpected: ", commonFunctions:convertTableToString(r_expected_1, 1),
+        "\nActual: ", commonFunctions:convertTableToString(r_actual_1, 1), "\n"})
+    self:FailTestCase(msg)
   end
+end
+
+function Test:ValidateOnStatusUpdate()
   if not is_table_equal(r_expected_2, r_actual_2) then
-    self:FailTestCase(table.concat({"\nExpected: ", commonFunctions:convertTableToString(r_expected_2, 1), "\nActual: ", commonFunctions:convertTableToString(r_actual_2, 1), "\n"}))
+    local msg = table.concat({
+        "\nExpected: ", commonFunctions:convertTableToString(r_expected_2, 1),
+        "\nActual: ", commonFunctions:convertTableToString(r_actual_2, 1), "\n"})
+    self:FailTestCase(msg)
   end
 end
 
