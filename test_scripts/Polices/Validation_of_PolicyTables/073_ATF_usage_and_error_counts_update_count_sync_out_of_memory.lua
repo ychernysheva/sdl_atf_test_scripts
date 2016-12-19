@@ -193,7 +193,7 @@ commonFunctions:newTestCasesGroup("Test")
 function Test:HMIsendOnSystemError()
   for _ = 1, 5 do
     os.execute("sleep 2")
-    self:onSystemError("SYNC_OUT_OF_MEMORY")
+    self:onSystemError("SYNC_OUT_OF_MEMMORY")
   end
 end
 
@@ -207,13 +207,16 @@ end
 
 function Test:InitHMI2()
   self:initHMI()
-  self:initHMI_onReady()
 end
 
+function Test:InitHMI_OnReady2()
+  self:initHMI_onReady()
+
+end
 function Test:HMIsendOnSystemError2()
   for _ = 1, 4 do
     os.execute("sleep 2")
-    self:onSystemError("SYNC_OUT_OF_MEMORY")
+    self:onSystemError("SYNC_OUT_OF_MEMMORY")
   end
 end
 
