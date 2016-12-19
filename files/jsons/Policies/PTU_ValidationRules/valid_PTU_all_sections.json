@@ -2339,9 +2339,6 @@
           "QUERY_APPS"  
         ]
       }
-    },
-    "module_meta":{},
-    "usage_and_error_counts":{},
-    "device_data":{}
+    }
   }
 }

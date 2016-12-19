@@ -2258,7 +2258,7 @@
                 "steal_focus": false,
                 "priority": "NONE",
                 "default_hmi": "NONE",
-                "groups": ["DrivingCharacteristics-3"]
+                "groups": ["DrivingCharacteristics-3","Base-4"]
             },
             "device": {
                 "keep_context": false,

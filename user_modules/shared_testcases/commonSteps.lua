@@ -16,6 +16,8 @@
 --15. Restoring file from appMain folder
 --16. Check directory existence 
 --17. DB query
+--18. DataBaseQuery
+--19. ActivateAppInSpecificLevel
 ---------------------------------------------------------------------------------------------
 
 local commonSteps = {}
@@ -526,6 +528,44 @@ function commonSteps:DataBaseQuery(DBQueryV)
     end
     return false
 end
+
+-- 19.ActivateAppInSpecificLevel
+--! @brief Activate application with specific hmi level
+--! @param HMIAppID - app ID
+--! @param hmi_level - level for activation
+function commonSteps:ActivateAppInSpecificLevel(self, HMIAppID, hmi_level)
+	  local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = HMIAppID, level = hmi_level})
+
+	  --hmi side: expect SDL.ActivateApp response
+	  EXPECT_HMIRESPONSE(RequestId)
+	  :Do(function(_,data)
+	  --In case when app is not allowed, it is needed to allow app
+	    if data.result.isSDLAllowed ~= true then
+	    --hmi side: sending SDL.GetUserFriendlyMessage request
+	      RequestId = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage",
+	      {language = "EN-US", messageCodes = {"DataConsent"}})
+
+	      EXPECT_HMIRESPONSE(RequestId)
+	      :Do(function(_,_)
+
+	      --hmi side: send request SDL.OnAllowSDLFunctionality
+	      self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality",
+	      {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = "127.0.0.1"}})
+
+	      --hmi side: expect BasicCommunication.ActivateApp request
+	      EXPECT_HMICALL("BasicCommunication.ActivateApp")
+	      :Do(function(_,data2)
+
+	        --hmi side: sending BasicCommunication.ActivateApp response
+	        self.hmiConnection:SendResponse(data2.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
+	        end)
+	        :Times(2)
+	    end)
+	      EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = hmi_level, systemContext = "MAIN" })
+	    end
+	  end)
+end
+
 
 return commonSteps
 
