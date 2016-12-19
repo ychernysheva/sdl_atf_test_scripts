@@ -5,8 +5,6 @@
 ---------------------------------------------------------------------------------------------
 local commonFunctions = {}
 local json = require('json4lua/json/json')
-local events = require('events')
-
 
 local NewTestSuiteNumber = 0 -- use as subfix of test case "NewTestSuite" to make different test case name.
 ---------------------------------------------------------------------------------------------
@@ -913,9 +911,11 @@ function os.capture(cmd, raw)
 --! @param sql_query contains select query with determine name of column. Don't use query with *
 --! example of sql_query: "SELECT preloaded_pt FROM module_config"
 --! "SELECT functional_group_id FROM app_group WHERE application_id='0000001'"
---! "SELECT functional_group_id FROM app_group WHERE application_id='0000001'"
 --! "SELECT functional_group_id FROM app_group WHERE application_id=\\\"0000001\\\""
---! @returns table with values from column with specified name
+--! @returns Requirements for result:
+--! 1. result contains array of string.
+--! 2. result contains boolean values like string "0" - false, "1" - true.
+--! 3. result contains numbers like string.
 function commonFunctions:get_data_policy_sql(db_path, sql_query)
   if string.match(sql_query, "^%a+%s*%*%s*%a+") ~= nil then
     print("Please specife name of column, don't use *")
@@ -959,9 +959,12 @@ end
 --! @param sql_query contains select query with determine name of column. Don't use query with *
 --! example of sql_query: "SELECT preloaded_pt FROM module_config"
 --! "SELECT functional_group_id FROM app_group WHERE application_id='0000001'"
---! "SELECT functional_group_id FROM app_group WHERE application_id='0000001'"
 --! "SELECT functional_group_id FROM app_group WHERE application_id=\\\"0000001\\\""
---! @param exp_result contains data for comparing data from DB
+--! @param exp_result contains data for comparing data from DB.
+--! Requirements for exp_result:
+--! 1. exp_result MUST contain array of string.
+--! 2. Boolean values MUST be like string "0" - false, "1" - true.
+--! 3. Numbers MUST be like string.
 --! @return Returns false if expected data are not equal with DB data, otherwise returns true.
 function commonFunctions:is_db_contains(db_path, sql_query, exp_result)
   local column_db = commonFunctions:get_data_policy_sql(db_path, sql_query)
