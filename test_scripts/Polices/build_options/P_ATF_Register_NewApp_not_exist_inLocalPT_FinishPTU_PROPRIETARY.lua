@@ -25,8 +25,12 @@ config.defaultProtocolVersion = 2
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 
 --[[ Required Shared libraries ]]
+Test = require('connecttest')
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
+require('cardinalities')
+require('user_modules/AppTypes')
+local mobile_session = require('mobile_session')
 
 --[[ Local Functions ]]
 local registerAppInterfaceParams =
@@ -55,26 +59,20 @@ local registerAppInterfaceParams =
 --[[ General Precondition before ATF start]]
 commonSteps:DeleteLogsFileAndPolicyTable()
 
---[[ General Settings for configuration ]]
-Test = require('connecttest')
-require('cardinalities')
-require('user_modules/AppTypes')
-local mobile_session = require('mobile_session')
-
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup ("Preconditions")
 function Test:Precondition_PolicyUpdateStarted()
   local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
-    EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})    :Do(function(_,_)
-        self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",
-          {
-            requestType = "PROPRIETARY",
-            url = "http://policies.telematics.ford.com/api/policies",
-            appID = self.applications ["Test Application"],
-            fileName = "sdl_snapshot.json"
-          })
-      end)
-    EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "PROPRIETARY" })
+  EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}}) :Do(function(_,_)
+      self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",
+        {
+          requestType = "PROPRIETARY",
+          url = "http://policies.telematics.ford.com/api/policies",
+          appID = self.applications ["Test Application"],
+          fileName = "sdl_snapshot.json"
+        })
+    end)
+  EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "PROPRIETARY" })
 end
 
 function Test:Precondition_OpenNewSession()
@@ -108,24 +106,21 @@ function Test:TestStep_FinishPTU_ForAppId1()
       self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate", { policyfile = "/tmp/fs/mp/images/ivsu_cache/ptu.json" })
       -- PTU will be restarted because of new AppID is registered
       EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UP_TO_DATE"}, {status = "UPDATE_NEEDED"})
-  end)
+    end)
 end
 
 function Test:TestStep_CheckThatAppID_Present_In_DataBase()
   local PolicyDBPath = nil
   if commonSteps:file_exists(tostring(config.pathToSDL) .. "/storage/policy.sqlite") == true then
     PolicyDBPath = tostring(config.pathToSDL) .. "/storage/policy.sqlite"
-  end
-  if commonSteps:file_exists(tostring(config.pathToSDL) .. "/storage/policy.sqlite") == false then
+  else
     commonFunctions:userPrint(31, "policy.sqlite file is not found")
-    self:FailTestCase("PolicyTable is not avaliable" .. tostring(PolicyDBPath))
+    self:FailTestCase("PolicyTable is not avaliable " .. tostring(PolicyDBPath))
   end
- -- os.execute(" sleep 2 ")
-  local AppId_2 = "sqlite3 " .. tostring(PolicyDBPath) .. "\"SELECT id FROM application WHERE id = '"..tostring(registerAppInterfaceParams.appID).."'\""
-  local bHandle = assert( io.popen(AppId_2, 'r'))
-  local AppIdValue_2 = bHandle:read( '*l' )
-  if AppIdValue_2 == nil then
-    self:FailTestCase("Value in DB is unexpected value " .. tostring(AppIdValue_2))
+  local select_value = "SELECT id FROM application WHERE id = '"..tostring(registerAppInterfaceParams.appID).."'"
+  local result = commonFunctions:is_db_contains(PolicyDBPath, select_value, {tostring(registerAppInterfaceParams.appID)})
+  if result == false then
+    self:FailTestCase("DB doesn't contain special id")
   end
 end
 
