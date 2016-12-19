@@ -21,7 +21,6 @@
 -- Expected result:
 --        PoliciesManager increments "count_of_run_attempts_while_revoked" at PolicyTable
 ---------------------------------------------------------------------------------------------------------
----------------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 
