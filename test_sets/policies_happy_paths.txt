@@ -5,7 +5,6 @@
 ./test_scripts/Polices/build_options/012_ATF_P_TC_HMI_sends_GetURLs_no_app_registered_HTTP.lua
 ./test_scripts/Polices/build_options/009_ATF_P_TC_Policy_Table_Snapshot_Creation_HTTP.lua
 ./test_scripts/Polices/build_options/023_ATF_P_TC_PTU_Merge_Into_Local_PT_ConsumerFriendlyMessages_HTTP.lua
-./test_scripts/Polices/build_options/P_ATF_Register_NewApp_not_exist_inLocalPT_start_PTU_for_NewApp_PROPRIETARY.lua
 ./test_scripts/Polices/build_options/015_ATF_P_TC_Sending_PTS_to_Mobile_Application_HTTP.lua
 ./test_scripts/Polices/build_options/ATF_P_SDL_Send_PolicyUpdat_To_HMI_In_Case_PTU_Is_Triggered.lua
 ./test_scripts/Polices/build_options/ATF_P_Timeout_wait_response_PTU_PROPRIETARY.lua
@@ -37,7 +36,6 @@
 ./test_scripts/Polices/build_options/ATF_P_Transfer_OnSystemRequest_toApp_PROPRIETARY.lua
 ./test_scripts/Polices/build_options/ptu_18707.json
 ./test_scripts/Polices/build_options/ATF_PTU_Trigger_days.lua
-./test_scripts/Polices/build_options/P_ATF_Register_NewApp_not_exist_inLocalPT_FinishPTU_PROPRIETARY.lua
 ./test_scripts/Polices/build_options/013_ATF_P_TC_HMI_sends_GetURLs_one_app_registered_HTTP.lua
 ./test_scripts/Polices/build_options/ATF_P_OnStatusUpdate_Trigger_PROPRIETARY.lua
 ./test_scripts/Polices/build_options/022_ATF_P_TC_PTU_Merge_Into_Local_PT_HTTP.lua
@@ -109,7 +107,6 @@
 ./test_scripts/Polices/user_consent_of_Policies/105_ATF_ActivateApp_isSDLAllowed_true.lua
 ./test_scripts/Polices/user_consent_of_Policies/ATF_P_Device_HashID_In_LPT.lua
 ./test_scripts/Polices/user_consent_of_Policies/116_ATF_Consent_timestamp.lua
-./test_scripts/Polices/user_consent_of_Policies/100_ATF_TC_P_isAppPermissionsRevoked_true.lua
 ./test_scripts/Polices/user_consent_of_Policies/123_ATF_Data_consent_device_not_in_LPT.lua
 ./test_scripts/Polices/user_consent_of_Policies/103_ATF_isPermissionsConsentNeeded_false.lua
 ./test_scripts/Polices/user_consent_of_Policies/ATF_Device_identifier_creation_upon_connect_with_apps.lua
