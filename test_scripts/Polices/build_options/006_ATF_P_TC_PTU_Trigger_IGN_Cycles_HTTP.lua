@@ -28,6 +28,8 @@ local commonFunctions = require ('user_modules/shared_testcases/commonFunctions'
 local commonSteps   = require('user_modules/shared_testcases/commonSteps')
 local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 
+--[[ Local variables]]
+local ignition_cycles_before_ptu
 --[[ Local Functions ]]
 local function genpattern2str(name, value_type)
   return "(%s*\"" .. name .. "\"%s*:%s*)".. value_type
@@ -48,6 +50,29 @@ local function modify_preloaded(pattern, value)
   return false
 end
 
+local function check_Ignition_cycles_since_last_exchange(self, ignition_cycles)
+  local query
+  if commonSteps:file_exists(config.pathToSDL .. "storage/policy.sqlite") then
+    query = "sqlite3 " .. config.pathToSDL .. "storage/policy.sqlite".. " \"select ignition_cycles_since_last_exchange from module_meta\""
+  elseif commonSteps:file_exists(config.pathToSDL .. "policy.sqlite") then
+    query = "sqlite3 " .. config.pathToSDL .. "policy.sqlite".. " \"select ignition_cycles_since_last_exchange from module_meta\""
+  else commonFunctions:userPrint(31, "policy.sqlite is not found")
+  end
+  if query ~= nil then
+    os.execute("sleep 3")
+    local handler = io.popen(query, 'r')
+    os.execute("sleep 1")
+    local result = handler:read( '*l' )
+    handler:close()
+
+    if( result ~= ignition_cycles ) then
+      self:FailTestCase("ignition_cycles_since_last_exchange is not as expected. Expected: " .. tostring(ignition_cycles)..". Real: "..tostring(result))
+    else
+      print("ignition_cycles_since_last_exchange = "..tostring(ignition_cycles))
+    end
+  end
+end
+
 --[[ General Precondition before ATF start ]]
 commonFunctions:SDLForceStop()
 commonSteps:DeleteLogsFiles()
@@ -57,23 +82,13 @@ config.defaultProtocolVersion = 2
 
 commonPreconditions:BackupFile("sdl_preloaded_pt.json")
 
-local function Preconditions_set_exchange_after_x_ignition_cycles_to_10()
-  modify_preloaded(genpattern2str("exchange_after_x_ignition_cycles", "%d+"), "10")
+--Ign cycles are reduced to 2 in case to save time. Long term test should be additionally prepared
+--Update should be done when "[GENIVI] SDL doesn't update exchange_after_x_ignition_cycles from preloaded_pt.json to PolicyDB" is fixed.
+local function Preconditions_set_exchange_after_x_ignition_cycles_to_2()
+  modify_preloaded(genpattern2str("exchange_after_x_ignition_cycles", "%d+"), "2")
+  ignition_cycles_before_ptu = 1
 end
-Preconditions_set_exchange_after_x_ignition_cycles_to_10()
-
---[[ General Settings for configuration ]]
-Test = require('connecttest')
-require('user_modules/AppTypes')
-local mobile_session = require('mobile_session')
-
--- --[[ Preconditions ]]
-commonFunctions:newTestCasesGroup("Preconditions")
-
-local function Preconditions_set_exchange_after_x_ignition_cycles_to_10()
-  modify_preloaded(genpattern2str("exchange_after_x_ignition_cycles", "%d+"), "10")
-end
-Preconditions_set_exchange_after_x_ignition_cycles_to_10()
+Preconditions_set_exchange_after_x_ignition_cycles_to_2()
 
 --[[ General Settings for configuration ]]
 Test = require('connecttest')
@@ -82,17 +97,37 @@ local mobile_session = require('mobile_session')
 
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
+function Test:Precondition_CheckPreloaded_IGN_Cycles()
+	check_Ignition_cycles_since_last_exchange(self, "0")
+end
 
-local count_of_ign_cycles = {}
-for i = 1, 10 do
-Test["Preconditions_perform_" .. tostring(count_of_ign_cycles[i]) .. "_IGN_OFF_ON"] = function() end
+function Test:Precondition_PTU_SUCCESS()
+  local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", { requestType = "HTTP", fileName = "PolicyTableUpdate"},
+    "files/ptu.json")
+  EXPECT_RESPONSE(CorIdSystemRequest, { success = true, resultCode = "SUCCESS"})
+  EXPECT_HMICALL("BasicCommunication.SystemRequest"):Times(0)
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status="UP_TO_DATE"})
+  EXPECT_HMICALL("VehicleInfo.GetVehicleData", {odometer=true})
+  :Do( function(_,data)
+	  --hmi side: sending VehicleInfo.GetVehicleData response
+	  self.hmiConnection:SendResponse(data.id,"VehicleInfo.GetVehicleData", "SUCCESS", {odometer=0})
+  end)
+end
 
-    function Test:IGNITION_OFF()
-      StopSDL()
+--local count_of_ign_cycles = {}
+for i = 1, (ignition_cycles_before_ptu) do
+Test["Preconditions_perform_" .. tostring(i) .. "_IGN_OFF_ON"] = function() end
+	
+    function Test:Precondition_IGNITION_OFF()
+     
       self.hmiConnection:SendNotification("BasicCommunication.OnIgnitionCycleOver")
-      EXPECT_HMINOTIFICATION("BasicCommunication.OnSDLClose")
-      EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered")
-      :Times(1)
+      
+    end
+
+    function Test.Precondition_StopSDL()
+    	EXPECT_HMINOTIFICATION("BasicCommunication.OnSDLClose")
+      EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered") :Times(1)
+    	StopSDL()
     end
 
     function Test.Precondition_StartSDL()
@@ -107,51 +142,75 @@ Test["Preconditions_perform_" .. tostring(count_of_ign_cycles[i]) .. "_IGN_OFF_O
       self:initHMI_onReady()
     end
 
+    function Test:Precondition_Check_IGN_Cycles_Incremented()
+			check_Ignition_cycles_since_last_exchange(self, tostring(i))
+		end
+
     function Test:Precondition_Register_app()
       self:connectMobile()
       self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
       self.mobileSession:StartService(7)
       :Do(function()
       local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
-      EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
-      :Do(function(_,data)
-      self.HMIAppID = data.params.application.appID
-      end)
-      self.mobileSession:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS" })
-      self.mobileSession:ExpectNotification("OnHMIStatus", {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
-      end)
-    end
-
-    function Test:Precondition_Activate_app()
-      local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", {appID = self.HMIAppID})
-      EXPECT_HMIRESPONSE(RequestId,{})
-      :Do(function(_,data)
-      if data.result.isSDLAllowed ~= true then
-        local RequestIdGetMes = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage",
-        {language = "EN-US", messageCodes = {"DataConsent"}})
-        EXPECT_HMIRESPONSE(RequestIdGetMes)
-        :Do(function()
-        self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality",
-        {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = "127.0.0.1"}})
-        EXPECT_HMICALL("BasicCommunication.ActivateApp")
-        :Do(function()
-        self.hmiConnection:SendResponse(data.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
+        EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
+        :Do(function(_,data)
+         self.HMIAppID = data.params.application.appID
         end)
-        :Times(AtLeast(1))
-        end)
-      end
+        self.mobileSession:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS" })
+        self.mobileSession:ExpectNotification("OnHMIStatus", {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
       end)
-      EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN", audioStreamingState = "AUDIBLE"})
     end
 end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
-function Test.TestStep_PTU_start_on_11_th_IGN_OFF()
--- ToDo(mmihaylova): update after implementation of testCasesForPolicyTable
---testCasesForPolicyTable.trigger_PTU_N_ign_cycles()
-  return false
+function Test:TestStep_Ignition_cycles_since_last_exchange_not_reset_after_RAI()
+  check_Ignition_cycles_since_last_exchange(self, tostring(ignition_cycles_before_ptu))
+end
+
+function Test:Precondition_IGNITION_OFF()
+  self.hmiConnection:SendNotification("BasicCommunication.OnIgnitionCycleOver")
+  ignition_cycles_before_ptu = ignition_cycles_before_ptu + 1
+end
+
+function Test.TestStep_StopSDL()
+	StopSDL()
+	EXPECT_HMINOTIFICATION("BasicCommunication.OnSDLClose")
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered") :Times(1)
+end
+
+function Test.Precondition_StartSDL()
+  StartSDL(config.pathToSDL, config.ExitOnCrash)
+end
+
+function Test:Precondition_InitHMI()
+      self:initHMI()
+end
+
+function Test:Precondition_InitHMI_onReady()
+  self:initHMI_onReady()
+end
+
+function Test:Precondition_Register_app()
+      self:connectMobile()
+      self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
+      self.mobileSession:StartService(7)
+      :Do(function()
+        local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
+        EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
+        :Do(function(_,data)
+          self.HMIAppID = data.params.application.appID
+        end)
+        self.mobileSession:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS" })
+        self.mobileSession:ExpectNotification("OnHMIStatus", {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
+      end)
+  EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "HTTP"})
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", { status = "UPDATE_NEEDED" })
+end
+
+function Test:TestStep_Ignition_cycles_since_last_exchange()
+  check_Ignition_cycles_since_last_exchange(self, tostring(ignition_cycles_before_ptu))
 end
 
 --[[ Postconditions ]]
