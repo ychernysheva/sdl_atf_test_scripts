@@ -18,9 +18,11 @@
 
 -- Expected:
 -- 4. PolciesManager writes <languageDesired> to "app_registration_language_gui" field at LocalPT
+---------------------------------------------------------------------------------------------
 
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
+config.defaultProtocolVersion = 2
 
 --[[ Required Shared libraries ]]
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
@@ -39,7 +41,7 @@ require('user_modules/AppTypes')
 
 --[[ Common variables ]]
 
-local HMIAppID
+--local HMIAppID
 -- Basic PTU file
 local basic_ptu_file = "files/ptu.json"
 -- PTU for first app
@@ -130,12 +132,21 @@ function Test:RegisterFirstApp()
       local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", application1.registerAppInterfaceParams)
 
       EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
-      :Do(function(_,data)
-          HMIAppID = data.params.application.appID
-        end)
+      -- :Do(function(_,data)
+      --     HMIAppID = data.params.application.appID
+      --   end)
       EXPECT_RESPONSE(correlationId, { success = true })
       EXPECT_NOTIFICATION("OnPermissionsChange")
     end)
+end
+
+function Test:CheckDB_app_registration_language_gui()
+  local db_path = config.pathToSDL.."storage/policy.sqlite"
+  local sql_query = "SELECT app_registration_language_gui FROM app_level WHERE application_id = '0000001'"
+  local exp_result = {language_desired}
+  if commonFunctions:is_db_contains(db_path, sql_query, exp_result) == false then
+    self:FailTestCase("DB doesn't include expected value")
+  end
 end
 
 function Test.Precondition_PreparePTData()
@@ -146,18 +157,37 @@ end
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 function Test:ActivateAppInFULLLevel()
-  commonSteps:ActivateAppInSpecificLevel(self,HMIAppID,"FULL")
+  --commonSteps:ActivateAppInSpecificLevel(self,HMIAppID,"FULL")
+  testCasesForPolicyTable:trigger_getting_device_consent(self, application1.registerAppInterfaceParams.appName, config.deviceMAC)
 end
 
 function Test:InitiatePTUForGetSnapshot()
-  EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
-  testCasesForPolicyTable:updatePolicyInDifferentSessions(Test, ptu_first_app_registered,
-    application1.registerAppInterfaceParams.appName, self.mobileSession)
-end
+  --EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
+  -- testCasesForPolicyTable:updatePolicyInDifferentSessions(Test, ptu_first_app_registered,
+  --   application1.registerAppInterfaceParams.appName, self.mobileSession)
+  local SystemFilesPath = commonFunctions:read_parameter_from_smart_device_link_ini("SystemFilesPath")
+  local RequestId_GetUrls = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
+  EXPECT_HMIRESPONSE(RequestId_GetUrls,{result = {code = 0, method = "SDL.GetURLS"} } )
+  :Do(function(_,_)
+    self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",
+    { requestType = "PROPRIETARY", fileName = "PolicyTableUpdate"})
+    EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "PROPRIETARY"})
+    :Do(function(_,_)
 
--- function Test.Test_Stop_SDL()
--- StopSDL()
--- end
+      EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",
+        {status = "UPDATING"}, {status = "UP_TO_DATE"}):Times(2)
+
+      local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", {requestType = "PROPRIETARY", fileName = "PolicyTableUpdate", appID = self.applications[application1.registerAppInterfaceParams.appName]},
+        ptu_first_app_registered)
+      EXPECT_HMICALL("BasicCommunication.SystemRequest",{ requestType = "PROPRIETARY", fileName = SystemFilesPath.."/PolicyTableUpdate" })
+      :Do(function(_,_data1)
+        self.hmiConnection:SendResponse(_data1.id,"BasicCommunication.SystemRequest", "SUCCESS", {})
+        self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate", { policyfile = SystemFilesPath.."/PolicyTableUpdate"})
+      end)
+      EXPECT_RESPONSE(CorIdSystemRequest, { success = true, resultCode = "SUCCESS"})
+    end)
+  end)
+end
 
 function Test:CheckDB_app_registration_language_gui()
   local db_path = config.pathToSDL.."storage/policy.sqlite"
@@ -176,7 +206,7 @@ function Test:CheckValueFromPTAfterSecondRegistration()
   local snapshot_table = json.decode(fileContent)
   local actual_value = snapshot_table["policy_table"]["usage_and_error_counts"]["app_level"]["0000001"]["app_registration_language_gui"]
   if actual_value ~= language_desired then
-    self:FailTestCase("Unexpected value in DB is :" .. tostring(actual_value))
+    self:FailTestCase("Unexpected value in sdl_snapshot.json is :" .. tostring(actual_value))
   end
 end
 
