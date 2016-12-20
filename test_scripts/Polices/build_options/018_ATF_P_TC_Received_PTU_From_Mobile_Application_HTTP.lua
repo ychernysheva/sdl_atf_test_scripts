@@ -1,4 +1,3 @@
----------------------------------------------------------------------------------------------
 -- HTTP flow
 -- Requirements summary:
 -- [PolicyTableUpdate] Got PTU from mobile application
@@ -28,7 +27,6 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 -- local mobileSession = require("mobile_session")
 local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
 local commonSteps = require("user_modules/shared_testcases/commonSteps")
-local testCasesForBuildingSDLPolicyFlag = require('user_modules/shared_testcases/testCasesForBuildingSDLPolicyFlag')
 local json = require("modules/json")
 
 --[[ Local Variables ]]
@@ -62,8 +60,6 @@ local function show_log()
 end
 
 --[[ General Precondition before ATF start ]]
-testCasesForBuildingSDLPolicyFlag:CheckPolicyFlagAfterBuild("PROPRIETARY")
-commonFunctions:SDLForceStop()
 commonSteps:DeleteLogsFileAndPolicyTable()
 
 --[[ General Settings for configuration ]]
