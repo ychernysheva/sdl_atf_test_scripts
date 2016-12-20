@@ -1,7 +1,4 @@
--- UNREADY:
 --In script two PTUs pass after each application is registered
---functions are not reviewed from from https://github.com/smartdevicelink/sdl_atf_test_scripts/pull/267/files
---
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
 -- [PolicyTableUpdate] HMILevel on Policy Update for the apps affected in FULL/LIMITED
