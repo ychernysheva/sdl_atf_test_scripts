@@ -59,9 +59,9 @@ local function setPtExchangedXDaysAfterEpochInDB(daysAfterEpochFromPTS)
   os.execute(DBQuery)
   os.execute(" sleep 1 ")
 end
-
+CreatePTUFromExisted()
 --[[ General Settings for configuration ]]
-Test = require('user_modules/connecttest_ConnectMobile')
+Test = require('connecttest')
 require('cardinalities')
 require("user_modules/AppTypes")
 local mobile_session = require('mobile_session')
@@ -69,69 +69,15 @@ local mobile_session = require('mobile_session')
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
 
-function Test.Preconditions_Set_Exchange_After_X_Days_For_PTU()
-  CreatePTUFromExisted()
-end
-
-function Test:Preconditions_ConnectDevice()
-  local ServerAddress = commonFunctions:read_parameter_from_smart_device_link_ini("ServerAddress")
-  commonTestCases:DelayedExp(2000)
-  self:connectMobile()
-  EXPECT_HMICALL("BasicCommunication.UpdateDeviceList",
-    {
-      deviceList = {
-        {
-          id = config.deviceMAC,
-          isSDLAllowed = false,
-          name = ServerAddress,
-          transportType = "WIFI"
-        }
-      }
-    }
-    ):Do(function(_,data)
-      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-    end)
-end
-
-function Test:Precondition_RegisterApp()
-  commonTestCases:DelayedExp(3000)
-  self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
-  self.mobileSession:StartService(7)
-  :Do(function()
-      local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
-      EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
-      :Do(function(_,data)
-          self.HMIAppID = data.params.application.appID
-        end)
-      self.mobileSession:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS" })
-      self.mobileSession:ExpectNotification("OnHMIStatus", {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
-    end)
-  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",{status = "UPDATE_NEEDED"})
-  EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
-end
 
 function Test:Precondition_Update_Policy_With_Exchange_After_X_Days_Value()
-
   currentSystemDaysAfterEpoch = getSystemDaysAfterEpoch()
-  local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
-  EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
-  :Do(function()
-      self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",{requestType = "HTTP", fileName = "filename"})
-      EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "HTTP" })
-      :Do(function()
-          local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", {fileName = "PolicyTableUpdate", requestType = "HTTP"}, "files/tmp_PTU.json")
-
-          EXPECT_HMICALL("BasicCommunication.SystemRequest")
-          :Do(function(_,data1)
-
-              self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate", { policyfile = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate"})
-              self.hmiConnection:SendResponse(data1.id, "BasicCommunication.SystemRequest", "SUCCESS", {})
-              EXPECT_RESPONSE(CorIdSystemRequest, { success = true, resultCode = "SUCCESS"})
-            end)
-        end)
-    end)
-  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",
-    {status = "UPDATING"}, {status = "UP_TO_DATE"}):Times(2)
+  
+  local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", { requestType = "HTTP", fileName = "PolicyTableUpdate", },"files/tmp_PTU.json")
+  
+  EXPECT_RESPONSE(CorIdSystemRequest, { success = true, resultCode = "SUCCESS"})
+  EXPECT_HMICALL("BasicCommunication.SystemRequest"):Times(0)
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status="UP_TO_DATE"})
 end
 
 function Test.Precondition_StopSDL()
@@ -206,8 +152,11 @@ function Test:TestStep_Register_App_And_Check_That_PTU_Triggered()
       }
     })
   EXPECT_RESPONSE(CorIdRAI, { success = true, resultCode = "SUCCESS"})
-  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",{status = "UPDATE_NEEDED"})
-  EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
+  
+  EXPECT_HMICALL("BasicCommunication.PolicyUpdate"):Times(0)
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status="UPDATE_NEEDED"})
+  EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "HTTP"})
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status="UPDATING"})
 end
 
 --[[ Postcondition ]]
