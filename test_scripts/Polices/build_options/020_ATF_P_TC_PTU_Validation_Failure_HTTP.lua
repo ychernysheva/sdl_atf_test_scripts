@@ -15,7 +15,7 @@
 -- SDL->MOB: OnSystemRequest()
 -- SDL->HMI: SDL.OnStatusUpdate(UPDATING)
 -- 2. Performed steps
--- HMI->SDL: OnReceivedPolicyUpdate(policy_file): policy_file with missing mandatory seconds_between_retries.
+-- MOB->SDL: SystemRequest(policy_file): policy_file with missing mandatory seconds_between_retries
 --
 -- Expected result:
 -- SDL->HMI: OnStatusUpdate(UPDATE_NEEDED)
@@ -27,7 +27,6 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 --[[ Required Shared libraries ]]
 local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
 local commonSteps = require("user_modules/shared_testcases/commonSteps")
-local testCasesForBuildingSDLPolicyFlag = require('user_modules/shared_testcases/testCasesForBuildingSDLPolicyFlag')
 local json = require("modules/json")
 
 --[[ Local Variables ]]
@@ -38,7 +37,6 @@ local ptu
 local policy_file_name = "PolicyTableUpdate"
 local policy_file_path = commonFunctions:read_parameter_from_smart_device_link_ini("SystemFilesPath")
 local actual_status = { }
-local expected_status = { "UPDATE_NEEDED", "UPDATING", nil }
 
 --[[ Local Functions ]]
 local function timestamp()
@@ -81,7 +79,6 @@ local function clean_table(t)
 end
 
 --[[ General Precondition before ATF start ]]
-testCasesForBuildingSDLPolicyFlag:CheckPolicyFlagAfterBuild("PROPRIETARY")
 commonFunctions:SDLForceStop()
 commonSteps:DeleteLogsFileAndPolicyTable()
 
@@ -90,22 +87,12 @@ Test = require("connecttest")
 require("user_modules/AppTypes")
 config.defaultProtocolVersion = 2
 
---[[ Specific Notifications ]]
-EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate")
-:Do(function(_, d)
-    log("SDL->HMI: SDL.OnStatusUpdate()", d.params.status)
-    table.insert(actual_status, d.params.status)
-  end)
-:Times(AnyNumber())
-:Pin()
-
 function Test:RegisterNotification()
   self.mobileSession:ExpectNotification("OnSystemRequest")
   :Do(function(_, d)
-      log("SDL->MOB: OnSystemRequest()", d.payload.requestType, d.payload.url)
       ptu = json.decode(d.binaryData)
     end)
-  :Times(AnyNumber())
+  :Times(AtLeast(1))
   :Pin()
 end
 
@@ -147,10 +134,23 @@ commonFunctions:newTestCasesGroup("Test")
 function Test:Update_LPT()
   clean_table(actual_status)
   local corId = self.mobileSession:SendRPC("SystemRequest", { requestType = "HTTP", fileName = policy_file_name }, f_name)
-  log("MOB->SDL: SystemRequest()")
+  log("MOB->SDL: SystemRequest")
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate")
+  :ValidIf(function(e, d)
+      log("SDL->HMI: SDL.OnStatusUpdate", e.occurences, d.params.status)
+      if e.occurences == 1 and d.params.status == "UPDATE_NEEDED" then
+        return true
+      elseif e.occurences == 2 and d.params.status == "UPDATING" then
+        return true
+      elseif e.occurences == 3 and d.params.status == "UPDATE_NEEDED" then
+        return true
+      end
+      return false, table.concat({"Unexpected SDL.OnStatusUpdate with ocurrance '", e.occurences, "' and status '", d.params.status, "'"})
+    end)
+  :Times(3)
   EXPECT_RESPONSE(corId, { success = true, resultCode = "SUCCESS" })
   :Do(function(_, _)
-      log("SDL->MOB: SystemRequest() response")
+      log("SUCCESS: SystemRequest()")
     end)
 end
 
@@ -158,31 +158,19 @@ function Test.Test_ShowSequence()
   show_log()
 end
 
-local function validate_status(self, id, expected, actual)
-  local literal_id = { "1st", "2nd", "3rd" }
-  if actual[id] ~= expected[id] then
-    local msg = table.concat({
-        "\nExpected ", literal_id[id], " SDL.OnStatusUpdate() status is '", tostring(expected[id]), "'",
-        "\nActual: '", tostring(actual[id]), "'" })
-    self:FailTestCase(msg)
-  end
-end
-
-function Test:Validate_Status_1st()
-  validate_status(self, 1, expected_status, actual_status)
-end
-
-function Test:Validate_Status_2nd()
-  validate_status(self, 2, expected_status, actual_status)
-end
-
-function Test:Validate_Status_3rd()
-  validate_status(self, 3, expected_status, actual_status)
-end
-
 function Test:Validate_PolicyFile()
   if check_file_exists(policy_file_path .. "/" .. policy_file_name) then
     self:FailTestCase("Expected absence of policy file, but it exists")
+  end
+end
+
+function Test:Validate_LogFile()
+  local log_file = "SmartDeviceLinkCore.log"
+  local log_path = table.concat({ config.pathToSDL, "/", log_file })
+  local exp_msg = "Errors: policy_table.policy_table.module_config.seconds_between_retries: object is not initialized"
+  if not commonFunctions:read_specific_message(log_path, exp_msg) then
+    local msg = table.concat({ "Expected error message was not found in ", log_file })
+    self:FailTestCase(msg)
   end
 end
 
