@@ -31,6 +31,7 @@ local testCasesForPolicyTableSnapshot = require('user_modules/shared_testcases/t
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
 testCasesForPolicyTable.Delete_Policy_table_snapshot()
+testCasesForPolicyTable:Precondition_updatePolicy_By_overwriting_preloaded_pt("files/jsons/Policies/Policy_Table_Update/endpoints_appId.json")
 
 --ToDo: shall be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
 config.defaultProtocolVersion = 2
@@ -47,7 +48,29 @@ function Test:Precondition_trigger_getting_device_consent()
 end
 
 function Test:Precondition_flow_PTU_SUCCEESS_EXTERNAL_PROPRIETARY()
-  testCasesForPolicyTable:flow_SUCCEESS_EXTERNAL_PROPRIETARY(self)
+  local SystemFilesPath = "/tmp/fs/mp/images/ivsu_cache/"
+
+  local RequestId_GetUrls = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
+  EXPECT_HMIRESPONSE(RequestId_GetUrls,{result = {code = 0, method = "SDL.GetURLS"} } )
+  :Do(function(_,_)
+    self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",
+    { requestType = "PROPRIETARY", fileName = "PolicyTableUpdate"})
+    EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "PROPRIETARY"})
+    :Do(function(_,_)
+
+      EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",
+        {status = "UPDATING"}, {status = "UP_TO_DATE"}):Times(2)
+
+      local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", {requestType = "PROPRIETARY", fileName = "PolicyTableUpdate", appID = config.application1.registerAppInterfaceParams.appID},
+        "files/ptu.json")
+      EXPECT_HMICALL("BasicCommunication.SystemRequest",{ requestType = "PROPRIETARY", fileName = SystemFilesPath.."PolicyTableUpdate" })
+      :Do(function(_,_data1)
+        self.hmiConnection:SendResponse(_data1.id,"BasicCommunication.SystemRequest", "SUCCESS", {})
+        self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate", { policyfile = SystemFilesPath.."PolicyTableUpdate"})
+      end)
+      EXPECT_RESPONSE(CorIdSystemRequest, { success = true, resultCode = "SUCCESS"})
+    end)
+  end)
 end
 
 function Test:Precondition_UnregisterApp()
@@ -57,44 +80,73 @@ function Test:Precondition_UnregisterApp()
   EXPECT_RESPONSE("UnregisterAppInterface", {success = true , resultCode = "SUCCESS"})
 end
 
-function Test.Precondition_Remove_PTS()
-  testCasesForPolicyTable.Delete_Policy_table_snapshot()
-end
-
--- Request PTU
-function Test:Precondition_trigger_PTU_user_request_update_from_HMI()
-  testCasesForPolicyTable:trigger_user_request_update_from_HMI(self)
-end
-
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 function Test:TestStep_PTU_GetURLs_NoAppRegistered()
   local endpoints = {}
-  local is_app_esxist = false
+  testCasesForPolicyTableSnapshot:extract_pts()
 
   for i = 1, #testCasesForPolicyTableSnapshot.pts_endpoints do
     if (testCasesForPolicyTableSnapshot.pts_endpoints[i].service == "0x07") then
-      endpoints[#endpoints + 1] = { url = testCasesForPolicyTableSnapshot.pts_endpoints[i].value, appID = nil}
-    end
-
-    if (testCasesForPolicyTableSnapshot.pts_endpoints[i].service == "app1") then
-      -- app id should be included in PTS but not to be used
-      is_app_esxist = true
+      endpoints[#endpoints + 1] = {
+        url = testCasesForPolicyTableSnapshot.pts_endpoints[i].value,
+        appID = testCasesForPolicyTableSnapshot.pts_endpoints[i].appID}
     end
   end
 
   local RequestId = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
 
-  EXPECT_HMIRESPONSE(RequestId,{result = {code = 0, method = "SDL.GetURLS", urls = endpoints} } )
-  :Do(function(_,_)
-      if(is_app_esxist == false) then
-        self:FailTestCase("Used URLs are default as expected! Endpoints for application doesn't exist!")
+  EXPECT_HMIRESPONSE(RequestId,{result = {code = 0, method = "SDL.GetURLS"} } )
+  :Do(function(_,data)
+    local is_correct = {}
+    for i = 1, #data.result.urls do
+      is_correct[i] = false
+      for j = 1, #endpoints do
+        if ( data.result.urls[i].url == endpoints[j].url ) then
+          is_correct[i] = true
+        end
       end
-    end)
+    end
+    if(#data.result.urls ~= #endpoints ) then
+      self:FailTestCase("Number of urls is not as expected: "..#endpoints..". Real: "..#data.result.urls)
+    end
+    for i = 1, #is_correct do
+      if(is_correct[i] == false) then
+        self:FailTestCase("url: "..data.result.urls[i].url.." is not correct. Expected: "..endpoints[i].url)
+      end
+    end
+  end)
+end
+
+function Test:TestStep_PTU_DB_GetURLs_NoAppRegistered()
+  local is_test_fail = false
+  local policy_endpoints = {}
+
+  local sevices_table = commonFunctions:get_data_policy_sql(config.pathToSDL.."/storage/policy.sqlite", "select service from endpoint")
+
+  for _, value in pairs(sevices_table) do
+    policy_endpoints[#policy_endpoints + 1] = { found = false, service = value }
+    --TODO(istoimenova): Should be updated when policy defect is fixed
+      if ( value == "4" or value == "7") then
+        policy_endpoints[#policy_endpoints].found = true
+      end
+  end
+
+  for i = 1, #policy_endpoints do
+    if(policy_endpoints[i].found == false) then
+      commonFunctions:printError("endpoints for service "..policy_endpoints[i].service .. " should not be observed." )
+      is_test_fail = true
+    end
+  end
+
+  if(is_test_fail == true) then
+    self:FailTestCase("Test is FAILED. See prints.")
+  end
 end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
+testCasesForPolicyTable:Restore_preloaded_pt()
 function Test.Postcondition_Stop()
   StopSDL()
 end

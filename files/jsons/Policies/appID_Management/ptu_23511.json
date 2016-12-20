@@ -4,6 +4,9 @@
             "123abc": null,
             "xyz": {
                 "groups": ["Base-4", "Base-6"],
+				"default_hmi": "NONE",
+				"keep_context": false,
+                "steal_focus": false,
                 "priority": "NONE",
                 "nicknames": ["Media Application", "MediaApp"]                
             },

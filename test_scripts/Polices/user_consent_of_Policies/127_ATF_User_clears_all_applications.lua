@@ -155,7 +155,8 @@ end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
-
-function Test.Postcondition_SDLForceStop()
-  commonFunctions:SDLForceStop()
+function Test.Postcondition_Stop()
+  StopSDL()
 end
+
+return Test

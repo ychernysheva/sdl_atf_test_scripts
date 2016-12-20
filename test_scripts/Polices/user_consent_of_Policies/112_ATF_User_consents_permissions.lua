@@ -29,12 +29,71 @@ local commonFunctions = require ('user_modules/shared_testcases/commonFunctions'
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
 local testCasesForPolicyTableSnapshot = require('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
+local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
 testCasesForPolicyTable:Precondition_updatePolicy_By_overwriting_preloaded_pt("files/DeviceConsentedAndAppPermissionsForConsent_preloaded_pt.json")
 --TODO(istoimenova): shall be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
 config.defaultProtocolVersion = 2
+
+--[[ Local variables ]]
+local allowed_rps = {}
+local array_allpermissions = {}
+local array_DrivingCharacteristics3 = {}
+
+--[[ Local functions ]]
+-- Function gets RPCs for Notification and Location-1
+local function Get_RPCs()
+  local RPC_Base4 = {}
+  local RPC_DrivingCharacteristics3 = {}
+
+  testCasesForPolicyTableSnapshot:extract_preloaded_pt()
+
+  for i = 1, #testCasesForPolicyTableSnapshot.preloaded_elements do
+    if ( string.sub(testCasesForPolicyTableSnapshot.preloaded_elements[i].name,1,string.len("functional_groupings.Base-4.rpcs.")) == "functional_groupings.Base-4.rpcs." ) then
+      local str = string.match(testCasesForPolicyTableSnapshot.preloaded_elements[i].name, "functional_groupings%.Base%-4%.rpcs%.(%S+)%.%S+%.%S+")
+      if(#RPC_Base4 == 0) then
+        RPC_Base4[#RPC_Base4 + 1] = str
+      end
+
+      if(RPC_Base4[#RPC_Base4] ~= str) then
+        RPC_Base4[#RPC_Base4 + 1] = str
+        -- allowed_rps[#allowed_rps + 1] = str
+      end
+    end
+  end
+
+  for i = 1, #testCasesForPolicyTableSnapshot.preloaded_elements do
+    if ( string.sub(testCasesForPolicyTableSnapshot.preloaded_elements[i].name,1,string.len("functional_groupings.DrivingCharacteristics-3.rpcs.")) == "functional_groupings.DrivingCharacteristics-3.rpcs." ) then
+      local str = string.match(testCasesForPolicyTableSnapshot.preloaded_elements[i].name, "functional_groupings%.DrivingCharacteristics%-3%.rpcs%.(%S+)%.%S+%.%S+")
+
+      if(#RPC_DrivingCharacteristics3 == 0) then
+        RPC_DrivingCharacteristics3[#RPC_DrivingCharacteristics3 + 1] = str
+      end
+
+      if(RPC_DrivingCharacteristics3[#RPC_DrivingCharacteristics3] ~= str) then
+        RPC_DrivingCharacteristics3[#RPC_DrivingCharacteristics3 + 1] = str
+        allowed_rps[#allowed_rps + 1] = str
+      end
+    end
+  end
+
+  for i = 1, #RPC_DrivingCharacteristics3 do
+    array_DrivingCharacteristics3[i] = {
+      -- permissionItem = {
+      --hmiPermissions = { userDisallowed = {}, allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" } },
+      --parameterPermissions = { userDisallowed = {}, allowed = {} },
+      rpcName = RPC_DrivingCharacteristics3[i]
+    }
+    array_allpermissions[#array_allpermissions + 1] = array_DrivingCharacteristics3[i]
+  end
+
+  -- for i = 1, #allowed_rps do
+  -- print("allowed_rps = "..allowed_rps[i])
+  -- end
+end
+Get_RPCs()
 
 --[[ General Settings for configuration ]]
 Test = require('connecttest')
@@ -48,6 +107,7 @@ commonFunctions:newTestCasesGroup("Preconditions")
 commonFunctions:newTestCasesGroup("Test")
 
 function Test:IsPermissionsConsentNeeded_false_on_app_activation()
+  local is_test_passed = true
   local ServerAddress = commonFunctions:read_parameter_from_smart_device_link_ini("ServerAddress")
   local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.applications[config.application1.registerAppInterfaceParams.appName]})
 
@@ -79,9 +139,48 @@ function Test:IsPermissionsConsentNeeded_false_on_app_activation()
                 self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent",
                   { appID = self.applications[config.application1.registerAppInterfaceParams.appName],
                     consentedFunctions = {{ allowed = true, id = 4734356, name = "DrivingCharacteristics"}}, source = "GUI"})
-                EXPECT_NOTIFICATION("OnPermissionsChange",
-                  {permissionItem = {
-                      {rpcName = "GetVehicleData", hmiPermissions = {allowed = true, userDisallowed = false}, parameterPermissions = {allowed = true, userDisallowed = false} }}})
+
+                EXPECT_NOTIFICATION("OnPermissionsChange")
+                :Do(function(_,_data2)
+                  -- Will be used to check if all needed RPC for permissions are received
+                  local is_perm_item_receved = {}
+                  for i = 1, #array_allpermissions do
+                    is_perm_item_receved[i] = false
+                  end
+
+                  -- will be used to check RPCs that needs permission
+                  local is_perm_item_needed = {}
+                  for i = 1, #_data2.payload.permissionItem do
+                    is_perm_item_needed[i] = false
+                  end
+
+                  for i = 1, #_data2.payload.permissionItem do
+                    for j = 1, #array_allpermissions do
+                      if(_data2.payload.permissionItem[i].rpcName == array_allpermissions[j]) then
+                        is_perm_item_receved[j] = true
+                        is_perm_item_needed[i] = true
+                        break
+                      end
+                    end
+                  end
+
+                  -- check that all RPCs from notification are requesting permission
+                  for i = 1,#is_perm_item_needed do
+                    if (is_perm_item_needed[i] == false) then
+                      commonFunctions:printError("Occ1 RPC: ".._data2.payload.permissionItem[i].rpcName.." should not be sent")
+                      is_test_passed = false
+                    end
+                  end
+
+                  -- check that all RPCs that request permission are received
+                  for i = 1,#is_perm_item_receved do
+                    if (is_perm_item_receved[i] == false) then
+                      commonFunctions:printError("Occ1 RPC: "..array_allpermissions[i].rpcName.." is not sent")
+                      is_test_passed = false
+                    end
+                  end
+                end)
+
               end)
 
           end)
@@ -90,6 +189,15 @@ function Test:IsPermissionsConsentNeeded_false_on_app_activation()
         return false
       end
     end)
+
+  local function check()
+      if(is_test_passed == false) then
+        self:FailTestCase("Test is FAILED. See prints.")
+      end
+  end
+
+  RUN_AFTER(check, 10000)
+  commonTestCases:DelayedExp(11000)
 end
 
 -- Triger PTU to update sdl snapshot

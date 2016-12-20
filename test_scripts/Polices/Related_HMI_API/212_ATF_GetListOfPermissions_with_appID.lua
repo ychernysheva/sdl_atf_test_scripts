@@ -66,9 +66,7 @@ function Test:TestStep_GetListOfPermissions_with_appID()
                 self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent",
                   { appID = self.applications[config.application1.registerAppInterfaceParams.appName],
                     consentedFunctions = {{ allowed = true, id = 4734356, name = "DrivingCharacteristics"}}, source = "GUI"})
-                EXPECT_NOTIFICATION("OnPermissionsChange",
-                  {permissionItem = {
-                      {rpcName = "GetVehicleData", hmiPermissions = {allowed = true, userDisallowed = false}, parameterPermissions = {allowed = true, userDisallowed = false} }}})
+                EXPECT_NOTIFICATION("OnPermissionsChange")
               end)
 
           end)

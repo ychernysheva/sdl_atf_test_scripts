@@ -110,8 +110,8 @@ function Test:Step1_Register_App_And_Check_Its_Permissions_In_OnPermissionsChang
           isSDLAllowed = false
     } } })
   :Do(function(_,data)
-      if(order_communication ~= 1) then
-        commonFunctions:printError("BasicCommunication.OnAppRegistered is not received 1 in message order. Real: received number: "..order_communication)
+      if(order_communication ~= 1 and order_communication ~= 2 and order_communication ~= 3) then
+        commonFunctions:printError("BasicCommunication.OnAppRegistered is not received 1 or 2 in message order. Real: received number: "..order_communication)
         is_test_fail = true
       end
       order_communication = order_communication + 1
@@ -120,8 +120,8 @@ function Test:Step1_Register_App_And_Check_Its_Permissions_In_OnPermissionsChang
 
   EXPECT_RESPONSE(CorIdRAI, { success = true, resultCode = "SUCCESS"})
   :Do(function(_,_)
-      if(order_communication ~= 2) then
-        commonFunctions:printError("RegisterAppInterface response is not received 2 in message order. Real: received number: "..order_communication)
+      if(order_communication ~= 1 and order_communication ~= 2) then
+        commonFunctions:printError("RegisterAppInterface response is not received 1 or 2 in message order. Real: received number: "..order_communication)
         is_test_fail = true
       end
       order_communication = order_communication + 1
@@ -129,14 +129,14 @@ function Test:Step1_Register_App_And_Check_Its_Permissions_In_OnPermissionsChang
 
   EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
   :Do(function(_,_)
-      if(order_communication ~= 3) then
+      if( order_communication ~= 2 and order_communication ~= 3) then
         commonFunctions:printError("OnHMIStatus is not received 3 in message order. Real: received number: "..order_communication)
         is_test_fail = true
       end
       order_communication = order_communication + 1
     end)
 
-  EXPECT_NOTIFICATION("OnPermissionsChange", { hmiPermissions = {allowed = {"BACKGROUND", "FULL", "LIMITED", "NONE"}, userDisallowed = {} } })
+  EXPECT_NOTIFICATION("OnPermissionsChange")
   :Do(function(_,_data2)
       if(order_communication ~= 4) then
         commonFunctions:printError("OnPermissionsChange is not received 4 in message order. Real: received number: "..order_communication)
@@ -150,7 +150,7 @@ function Test:Step1_Register_App_And_Check_Its_Permissions_In_OnPermissionsChang
 
       -- will be used to check RPCs that needs permission
       local is_perm_item_needed = {}
-      for i = 1, #_data2.payload.permissionItem[1].rpcName do
+      for i = 1, #_data2.payload.permissionItem do
         is_perm_item_needed[i] = false
       end
 

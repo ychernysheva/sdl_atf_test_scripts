@@ -62,13 +62,17 @@ function Test:TestStep_Sending_PTS_to_mobile_application()
   local PathToSnapshot = commonFunctions:read_parameter_from_smart_device_link_ini("PathToSnapshot")
   local file_pts = SystemFilesPath.."/"..PathToSnapshot
 
+  local seconds_between_retries = {}
+  local timeout_pts = testCasesForPolicyTableSnapshot:get_data_from_PTS("module_config.timeout_after_x_seconds")
+  for i = 1, #testCasesForPolicyTableSnapshot.pts_seconds_between_retries do
+    seconds_between_retries[i] = testCasesForPolicyTableSnapshot.pts_seconds_between_retries[i].value
+  end
+  local time_wait = (timeout_pts*seconds_between_retries[1]*1000 + 2000)
+  commonTestCases:DelayedExp(time_wait) -- tolerance 10 sec
+
   for i = 1, #testCasesForPolicyTableSnapshot.pts_endpoints do
     if (testCasesForPolicyTableSnapshot.pts_endpoints[i].service == "0x07") then
       endpoints[#endpoints + 1] = { url = testCasesForPolicyTableSnapshot.pts_endpoints[i].value, appID = nil}
-    end
-
-    if (testCasesForPolicyTableSnapshot.pts_endpoints[i].service == "app1") then
-      endpoints[#endpoints + 1] = { url = testCasesForPolicyTableSnapshot.pts_endpoints[i].value, appID = testCasesForPolicyTableSnapshot.pts_endpoints[i].appID}
     end
   end
 
@@ -78,13 +82,6 @@ function Test:TestStep_Sending_PTS_to_mobile_application()
   :Do(function(_,_)
       self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",{ requestType = "PROPRIETARY", fileName = "PolicyTableUpdate" })
       --first retry sequence
-      local seconds_between_retries = {}
-      local timeout_pts = testCasesForPolicyTableSnapshot:get_data_from_PTS("module_config.timeout_after_x_seconds")
-      for i = 1, #testCasesForPolicyTableSnapshot.pts_seconds_between_retries do
-        seconds_between_retries[i] = testCasesForPolicyTableSnapshot.pts_seconds_between_retries[i].value
-      end
-      local time_wait = (timeout_pts*seconds_between_retries[1]*1000 + 10000)
-      commonTestCases:DelayedExp(time_wait) -- tolerance 10 sec
 
       local function verify_retry_sequence(occurences)
         --time_update_needed[#time_update_needed + 1] = testCasesForPolicyTable.time_trigger
@@ -96,25 +93,29 @@ function Test:TestStep_Sending_PTS_to_mobile_application()
           is_test_fail = true
           commonFunctions:printError("ERROR: timeout for retry sequence "..occurences.." is not as expected: "..timeout_pts.."msec(5sec tolerance). real: "..timeout.."ms")
         else
-          print("timeout is as expected for retry sequesnce "..occurences..": "..timeout_pts.."ms. real: "..timeout)
+          print("timeout is as expected for retry sequence "..occurences..": "..timeout_pts.."ms. real: "..timeout)
         end
+        return true
       end
 
       EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY", fileType = "JSON"})
       :Do(function(_,_) time_system_request[#time_system_request + 1] = timestamp() end)
 
-      EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
+      EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",
+        {status = "UPDATING"}, {status = "UPDATE_NEEDED"}):Times(2)
+      :Do(function(exp_pu, data)
+        if(data.params.status == "UPDATE_NEEDED") then
+          verify_retry_sequence(exp_pu.occurences - 1)
+        end
+      end)
 
-      EXPECT_HMICALL("BasicCommunication.PolicyUpdate", { file = file_pts, timeout = timeout_pts, retry = seconds_between_retries})
-      :Do(function(exp_pu,data)
-          --expect_PTU_policy_update = 1 print("expect_PTU_policy_update = "..expect_PTU_policy_update)
-          if(exp_pu.occurences > 1) then
-            is_test_fail = true
-            commonFunctions:printError("ERROR: PTU sequence is restarted again!")
-          end
-          verify_retry_sequence(exp_pu.occurences)
+      --TODO(istoimenova): Remove when "[GENIVI] PTU is restarted each 10 sec." is fixed.
+      EXPECT_HMICALL("BasicCommunication.PolicyUpdate"):Times(0)
+      :Do(function(_,data)
+          is_test_fail = true
+          commonFunctions:printError("ERROR: PTU sequence is restarted again!")
           self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-        end)
+      end)
     end)
 
   if(is_test_fail == true) then
