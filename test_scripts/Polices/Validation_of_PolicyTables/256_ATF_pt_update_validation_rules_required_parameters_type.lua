@@ -100,23 +100,23 @@ local TestData = {
 --[[ Local Functions ]]
 
 -- local function addApplicationToPTJsonFile(basicFile, newPtFile, appName, app)
---   local pt = io.open(basicFile, "r")
---   if pt == nil then
---     error("PTU file not found")
---   end
---   local ptString = pt:read("*all")
---   pt:close()
+-- local pt = io.open(basicFile, "r")
+-- if pt == nil then
+-- error("PTU file not found")
+-- end
+-- local ptString = pt:read("*all")
+-- pt:close()
 
---   local ptTable = json.decode(ptString)
---   ptTable["policy_table"]["app_policies"][appName] = app
---   -- Workaround. null value in lua table == not existing value. But in json file it has to be
---   ptTable["policy_table"]["functional_groupings"]["DataConsent-2"]["rpcs"] = "tobedeletedinjsonfile"
---   local ptJson = json.encode(ptTable)
---   ptJson = string.gsub(ptJson, "\"tobedeletedinjsonfile\"", "null")
+-- local ptTable = json.decode(ptString)
+-- ptTable["policy_table"]["app_policies"][appName] = app
+-- -- Workaround. null value in lua table == not existing value. But in json file it has to be
+-- ptTable["policy_table"]["functional_groupings"]["DataConsent-2"]["rpcs"] = "tobedeletedinjsonfile"
+-- local ptJson = json.encode(ptTable)
+-- ptJson = string.gsub(ptJson, "\"tobedeletedinjsonfile\"", "null")
 
---   local newPtu = io.open(newPtFile, "w")
---   newPtu:write(ptJson)
---   newPtu:close()
+-- local newPtu = io.open(newPtFile, "w")
+-- newPtu:write(ptJson)
+-- newPtu:close()
 -- end
 
 local function activateAppInSpecificLevel(self, HMIAppID, hmi_level)
@@ -168,22 +168,22 @@ function Test:updatePolicyInDifferentSessions(_, appName, mobileSession)
               requestType = "PROPRIETARY",
               appID = iappID
             },
-            "files/jsons/Policies/PTU_ValidationRules/PTU_invalid_required.json")
+          "files/jsons/Policies/PTU_ValidationRules/PTU_invalid_required.json")
 
           local systemRequestId
           EXPECT_HMICALL("BasicCommunication.SystemRequest")
           :Do(function(_,_data1)
-            systemRequestId = _data1.id
-            self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate", { policyfile = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate"} )
-            local function to_run()
-              self.hmiConnection:SendResponse(systemRequestId,"BasicCommunication.SystemRequest", "SUCCESS", {})
-            end
+              systemRequestId = _data1.id
+              self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate", { policyfile = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate"} )
+              local function to_run()
+                self.hmiConnection:SendResponse(systemRequestId,"BasicCommunication.SystemRequest", "SUCCESS", {})
+              end
 
               RUN_AFTER(to_run, 500)
-          end)
+            end)
           mobileSession:ExpectResponse(CorIdSystemRequest, { success = true, resultCode = "SUCCESS"})
-      end)
-  end)
+        end)
+    end)
 
   EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",
     {status = "UPDATING"}, {status = "UPDATE_NEEDED"}):Times(2)
@@ -191,203 +191,213 @@ function Test:updatePolicyInDifferentSessions(_, appName, mobileSession)
   EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
 end
 
-  local function constructPathToDatabase()
-    if commonSteps:file_exists(config.pathToSDL .. "storage/policy.sqlite") then
-      return config.pathToSDL .. "storage/policy.sqlite"
-    elseif commonSteps:file_exists(config.pathToSDL .. "policy.sqlite") then
-      return config.pathToSDL .. "policy.sqlite"
-    else
-      commonFunctions:userPrint(31, "policy.sqlite is not found" )
-      return nil
+local function constructPathToDatabase()
+  if commonSteps:file_exists(config.pathToSDL .. "storage/policy.sqlite") then
+    return config.pathToSDL .. "storage/policy.sqlite"
+  elseif commonSteps:file_exists(config.pathToSDL .. "policy.sqlite") then
+    return config.pathToSDL .. "policy.sqlite"
+  else
+    commonFunctions:userPrint(31, "policy.sqlite is not found" )
+    return nil
+  end
+end
+
+local function executeSqliteQuery(rawQueryString, dbFilePath)
+  if not dbFilePath then
+    return nil
+  end
+  local queryExecutionResult = {}
+  local queryString = table.concat({"sqlite3 ", dbFilePath, " '", rawQueryString, "'"})
+  local file = io.popen(queryString, 'r')
+  if file then
+    local index = 1
+    for line in file:lines() do
+      queryExecutionResult[index] = line
+      index = index + 1
     end
+    file:close()
+    return queryExecutionResult
+  else
+    return nil
+  end
+end
+
+local function isValuesCorrect(actualValues, expectedValues)
+  if #actualValues ~= #expectedValues then
+    return false
   end
 
-  local function executeSqliteQuery(rawQueryString, dbFilePath)
-    if not dbFilePath then
-      return nil
-    end
-    local queryExecutionResult = {}
-    local queryString = table.concat({"sqlite3 ", dbFilePath, " '", rawQueryString, "'"})
-    local file = io.popen(queryString, 'r')
-    if file then
-      local index = 1
-      for line in file:lines() do
-        queryExecutionResult[index] = line
-        index = index + 1
+  local tmpExpectedValues = {}
+  for i = 1, #expectedValues do
+    tmpExpectedValues[i] = expectedValues[i]
+  end
+
+  local isFound
+  for j = 1, #actualValues do
+    isFound = false
+    for key, value in pairs(tmpExpectedValues) do
+      if value == actualValues[j] then
+        isFound = true
+        tmpExpectedValues[key] = nil
+        break
       end
-      file:close()
-      return queryExecutionResult
-    else
-      return nil
     end
-  end
-
-  local function isValuesCorrect(actualValues, expectedValues)
-    if #actualValues ~= #expectedValues then
+    if not isFound then
       return false
     end
-
-    local tmpExpectedValues = {}
-    for i = 1, #expectedValues do
-      tmpExpectedValues[i] = expectedValues[i]
-    end
-
-    local isFound
-    for j = 1, #actualValues do
-      isFound = false
-      for key, value in pairs(tmpExpectedValues) do
-        if value == actualValues[j] then
-          isFound = true
-          tmpExpectedValues[key] = nil
-          break
-        end
-      end
-      if not isFound then
-        return false
-      end
-    end
-    if next(tmpExpectedValues) then
-      return false
-    end
-    return true
   end
+  if next(tmpExpectedValues) then
+    return false
+  end
+  return true
+end
 
-  function Test.checkLocalPT(checkTable)
-    local expectedLocalPtValues
-    local queryString
-    local actualLocalPtValues
-    local comparationResult
-    local isTestPass = true
-    for _, check in pairs(checkTable) do
-      expectedLocalPtValues = check.expectedValues
-      queryString = check.query
-      actualLocalPtValues = executeSqliteQuery(queryString, constructPathToDatabase())
-      if actualLocalPtValues then
-        comparationResult = isValuesCorrect(actualLocalPtValues, expectedLocalPtValues)
-        if not comparationResult then
-          TestData:store(table.concat({"Test ", queryString, " failed: SDL has wrong values in LocalPT"}))
-          TestData:store("ExpectedLocalPtValues")
-          commonFunctions:userPrint(31, table.concat({"Test ", queryString, " failed: SDL has wrong values in LocalPT"}))
-          commonFunctions:userPrint(35, "ExpectedLocalPtValues")
-          for _, values in pairs(expectedLocalPtValues) do
-            TestData:store(values)
-            print(values)
-          end
-          TestData:store("ActualLocalPtValues")
-          commonFunctions:userPrint(35, "ActualLocalPtValues")
-          for _, values in pairs(actualLocalPtValues) do
-            TestData:store(values)
-            print(values)
-          end
-          isTestPass = false
+function Test.checkLocalPT(checkTable)
+  local expectedLocalPtValues
+  local queryString
+  local actualLocalPtValues
+  local comparationResult
+  local isTestPass = true
+  for _, check in pairs(checkTable) do
+    expectedLocalPtValues = check.expectedValues
+    queryString = check.query
+    actualLocalPtValues = executeSqliteQuery(queryString, constructPathToDatabase())
+    if actualLocalPtValues then
+      comparationResult = isValuesCorrect(actualLocalPtValues, expectedLocalPtValues)
+      if not comparationResult then
+        TestData:store(table.concat({"Test ", queryString, " failed: SDL has wrong values in LocalPT"}))
+        TestData:store("ExpectedLocalPtValues")
+        commonFunctions:userPrint(31, table.concat({"Test ", queryString, " failed: SDL has wrong values in LocalPT"}))
+        commonFunctions:userPrint(35, "ExpectedLocalPtValues")
+        for _, values in pairs(expectedLocalPtValues) do
+          TestData:store(values)
+          print(values)
         end
-      else
-        TestData:store("Test failed: Can't get data from LocalPT")
-        commonFunctions:userPrint(31, "Test failed: Can't get data from LocalPT")
+        TestData:store("ActualLocalPtValues")
+        commonFunctions:userPrint(35, "ActualLocalPtValues")
+        for _, values in pairs(actualLocalPtValues) do
+          TestData:store(values)
+          print(values)
+        end
         isTestPass = false
       end
+    else
+      TestData:store("Test failed: Can't get data from LocalPT")
+      commonFunctions:userPrint(31, "Test failed: Can't get data from LocalPT")
+      isTestPass = false
     end
-    return isTestPass
   end
+  return isTestPass
+end
 
-  -- local function prepareJsonPTU(name, newPTUfile)
-  --   local json_app = [[ {
-  --     "keep_context": false,
-  --     "steal_focus": false,
-  --     "priority": "NONE",
-  --     "default_hmi": "NONE",
-  --     "groups": [
-  --     "Location-1"
-  --     ],
-  --     "RequestType":[
-  --     "TRAFFIC_MESSAGE_CHANNEL",
-  --     "PROPRIETARY",
-  --     "HTTP",
-  --     "QUERY_APPS"
-  --     ]
-  --   }]]
-  --   local app = json.decode(json_app)
-  --   -- ToDo (aderiabin): This function must be replaced by call
-  --   -- testCasesForPolicyTable:AddApplicationToPTJsonFile(basePtuFile, newPTUfile, name, app)
-  --   -- after merge of pull request #227
-  --   addApplicationToPTJsonFile(basePtuFile, newPTUfile, name, app)
-  -- end
+-- local function prepareJsonPTU(name, newPTUfile)
+-- local json_app = [[ {
+-- "keep_context": false,
+-- "steal_focus": false,
+-- "priority": "NONE",
+-- "default_hmi": "NONE",
+-- "groups": [
+-- "Location-1"
+-- ],
+-- "RequestType":[
+-- "TRAFFIC_MESSAGE_CHANNEL",
+-- "PROPRIETARY",
+-- "HTTP",
+-- "QUERY_APPS"
+-- ]
+-- }]]
+-- local app = json.decode(json_app)
+-- -- ToDo (aderiabin): This function must be replaced by call
+-- -- testCasesForPolicyTable:AddApplicationToPTJsonFile(basePtuFile, newPTUfile, name, app)
+-- -- after merge of pull request #227
+-- addApplicationToPTJsonFile(basePtuFile, newPTUfile, name, app)
+-- end
 
-  function Test.backupPreloadedPT(backupPrefix)
-    os.execute(table.concat({"cp ", config.pathToSDL, PRELOADED_PT_FILE_NAME, " ", config.pathToSDL, backupPrefix, PRELOADED_PT_FILE_NAME}))
-  end
+function Test.backupPreloadedPT(backupPrefix)
+  os.execute(table.concat({"cp ", config.pathToSDL, PRELOADED_PT_FILE_NAME, " ", config.pathToSDL, backupPrefix, PRELOADED_PT_FILE_NAME}))
+end
 
-  function Test.restorePreloadedPT(backupPrefix)
-    os.execute(table.concat({"mv ", config.pathToSDL, backupPrefix, PRELOADED_PT_FILE_NAME, " ", config.pathToSDL, PRELOADED_PT_FILE_NAME}))
-  end
+function Test.restorePreloadedPT(backupPrefix)
+  os.execute(table.concat({"mv ", config.pathToSDL, backupPrefix, PRELOADED_PT_FILE_NAME, " ", config.pathToSDL, PRELOADED_PT_FILE_NAME}))
+end
 
-  local function updateJSON(pathToFile, updaters)
-    local file = io.open(pathToFile, "r")
-    local json_data = file:read("*a")
+local function updateJSON(pathToFile, updaters)
+  local file = io.open(pathToFile, "r")
+  local json_data = file:read("*a")
+  file:close()
+
+  local data = json.decode(json_data)
+  if data then
+    for _, updateFunc in pairs(updaters) do
+      updateFunc(data)
+    end
+    -- Workaround. null value in lua table == not existing value. But in json file it has to be
+    data.policy_table.functional_groupings["DataConsent-2"].rpcs = "tobedeletedinjsonfile"
+    local dataToWrite = json.encode(data)
+    dataToWrite = string.gsub(dataToWrite, "\"tobedeletedinjsonfile\"", "null")
+    file = io.open(pathToFile, "w")
+    file:write(dataToWrite)
     file:close()
+  end
 
-    local data = json.decode(json_data)
-    if data then
-      for _, updateFunc in pairs(updaters) do
-        updateFunc(data)
-      end
-      -- Workaround. null value in lua table == not existing value. But in json file it has to be
-      data.policy_table.functional_groupings["DataConsent-2"].rpcs = "tobedeletedinjsonfile"
-      local dataToWrite = json.encode(data)
-      dataToWrite = string.gsub(dataToWrite, "\"tobedeletedinjsonfile\"", "null")
-      file = io.open(pathToFile, "w")
-      file:write(dataToWrite)
-      file:close()
+end
+
+function Test.preparePreloadedPT()
+  local preloadedUpdaters = {
+    function(data)
+      data.policy_table.module_config.exchange_after_x_ignition_cycles = TESTED_DATA.preloaded.policy_table.module_config.exchange_after_x_ignition_cycles
     end
+  }
+  updateJSON(config.pathToSDL .. PRELOADED_PT_FILE_NAME, preloadedUpdaters)
+end
 
-  end
-
-  function Test.preparePreloadedPT()
-    local preloadedUpdaters = {
-      function(data)
-        data.policy_table.module_config.exchange_after_x_ignition_cycles = TESTED_DATA.preloaded.policy_table.module_config.exchange_after_x_ignition_cycles
-      end
-    }
-    updateJSON(config.pathToSDL .. PRELOADED_PT_FILE_NAME, preloadedUpdaters)
-  end
-
-  function Test.preparePTUpdate()
-    local PTUpdaters = {
-      function(data)
-        data.policy_table.module_config.exchange_after_x_ignition_cycles = TESTED_DATA.update.policy_table.module_config.exchange_after_x_ignition_cycles
-      end
-    }
-    updateJSON(ptuAppRegistered, PTUpdaters)
-  end
+function Test.preparePTUpdate()
+  local PTUpdaters = {
+    function(data)
+      data.policy_table.module_config.exchange_after_x_ignition_cycles = TESTED_DATA.update.policy_table.module_config.exchange_after_x_ignition_cycles
+    end
+  }
+  updateJSON(ptuAppRegistered, PTUpdaters)
+end
 
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
 
 function Test:Precondition_ActivateAppInFULL()
   HMIAppId = self.applications[config.application1.registerAppInterfaceParams.appName]
-    activateAppInSpecificLevel(self,HMIAppId,"FULL")
-    TestData:store("Store LocalPT before PTU", constructPathToDatabase(), "beforePTU_policy.sqlite" )
-  end
+  activateAppInSpecificLevel(self,HMIAppId,"FULL")
+  TestData:store("Store LocalPT before PTU", constructPathToDatabase(), "beforePTU_policy.sqlite" )
+end
 
- --[[ Test ]]
+--[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
 function Test:UpdatePolicy_ExpectOnAppPermissionChangedWithAppID()
-    -- ToDo (aderiabin): This function must be replaced by call
-    -- testCasesForPolicyTable:updatePolicyInDifferentSessions(Test, ptuAppRegistered,
-    -- config.application1.registerAppInterfaceParams.appName,
-    -- self.mobileSession)
-    -- after merge of pull request #227
+  -- ToDo (aderiabin): This function must be replaced by call
+  -- testCasesForPolicyTable:updatePolicyInDifferentSessions(Test, ptuAppRegistered,
+  -- config.application1.registerAppInterfaceParams.appName,
+  -- self.mobileSession)
+  -- after merge of pull request #227
   self:updatePolicyInDifferentSessions(ptuAppRegistered,
     config.application1.registerAppInterfaceParams.appName,
     self.mobileSession)
 end
 
-  function Test:TestStep_CheckSDLLogError()
+function Test:TestStep_CheckSDLLogError()
+  local is_test_fail = false
+
   local result = testCasesForPolicySDLErrorsStops.ReadSpecificMessage("policy_table.policy_table.module_config.notifications_per_minute_by_priority.EMERGENCY: value initialized incorrectly")
-  local result1 = testCasesForPolicySDLErrorsStops.ReadSpecificMessage("policy_table.policy_table.module_config.exchange_after_x_ignition_cycles: value initialized incorrectly")
-  if (result == false or result1 == false) then
-    self:FailTestCase("Error: message 'policy_table.policy_table.module_config.certificate: value initialized incorrectly.' is not observed in smartDeviceLink.log.")
+  if(result == false) then
+    commonFunctions:printError("Error: message 'policy_table.policy_table.module_config.notifications_per_minute_by_priority.EMERGENCY: value initialized incorrectly' is not observed in smartDeviceLink.log.")
+    is_test_fail = true
+  end
+  result = testCasesForPolicySDLErrorsStops.ReadSpecificMessage("policy_table.policy_table.module_config.exchange_after_x_ignition_cycles: value initialized incorrectly")
+  if(result == false) then
+    commonFunctions.printError("Error: message 'policy_table.policy_table.module_config.exchange_after_x_ignition_cycles: value initialized incorrectly' is not observed in smartDeviceLink.log.")
+  end
+
+  if(is_test_fail == true) then
+    self:FailTestCase("Test is FAILED. See prints.")
   end
 end
 
