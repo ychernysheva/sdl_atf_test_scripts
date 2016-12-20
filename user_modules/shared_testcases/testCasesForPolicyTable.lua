@@ -9,7 +9,6 @@ local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local testCasesForPolicyTableSnapshot = require('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
-local json = require('json')
 
 --Policy template
 local PolicyTableTemplate = "user_modules/shared_testcases/PolicyTables/DefaultPolicyTableWith_group1.json"
@@ -31,7 +30,6 @@ local defaultFunctionGroupName = "group1"
 --2. createPolicyTable
 --2b. createPolicyTableFile
 --3. updatePolicy
---3a.updatePolicyInDifferentSessions
 --4. userConsent
 --5. updatePolicyAndAllowFunctionGroup
 --6. flow_SUCCEESS_EXTERNAL_PROPRIETARY
@@ -392,100 +390,6 @@ function testCasesForPolicyTable:updatePolicy(PTName, iappID)
           end)
 
     end
-end
-
---! @brief Update Policy with specific session
---! @param PTName - file ptu
---! @param appName - name for registered app 
---! @param mobile_session - session with registered app
-function testCasesForPolicyTable:updatePolicyInDifferentSessions(self, PTName, appName, mobile_session)   
-
-    iappID = self.applications[appName]
-    --hmi side: sending SDL.GetURLS request
-    local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
-
-    --hmi side: expect SDL.GetURLS response from HMI
-    EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
-    :Do(function(_,_)
-        --hmi side: sending BasicCommunication.OnSystemRequest request to SDL
-        self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",
-          {
-            requestType = "PROPRIETARY",
-            fileName = "filename",
-          }
-        )
-        --mobile side: expect OnSystemRequest notification
-
-        mobile_session:ExpectNotification("OnSystemRequest", { requestType = "PROPRIETARY" })
-        :Do(function(_,_)
-            --mobile side: sending SystemRequest request
-            local CorIdSystemRequest = mobile_session:SendRPC("SystemRequest",
-              {
-                fileName = "PolicyTableUpdate",
-                requestType = "PROPRIETARY",
-                appID = iappID
-              },
-              PTName)
-
-            local systemRequestId
-            --hmi side: expect SystemRequest request
-            EXPECT_HMICALL("BasicCommunication.SystemRequest")
-            :Do(function(_,_data1)
-                systemRequestId = _data1.id
-                --print("BasicCommunication.SystemRequest is received")
-
-                --hmi side: sending BasicCommunication.OnSystemRequest request to SDL
-                self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate",
-                  {
-                    policyfile = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate"
-                  }
-                )
-                local function to_run()
-                  --hmi side: sending SystemRequest response
-                  self.hmiConnection:SendResponse(systemRequestId,"BasicCommunication.SystemRequest", "SUCCESS", {})
-                end
-
-                RUN_AFTER(to_run, 500)
-              end)
-
-            --hmi side: expect SDL.OnStatusUpdate
-            EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate")
-            :ValidIf(function(exp,data)
-                if
-                exp.occurences == 1  and
-                  (data.params.status == "UP_TO_DATE" or data.params.status == "UPDATING" 
-                    or data.params.status == "UPDATE_NEEDED") then
-                  return true
-                  elseif
-                    exp.occurences == 2 and
-                    data.params.status == "UP_TO_DATE" then
-                      return true
-                    else
-                      if
-                      exp.occurences == 2 then
-                        -- print ("\27[31m SDL.OnStatusUpdate came with wrong values. Expected in first occurrences status 'UP_TO_DATE' or 'UPDATING', got '" .. tostring(data.params.status) .. "' \27[0m")
-                      -- elseif exp.occurences == 2 then
-                      print ("\27[31m SDL.OnStatusUpdate came with wrong values. Expected in second occurrences status 'UP_TO_DATE', got '" .. tostring(data.params.status) .. "' \27[0m")
-                      
-                      return false
-                    end
-                    end
-                  end)
-                :Times(Between(1,2))
-
-                --mobile side: expect SystemRequest response
-                mobile_session:ExpectResponse(CorIdSystemRequest, { success = true, resultCode = "SUCCESS"})
-                :Do(function(_,_)
-                    --hmi side: sending SDL.GetUserFriendlyMessage request to SDL
-                    local RequestIdGetUserFriendlyMessage = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"StatusUpToDate"}})
-
-                    --hmi side: expect SDL.GetUserFriendlyMessage response                    
-                    EXPECT_HMIRESPONSE(RequestIdGetUserFriendlyMessage,{result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
-                  end)
-
-              end)
-          end)
-    
 end
 
     --Precondition: update policy with specified policy file on Genivi
@@ -1075,32 +979,5 @@ function testCasesForPolicyTable:trigger_PTU_user_press_button_HMI(self, execute
     self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
   end)
 end
-
---! @brief Add specific application to policy file
---! @param basic_file - basic json file which include all nessesary params. E.g. can be used files/json.lua
---! @param new_pt_file - file which will include new application
---! @param app_name - appID
---! @param app_ - parameters for appID
-function testCasesForPolicyTable:AddApplicationToPTJsonFile(basic_file, new_pt_file, app_name, app_)
-  local pt = io.open(basic_file, "r")
-    if pt == nil then
-      error("PTU file not found")
-    end
-  pt_string = pt:read("*all")
-  pt:close()
-
-  local pt_table = json.decode(pt_string)
-  pt_table["policy_table"]["app_policies"][app_name] = app_
-  -- Workaround. null value in lua table == not existing value. But in json file it has to be
-  pt_table["policy_table"]["functional_groupings"]["DataConsent-2"]["rpcs"] = "tobedeletedinjsonfile"
-  pt_json = json.encode(pt_table)
-
-  pt_json = string.gsub(pt_json, "\"tobedeletedinjsonfile\"", "null")
-  new_ptu = io.open(new_pt_file, "w")
-  
-  new_ptu:write(pt_json)
-  new_ptu:close()
-end
-
 
 return testCasesForPolicyTable
