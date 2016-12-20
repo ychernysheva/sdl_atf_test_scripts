@@ -533,20 +533,33 @@ end
 --! @brief Activate application with specific hmi level
 --! @param HMIAppID - app ID
 --! @param hmi_level - level for activation
+<<<<<<< HEAD
 function commonSteps:ActivateAppInSpecificLevel(test, HMIAppID)
 	  local RequestId = test.hmiConnection:SendRequest("SDL.ActivateApp", {appID = HMIAppID})
+=======
+function commonSteps:ActivateAppInSpecificLevel(self, HMIAppID, hmi_level)
+	  local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = HMIAppID, level = hmi_level})
+>>>>>>> origin/feature/external_proprietary_policy
 
 	  --hmi side: expect SDL.ActivateApp response
 	  EXPECT_HMIRESPONSE(RequestId)
 	  :Do(function(_,data)
+<<<<<<< HEAD
 	  	--In case when app is not allowed, it is needed to allow app
 	    if data.result.isSDLAllowed ~= true then
 	    --hmi side: sending SDL.GetUserFriendlyMessage request
 	      RequestId = test.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage",
+=======
+	  --In case when app is not allowed, it is needed to allow app
+	    if data.result.isSDLAllowed ~= true then
+	    --hmi side: sending SDL.GetUserFriendlyMessage request
+	      RequestId = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage",
+>>>>>>> origin/feature/external_proprietary_policy
 	      {language = "EN-US", messageCodes = {"DataConsent"}})
 
 	      EXPECT_HMIRESPONSE(RequestId)
 	      :Do(function(_,_)
+<<<<<<< HEAD
 	      	--hmi side: send request SDL.OnAllowSDLFunctionality
 	      	test.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality",
 	      		{allowed = true, source = "GUI", device = {id = config.deviceMAC, name = "127.0.0.1"}})
@@ -560,5 +573,28 @@ function commonSteps:ActivateAppInSpecificLevel(test, HMIAppID)
 	    end
 	  end)
 end
+=======
+
+	      --hmi side: send request SDL.OnAllowSDLFunctionality
+	      self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality",
+	      {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = "127.0.0.1"}})
+
+	      --hmi side: expect BasicCommunication.ActivateApp request
+	      EXPECT_HMICALL("BasicCommunication.ActivateApp")
+	      :Do(function(_,data2)
+
+	        --hmi side: sending BasicCommunication.ActivateApp response
+	        self.hmiConnection:SendResponse(data2.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
+	        end)
+	        :Times(2)
+	    end)
+	      EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = hmi_level, systemContext = "MAIN" })
+	    end
+	  end)
+end
+
+
+return commonSteps
+>>>>>>> origin/feature/external_proprietary_policy
 
 return commonSteps

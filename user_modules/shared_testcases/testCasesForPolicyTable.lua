@@ -39,6 +39,7 @@ local defaultFunctionGroupName = "group1"
 --8. trigger_getting_device_consent
 --9. trigger_PTU_user_press_button_HMI
 --10. Delete_Policy_table_snapshot
+--11. AddApplicationToPTJsonFile
 ---------------------------------------------------------------------------------------------
 
 --Create new policy table from a template without APIName
@@ -400,7 +401,6 @@ end
 --! @param appName - name for registered app
 --! @param mobile_session - session with registered app
 function testCasesForPolicyTable:updatePolicyInDifferentSessions(self, PTName, appName, mobile_session)
-
     local iappID = self.applications[appName]
     --hmi side: sending SDL.GetURLS request
     local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
@@ -479,14 +479,12 @@ function testCasesForPolicyTable:updatePolicyInDifferentSessions(self, PTName, a
                 :Do(function(_,_)
                     --hmi side: sending SDL.GetUserFriendlyMessage request to SDL
                     local RequestIdGetUserFriendlyMessage = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"StatusUpToDate"}})
-
                     --hmi side: expect SDL.GetUserFriendlyMessage response
                     EXPECT_HMIRESPONSE(RequestIdGetUserFriendlyMessage,{result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
                   end)
 
               end)
           end)
-
 end
 
     --Precondition: update policy with specified policy file on Genivi
@@ -1105,6 +1103,7 @@ function testCasesForPolicyTable.Delete_Policy_table_snapshot()
   end
 end
 
+-----------------------------------------------------------------------------
 --! @brief Add specific application to policy file
 --! @param basic_file - basic json file which include all nessesary params. E.g. can be used files/json.lua
 --! @param new_pt_file - file which will include new application
@@ -1127,6 +1126,5 @@ function testCasesForPolicyTable:AddApplicationToPTJsonFile(basic_file, new_pt_f
   new_ptu:write(pt_json)
   new_ptu:close()
 end
-
 
 return testCasesForPolicyTable
