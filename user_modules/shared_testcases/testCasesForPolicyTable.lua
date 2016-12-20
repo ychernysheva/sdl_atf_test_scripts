@@ -398,10 +398,9 @@ end
 
 --! @brief Update Policy with specific session
 --! @param PTName - file ptu
---! @param appName - name for registered app 
+--! @param appName - name for registered app
 --! @param mobile_session - session with registered app
-function testCasesForPolicyTable:updatePolicyInDifferentSessions(self, PTName, appName, mobile_session)   
-
+function testCasesForPolicyTable:updatePolicyInDifferentSessions(self, PTName, appName, mobile_session)
     local iappID = self.applications[appName]
     --hmi side: sending SDL.GetURLS request
     local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
@@ -455,7 +454,7 @@ function testCasesForPolicyTable:updatePolicyInDifferentSessions(self, PTName, a
             :ValidIf(function(exp,data)
                 if
                 exp.occurences == 1  and
-                  (data.params.status == "UP_TO_DATE" or data.params.status == "UPDATING" 
+                  (data.params.status == "UP_TO_DATE" or data.params.status == "UPDATING"
                     or data.params.status == "UPDATE_NEEDED") then
                   return true
                   elseif
@@ -468,7 +467,6 @@ function testCasesForPolicyTable:updatePolicyInDifferentSessions(self, PTName, a
                         -- print ("\27[31m SDL.OnStatusUpdate came with wrong values. Expected in first occurrences status 'UP_TO_DATE' or 'UPDATING', got '" .. tostring(data.params.status) .. "' \27[0m")
                       -- elseif exp.occurences == 2 then
                       print ("\27[31m SDL.OnStatusUpdate came with wrong values. Expected in second occurrences status 'UP_TO_DATE', got '" .. tostring(data.params.status) .. "' \27[0m")
-                      
                       return false
                     end
                     end
@@ -480,14 +478,12 @@ function testCasesForPolicyTable:updatePolicyInDifferentSessions(self, PTName, a
                 :Do(function(_,_)
                     --hmi side: sending SDL.GetUserFriendlyMessage request to SDL
                     local RequestIdGetUserFriendlyMessage = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"StatusUpToDate"}})
-
-                    --hmi side: expect SDL.GetUserFriendlyMessage response                    
+                    --hmi side: expect SDL.GetUserFriendlyMessage response
                     EXPECT_HMIRESPONSE(RequestIdGetUserFriendlyMessage,{result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
                   end)
 
               end)
           end)
-    
 end
 
     --Precondition: update policy with specified policy file on Genivi
@@ -1105,8 +1101,7 @@ function testCasesForPolicyTable.Delete_Policy_table_snapshot()
     print("/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json does not exist")
   end
 end
-                                            
------------------------------------------------------------------------------                                          
+-----------------------------------------------------------------------------
 --! @brief Add specific application to policy file
 --! @param basic_file - basic json file which include all nessesary params. E.g. can be used files/json.lua
 --! @param new_pt_file - file which will include new application
@@ -1122,15 +1117,12 @@ function testCasesForPolicyTable:AddApplicationToPTJsonFile(basic_file, new_pt_f
 
   local pt_table = json.decode(pt_string)
   pt_table["policy_table"]["app_policies"][app_name] = app_
-  -- Workaround. null value in lua table == not existing value. But in json file it has to be
-  pt_table["policy_table"]["functional_groupings"]["DataConsent-2"]["rpcs"] = "tobedeletedinjsonfile"
+  pt_table["policy_table"]["functional_groupings"]["DataConsent-2"]["rpcs"] =  json.null
   pt_json = json.encode(pt_table)
-
-  local pt_json = string.gsub(pt_json, "\"tobedeletedinjsonfile\"", "null")
   local new_ptu = io.open(new_pt_file, "w")
-  
+
   new_ptu:write(pt_json)
   new_ptu:close()
-end       
-                                            
+end
+
 return testCasesForPolicyTable
