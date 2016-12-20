@@ -28,164 +28,122 @@
 -- Expected result:
 -- Timeouts correspond to 'timeout_after_x_seconds' and 'seconds_between_retries' params
 ---------------------------------------------------------------------------------------------
+
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 
 --[[ Required Shared libraries ]]
-local mobileSession = require("mobile_session")
-local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
-local commonSteps = require("user_modules/shared_testcases/commonSteps")
-
---[[ Local Variables ]]
-local policy_file_path = commonFunctions:read_parameter_from_smart_device_link_ini("SystemFilesPath")
-local policy_file_name = "PolicyTableUpdate"
-local ptu_file = "files/jsons/Policies/build_options/ptu_18243.json"
-local sequence = { }
-local accuracy = 2
-local r_expected = { 1, 30, 45, 71, 101 }
-local r_actual = { }
-
---[[ Local Functions ]]
-local function timestamp()
-  local f = io.popen("date +%H:%M:%S.%3N")
-  local o = f:read("*all")
-  f:close()
-  o = o:gsub("\n", "")
-  return o
-end
-
-local function log(e, p)
-  print("Logging")
-  table.insert(sequence, { ts = os.time(), event = e, timeout = p, ts2 = timestamp() })
-end
-
-local function get_min(v, a)
-  if v - a < 0 then return 1 end
-  return v - a
-end
-
-local function get_max(v, a)
-  return v + a
-end
+local commonSteps = require('user_modules/shared_testcases/commonSteps')
+local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
+local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
+local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
+local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
-
---ToDo: Should be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
+testCasesForPolicyTable:Precondition_updatePolicy_By_overwriting_preloaded_pt("files/jsons/Policies/build_options/retry_seq.json")
+commonPreconditions:Connecttest_without_ExitBySDLDisconnect_WithoutOpenConnectionRegisterApp("connecttest_ConnectMobile.lua")
+--TODO: Should be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
 config.defaultProtocolVersion = 2
 
---[[ General Settings for configuration ]]
-Test = require("connecttest")
-require('cardinalities')
-require("user_modules/AppTypes")
+--[[ Local variables ]]
+local time_system_request_prev = 0
+local time_system_request_curr = 0
 
---[[ Specific Notifications ]]
-EXPECT_HMICALL("BasicCommunication.OnSystemRequest")
-:Do(function(_, d)
-    log("SDL->HMI: BC.OnSystemRequest", d.params.timeout)
-  end)
-:Times(AnyNumber())
-:Pin()
+--[[ General Settings for configuration ]]
+Test = require('user_modules/connecttest_ConnectMobile')
+require('cardinalities')
+require('user_modules/AppTypes')
+local mobile_session = require('mobile_session')
 
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
 
-function Test:Precondition_Successful_PTU()
-  local requestId = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
-  EXPECT_HMIRESPONSE(requestId)
-  :Do(function(_, _)
-      self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest", { requestType = "HTTP", fileName = policy_file_name })
-      EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "HTTP" })
-      :Do(function(_, _)
-          local corIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", { requestType = "HTTP", fileName = policy_file_name }, ptu_file)
-          EXPECT_HMICALL("BasicCommunication.SystemRequest")
-          :Do(function(_, data)
-              self.hmiConnection:SendResponse(data.id, "BasicCommunication.SystemRequest", "SUCCESS", { })
-              self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate", { policyfile = policy_file_path .. "/" .. policy_file_name })
-            end)
-          EXPECT_RESPONSE(corIdSystemRequest, { success = true, resultCode = "SUCCESS" })
-          :Do(function(_, _)
-              requestId = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = { "StatusUpToDate" }})
-              EXPECT_HMIRESPONSE(requestId)
-            end)
-        end)
-    end)
+function Test:Precondition_Connect_device()
+  self:connectMobile()
+end
+
+function Test:Precondition_StartSession()
+  self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
+  self.mobileSession:StartService(7)
 end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
-function Test:TestStep_StartNewMobileSession()
-  self.mobileSession2 = mobileSession.MobileSession(self, self.mobileConnection)
-  self.mobileSession2:StartService(7)
+function Test:TestStep_OnStatusUpdate_UPDATE_NEEDED_new_PTU_request()
+  local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
+
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", {application = { appName = config.application1.registerAppInterfaceParams.appName } })
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",
+    { status = "UPDATE_NEEDED" }, {status = "UPDATING"}):Times(2)
+  EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "HTTP"})
+  :Do(function()
+    time_system_request_prev = timestamp()
+  end)
+
+  self.mobileSession:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS" })
+  self.mobileSession:ExpectNotification("OnHMIStatus", {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
 end
 
-function Test:TestStep_RegisterNewApp()
-  EXPECT_HMICALL("BasicCommunication.UpdateAppList")
-  :Do(function(_, d)
-      self.hmiConnection:SendResponse(d.id, d.method, "SUCCESS", { })
-      self.applications = { }
-      for _, app in pairs(d.params.applications) do
-        self.applications[app.appName] = app.appID
-      end
-    end)
-  local corId = self.mobileSession2:SendRPC("RegisterAppInterface", config.application2.registerAppInterfaceParams)
-  self.mobileSession2:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
-end
+--[[ Test ]]
+commonFunctions:newTestCasesGroup("Test")
 
-function Test:TestStep_Second_PTU()
-  local requestId = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
-  EXPECT_HMIRESPONSE(requestId)
-  :Do(function(_, _)
-      self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest", { requestType = "HTTP", fileName = policy_file_name })
-      EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "HTTP"})
-      :Do(function(_, _)
-          local corIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", { requestType = "HTTP", fileName = policy_file_name }, ptu_file)
-          EXPECT_RESPONSE(corIdSystemRequest, { success = false, resultCode = "GENERIC_ERROR" })
-        end)
-    end)
-end
+function Test:TestStep_Retry_Timeout_Expiration()
+  local is_test_fail = false
+  local timeout_after_x_seconds = 30
+  local time_wait = {}
+  local sec_btw_ret = {1, 2, 3, 4, 5}
+  local total_time
 
-Test["TestStep_Starting waiting cycle [" .. 55 * 5 .. "] sec"] = function() end
+  time_wait[1] = timeout_after_x_seconds
+  time_wait[2] = sec_btw_ret[1] + timeout_after_x_seconds
+  time_wait[3] = sec_btw_ret[1] + sec_btw_ret[2] + timeout_after_x_seconds
+  time_wait[4] = sec_btw_ret[2] + sec_btw_ret[3] + timeout_after_x_seconds
+  time_wait[5] = sec_btw_ret[3] + sec_btw_ret[4] + timeout_after_x_seconds
+  time_wait[6] = sec_btw_ret[4] + sec_btw_ret[5] + timeout_after_x_seconds
+  total_time = (time_wait[1] + time_wait[2] + time_wait[3] + time_wait[4] + time_wait[5] + time_wait[6])*1000
 
-for i = 1, 3 do
-  Test["Waiting " .. i * 5 .. " sec"] = function()
-    os.execute("sleep 5")
-  end
-end
+  local function verify_retry_sequence(occurences)
+    local time_1 = time_system_request_curr
+    local time_2 = time_system_request_prev
+    local timeout = (time_1 - time_2)
 
-function Test.TestStep_ShowSequence()
-  print("--- Sequence -------------------------------------")
-  for k, v in pairs(sequence) do
-    print(k .. ": " .. v.ts2 .. ": " .. v.ts .. ": " .. v.event .. ": " .. v.timeout)
-  end
-  print("--------------------------------------------------")
-end
-
-function Test.TestStep_ShowTimeouts()
-  print("--- Timeouts -------------------------------------")
-  for i = 2, #sequence do
-    local t = sequence[i].ts - sequence[i - 1].ts
-    r_actual[i - 1] = t
-    print(i - 1 .. ": " .. t)
-  end
-  print("--------------------------------------------------")
-end
-
-function Test:TestStep_ValidateResult()
-  for i = 1, 5 do
-    print("r_actual ", r_actual[i])
-    print("r_expected ", r_expected[i])
-    if (r_actual[i] < get_min(r_expected[i], accuracy))
-    or (r_actual[i] > get_max(r_expected[i], accuracy))
-    then
-      self:FailTestCase("Expected timeout: " .. r_expected[i] .. ", got: " .. r_actual[i])
+    if (time_wait[occurences] == nil) then
+      time_wait[occurences]  = time_wait[6]
+      commonFunctions:printError("ERROR: OnSystemRequest is received more than expected.")
+      is_test_fail = true
     end
+
+    if( ( timeout > (time_wait[occurences]*1000 + 2000) ) or ( timeout < (time_wait[occurences]*1000 - 2000) )) then
+      is_test_fail = true
+      commonFunctions:printError("ERROR: timeout for retry sequence "..occurences.." is not as expected: "..(time_wait[occurences]*1000).."msec(2sec tolerance). real: "..timeout.."ms")
+    else
+      print("timeout is as expected for retry sequence "..occurences..": "..(time_wait[occurences]*1000).."ms. real: "..timeout)
+    end
+    return true
+  end
+
+  if(time_wait == 0) then time_wait = 63000 end
+
+  EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "HTTP", fileType = "JSON"}):Timeout(total_time+60000):Times(5)
+  :Do(function(exp)
+    if(time_system_request_curr ~= 0) then
+      time_system_request_prev = time_system_request_curr
+    end
+    time_system_request_curr = timestamp()
+    verify_retry_sequence(exp.occurences)
+  end)
+
+  commonTestCases:DelayedExp(total_time)
+  if(is_test_fail == true) then
+    self:FailTestCase("Test is FAILED. See prints.")
   end
 end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
+
 function Test.Postcondition_Stop_SDL()
   StopSDL()
 end
