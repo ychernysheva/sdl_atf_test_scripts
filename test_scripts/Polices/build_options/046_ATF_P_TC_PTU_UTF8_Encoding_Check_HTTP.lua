@@ -1,8 +1,3 @@
---UNREADY: 
--- in  files/jsons/Policies/Policy_Table_Update/ptu_22420.json 
--- should be put json file from https://github.com/smartdevicelink/sdl_atf_test_scripts/pull/320/
--- functions in Test section not reviewed 
-
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
 -- [Policies]: UTF-8 encoding
@@ -28,13 +23,50 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 --[[ Required Shared libraries ]]
 local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
 local commonSteps = require("user_modules/shared_testcases/commonSteps")
+local json = require("modules/json")
 
 --[[ Local Variables ]]
 local db_file = config.pathToSDL .. "/" .. commonFunctions:read_parameter_from_smart_device_link_ini("AppStorageFolder") .. "/policy.sqlite"
 local policy_file_path = commonFunctions:read_parameter_from_smart_device_link_ini("SystemFilesPath")
-local ptu_file = "files/jsons/Policies/Policy_Table_Update/ptu_22420.json"
+local policy_file_name = "PolicyTableUpdate"
+local f_name = os.tmpname()
+local ptu
+local sequence = { }
 
 --[[ Local Functions ]]
+local function timestamp()
+  local f = io.popen("date +%H:%M:%S.%3N")
+  local o = f:read("*all")
+  f:close()
+  return (o:gsub("\n", ""))
+end
+
+local function log(event, ...)
+  table.insert(sequence, { ts = timestamp(), e = event, p = {...} })
+end
+
+local function show_log()
+  print("--- Sequence -------------------------------------")
+  for k, v in pairs(sequence) do
+    local s = k .. ": " .. v.ts .. ": " .. v.e
+    for _, val in pairs(v.p) do
+      if val then s = s .. ": " .. val end
+    end
+    print(s)
+  end
+  print("--------------------------------------------------")
+end
+
+local function check_file_exists(name)
+  local f = io.open(name, "r")
+  if f ~= nil then
+    io.close(f)
+    return true
+  else
+    return false
+  end
+end
+
 local function is_table_equal(t1, t2)
   local ty1 = type(t1)
   local ty2 = type(t2)
@@ -69,6 +101,7 @@ local function execute_sqlite_query(file_db, query)
 end
 
 --[[ General Precondition before ATF start ]]
+commonFunctions:SDLForceStop()
 commonSteps:DeleteLogsFileAndPolicyTable()
 
 --ToDo: Should be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
@@ -79,78 +112,98 @@ Test = require("connecttest")
 require('cardinalities')
 require("user_modules/AppTypes")
 
+--[[ Specific Notifications ]]
+function Test:RegisterNotification()
+  self.mobileSession:ExpectNotification("OnSystemRequest")
+  :Do(function(_, d)
+      ptu = json.decode(d.binaryData)
+    end)
+  :Times(AtLeast(1))
+  :Pin()
+end
+
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
 
-function Test.Precondition_DeleteSnapshot()
-  os.remove(policy_file_path .. "/sdl_snapshot.json")
+function Test.DeletePTUFile()
+  if check_file_exists(policy_file_path .. "/" .. policy_file_name) then
+    os.remove(policy_file_path .. "/" .. policy_file_name)
+    print("Policy file is removed")
+  end
 end
 
-function Test:Precondition_ActivateApp()
-  local requestId1 = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.applications["Test Application"] })
-  EXPECT_HMIRESPONSE(requestId1)
-  :Do(function(_, data1)
-      if data1.result.isSDLAllowed ~= true then
-        local requestId2 = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage",
-          { language = "EN-US", messageCodes = { "DataConsent" } })
-        EXPECT_HMIRESPONSE(requestId2)
-        :Do(function(_, _)
-            self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality",
-              { allowed = true, source = "GUI", device = { id = config.deviceMAC, name = "127.0.0.1" } })
-            EXPECT_HMICALL("BasicCommunication.ActivateApp")
-            :Do(function(_, data2)
-                self.hmiConnection:SendResponse(data2.id,"BasicCommunication.ActivateApp", "SUCCESS", { })
-              end)
-            :Times(1)
-          end)
-      end
+function Test:ValidatePTS()
+  if ptu.policy_table.consumer_friendly_messages.messages then
+    self:FailTestCase("Expected absence of 'consumer_friendly_messages.messages' section in PTS")
+  end
+end
+
+function Test.UpdatePTS()
+  ptu.policy_table.device_data = nil
+  ptu.policy_table.usage_and_error_counts = nil
+  ptu.policy_table.app_policies["0000001"] = { keep_context = false, steal_focus = false, priority = "NONE", default_hmi = "NONE" }
+  ptu.policy_table.app_policies["0000001"]["groups"] = { "Base-4", "Base-6" }
+  ptu.policy_table.functional_groupings["DataConsent-2"].rpcs = json.null
+  -- updating specific parameters
+  ptu.policy_table.consumer_friendly_messages.messages = {
+    ["AppPermissions"] = { ["languages"] = { ["en-us"] = { }}},
+    ["AppPermissionsHelp"] = { ["languages"] = { ["en-us"] = { }}}}
+  ptu.policy_table.consumer_friendly_messages.messages["AppPermissions"]["languages"]["en-us"].tts = "表示您同意_1"
+  ptu.policy_table.consumer_friendly_messages.messages["AppPermissions"]["languages"]["en-us"].label = "Метка"
+  ptu.policy_table.consumer_friendly_messages.messages["AppPermissions"]["languages"]["en-us"].line1 = "LINE1"
+  ptu.policy_table.consumer_friendly_messages.messages["AppPermissions"]["languages"]["en-us"].line2 = "LINE2"
+  ptu.policy_table.consumer_friendly_messages.messages["AppPermissions"]["languages"]["en-us"].textBody = "TEXTBODY"
+  ptu.policy_table.consumer_friendly_messages.messages["AppPermissionsHelp"]["languages"]["en-us"].tts = "授權請求_2"
+end
+
+function Test.StorePTSInFile()
+  local f = io.open(f_name, "w")
+  f:write(json.encode(ptu))
+  f:close()
+end
+
+function Test:Precondition_Successful_PTU()
+  local corId = self.mobileSession:SendRPC("SystemRequest", { requestType = "HTTP", fileName = policy_file_name }, f_name)
+  log("MOB->SDL: SystemRequest")
+  EXPECT_RESPONSE(corId, { success = true, resultCode = "SUCCESS" })
+  :Do(function(_, _)
+      log("SUCCESS: SystemRequest")
     end)
 end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
-function Test:TestStep_PTU()
-  local policy_file_name = "PolicyTableUpdate"
-  local requestId = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
-  EXPECT_HMIRESPONSE(requestId)
-  :Do(function(_, _)
-      self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest", { requestType = "HTTP", fileName = policy_file_name })
-      EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "HTTP" })
-      :Do(function(_, _)
-          local corIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", { requestType = "HTTP", fileName = policy_file_name }, ptu_file)
-          EXPECT_HMICALL("BasicCommunication.SystemRequest")
-          :Do(function(_, data)
-              self.hmiConnection:SendResponse(data.id, "BasicCommunication.SystemRequest", "SUCCESS", { })
-              self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate", { policyfile = policy_file_path .. "/" .. policy_file_name })
-            end)
-          EXPECT_RESPONSE(corIdSystemRequest, { success = true, resultCode = "SUCCESS" })
-          :Do(function(_, _)
-              requestId = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", { language = "EN-US", messageCodes = { "StatusUpToDate" } })
-              EXPECT_HMIRESPONSE(requestId)
-            end)
-        end)
-    end)
+-- Wait when policy db is updated
+for i = 1, 1 do
+  Test["Waiting " .. i * 5 .. " sec"] = function()
+    os.execute("sleep 5")
+  end
 end
 
 function Test:TestStep_ValidateResult()
-  self.mobileSession:ExpectAny()
-  :ValidIf(function(_, _)
-      local r_expected = { "1|表示您同意_1|Метка|LINE1|LINE2|TEXTBODY|en-us|AppPermissions", "2|授權請求_2|||||en-us|AppPermissionsHelp" }
-      local query = "select id, tts, label, line1, line2, textBody, language_code, message_type_name from message"
-      local r_actual = execute_sqlite_query(db_file, query)
-      if not is_table_equal(r_expected, r_actual) then
-        return false, "\nExpected:\n" .. commonFunctions:convertTableToString(r_expected, 1) .. "\nActual:\n" .. commonFunctions:convertTableToString(r_actual, 1)
-      end
-      return true
-    end)
-  :Times(1)
+  local r_expected = { "1|表示您同意_1|Метка|LINE1|LINE2|TEXTBODY|en-us|AppPermissions", "2|授權請求_2|||||en-us|AppPermissionsHelp" }
+  local query = "select id, tts, label, line1, line2, textBody, language_code, message_type_name from message"
+  local r_actual = execute_sqlite_query(db_file, query)
+  if not is_table_equal(r_expected, r_actual) then
+    local msg = table.concat({
+        "\nExpected:\n", commonFunctions:convertTableToString(r_expected, 1),
+        "\nActual:\n", commonFunctions:convertTableToString(r_actual, 1)})
+    self:FailTestCase(msg)
+  end
+end
+
+function Test.Test_ShowSequence()
+  show_log()
 end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
+function Test.Clean()
+  -- os.remove(f_name)
+end
+
 function Test.Postcondition_Stop_SDL()
   StopSDL()
 end
-
 return Test
