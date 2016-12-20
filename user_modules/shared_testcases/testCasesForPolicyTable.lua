@@ -1125,4 +1125,15 @@ function testCasesForPolicyTable:AddApplicationToPTJsonFile(basic_file, new_pt_f
   new_ptu:close()
 end
 
+----------------------------------------------------------------------------------------------------------------------------
+-- The function is used only in case when PTU HTTP should have as result: UP_TO_DATE
+-- The funcion will be used when PTU is triggered.
+-- 1. It is assumed that notification is recevied: EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status="UPDATE_NEEDED"})
+-- 2. It is assumed that notification is recevied: EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "HTTP"})
+-- 3. It is assumed that notification is recevied: EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status="UPDATING"})
+function testCasesForPolicyTable:flow_PTU_SUCCEESS_HTTP (self)
+  commonFunctions:check_ptu_sequence_partly(self, "files/ptu.json", "PolicyTableUpdate")
+end
+
+
 return testCasesForPolicyTable
