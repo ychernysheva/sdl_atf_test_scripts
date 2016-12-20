@@ -66,44 +66,46 @@ function Test:TestStep_PoliciesManager_changes_status_UPDATING()
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", {application = { appName = config.application1.registerAppInterfaceParams.appName } })
   :Do(function()
 
-    EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "HTTP"})
-    :Do(function()
-      if(message_order ~= 2) then
-        commonFunctions:printError("OnSystemRequest is not received as message 2 after OnAppRegistered. Received as message: "..message_order)
-        is_test_fail = true
-      else
-        print("OnSystemRequest received as message 2 after OnAppRegistered.")
+      EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "HTTP"})
+      :Do(function()
+          if(message_order ~= 2) then
+            commonFunctions:printError("OnSystemRequest is not received as message 2 after OnAppRegistered. Received as message: "..message_order)
+            is_test_fail = true
+          else
+            print("OnSystemRequest received as message 2 after OnAppRegistered.")
+          end
+          message_order = message_order + 1
+          local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", { requestType = "HTTP", fileName = "PolicyTableUpdate", },"files/ptu.json")
+          EXPECT_RESPONSE(CorIdSystemRequest, { success = true, resultCode = "SUCCESS"})
+        end)
+
+      EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",
+        { status = "UPDATE_NEEDED" }, {status = "UPDATING"}):Times(2)
+      :Do(function(_,data)
+          if(data.params.status == "UPDATE_NEEDED") then
+            if(message_order ~= 1) then
+              commonFunctions:printError("SDL.OnStatusUpdate(UPDATE_NEEDED) is not received as message 1 after OnAppRegistered. Received as message: "..message_order)
+              is_test_fail = true
+            else
+              print("SDL.OnStatusUpdate(UPDATING) received as message 1 after OnAppRegistered.")
+            end
+            message_order = message_order + 1
+          elseif(data.params.status == "UPDATING") then
+            if(message_order ~= 3) then
+              commonFunctions:printError("SDL.OnStatusUpdate(UPDATING) is not received as message 3 after OnAppRegistered. Received as message: "..message_order)
+              is_test_fail = true
+            else
+              print("SDL.OnStatusUpdate(UPDATING) received as message 3 after OnAppRegistered.")
+            end
+            message_order = message_order + 1
+          end
+        end)
+
+      if(is_test_fail == true) then
+        self:FailTestCase("Test is FAILED. See prints.")
       end
-      message_order = message_order + 1
+
     end)
-
-    EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",
-    { status = "UPDATE_NEEDED" }, {status = "UPDATING"}):Times(2)
-    :Do(function(_,data)
-      if(data.params.status == "UPDATE_NEEDED") then
-        if(message_order ~= 1) then
-          commonFunctions:printError("SDL.OnStatusUpdate(UPDATE_NEEDED) is not received as message 1 after OnAppRegistered. Received as message: "..message_order)
-          is_test_fail = true
-        else
-          print("SDL.OnStatusUpdate(UPDATING) received as message 1 after OnAppRegistered.")
-        end
-        message_order = message_order + 1
-      elseif(data.params.status == "UPDATING") then
-        if(message_order ~= 3) then
-          commonFunctions:printError("SDL.OnStatusUpdate(UPDATING) is not received as message 3 after OnAppRegistered. Received as message: "..message_order)
-          is_test_fail = true
-        else
-          print("SDL.OnStatusUpdate(UPDATING) received as message 3 after OnAppRegistered.")
-        end
-        message_order = message_order + 1
-      end
-    end)
-
-    if(is_test_fail == true) then
-      self:FailTestCase("Test is FAILED. See prints.")
-    end
-
-  end)
 end
 
 --[[ Postconditions ]]
