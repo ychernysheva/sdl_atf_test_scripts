@@ -108,7 +108,10 @@ local preloaded_pt_endpoints = {}
 -- testCasesForPTS.pts_elements – array of all elements in PTS.
 -- testCasesForPTS.pts_endpoints = {}
 -- testCasesForPTS.pts_seconds_between_retries = {}
-function testCasesForPolicyTableSnapshot:verify_PTS(is_created, app_IDs, device_IDs, app_names, to_print)
+-- flag: If is set to PROPRIETARY or HTTP will verify section SDL in DataDictionary
+-- in all other cases: (nil or EXTERNAL_PROPRIETARY) will check SDL + Ford DataDictionary
+function testCasesForPolicyTableSnapshot:verify_PTS(is_created, app_IDs, device_IDs, app_names, to_print, flag)
+  if ( flag == nil ) then flag = EXTERNAL_PROPRIETARY end
   local is_verification_passed = true
   preloaded_pt_endpoints = {}
   --local data_dictionary = {}
@@ -135,78 +138,94 @@ function testCasesForPolicyTableSnapshot:verify_PTS(is_created, app_IDs, device_
 
     { name = "consumer_friendly_messages.version", elem_required = "required"},
 
-    { name = "app_policies.default.keep_context", elem_required = "required"},
-    { name = "app_policies.default.steal_focus", elem_required = "required"},
     { name = "app_policies.default.priority", elem_required = "required"},
-    { name = "app_policies.default.default_hmi", elem_required = "required"},
     { name = "app_policies.default.memory_kb", elem_required = "optional"},
     { name = "app_policies.default.heart_beat_timeout_ms", elem_required = "optional"},
     { name = "app_policies.default.RequestType", elem_required = "optional"},
-
-    { name = "app_policies.pre_DataConsent.keep_context", elem_required = "required"},
-    { name = "app_policies.pre_DataConsent.steal_focus", elem_required = "required"},
     { name = "app_policies.pre_DataConsent.priority", elem_required = "required"},
-    { name = "app_policies.pre_DataConsent.default_hmi", elem_required = "required"},
     { name = "app_policies.pre_DataConsent.memory_kb", elem_required = "optional"},
     { name = "app_policies.pre_DataConsent.heart_beat_timeout_ms", elem_required = "optional"},
     { name = "app_policies.pre_DataConsent.RequestType", elem_required = "optional"},
   }
+
+  if(flag ~= "PROPRIETARY" and flag ~= "HTTP") then
+    table.insert(origin_data_dictionary,  { name = "app_policies.default.keep_context", elem_required = "required"} )
+    table.insert(origin_data_dictionary,  { name = "app_policies.default.steal_focus", elem_required = "required"} )
+    table.insert(origin_data_dictionary,  { name = "app_policies.default.default_hmi", elem_required = "required"} )
+    table.insert(origin_data_dictionary,  { name = "app_policies.pre_DataConsent.keep_context", elem_required = "required"} )
+    table.insert(origin_data_dictionary,  { name = "app_policies.pre_DataConsent.steal_focus", elem_required = "required"} )
+    table.insert(origin_data_dictionary,  { name = "app_policies.pre_DataConsent.default_hmi", elem_required = "required"} )
+  end
+  
   local data_dictionary = origin_data_dictionary
 
   local omitted_preloaded_original =
-  {
-    { name = "module_meta.ccpu_version", elem_required = "required"},
-    { name = "module_meta.language", elem_required = "required"},
-    { name = "module_meta.wers_country_code", elem_required = "required"},
+  { 
     { name = "module_meta.pt_exchanged_at_odometer_x", elem_required = "required"},
     { name = "module_meta.pt_exchanged_x_days_after_epoch", elem_required = "required"},
     { name = "module_meta.ignition_cycles_since_last_exchange", elem_required = "required"},
-    { name = "module_meta.vin", elem_required = "required"},
 
-    { name = "usage_and_error_counts.count_of_iap_buffer_full", elem_required = "required"},
-    { name = "usage_and_error_counts.count_sync_out_of_memory", elem_required = "required"},
-    { name = "usage_and_error_counts.count_of_sync_reboots", elem_required = "required"},
+    
 
     { name = "app_policies.device.time_stamp", elem_required = "optional"},
-    { name = "app_policies.device.keep_context", elem_required = "required"},
-    { name = "app_policies.device.steal_focus", elem_required = "required"},
+    
     { name = "app_policies.device.priority", elem_required = "required"},
-    { name = "app_policies.device.default_hmi", elem_required = "required"},
+    
   }
+
+  if(flag ~= "PROPRIETARY" and flag ~= "HTTP") then
+      table.insert(omitted_preloaded_original,  { name = "module_meta.ccpu_version", elem_required = "required"} )
+      table.insert(omitted_preloaded_original,  { name = "module_meta.language", elem_required = "required"} )
+      table.insert(omitted_preloaded_original,  { name = "module_meta.wers_country_code", elem_required = "required"} )
+      table.insert(omitted_preloaded_original,  { name = "module_meta.vin", elem_required = "required"} )
+      table.insert(omitted_preloaded_original,  { name = "app_policies.device.keep_context", elem_required = "required"} )
+      table.insert(omitted_preloaded_original,  { name = "app_policies.device.steal_focus", elem_required = "required"} )
+      table.insert(omitted_preloaded_original,  { name = "app_policies.device.default_hmi", elem_required = "required"} )
+      table.insert(omitted_preloaded_original,  { name = "usage_and_error_counts.count_of_iap_buffer_full", elem_required = "required"} )
+      table.insert(omitted_preloaded_original,  { name = "usage_and_error_counts.count_sync_out_of_memory", elem_required = "required"} )
+      table.insert(omitted_preloaded_original,  { name = "usage_and_error_counts.count_of_sync_reboots", elem_required = "required"} )
+  end
+
 
   if(app_IDs ~= nil) then
     for i = 1, #app_IDs do
-      omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "usage_and_error_counts.app_level."..app_IDs[i]..".minutes_in_hmi_full", elem_required = "required"}
-      omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "usage_and_error_counts.app_level."..app_IDs[i]..".app_registration_language_gui", elem_required = "required"}
-      omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "usage_and_error_counts.app_level."..app_IDs[i]..".app_registration_language_vui", elem_required = "required"}
-      omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "usage_and_error_counts.app_level."..app_IDs[i]..".minutes_in_hmi_limited", elem_required = "required"}
-      omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "usage_and_error_counts.app_level."..app_IDs[i]..".minutes_in_hmi_background", elem_required = "required"}
-      omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "usage_and_error_counts.app_level."..app_IDs[i]..".minutes_in_hmi_none", elem_required = "required"}
-      omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "usage_and_error_counts.app_level."..app_IDs[i]..".count_of_user_selections", elem_required = "required"}
-      omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "usage_and_error_counts.app_level."..app_IDs[i]..".count_of_rejections_sync_out_of_memory", elem_required = "required"}
-      omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "usage_and_error_counts.app_level."..app_IDs[i]..".count_of_rejections_nickname_mismatch", elem_required = "required"}
-      omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "usage_and_error_counts.app_level."..app_IDs[i]..".count_of_rejections_duplicate_name", elem_required = "required"}
-      omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "usage_and_error_counts.app_level."..app_IDs[i]..".count_of_rejected_rpc_calls", elem_required = "required"}
-      omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "usage_and_error_counts.app_level."..app_IDs[i]..".count_of_rpcs_sent_in_hmi_none", elem_required = "required"}
-      omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "usage_and_error_counts.app_level."..app_IDs[i]..".count_of_removals_for_bad_behavior", elem_required = "required"}
-      omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "usage_and_error_counts.app_level."..app_IDs[i]..".count_of_run_attempts_while_revoked", elem_required = "required"}
       omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "usage_and_error_counts.app_level."..app_IDs[i]..".count_of_TLS_errors", elem_required = "required"}
-      omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "usage_and_error_counts.app_level."..app_IDs[i]..".count_of_invalid_certificates", elem_required = "required"}
-      omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "usage_and_error_counts.app_level."..app_IDs[i]..".time_stamp", elem_required = "optional"}
+
+      if(flag ~= "PROPRIETARY" and flag ~= "HTTP") then
+        omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "usage_and_error_counts.app_level."..app_IDs[i]..".minutes_in_hmi_full", elem_required = "required"}
+        omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "usage_and_error_counts.app_level."..app_IDs[i]..".app_registration_language_gui", elem_required = "required"}
+        omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "usage_and_error_counts.app_level."..app_IDs[i]..".app_registration_language_vui", elem_required = "required"}
+        omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "usage_and_error_counts.app_level."..app_IDs[i]..".minutes_in_hmi_limited", elem_required = "required"}
+        omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "usage_and_error_counts.app_level."..app_IDs[i]..".minutes_in_hmi_background", elem_required = "required"}
+        omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "usage_and_error_counts.app_level."..app_IDs[i]..".minutes_in_hmi_none", elem_required = "required"}
+        omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "usage_and_error_counts.app_level."..app_IDs[i]..".count_of_user_selections", elem_required = "required"}
+        omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "usage_and_error_counts.app_level."..app_IDs[i]..".count_of_rejections_sync_out_of_memory", elem_required = "required"}
+        omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "usage_and_error_counts.app_level."..app_IDs[i]..".count_of_rejections_nickname_mismatch", elem_required = "required"}
+        omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "usage_and_error_counts.app_level."..app_IDs[i]..".count_of_rejections_duplicate_name", elem_required = "required"}
+        omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "usage_and_error_counts.app_level."..app_IDs[i]..".count_of_rejected_rpc_calls", elem_required = "required"}
+        omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "usage_and_error_counts.app_level."..app_IDs[i]..".count_of_rpcs_sent_in_hmi_none", elem_required = "required"}
+        omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "usage_and_error_counts.app_level."..app_IDs[i]..".count_of_removals_for_bad_behavior", elem_required = "required"}
+        omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "usage_and_error_counts.app_level."..app_IDs[i]..".count_of_run_attempts_while_revoked", elem_required = "required"}
+        omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "usage_and_error_counts.app_level."..app_IDs[i]..".count_of_invalid_certificates", elem_required = "required"}
+        omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "usage_and_error_counts.app_level."..app_IDs[i]..".time_stamp", elem_required = "optional"}
+      end
     end
   end
   if(device_IDs ~= nil) then
     for i = 1, #device_IDs do
-      omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "device_data."..device_IDs[i]..".hardware", elem_required = "required"}
-      omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "device_data."..device_IDs[i]..".firmware_rev", elem_required = "required"}
-      omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "device_data."..device_IDs[i]..".os", elem_required = "required"}
-      omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "device_data."..device_IDs[i]..".os_version", elem_required = "required"}
-      omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "device_data."..device_IDs[i]..".carrier", elem_required = "required"}
-      omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "device_data."..device_IDs[i]..".max_number_rfcom_ports", elem_required = "required"}
-      omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "device_data."..device_IDs[i]..".connection_type", elem_required = "required"}
-      omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "device_data."..device_IDs[i]..".usb_transport_enabled", elem_required = "required"}
-      omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "device_data."..device_IDs[i]..".user_consent_records.device.input", elem_required = "required"}
-      omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "device_data."..device_IDs[i]..".user_consent_records.device.time_stamp", elem_required = "required"}
+      if(flag ~= "PROPRIETARY" and flag ~= "HTTP") then
+        omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "device_data."..device_IDs[i]..".hardware", elem_required = "required"}
+        omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "device_data."..device_IDs[i]..".firmware_rev", elem_required = "required"}
+        omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "device_data."..device_IDs[i]..".os", elem_required = "required"}
+        omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "device_data."..device_IDs[i]..".os_version", elem_required = "required"}
+        omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "device_data."..device_IDs[i]..".carrier", elem_required = "required"}
+        omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "device_data."..device_IDs[i]..".max_number_rfcom_ports", elem_required = "required"}
+        omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "device_data."..device_IDs[i]..".connection_type", elem_required = "required"}
+        --TODO(istoimenova): Update when "[GENIVI] SDL must support "Mobile Apps via USB" setting for each Android device " is implemented
+        --omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "device_data."..device_IDs[i]..".usb_transport_enabled", elem_required = "required"}
+        omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "device_data."..device_IDs[i]..".user_consent_records.device.input", elem_required = "required"}
+        omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "device_data."..device_IDs[i]..".user_consent_records.device.time_stamp", elem_required = "required"}
+      end
 
       --TODO(istoimenova): Clarification for the section - exist only if application has consented groups?
 --[[      if(app_IDs ~= nil) then
@@ -281,8 +300,10 @@ function testCasesForPolicyTableSnapshot:verify_PTS(is_created, app_IDs, device_
         data_dictionary[#data_dictionary + 1] = { name = json_elements[i].name, value = json_elements[i].value, elem_required = "required" }
       end
 
-      if( string.sub(str_1,1,string.len("app_policies.default.preconsented_groups.")) == "app_policies.default.preconsented_groups." ) then
-        data_dictionary[#data_dictionary + 1] = { name = json_elements[i].name, value = json_elements[i].value, elem_required = "optional" }
+      if(flag ~= "PROPRIETARY" and flag ~= "HTTP") then
+        if( string.sub(str_1,1,string.len("app_policies.default.preconsented_groups.")) == "app_policies.default.preconsented_groups." ) then
+          data_dictionary[#data_dictionary + 1] = { name = json_elements[i].name, value = json_elements[i].value, elem_required = "optional" }
+        end
       end
 
       if( string.sub(str_1,1,string.len("app_policies.default.AppHMIType.")) == "app_policies.default.AppHMIType." ) then
@@ -310,14 +331,15 @@ function testCasesForPolicyTableSnapshot:verify_PTS(is_created, app_IDs, device_
       if( string.sub(str_1,1,string.len("app_policies.device.consent_groups")) == "app_policies.device.consent_groups" ) then
         data_dictionary[#data_dictionary + 1] = { name = json_elements[i].name, value = json_elements[i].value, elem_required = "required" }
       end
+      if(flag ~= "PROPRIETARY" and flag ~= "HTTP") then
+        if( string.sub(str_1,1,string.len("app_policies.device.groups")) == "app_policies.device.groups" ) then
+          consent_groups[#consent_groups +1 ] = json_elements[i].value
+          data_dictionary[#data_dictionary + 1] = { name = json_elements[i].name, value = json_elements[i].value, elem_required = "required" }
+        end
 
-      if( string.sub(str_1,1,string.len("app_policies.device.groups")) == "app_policies.device.groups" ) then
-        consent_groups[#consent_groups +1 ] = json_elements[i].value
-        data_dictionary[#data_dictionary + 1] = { name = json_elements[i].name, value = json_elements[i].value, elem_required = "required" }
-      end
-
-      if( string.sub(str_1,1,string.len("app_policies.device.preconsented_groups")) == "app_policies.device.preconsented_groups" ) then
-        data_dictionary[#data_dictionary + 1] = { name = json_elements[i].name, value = json_elements[i].value, elem_required = "required" }
+        if( string.sub(str_1,1,string.len("app_policies.device.preconsented_groups")) == "app_policies.device.preconsented_groups" ) then
+          data_dictionary[#data_dictionary + 1] = { name = json_elements[i].name, value = json_elements[i].value, elem_required = "required" }
+        end
       end
 
       for cnt = 1, #preloaded_pt_endpoints do
@@ -358,6 +380,14 @@ function testCasesForPolicyTableSnapshot:verify_PTS(is_created, app_IDs, device_
         data_dictionary[#data_dictionary + 1] = { name = "app_policies."..tostring(app_IDs[i])..".heart_beat_timeout_ms", value = nil, elem_required = "optional" }
         data_dictionary[#data_dictionary + 1] = { name = "app_policies."..tostring(app_IDs[i])..".RequestType", value = nil, elem_required = "optional" }
         data_dictionary[#data_dictionary + 1] = { name = "app_policies."..tostring(app_IDs[i]), value = nil, elem_required = "optional" }
+        if(flag ~= "PROPRIETARY" and flag ~= "HTTP") then
+          table.insert(data_dictionary,  { name = "app_policies."..tostring(app_IDs[i])..".keep_context", elem_required = "required"} )
+          table.insert(data_dictionary,  { name = "app_policies."..tostring(app_IDs[i])..".steal_focus", elem_required = "required"} )
+          table.insert(data_dictionary,  { name = "app_policies."..tostring(app_IDs[i])..".default_hmi", elem_required = "required"} )
+          -- TODO(istoimenova): preconsented_groups will be suspended due to lack of time
+          -- 
+          -- table.insert(data_dictionary,  { name = "app_policies."..tostring(app_IDs[i])..".preconsented_groups", elem_required = "required"} )
+        end
       end
     else
       data_dictionary[#data_dictionary + 1] = { name = "usage_and_error_counts", elem_required = "required"}
@@ -376,6 +406,10 @@ function testCasesForPolicyTableSnapshot:verify_PTS(is_created, app_IDs, device_
           if( str_1 == str_2 ) then
             is_existing = true
             for k1 = 1, #testCasesForPolicyTableSnapshot.preloaded_elements do
+              if(testCasesForPolicyTableSnapshot.preloaded_elements[k1].name == "module_config.preloaded_pt") then
+                testCasesForPolicyTableSnapshot.preloaded_elements[k1].value = false
+              end
+
               if(testCasesForPolicyTableSnapshot.preloaded_elements[k1].name == str_2) then
                 if(testCasesForPolicyTableSnapshot.pts_elements[i].value ~= testCasesForPolicyTableSnapshot.preloaded_elements[k1].value) then
                   if(to_print ~= nil) then
