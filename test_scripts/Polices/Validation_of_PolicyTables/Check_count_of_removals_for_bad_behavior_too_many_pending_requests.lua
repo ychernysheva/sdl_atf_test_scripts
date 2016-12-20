@@ -1,7 +1,7 @@
 ---------------------------------------------------------------------------------------------
 -- See APPLINK-23481, APPLINK-16207
 -- Requirement summary:
--- [Policies] "usage_and_error_counts" and "count_of_rpcs_sent_in_hmi_none" update.
+-- [Policies] "usage_and_error_counts" and "count_of_removals_for_bad_behavior" update
 --
 -- Description:
 -- In case an application has been unregistered with any of:
@@ -30,6 +30,7 @@
 
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
+config.defaultProtocolVersion = 2
 
 --[[ Required Shared libraries ]]
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
@@ -37,10 +38,8 @@ local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local mobile_session = require('mobile_session')
 local Preconditions = require('user_modules/shared_testcases/commonPreconditions')
 -- local variables
-local count_of_requests = 1
+local count_of_requests = 10
 local HMIAppID
--- AppHMILevelNoneTimeScaleMaxRequests
-
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
 
@@ -59,9 +58,11 @@ end
 
 function Test.ChangeIniFile( )
   Preconditions:BackupFile("smartDeviceLink.ini")
-  commonFunctions:write_parameter_to_smart_device_link_ini("PendingRequestsAmount", count_of_requests)
-end
 
+  -- change AppTimeScaleMaxRequests and AppRequestsTimeScale
+  commonFunctions:write_parameter_to_smart_device_link_ini("AppTimeScaleMaxRequests", count_of_requests)
+  commonFunctions:write_parameter_to_smart_device_link_ini("AppRequestsTimeScale", 30000)
+end
 function Test.Precondition_StartSDL()
   StartSDL(config.pathToSDL, config.ExitOnCrash)
 end
@@ -97,14 +98,13 @@ function Test:RegisterApp()
 end
 
 function Test:ActivateAppInFull()
-  commonSteps:ActivateAppInSpecificLevel(self,HMIAppID,"FULL")
+  commonSteps:ActivateAppInSpecificLevel(self,HMIAppID)
 end
 
 --[[ end of Preconditions ]]
-
-function Test:Send_TOO_MANY_PENDING_REQUESTS()
-  local count_of_sending_requests = count_of_requests+10
-  for i=1, count_of_sending_requests do
+function Test:Send_TOO_MANY_REQUESTS()
+  local count_of_sending_requests = count_of_requests + 10
+  for i = 1, count_of_sending_requests do
     self.mobileSession:SendRPC("AddCommand",
       {
         cmdID = i,
@@ -116,29 +116,20 @@ function Test:Send_TOO_MANY_PENDING_REQUESTS()
       })
   end
 
-  EXPECT_RESPONSE("AddCommand")
-  :ValidIf(function(exp,data)
-      if data.payload.resultCode == "GENERIC_ERROR" then
-        print(" \27[36m "..tostring(exp.occurences).."AddCommand response came with resultCode GENERIC_ERROR \27[0m")
-        return true
-      elseif data.payload.resultCode == "TOO_MANY_PENDING_REQUESTS" then
-        print(" \27[36m "..tostring(exp.occurences).." AddCommand response came with resultCode TOO_MANY_PENDING_REQUESTS \27[0m" )
-        return true
-      else
-        print(" \27[36m "..tostring(exp.occurences)..". AddCommand response came with resultCode "..tostring(data.payload.resultCode) .. ", but expected TOO_MANY_PENDING_REQUESTS \27[0m" )
-        return false
-      end
-    end)
-  :Times(count_of_sending_requests)
-  :Timeout(30000)
-
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered")
+  --mobile side: expect notification
   EXPECT_NOTIFICATION("OnAppInterfaceUnregistered", {reason = "TOO_MANY_REQUESTS"})
+end
+
+function Test:RegisterApp2()
+  local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
+  EXPECT_RESPONSE(correlationId, { success = false, resultCode = "TOO_MANY_PENDING_REQUESTS" })
 end
 
 function Test:Check_TOO_MANY_REQUESTS_in_DB()
   local db_path = config.pathToSDL.."storage/policy.sqlite"
-  local sql_query = "SELECT count_of_removals_for_bad_behavior FROM app_level WHERE application_id = "..config.application1.registerAppInterfaceParams.appID
-  local exp_result = 1
+  local sql_query = "SELECT count_of_removals_for_bad_behavior FROM app_level WHERE application_id = '" .. config.application1.registerAppInterfaceParams.appID .. "'"
+  local exp_result = 2
   if commonFunctions:is_db_contains(db_path, sql_query, exp_result) == false then
     self:FailTestCase("DB doesn't include expected value")
   end

@@ -1,7 +1,7 @@
 ---------------------------------------------------------------------------------------------
 -- See APPLINK-23481, APPLINK-16207
 -- Requirement summary:
--- [Policies] "usage_and_error_counts" and "count_of_rpcs_sent_in_hmi_none" update.
+-- [Policies] "usage_and_error_counts" and "count_of_removals_for_bad_behavior" update
 --
 -- Description:
 -- In case an application has been unregistered with any of:
@@ -26,6 +26,7 @@
 
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
+config.defaultProtocolVersion = 2
 
 --[[ Required Shared libraries ]]
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
@@ -93,13 +94,13 @@ function Test:RegisterApp()
 end
 
 function Test:ActivateAppInFull()
-  commonSteps:ActivateAppInSpecificLevel(self,HMIAppID,"FULL")
+  commonSteps:ActivateAppInSpecificLevel(self,HMIAppID)
 end
 
 --[[ end of Preconditions ]]
 function Test:Send_TOO_MANY_REQUESTS()
-  local count_of_sending_requests = count_of_requests+10
-  for i=1, count_of_sending_requests do
+  local count_of_sending_requests = count_of_requests + 10
+  for i = 1, count_of_sending_requests do
     self.mobileSession:SendRPC("AddCommand",
       {
         cmdID = i,
@@ -110,20 +111,6 @@ function Test:Send_TOO_MANY_REQUESTS()
         }
       })
   end
-  local calling_times = 1
-  EXPECT_RESPONSE("AddCommand")
-  :ValidIf(function(_, data)
-      if data.payload.resultCode == "GENERIC_ERROR" then
-        calling_times = calling_times+1
-        return true
-      else
-        print(" \27[36m "..tostring(calling_times) ..". AddCommand response came with resultCode "..tostring(data.payload.resultCode .. "\27[0m" ))
-        calling_times = calling_times+1
-        return true
-      end
-    end)
-  :Times(count_of_sending_requests)
-  :Timeout(10000)
 
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered")
   --mobile side: expect notification
@@ -131,8 +118,8 @@ function Test:Send_TOO_MANY_REQUESTS()
 end
 function Test:Check_TOO_MANY_REQUESTS_in_DB()
   local db_path = config.pathToSDL.."storage/policy.sqlite"
-  local sql_query = "SELECT count_of_removals_for_bad_behavior FROM app_level WHERE application_id = "..config.application1.registerAppInterfaceParams.appID
-  local exp_result = 1
+  local sql_query = "SELECT count_of_removals_for_bad_behavior FROM app_level WHERE application_id = '" .. config.application1.registerAppInterfaceParams.appID .. "'"
+  local exp_result = {"1"}
   if commonFunctions:is_db_contains(db_path, sql_query, exp_result) ==false then
     self:FailTestCase("DB doesn't include expected value")
   end
