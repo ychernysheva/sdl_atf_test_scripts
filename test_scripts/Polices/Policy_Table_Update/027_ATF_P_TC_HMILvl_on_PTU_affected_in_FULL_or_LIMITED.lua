@@ -28,14 +28,63 @@ local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
 local json = require('json')
 --[[ Local Variables ]]
-local HMIAppID
+local HMIAppID, HMIAppID2
+
+local applications =
+{
+  {
+    registerAppInterfaceParams =
+    {
+      syncMsgVersion =
+      {
+        majorVersion = 3,
+        minorVersion = 0
+      },
+      appName = "Vasya",
+      isMediaApplication = false,
+      languageDesired = 'EN-US',
+      hmiDisplayLanguageDesired = 'EN-US',
+      appHMIType = { "NAVIGATION" },
+      appID = "0000001",
+      deviceInfo =
+      {
+        os = "Android",
+        carrier = "Megafon",
+        firmwareRev = "Name: Linux, Version: 3.4.0-perf",
+        osVersion = "4.4.2",
+        maxNumberRFCOMMPorts = 1
+      }
+    }
+  },
+  {
+    registerAppInterfaceParams =
+    {
+      syncMsgVersion =
+      {
+        majorVersion = 3,
+        minorVersion = 0
+      },
+      appName = "Petya",
+      isMediaApplication = true,
+      languageDesired = 'EN-US',
+      hmiDisplayLanguageDesired = 'EN-US',
+      appHMIType = { "MEDIA" },
+      appID = "0000002",
+      deviceInfo =
+      {
+        os = "Android",
+        carrier = "MTS",
+        firmwareRev = "Name: Linux, Version: 3.4.0-perf",
+        osVersion = "4.4.2",
+        maxNumberRFCOMMPorts = 1
+      }
+    }
+  }
+}
 
 -- Basic PTU file
 local basic_ptu_file = "files/ptu.json"
--- PTU for first app
 local ptu_first_app_registered = "files/ptu1app.json"
--- PTU for Second app
-local ptu_second_app_registered = "files/ptu2app.json"
 
 -- Prepare parameters for app to save it in json file
 local function PrepareJsonPTU1(name, new_ptufile)
@@ -89,78 +138,71 @@ function Test:Precondition_ConnectMobile()
   self:connectMobile()
 end
 
-function Test:Precondition_StartSession()
+function Test:Precondition_StartFirstSession()
   self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
 end
 
+function Test:Precondition_StartSecondSession()
+  self.mobileSession2 = mobile_session.MobileSession(self, self.mobileConnection)
+end
+
 function Test.Precondition_PreparePTData()
-  PrepareJsonPTU1(config.application1.registerAppInterfaceParams.appID, ptu_first_app_registered)
-  PrepareJsonPTU1(config.application2.registerAppInterfaceParams.appID, ptu_second_app_registered)
+  PrepareJsonPTU1(applications[1].registerAppInterfaceParams.appID, ptu_first_app_registered)
+  PrepareJsonPTU1(applications[2].registerAppInterfaceParams.appID, ptu_first_app_registered)
 end
 --[[ end of Preconditions ]]
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
+
 function Test:RegisterFirstApp()
   self.mobileSession:StartService(7)
   :Do(function (_,_)
-      local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
+      local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", applications[1].registerAppInterfaceParams)
 
       EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
       :Do(function(_,data)
           HMIAppID = data.params.application.appID
         end)
-      EXPECT_RESPONSE(correlationId, { success = true })
-      EXPECT_NOTIFICATION("OnPermissionsChange")
+      self.mobileSession:ExpectResponse(correlationId, { success = true })
+      -- EXPECT_RESPONSE(correlationId, { success = true })
+      self.mobileSession:ExpectNotification("OnPermissionsChange")
     end)
-end
-
-function Test:ActivateAppInFull()
-  commonSteps:ActivateAppInSpecificLevel(self,HMIAppID,"FULL")
-end
-
-function Test:UpdatePolicyAfterAddFirstAp_ExpectOnHMIStatusNotCall()
-  EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
-
-  testCasesForPolicyTable:updatePolicyInDifferentSessions(Test, ptu_first_app_registered,
-    config.application1.registerAppInterfaceParams.appName,
-    self.mobileSession)
-  self.mobileSession:ExpectNotification("OnPermissionsChange")
-
-  -- Expect after updating HMI status will not change
-  self.mobileSession:ExpectNotification("OnHMIStatus"):Times(0)
 end
 
 function Test:RegisterSecondApp()
-  self.mobileSession1 = mobile_session.MobileSession(self, self.mobileConnection)
-
-  self.mobileSession1:StartService(7)
+  self.mobileSession2:StartService(7)
   :Do(function (_,_)
-      local correlationId = self.mobileSession1:SendRPC("RegisterAppInterface", config.application2.registerAppInterfaceParams)
+      local correlationId2 = self.mobileSession2:SendRPC("RegisterAppInterface", applications[2].registerAppInterfaceParams)
 
       EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
       :Do(function(_,data)
-          HMIAppID = data.params.application.appID
+          HMIAppID2 = data.params.application.appID
         end)
-      self.mobileSession1:ExpectResponse(correlationId, { success = true })
-      self.mobileSession1:ExpectNotification("OnPermissionsChange")
+      self.mobileSession2:ExpectResponse(correlationId2, { success = true })
+      self.mobileSession2:ExpectNotification("OnPermissionsChange")
     end)
 end
 
-function Test:ActivateSecondAppInLimited()
-  commonSteps:ActivateAppInSpecificLevel(self,HMIAppID,"LIMITED")
+function Test:ActivateFirstApp()
+  commonSteps:ActivateAppInSpecificLevel(self, HMIAppID)
 end
 
-function Test:UpdatePolicyAfterAddSecondApp_ExpectOnHMIStatusNotCall()
+function Test:ActivateSecondApp()
+  commonSteps:ActivateAppInSpecificLevel(self, HMIAppID2)
+end
+
+function Test:UpdatePolicyAfterAddApps_ExpectOnHMIStatusNotCall()
   EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
 
-  testCasesForPolicyTable:updatePolicyInDifferentSessions(Test, ptu_second_app_registered,
-    config.application2.registerAppInterfaceParams.appName,
-    self.mobileSession1)
-  self.mobileSession1:ExpectNotification("OnPermissionsChange")
-  -- Expect after updating HMI status will not change
-  self.mobileSession1:ExpectNotification("OnHMIStatus"):Times(0)
+  testCasesForPolicyTable:updatePolicyInDifferentSessions(Test, ptu_first_app_registered,
+    applications[2].registerAppInterfaceParams.appName,
+    self.mobileSession2)
+  self.mobileSession2:ExpectNotification("OnPermissionsChange")
 
+  -- Expect after updating HMI status will not change
+  self.mobileSession:ExpectNotification("OnHMIStatus"):Times(0)
+  self.mobileSession2:ExpectNotification("OnHMIStatus"):Times(0)
 end
 
 --[[ Postconditions ]]
@@ -168,7 +210,6 @@ commonFunctions:newTestCasesGroup("Postconditions")
 
 function Test.Postcondition_RemovePTUfiles()
   os.remove(ptu_first_app_registered)
-  os.remove(ptu_second_app_registered)
 end
 function Test.Postcondition_Stop_SDL()
   StopSDL()
