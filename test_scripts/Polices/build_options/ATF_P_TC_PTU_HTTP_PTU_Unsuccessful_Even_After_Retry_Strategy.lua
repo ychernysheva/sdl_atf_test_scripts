@@ -30,12 +30,12 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 local mobileSession = require("mobile_session")
 local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
 local commonSteps = require("user_modules/shared_testcases/commonSteps")
-local testCasesForBuildingSDLPolicyFlag = require('user_modules/shared_testcases/testCasesForBuildingSDLPolicyFlag')
+local json = require("modules/json")
 
 --[[ Local Variables ]]
-local policy_file_path = commonFunctions:read_parameter_from_smart_device_link_ini("SystemFilesPath")
-local policy_file_name = "PolicyTableUpdate"
-local ptu_file = "files/jsons/Policies/build_options/ptu_18496.json"
+local system_file_path = commonFunctions:read_parameter_from_smart_device_link_ini("SystemFilesPath")
+local ptu
+local ptu_file = os.tmpname()
 local sequence = { }
 local attempts_1 = 10
 local attempts_2 = 10
@@ -68,7 +68,6 @@ local function check_file_exists(name)
 end
 
 --[[ General Precondition before ATF start ]]
-testCasesForBuildingSDLPolicyFlag:CheckPolicyFlagAfterBuild("PROPRIETARY")
 commonFunctions:SDLForceStop()
 commonSteps:DeleteLogsFileAndPolicyTable()
 
@@ -77,11 +76,44 @@ Test = require("connecttest")
 require("user_modules/AppTypes")
 config.defaultProtocolVersion = 2
 
+--[[ Specific Notifications ]]
+function Test:RegisterNotification()
+  self.mobileSession:ExpectNotification("OnSystemRequest")
+  :Do(function(_, d)
+      ptu = json.decode(d.binaryData)
+    end)
+  :Times(AtLeast(1))
+  :Pin()
+end
+
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
 
+function Test:ValidatePTS()
+  if ptu.policy_table.consumer_friendly_messages.messages then
+    self:FailTestCase("Expected absence of 'consumer_friendly_messages.messages' section in PTS")
+  end
+end
+
+function Test.UpdatePTS()
+  ptu.policy_table.device_data = nil
+  ptu.policy_table.usage_and_error_counts = nil
+  ptu.policy_table.app_policies["0000001"] = { keep_context = false, steal_focus = false, priority = "NONE", default_hmi = "NONE" }
+  ptu.policy_table.app_policies["0000001"]["groups"] = { "Base-4", "Base-6" }
+  ptu.policy_table.functional_groupings["DataConsent-2"].rpcs = json.null
+  -- set minimum values for timeouts of retry cycle
+  ptu.policy_table.module_config.seconds_between_retries = { 1, 1 }
+  ptu.policy_table.module_config.timeout_after_x_seconds = 10
+end
+
+function Test.StorePTSInFile()
+  local f = io.open(ptu_file, "w")
+  f:write(json.encode(ptu))
+  f:close()
+end
+
 function Test:Update_LPT()
-  local corId = self.mobileSession:SendRPC("SystemRequest", { requestType = "HTTP", fileName = policy_file_name }, ptu_file)
+  local corId = self.mobileSession:SendRPC("SystemRequest", { requestType = "HTTP", fileName = "PolicyTableUpdate" }, ptu_file)
   EXPECT_RESPONSE(corId, { success = true, resultCode = "SUCCESS" })
 end
 
@@ -96,26 +128,26 @@ end
 function Test:RegisterEvents()
   EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate")
   :Do(function(_, d)
-      log("SDL->HMI: SDL.OnStatusUpdate()", d.params.status)
+      log("SDL->HMI: SDL.OnStatusUpdate", d.params.status)
       table.insert(r_actual_sequence, d.params.status)
     end)
   :Times(AnyNumber())
   :Pin()
-  EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
-  :Do(function(_, _)
-      -- log("SDL->HMI: BC.PolicyUpdate()")
+  self.mobileSession:ExpectNotification("OnSystemRequest", { requestType = "HTTP" })
+  :Do(function()
+      log("SDL->MOB1: OnSystemRequest")
     end)
   :Times(AnyNumber())
   :Pin()
-  self.mobileSession:ExpectNotification("OnSystemRequest")
-  :Do(function(_, _)
-      -- log("SDL->MOB: OnSystemRequest()", d.payload.requestType, d.payload.url)
+  self.mobileSession2:ExpectNotification("OnSystemRequest", { requestType = "HTTP" })
+  :Do(function()
+      log("SDL->MOB2: OnSystemRequest")
     end)
   :Times(AnyNumber())
   :Pin()
 end
 
-function Test:RegisterNewApp()
+function Test:RegisterApp_2()
   EXPECT_HMICALL("BasicCommunication.UpdateAppList")
   :Do(function(_, d)
       self.hmiConnection:SendResponse(d.id, d.method, "SUCCESS", { })
@@ -125,7 +157,9 @@ function Test:RegisterNewApp()
       end
     end)
   local corId = self.mobileSession2:SendRPC("RegisterAppInterface", config.application2.registerAppInterfaceParams)
+  log("MOB2->SDL: RegisterAppInterface")
   self.mobileSession2:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
+  log("SDL->MOB2: SUCCESS: RegisterAppInterface")
 end
 
 Test["Starting waiting cycle [" .. attempts_1 * 5 .. "] sec"] = function() end
@@ -152,8 +186,8 @@ end
 
 function Test.CleanData()
   os.remove(config.pathToSDL .. "/app_info.dat") -- in order to skip resumption
-  os.remove(policy_file_path .. "/sdl_snapshot.json")
-  if not check_file_exists(policy_file_path .. "/sdl_snapshot.json") then
+  os.remove(system_file_path .. "/sdl_snapshot.json")
+  if not check_file_exists(system_file_path .. "/sdl_snapshot.json") then
     print("PTS is removed")
   end
 end
@@ -187,32 +221,26 @@ end
 function Test:RegisterEvents()
   EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate")
   :Do(function(_, d)
-      log("SDL->HMI: SDL.OnStatusUpdate()", d.params.status)
+      log("SDL->HMI: SDL.OnStatusUpdate", d.params.status)
       table.insert(r_actual_sequence, d.params.status)
     end)
   :Times(AnyNumber())
   :Pin()
-  EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
-  :Do(function(_, _)
-      -- log("SDL->HMI: BC.PolicyUpdate()")
+  self.mobileSession:ExpectNotification("OnSystemRequest", { requestType = "HTTP" })
+  :Do(function()
+      log("SDL->MOB1: OnSystemRequest")
     end)
   :Times(AnyNumber())
   :Pin()
-  self.mobileSession:ExpectNotification("OnSystemRequest")
-  :Do(function(_, _)
-      -- log("SDL->MOB1: OnSystemRequest()", d.payload.requestType, d.payload.url)
-    end)
-  :Times(AnyNumber())
-  :Pin()
-  self.mobileSession2:ExpectNotification("OnSystemRequest")
-  :Do(function(_, _)
-      -- log("SDL->MOB2: OnSystemRequest()", d.payload.requestType, d.payload.url)
+  self.mobileSession2:ExpectNotification("OnSystemRequest", { requestType = "HTTP" })
+  :Do(function()
+      log("SDL->MOB2: OnSystemRequest")
     end)
   :Times(AnyNumber())
   :Pin()
 end
 
-function Test:RegisterNewApp()
+function Test:RegisterApp_2()
   EXPECT_HMICALL("BasicCommunication.UpdateAppList")
   :Do(function(_, d)
       self.hmiConnection:SendResponse(d.id, d.method, "SUCCESS", { })
@@ -222,7 +250,9 @@ function Test:RegisterNewApp()
       end
     end)
   local corId = self.mobileSession2:SendRPC("RegisterAppInterface", config.application2.registerAppInterfaceParams)
+  log("MOB2->SDL: RegisterAppInterface")
   self.mobileSession2:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
+  log("SDL->MOB2: SUCCESS: RegisterAppInterface")
 end
 
 Test["Starting waiting cycle [" .. attempts_2 * 5 .. "] sec"] = function() end
@@ -250,19 +280,39 @@ function Test.ShowSequence()
   print("--------------------------------------------------")
 end
 
-function Test:ValidateStatuses()
+function Test:ValidateStatuses_1()
   if r_expected_1_status ~= r_actual_1_status then
-    self:FailTestCase("\nFor the 1st retry cycle last status of OnStatusUpdate()\nExpected: " .. r_expected_1_status .. "\nActual: " .. tostring(r_actual_1_status))
+    local msg = table.concat({"\nFor the 1st retry cycle last status of OnStatusUpdate()",
+        "\nExpected: ", r_expected_1_status,
+        "\nActual: ", tostring(r_actual_1_status)})
+    self:FailTestCase(msg)
   end
+end
+
+function Test:ValidateStatuses_2()
   if r_expected_2_status ~= r_actual_2_status then
-    self:FailTestCase("\nFor the 2nd retry cycle first status of OnStatusUpdate()\nExpected: " .. r_expected_2_status .. "\nActual: " .. tostring(r_actual_2_status))
+    local msg = table.concat({"\nFor the 2nd retry cycle first status of OnStatusUpdate()",
+        "\nExpected: ", r_expected_2_status,
+        "\nActual: ", tostring(r_actual_2_status)})
+    self:FailTestCase(msg)
   end
 end
 
 function Test:ValidateSnapshot()
-  if not check_file_exists(policy_file_path .. "/sdl_snapshot.json") then
+  if not check_file_exists(system_file_path .. "/sdl_snapshot.json") then
     self:FailTestCase("PTS is NOT created during 2nd retry cycle")
   end
+end
+
+--[[ Postconditions ]]
+commonFunctions:newTestCasesGroup("Postconditions")
+
+function Test.Clean()
+  os.remove(ptu_file)
+end
+
+function Test.Postconditions_StopSDL()
+  StopSDL()
 end
 
 return Test
