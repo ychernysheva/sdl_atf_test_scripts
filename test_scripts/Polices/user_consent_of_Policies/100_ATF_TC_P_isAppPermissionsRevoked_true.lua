@@ -156,7 +156,7 @@ end
 commonFunctions:newTestCasesGroup("Test")
 function Test:TestStep_Activate_app_isAppPermissionRevoked_true()
   local RequestIdActivateAppAgain = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = HMIAppID })
-  EXPECT_HMIRESPONSE(RequestIdActivateAppAgain, { result = { code = 0, method = "SDL.ActivateApp", isAppRevoked = true}})
+  EXPECT_HMIRESPONSE(RequestIdActivateAppAgain, { result = { code = 0, method = "SDL.ActivateApp", isAppRevoked = true, isAppPermissionsRevoked = true}})
 end
 
 --[[ Postconditions ]]
