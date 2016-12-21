@@ -115,7 +115,7 @@ local function prepareNewPreloadedPT()
     end,
     function(data)
       for key,_ in pairs(data.policy_table.consumer_friendly_messages.messages.VehicleInfo.languages) do
-        if (key == TESTED_DATA[2].key) or (key == TESTED_DATA[1].key) then
+        if key ~= "en-us" then
           data.policy_table.consumer_friendly_messages.messages.VehicleInfo.languages[key] = nil
         end
       end
@@ -258,6 +258,12 @@ function Test.checkLocalPT(checkTable)
   return isTestPass
 end
 
+--[[Precondition]]
+function Test.Precondition()
+  TestData:init()
+  TestData:store("Initial preloaded PT is stored", config.pathToSDL .. PRELOADED_PT_FILE_NAME, "initial_" .. PRELOADED_PT_FILE_NAME)
+end
+
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
@@ -293,6 +299,7 @@ end
 
 function Test.TestStep_LoadNewPreloadedPT()
   prepareNewPreloadedPT()
+  TestData:store("New preloaded PT is stored", config.pathToSDL .. PRELOADED_PT_FILE_NAME, "new_" .. PRELOADED_PT_FILE_NAME)
 end
 
 function Test:TestStep_StartSDL()
@@ -301,6 +308,7 @@ end
 
 function Test:TestStep_VerifyNewLocalPT()
   os.execute("sleep 3")
+  TestData:store("New Local PT is stored", constructPathToDatabase(), "new_policy.sqlite")
   local checks = {
     {
       query = 'select preloaded_date from module_config',
@@ -329,6 +337,7 @@ commonFunctions:newTestCasesGroup("Postconditions")
 testCasesForPolicyTable:Restore_preloaded_pt()
 function Test.Postcondition()
   StopSDL()
+  TestData:info()
 end
 
 return Test
