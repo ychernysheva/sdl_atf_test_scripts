@@ -39,7 +39,7 @@ function Test:TestStep_GetListOfPermissions_with_appID()
   local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.applications[config.application1.registerAppInterfaceParams.appName]})
 
   --Allow SDL functionality
-  EXPECT_HMIRESPONSE(RequestId,{ result = { code = 0, method = "SDL.ActivateApp", isPermissionsConsentNeeded = true, isSDLAllowed = false}})
+  EXPECT_HMIRESPONSE(RequestId,{ result = { code = 0, method = "SDL.ActivateApp", isPermissionsConsentNeeded = true}})
   :Do(function(_,data)
       if(data.result.isSDLAllowed == false) then
         local RequestId1 = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
