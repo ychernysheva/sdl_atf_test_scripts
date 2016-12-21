@@ -38,13 +38,16 @@ require('user_modules/AppTypes')
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
-function Test.TestStep_PTS_Creation_rule()
-  testCasesForPolicyTableSnapshot:verify_PTS(true,
+function Test:TestStep_PTS_Creation_rule()
+  local result = testCasesForPolicyTableSnapshot:verify_PTS(true,
     {config.application1.registerAppInterfaceParams.appID},
     {config.deviceMAC},
     {""},
     "print",
   "PROPRIETARY")
+  if (result == false) then
+    self:FailTestCase("PTS is not created according to DataDictionary")
+  end
 end
 
 --[[ Postconditions ]]
