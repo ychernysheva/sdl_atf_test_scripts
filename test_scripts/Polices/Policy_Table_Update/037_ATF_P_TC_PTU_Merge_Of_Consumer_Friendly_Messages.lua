@@ -49,27 +49,7 @@ local function is_table_equal(t1, t2)
   return true
 end
 
--- local function execute_sqlite_query(file_db, query)
---   if not file_db then
---     return nil
---   end
---   local res = {}
---   local file = io.popen(table.concat({"sqlite3 ", file_db, " '", query, "'"}), 'r')
---   if file then
---     for line in file:lines() do
---       res[#res + 1] = line
---     end
---     file:close()
---     print("res")
---     return res
---   else
---     print("nil")
---     return nil
---   end
--- end
-
 --[[ General Precondition before ATF start ]]
-testCasesForPolicyTable:Precondition_updatePolicy_By_overwriting_preloaded_pt("files/jsons/Policies/Policy_Table_Update/preloaded_18192.json")
 commonSteps:DeleteLogsFileAndPolicyTable()
 testCasesForPolicyTable.Delete_Policy_table_snapshot()
 
@@ -79,10 +59,6 @@ require("user_modules/AppTypes")
 
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
-
-function Test.Precondition_DeleteSnapshot()
-  os.remove(policy_file_path .. "/sdl_snapshot.json")
-end
 
 function Test:Precondition_ActivateApp()
   local requestId1 = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.applications["Test Application"] })
@@ -105,27 +81,8 @@ function Test:Precondition_ActivateApp()
     end)
 end
 
-function Test.Precondition_ValidateResultBeforePTU()
-  EXPECT_ANY()
-  :ValidIf(function(_, _)
-      local r_expected = {
-            "1|TTS1_AppPermissions|LABEL_AppPermissions|LINE1_AppPermissions|LINE2_AppPermissions|TEXTBODY_AppPermissions|en-us|AppPermissions",
-            "2|||LINE1_DataConsent|LINE2_DataConsent|TEXTBODY_DataConsent|en-us|DataConsent" }
-      local query = "select id, tts, label, line1, line2, textBody, language_code, message_type_name from message"
-      --TODO: function is not working correctly. To be used common one
-      --local r_actual = execute_sqlite_query(db_file, query)
-      local r_actual = commonFunctions:get_data_policy_sql(config.pathToSDL.."/storage/policy.sqlite", query)
-      if not is_table_equal(r_expected, r_actual) then
-        return false, "\nExpected:\n" .. commonFunctions:convertTableToString(r_expected, 1) .. "\nActual:\n" .. commonFunctions:convertTableToString(r_actual, 1)
-      end
-      return true
-    end)
-  :Times(1)
-end
-
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
-
 
 function Test:TestStep_PTU_Up_To_Date()
   local policy_file_name = "PolicyTableUpdate"
@@ -148,8 +105,8 @@ function Test:TestStep_PTU_Up_To_Date()
             end)
         end)
     end)
-    EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",
-        {status = "UPDATING"}, {status = "UP_TO_DATE"}):Times(2)
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",
+    {status = "UPDATING"}, {status = "UP_TO_DATE"}):Times(2)
 end
 
 function Test:StartNewMobileSession()
@@ -175,8 +132,6 @@ function Test.TestStep_ValidateResultAfterPTU()
   :ValidIf(function(_, _)
       local r_expected = { "1|TTS1|LABEL|LINE1|LINE2|TEXTBODY|en-us|AppPermissions", "2|TTS2|||||en-us|AppPermissionsHelp" }
       local query = "select id, tts, label, line1, line2, textBody, language_code, message_type_name from message"
-      --TODO: function is not working correctly. To be used common one
-      --local r_actual = execute_sqlite_query(db_file, query)
       local r_actual = commonFunctions:get_data_policy_sql(config.pathToSDL.."/storage/policy.sqlite", query)
       if not is_table_equal(r_expected, r_actual) then
         return false, "\nExpected:\n" .. commonFunctions:convertTableToString(r_expected, 1) .. "\nActual:\n" .. commonFunctions:convertTableToString(r_actual, 1)
