@@ -1198,25 +1198,25 @@ function commonFunctions:update_json_file(path_to_json, old_section, new_section
   local json_data = file:read("*a")
   file:close()
   local data = json.decode(json_data)
-  local b, e = 0,0
+  local begin_ref, end_ref = 0,0
   local temp_path = old_section.."."
   local len = string.len(temp_path)
   local key
   local temp_data = data
-  while e < len do
-    e = string.find(temp_path, "%.", b)
-    if e ~= nil then
-      key = string.sub(temp_path, b, e-1);
+  while end_ref < len do
+    end_ref = string.find(temp_path, "%.", begin_ref)
+    if end_ref~= nil then
+      key = string.sub(temp_path, begin_ref, end_ref-1);
       if temp_data[key] ==  nil then
         print("JSON file: "..path_to_json.." doesn't contain key= "..key)
         return
       end
-      if e == len then
+      if end_ref == len then
         temp_data[key] = new_section
       else
         temp_data = temp_data[key]
       end
-      b = e+1;
+      begin_ref = end_ref+1;
     else
       print("Incorrect path to old section")
       return
