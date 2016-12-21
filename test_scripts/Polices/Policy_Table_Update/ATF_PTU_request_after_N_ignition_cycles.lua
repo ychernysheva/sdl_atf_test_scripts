@@ -138,7 +138,6 @@ commonFunctions:newTestCasesGroup("Test")
 function Test:Check_PTU_triggered_on_IGNOFF()
   StopSDL()
   self.hmiConnection:SendNotification("BasicCommunication.OnIgnitionCycleOver")
-  EXPECT_HMICALL("SDL.PolicyUpdate")
   EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
   :Timeout(500)
 end
