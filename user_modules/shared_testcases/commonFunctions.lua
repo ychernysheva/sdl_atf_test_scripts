@@ -37,6 +37,7 @@ local NewTestSuiteNumber = 0 -- use as subfix of test case "NewTestSuite" to mak
 --23. Function Unsubscribe sdl from vehicle data
 --24. Function start PTU sequence HTTP flow
 --25. Function reads log file and find specific string in this file.
+--26. Function updates json file with new section
 ---------------------------------------------------------------------------------------------
 
 --return true if app is media or navigation
@@ -1179,5 +1180,52 @@ if file == nil then
   return false
 end
 
+-- ---------------------------------------------------------------------------------------------
+--26. Function updates json file with new section
+-- ---------------------------------------------------------------------------------------------
+--! @brief Function updates json file with new section
+--! @param path_to_json contains path to json file, that should be updated
+--! @param old_section path to old section MUST contain path like: policy_table.app_policies.default
+--! section must be separated by point
+--! @param new_section contain table with new data for updating
+
+function commonFunctions:update_json_file(path_to_json, old_section, new_section)
+  local file = io.open(path_to_json, "r")
+  if file == nil then
+    print("File doesnt exist, path:"..path_to_json)
+    assert(false)
+  end
+  local json_data = file:read("*a")
+  file:close()
+  local data = json.decode(json_data)
+  local begin_ref, end_ref = 0,0
+  local temp_path = old_section.."."
+  local len = string.len(temp_path)
+  local key
+  local temp_data = data
+  while end_ref < len do
+    end_ref = string.find(temp_path, "%.", begin_ref)
+    if end_ref~= nil then
+      key = string.sub(temp_path, begin_ref, end_ref-1);
+      if temp_data[key] ==  nil then
+        print("JSON file: "..path_to_json.." doesn't contain key= "..key)
+        return
+      end
+      if end_ref == len then
+        temp_data[key] = new_section
+      else
+        temp_data = temp_data[key]
+      end
+      begin_ref = end_ref+1;
+    else
+      print("Incorrect path to old section")
+      return
+    end
+  end
+  local dataToWrite = json.encode(data)
+  file = io.open(path_to_json, "w")
+  file:write(dataToWrite)
+  file:close()
+end
 
 return commonFunctions
