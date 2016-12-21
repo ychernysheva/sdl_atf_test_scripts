@@ -125,8 +125,6 @@ local function prepareInitialPreloadedPT()
       end
       local obj = {label = TESTED_DATA[1].label, tts = TESTED_DATA[1].tts}
       data.policy_table.consumer_friendly_messages.messages.Location.languages[TESTED_DATA[1].key] = obj
-      obj = {label = TESTED_DATA[2].label, tts = TESTED_DATA[2].tts}
-      data.policy_table.consumer_friendly_messages.messages.Location.languages[TESTED_DATA[2].key] = obj
     end
   }
   updatePreloadedPt(initialUpdaters)
@@ -150,6 +148,8 @@ local function prepareNewPreloadedPT()
       end
       local obj = {label = TESTED_DATA[3].label, tts = TESTED_DATA[3].tts}
       data.policy_table.consumer_friendly_messages.messages.Location.languages[TESTED_DATA[3].key] = obj
+      obj = {label = TESTED_DATA[1].label, tts = TESTED_DATA[1].tts}
+      data.policy_table.consumer_friendly_messages.messages.Location.languages[TESTED_DATA[1].key] = obj
     end
   }
   updatePreloadedPt(newUpdaters)
@@ -266,6 +266,12 @@ function Test.checkLocalPT(checkTable)
   return isTestPass
 end
 
+--[[Precondition]]
+function Test.Precondition()
+  TestData:init()
+  TestData:store("Initial preloaded PT is stored", config.pathToSDL .. PRELOADED_PT_FILE_NAME, "initial_" .. PRELOADED_PT_FILE_NAME)
+end
+
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
@@ -279,15 +285,15 @@ function Test:TestStep_VerifyInitialLocalPT()
     },
     {
       query = 'select language_code from message where message_type_name = "Location"',
-      expectedValues = {TESTED_DATA[1].key, TESTED_DATA[2].key}
+      expectedValues = {TESTED_DATA[1].key}
     },
     {
       query = 'select tts from message where message_type_name = "Location"',
-      expectedValues = {TESTED_DATA[1].tts, TESTED_DATA[2].tts}
+      expectedValues = {TESTED_DATA[1].tts}
     },
     {
       query = 'select label from message where message_type_name = "Location"',
-      expectedValues = {TESTED_DATA[1].label, TESTED_DATA[2].label}
+      expectedValues = {TESTED_DATA[1].label}
     }
   }
   if not self.checkLocalPT(checks) then
@@ -301,6 +307,7 @@ end
 
 function Test.TestStep_LoadNewPreloadedPT()
   prepareNewPreloadedPT()
+  TestData:store("New preloaded PT is stored", config.pathToSDL .. PRELOADED_PT_FILE_NAME, "new_" .. PRELOADED_PT_FILE_NAME)
 end
 
 function Test:TestStep_StartSDL()
@@ -309,6 +316,7 @@ end
 
 function Test:TestStep_VerifyNewLocalPT()
   os.execute("sleep 3")
+  TestData:store("New Local PT is stored", constructPathToDatabase(), "new_policy.sqlite")
   local checks = {
     {
       query = 'select preloaded_date from module_config',
@@ -316,15 +324,15 @@ function Test:TestStep_VerifyNewLocalPT()
     },
     {
       query = 'select language_code from message where message_type_name = "Location"',
-      expectedValues = {TESTED_DATA[3].key}
+      expectedValues = {TESTED_DATA[1].key, TESTED_DATA[3].key}
     },
     {
       query = 'select tts from message where message_type_name = "Location"',
-      expectedValues = {TESTED_DATA[3].tts}
+      expectedValues = {TESTED_DATA[1].tts, TESTED_DATA[3].tts}
     },
     {
       query = 'select label from message where message_type_name = "Location"',
-      expectedValues = {TESTED_DATA[3].label}
+      expectedValues = {TESTED_DATA[1].label, TESTED_DATA[3].label}
     }
   }
   if not self.checkLocalPT(checks) then
@@ -337,6 +345,7 @@ commonFunctions:newTestCasesGroup("Postconditions")
 testCasesForPolicyTable:Restore_preloaded_pt()
 function Test.Postcondition()
   StopSDL()
+  TestData:info()
 end
 
 return Test
