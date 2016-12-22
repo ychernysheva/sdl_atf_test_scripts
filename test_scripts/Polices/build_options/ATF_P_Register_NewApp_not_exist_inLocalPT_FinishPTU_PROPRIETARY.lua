@@ -1,11 +1,11 @@
 -- Requirement summary:
 -- [PolicyTableUpdate] New application has registered and doesn't yet exist in Local PT during PTU in progress
--- 
+--
 --
 -- Description:
 -- PoliciesManager must add the appID of the newly registered app to the Local PT in case
 -- such appID does not yet exist in Local PT and PoliciesManager has sent the PT Snapshot and has not received the PT Update yet.
---  1. Used preconditions
+-- 1. Used preconditions
 -- SDL is built with "-DEXTENDED_POLICY: PROPRIETARY" flag
 -- Performed steps
 -- 1. MOB-SDL - Register Application default.
@@ -65,7 +65,7 @@ Test = require('connecttest')
 commonFunctions:newTestCasesGroup("Preconditions")
 function Test:Precondition_PolicyUpdateStarted_ForDefaultApplication()
   local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
-   EXPECT_HMIRESPONSE(RequestIdGetURLS)
+  EXPECT_HMIRESPONSE(RequestIdGetURLS)
   :Do(function(_,_)
       self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",
         {
@@ -93,31 +93,28 @@ function Test:TestStep_RegisterNewApplication()
 end
 
 function Test:TestStep_PolicyUpdateFinished_ForDefaultApplication()
-local CorIdSystemRequest = self.mobileSession:SendRPC ("SystemRequest",
-        {
-          requestType = "PROPRIETARY",
-          fileName = "ptu.json"
-        },
-    "/tmp/fs/mp/images/ivsu_cache/ptu.json"
-    )
-  EXPECT_HMICALL("BasicCommunication.SystemRequest")
-      :Do(function(_,data)
-          self.hmiConnection:SendResponse(data.id,"BasicCommunication.SystemRequest", "SUCCESS", {})
+  local policy_file_name = "PTU"
+  local policy_file_path = commonFunctions:read_parameter_from_smart_device_link_ini("SystemFilesPath")
+  local ptu_file_name = "files/ptu.json"
+  local requestId = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
+  EXPECT_HMIRESPONSE(requestId)
+  :Do(function()
+      self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest", {requestType = "PROPRIETARY", fileName = policy_file_name})
+      EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "PROPRIETARY"})
+      :Do(function()
+          local corIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", {requestType = "PROPRIETARY", fileName = policy_file_name}, ptu_file_name)
+          EXPECT_HMICALL("BasicCommunication.SystemRequest")
+          :Do(function(_, d)
+              self.hmiConnection:SendResponse(d.id, "BasicCommunication.SystemRequest", "SUCCESS", { })
+              self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate", { policyfile = policy_file_path .. "/" .. policy_file_name })
+            end)
+          EXPECT_RESPONSE(corIdSystemRequest, { success = true, resultCode = "SUCCESS"})
         end)
-      EXPECT_RESPONSE(CorIdSystemRequest, {success = true, resultCode = "SUCCESS"})
-      :Do(function(_,_)
-          self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate",
-            {
-              policyfile = "/tmp/fs/mp/images/ivsu_cache/"
-            })
-        end)
-      :Do(function(_,_)
-          EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UP_TO_DATE"})
-   end)
+    end)
 end
 
 function Test:TestStep_CheckThatAppID_Present_In_DataBase()
-   local PolicyDBPath = nil
+  local PolicyDBPath = nil
   if commonSteps:file_exists(tostring(config.pathToSDL) .. "/storage/policy.sqlite") == true then
     PolicyDBPath = tostring(config.pathToSDL) .. "/storage/policy.sqlite"
   end
@@ -125,12 +122,18 @@ function Test:TestStep_CheckThatAppID_Present_In_DataBase()
     commonFunctions:userPrint(31, "policy.sqlite file is not found")
     self:FailTestCase("PolicyTable is not avaliable" .. tostring(PolicyDBPath))
   end
-  os.execute(" sleep 2 ")
- local AppId_2 = "sqlite3 " .. tostring(PolicyDBPath) .. "\"SELECT id FROM application WHERE id = '"..tostring(registerAppInterfaceParams.appID).."'\""
- local bHandle = assert( io.popen(AppId_2, 'r'))
- local AppIdValue_2 = bHandle:read( '*l' )
-   if AppIdValue_2 == nil then
-    self:FailTestCase("Value in DB is unexpected value " .. tostring(AppIdValue_2))
+  local wait = true
+  while wait do
+    os.execute("sleep 1")
+    local r = commonFunctions:get_data_policy_sql(PolicyDBPath, "select count(*) from application")
+    if r[1] then wait = false end
+  end
+
+  local sql = table.concat({"SELECT 1 FROM application WHERE id = '", tostring(registerAppInterfaceParams.appID), "'"})
+  print(sql)
+  local r_actual = commonFunctions:get_data_policy_sql(PolicyDBPath, sql)
+  if r_actual[1] == nil then
+    self:FailTestCase("Information about 'MyTestApp' app is not found in Policy DB")
   end
 end
 
@@ -139,3 +142,5 @@ commonFunctions:newTestCasesGroup("Postconditions")
 function Test.Postcondition_SDLStop()
   StopSDL()
 end
+
+return Test
