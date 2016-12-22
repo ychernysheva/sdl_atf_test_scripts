@@ -1,6 +1,8 @@
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
 -- [Policies] Merging rules for "module_config" section
+-- Clarification:
+-- Preloaded state meaning
 --
 -- Description:
 -- Check of merging rules for "module_config" section
@@ -44,7 +46,7 @@ local TESTED_DATA = {
   {
     module_config =
     {
-      preloaded_pt = true,
+      preloaded_pt = false,
       preloaded_date = "2016-02-02",
       exchange_after_x_ignition_cycles = 100,
       exchange_after_x_kilometers = 1800,
@@ -392,8 +394,8 @@ function Test:TestStep_VerifyInitialLocalPT()
   for _, v in pairs(preloaded_pt_table) do
     preloaded_pt = v
   end
-  if(preloaded_pt == "0") then
-    commonFunctions:printError("ERROR: preloaded_pt is false, should be true")
+  if(preloaded_pt == "1") then
+    commonFunctions:printError("ERROR: preloaded_pt is true, should be false")
     is_test_fail = true
   end
 
