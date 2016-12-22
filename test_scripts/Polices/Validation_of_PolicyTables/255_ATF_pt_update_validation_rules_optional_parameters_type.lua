@@ -375,10 +375,21 @@ function Test:TestStep_UpdatePolicy_ExpectOnAppPermissionChangedWithAppID()
 end
 
 function Test:TestStep_CheckSDLLogError()
+  local is_test_fail = false
   local result = testCasesForPolicySDLErrorsStops.ReadSpecificMessage('policy_table.policy_table.consumer_friendly_messages.messages["AppPermissionsRevoked"].languages["de-de"].tts: value initialized incorrectly')
-  local result1 = testCasesForPolicySDLErrorsStops.ReadSpecificMessage("policy_table.policy_table.module_config.certificate: value initialized incorrectly")
-  if (result == false or result1 == false) then
-    self:FailTestCase("Error: message 'policy_table.policy_table.module_config.certificate: value initialized incorrectly.' is not observed in smartDeviceLink.log.")
+  if(result == false) then
+    commonFunctions:printError("Error: message 'policy_table.policy_table.consumer_friendly_messages.messages[\"AppPermissionsRevoked\"].languages[\"de-de\"].tts: value initialized incorrectly' is not observed in smartDeviceLink.log.")
+    is_test_fail = true
+  end
+
+  result = testCasesForPolicySDLErrorsStops.ReadSpecificMessage("policy_table.policy_table.module_config.certificate: value initialized incorrectly")
+  if(result == false) then
+    commonFunctions:printError("Error: message 'policy_table.policy_table.module_config.certificate: value initialized incorrectly' is not observed in smartDeviceLink.log.")
+    is_test_fail = true
+  end
+
+  if(is_test_fail == true) then
+    self:FailTestCase("Test is FAILED. See prints.")
   end
 end
 

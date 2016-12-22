@@ -391,9 +391,11 @@ function Test:TestStep_CheckSDLLogError()
     commonFunctions:printError("Error: message 'policy_table.policy_table.module_config.notifications_per_minute_by_priority.EMERGENCY: value initialized incorrectly' is not observed in smartDeviceLink.log.")
     is_test_fail = true
   end
+
   result = testCasesForPolicySDLErrorsStops.ReadSpecificMessage("policy_table.policy_table.module_config.exchange_after_x_ignition_cycles: value initialized incorrectly")
   if(result == false) then
     commonFunctions.printError("Error: message 'policy_table.policy_table.module_config.exchange_after_x_ignition_cycles: value initialized incorrectly' is not observed in smartDeviceLink.log.")
+    is_test_fail = true
   end
 
   if(is_test_fail == true) then
