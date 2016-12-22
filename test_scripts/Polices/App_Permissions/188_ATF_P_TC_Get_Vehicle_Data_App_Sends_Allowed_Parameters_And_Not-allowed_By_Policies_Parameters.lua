@@ -114,6 +114,9 @@ end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
+testCasesForPolicyTable:Restore_preloaded_pt()
 function Test.Postcondition_StopSDL()
   StopSDL()
 end
+
+return Test

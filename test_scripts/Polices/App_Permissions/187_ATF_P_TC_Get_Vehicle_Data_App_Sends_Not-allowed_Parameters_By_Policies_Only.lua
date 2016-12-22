@@ -84,14 +84,19 @@ function Test:TestStep_GetVehicleData_SUCCESS()
     })
   EXPECT_HMICALL("VehicleInfo.GetVehicleData", { speed = true })
   :Do(function(_,data)
-    self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"code":0,"speed":55.5}')
-  end)
+      self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"code":0,"speed":55.5}')
+    end)
   self.mobileSession:ExpectResponse(corId)
   :Do(function(_,data)
-    if (data.payload.resultCode == "DISALLOWED") then
-      self:FailTestCase("GetVehicleData should not be DISALLOWED by policy")
-    end
-  end)
+      if (data.payload.resultCode == "DISALLOWED") then
+        self:FailTestCase("GetVehicleData should not be DISALLOWED by policy")
+      end
+    end)
 end
 
-return Test
+--[[ Postconditions ]]
+commonFunctions:newTestCasesGroup("Postconditions")
+testCasesForPolicyTable:Restore_preloaded_pt()
+function Test.Postcondition_StopSDL()
+  StopSDL()
+end

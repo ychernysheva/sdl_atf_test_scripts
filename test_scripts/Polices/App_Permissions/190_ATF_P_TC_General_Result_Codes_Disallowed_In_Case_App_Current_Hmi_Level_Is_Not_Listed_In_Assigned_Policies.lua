@@ -46,7 +46,7 @@ end
 function Test:UpdatePolicy()
   testCasesForPolicyAppIdManagament:updatePolicyTable(self, "files/jsons/Policies/App_Permissions/ptu_021.json")
   --testCasesForPolicyAppIdManagament:updatePolicyTable(self, "files/ptu_general_steal_focus_false.json")
-  
+
 end
 
 --[[ Test ]]
@@ -79,6 +79,13 @@ end
 function Test:SendRPC_UnregisterAppInterface()
   local corId = self.mobileSession:SendRPC("UnregisterAppInterface",{})
   self.mobileSession:ExpectResponse(corId, {success = false, resultCode = "DISALLOWED"})
+end
+
+--[[ Postconditions ]]
+commonFunctions:newTestCasesGroup("Postconditions")
+testCasesForPolicyTable:Restore_preloaded_pt()
+function Test.Postcondition_StopSDL()
+  StopSDL()
 end
 
 return Test
