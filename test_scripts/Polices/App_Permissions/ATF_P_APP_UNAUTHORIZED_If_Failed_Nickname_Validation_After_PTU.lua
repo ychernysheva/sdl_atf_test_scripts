@@ -56,13 +56,13 @@ local function SetNickNameForSpecificApp()
     data.policy_table.functional_groupings["DataConsent-2"] = nil
   end
   data.policy_table.app_policies["1234567"] = {
-        keep_context = false,
-        steal_focus = false,
-        priority = "NONE",
-        default_hmi = "NONE",
-        groups = {"Base-4"},
-        nicknames = {"SPT"}
-      }
+    keep_context = false,
+    steal_focus = false,
+    priority = "NONE",
+    default_hmi = "NONE",
+    groups = {"Base-4"},
+    nicknames = {"SPT"}
+  }
   data = json.encode(data)
   file = io.open(pathToFile, "w")
   file:write(data)
@@ -70,24 +70,24 @@ local function SetNickNameForSpecificApp()
 end
 
 --[[ Preconditions ]]
-function Test:Precondition_StopSDL()
+function Test.Precondition_StopSDL()
   StopSDL()
 end
 
-function Test:Precondition_DeleteLogsAndPolicyTable()
+function Test.Precondition_DeleteLogsAndPolicyTable()
   commonSteps:DeleteLogsFiles()
   commonSteps:DeletePolicyTable()
 end
 
-function Test:Precondition_Backup_sdl_preloaded_pt()
+function Test.Precondition_Backup_sdl_preloaded_pt()
   BackupPreloaded()
 end
 
-function Test:Precondition_Set_NickName_Permissions_For_Specific_AppId()
+function Test.Precondition_Set_NickName_Permissions_For_Specific_AppId()
   SetNickNameForSpecificApp()
 end
 
-function Test:Precondition_StartSDL_FirstLifeCycle()
+function Test.Precondition_StartSDL_FirstLifeCycle()
   StartSDL(config.pathToSDL, config.ExitOnCrash)
 end
 
@@ -108,7 +108,7 @@ function Test:Precondition_StartSession()
   self.mobileSession:StartService(7)
 end
 
-function Test:Precondition_RestorePreloadedPT()
+function Test.Precondition_RestorePreloadedPT()
   RestorePreloadedPT()
 end
 
@@ -164,38 +164,47 @@ function Test:TestStep_Update_PT_With_Another_NickName_For_Current_App_And_Check
               EXPECT_HMICALL("BasicCommunication.ActivateApp")
               :Do(function(_,data1)
                   self.hmiConnection:SendResponse(data1.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
-                  EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"})
                 end)
+              EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"})
             end)
         end)
     end)
   EXPECT_RESPONSE(CorIdRAI, { success = true, resultCode = "SUCCESS"})
   EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
   :Do(function(_,_)
-        local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
-        EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
-            :Do(function()
-                self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",{requestType = "PROPRIETARY", fileName = "filename"})
-                EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY" })
-                      :Do(function()
-                          local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", {fileName = "PolicyTableUpdate", requestType = "PROPRIETARY"}, "files/PTFromCloud_Nickname_validation.json")
-                          local systemRequestId
-                          EXPECT_HMICALL("BasicCommunication.SystemRequest")
-                              :Do(function(_,data)
-                                systemRequestId = data.id
-                                  self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate",
-                                    {
-                                      policyfile = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate"
-                                    })
-                                  local function to_run()
-                                    self.hmiConnection:SendResponse(systemRequestId, "BasicCommunication.SystemRequest", "SUCCESS", {})
-                                    self.mobileSession:ExpectResponse(CorIdSystemRequest, {success = true, resultCode = "SUCCESS"})
-                                  end
-                                  RUN_AFTER(to_run, 800)
-                                  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UP_TO_DATE"}):Timeout(500)
-                              end)
-                      end)
+      local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
+      EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
+      :Do(function()
+          self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",{requestType = "PROPRIETARY", fileName = "filename"})
+          EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY" })
+          :Do(function()
+              local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", {fileName = "PolicyTableUpdate", requestType = "PROPRIETARY"}, "files/PTFromCloud_Nickname_validation.json")
+              local systemRequestId
+              EXPECT_HMICALL("BasicCommunication.SystemRequest")
+              :Do(function(_,data)
+                  systemRequestId = data.id
+                  self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate",
+                    {
+                      policyfile = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate"
+                    })
+                  local function to_run()
+                    self.hmiConnection:SendResponse(systemRequestId, "BasicCommunication.SystemRequest", "SUCCESS", {})
+                    self.mobileSession:ExpectResponse(CorIdSystemRequest, {success = true, resultCode = "SUCCESS"})
+                  end
+                  RUN_AFTER(to_run, 800)
+                  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UP_TO_DATE"}):Timeout(500)
+                end)
             end)
+        end)
     end)
-   EXPECT_NOTIFICATION("OnAppInterfaceUnregistered", {reason = "APP_UNAUTHORIZED"})
+  EXPECT_NOTIFICATION("OnAppInterfaceUnregistered", {reason = "APP_UNAUTHORIZED"})
 end
+
+--[[ Postconditions ]]
+commonFunctions:newTestCasesGroup("Postconditions")
+
+function Test.Postconditions_StopSDL()
+  StopSDL()
+end
+
+return Test
