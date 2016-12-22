@@ -33,6 +33,8 @@ local commonSteps = require('user_modules/shared_testcases/commonSteps')
 commonSteps:DeleteLogsFiles()
 commonSteps:DeletePolicyTable()
 
+local exchange_after_x_ignition_cycles
+
 --[[ General Settings for configuration ]]
 Test = require('connecttest')
 require('cardinalities')
@@ -43,10 +45,20 @@ require('user_modules/AppTypes')
 local function SetIgnitionCyclesSinceLastExchange()
   local pathToDB = config.pathToSDL .. "storage/policy.sqlite"
   local sql_query = 'select exchange_after_x_ignition_cycles from module_config where rowid=1;'
-  local exchange_after_x_ignition_cycles = commonFunctions:get_data_policy_sql(pathToDB, sql_query)
+  exchange_after_x_ignition_cycles = commonFunctions:get_data_policy_sql(pathToDB, sql_query)
   local DBQuery = 'sqlite3 ' .. pathToDB .. ' \"UPDATE module_meta SET ignition_cycles_since_last_exchange = ' .. tonumber(exchange_after_x_ignition_cycles[1]) - 1 .. ' WHERE rowid = 1;\"'
   os.execute(DBQuery)
   os.execute(" sleep 1 ")
+end
+
+local function GetDataFromSnapshot(pathToFile)
+  local file = io.open(pathToFile, "r")
+  local json_data = file:read("*all") -- may be abbreviated to "*a";
+  file:close()
+  local json = require("modules/json")
+  local data = json.decode(json_data)
+  local ignitionCyclesSinceLastExchange = data.policy_table.module_meta.ignition_cycles_since_last_exchange
+  return ignitionCyclesSinceLastExchange
 end
 
 --[[ Preconditions ]]
@@ -55,7 +67,7 @@ commonFunctions:newTestCasesGroup("Preconditions")
 function Test:Precondition_Activate_App_Consent_Device_And_Update_Policy()
   local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", {appID = self.applications["Test Application"]})
   EXPECT_HMIRESPONSE(RequestId, {result = {code = 0, isSDLAllowed = false}, method = "SDL.ActivateApp"})
-  :Do(function(_,_)
+  :Do(function(_,data)
       local RequestIdGetUserFriendlyMessage = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
       EXPECT_HMIRESPONSE(RequestIdGetUserFriendlyMessage,{result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
       :Do(function(_,_)
@@ -63,16 +75,13 @@ function Test:Precondition_Activate_App_Consent_Device_And_Update_Policy()
           -- GetCurrentTimeStampDeviceConsent()
           EXPECT_HMICALL("BasicCommunication.ActivateApp")
           :Do(function(_,data1)
-              self.hmiConnection:SendResponse(data1.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
-              EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"})
-              :Do(function()
-                end)
-            end)
+              self.hmiConnection:SendResponse(data1.id,"BasicCommunication.ActivateApp", "SUCCESS", {})              
+          end)
+          EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"})
         end)
     end)
   EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
-  :Do(function(_,data)
-      pathToSnapshot = data.params.file
+  :Do(function(_,_)
       local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
       EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
       :Do(function()
@@ -135,11 +144,45 @@ end
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
-function Test:Check_PTU_triggered_on_IGNOFF()
-  StopSDL()
+function Test:TestStep_Check_PTU_Triggered_On_OnIgnitionCycleOver()
   self.hmiConnection:SendNotification("BasicCommunication.OnIgnitionCycleOver")
   EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
-  :Timeout(500)
+end
+
+function Test.Postcondition_SDLStop()
+  StopSDL()
+end
+
+function Test:TestStep_StartSDL()
+  StartSDL(config.pathToSDL, config.ExitOnCrash)
+end
+
+function Test:TestStep_InitHMI()
+  self:initHMI()
+end
+
+function Test:TestStep_InitHMI_onReady()
+  self:initHMI_onReady()
+end
+
+function Test:TestStep_Register_App_And_Check_PTU_Triggered()
+  self:connectMobile()
+  self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
+  self.mobileSession:StartService(7)
+  :Do(function()
+      local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
+      self.mobileSession:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS" })
+    end)
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
+  EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
+  :ValidIf(function(_,data)
+     local pathToSnapshot = data.params.file
+     if GetDataFromSnapshot(pathToSnapshot) == tonumber(exchange_after_x_ignition_cycles[1]) then return true
+      else 
+        print("Wrong ignition_cycles_since_last_exchange in PTS: Expected: " .. tonumber(exchange_after_x_ignition_cycles[1]) .. " Actual: " .. GetDataFromSnapshot(pathToSnapshot))
+      return false
+    end
+    end)
 end
 
 --[[ Postconditions ]]
