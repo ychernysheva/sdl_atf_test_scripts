@@ -10,6 +10,8 @@
 
 -- Requirement summary:
 -- [Policies]: PreloadedPolicyTable: "preloaded_pt: true"
+-- Clarification
+-- [Policies]: preloaded_pt" flag set-up to false (Ford-specific)
 --
 -- Expected result:
 -- SDL must consider LocalPT as PreloadedPolicyTable and start correctly
@@ -31,15 +33,15 @@ function Test:TestStep_CheckPolicy()
 	local preloaded_pt_initial = testCasesForPolicyTableSnapshot:get_data_from_Preloaded_PT("module_config.preloaded_pt")
   local preloaded_pt_table = commonFunctions:get_data_policy_sql(config.pathToSDL.."/storage/policy.sqlite", "SELECT preloaded_pt FROM module_config")
   local preloaded_pt
-  for index, value in pairs(preloaded_pt_table) do
+  for _, value in pairs(preloaded_pt_table) do
 		preloaded_pt = value
   end
   if(preloaded_pt_initial == true) then
-  	if(preloaded_pt ~= 1) then
-  		self:FailTestCase("Error: Value of preloaded_pt should be 1(true). Real: "..preloaded_pt)	
-  	end
+		if(preloaded_pt ~= "0") then
+			self:FailTestCase("Error: Value of preloaded_pt should be 0(false). Real: "..preloaded_pt)
+		end
   else
-  	self:FailTestCase("Error: preloaded_pt.json should be updated. Value of preloaded_pt should be true. Real: "..preloaded_pt_initial)
-  end    
-    
+		self:FailTestCase("Error: preloaded_pt.json should be updated. Value of preloaded_pt should be true. Real: "..tostring(preloaded_pt_initial) )
+  end
+
 end
