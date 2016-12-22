@@ -44,12 +44,11 @@ Test = require('connecttest')
 require('cardinalities')
 require('user_modules/AppTypes')
 
-
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
 function Test:TestStep_PoliciesManager_changes_UP_TO_DATE()
-  commonFunctions:check_ptu_sequence_partly(self)
+  commonFunctions:check_ptu_sequence_partly(self, "files/ptu.json", "PolicyTableUpdate")
 
   EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {}):Times(0)
   EXPECT_HMICALL("BasicCommunication.PolicyUpdate",{}):Times(0)
