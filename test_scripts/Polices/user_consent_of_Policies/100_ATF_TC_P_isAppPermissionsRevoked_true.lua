@@ -118,7 +118,7 @@ function Test:Precondition_PTU_revoke_app_group()
       EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY" })
       :Do(function()
           local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest",
-            { fileName = "PolicyTableUpdate", requestType = "PROPRIETARY"}, "files/PTU_AppRevokedGroup.json")
+            { fileName = "PolicyTableUpdate", requestType = "PROPRIETARY"}, "files/PTU_AppPermissionsRevoked.json")
 
           EXPECT_HMICALL("BasicCommunication.SystemRequest")
           :Do(function(_,data)
@@ -135,7 +135,7 @@ function Test:Precondition_PTU_revoke_app_group()
             {status = "UPDATING"}, {status = "UP_TO_DATE"}):Times(2)
           :Do(function(_,data)
               if(data.params.status == "UP_TO_DATE") then
-                EXPECT_HMINOTIFICATION("SDL.OnAppPermissionChanged", {appID = HMIAppID, isAppPermissionsRevoked = true, appRevokedPermissions = {"DataConsent"}})
+                EXPECT_HMINOTIFICATION("SDL.OnAppPermissionChanged", {appID = HMIAppID, isAppPermissionsRevoked = true, appRevokedPermissions = { {name = "DrivingCharacteristics"} } })
                 :Do(function(_,_)
                     local RequestIdListOfPermissions = self.hmiConnection:SendRequest("SDL.GetListOfPermissions", { appID = HMIAppID })
                     EXPECT_HMIRESPONSE(RequestIdListOfPermissions)
@@ -148,15 +148,13 @@ function Test:Precondition_PTU_revoke_app_group()
             end)
         end)
     end)
-
-  EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "NONE", systemContext = "MAIN", audioStreamingState = "NOT_AUDIBLE" })
 end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 function Test:TestStep_Activate_app_isAppPermissionRevoked_true()
   local RequestIdActivateAppAgain = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = HMIAppID })
-  EXPECT_HMIRESPONSE(RequestIdActivateAppAgain, { result = { code = 0, method = "SDL.ActivateApp", isAppRevoked = true, isAppPermissionsRevoked = true}})
+  EXPECT_HMIRESPONSE(RequestIdActivateAppAgain, { result = { code = 0, method = "SDL.ActivateApp", isAppRevoked = false, isAppPermissionsRevoked = true}})
 end
 
 --[[ Postconditions ]]
