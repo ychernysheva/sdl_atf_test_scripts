@@ -60,7 +60,7 @@ local registerAppInterfaceParams =
 }
 
 local function policyUpdate(self)
-  local pathToSnaphot = "/tmp/fs/mp/images/ivsu_cache/ptu.json"
+  local pathToSnaphot = "files/ptu.json"
   local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
    EXPECT_HMIRESPONSE(RequestIdGetURLS)
   :Do(function(_,_)
