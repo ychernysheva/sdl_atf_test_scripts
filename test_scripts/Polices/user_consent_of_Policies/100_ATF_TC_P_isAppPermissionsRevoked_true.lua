@@ -58,7 +58,7 @@ function Test:TestStep_PTU_appPermissionsConsentNeeded_true()
       EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY" })
       :Do(function(_,_)
           self.mobileSession:SendRPC("SystemRequest", { fileName = "PolicyTableUpdate", requestType = "PROPRIETARY"},
-            "files/PTU_NewPermissionsForUserConsent.json")
+          "files/PTU_NewPermissionsForUserConsent.json")
 
           local systemRequestId
           EXPECT_HMICALL("BasicCommunication.SystemRequest")
@@ -84,22 +84,22 @@ function Test:TestStep_PTU_appPermissionsConsentNeeded_true()
 
                     EXPECT_HMIRESPONSE(RequestIdListOfPermissions)
                     :Do(function(_,data1)
-                      local groups = {}
-                      if #data1.result.allowedFunctions > 0 then
-                        for i = 1, #data1.result.allowedFunctions do
-                          groups[i] = {
-                                        name = data1.result.allowedFunctions[i].name,
-                                        id = data1.result.allowedFunctions[i].id,
-                                        allowed = true}
+                        local groups = {}
+                        if #data1.result.allowedFunctions > 0 then
+                          for i = 1, #data1.result.allowedFunctions do
+                            groups[i] = {
+                              name = data1.result.allowedFunctions[i].name,
+                              id = data1.result.allowedFunctions[i].id,
+                              allowed = true}
+                          end
                         end
-                      end
 
-                      self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent", { appID = self.applications[config.application1.registerAppInterfaceParams.appName], consentedFunctions = groups, source = "GUI"})
-                      EXPECT_NOTIFICATION("OnPermissionsChange")
-                    end)
-                end)
+                        self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent", { appID = self.applications[config.application1.registerAppInterfaceParams.appName], consentedFunctions = groups, source = "GUI"})
+                        EXPECT_NOTIFICATION("OnPermissionsChange")
+                      end)
+                  end)
               end
-          end)
+            end)
         end)
     end)
 end
@@ -131,22 +131,21 @@ function Test:Precondition_PTU_revoke_app_group()
               self.mobileSession:ExpectResponse(CorIdSystemRequest, {success = true, resultCode = "SUCCESS"})
             end)
 
-
           EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",
             {status = "UPDATING"}, {status = "UP_TO_DATE"}):Times(2)
           :Do(function(_,data)
-            if(data.params.status == "UP_TO_DATE") then
-              EXPECT_HMINOTIFICATION("SDL.OnAppPermissionChanged", {appID = HMIAppID, isAppPermissionsRevoked = true, appRevokedPermissions = {"DataConsent"}})
-              :Do(function(_,_)
-                  local RequestIdListOfPermissions = self.hmiConnection:SendRequest("SDL.GetListOfPermissions", { appID = HMIAppID })
-                  EXPECT_HMIRESPONSE(RequestIdListOfPermissions)
-                  :Do(function()
-                      local ReqIDGetUserFriendlyMessage = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"AppPermissionsRevoked"}})
-                      EXPECT_HMIRESPONSE(ReqIDGetUserFriendlyMessage, { result = { code = 0, messages = {{ messageCode = "AppPermissionsRevoked"}}, method = "SDL.GetUserFriendlyMessage"}})
+              if(data.params.status == "UP_TO_DATE") then
+                EXPECT_HMINOTIFICATION("SDL.OnAppPermissionChanged", {appID = HMIAppID, isAppPermissionsRevoked = true, appRevokedPermissions = {"DataConsent"}})
+                :Do(function(_,_)
+                    local RequestIdListOfPermissions = self.hmiConnection:SendRequest("SDL.GetListOfPermissions", { appID = HMIAppID })
+                    EXPECT_HMIRESPONSE(RequestIdListOfPermissions)
+                    :Do(function()
+                        local ReqIDGetUserFriendlyMessage = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"AppPermissionsRevoked"}})
+                        EXPECT_HMIRESPONSE(ReqIDGetUserFriendlyMessage, { result = { code = 0, messages = {{ messageCode = "AppPermissionsRevoked"}}, method = "SDL.GetUserFriendlyMessage"}})
+                      end)
                   end)
-              end)
-            end
-          end)
+              end
+            end)
         end)
     end)
 
@@ -157,15 +156,7 @@ end
 commonFunctions:newTestCasesGroup("Test")
 function Test:TestStep_Activate_app_isAppPermissionRevoked_true()
   local RequestIdActivateAppAgain = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = HMIAppID })
-  EXPECT_HMIRESPONSE(RequestIdActivateAppAgain, { result = { code = 0, method = "SDL.ActivateApp", isAppRevoked = true}})
-  :Do(function(_,data)
-      if data.result.isAppPermissionRevoked ~= true then
-        commonFunctions:userPrint(31, "Wrong SDL behavior: isAppPermissionRevoked should be true for app with revoked group")
-        return false
-      else
-        commonFunctions:userPrint(33, "isAppPermissionRevoked is true for app with revoked group - expected behavior")
-      end
-    end)
+  EXPECT_HMIRESPONSE(RequestIdActivateAppAgain, { result = { code = 0, method = "SDL.ActivateApp", isAppRevoked = true, isAppPermissionsRevoked = true}})
 end
 
 --[[ Postconditions ]]
