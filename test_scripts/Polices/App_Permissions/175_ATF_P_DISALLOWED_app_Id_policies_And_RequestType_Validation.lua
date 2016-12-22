@@ -29,6 +29,7 @@ local commonSteps = require ('user_modules/shared_testcases/commonSteps')
 local commonPreconditions = require ('user_modules/shared_testcases/commonPreconditions')
 local commonTestCases = require ('user_modules/shared_testcases/commonTestCases')
 local testCasesForPolicyTableSnapshot = require ('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
+local testCasesForPolicyTable = require ('user_modules/shared_testcases/testCasesForPolicyTable')
 
 --[[ Local variables ]]
 local ServerAddress = commonFunctions:read_parameter_from_smart_device_link_ini("ServerAddress")
@@ -195,6 +196,10 @@ function Test:TestStep_User_Consents_New_Permissions_After_App_Activation()
         { appID = self.applications["SPT"], source = "GUI", consentedFunctions = {{name = "New_permissions", allowed = true, id = functionalGroupID} }})
     end)
   EXPECT_NOTIFICATION("OnPermissionsChange", {})
+end
+
+function Test:TestStep_UpdatePTS()
+  testCasesForPolicyTable:trigger_user_request_update_from_HMI(self)
 end
 
 function Test:TestStep_Verify_app_id_section()

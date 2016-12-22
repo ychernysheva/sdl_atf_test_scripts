@@ -88,4 +88,9 @@ function Test:TestStep_SubscribeVehicleData()
   self.mobileSession:ExpectResponse(corId, { success = false, resultCode = "DISALLOWED" })
 end
 
-return Test
+--[[ Postconditions ]]
+commonFunctions:newTestCasesGroup("Postconditions")
+testCasesForPolicyTable:Restore_preloaded_pt()
+function Test.Postcondition_StopSDL()
+  StopSDL()
+end

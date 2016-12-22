@@ -25,6 +25,7 @@ local commonSteps = require ('user_modules/shared_testcases/commonSteps')
 local commonTestCases = require ('user_modules/shared_testcases/commonTestCases')
 local commonPreconditions = require ('user_modules/shared_testcases/commonPreconditions')
 local testCasesForPolicyTableSnapshot = require ('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
+local testCasesForPolicyTable = require ('user_modules/shared_testcases/testCasesForPolicyTable')
 
 --[[ Local variables ]]
 local ServerAddress = commonFunctions:read_parameter_from_smart_device_link_ini("ServerAddress")
@@ -60,9 +61,9 @@ function Test:Precondition_ActivateApplication()
   local CorIdRAI = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { policyAppID = "123456"} })
   :Do(function(_,data)
-    self.applications[config.application1.registerAppInterfaceParams.appName] = data.params.application.appID
-    local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", {appID = self.applications[config.application1.registerAppInterfaceParams.appName]})
-    EXPECT_HMIRESPONSE(RequestId, { result = {
+      self.applications[config.application1.registerAppInterfaceParams.appName] = data.params.application.appID
+      local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", {appID = self.applications[config.application1.registerAppInterfaceParams.appName]})
+      EXPECT_HMIRESPONSE(RequestId, { result = {
             code = 0,
             isSDLAllowed = false},
           method = "SDL.ActivateApp"})
@@ -124,6 +125,10 @@ function Test:Preconditions_Update_Policy_With_Steal_Focus_FalseValue_for_Curren
 end
 
 --[[Test]]
+function Test:TestStep_UpdatePTS()
+  testCasesForPolicyTable:trigger_user_request_update_from_HMI(self)
+end
+
 commonFunctions:newTestCasesGroup("Test")
 function Test:TestStep_Verify_appid_section()
   local test_fail = false
