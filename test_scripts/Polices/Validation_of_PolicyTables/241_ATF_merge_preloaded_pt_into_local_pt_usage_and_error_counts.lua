@@ -288,7 +288,7 @@ function Test:TestStep_VerifyNewLocalPT()
   os.execute("sleep 3")
   TestData:store("New Local PT is stored", constructPathToDatabase(), "new_policy.sqlite")
   local checks = {
-    { query = 'select preloaded_date from module_config', expectedValues = {TESTED_DATA.preloaded_date[1]} },
+    { query = 'select preloaded_date from module_config', expectedValues = {TESTED_DATA.preloaded_date[2]} },
     { query = 'select count_of_iap_buffer_full from usage_and_error_count', expectedValues = {TESTED_DATA.usage_and_error_count.count_of_iap_buffer_full}},
     { query = 'select count_sync_out_of_memory from usage_and_error_count', expectedValues = {TESTED_DATA.usage_and_error_count.count_sync_out_of_memory}},
     { query = 'select count_of_sync_reboots from usage_and_error_count', expectedValues = {TESTED_DATA.usage_and_error_count.count_of_sync_reboots} },
