@@ -1,7 +1,9 @@
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
 -- [Policies]: New trigger for changing the value of "preloaded_pt" field to 'false'
--- --
+-- Clarification
+-- [Policies]: preloaded_pt" flag set-up to false (Ford-specific)
+--
 -- Description:
 -- Behavior of SDL with "preloaded_pt" field (Boolean) is "true" in LocalPT when was performed UpdatedPolicyTable procedure
 -- 1. Used preconditions
@@ -191,13 +193,12 @@ function Test:Precondition_Check_preloaded_pt_true()
     preloaded_pt = value
   end
   if(preloaded_pt_initial == true) then
-    if(preloaded_pt ~= 1) then
-      self:FailTestCase("Error: Value of preloaded_pt should be 1(true). Real: "..preloaded_pt) 
+    if(preloaded_pt ~= "0") then
+      self:FailTestCase("Error: Value of preloaded_pt should be 0(false). Real: "..preloaded_pt)
     end
   else
     self:FailTestCase("Error: preloaded_pt.json should be updated. Value of preloaded_pt should be true. Real: "..preloaded_pt_initial)
-  end    
-    
+  end
 end
 
 
@@ -216,14 +217,14 @@ function Test:TestStep_Check_preloaded_pt_false_policyDB()
   os.execute("sleep 3")
   local result = commonFunctions:is_db_contains(config.pathToSDL.."/storage/policy.sqlite", "SELECT preloaded_pt FROM module_config", {DB_FALSE_VALUE} )
   if(result ~= true) then
-    self:FailTestCase("Error: Value of preloaded_pt on policy DB should be false.") 
+    self:FailTestCase("Error: Value of preloaded_pt on policy DB should be false.")
   end
 end
 
 function Test:TestStep_Check_preloaded_pt_false_PTS()
   local preloaded_pt =testCasesForPolicyTableSnapshot:get_data_from_PTS("module_config.preloaded_pt")
   if(preloaded_pt ~= false) then
-    self:FailTestCase("Error: Value of preloaded_pt should be false. Real: "..tostring(preloaded_pt)) 
+    self:FailTestCase("Error: Value of preloaded_pt should be false. Real: "..tostring(preloaded_pt))
   end
 end
 
