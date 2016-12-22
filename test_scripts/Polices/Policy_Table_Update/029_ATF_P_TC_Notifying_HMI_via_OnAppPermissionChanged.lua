@@ -5,27 +5,27 @@
 -- Description:
 -- PoliciesManager must initiate sending SDL.OnAppPermissionChanged{appID} notification to HMI IN CASE the Updated PT resulted any changes in the appID app`s policies.
 -- Preconditions:
---    1.SDL and HMI are running
---    2.AppID_1 is connected to SDL.
---    3.The device the app is running on is consented
---    4.Policy Table Update procedure is on stage waiting for:
---        HMI->SDL: SDL.OnReceivedPolicyUpdate (policyfile)
---        'policyfile' corresponds to PTU validation rules
+-- 1.SDL and HMI are running
+-- 2.AppID_1 is connected to SDL.
+-- 3.The device the app is running on is consented
+-- 4.Policy Table Update procedure is on stage waiting for:
+-- HMI->SDL: SDL.OnReceivedPolicyUpdate (policyfile)
+-- 'policyfile' corresponds to PTU validation rules
 -- Steps:
---    Request policy update via HMI:
---        HMI->SDL: SDL.OnReceivedPolicyUpdate (policyfile)
+-- Request policy update via HMI:
+-- HMI->SDL: SDL.OnReceivedPolicyUpdate (policyfile)
 
 -- Expected result:
---    1.PoliciesManager validates the updated PT (policyFile) e.i. verifyes, saves the updated fields and everything that is defined with related requirements)
---    2.On validation success:
---        SDL->HMI:OnStatusUpdate("UP_TO_DATE")
---    3.SDL replaces the following sections of the Local Policy Table with the corresponding sections from PTU:
---        module_config,
---        functional_groupings,
---        app_policies
---    4.SDL removes 'policyfile' from the directory
---    5.SDL->app: onPermissionChange(<permisssionItem>)
---    6.SDL->HMI: SDL.OnAppPermissionChanged(<appID_1>, params)
+-- 1.PoliciesManager validates the updated PT (policyFile) e.i. verifyes, saves the updated fields and everything that is defined with related requirements)
+-- 2.On validation success:
+-- SDL->HMI:OnStatusUpdate("UP_TO_DATE")
+-- 3.SDL replaces the following sections of the Local Policy Table with the corresponding sections from PTU:
+-- module_config,
+-- functional_groupings,
+-- app_policies
+-- 4.SDL removes 'policyfile' from the directory
+-- 5.SDL->app: onPermissionChange(<permisssionItem>)
+-- 6.SDL->HMI: SDL.OnAppPermissionChanged(<appID_1>, params)
 ---------------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
@@ -110,9 +110,25 @@ end
 
 function Test:Precondition_RegisterApp()
   self.mobileSession:StartService(7)
-  :Do(function (_,_)
+  :Do(function ()
       local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
       EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
+      :Do(function(_, data)
+          local RequestIdActivateApp = self.hmiConnection:SendRequest("SDL.ActivateApp", {appID = data.params.application.appID})
+          EXPECT_HMIRESPONSE(RequestIdActivateApp, {result = {code = 0, isSDLAllowed = false}, method = "SDL.ActivateApp"})
+          :Do(function(_,_)
+              local RequestIdGetUserFriendlyMessage = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
+              EXPECT_HMIRESPONSE(RequestIdGetUserFriendlyMessage,{result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
+              :Do(function(_,_)
+                  self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = "127.0.0.1"}})
+                  EXPECT_HMICALL("BasicCommunication.ActivateApp")
+                  :Do(function(_,data1)
+                      self.hmiConnection:SendResponse(data1.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
+                    end)
+                  EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"})
+                end)
+            end)
+        end)
       EXPECT_RESPONSE(correlationId, { success = true })
       EXPECT_NOTIFICATION("OnPermissionsChange")
     end)
@@ -121,6 +137,7 @@ end
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 function Test:UpdatePolicy_ExpectOnAppPermissionChangedWithAppID()
+  EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
   testCasesForPolicyTable:updatePolicyInDifferentSessions(Test, ptu_app_registered,
     config.application1.registerAppInterfaceParams.appName,
     self.mobileSession)
@@ -144,3 +161,5 @@ end
 function Test.Postcondition_Stop_SDL()
   StopSDL()
 end
+
+return Test
