@@ -80,7 +80,7 @@ function Test:TestStep_TreatDeviceAsConsented()
           end)
       else
         local RequestIdUpdateSDL = self.hmiConnection:SendRequest("SDL.UpdateSDL")
-        EXPECT_HMIRESPONSE(RequestIdUpdateSDL,{result = {code = 0, method = "SDL.UpdateSDL", result = "UPDATING" }})
+        EXPECT_HMIRESPONSE(RequestIdUpdateSDL,{result = {code = 0, method = "SDL.UpdateSDL", result = "UPDATE_NEEDED" }})
         :Do(function(_,_data1)
             self.hmiConnection:SendResponse(_data1.id, _data1.method, "SUCCESS", {})
 

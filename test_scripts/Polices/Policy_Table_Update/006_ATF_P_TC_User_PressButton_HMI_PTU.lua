@@ -60,18 +60,18 @@ commonFunctions:newTestCasesGroup("Test")
 function Test:TC_User_PressButton_HMI_PTU()
   local is_test_fail = false
   local hmi_app1_id = self.applications[config.application1.registerAppInterfaceParams.appName]
-  self.hmiConnection:SendNotification("SDL.UpdateSDL", {} )
 
-  EXPECT_HMINOTIFICATION("SDL.UpdateSDL", {status = "UPDATE_NEEDED"})
+  local RequestIdUpdateSDL = self.hmiConnection:SendRequest("SDL.UpdateSDL")
+  EXPECT_HMIRESPONSE(RequestIdUpdateSDL,{result = {code = 0, method = "SDL.UpdateSDL", result = "UPDATE_NEEDED" }})
 
   EXPECT_HMICALL("BasicCommunication.PolicyUpdate", { file = "/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json" })
   :Do(function(_,data)
-    testCasesForPolicyTableSnapshot:verify_PTS(true,
-      {config.application1.registerAppInterfaceParams.appID},
-      {config.deviceMAC},
-      {hmi_app1_id})
+      testCasesForPolicyTableSnapshot:verify_PTS(true,
+        {config.application1.registerAppInterfaceParams.appID},
+        {config.deviceMAC},
+        {hmi_app1_id})
 
-    local timeout_after_x_seconds = testCasesForPolicyTableSnapshot:get_data_from_PTS("module_config.timeout_after_x_seconds")
+      local timeout_after_x_seconds = testCasesForPolicyTableSnapshot:get_data_from_PTS("module_config.timeout_after_x_seconds")
       local seconds_between_retries = {}
       for i = 1, #testCasesForPolicyTableSnapshot.pts_seconds_between_retries do
         seconds_between_retries[i] = testCasesForPolicyTableSnapshot.pts_seconds_between_retries[i].value
@@ -87,8 +87,8 @@ function Test:TC_User_PressButton_HMI_PTU()
       if(is_test_fail == true) then
         self:FailTestCase("Test is FAILED. See prints.")
       end
-    self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-  end)
+      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+    end)
 end
 
 --[[ Postconditions ]]

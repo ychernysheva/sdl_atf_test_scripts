@@ -1056,7 +1056,8 @@ function testCasesForPolicyTable:trigger_PTU_user_press_button_HMI(self, execute
   testCasesForPolicyTable.time_onstatusupdate = 0
   testCasesForPolicyTable.time_policyupdate = 0
 
-  self.hmiConnection:SendNotification("SDL.UpdateSDL", {} )
+  local RequestIdUpdateSDL = self.hmiConnection:SendRequest("SDL.UpdateSDL")
+  EXPECT_HMIRESPONSE(RequestIdUpdateSDL,{result = {code = 0, method = "SDL.UpdateSDL", result = "UPDATE_NEEDED" }})
 
   testCasesForPolicyTable.time_trigger = timestamp()
 
