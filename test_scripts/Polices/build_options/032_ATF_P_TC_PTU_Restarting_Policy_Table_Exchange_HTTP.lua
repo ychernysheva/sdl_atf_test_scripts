@@ -156,12 +156,11 @@ EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "HTTP"})
 if exp.occurences == 1 then 
   startPTUtime = os.time()
   firstTryTime = startPTUtime + timeout_after_x_seconds + seconds_between_retries[1]
-  print ("PTU time: " .. os.time())
   return true
 end
 
 if exp.occurences == 2 and firstTryTime == os.time() then 
-  secondTryTime = firstTryTime + seconds_between_retries[2]
+  secondTryTime = timeout_after_x_seconds + firstTryTime + seconds_between_retries[2]
   print ("first retry time: " .. os.time())
   return true
   elseif exp.occurences == 2 and firstTryTime ~= os.time() then 
@@ -170,11 +169,11 @@ if exp.occurences == 2 and firstTryTime == os.time() then
 end
 
 if exp.occurences == 3 and secondTryTime == os.time() then 
-  thirdTryTime = secondTryTime + seconds_between_retries[3]
+  thirdTryTime = timeout_after_x_seconds + secondTryTime + seconds_between_retries[3]
   print ("second retry time: " .. os.time())
   return true
   elseif exp.occurences == 2 and secondTryTime ~= os.time() then 
-    print ("Wrong second retry time! Expected: " .. seconds_between_retries[2] .. " Actual: " .. os.time() - firstTryTime)
+    print ("Wrong second retry time! Expected: " .. timeout_after_x_seconds + seconds_between_retries[2] .. " Actual: " .. os.time() - firstTryTime)
     return false
 end
 
@@ -182,7 +181,7 @@ if exp.occurences == 4 and thirdTryTime == os.time() then
   print ("third retry time: " .. os.time())
   return true
   elseif exp.occurences == 2 and thirdTryTime ~= os.time() then 
-    print ("Wrong third retry time! Expected: " .. seconds_between_retries[3] .. " Actual: " .. os.time() - secondTryTime)
+    print ("Wrong third retry time! Expected: " .. timeout_after_x_seconds + seconds_between_retries[3] .. " Actual: " .. os.time() - secondTryTime)
     return false
 end
 return false
