@@ -118,7 +118,7 @@ function Test:Precondition_Activate_App_Consent_Device_Make_PTU_Consent_Group()
           :Do(function(_,data1)
               self.hmiConnection:SendResponse(data1.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
             end)
-            :Times(AtLeast(1))
+          :Times(AtLeast(1))
         end)
     end)
   EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"})
@@ -141,7 +141,7 @@ function Test:Precondition_Activate_App_Consent_Device_Make_PTU_Consent_Group()
                       policyfile = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate"
                     })
                   self.hmiConnection:SendResponse(systemRequestId, "BasicCommunication.SystemRequest", "SUCCESS", {})
-                  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UP_TO_DATE"}) 
+                  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UP_TO_DATE"})
                   :Timeout(500)
                   self.mobileSession:ExpectResponse(CorIdSystemRequest, {success = true, resultCode = "SUCCESS"})
                 end)
@@ -178,17 +178,25 @@ function Test:Validate_Snapshot_Values()
   :ValidIf(function(_,data)
       pathToSnapshot = data.params.file
       local valuesFromPTS = GetDataFromSnapshot(pathToSnapshot)
-      if (valuesFromPTS["userConsentGroup"] == "Location-1" and
-        valuesFromPTS["groupUserconsentTimeStamp"] == consentGroupSystemTimeStamp and
-        valuesFromPTS["inputOfAppIdConsent"] == "GUI" and
-        valuesFromPTS["deviceConsentTimeStamp"] == consentDeviceSystemTimeStamp and
-        valuesFromPTS["deviceInput"] == "GUI" and
-        valuesFromPTS["deviceGroups"] == "DataConsent-2") then return true
-    else
-      print ("Wrong values in Snapshot")
-      return false
-    end
-  end)
+      local verificationValues = {
+        deviceConsentTimeStamp = consentDeviceSystemTimeStamp,
+        deviceInput = "GUI",
+        deviceGroups = "DataConsent-2",
+        inputOfAppIdConsent = "GUI",
+        groupUserconsentTimeStamp = consentGroupSystemTimeStamp,
+        userConsentGroup = "Location-1"
+      }
+
+      local result = true
+      for k,v in pairs(valuesFromPTS) do
+        if v ~= verificationValues[k] then
+          local stringLog = "Wrong value from snapshot " .. k .. "! Expected: " .. verificationValues[k] .. " Actual: " .. v
+          print("Wrong value from snapshot " .. k .. "! Expected: " .. verificationValues[k] .. " Actual: " .. v)
+          result = false
+        end
+      end
+      return result
+    end)
 end
 
 --[[ Postcondition ]]
