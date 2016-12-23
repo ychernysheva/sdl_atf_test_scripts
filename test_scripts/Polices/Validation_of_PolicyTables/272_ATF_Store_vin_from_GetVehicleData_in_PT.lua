@@ -1,18 +1,18 @@
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
---    [GetVehicleData] "vin" storage into PolicyTable
+-- [GetVehicleData] "vin" storage into PolicyTable
 --
 -- Description:
---     Getting "vin" via VehicleInfo.GetVehicleData on SDL start and storing it in policy table
---     1. Used preconditions:
---      SDL and HMI are running
+-- Getting "vin" via VehicleInfo.GetVehicleData on SDL start and storing it in policy table
+-- 1. Used preconditions:
+-- SDL and HMI are running
 --
---     2. Performed steps
---      Check policy table for 'vin'
+-- 2. Performed steps
+-- Check policy table for 'vin'
 --
 -- Expected result:
---     Policies Manager must request <vin> via VehicleInfo.GetVehicleData("vin") before LocalPT creation;
---     PoliciesManager writes <vin> to "module_meta" section of created LocalPT
+-- Policies Manager must request <vin> via VehicleInfo.GetVehicleData("vin") before LocalPT creation;
+-- PoliciesManager writes <vin> to "module_meta" section of created LocalPT
 ---------------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
@@ -22,7 +22,6 @@ config.defaultProtocolVersion = 2
 --[[ Required Shared libraries ]]
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
-local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
 local events = require("events")
 local vehicle_data = "55-555-66-777"
@@ -69,30 +68,16 @@ function Test:Step1_SDL_requests_vin_on_InitHMI_OnReady()
     event.level = 2
     event.matches = function(_, data) return data.method == name end
     return
-      EXPECT_HMIEVENT(event, name)
-      :Times(mandatory and 1 or AnyNumber())
-      :Do(function(_, data)
-          xmlReporter.AddMessage("hmi_connection","SendResponse",
-            {
-              ["methodName"] = tostring(name),
-              ["mandatory"] = mandatory ,
-              ["params"]= params
-            })
-        if(name == "VehicleInfo.GetVehicleData") then
-          if commonSteps:file_exists(config.pathToSDL .. "storage/policy.sqlite") then
-            commonFunctions:printError("policy.sqlite is found, VehicleInfo.GetVehicleData is sent after LPT created")
-            is_policy_created_before_get_data = true
-          else
-            commonFunctions:userPrint(27, "policy.sqlite is not found, VehicleInfo.GetVehicleData is requested before LPT created")
-          end
-          local function run()
-            self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", params)
-          end
-          RUN_AFTER(run,500)
-          commonTestCases:DelayedExp(1000)
-        else
-          self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", params)
-        end
+    EXPECT_HMIEVENT(event, name)
+    :Times(mandatory and 1 or AnyNumber())
+    :Do(function(_, data)
+        -- xmlReporter.AddMessage("hmi_connection","SendResponse",
+        -- {
+        -- ["methodName"] = tostring(name),
+        -- ["mandatory"] = mandatory ,
+        -- ["params"]= params
+        -- })
+        self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", params)
       end)
   end
 
