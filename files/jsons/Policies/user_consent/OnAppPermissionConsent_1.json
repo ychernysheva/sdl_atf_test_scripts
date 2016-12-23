@@ -293,7 +293,10 @@
                 "user_consent_prompt": "Notifications",
                 "rpcs": {
                     "Alert": {
-                        "hmi_levels": ["BACKGROUND"]
+                        "hmi_levels": ["BACKGROUND",
+                        "FULL",
+                        "LIMITED",
+                        "NONE"]
                     },
 		"DiagnosticMessage": {
                         "hmi_levels": ["BACKGROUND",
@@ -305,17 +308,11 @@
             "DrivingCharacteristics-3": {
                 "user_consent_prompt": "DrivingCharacteristics",
                 "rpcs": {
-                    "GetVehicleData": {
+                    "Alert": {
                         "hmi_levels": ["BACKGROUND",
                         "FULL",
-                        "LIMITED"],
-                        "parameters": ["accPedalPosition",
-                        "beltStatus",
-                        "driverBraking",
-                        "myKey",
-                        "prndl",
-                        "rpm",
-                        "steeringWheelAngle"]
+                        "LIMITED",
+                        "NONE"]
                     },
                     "OnVehicleData": {
                         "hmi_levels": ["BACKGROUND",
