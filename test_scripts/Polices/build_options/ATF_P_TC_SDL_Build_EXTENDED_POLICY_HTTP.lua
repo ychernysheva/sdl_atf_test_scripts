@@ -36,7 +36,6 @@ config.application2.registerAppInterfaceParams.appName = "Media Application"
 config.application2.registerAppInterfaceParams.appID = "MyTestApp"
 
 --[[ Local Variables ]]
-local binaryData = "files/jsons/Policies/build_options/ptu_29604.json"
 local filePTU = "files/ptu.json"
 
 --[[ Preconditions ]]
@@ -47,7 +46,6 @@ end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
-
 function Test:TestStep_OpenNewSession()
   self.mobileSession2 = mobile_session.MobileSession(self, self.mobileConnection)
   self.mobileSession2:StartService(7)
@@ -56,34 +54,33 @@ end
 function Test:TestStep_Trigger_PTU_Check_HTTP_flow()
   local corId = self.mobileSession2:SendRPC("RegisterAppInterface", config.application2.registerAppInterfaceParams)
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application2.registerAppInterfaceParams.appName }})
-  :Do(function()
-      EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "HTTP"})
+   :Do(function()
+     EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "HTTP"})
       :Do(function()
           local CorIdSystemRequest = self.mobileSession:SendRPC ("SystemRequest",
-            { requestType = "HTTP", fileName = "PTU" }, binaryData)
+            { requestType = "HTTP", fileName = "PTU" }, filePTU)
           EXPECT_RESPONSE(CorIdSystemRequest, {success = true, resultCode = "SUCCESS"})
-          EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate")
-          :ValidIf(function(exp,data)
-              if exp.occurences == 1 and data.params.status == "UPDATE_NEEDED" then
-                return true
-              elseif exp.occurences == 2 and data.params.status == "UPDATING" then
-                return true
-              elseif exp.occurences == 3 and data.params.status == "UP_TO_DATE" then
-                return true
-              end
-              return false
-            end)
-          :Times(3)
+          
         end)
       self.mobileSession2:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
       self.mobileSession2:ExpectNotification("OnPermissionsChange")
+   end)
+    EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate")
+     :ValidIf(function(exp,data)
+       if exp.occurences == 1 and data.params.status == "UPDATE_NEEDED" then
+         return true
+       elseif exp.occurences == 2 and data.params.status == "UPDATING" then
+         return true
+       elseif exp.occurences == 3 and data.params.status == "UP_TO_DATE" then
+         return true
+        end
+        return false
     end)
+     :Times(3)
 end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
-function Test.Postcondition_Stop_SDL()
+function Test.Postcondition_SDLStop()
   StopSDL()
 end
-
-return Test
