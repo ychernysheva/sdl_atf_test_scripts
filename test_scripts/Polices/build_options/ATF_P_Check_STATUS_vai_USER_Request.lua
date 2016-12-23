@@ -25,7 +25,7 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 --[[ Required Shared libraries ]]
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
-local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
+
 
 --[[ Local Variables ]]
 --NewTestSuiteNumber = 0
@@ -39,7 +39,7 @@ require('user_modules/AppTypes')
 
 --[[ Local Functions ]]
 local function policyUpdate(self)
-  local pathToSnaphot = "/tmp/fs/mp/images/ivsu_cache/ptu.json"
+  local pathToSnaphot = "files/ptu.json"
   local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
    EXPECT_HMIRESPONSE(RequestIdGetURLS)
   :Do(function(_,_)
