@@ -44,10 +44,12 @@ require('user_modules/AppTypes')
 commonFunctions:newTestCasesGroup("Test")
 
 function Test:PTU_requested_through_HMI()
-  self.hmiConnection:SendNotification("SDL.UpdateSDL", {} )
+  local RequestIdUpdateSDL = self.hmiConnection:SendRequest("SDL.UpdateSDL")
 
-  EXPECT_HMINOTIFICATION("SDL.UpdateSDL", {}):Times(0)
+  EXPECT_HMIRESPONSE(RequestIdUpdateSDL,{result = {code = 0, method = "SDL.UpdateSDL", result = "UPDATE_NEEDED" }})
+
   EXPECT_HMICALL("BasicCommunication.PolicyUpdate", {}):Times(0)
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"}):Times(0)
 
   local function to_run()
     if ( commonSteps:file_exists( '/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json') ) then
