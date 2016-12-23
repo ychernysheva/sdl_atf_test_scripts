@@ -216,7 +216,7 @@ function Test:Precondition_PTU_user_consent_prompt_present()
 
           EXPECT_NOTIFICATION("OnPermissionsChange" --[[, {permissionItem = array_allpermissions}, {permissionItem = arrayNotifications}]]):Times(2)
             :Do(function(exp,_data2)
-                if( (exp.occurences == 1) and (_data2.payload.permissionItem ~= nil) )then
+                if( (_data2.payload.permissionItem ~= nil) )then
                   -- Will be used to check if all needed RPC for permissions are received
                   local is_perm_item_receved = {}
                   for i = 1, #array_allpermissions do
@@ -242,7 +242,7 @@ function Test:Precondition_PTU_user_consent_prompt_present()
                   -- check that all RPCs from notification are requesting permission
                   for i = 1,#is_perm_item_needed do
                     if (is_perm_item_needed[i] == false) then
-                      commonFunctions:printError("Occ1 RPC: ".._data2.payload.permissionItem[i].rpcName.." should not be sent")
+                      commonFunctions:printError("Occ"..exp.occurences.." RPC: ".._data2.payload.permissionItem[i].rpcName.." should not be sent")
                       is_test_passed = false
                     end
                   end
@@ -250,47 +250,7 @@ function Test:Precondition_PTU_user_consent_prompt_present()
                   -- check that all RPCs that request permission are received
                   for i = 1,#is_perm_item_receved do
                     if (is_perm_item_receved[i] == false) then
-                      commonFunctions:printError("Occ1 RPC: "..array_allpermissions[i].rpcName.." is not sent")
-                      is_test_passed = false
-                    end
-                  end
-                end
-
-                if( (exp.occurences == 2) and (_data2.payload.permissionItem ~= nil) )then
-                  -- Will be used to check if all needed RPC for permissions are received
-                  local is_perm_item_receved = {}
-                  for i = 1, #array_without_Location do
-                    is_perm_item_receved[i] = false
-                  end
-
-                  -- will be used to check RPCs that needs permission
-                  local is_perm_item_needed = {}
-                  for i = 1, #_data2.payload.permissionItem do
-                    is_perm_item_needed[i] = false
-                  end
-
-                  for i = 1, #_data2.payload.permissionItem do
-                    for j = 1, #array_without_Location do
-                      if(_data2.payload.permissionItem[i].rpcName == array_without_Location[j].rpcName) then
-                        is_perm_item_receved[j] = true
-                        is_perm_item_needed[i] = true
-                        break
-                      end
-                    end
-                  end
-
-                  -- check that all RPCs from notification are requesting permission
-                  for i = 1,#is_perm_item_needed do
-                    if (is_perm_item_needed[i] == false) then
-                      commonFunctions:printError("Occ2: RPC: ".._data2.payload.permissionItem[i].rpcName.." should not be sent")
-                      is_test_passed = false
-                    end
-                  end
-
-                  -- check that all RPCs that request permission are received
-                  for i = 1,#is_perm_item_receved do
-                    if (is_perm_item_receved[i] == false) then
-                      commonFunctions:printError("Occ2: RPC: "..array_without_Location[i].rpcName.." is not sent")
+                      commonFunctions:printError("Occ"..exp.occurences.." RPC: "..array_allpermissions[i].rpcName.." is not sent")
                       is_test_passed = false
                     end
                   end
@@ -368,7 +328,7 @@ function Test:Precondition_PTU_user_consent_prompt_present()
 
   --[[ Postconditions ]]
   commonFunctions:newTestCasesGroup("Postconditions")
-
+  testCasesForPolicyTable:Restore_preloaded_pt()
   function Test.Postcondition_Stop()
     StopSDL()
   end
