@@ -31,12 +31,15 @@ local testCasesForPolicyTableSnapshot = require ('user_modules/shared_testcases/
 require('cardinalities')
 require('user_modules/AppTypes')
 
+--[[ General precondition brfore ATF start]]
+commonSteps:DeleteLogsFileAndPolicyTable()
+
 --[[ Local Variables ]]
 local PRELOADED_PT_FILE_NAME = "sdl_preloaded_pt.json"
 local HMIAppId
 local APP_ID = "0000001"
-local APP_LANGUAGE = "ES-MX"
-
+--local APP_LANGUAGE = "ES-MX"
+local APP_LANGUAGE = "EN-US"
 
 local basic_ptu_file = "files/ptu.json"
 local ptu_first_app_registered = "files/ptu1app.json"
@@ -96,7 +99,6 @@ local TESTED_DATA = {
 }
 config.application1.registerAppInterfaceParams.appID = APP_ID
 config.application1.registerAppInterfaceParams.languageDesired = APP_LANGUAGE
-
 
 local TestData = {
   path = config.pathToSDL .. "TestData",
@@ -296,22 +298,21 @@ function Test:updatePolicyInDifferentSessions(PTName, appName, mobileSession)
           local systemRequestId
           EXPECT_HMICALL("BasicCommunication.SystemRequest")
           :Do(function(_,_data1)
-            systemRequestId = _data1.id
-            self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate", { policyfile = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate"} )
-            local function to_run()
-              self.hmiConnection:SendResponse(systemRequestId,"BasicCommunication.SystemRequest", "SUCCESS", {})
-            end
+              systemRequestId = _data1.id
+              self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate", { policyfile = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate"} )
+              local function to_run()
+                self.hmiConnection:SendResponse(systemRequestId,"BasicCommunication.SystemRequest", "SUCCESS", {})
+              end
 
               RUN_AFTER(to_run, 500)
-          end)
+            end)
           mobileSession:ExpectResponse(CorIdSystemRequest, { success = true, resultCode = "SUCCESS"})
-      end)
-  end)
+        end)
+    end)
 
   EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",
-    {status = "UPDATING"}, {status = "UPDATE_NEEDED"}):Times(2)
+    {status = "UPDATING"}, {status = "UP_TO_DATE"}):Times(2)
 
-  EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
 end
 
 local function activateAppInSpecificLevel(self, HMIAppID, hmi_level)
@@ -347,55 +348,55 @@ local function activateAppInSpecificLevel(self, HMIAppID, hmi_level)
     end)
 end
 
-  local function addApplicationToPTJsonFile(basic_file, new_pt_file, app_name, app_)
-    local pt = io.open(basic_file, "r")
-    if pt == nil then
-      error("PTU file not found")
-    end
-    local pt_string = pt:read("*all")
-    pt:close()
-    local pt_table = json.decode(pt_string)
-    pt_table["policy_table"]["app_policies"][app_name] = app_
-    -- Workaround. null value in lua table == not existing value. But in json file it has to be
-    pt_table["policy_table"]["functional_groupings"]["DataConsent-2"]["rpcs"] = "tobedeletedinjsonfile"
-    local pt_json = json.encode(pt_table)
-    pt_json = string.gsub(pt_json, "\"tobedeletedinjsonfile\"", "null")
-    local new_ptu = io.open(new_pt_file, "w")
-
-    new_ptu:write(pt_json)
-    new_ptu:close()
+local function addApplicationToPTJsonFile(basic_file, new_pt_file, app_name, app_)
+  local pt = io.open(basic_file, "r")
+  if pt == nil then
+    error("PTU file not found")
   end
+  local pt_string = pt:read("*all")
+  pt:close()
+  local pt_table = json.decode(pt_string)
+  pt_table["policy_table"]["app_policies"][app_name] = app_
+  -- Workaround. null value in lua table == not existing value. But in json file it has to be
+  pt_table["policy_table"]["functional_groupings"]["DataConsent-2"]["rpcs"] = "tobedeletedinjsonfile"
+  local pt_json = json.encode(pt_table)
+  pt_json = string.gsub(pt_json, "\"tobedeletedinjsonfile\"", "null")
+  local new_ptu = io.open(new_pt_file, "w")
 
-  local function PrepareJsonPTU1(name, new_ptufile)
-    local json_app = [[ {
-      "keep_context": false,
-      "steal_focus": false,
-      "priority": "NONE",
-      "default_hmi": "NONE",
-      "groups": [
-      "Base-4"
-      ],
-      "RequestType":[
-      "TRAFFIC_MESSAGE_CHANNEL",
-      "PROPRIETARY",
-      "HTTP",
-      "QUERY_APPS"
-      ]
-    }]]
-    local app = json.decode(json_app)
-    addApplicationToPTJsonFile(basic_ptu_file, new_ptufile, name, app)
-  end
+  new_ptu:write(pt_json)
+  new_ptu:close()
+end
 
-  --[[ Test ]]
-  commonFunctions:newTestCasesGroup("Test")
-  function Test.PreparePTData()
-    PrepareJsonPTU1(APP_ID, ptu_first_app_registered)
-  end
+local function PrepareJsonPTU1(name, new_ptufile)
+  local json_app = [[ {
+    "keep_context": false,
+    "steal_focus": false,
+    "priority": "NONE",
+    "default_hmi": "NONE",
+    "groups": [
+    "Base-4"
+    ],
+    "RequestType":[
+    "TRAFFIC_MESSAGE_CHANNEL",
+    "PROPRIETARY",
+    "HTTP",
+    "QUERY_APPS"
+    ]
+  }]]
+  local app = json.decode(json_app)
+  addApplicationToPTJsonFile(basic_ptu_file, new_ptufile, name, app)
+end
 
-  function Test:ActivateApp()
-    HMIAppId = self.applications[config.application1.registerAppInterfaceParams.appName]
-    activateAppInSpecificLevel(self,HMIAppId,"FULL")
-  end
+--[[ Test ]]
+commonFunctions:newTestCasesGroup("Test")
+function Test.PreparePTData()
+  PrepareJsonPTU1(APP_ID, ptu_first_app_registered)
+end
+
+function Test:ActivateApp()
+  HMIAppId = self.applications[config.application1.registerAppInterfaceParams.appName]
+  activateAppInSpecificLevel(self,HMIAppId,"FULL")
+end
 
 function Test:TestStep_Check_app_registration_language_vui_PTS()
   local app_registration_language_vui = testCasesForPolicyTableSnapshot:get_data_from_PTS("usage_and_error_counts.app_level.0000001.app_registration_language_vui")
@@ -405,43 +406,63 @@ function Test:TestStep_Check_app_registration_language_vui_PTS()
   end
 end
 
+function Test:CheckLocalPTBeforeUpdate()
+  local checks = {
+    {
+      query = table.concat(
+        {
+          'select app_registration_language_vui from app_level where application_id = "',
+          APP_ID,
+          '"'
+        }),
+      expectedValues = {table.concat(
+          {
+            TESTED_DATA.expected.policy_table.usage_and_error_counts.app_level[APP_ID].app_registration_language_vui, ""
+          })
+      }
+    }
+  }
+  if not self.checkLocalPT(checks) then
+    self:FailTestCase("SDL has wrong values in LocalPT")
+  end
+end
+
 function Test:InitiatePTUForGetSnapshot()
-    self:updatePolicyInDifferentSessions(ptu_first_app_registered,
-      config.application1.registerAppInterfaceParams.appName,
-      self.mobileSession)
-    -- updatePolicyInDifferentSessions(Test, ptu_first_app_registered,
-    --   TESTED_DATA.application.registerAppInterfaceParams.appName, self.mobileSession)
+  self:updatePolicyInDifferentSessions(ptu_first_app_registered,
+    config.application1.registerAppInterfaceParams.appName,
+    self.mobileSession)
+  -- updatePolicyInDifferentSessions(Test, ptu_first_app_registered,
+  -- TESTED_DATA.application.registerAppInterfaceParams.appName, self.mobileSession)
 end
 
 function Test:CheckPTUinLocalPT()
-    local checks = {
-      {
-        query = table.concat(
+  local checks = {
+    {
+      query = table.concat(
+        {
+          'select app_registration_language_vui from app_level where application_id = "',
+          APP_ID,
+          '"'
+        }),
+      expectedValues = {table.concat(
           {
-            'select app_registration_language_vui from app_level where application_id = "',
-            APP_ID,
-            '"'
-          }),
-        expectedValues = {table.concat(
-            {
-              TESTED_DATA.expected.policy_table.usage_and_error_counts.app_level[APP_ID].app_registration_language_vui, ""
-            })
-        }
+            TESTED_DATA.expected.policy_table.usage_and_error_counts.app_level[APP_ID].app_registration_language_vui, ""
+          })
       }
     }
-    if not self.checkLocalPT(checks) then
-      self:FailTestCase("SDL has wrong values in LocalPT")
-    end
+  }
+  if not self.checkLocalPT(checks) then
+    self:FailTestCase("SDL has wrong values in LocalPT")
+  end
 end
 
-  --[[ Postconditions ]]
-  commonFunctions:newTestCasesGroup("Postconditions")
+--[[ Postconditions ]]
+commonFunctions:newTestCasesGroup("Postconditions")
 
-  function Test.Postcondition()
-    commonSteps:DeletePolicyTable()
-    Test.restorePreloadedPT("backup_")
-    TestData:info()
-  end
+function Test.Postcondition()
+  Test.restorePreloadedPT("backup_")
+  TestData:info()
+end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
