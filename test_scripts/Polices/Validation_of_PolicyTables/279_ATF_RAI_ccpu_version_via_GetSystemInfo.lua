@@ -1,18 +1,18 @@
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
---    [RegisterAppInterface] "ccpu_version" obtaining via GetSystemInfo
+-- [RegisterAppInterface] "ccpu_version" obtaining via GetSystemInfo
 --
 -- Description:
---     Getting "ccpu_version" via GetSystemInfo on each SDL starts
---     1. Used preconditions:
---      SDL and HMI are running
+-- Getting "ccpu_version" via GetSystemInfo on each SDL starts
+-- 1. Used preconditions:
+-- SDL and HMI are running
 --
---     2. Performed steps
---      Check policy table for 'ccpu_version'
+-- 2. Performed steps
+-- Check policy table for 'ccpu_version'
 --
 -- Expected result:
---     SDL must request 'ccpu_version' parameter from HMI via GetSystemInfo HMI API;
---     SDL must request 'ccpu_version' ONLY once in ign cycle
+-- SDL must request 'ccpu_version' parameter from HMI via GetSystemInfo HMI API;
+-- SDL must request 'ccpu_version' ONLY once in ign cycle
 ---------------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
@@ -51,11 +51,11 @@ commonFunctions:newTestCasesGroup("Test")
 
 function Test:TestStep1_SDL_sends_GetSystemInfo_on_InitHMI()
   self:initHMI_onReady()
-  EXPECT_HMICALL("BasicCommunication.GetSystemInfo"):Times(1)
+  EXPECT_HMICALL("BasicCommunication.GetSystemInfo"):Times(AtLeast(1))
   :Do(function(_,data)
-  self.hmiConnection:SendResponse(data.id, "BasicCommunication.GetSystemInfo", "SUCCESS", {ccpu_version ="OpenS",
-  language ="EN-US",wersCountryCode = "open_wersCountryCode"})
-  end)
+      self.hmiConnection:SendResponse(data.id, "BasicCommunication.GetSystemInfo", "SUCCESS", {ccpu_version ="OpenS",
+          language ="EN-US",wersCountryCode = "open_wersCountryCode"})
+    end)
 end
 
 function Test:TestStep2_Check_ccpu_version_stored_in_PT()
@@ -89,13 +89,13 @@ function Test:TestStep3_Check_ccpu_version_sent_on_RAI()
   self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
   self.mobileSession:StartService(7)
   :Do(function()
-    local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
-    EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
-    :Do(function(_,data)
-      self.HMIAppID = data.params.application.appID
+      local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
+      EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
+      :Do(function(_,data)
+          self.HMIAppID = data.params.application.appID
+        end)
+      self.mobileSession:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS", systemSoftwareVersion = "OpenS"})
     end)
-    self.mobileSession:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS", systemSoftwareVersion = "OpenS"})
-  end)
 end
 
 --[[ Postconditions ]]
