@@ -35,10 +35,6 @@ require("user_modules/AppTypes")
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Precondition")
 
-function Test:Precondition_trigger_getting_device_consent()
-  testCasesForPolicyTable:trigger_getting_device_consent(self, config.application1.registerAppInterfaceParams.appName, config.deviceMAC)
-end
-
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 function Test:TestStep_CheckMessagesSequence()
