@@ -34,7 +34,11 @@ local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
 local mobileSession = require("mobile_session")
 
+--[[ Local Variables ]]
+local r_actual = { }
+
 --[[ General Precondition before ATF start ]]
+commonFunctions:SDLForceStop()
 commonSteps:DeleteLogsFileAndPolicyTable()
 testCasesForPolicyTable.Delete_Policy_table_snapshot()
 testCasesForPolicyTable:Precondition_updatePolicy_By_overwriting_preloaded_pt("files/jsons/Policies/Policy_Table_Update/endpoints_appId.json")
@@ -61,28 +65,54 @@ end
 function Test:Register2App()
   local correlationId = self.mobileSession2:SendRPC("RegisterAppInterface", config.application2.registerAppInterfaceParams)
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
+  :Do(function(_, d)
+      self.applications[d.params.application.appName] = d.params.application.appID
+    end)
   self.mobileSession2:ExpectResponse(correlationId, { success = true })
 end
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
 function Test:TestStep_Sending_PTS_to_mobile_application()
-  local endpoints = {}
-
-  endpoints[1] ={}
-  endpoints[1].url = "http://policies.telematics.ford.com/api/policies"
-
   local RequestId_GetUrls = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
-  EXPECT_HMIRESPONSE(RequestId_GetUrls,{result = {code = 0, method = "SDL.GetURLS", urls = endpoints }} )
+  EXPECT_HMIRESPONSE(RequestId_GetUrls)
   :Do(function(_,_)
       self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",{
           requestType = "PROPRIETARY",
-          fileName = "PolicyTableUpdate",
-          url = endpoints[1].url})
+          fileName = "PolicyTableUpdate"--,
+          -- appID = self.applications["Test Application2"]
+        })
       -- no appID is send, so notification can came to any apps
     end)
-  EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY", fileType = "JSON", url = endpoints[1].url }):Times(Between(0,1))
-  self.mobileSession2:ExpectNotification("OnSystemRequest", { requestType = "PROPRIETARY", fileType = "JSON", url = endpoints[1].url }):Times(Between(0,1))
+
+  self.mobileSession:ExpectNotification("OnSystemRequest")
+  :Do(function(_,d)
+      if d.payload.requestType == "PROPRIETARY" then table.insert(r_actual, 1) end
+    end)
+  :Times(AnyNumber())
+  :Pin()
+  self.mobileSession2:ExpectNotification("OnSystemRequest")
+  :Do(function(_,d)
+      if d.payload.requestType == "PROPRIETARY" then table.insert(r_actual, 2) end
+    end)
+  :Times(AnyNumber())
+  :Pin()
+end
+
+for i = 1, 3 do
+  Test["Waiting " .. i .. " sec"] = function()
+    os.execute("sleep 1")
+  end
+end
+
+function Test:ValidateResult()
+  if #r_actual == 0 then
+    self:FailTestCase("Expected OnSystemRequest notification was NOT forwarded through any of registerred applications")
+  elseif #r_actual > 1 then
+    self:FailTestCase("Expected OnSystemRequest notification was forwarded through more than once")
+  else
+    print("Expected OnSystemRequest notification was forwarded through appplication '" .. r_actual[1] .. "'")
+  end
 end
 
 --[[ Postconditions ]]
