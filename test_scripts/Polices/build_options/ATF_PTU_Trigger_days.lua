@@ -5,12 +5,12 @@
 -- Description:
 -- The policies manager must request an update to its local policy table after "N" days only if the system provided time is available.
 -- 1. Used preconditions:
--- a) SDL is built with "-DEXTENDED_POLICY: ON" flag, 
--- b) set system time to "1-May-2016", 
+-- a) SDL is built with "-DEXTENDED_POLICY: ON" flag,
+-- b) set system time to "1-May-2016",
 -- c) trigger PTU (SUCCESS)
 -- Policies DB contains: "exchange_after_x_days: 30"
 -- IGN_OFF
--- 2. Performed steps: 
+-- 2. Performed steps:
 -- Ignition_ON
 -- User set system date to "31-May-2016"
 --
@@ -20,21 +20,18 @@
 
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
---ToDo: shall be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
 config.defaultProtocolVersion = 2
 
 --[[ Required Shared libraries ]]
 local commonSteps = require ('user_modules/shared_testcases/commonSteps')
-local testCasesForPolicyTableSnapshot = require ('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
-local testCasesForBuildingSDLPolicyFlag = require('user_modules/shared_testcases/testCasesForBuildingSDLPolicyFlag')
 
 --[[ Local Variables ]]
-local exchangeDays = testCasesForPolicyTableSnapshot:get_data_from_Preloaded_PT("module_config.exchange_after_x_days")
+local exchangeDays = 30
 local currentSystemDaysAfterEpoch
 
 --[[ General Precondition before ATF start ]]
-testCasesForBuildingSDLPolicyFlag:CheckPolicyFlagAfterBuild("PROPRIETARY")
+commonFunctions:SDLForceStop()
 commonSteps:DeleteLogsFiles()
 commonSteps:DeletePolicyTable()
 
@@ -70,24 +67,6 @@ function Test.Preconditions_Set_Exchange_After_X_Days_For_PTU()
   CreatePTUFromExisted()
 end
 
-function Test:Precondition_Activate_App_Consent_Device()
-  local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", {appID = self.applications["Test Application"]})
-  EXPECT_HMIRESPONSE(RequestId, {result = {code = 0, isSDLAllowed = true}, method = "SDL.ActivateApp"})
-  :Do(function(_,_)
-      local RequestIdGetUserFriendlyMessage = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
-      EXPECT_HMIRESPONSE(RequestIdGetUserFriendlyMessage,{result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
-      :Do(function(_,_)
-          self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = "127.0.0.1"}})
-          EXPECT_HMICALL("BasicCommunication.ActivateApp")
-          :Do(function(_,data1)
-              self.hmiConnection:SendResponse(data1.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
-              EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"})
-          end)
-      end)
-  end)
-  EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
-end
-
 function Test:Precondition_Update_Policy_With_Exchange_After_X_Days_Value()
   currentSystemDaysAfterEpoch = getSystemDaysAfterEpoch()
       local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
@@ -107,8 +86,7 @@ function Test:Precondition_Update_Policy_With_Exchange_After_X_Days_Value()
               end)
           end)
       end)
-  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",
-    {status = "UPDATING"}, {status = "UP_TO_DATE"}):Times(2)
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UP_TO_DATE"}):Times(1)
   end
 
 function Test.Precondition_StopSDL()
@@ -116,7 +94,7 @@ function Test.Precondition_StopSDL()
 end
 
 function Test.Precondition_SetExchangedXDaysInDB()
-  setPtExchangedXDaysAfterEpochInDB(currentSystemDaysAfterEpoch - exchangeDays)
+  setPtExchangedXDaysAfterEpochInDB(currentSystemDaysAfterEpoch - exchangeDays - 1)
 end
 
 function Test.Precondition_StartSDL_FirstLifeCycle()
@@ -143,44 +121,8 @@ end
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 function Test:TestStep_Register_App_And_Check_That_PTU_Triggered()
-  local CorIdRAI = self.mobileSession:SendRPC("RegisterAppInterface",
-    {
-      syncMsgVersion =
-      {
-        majorVersion = 3,
-        minorVersion = 0
-      },
-      appName = "Test Application",
-      isMediaApplication = true,
-      languageDesired = "EN-US",
-      hmiDisplayLanguageDesired = "EN-US",
-      appID = "0000001",
-      deviceInfo =
-      {
-        os = "Android",
-        carrier = "Megafon",
-        firmwareRev = "Name: Linux, Version: 3.4.0-perf",
-        osVersion = "4.4.2",
-        maxNumberRFCOMMPorts = 1
-      }
-    })
-  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered",
-    {
-      application =
-      {
-        appName = "Test Application",
-        policyAppID = "0000001",
-        isMediaApplication = true,
-        hmiDisplayLanguageDesired = "EN-US",
-        deviceInfo =
-        {
-          name = "127.0.0.1",
-          id = config.deviceMAC,
-          transportType = "WIFI",
-          isSDLAllowed = true
-        }
-      }
-    })
+  local CorIdRAI = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
   EXPECT_RESPONSE(CorIdRAI, { success = true, resultCode = "SUCCESS"})
   EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",{status = "UPDATE_NEEDED"})
   EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
