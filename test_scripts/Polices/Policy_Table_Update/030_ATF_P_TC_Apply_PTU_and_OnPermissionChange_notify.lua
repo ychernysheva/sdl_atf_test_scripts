@@ -54,12 +54,6 @@ local function PrepareJsonPTU1(name, new_ptufile)
     "default_hmi": "NONE",
     "groups": [
     "Base-4", "Emergency-1"
-    ],
-    "RequestType":[
-    "TRAFFIC_MESSAGE_CHANNEL",
-    "PROPRIETARY",
-    "HTTP",
-    "QUERY_APPS"
     ]
   }]]
   local app = json.decode(json_app)
@@ -81,6 +75,7 @@ commonFunctions:newTestCasesGroup("Preconditions")
 function Test.Precondition_StopSDL()
   StopSDL()
 end
+
 function Test.Precondition_StartSDL()
   StartSDL(config.pathToSDL, config.ExitOnCrash)
 end
@@ -128,10 +123,12 @@ end
 
 function Test:UpdatePolicy_ExpectOnAppPermissionChangedWithAppID()
   EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
+  :Do(function()
 
   testCasesForPolicyTable:updatePolicyInDifferentSessions(Test, ptu_app_registered,
     config.application1.registerAppInterfaceParams.appName,
     self.mobileSession)
+  end)
 
   EXPECT_NOTIFICATION("OnPermissionsChange")
   :ValidIf(function (_, data)
