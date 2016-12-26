@@ -26,39 +26,71 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 local mobileSession = require("mobile_session")
 local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
 local commonSteps = require("user_modules/shared_testcases/commonSteps")
-local testCasesForPolicyTable = require("user_modules/shared_testcases/testCasesForPolicyTable")
-local commonTestCases = require("user_modules/shared_testcases/commonTestCases")
 
 --[[ Local Variables ]]
+local expectedResult = {2, 3, 4} -- Expected Ids of applications
+local actualResult = { } -- Actual Ids of applications
+local sequence = { }
 local hmiLevels = { }
 
---[[ General Precondition before ATF start ]]
-commonSteps:DeleteLogsFileAndPolicyTable()
-testCasesForPolicyTable.Delete_Policy_table_snapshot()
-
---[[ General Settings for configuration ]]
-for i = 1, 4 do
-  config["application" .. i].registerAppInterfaceParams.appName = "App_" .. i
+--[[ Local Functions ]]
+local function log(item)
+  sequence[#sequence + 1] = item
 end
 
-config.application2.registerAppInterfaceParams.appHMIType = { "NAVIGATION" }
-config.application3.registerAppInterfaceParams.appHMIType = { "DEFAULT" }
-config.application4.registerAppInterfaceParams.appHMIType = { "MEDIA" }
+local function contains(t, item)
+  for _, v in pairs(t) do
+    if v == item then
+      return true
+    end
+  end
+  return false
+end
 
-config.application1.registerAppInterfaceParams.isMediaApplication = false
-config.application2.registerAppInterfaceParams.isMediaApplication = false
-config.application3.registerAppInterfaceParams.isMediaApplication = false
-config.application4.registerAppInterfaceParams.isMediaApplication = true
+--[[ General Precondition before ATF start ]]
+commonFunctions:SDLForceStop()
+commonSteps:DeleteLogsFileAndPolicyTable()
 
 --[[ General Settings for configuration ]]
 Test = require("connecttest")
 require("user_modules/AppTypes")
 
+--[[ Specific Notifications ]]
+EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate")
+:Do(function(_, d)
+    log("SDL->HMI: SDL.OnStatusUpdate(" .. d.params.status .. ")")
+  end)
+:Times(AnyNumber())
+:Pin()
+
+EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
+:Do(function()
+    log("SDL->HMI: BC.PolicyUpdate")
+  end)
+:Times(AnyNumber())
+:Pin()
+
+EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
+:Do(function(_, d)
+    log("SDL->HMI: BC.OnAppRegistered('".. d.params.application.appName .. "')")
+  end)
+:Times(AnyNumber())
+:Pin()
+
+--[[ General Settings for configuration ]]
+for i = 1, 4 do
+  config["application" .. i].registerAppInterfaceParams.appName = "App_" .. i
+end
+config.application3.registerAppInterfaceParams.appHMIType = { "DEFAULT" }
+config.application4.registerAppInterfaceParams.appHMIType = { "DEFAULT" }
+config.application2.registerAppInterfaceParams.isMediaApplication = false
+config.application2.registerAppInterfaceParams.appHMIType = { "NAVIGATION" }
+
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
 -- Start 3 additional mobile sessions
 for i = 2, 4 do
-  Test["TestStep_StartSession_" .. i] = function(self)
+  Test["StartSession_" .. i] = function(self)
     self["mobileSession" .. i] = mobileSession.MobileSession(self, self.mobileConnection)
     self["mobileSession" .. i]:StartService(7)
   end
@@ -66,86 +98,51 @@ end
 
 -- Register 3 additional apps
 for i = 2, 4 do
-
-  Test["TestStep_RegisterApp_" .. i] = function(self)
+  Test["RegisterApp_" .. i] = function(self)
     EXPECT_HMICALL("BasicCommunication.UpdateAppList")
     :Do(function(_, d)
         self.hmiConnection:SendResponse(d.id, d.method, "SUCCESS", { })
+        self.applications = { }
+        for _, app in pairs(d.params.applications) do
+          self.applications[app.appName] = app.appID
+        end
       end)
     local corId = self["mobileSession" .. i]:SendRPC("RegisterAppInterface", config["application" .. i].registerAppInterfaceParams)
     self["mobileSession" .. i]:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
-
-    EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered",{application = { appName = "App_".. i }})
-    :Do(function(_,data)
-        self.applications["App_"..i] = data.params.application.appID
-      end)
-
-    self["mobileSession"..i]:ExpectNotification("OnHMIStatus", {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
-    :Do(function(_,data)
-        hmiLevels[i] = tostring(data.payload.hmiLevel)
-      end)
-
   end
 end
 
---Set particular HMILevel for each app
-function Test:TestStep_ActivateApp_2()
-  local requestId1 = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.applications["App_2"] })
-  EXPECT_HMIRESPONSE(requestId1)
-  :Do(function(_, data1)
-      if data1.result.isSDLAllowed ~= true then
-        local requestId2 = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage",
-          { language = "EN-US", messageCodes = { "DataConsent" } })
-        EXPECT_HMIRESPONSE(requestId2)
-        :Do(function(_, _)
-            self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality",
-              { allowed = true, source = "GUI", device = { id = config.deviceMAC, name = "127.0.0.1" } })
-          end)
-      end
+function Test:RegisterOnHMIStatusNotifications()
+  self.mobileSession:ExpectNotification("OnHMIStatus")
+  :Do(function(_, d)
+      log("SDL->MOB: OnHMIStatus, App_1('".. tostring(d.payload.hmiLevel) .. "')")
+      hmiLevels[1] = tostring(d.payload.hmiLevel)
     end)
-  EXPECT_HMICALL("BasicCommunication.ActivateApp")
-  :Do(function(_,data) self.hmiConnection:SendResponse(data.id,"BasicCommunication.ActivateApp", "SUCCESS", {}) end)
-
-  EXPECT_NOTIFICATION("OnHMIStatus", {}):Times(0)
-  self["mobileSession2"]:ExpectNotification("OnHMIStatus", {hmiLevel = "FULL", audioStreamingState = "AUDIBLE", systemContext = "MAIN"})
-  :Do(function(_,data)
-      hmiLevels[1] = tostring("NONE")
-      hmiLevels[2] = tostring(data.payload.hmiLevel)
-    end)
-
-  self["mobileSession3"]:ExpectNotification("OnHMIStatus"):Times(0)
-  self["mobileSession4"]:ExpectNotification("OnHMIStatus"):Times(0)
+  :Times(AnyNumber())
+  :Pin()
+  for i = 2, 4 do
+    self["mobileSession" .. i]:ExpectNotification("OnHMIStatus")
+    :Do(function(_, d)
+        log("SDL->MOB: OnHMIStatus, App_" .. i .. "('".. tostring(d.payload.hmiLevel) .. "')")
+        hmiLevels[i] = tostring(d.payload.hmiLevel)
+      end)
+    :Times(AnyNumber())
+    :Pin()
+  end
 end
 
-function Test:TestStep_ActivateApp_3()
-  local requestId1 = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.applications["App_3"]})
-  EXPECT_HMIRESPONSE(requestId1)
-
-  EXPECT_NOTIFICATION("OnHMIStatus", {}):Times(0)
-  self["mobileSession2"]:ExpectNotification("OnHMIStatus", {hmiLevel = "LIMITED", audioStreamingState = "AUDIBLE", systemContext = "MAIN"})
-  :Do(function(_,data) hmiLevels[2] = tostring(data.payload.hmiLevel) end)
-  self["mobileSession3"]:ExpectNotification("OnHMIStatus", {hmiLevel = "FULL", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
-  :Do(function(_,data) hmiLevels[3] = tostring(data.payload.hmiLevel) end)
-  self["mobileSession4"]:ExpectNotification("OnHMIStatus"):Times(0)
-end
-
-function Test:TestStep_ActivateApp_4()
-  local requestId1 = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.applications["App_4"]})
-  EXPECT_HMIRESPONSE(requestId1)
-
-  -- App_1: NONE
-  EXPECT_NOTIFICATION("OnHMIStatus", {}):Times(0)
-  -- App_2: LIMITED
-  self["mobileSession2"]:ExpectNotification("OnHMIStatus"):Times(0)
-  -- APP_3: BACKGROUND
-  self["mobileSession3"]:ExpectNotification("OnHMIStatus", {hmiLevel = "BACKGROUND", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
-  :Do(function(_,data) hmiLevels[3] = tostring(data.payload.hmiLevel) end)
-  -- APP_4: FULL
-  self["mobileSession4"]:ExpectNotification("OnHMIStatus", {hmiLevel = "FULL", audioStreamingState = "AUDIBLE", systemContext = "MAIN"})
-  :Do(function(_,data) hmiLevels[4] = tostring(data.payload.hmiLevel) end)
+-- Set particular HMILevel for each app
+for i = 2, 4 do
+  function Test:ActivateApps()
+    local requestId = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.applications["App_" .. i] })
+    EXPECT_HMIRESPONSE(requestId)
+  end
 end
 
 function Test.ShowHMILevels()
+  if hmiLevels[1] == nil then
+    hmiLevels[1] = "NONE"
+  end
   print("--- HMILevels (app: level) -----------------------")
   for k, v in pairs(hmiLevels) do
     print(k .. ": " .. v)
@@ -156,48 +153,62 @@ end
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
-for time = 1, 10 do
-  function Test:TestStep_CheckOnSystemRequest_AppLevel()
-    print("Check OnSystemRequest sent to application. Time: "..time.."/10")
-    local received_onsystemrequest = 0
-    local requestId = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
-    EXPECT_HMIRESPONSE(requestId)
+function Test:RegisterOnSystemRequestNotifications()
+  self.mobileSession:ExpectNotification("OnSystemRequest")
+  :Do(function()
+      log("SDL->MOB: OnSystemRequest, App_1()")
+      actualResult[#actualResult + 1] = 1
+    end)
+  :Times(AnyNumber())
+  :Pin()
+  for i = 2, 4 do
+    self["mobileSession" .. i]:ExpectNotification("OnSystemRequest")
     :Do(function()
-        self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest", { requestType = "PROPRIETARY", fileName = "PolicyTableUpdate" })
-
-        EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "PROPRIETARY"}):Times(0)
-        :Do(function()
-            self:FailTestCase("ERROR: OnSystemRequest is received for App_1, hmilevel:NONE")
-          end)
-
-        self["mobileSession2"]:ExpectNotification("OnSystemRequest", {requestType = "PROPRIETARY"}):Times(AnyNumber())
-        :Do(function()
-            received_onsystemrequest = received_onsystemrequest + 1
-            print("OnSystemRequset received for App_2: hmilevel: LIMITED")
-          end)
-
-        self["mobileSession3"]:ExpectNotification("OnSystemRequest", {requestType = "PROPRIETARY"}):Times(AnyNumber())
-        :Do(function()
-            received_onsystemrequest = received_onsystemrequest + 1
-            print("OnSystemRequset received for App_3: hmilevel: BACKGROUND")
-          end)
-
-        self["mobileSession4"]:ExpectNotification("OnSystemRequest", {requestType = "PROPRIETARY"}):Times(AnyNumber())
-        :Do(function()
-            received_onsystemrequest = received_onsystemrequest + 1
-            print("OnSystemRequset received for App_4: hmilevel: FULL")
-          end)
+        log("SDL->MOB: OnSystemRequest, App_" .. i)
+        actualResult[#actualResult + 1] = i
       end)
+    :Times(AnyNumber())
+    :Pin()
+  end
+end
 
-    local function check_result()
-      if (received_onsystemrequest > 1) then
-        self:FailTestCase("ERROR: OnSystemRequest is received more than one applications")
-      elseif( received_onsystemrequest == 0) then
-        self:FailTestCase("ERROR: OnSystemRequest is not received at all")
-      end
+function Test:StartPTU()
+  local requestId = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
+  log("HMI->SDL: SDL.GetURLS")
+  EXPECT_HMIRESPONSE(requestId)
+  :Do(function()
+      log("SDL->HMI: SDL.GetURLS")
+      self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest", { requestType = "PROPRIETARY", fileName = "PolicyTableUpdate" })
+      log("HMI->SDL: BC.OnSystemRequest")
+      requestId = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", { language = "EN-US", messageCodes = { "StatusUpToDate" } })
+      log("HMI->SDL: SDL.GetUserFriendlyMessage")
+      EXPECT_HMIRESPONSE(requestId)
+      log("SDL->HMI: SDL.GetUserFriendlyMessage")
+    end)
+end
+
+function Test.ShowSequence()
+  print("--- Sequence -------------------------------------")
+  for k, v in pairs(sequence) do
+    print(k .. ": " .. v)
+  end
+  print("--------------------------------------------------")
+end
+
+function Test:ValidateResult()
+  if #actualResult ~= 1 then
+    local msg = table.concat({"Expected 1 occurance of OnSystemRequest, got: ", tostring(#actualResult)})
+    self:FailTestCase(msg)
+  else
+    if not contains(expectedResult, actualResult[1]) then
+      local msg = table.concat({
+        "Expected OnSystemRequest() from Apps: ", table.concat(expectedResult, ", "),
+        ", got: ", tostring(actualResult[1])
+        })
+      self:FailTestCase(msg)
+    else
+      print(table.concat({"OnSystemRequest was sent through application '", actualResult[1], "'"}))
     end
-    commonTestCases:DelayedExp(11000)
-    RUN_AFTER(check_result,10000)
   end
 end
 
