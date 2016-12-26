@@ -282,7 +282,7 @@ function Test:Test_NewLocalPT()
   local checks = {
     {
       query = 'select preloaded_date, timeout_after_x_seconds from module_config',
-      expectedValues = {TESTED_DATA.preloaded_date[1] .. "|" .. TESTED_DATA.timeout_after_x_seconds[1]}
+      expectedValues = {TESTED_DATA.preloaded_date[2] .. "|" .. TESTED_DATA.timeout_after_x_seconds[2]}
     }
   }
   if not self.checkLocalPT(checks) then
