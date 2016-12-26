@@ -18,7 +18,6 @@
 -- Expected result:
 -- SDL -> App: RPC (DISALLOWED, success: "false")
 ---------------------------------------------------------------------------------------------
-
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 
@@ -69,7 +68,11 @@ function Test:SendRPC_AlertManeuver()
 end
 
 function Test:SendRPC_DiagnosticMessage()
-  local corId = self.mobileSession:SendRPC("DiagnosticMessage",{})
+  local corId = self.mobileSession:SendRPC("DiagnosticMessage",{
+        targetID = 42,
+        messageLength = 8,
+        messageData = {1}
+})
   self.mobileSession:ExpectResponse(corId, {success = false, resultCode = "DISALLOWED"})
 end
 
