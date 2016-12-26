@@ -60,16 +60,16 @@ function Test:Precondition_UnregisterApp()
   EXPECT_RESPONSE("UnregisterAppInterface", {success = true , resultCode = "SUCCESS"})
 end
 
--- Request PTU
-function Test:Precondition_TriggerPTU()
-  self.mobileSession2 = mobile_session.MobileSession(self, self.mobileConnection)
-  self.mobileSession2:StartService(7)
-  :Do(function()
-    local correlationId = self.mobileSession2:SendRPC("RegisterAppInterface", config.application2.registerAppInterfaceParams)
-    EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", { status = "UPDATE_NEEDED" })
-    self.mobileSession2:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS" })
-  end)
-end
+-- -- Request PTU
+-- function Test:Precondition_TriggerPTU()
+--   self.mobileSession2 = mobile_session.MobileSession(self, self.mobileConnection)
+--   self.mobileSession2:StartService(7)
+--   :Do(function()
+--     local correlationId = self.mobileSession2:SendRPC("RegisterAppInterface", config.application2.registerAppInterfaceParams)
+--     EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", { status = "UPDATE_NEEDED" })
+--     self.mobileSession2:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS" })
+--   end)
+-- end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
