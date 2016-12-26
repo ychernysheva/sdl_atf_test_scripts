@@ -1,6 +1,4 @@
 ---------------------------------------------------------------------------------------------
--- TODO(istoimenova): Should be updated when "Can you clarify should section data be included in Local DB?" is resolved
--- TODO(istoimenova): Update when "[GENIVI] Local Policy Table DB is not created according to data dictionary" is fixed
 -- Requirement summary:
 -- [Policies] Merging rules for "device_data" section
 --
@@ -17,7 +15,6 @@
 -- Expected result:
 -- SDL must leave all fields & their values of "device_data" section as it was in the database without changes
 ---------------------------------------------------------------------------------------------
-
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 
@@ -246,7 +243,6 @@ end
 config.defaultProtocolVersion = 2
 testCasesForPolicyTable.Delete_Policy_table_snapshot()
 commonSteps:DeleteLogsFileAndPolicyTable()
---testCasesForPolicyTable:Precondition_updatePolicy_By_overwriting_preloaded_pt("files/jsons/Policies/PTU_ValidationRules/pre_dataconsent.json")
 commonPreconditions:BackupFile(PRELOADED_PT_FILE_NAME)
 prepareInitialPreloadedPT()
 
@@ -265,11 +261,6 @@ function Test:TestStep_VerifyInitialLocalPT()
     { query = 'select carrier from device', expectedValues = {TESTED_DATA.device.carrier} },
     { query = 'select max_number_rfcom_ports from device', expectedValues = {TESTED_DATA.device.max_number_rfcom_ports} },
     { query = 'select user_consent_records from device', expectedValues = {TESTED_DATA.device.user_consent_records} },
-    { query = 'select device_id from device_consent_group', expectedValues = {} },
-    { query = 'select functional_group_id from device_consent_group', expectedValues = {} },
-    { query = 'select is_consented from device_consent_group', expectedValues = {} },
-    { query = 'select input from device_consent_group', expectedValues = {} }
-    --TODO(istoimenova): Should be updated when "Can you clarify should section data be included in Local DB?" is resolved.
   }
 
   if not self.checkLocalPT(checks) then
@@ -292,14 +283,7 @@ function Test:TestStep_VerifyLocalPT_DeviceConsent()
     { query = 'select os_version from device', expectedValues = {TESTED_DATA.device.os_version} },
     { query = 'select carrier from device', expectedValues = {TESTED_DATA.device.carrier} },
     { query = 'select max_number_rfcom_ports from device', expectedValues = {TESTED_DATA.device.max_number_rfcom_ports} },
-    { query = 'select user_consent_records from device', expectedValues = {TESTED_DATA.device.user_consent_records} },
-
-    --TODO(istoimenova): Should be updated when "Can you clarify should section data be included in Local DB?" is resolved.
-    { query = 'select device_id from device_consent_group', expectedValues = {TESTED_DATA.device_consent_group.device_id} },
-    { query = 'select functional_group_id from device_consent_group', expectedValues = {TESTED_DATA.device_consent_group.functional_group_id} },
-    { query = 'select is_consented from device_consent_group', expectedValues = {TESTED_DATA.device_consent_group.is_consented} },
-    { query = 'select input from device_consent_group', expectedValues = {TESTED_DATA.device_consent_group.input} },
-    { query = 'select * from device_consent_group', expectedValues = {} }
+    { query = 'select user_consent_records from device', expectedValues = {TESTED_DATA.device.user_consent_records} }
   }
 
   if not self.checkLocalPT(checks) then
@@ -330,14 +314,7 @@ function Test:TestStep_VerifyNewLocalPT()
     { query = 'select os_version from device', expectedValues = {TESTED_DATA.device.os_version} },
     { query = 'select carrier from device', expectedValues = {TESTED_DATA.device.carrier} },
     { query = 'select max_number_rfcom_ports from device', expectedValues = {TESTED_DATA.device.max_number_rfcom_ports} },
-    { query = 'select user_consent_records from device', expectedValues = {TESTED_DATA.device.user_consent_records} },
-
-    --TODO(istoimenova): Should be updated when "Can you clarify should section data be included in Local DB?" is resolved.
-    { query = 'select device_id from device_consent_group', expectedValues = {TESTED_DATA.device_consent_group.device_id} },
-    { query = 'select functional_group_id from device_consent_group', expectedValues = {TESTED_DATA.device_consent_group.functional_group_id} },
-    { query = 'select is_consented from device_consent_group', expectedValues = {TESTED_DATA.device_consent_group.is_consented} },
-    { query = 'select input from device_consent_group', expectedValues = {TESTED_DATA.device_consent_group.input} },
-    { query = 'select * from device_consent_group', expectedValues = {} }
+    { query = 'select user_consent_records from device', expectedValues = {TESTED_DATA.device.user_consent_records} }
   }
   if not self.checkLocalPT(checks) then
     self:FailTestCase("SDL has wrong values in LocalPT")
@@ -347,7 +324,7 @@ end
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
 testCasesForPolicyTable:Restore_preloaded_pt()
-function Test.Postcondition()
+function Test.Postcondition_StopSDL()
   StopSDL()
 end
 
