@@ -27,11 +27,12 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
-local testCasesForPolicyTableSnapshot = require('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
 local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
+local mobile_session = require('mobile_session')
 
 
 --[[ General Precondition before ATF start ]]
+commonFunctions:SDLForceStop()
 commonSteps:DeleteLogsFileAndPolicyTable()
 testCasesForPolicyTable:Precondition_updatePolicy_By_overwriting_preloaded_pt("files/jsons/Policies/Policy_Table_Update/endpoints_appId.json")
 --TODO: Should be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
@@ -60,33 +61,22 @@ function Test:Precondition_UnregisterApp()
 end
 
 -- Request PTU
-function Test:Precondition_trigger_PTU_user_request_update_from_HMI()
-  testCasesForPolicyTable:trigger_user_request_update_from_HMI(self)
+function Test:Precondition_TriggerPTU()
+  self.mobileSession2 = mobile_session.MobileSession(self, self.mobileConnection)
+  self.mobileSession2:StartService(7)
+  :Do(function()
+    local correlationId = self.mobileSession2:SendRPC("RegisterAppInterface", config.application2.registerAppInterfaceParams)
+    EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", { status = "UPDATE_NEEDED" })
+    self.mobileSession2:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS" })
+  end)
 end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
 function Test:TestStep_PTU_GetURLs_NoAppRegistered()
-  local endpoints = {}
-  --TODO(istoimenova): Should be removed when "[GENIVI] HTTP: sdl_snapshot.json is not saved to file system" is fixed.
-  if ( commonSteps:file_exists( '/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json') ) then
-    testCasesForPolicyTableSnapshot:extract_pts()
-
-    for i = 1, #testCasesForPolicyTableSnapshot.pts_endpoints do
-      if (testCasesForPolicyTableSnapshot.pts_endpoints[i].service == "0x07") then
-        endpoints[#endpoints + 1] = {
-          url = testCasesForPolicyTableSnapshot.pts_endpoints[i].value,
-          appID = testCasesForPolicyTableSnapshot.pts_endpoints[i].appID}
-      end
-    end
-  else
-    commonFunctions:printError("sdl_snapshot is not created.")
-    endpoints = { {url = "http://policies.telematics.ford.com/api/policies", appID = nil} }
-  end
-
+  local endpoints = { {url = "http://policies.telematics.ford.com/api/policies", appID = nil} }
   local RequestId = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
-
   EXPECT_HMIRESPONSE(RequestId,{result = {code = 0, method = "SDL.GetURLS"} } )
   :Do(function(_,data)
     local is_correct = {}
