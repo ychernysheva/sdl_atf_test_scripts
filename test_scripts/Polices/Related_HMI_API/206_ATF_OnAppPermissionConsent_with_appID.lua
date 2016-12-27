@@ -32,12 +32,9 @@ local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local testCasesForPolicyTableSnapshot = require('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
 
---[[ Local variables ]]
-local ServerAddress = commonFunctions:read_parameter_from_smart_device_link_ini("ServerAddress")
-testCasesForPolicyTable:Precondition_updatePolicy_By_overwriting_preloaded_pt("files/jsons/Policy/Related_HMI_API/OnAppPermissionConsent.json")
-
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
+testCasesForPolicyTable:Precondition_updatePolicy_By_overwriting_preloaded_pt("files/jsons/Policy/Related_HMI_API/OnAppPermissionConsent.json")
 
 --[[ General Settings for configuration ]]
 Test = require('connecttest')
@@ -65,7 +62,7 @@ function Test:TestStep_User_consent_on_activate_app()
   :Do(function(_,_)
 
       local RequestId1 = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage",
-        {language = "EN-US", messageCodes = {"allowedFunctions"}})
+        {language = "EN-US", messageCodes = {"Notifications", "Location"}})
 
       EXPECT_HMIRESPONSE( RequestId1, {result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
       :Do(function(_,_)
@@ -77,9 +74,9 @@ function Test:TestStep_User_consent_on_activate_app()
               if #data.result.allowedFunctions > 0 then
                 for i = 1, #data.result.allowedFunctions do
                   groups[i] = {
-                                name = data.result.allowedFunctions[i].name,
-                                id = data.result.allowedFunctions[i].id,
-                                allowed = true}
+                    name = data.result.allowedFunctions[i].name,
+                    id = data.result.allowedFunctions[i].id,
+                    allowed = true}
                 end
               end
 
