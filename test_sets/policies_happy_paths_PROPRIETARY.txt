@@ -24,4 +24,3 @@
 ./test_scripts/Polices/build_options/ATF_P_TC_PTU_Transfer_Several_Apps_Different_HMI_Levels_PROPRIETARY.lua
 ./test_scripts/Polices/build_options/ATF_PTU_in_case_of_failed_retry_strategy_during_previous_IGN_ON.lua
 ./test_scripts/Polices/build_options/ATF_PTU_Trigger_IGN_cycles.lua
-./test_scripts/Polices/build_options/001_ATF_P_TC_SDL_Build_DEXTENDED_POLICY_EXTERNAL_PROPRIETARY.lua
