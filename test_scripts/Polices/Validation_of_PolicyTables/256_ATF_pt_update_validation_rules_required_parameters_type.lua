@@ -386,9 +386,9 @@ end
 function Test:TestStep_CheckSDLLogError()
   local is_test_fail = false
 
-  local result = testCasesForPolicySDLErrorsStops.ReadSpecificMessage("policy_table.policy_table.module_config.notifications_per_minute_by_priority.EMERGENCY: value initialized incorrectly")
+  local result = testCasesForPolicySDLErrorsStops.ReadSpecificMessage("policy_table.policy_table.module_config.notifications_per_minute_by_priority%[\"EMERGENCY\"%]: value initialized incorrectly")
   if(result == false) then
-    commonFunctions:printError("Error: message 'policy_table.policy_table.module_config.notifications_per_minute_by_priority.EMERGENCY: value initialized incorrectly' is not observed in smartDeviceLink.log.")
+    commonFunctions:printError("Error: message 'policy_table.policy_table.module_config.notifications_per_minute_by_priority[\"EMERGENCY\"]: value initialized incorrectly' is not observed in smartDeviceLink.log.")
     is_test_fail = true
   end
 
