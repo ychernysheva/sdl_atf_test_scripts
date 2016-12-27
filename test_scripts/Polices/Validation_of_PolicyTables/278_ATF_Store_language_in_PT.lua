@@ -1,20 +1,20 @@
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
---   [Policies] "language" storage into PolicyTable
+-- [Policies] "language" storage into PolicyTable
 --
 -- Description:
---     Getting "language" from HMI and storing it by PolicyManager
---     1. Used preconditions:
---      Stop SDL
---      Delete log file and policy table if any
---      Start SDL
+-- Getting "language" from HMI and storing it by PolicyManager
+-- 1. Used preconditions:
+-- Stop SDL
+-- Delete log file and policy table if any
+-- Start SDL
 --
---     2. Performed steps
---      Check policy table for 'language'
+-- 2. Performed steps
+-- Check policy table for 'language'
 --
 -- Expected result:
---     SDL must send GetSystemInfo to HMI;
---     SDL must set received value to "language" section of "module_meta" section in PolicyTable
+-- SDL must send GetSystemInfo to HMI;
+-- SDL must set received value to "language" section of "module_meta" section in PolicyTable
 ---------------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
@@ -54,11 +54,11 @@ end
 commonFunctions:newTestCasesGroup("Test")
 function Test:TestStep1_SDL_requests_systemInfo_on_InitHMI()
   self:initHMI_onReady()
-  EXPECT_HMICALL("BasicCommunication.GetSystemInfo"):Times(1)
+  EXPECT_HMICALL("BasicCommunication.GetSystemInfo"):Times(AtLeast(1))
   :Do(function(_,data)
-  self.hmiConnection:SendResponse(data.id, "BasicCommunication.GetSystemInfo", "SUCCESS", {ccpu_version ="OpenS",
-  language ="EN-US",wersCountryCode = "open_wersCountryCode"})
-  end)
+      self.hmiConnection:SendResponse(data.id, "BasicCommunication.GetSystemInfo", "SUCCESS", {ccpu_version ="OpenS",
+          language ="EN-US",wersCountryCode = "open_wersCountryCode"})
+    end)
 end
 
 function Test:TestStep2_Check_language_stored_in_PT()
