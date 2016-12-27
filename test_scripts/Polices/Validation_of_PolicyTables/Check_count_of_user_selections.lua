@@ -25,7 +25,6 @@ config.defaultProtocolVersion = 2
 --[[ Required Shared libraries ]]
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
-local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
 local json = require('json')
 
 --[[ General Precondition before ATF start ]]
@@ -39,8 +38,32 @@ require('user_modules/AppTypes')
 
 --[[ Local variables ]]
 local HMIAppID
-local basic_ptu_file = "files/ptu.json"
-local ptu_first_app_registered = "files/ptu1app.json"
+
+local application1 =
+{
+  registerAppInterfaceParams =
+  {
+    syncMsgVersion =
+    {
+      majorVersion = 3,
+      minorVersion = 0
+    },
+    appName = "Test Application", -- the same name in config.application1
+    isMediaApplication = true,
+    languageDesired = 'EN-US',
+    hmiDisplayLanguageDesired = 'EN-US',
+    appHMIType = { "NAVIGATION" },
+    appID = "0000001", --ID different
+    deviceInfo =
+    {
+      os = "Android",
+      carrier = "Megafon",
+      firmwareRev = "Name: Linux, Version: 3.4.0-perf",
+      osVersion = "4.4.2",
+      maxNumberRFCOMMPorts = 1
+    }
+  }
+}
 
 local application2 =
 {
@@ -51,7 +74,7 @@ local application2 =
       majorVersion = 3,
       minorVersion = 0
     },
-    appName = "Test Application", -- the same name in config.application1
+    appName = "Test Application", -- the same name in application1
     isMediaApplication = true,
     languageDesired = 'EN-US',
     hmiDisplayLanguageDesired = 'EN-US',
@@ -67,27 +90,6 @@ local application2 =
     }
   }
 }
-
--- Prepare parameters for app to save it in json file
-local function PrepareJsonPTU1(name, new_ptufile)
-  local json_app = [[ {
-    "keep_context": false,
-    "steal_focus": false,
-    "priority": "NONE",
-    "default_hmi": "NONE",
-    "groups": [
-    "Base-4", "Location-1"
-    ],
-    "RequestType":[
-    "TRAFFIC_MESSAGE_CHANNEL",
-    "PROPRIETARY",
-    "HTTP",
-    "QUERY_APPS"
-    ]
-  }]]
-  local app = json.decode(json_app)
-  testCasesForPolicyTable:AddApplicationToPTJsonFile(basic_ptu_file, new_ptufile, name, app)
-end
 
 --[[Preconditions]]
 commonFunctions:newTestCasesGroup("Preconditions")
@@ -119,70 +121,60 @@ end
 
 function Test:Precondition_StartSession()
   self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
-end
-
-function Test.Precondition_PreparePTData()
-  PrepareJsonPTU1(config.application1.registerAppInterfaceParams.appID, ptu_first_app_registered)
-end
-
-function Test:Precondition_RegisterFirstApp()
   self.mobileSession:StartService(7)
-  :Do(function (_,_)
-  local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
+end
 
+function Test:Precondition_RegisterApp()
+  local CorIdRAI = self.mobileSession:SendRPC("RegisterAppInterface", application1.registerAppInterfaceParams)
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
   :Do(function(_,data)
-  HMIAppID = data.params.application.appID
-  end)
-  EXPECT_RESPONSE(correlationId, { success = true })
-  EXPECT_NOTIFICATION("OnPermissionsChange")
-  end)
-end
-
-function Test.Precondition_PreparePTData()
-  PrepareJsonPTU1(config.application1.registerAppInterfaceParams.appID, ptu_first_app_registered)
+      HMIAppID = data.params.application.appID
+      EXPECT_RESPONSE(CorIdRAI, { success = true, resultCode = "SUCCESS"})
+    end)
 end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
+
 function Test:TestStep1_RegisterSecondApp_DuplicateData()
   self.mobileSession1 = mobile_session.MobileSession(self, self.mobileConnection)
   self.mobileSession1:StartService(7)
   :Do(function (_,_)
-  local correlationId = self.mobileSession1:SendRPC("RegisterAppInterface", application2.registerAppInterfaceParams)
-  self.mobileSession1:ExpectResponse(correlationId, { success = false, resultCode = "DUPLICATE_NAME" })
-  end)
+      local correlationId = self.mobileSession1:SendRPC("RegisterAppInterface", application2.registerAppInterfaceParams)
+      self.mobileSession1:ExpectResponse(correlationId, { success = false, resultCode = "DUPLICATE_NAME" })
+    end)
 end
 
-function Test:TestStep2_ActivateAppInSpecificLevel()
-  commonSteps:ActivateAppInSpecificLevel(self,HMIAppID,"FULL")
-end
-
-function Test:TestStep3_InitiatePTUForGetSnapshot()
-  testCasesForPolicyTable:updatePolicyInDifferentSessions(Test, ptu_first_app_registered,
-  config.application1.registerAppInterfaceParams.appName, self.mobileSession)
+function Test.TestStep2_ActivateAppInSpecificLevel()
+  commonSteps:ActivateAppInSpecificLevel(Test,HMIAppID)
+  os.execute("sleep 3")
 end
 
 function Test:TestStep2_Check_count_of_rejections_duplicate_name_incremented_in_PT()
+  local json_data
   local appID = "0000003"
   local file = io.open("/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json", "r")
-  local json_data = file:read("*all") -- may be abbreviated to "*a";
-  file:close()
-  local data = json.decode(json_data)
-  local CountOfRejectionsDuplicateName = data.policy_table.usage_and_error_counts.app_level[appID].count_of_rejections_duplicate_name
-  if CountOfRejectionsDuplicateName == 1 then
-    return true
+  if file then
+    json_data = file:read("*all") -- may be abbreviated to "*a";
+    file:close()
+
+    local data = json.decode(json_data)
+    local CountOfRejectionsDuplicateName = data.policy_table.usage_and_error_counts.app_level[appID].count_of_rejections_duplicate_name
+    if CountOfRejectionsDuplicateName == 1 then
+      return true
+    else
+      self:FailTestCase("Wrong count_of_run_attempts_while_revoked. Expected: " .. 1 .. ", Actual: " .. CountOfRejectionsDuplicateName)
+    end
   else
-    self:FailTestCase("Wrong count_of_run_attempts_while_revoked. Expected: " .. 1 .. ", Actual: " .. CountOfRejectionsDuplicateName)
+    self:FailTestCase("PT snapshot was not found")
   end
 end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
-function Test.Postcondition_RemovePTUfiles()
-  os.remove(ptu_first_app_registered)
-end
 
 function Test.Postcondition_Stop_SDL()
   StopSDL()
 end
+
+return Test
