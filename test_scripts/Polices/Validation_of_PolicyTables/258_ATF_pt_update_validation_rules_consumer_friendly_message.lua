@@ -406,7 +406,7 @@ function Test:UpdatePolicy_ExpectOnAppPermissionChangedWithAppID()
 end
 
 function Test:TestStep_CheckSDLLogError()
-  local result = testCasesForPolicySDLErrorsStops.ReadSpecificMessage('PolicyManagerImpl::IsPTValid: Errors: policy_table.policy_table.consumer_friendly_messages.messages["AppPermissions"]: no mandatory language \'en-us\' is present')
+  local result = testCasesForPolicySDLErrorsStops.ReadSpecificMessage("PolicyManagerImpl::IsPTValid: Errors: policy_table.policy_table.consumer_friendly_messages.messages%[\"AppPermissions\"%]: no mandatory language 'en%-us' is present")
   local result1 = testCasesForPolicySDLErrorsStops.ReadSpecificMessage("Policy table is not valid.")
   if (result == false or result1 == false) then
     self:FailTestCase("Error: message 'Policy table is not valid.' is not observed in smartDeviceLink.log.")
