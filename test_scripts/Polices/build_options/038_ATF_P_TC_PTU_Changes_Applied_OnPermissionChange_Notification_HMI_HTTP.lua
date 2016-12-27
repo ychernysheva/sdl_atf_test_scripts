@@ -122,6 +122,7 @@ function Test.UpdatePTS()
   ptu.policy_table.usage_and_error_counts = nil
   ptu.policy_table.app_policies["0000001"] = { keep_context = false, steal_focus = false, priority = "NONE", default_hmi = "NONE" }
   ptu.policy_table.app_policies["0000001"]["groups"] = { "Base-4", "Base-6" }
+  ptu.policy_table.app_policies["0000001"]["RequestType"] = {"TRAFFIC_MESSAGE_CHANNEL", "PROPRIETARY", "HTTP", "QUERY_APPS"}
   ptu.policy_table.functional_groupings["DataConsent-2"].rpcs = json.null
 end
 
