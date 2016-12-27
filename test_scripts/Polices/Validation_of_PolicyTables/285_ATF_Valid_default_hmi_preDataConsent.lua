@@ -1,19 +1,19 @@
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
---    [Policies] "pre_DataConsent" policies and "default_hmi" validation
+-- [Policies] "pre_DataConsent" policies and "default_hmi" validation
 --
 -- Description:
---     Validation of "default_hmi" sub-section in "pre_DataConsent" if "pre_DataConsent" policies assigned to the application.
---     Checking correct value "BACKGROUND"
---     1. Used preconditions:
--- 			SDL and HMI are running
---      Connect device
+-- Validation of "default_hmi" sub-section in "pre_DataConsent" if "pre_DataConsent" policies assigned to the application.
+-- Checking correct value "BACKGROUND"
+-- 1. Used preconditions:
+-- SDL and HMI are running
+-- Connect device
 --
---     2. Performed steps
---			Add second session("pre_DataConsent" policies are assigned to the application)-> PTU is triggered
+-- 2. Performed steps
+-- Add second session("pre_DataConsent" policies are assigned to the application)-> PTU is triggered
 --
 -- Expected result:
---     PoliciesManager must validate "default_hmi"(BACKGROUND) sub-section in "pre_DataConsent" and treat it valid
+-- PoliciesManager must validate "default_hmi"(BACKGROUND) sub-section in "pre_DataConsent" and treat it valid
 ---------------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
@@ -57,12 +57,12 @@ local function Set_default_hmi_background()
     data.policy_table.functional_groupings["DataConsent-2"] = nil
   end
   data.policy_table.app_policies["pre_DataConsent"] = {
-        keep_context = false,
-        steal_focus = false,
-        priority = "NONE",
-        default_hmi = "BACKGROUND",
-        groups = {"BaseBeforeDataConsent"}
-      }
+    keep_context = false,
+    steal_focus = false,
+    priority = "NONE",
+    default_hmi = "BACKGROUND",
+    groups = {"BaseBeforeDataConsent"}
+  }
   data = json.encode(data)
   file = io.open(pathToFile, "w")
   file:write(data)
@@ -89,18 +89,15 @@ function Test.Precondition_Set_default_hmi_background()
   Set_default_hmi_background()
 end
 
-
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
-function Test:TestStep_Verify_valid_default_hmi_Preloaded()
-  --TODO(istoimenova): Should be checked when ATF problem is fixed with SDL crash
+function Test.TestStep_StartSDL()
+  StartSDL(config.pathToSDL, config.ExitOnCrash)
+end
+
+function Test.TestStep_Verify_valid_default_hmi_Preloaded()
   EXPECT_HMINOTIFICATION("BasicCommunication.OnSDLClose"):Times(0)
-  local result = testCasesForPolicySDLErrorsStops:CheckSDLShutdown(self)
-  -- result is true in case SDL stops
-  if (result == true) then
-    self:FailTestCase("Error: SDL is not running.")
-  end
 end
 
 function Test:TestStep_CheckSDLLogError()

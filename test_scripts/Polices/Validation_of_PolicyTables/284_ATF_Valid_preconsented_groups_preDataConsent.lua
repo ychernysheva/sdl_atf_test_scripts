@@ -1,19 +1,19 @@
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
---    [Policies] "pre_DataConsent" policies and "preconsented_groups" validation
+-- [Policies] "pre_DataConsent" policies and "preconsented_groups" validation
 --
 -- Description:
---     Validation of "preconsented_groups" sub-section in "pre_DataConsent" if "pre_DataConsent" policies assigned to the application.
---     Checking correct "preconsented_groups" value - one of the <functional grouping> under section "functional_groupings"
---     1. Used preconditions:
---      SDL and HMI are running
---      Connect device
+-- Validation of "preconsented_groups" sub-section in "pre_DataConsent" if "pre_DataConsent" policies assigned to the application.
+-- Checking correct "preconsented_groups" value - one of the <functional grouping> under section "functional_groupings"
+-- 1. Used preconditions:
+-- SDL and HMI are running
+-- Connect device
 --
---     2. Performed steps
---      Add session("pre_DataConsent" policies are assigned to the application)-> PTU is triggered
+-- 2. Performed steps
+-- Add session("pre_DataConsent" policies are assigned to the application)-> PTU is triggered
 --
 -- Expected result:
---     PoliciesManager must validate "preconsented_groups" sub-section in "pre_DataConsent" and treat it as valid->PTU is valid
+-- PoliciesManager must validate "preconsented_groups" sub-section in "pre_DataConsent" and treat it as valid->PTU is valid
 ---------------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
@@ -93,14 +93,12 @@ end
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
-function Test:TestStep_Validate_preconsented_groups_Preloaded()
-  --TODO(istoimenova): Should be checked when ATF problem is fixed with SDL crash
+function Test.TestStep_StartSDL()
+  StartSDL(config.pathToSDL, config.ExitOnCrash)
+end
+
+function Test.TestStep_Validate_preconsented_groups_Preloaded()
   EXPECT_HMINOTIFICATION("BasicCommunication.OnSDLClose"):Times(0)
-  local result = testCasesForPolicySDLErrorsStops:CheckSDLShutdown(self)
-  -- result is true in case SDL stops
-  if (result == true) then
-    self:FailTestCase("Error: SDL is not running.")
-  end
 end
 
 function Test:TestStep_CheckSDLLogError()

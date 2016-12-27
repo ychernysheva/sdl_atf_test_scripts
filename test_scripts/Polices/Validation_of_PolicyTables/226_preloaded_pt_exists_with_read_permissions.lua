@@ -54,18 +54,17 @@ end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
-function Test:TestStep_checkSdl_Running()
-  --In case SDL stops function will return true
-  local result = testCasesForPolicySDLErrorsStops:CheckSDLShutdown(self)
-  if (result == true) then
-    self:FailTestCase("Error: SDL should not stop.")
-  else
-		print("SDL is running with read only access to preloaded_pt.json")
-  end
+
+function Test.TestStep_StartSDL()
+  StartSDL(config.pathToSDL, config.ExitOnCrash)
+end
+
+function Test.TestStep_checkSdl_Running()
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnSDLClose"):Times(0)
 end
 
 function Test:TestStep_CheckSDLLogError()
-	--function will return true in case error is observed in smartDeviceLink.log
+  --function will return true in case error is observed in smartDeviceLink.log
   local result = testCasesForPolicySDLErrorsStops.ReadSpecificMessage("Policy table is not initialized.")
   if (result == true) then
     self:FailTestCase("Error: message 'Policy table is not initialized.' is not observed in smartDeviceLink.log.")

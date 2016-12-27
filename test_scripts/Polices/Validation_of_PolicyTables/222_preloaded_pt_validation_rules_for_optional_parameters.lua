@@ -31,12 +31,10 @@ require("user_modules/AppTypes")
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
-function Test:TestStep_checkSdl_Running()
-  --In case SDL stops function will return true
-  local result = testCasesForPolicySDLErrorsStops:CheckSDLShutdown(self)
-  if (result == true) then
-    self:FailTestCase("Error: SDL should not stop.")
-  end
+
+function Test.TestStep_checkSdl_Running()
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnSDLClose"):Times(0)
+  os.execute("sleep 3")
 end
 
 function Test:TestStep_CheckSDLLogError()
