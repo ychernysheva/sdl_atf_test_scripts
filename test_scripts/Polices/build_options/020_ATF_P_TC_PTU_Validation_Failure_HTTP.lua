@@ -19,7 +19,6 @@
 --
 -- Expected result:
 -- SDL->HMI: OnStatusUpdate(UPDATE_NEEDED)
--- SDL removes 'policyfile' from the directory
 ---------------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
@@ -36,7 +35,8 @@ local f_name = os.tmpname()
 local ptu
 local policy_file_name = "PolicyTableUpdate"
 local policy_file_path = commonFunctions:read_parameter_from_smart_device_link_ini("SystemFilesPath")
-local actual_status = { }
+local r_expected = { "UPDATE_NEEDED", "UPDATING", "UPDATE_NEEDED", "UPDATING" }
+local r_actual = { }
 
 --[[ Local Functions ]]
 local function timestamp()
@@ -72,10 +72,20 @@ local function check_file_exists(name)
   end
 end
 
-local function clean_table(t)
-  for i = 0, #t do
-    t[i]=nil
+local function is_table_equal(t1, t2)
+  local ty1 = type(t1)
+  local ty2 = type(t2)
+  if ty1 ~= ty2 then return false end
+  if ty1 ~= 'table' and ty2 ~= 'table' then return t1 == t2 end
+  for k1, v1 in pairs(t1) do
+    local v2 = t2[k1]
+    if v2 == nil or not is_table_equal(v1, v2) then return false end
   end
+  for k2, v2 in pairs(t2) do
+    local v1 = t1[k2]
+    if v1 == nil or not is_table_equal(v1, v2) then return false end
+  end
+  return true
 end
 
 --[[ General Precondition before ATF start ]]
@@ -86,6 +96,14 @@ commonSteps:DeleteLogsFileAndPolicyTable()
 Test = require("connecttest")
 require("user_modules/AppTypes")
 config.defaultProtocolVersion = 2
+
+EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate")
+:Do(function(_, d)
+    log("SDL->HMI: N: SDL.OnStatusUpdate", d.params.status)
+    table.insert(r_actual, d.params.status)
+  end)
+:Times(AnyNumber())
+:Pin()
 
 function Test:RegisterNotification()
   self.mobileSession:ExpectNotification("OnSystemRequest")
@@ -132,22 +150,10 @@ end
 commonFunctions:newTestCasesGroup("Test")
 
 function Test:Update_LPT()
-  clean_table(actual_status)
+  -- clean_table(r_actual)
   local corId = self.mobileSession:SendRPC("SystemRequest", { requestType = "HTTP", fileName = policy_file_name }, f_name)
   log("MOB->SDL: SystemRequest")
-  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate")
-  :ValidIf(function(e, d)
-      log("SDL->HMI: SDL.OnStatusUpdate", e.occurences, d.params.status)
-      if e.occurences == 1 and d.params.status == "UPDATE_NEEDED" then
-        return true
-      elseif e.occurences == 2 and d.params.status == "UPDATING" then
-        return true
-      elseif e.occurences == 3 and d.params.status == "UPDATE_NEEDED" then
-        return true
-      end
-      return false, table.concat({"Unexpected SDL.OnStatusUpdate with ocurrance '", e.occurences, "' and status '", d.params.status, "'"})
-    end)
-  :Times(3)
+
   EXPECT_RESPONSE(corId, { success = true, resultCode = "SUCCESS" })
   :Do(function(_, _)
       log("SUCCESS: SystemRequest()")
@@ -158,9 +164,12 @@ function Test.Test_ShowSequence()
   show_log()
 end
 
-function Test:Validate_PolicyFile()
-  if check_file_exists(policy_file_path .. "/" .. policy_file_name) then
-    self:FailTestCase("Expected absence of policy file, but it exists")
+function Test:ValidateResult()
+  if not is_table_equal(r_actual, r_expected) then
+    local msg = table.concat({
+        "\nExpected sequence:\n", commonFunctions:convertTableToString(r_expected, 1),
+        "\nActual:\n", commonFunctions:convertTableToString(r_actual, 1) })
+    self:FailTestCase(msg)
   end
 end
 
