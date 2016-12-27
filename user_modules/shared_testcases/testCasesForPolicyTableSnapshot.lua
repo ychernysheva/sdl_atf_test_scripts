@@ -380,10 +380,31 @@ function testCasesForPolicyTableSnapshot:verify_PTS(is_created, app_IDs, device_
         data_dictionary[#data_dictionary + 1] = { name = "app_policies."..tostring(app_IDs[i])..".heart_beat_timeout_ms", value = nil, elem_required = "optional" }
         data_dictionary[#data_dictionary + 1] = { name = "app_policies."..tostring(app_IDs[i])..".RequestType", value = nil, elem_required = "optional" }
         data_dictionary[#data_dictionary + 1] = { name = "app_policies."..tostring(app_IDs[i]), value = nil, elem_required = "optional" }
-        if(flag ~= "PROPRIETARY" and flag ~= "HTTP") then
-          table.insert(data_dictionary,  { name = "app_policies."..tostring(app_IDs[i])..".keep_context", elem_required = "required"} )
-          table.insert(data_dictionary,  { name = "app_policies."..tostring(app_IDs[i])..".steal_focus", elem_required = "required"} )
-          table.insert(data_dictionary,  { name = "app_policies."..tostring(app_IDs[i])..".default_hmi", elem_required = "required"} )
+    --     if(flag ~= "PROPRIETARY" and flag ~= "HTTP") then
+    --       table.insert(data_dictionary,  { name = "app_policies."..tostring(app_IDs[i])..".keep_context", elem_required = "required"} )
+    --       table.insert(data_dictionary,  { name = "app_policies."..tostring(app_IDs[i])..".steal_focus", elem_required = "required"} )
+    --       table.insert(data_dictionary,  { name = "app_policies."..tostring(app_IDs[i])..".default_hmi", elem_required = "required"} )
+    --       -- TODO(istoimenova): preconsented_groups will be suspended due to lack of time
+    --       -- 
+    --       -- table.insert(data_dictionary,  { name = "app_policies."..tostring(app_IDs[i])..".preconsented_groups", elem_required = "required"} )
+    --     end
+    --   end
+    -- else
+    --   data_dictionary[#data_dictionary + 1] = { name = "usage_and_error_counts", elem_required = "required"}
+    -- end
+    if(flag ~= "PROPRIETARY" and flag ~= "HTTP") then
+          if (function(appID)
+            for kk = 1, #testCasesForPolicyTableSnapshot.pts_elements do
+              if testCasesForPolicyTableSnapshot.pts_elements[kk].name == ("app_policies." .. tostring(appID)) and testCasesForPolicyTableSnapshot.pts_elements[kk].value == "default" then
+                return true
+              end
+            end
+            return false
+           end)(app_IDs[i]) then
+            table.insert(data_dictionary,  { name = "app_policies."..tostring(app_IDs[i])..".keep_context", elem_required = "required"} )
+            table.insert(data_dictionary,  { name = "app_policies."..tostring(app_IDs[i])..".steal_focus", elem_required = "required"} )
+            table.insert(data_dictionary,  { name = "app_policies."..tostring(app_IDs[i])..".default_hmi", elem_required = "required"} )
+          end 
           -- TODO(istoimenova): preconsented_groups will be suspended due to lack of time
           -- 
           -- table.insert(data_dictionary,  { name = "app_policies."..tostring(app_IDs[i])..".preconsented_groups", elem_required = "required"} )
