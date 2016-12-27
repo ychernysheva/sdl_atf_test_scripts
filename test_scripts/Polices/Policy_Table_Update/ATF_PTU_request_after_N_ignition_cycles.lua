@@ -146,7 +146,7 @@ commonFunctions:newTestCasesGroup("Test")
 
 function Test:TestStep_Check_PTU_Triggered_On_OnIgnitionCycleOver()
   self.hmiConnection:SendNotification("BasicCommunication.OnIgnitionCycleOver")
-  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
+  --EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
 end
 
 function Test.Postcondition_SDLStop()
