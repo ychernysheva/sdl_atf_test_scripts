@@ -89,7 +89,7 @@ function Test:TestStep_PoliciesManager_changes_UP_TO_DATE()
 
   EXPECT_RESPONSE(CorIdSystemRequest, { success = true, resultCode = "SUCCESS"})
   EXPECT_HMICALL("BasicCommunication.SystemRequest"):Times(0)
-  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UP_TO_DATE"}, {"UPDATE_NEEDED"}):Times(2)
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UP_TO_DATE"}, {status = "UPDATE_NEEDED"}):Times(2)
 end
 
 --[[ Postconditions ]]
