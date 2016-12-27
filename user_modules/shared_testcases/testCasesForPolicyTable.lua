@@ -915,18 +915,21 @@ function testCasesForPolicyTable:flow_SUCCEESS_EXTERNAL_PROPRIETARY(self, app_id
       endpoints[1] = { url = testCasesForPolicyTableSnapshot.pts_endpoints[i].value, appID = nil}
     end
   end
-
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate")
+  :ValidIf(function(e, d)
+      if e.occurences == 1 and d.params.status == "UPDATING" then return true end
+      if e.occurences == 2 and d.params.status == "UP_TO_DATE" then return true end
+      local msg = table.concat({"Unexpected occurence '", e.occurences, "' of SDL.OnStatusUpdate with status '", d.params.status, "'"})
+      return false, msg
+    end)
+  :Times(2)
   local RequestId_GetUrls = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
   EXPECT_HMIRESPONSE(RequestId_GetUrls,{result = {code = 0, method = "SDL.GetURLS", urls = endpoints} } )
   :Do(function(_,_)
     self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",
     { requestType = "PROPRIETARY", fileName = ptu_file_name})
     EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "PROPRIETARY"})
-    :Do(function(_,_)
-
-      EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",
-        {status = "UPDATING"}, {status = "UP_TO_DATE"}):Times(2)
-
+    :Do(function()
       local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", {requestType = "PROPRIETARY", fileName = ptu_file_name, appID = app_id}, ptu_file_path..ptu_file)
       EXPECT_HMICALL("BasicCommunication.SystemRequest",{ requestType = "PROPRIETARY", fileName = SystemFilesPath..ptu_file_name })
       :Do(function(_,_data1)
