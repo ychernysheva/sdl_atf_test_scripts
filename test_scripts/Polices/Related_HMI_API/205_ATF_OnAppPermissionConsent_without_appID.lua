@@ -32,12 +32,9 @@ local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local testCasesForPolicyTableSnapshot = require('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
 
---[[ Local variables ]]
-local ServerAddress = commonFunctions:read_parameter_from_smart_device_link_ini("ServerAddress")
-testCasesForPolicyTable:Precondition_updatePolicy_By_overwriting_preloaded_pt("files/jsons/Policy/Related_HMI_API/OnAppPermissionConsent.json")
-
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
+testCasesForPolicyTable:Precondition_updatePolicy_By_overwriting_preloaded_pt("files/jsons/Policy/Related_HMI_API/OnAppPermissionConsent.json")
 
 --[[ General Settings for configuration ]]
 Test = require('connecttest')
@@ -64,7 +61,7 @@ function Test:TestStep_User_consent_on_activate_app()
   EXPECT_HMIRESPONSE(RequestId,{ isPermissionsConsentNeeded = true })
   :Do(function(_,_)
 
-      local RequestId1 = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"allowedFunctions"}})
+      local RequestId1 = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"Notifications", "Location"}})
       --hmi side: expect SDL.GetUserFriendlyMessage message response
       EXPECT_HMIRESPONSE( RequestId1, {result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
       :Do(function(_,_)
@@ -75,10 +72,10 @@ function Test:TestStep_User_consent_on_activate_app()
               local groups = {}
               if #data.result.allowedFunctions > 0 then
                 for i = 1, #data.result.allowedFunctions do
-                   groups[i] = {
-                                name = data.result.allowedFunctions[i].name,
-                                id = data.result.allowedFunctions[i].id,
-                                allowed = true}
+                  groups[i] = {
+                    name = data.result.allowedFunctions[i].name,
+                    id = data.result.allowedFunctions[i].id,
+                    allowed = true}
                 end
               end
 
@@ -103,7 +100,7 @@ function Test:TestStep_check_LocalPT_for_updates()
 
   EXPECT_HMICALL("BasicCommunication.PolicyUpdate",{})
   :Do(function(_,data)
-      local app_consent_location = testCasesForPolicyTableSnapshot:get_data_from_PTS("device_data."..config.deviceMAC..".user_consent_records."..config.application1.registerAppInterfaceParams.appID..".consent_groups.Location")
+      local app_consent_location = testCasesForPolicyTableSnapshot:get_data_from_PTS("device_data."..config.deviceMAC..".user_consent_records."..config.application1.registerAppInterfaceParams.appID..".consent_groups.Location-1")
       local app_consent_notifications = testCasesForPolicyTableSnapshot:get_data_from_PTS("device_data."..config.deviceMAC..".user_consent_records."..config.application1.registerAppInterfaceParams.appID..".consent_groups.Notifications")
 
       if(app_consent_location ~= true) then
@@ -120,7 +117,7 @@ function Test:TestStep_check_LocalPT_for_updates()
       if(is_test_fail == true) then
         self:FailTestCase("Test is FAILED. See prints.")
       end
-  end)
+    end)
 end
 
 --[[ Postconditions ]]
