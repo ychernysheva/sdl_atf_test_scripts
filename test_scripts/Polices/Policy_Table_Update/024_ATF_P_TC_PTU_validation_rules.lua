@@ -60,9 +60,9 @@ end
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 function Test:TestStep_PTU_validation_rules()
-  local is_test_fail = false
+  local is_verification_passed
   local endpoints = {}
-  testCasesForPolicyTableSnapshot:verify_PTS(true,
+  is_verification_passed = testCasesForPolicyTableSnapshot:verify_PTS(true,
       {config.application1.registerAppInterfaceParams.appID },
       {config.deviceMAC},
       {""},
@@ -96,8 +96,8 @@ function Test:TestStep_PTU_validation_rules()
           EXPECT_RESPONSE(CorIdSystemRequest, { success = true, resultCode = "SUCCESS"})
         end)
     end)
-
-  if(is_test_fail == true) then
+print(is_verification_passed)
+  if(is_verification_passed == false) then
     self:FailTestCase("Test is FAILED. See prints.")
   end
 end
