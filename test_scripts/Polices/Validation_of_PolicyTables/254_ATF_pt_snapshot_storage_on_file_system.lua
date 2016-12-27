@@ -28,8 +28,10 @@ require('cardinalities')
 local mobile_session = require('mobile_session')
 
 --[[ Local Variables ]]
-local CORRECT_LINUX_PATH_TO_POLICY_SNAPSHOT_FILE = "sdl_mega_snapshot.json"
+local POLICY_SNAPSHOT_FILE_NAME = "sdl_mega_snapshot.json"
+local SYSTEM_FILES_PATH = "/tmp/fs/mp/images/ivsu_cache"
 local oldPathToPtSnapshot
+local oldNameOfPtSnapshot
 
 local TestData = {
   path = config.pathToSDL .. "TestData",
@@ -106,8 +108,8 @@ local function setValueInSdlIni(parameterName, parameterValue)
   end
 end
 
-function Test.changePtsPathInSdlIni(newPath)
-  local result, oldPath = setValueInSdlIni("PathToSnapshot", newPath)
+function Test.changePtsPathInSdlIni(newPath, parameterName)
+  local result, oldPath = setValueInSdlIni(parameterName, newPath)
   if not result then
     commonFunctions:userPrint(31, "Test can't change SDL .ini file")
   end
@@ -125,7 +127,7 @@ local function getAbsolutePath(path)
 end
 
 function Test.checkPtsFile()
-  local file = io.open(getAbsolutePath(CORRECT_LINUX_PATH_TO_POLICY_SNAPSHOT_FILE), "r")
+  local file = io.open(getAbsolutePath(SYSTEM_FILES_PATH .. "/" .. POLICY_SNAPSHOT_FILE_NAME), "r")
   if file then
     file:close()
     return true
@@ -144,7 +146,8 @@ end
 
 function Test:Precondition_StartSDL()
   TestData:store("Store original INI ", config.pathToSDL .. "smartDeviceLink.ini", "original_smartDeviceLink.ini")
-  oldPathToPtSnapshot = self.changePtsPathInSdlIni(CORRECT_LINUX_PATH_TO_POLICY_SNAPSHOT_FILE)
+  oldNameOfPtSnapshot = self.changePtsPathInSdlIni(POLICY_SNAPSHOT_FILE_NAME, "PathToSnapshot")
+  oldPathToPtSnapshot = self.changePtsPathInSdlIni(POLICY_SNAPSHOT_FILE_NAME, "SystemFilesPath")
   TestData:store("Store INI before start SDL", config.pathToSDL .. "smartDeviceLink.ini", "new_smartDeviceLink.ini")
   StartSDL(config.pathToSDL, true)
 end
@@ -214,11 +217,14 @@ function Test:Precondition_ActivateApp()
               EXPECT_HMICALL("BasicCommunication.ActivateApp")
               :Do(function(_,data2)
                   self.hmiConnection:SendResponse(data2.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
-                  EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"})
                 end)
             end)
         end)
     end)
+end
+
+function Test.Precondition_WaitForSnapshot()
+  os.execute("sleep 3")
 end
 
 --[[ Test ]]
@@ -235,7 +241,8 @@ commonFunctions:newTestCasesGroup("Postconditions")
 
 function Test:Postcondition()
   commonSteps:DeletePolicyTable(self)
-  self.changePtsPathInSdlIni(oldPathToPtSnapshot)
+  self.changePtsPathInSdlIni(oldNameOfPtSnapshot, "PathToSnapshot")
+  self.changePtsPathInSdlIni(oldPathToPtSnapshot, "SystemFilesPath")
   TestData:store("Store INI at the end of test", config.pathToSDL .. "smartDeviceLink.ini", "restored_smartDeviceLink.ini")
   TestData:info()
 end
