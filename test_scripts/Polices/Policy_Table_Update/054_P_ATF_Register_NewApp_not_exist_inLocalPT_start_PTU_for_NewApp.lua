@@ -80,7 +80,7 @@ function Test:Precondition_PolicyUpdateStarted()
           appID = self.applications [config.application1.registerAppInterfaceParams.appName],
           fileName = "sdl_snapshot.json"
         })
-  end)
+    end)
   EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "PROPRIETARY" })
   EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATING"})
 end
@@ -100,9 +100,10 @@ function Test:TestStep_RAI_NewSession()
 end
 
 function Test:TestStep_FinishPTU_ForAppId1()
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UP_TO_DATE"}, {status = "UPDATE_NEEDED"})
   local SystemFilesPath = commonFunctions:read_parameter_from_smart_device_link_ini("SystemFilesPath")
   local CorIdSystemRequest = self.mobileSession:SendRPC ("SystemRequest", { requestType = "PROPRIETARY", fileName = "PolicyTableUpdate", appID = config.application1.registerAppInterfaceParams.appID },
-    "files/jsons/Policies/Policy_Table_Update/ptu.json")
+  "files/jsons/Policies/Policy_Table_Update/ptu.json")
 
   EXPECT_HMICALL("BasicCommunication.SystemRequest")
   :Do(function(_,data)
@@ -115,9 +116,6 @@ function Test:TestStep_FinishPTU_ForAppId1()
           policyfile = SystemFilesPath.."/PolicyTableUpdate"
         })
     end)
-
-  --PTU is restarted because of trigger new application added.
-  :Do(function(_,_) EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UP_TO_DATE"}, {status = "UPDATE_NEEDED"}) end)
 end
 
 function Test:TestStep_CheckThatAppID_BothApps_Present_In_DataBase()
@@ -167,6 +165,7 @@ end
 
 function Test:TestStep_Start_New_PolicyUpdate_For_SecondApplication()
   local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATING"}, {status = "UP_TO_DATE"}):Times(2)
   EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
   :Do(function()
       self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",
@@ -194,11 +193,8 @@ function Test:TestStep_Start_New_PolicyUpdate_For_SecondApplication()
           end
           RUN_AFTER(to_run, 800)
           self.mobileSession:ExpectResponse(CorIdSystemRequest, {success = true, resultCode = "SUCCESS"})
-      end)
-
-  end)
-  EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "PROPRIETARY" })
-  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATING"}, {status = "UP_TO_DATE"}):Times(2)
+        end)
+    end)
 end
 
 --[[ Postconditions ]]
