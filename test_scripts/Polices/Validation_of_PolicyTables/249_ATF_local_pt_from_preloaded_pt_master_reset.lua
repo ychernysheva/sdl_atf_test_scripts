@@ -9,13 +9,12 @@
 -- Start SDL with PreloadedPT json file
 --
 -- 2. Performed steps
--- Update PreloadedPT json file (exchange_after_x_ignition_cycles, exchange_after_x_kilometers, endpoints, etc)
+-- Update PreloadedPT json file (exchange_after_x_ignition_cycles, exchange_after_x_kilometers, etc)
 -- Initiate Master Reset
 --
 -- Expected result:
 -- SDL must populate the LocalPT with items from PreloadedPT
 ---------------------------------------------------------------------------------------------
-
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 
@@ -37,7 +36,7 @@ local TESTED_DATA = {
       exchange_after_x_kilometers = 1800,
       exchange_after_x_days = 30,
       timeout_after_x_seconds = 60,
-      seconds_between_retries = {1, 5, 25, 125, 625},
+      seconds_between_retries = {2},
       certificate = "ABCDQWERTYUUYT",
       endpoints =
       {
@@ -46,12 +45,6 @@ local TESTED_DATA = {
         },
         ["0x04"] = {
           default = {"http://ivsu.software.ford.com/api/getsoftwareupdates"}
-        },
-        queryAppsUrl = {
-          default = {"http://sdl.shaid.server"}
-        },
-        lock_screen_icon_url = {
-          default = {"http://i.imgur.com/QwZ9uKG.png"}
         }
       },
       notifications_per_minute_by_priority =
@@ -258,7 +251,7 @@ end
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
-function Test:TestStep_CheckLocalPT()
+function Test:CheckLocalPT()
   local is_test_fail = false
   os.execute("sleep 3")
 
@@ -270,23 +263,22 @@ function Test:TestStep_CheckLocalPT()
     { query = 'select timeout_after_x_seconds from module_config', expectedValues = {tostring(TESTED_DATA[1].module_config.timeout_after_x_seconds)} },
     { query = 'select certificate from module_config', expectedValues = {tostring(TESTED_DATA[1].module_config.certificate)} },
     { query = 'select * from notifications_by_priority where priority_value is "COMMUNICATION"',
-      expectedValues = {"COMMUNICATION|"..tostring(TESTED_DATA[1].module_config.notifications_per_minute_by_priority.COMMUNICATION)} },
+     expectedValues = {"COMMUNICATION|"..tostring(TESTED_DATA[1].module_config.notifications_per_minute_by_priority.COMMUNICATION)} },
     { query = 'select * from notifications_by_priority where priority_value is "EMERGENCY"',
-      expectedValues = {"EMERGENCY|"..tostring(TESTED_DATA[1].module_config.notifications_per_minute_by_priority.EMERGENCY)} },
+     expectedValues = {"EMERGENCY|"..tostring(TESTED_DATA[1].module_config.notifications_per_minute_by_priority.EMERGENCY)} },
     { query = 'select * from notifications_by_priority where priority_value is "NAVIGATION"',
       expectedValues = {"NAVIGATION|"..tostring(TESTED_DATA[1].module_config.notifications_per_minute_by_priority.NAVIGATION)} },
     { query = 'select * from notifications_by_priority where priority_value is "VOICECOM"',
-      expectedValues = {"VOICECOM|"..tostring(TESTED_DATA[1].module_config.notifications_per_minute_by_priority.VOICECOM)} },
+    expectedValues = {"VOICECOM|"..tostring(TESTED_DATA[1].module_config.notifications_per_minute_by_priority.VOICECOM)} },
     { query = 'select * from notifications_by_priority where priority_value is "NORMAL"',
       expectedValues = {"NORMAL|"..tostring(TESTED_DATA[1].module_config.notifications_per_minute_by_priority.NORMAL)} },
-    { query = 'select * from notifications_by_priority where priority_value is "NONE"',
-      expectedValues = {"NONE|"..tostring(TESTED_DATA[1].module_config.notifications_per_minute_by_priority.NONE)} },
-  }
-  local notifications_per_minute_by_priority = executeSqliteQuery('select notifications_per_minute_by_priority from module_config', constructPathToDatabase())
-  if(#notifications_per_minute_by_priority == 0) then
-    commonFunctions:printError("ERROR: notifications_per_minute_by_priority in not in module_config. Wrong name in DB: notifications_by_priority")
-    is_test_fail = true
-  end
+   { query = 'select * from notifications_by_priority where priority_value is "NONE"',
+     expectedValues = {"NONE|"..tostring(TESTED_DATA[1].module_config.notifications_per_minute_by_priority.NONE)} },
+      { query = 'select * from seconds_between_retry',
+     expectedValues = {"0|"..tostring(TESTED_DATA[1].module_config.seconds_between_retries[1])} },
+     { query = 'select * from endpoint where service is 4',
+     expectedValues = {"4|http://ivsu.software.ford.com/api/getsoftwareupdates|default"} },
+   }
 
   if not self.checkLocalPT(checks) then
     commonFunctions:printError("ERROR: SDL has wrong values in LocalPT")
@@ -302,52 +294,6 @@ function Test:TestStep_CheckLocalPT()
     is_test_fail = true
   end
 
-  local endpoints = {
-    "7|http://policies.telematics.ford.com/api/policies|default",
-    "4|http://ivsu.software.ford.com/api/getsoftwareupdates|default",
-    "queryAppsUrl|http://sdl.shaid.server|default",
-    "lock_screen_icon_url|http://i.imgur.com/QwZ9uKG.png|default"
-  }
-  local found_endpoint = {false,false,false,false}
-  local endpoints_table = executeSqliteQuery('select * from endpoint', constructPathToDatabase())
-  for k,v in pairs(endpoints_table) do
-    if( k==1 ) then
-      commonFunctions:printError("ERROR: endpoints are not in module_cofig. Wrong name in DB: endpoint")
-      commonFunctions:printError("ERROR: Service in endpoints is with type integer, should be string")
-      is_test_fail = true
-    end
-    for j=1, #endpoints do
-      if endpoints[j] == tostring(v) then
-        found_endpoint[j] = true
-        break
-      end
-    end
-  end
-  for i = 1, #endpoints do
-    if(found_endpoint[i] == false) then
-      commonFunctions:printError("ERROR: "..endpoints[i] .." is not found")
-      is_test_fail = true
-    end
-  end
-
-  local seconds_between_retries = {
-    "0|".. tostring(TESTED_DATA[1].module_config.seconds_between_retries[1]),
-    "1|".. tostring(TESTED_DATA[1].module_config.seconds_between_retries[2]),
-    "2|".. tostring(TESTED_DATA[1].module_config.seconds_between_retries[3]),
-    "3|".. tostring(TESTED_DATA[1].module_config.seconds_between_retries[4]),
-    "4|".. tostring(TESTED_DATA[1].module_config.seconds_between_retries[5])
-  }
-  local seconds_between_retries_table = executeSqliteQuery('select * from seconds_between_retry', constructPathToDatabase())
-  for k,v in pairs(seconds_between_retries_table) do
-    if( k==1 ) then
-      commonFunctions:printError("ERROR: seconds_between_retries are not in module_cofig. Wrong name in DB: seconds_between_retry")
-      is_test_fail = true
-    end
-    if (v ~= seconds_between_retries[k]) then
-      commonFunctions:printError("ERROR: "..seconds_between_retries[k] .." is not as expected: "..seconds_between_retries[k]..". Real: "..v)
-      is_test_fail = true
-    end
-  end
   local vehicle_make_table = executeSqliteQuery('select vehicle_make from module_config', constructPathToDatabase())
   if( vehicle_make_table == nil ) then
     commonFunctions:printError("ERROR: new vehicle_make is null")
@@ -372,8 +318,6 @@ end
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
 testCasesForPolicyTable:Restore_preloaded_pt()
-function Test.Postcondition()
+function Test.Postcondition_StopSDL()
   StopSDL()
 end
-
-return Test
