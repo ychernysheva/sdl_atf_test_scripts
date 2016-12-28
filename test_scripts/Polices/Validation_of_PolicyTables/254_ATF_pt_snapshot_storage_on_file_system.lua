@@ -29,7 +29,7 @@ local mobile_session = require('mobile_session')
 
 --[[ Local Variables ]]
 local POLICY_SNAPSHOT_FILE_NAME = "sdl_mega_snapshot.json"
-local SYSTEM_FILES_PATH = "/tmp/fs/mp/images/ivsu_cache"
+local SYSTEM_FILES_PATH = "/tmp" -- /tmp/fs/mp/images/ivsu_cache
 local oldPathToPtSnapshot
 local oldNameOfPtSnapshot
 
@@ -147,7 +147,7 @@ end
 function Test:Precondition_StartSDL()
   TestData:store("Store original INI ", config.pathToSDL .. "smartDeviceLink.ini", "original_smartDeviceLink.ini")
   oldNameOfPtSnapshot = self.changePtsPathInSdlIni(POLICY_SNAPSHOT_FILE_NAME, "PathToSnapshot")
-  oldPathToPtSnapshot = self.changePtsPathInSdlIni(POLICY_SNAPSHOT_FILE_NAME, "SystemFilesPath")
+  oldPathToPtSnapshot = self.changePtsPathInSdlIni(SYSTEM_FILES_PATH, "SystemFilesPath")
   TestData:store("Store INI before start SDL", config.pathToSDL .. "smartDeviceLink.ini", "new_smartDeviceLink.ini")
   StartSDL(config.pathToSDL, true)
 end
