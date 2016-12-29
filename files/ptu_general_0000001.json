@@ -1,8 +1,7 @@
 {
 	"policy_table": {
 		"module_config": {
-			"preloaded_pt": true,
-                        "preloaded_date": "2015-12-02", 
+                        "preloaded_date": "2015-12-02",
 			"exchange_after_x_ignition_cycles": 100,
 			"exchange_after_x_kilometers": 1800,
 			"exchange_after_x_days": 30,
@@ -42,7 +41,7 @@
 						"FULL",
 						"LIMITED"]
 					},
-					
+
 					"OnHashChange": {
 						"hmi_levels": ["BACKGROUND",
 						"FULL",
@@ -67,13 +66,13 @@
 						"LIMITED",
 						"NONE"]
 					},
-					
+
 					"SystemRequest": {
 						"hmi_levels": ["BACKGROUND",
 						"FULL",
 						"LIMITED",
 						"NONE"]
-					},					
+					},
 					"DialNumber": {
 						"hmi_levels": ["BACKGROUND",
 						"FULL",
@@ -128,13 +127,13 @@
 						"LIMITED",
 						"NONE"]
 					},
-					
+
 					"SystemRequest": {
 						"hmi_levels": ["BACKGROUND",
 						"FULL",
 						"LIMITED",
 						"NONE"]
-					},					
+					},
 					"DialNumber": {
 						"hmi_levels": ["BACKGROUND",
 						"FULL",
@@ -385,7 +384,7 @@
 					}
 				}
 			},
-			
+
 			"OnKeyboardInputOnlyGroup": {
 				"rpcs": {
 					"OnKeyboardInput": {

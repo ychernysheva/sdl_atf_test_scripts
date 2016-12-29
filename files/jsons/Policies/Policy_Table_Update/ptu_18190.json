@@ -1,5 +1,5 @@
 {
-    "policy_table": {        
+    "policy_table": {
         "app_policies": {
             "0000001": {
                 "keep_context": true,
@@ -33,7 +33,7 @@
                 "groups": ["BaseBeforeDataConsent"]
             }
         },
-        "functional_groupings": {            
+        "functional_groupings": {
             "BackgroundAPT": {
                 "rpcs": {
                     "EndAudioPassThru": {
@@ -68,7 +68,7 @@
                             "FULL",
                             "LIMITED"
                         ]
-                    },                    
+                    },
                     "OnHMIStatus": {
                         "hmi_levels": [
                             "BACKGROUND",
@@ -76,7 +76,7 @@
                             "LIMITED",
                             "NONE"
                         ]
-                    },                    
+                    },
                     "OnSystemRequest": {
                         "hmi_levels": [
                             "BACKGROUND",
@@ -952,7 +952,7 @@
                 },
                 "user_consent_prompt": "VehicleInfo"
             }
-        },        
+        },
         "module_config": {
             "endpoints": {
                 "Updated_endpoints": {
@@ -973,7 +973,6 @@
                 "NORMAL": 5,
                 "VOICECOM": 5
             },
-            "preloaded_pt": false,
             "seconds_between_retries": [
                 5,
                 5,

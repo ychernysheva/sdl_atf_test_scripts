@@ -2288,19 +2288,25 @@
       }
     },
     "app_policies": {
+      "33333":null,
       "default": {
-        "keep_context": false,
-        "steal_focus": false,
+        "keep_context": true,
+        "steal_focus": true,
+        "priority": "NONE",
+        "default_hmi": "NONE",
+        "groups": [
+          "Base-4"
+        ]
+      },
+      "654321": {
+        "keep_context": true,
+        "steal_focus": true,
         "priority": "NONE",
         "default_hmi": "NONE",
         "groups": [
           "Base-4"
         ],
-        "RequestType":[
-        	"PROPRIETARY",
-        	"HTTP",
-        	"QUERY_APPS"
-        ]
+      "nicknames":["Tester"]
       },
       "device": {
         "keep_context": false,
@@ -2318,24 +2324,6 @@
         "default_hmi": "NONE",
         "groups": [
           "BaseBeforeDataConsent"
-        ],
-        "RequestType":[
-        	"PROPRIETARY"
-        ]
-      },
-      "123456": {
-        "keep_context": false,
-        "steal_focus": false,
-        "priority": "NONE",
-        "default_hmi": "NONE",
-        "groups": [
-          "Base-4"
-        ],
-        "RequestType":[
-          "TRAFFIC_MESSAGE_CHANNEL",
-          "PROPRIETARY",
-          "HTTP",
-          "QUERY_APPS"
         ]
       }
     }
