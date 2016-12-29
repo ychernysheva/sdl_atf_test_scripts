@@ -33,33 +33,11 @@ local commonSteps = require('user_modules/shared_testcases/commonSteps')
 commonSteps:DeleteLogsFiles()
 commonSteps:DeletePolicyTable()
 
-local exchange_after_x_ignition_cycles
-
 --[[ General Settings for configuration ]]
 Test = require('connecttest')
 require('cardinalities')
 local mobile_session = require('mobile_session')
 require('user_modules/AppTypes')
-
---[[ Local functions ]]
-local function SetIgnitionCyclesSinceLastExchange()
-  local pathToDB = config.pathToSDL .. "storage/policy.sqlite"
-  local sql_query = 'select exchange_after_x_ignition_cycles from module_config where rowid=1;'
-  exchange_after_x_ignition_cycles = commonFunctions:get_data_policy_sql(pathToDB, sql_query)
-  local DBQuery = 'sqlite3 ' .. pathToDB .. ' \"UPDATE module_meta SET ignition_cycles_since_last_exchange = ' .. tonumber(exchange_after_x_ignition_cycles[1]) - 1 .. ' WHERE rowid = 1;\"'
-  os.execute(DBQuery)
-  os.execute(" sleep 1 ")
-end
-
-local function GetDataFromSnapshot(pathToFile)
-  local file = io.open(pathToFile, "r")
-  local json_data = file:read("*all") -- may be abbreviated to "*a";
-  file:close()
-  local json = require("modules/json")
-  local data = json.decode(json_data)
-  local ignitionCyclesSinceLastExchange = data.policy_table.module_meta.ignition_cycles_since_last_exchange
-  return ignitionCyclesSinceLastExchange
-end
 
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
@@ -75,8 +53,8 @@ function Test:Precondition_Activate_App_Consent_Device_And_Update_Policy()
           -- GetCurrentTimeStampDeviceConsent()
           EXPECT_HMICALL("BasicCommunication.ActivateApp")
           :Do(function(_,data1)
-              self.hmiConnection:SendResponse(data1.id,"BasicCommunication.ActivateApp", "SUCCESS", {})              
-          end)
+              self.hmiConnection:SendResponse(data1.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
+            end)
           EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"})
         end)
     end)
@@ -88,7 +66,7 @@ function Test:Precondition_Activate_App_Consent_Device_And_Update_Policy()
           self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",{requestType = "PROPRIETARY", fileName = "filename"})
           EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY" })
           :Do(function()
-              local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", {fileName = "PolicyTableUpdate", requestType = "PROPRIETARY"}, "files/ptu_general.json")
+              local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", {fileName = "PolicyTableUpdate", requestType = "PROPRIETARY"}, "files/jsons/Policies/Policy_Table_Update/ptu_after_n_ign.json")
               local systemRequestId
               EXPECT_HMICALL("BasicCommunication.SystemRequest")
               :Do(function(_,data1)
@@ -106,15 +84,15 @@ function Test:Precondition_Activate_App_Consent_Device_And_Update_Policy()
     end)
 end
 
-function Test:Precondition_StopSDL()
+function Test:Precondition_OnIgnitionCycleOver()
+  self.hmiConnection:SendNotification("BasicCommunication.OnIgnitionCycleOver")
+end
+
+function Test.Precondition_StopSDL()
   StopSDL()
 end
 
-function Test:Precondition_SetIgnitionCyclesSinceLastExchange()
-  SetIgnitionCyclesSinceLastExchange()
-end
-
-function Test:Precondition_StartSDL()
+function Test.Precondition_StartSDL()
   StartSDL(config.pathToSDL, config.ExitOnCrash)
 end
 
@@ -146,14 +124,13 @@ commonFunctions:newTestCasesGroup("Test")
 
 function Test:TestStep_Check_PTU_Triggered_On_OnIgnitionCycleOver()
   self.hmiConnection:SendNotification("BasicCommunication.OnIgnitionCycleOver")
-  --EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
 end
 
-function Test.Postcondition_SDLStop()
+function Test.TestStep_SDLStop()
   StopSDL()
 end
 
-function Test:TestStep_StartSDL()
+function Test.TestStep_StartSDL()
   StartSDL(config.pathToSDL, config.ExitOnCrash)
 end
 
@@ -175,14 +152,6 @@ function Test:TestStep_Register_App_And_Check_PTU_Triggered()
     end)
   EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
   EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
-  :ValidIf(function(_,data)
-     local pathToSnapshot = data.params.file
-     if GetDataFromSnapshot(pathToSnapshot) == tonumber(exchange_after_x_ignition_cycles[1]) then return true
-      else 
-        print("Wrong ignition_cycles_since_last_exchange in PTS: Expected: " .. tonumber(exchange_after_x_ignition_cycles[1]) .. " Actual: " .. GetDataFromSnapshot(pathToSnapshot))
-      return false
-    end
-    end)
 end
 
 --[[ Postconditions ]]
