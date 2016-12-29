@@ -1,5 +1,5 @@
 {
-    "policy_table": {        
+    "policy_table": {
         "app_policies": {
             "0000001": {
                 "keep_context": false,
@@ -30,7 +30,7 @@
                 "groups": ["BaseBeforeDataConsent"]
             }
         },
-        "consumer_friendly_messages": {            
+        "consumer_friendly_messages": {
             "version": "001.001.021",
             "messages": {
                 "AppPermissions": {
@@ -46,14 +46,14 @@
                 },
                 "AppPermissionsHelp": {
                     "languages": {
-                        "en-us": {                            
-                            "tts": "TTS2"                            
+                        "en-us": {
+                            "tts": "TTS2"
                         }
                     }
                 }
             }
         },
-        "functional_groupings": {            
+        "functional_groupings": {
             "BackgroundAPT": {
                 "rpcs": {
                     "EndAudioPassThru": {
@@ -1247,7 +1247,7 @@
                 },
                 "user_consent_prompt": "VehicleInfo"
             }
-        },        
+        },
         "module_config": {
             "endpoints": {
                 "0x04": {
@@ -1282,7 +1282,6 @@
                 "NORMAL": 4,
                 "VOICECOM": 20
             },
-            "preloaded_pt": false,
             "seconds_between_retries": [
                 1,
                 5,
