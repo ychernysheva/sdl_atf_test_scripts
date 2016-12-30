@@ -1,5 +1,5 @@
 {
-    "policy_table": {        
+    "policy_table": {
         "app_policies": {
             "0000001": {
                 "keep_context": false,
@@ -30,7 +30,7 @@
                 "groups": ["BaseBeforeDataConsent"]
             }
         },
-        "functional_groupings": {            
+        "functional_groupings": {
             "BackgroundAPT": {
                 "rpcs": {
                     "EndAudioPassThru": {
@@ -1224,7 +1224,7 @@
                 },
                 "user_consent_prompt": "VehicleInfo"
             }
-        },        
+        },
         "module_config": {
             "endpoints": {
                 "0x04": {
@@ -1259,7 +1259,6 @@
                 "NORMAL": 4,
                 "VOICECOM": 20
             },
-            "preloaded_pt": false,
             "seconds_between_retries": [
                 1,
                 5,
