@@ -101,13 +101,13 @@ function Test:TestStep_Sending_PTS_to_mobile_application()
       EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY", fileType = "JSON"})
       :Do(function(_,_) time_system_request[#time_system_request + 1] = timestamp() end)
 
-      EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",
-        {status = "UPDATING"}, {status = "UPDATE_NEEDED"}):Times(2)
+      EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATING"}, {status = "UPDATE_NEEDED"}):Times(2):Timeout(64000)
       :Do(function(exp_pu, data)
-        if(data.params.status == "UPDATE_NEEDED") then
-          verify_retry_sequence(exp_pu.occurences - 1)
-        end
-      end)
+          print(exp_pu.occurences..":"..data.params.status)
+          if(data.params.status == "UPDATE_NEEDED") then
+            verify_retry_sequence(exp_pu.occurences - 1)
+          end
+        end)
 
       --TODO(istoimenova): Remove when "[GENIVI] PTU is restarted each 10 sec." is fixed.
       EXPECT_HMICALL("BasicCommunication.PolicyUpdate"):Times(0)
@@ -115,7 +115,7 @@ function Test:TestStep_Sending_PTS_to_mobile_application()
           is_test_fail = true
           commonFunctions:printError("ERROR: PTU sequence is restarted again!")
           self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-      end)
+        end)
     end)
 
   if(is_test_fail == true) then
