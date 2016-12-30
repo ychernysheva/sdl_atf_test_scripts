@@ -26,12 +26,11 @@ config.defaultProtocolVersion = 2
 
 --[[ Required Shared libraries ]]
 local commonSteps = require ('user_modules/shared_testcases/commonSteps')
-local testCasesForPolicyTableSnapshot = require ('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local testCasesForPolicyTable = require ('user_modules/shared_testcases/testCasesForPolicyTable')
 
 --[[ Local Variables ]]
-local exchangeDays = testCasesForPolicyTableSnapshot:get_data_from_Preloaded_PT("module_config.exchange_after_x_days")
+local exchangeDays = 30
 local currentSystemDaysAfterEpoch
 
 --[[ General Precondition before ATF start ]]
@@ -83,31 +82,31 @@ function Test:Precondition_Activate_App_Consent_Device()
           :Do(function(_,data1)
               self.hmiConnection:SendResponse(data1.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
               EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"})
-          end)
-      end)
-  end)
+            end)
+        end)
+    end)
   EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
 end
 
 function Test:Precondition_Update_Policy_With_Exchange_After_X_Days_Value()
   currentSystemDaysAfterEpoch = getSystemDaysAfterEpoch()
-      local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
-      EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
+  local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
+  EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
+  :Do(function()
+      self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",{requestType = "PROPRIETARY", fileName = "filename"})
+      EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY" })
       :Do(function()
-          self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",{requestType = "PROPRIETARY", fileName = "filename"})
-          EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY" })
-          :Do(function()
-              local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", {fileName = "PolicyTableUpdate", requestType = "PROPRIETARY"}, "files/tmp_PTU.json")
+          local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", {fileName = "PolicyTableUpdate", requestType = "PROPRIETARY"}, "files/tmp_PTU.json")
 
-              EXPECT_HMICALL("BasicCommunication.SystemRequest")
-              :Do(function(_,data1)
+          EXPECT_HMICALL("BasicCommunication.SystemRequest")
+          :Do(function(_,data1)
 
-                self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate", { policyfile = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate"})
-                self.hmiConnection:SendResponse(data1.id, "BasicCommunication.SystemRequest", "SUCCESS", {})
-                EXPECT_RESPONSE(CorIdSystemRequest, { success = true, resultCode = "SUCCESS"})
-              end)
-          end)
-      end)
+              self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate", { policyfile = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate"})
+              self.hmiConnection:SendResponse(data1.id, "BasicCommunication.SystemRequest", "SUCCESS", {})
+              EXPECT_RESPONSE(CorIdSystemRequest, { success = true, resultCode = "SUCCESS"})
+            end)
+        end)
+    end)
   EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",
     {status = "UPDATING"}, {status = "UP_TO_DATE"}):Times(2)
 end
@@ -122,7 +121,7 @@ function Test.Precondition_StopSDL()
 end
 
 function Test.SetExchangedXDaysInDB()
-  setPtExchangedXDaysAfterEpochInDB(currentSystemDaysAfterEpoch - exchangeDays)
+  setPtExchangedXDaysAfterEpochInDB(currentSystemDaysAfterEpoch - exchangeDays - 1)
 end
 
 function Test.Precondition_StartSDL_FirstLifeCycle()
