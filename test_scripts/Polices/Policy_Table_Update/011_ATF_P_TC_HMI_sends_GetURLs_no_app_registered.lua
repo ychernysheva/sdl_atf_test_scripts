@@ -53,24 +53,22 @@ function Test:Precondition_flow_PTU_SUCCEESS_EXTERNAL_PROPRIETARY()
   local RequestId_GetUrls = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
   EXPECT_HMIRESPONSE(RequestId_GetUrls,{result = {code = 0, method = "SDL.GetURLS"} } )
   :Do(function(_,_)
-    self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",
-    { requestType = "PROPRIETARY", fileName = "PolicyTableUpdate"})
-    EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "PROPRIETARY"})
-    :Do(function(_,_)
-
+      self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",
+        { requestType = "PROPRIETARY", fileName = "PolicyTableUpdate"})
       EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",
         {status = "UPDATING"}, {status = "UP_TO_DATE"}):Times(2)
-
-      local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", {requestType = "PROPRIETARY", fileName = "PolicyTableUpdate", appID = config.application1.registerAppInterfaceParams.appID},
-        "files/ptu.json")
-      EXPECT_HMICALL("BasicCommunication.SystemRequest",{ requestType = "PROPRIETARY", fileName = SystemFilesPath.."PolicyTableUpdate" })
-      :Do(function(_,_data1)
-        self.hmiConnection:SendResponse(_data1.id,"BasicCommunication.SystemRequest", "SUCCESS", {})
-        self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate", { policyfile = SystemFilesPath.."PolicyTableUpdate"})
-      end)
-      EXPECT_RESPONSE(CorIdSystemRequest, { success = true, resultCode = "SUCCESS"})
+      EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "PROPRIETARY"})
+      :Do(function(_,_)
+          local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", {requestType = "PROPRIETARY", fileName = "PolicyTableUpdate", appID = config.application1.registerAppInterfaceParams.appID},
+          "files/ptu.json")
+          EXPECT_HMICALL("BasicCommunication.SystemRequest",{ requestType = "PROPRIETARY", fileName = SystemFilesPath.."PolicyTableUpdate" })
+          :Do(function(_,_data1)
+              self.hmiConnection:SendResponse(_data1.id,"BasicCommunication.SystemRequest", "SUCCESS", {})
+              self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate", { policyfile = SystemFilesPath.."PolicyTableUpdate"})
+            end)
+          EXPECT_RESPONSE(CorIdSystemRequest, { success = true, resultCode = "SUCCESS"})
+        end)
     end)
-  end)
 end
 
 function Test:Precondition_UnregisterApp()
@@ -98,24 +96,24 @@ function Test:TestStep_PTU_GetURLs_NoAppRegistered()
 
   EXPECT_HMIRESPONSE(RequestId,{result = {code = 0, method = "SDL.GetURLS"} } )
   :Do(function(_,data)
-    local is_correct = {}
-    for i = 1, #data.result.urls do
-      is_correct[i] = false
-      for j = 1, #endpoints do
-        if ( data.result.urls[i].url == endpoints[j].url ) then
-          is_correct[i] = true
+      local is_correct = {}
+      for i = 1, #data.result.urls do
+        is_correct[i] = false
+        for j = 1, #endpoints do
+          if ( data.result.urls[i].url == endpoints[j].url ) then
+            is_correct[i] = true
+          end
         end
       end
-    end
-    if(#data.result.urls ~= #endpoints ) then
-      self:FailTestCase("Number of urls is not as expected: "..#endpoints..". Real: "..#data.result.urls)
-    end
-    for i = 1, #is_correct do
-      if(is_correct[i] == false) then
-        self:FailTestCase("url: "..data.result.urls[i].url.." is not correct. Expected: "..endpoints[i].url)
+      if(#data.result.urls ~= #endpoints ) then
+        self:FailTestCase("Number of urls is not as expected: "..#endpoints..". Real: "..#data.result.urls)
       end
-    end
-  end)
+      for i = 1, #is_correct do
+        if(is_correct[i] == false) then
+          self:FailTestCase("url: "..data.result.urls[i].url.." is not correct. Expected: "..endpoints[i].url)
+        end
+      end
+    end)
 end
 
 function Test:TestStep_PTU_DB_GetURLs_NoAppRegistered()
@@ -127,9 +125,9 @@ function Test:TestStep_PTU_DB_GetURLs_NoAppRegistered()
   for _, value in pairs(sevices_table) do
     policy_endpoints[#policy_endpoints + 1] = { found = false, service = value }
     --TODO(istoimenova): Should be updated when policy defect is fixed
-      if ( value == "4" or value == "7") then
-        policy_endpoints[#policy_endpoints].found = true
-      end
+    if ( value == "4" or value == "7") then
+      policy_endpoints[#policy_endpoints].found = true
+    end
   end
 
   for i = 1, #policy_endpoints do
