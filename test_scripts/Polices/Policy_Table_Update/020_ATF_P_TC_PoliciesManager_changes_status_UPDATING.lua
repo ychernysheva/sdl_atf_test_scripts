@@ -29,7 +29,6 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
-local testCasesForPolicyTableSnapshot = require('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
@@ -53,42 +52,23 @@ end
 commonFunctions:newTestCasesGroup("Test")
 function Test:TestStep_PoliciesManager_changes_status_UPDATING()
   local SystemFilesPath = commonFunctions:read_parameter_from_smart_device_link_ini("SystemFilesPath")
-  local is_test_fail = false
-  local endpoints = {}
-
-  for i = 1, #testCasesForPolicyTableSnapshot.pts_endpoints do
-    if (testCasesForPolicyTableSnapshot.pts_endpoints[i].service == "0x07") then
-      endpoints[#endpoints + 1] = { url = testCasesForPolicyTableSnapshot.pts_endpoints[i].value, appID = nil}
-    end
-
-    if (testCasesForPolicyTableSnapshot.pts_endpoints[i].service == "app1") then
-      endpoints[#endpoints + 1] = { url = testCasesForPolicyTableSnapshot.pts_endpoints[i].value, appID = testCasesForPolicyTableSnapshot.pts_endpoints[i].appID}
-    end
-  end
 
   local RequestId_GetUrls = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
-  EXPECT_HMIRESPONSE(RequestId_GetUrls,{result = {code = 0, method = "SDL.GetURLS", urls = endpoints} } )
-  :Do(function(_,_)
+  EXPECT_HMIRESPONSE(RequestId_GetUrls,{result = {code = 0, method = "SDL.GetURLS" } } )
+  :Do(function()
       self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",{ requestType = "PROPRIETARY", fileName = "PolicyTableUpdate"})
+      EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATING"})
       EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "PROPRIETARY"})
-      :Do(function(_,_)
+      :Do(function()
           local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest",
             {requestType = "PROPRIETARY", fileName = "PolicyTableUpdate", appID = config.application1.registerAppInterfaceParams.appID}, "files/ptu.json")
-
-          EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATING"})
-
           EXPECT_HMICALL("BasicCommunication.SystemRequest",{ requestType = "PROPRIETARY", fileName = SystemFilesPath.."/PolicyTableUpdate" })
           :Do(function(_,_data1)
               self.hmiConnection:SendResponse(_data1.id,"BasicCommunication.SystemRequest", "SUCCESS", {})
-              --self.hmiConnection:SendNotification ("SDL.OnReceivedPolicyUpdate", { policyfile = SystemFilesPath.."/PolicyTableUpdate"})
             end)
           EXPECT_RESPONSE(CorIdSystemRequest, { success = true, resultCode = "SUCCESS"})
         end)
     end)
-
-  if(is_test_fail == true) then
-    self:FailTestCase("Test is FAILED. See prints.")
-  end
 end
 
 --[[ Postconditions ]]
