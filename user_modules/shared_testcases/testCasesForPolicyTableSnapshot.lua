@@ -156,21 +156,21 @@ function testCasesForPolicyTableSnapshot:verify_PTS(is_created, app_IDs, device_
     table.insert(origin_data_dictionary,  { name = "app_policies.pre_DataConsent.steal_focus", elem_required = "required"} )
     table.insert(origin_data_dictionary,  { name = "app_policies.pre_DataConsent.default_hmi", elem_required = "required"} )
   end
-  
+
   local data_dictionary = origin_data_dictionary
 
   local omitted_preloaded_original =
-  { 
+  {
     { name = "module_meta.pt_exchanged_at_odometer_x", elem_required = "required"},
     { name = "module_meta.pt_exchanged_x_days_after_epoch", elem_required = "required"},
     { name = "module_meta.ignition_cycles_since_last_exchange", elem_required = "required"},
 
-    
+
 
     { name = "app_policies.device.time_stamp", elem_required = "optional"},
-    
+
     { name = "app_policies.device.priority", elem_required = "required"},
-    
+
   }
 
   if(flag ~= "PROPRIETARY" and flag ~= "HTTP") then
@@ -206,7 +206,7 @@ function testCasesForPolicyTableSnapshot:verify_PTS(is_created, app_IDs, device_
         omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "usage_and_error_counts.app_level."..app_IDs[i]..".count_of_rpcs_sent_in_hmi_none", elem_required = "required"}
         omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "usage_and_error_counts.app_level."..app_IDs[i]..".count_of_removals_for_bad_behavior", elem_required = "required"}
         omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "usage_and_error_counts.app_level."..app_IDs[i]..".count_of_run_attempts_while_revoked", elem_required = "required"}
-        omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "usage_and_error_counts.app_level."..app_IDs[i]..".count_of_invalid_certificates", elem_required = "required"}
+        -- omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "usage_and_error_counts.app_level."..app_IDs[i]..".count_of_invalid_certificates", elem_required = "required"}
         omitted_preloaded_original[#omitted_preloaded_original + 1] = { name = "usage_and_error_counts.app_level."..app_IDs[i]..".time_stamp", elem_required = "optional"}
       end
     end
@@ -385,7 +385,7 @@ function testCasesForPolicyTableSnapshot:verify_PTS(is_created, app_IDs, device_
     --       table.insert(data_dictionary,  { name = "app_policies."..tostring(app_IDs[i])..".steal_focus", elem_required = "required"} )
     --       table.insert(data_dictionary,  { name = "app_policies."..tostring(app_IDs[i])..".default_hmi", elem_required = "required"} )
     --       -- TODO(istoimenova): preconsented_groups will be suspended due to lack of time
-    --       -- 
+    --       --
     --       -- table.insert(data_dictionary,  { name = "app_policies."..tostring(app_IDs[i])..".preconsented_groups", elem_required = "required"} )
     --     end
     --   end
@@ -404,9 +404,9 @@ function testCasesForPolicyTableSnapshot:verify_PTS(is_created, app_IDs, device_
             table.insert(data_dictionary,  { name = "app_policies."..tostring(app_IDs[i])..".keep_context", elem_required = "required"} )
             table.insert(data_dictionary,  { name = "app_policies."..tostring(app_IDs[i])..".steal_focus", elem_required = "required"} )
             table.insert(data_dictionary,  { name = "app_policies."..tostring(app_IDs[i])..".default_hmi", elem_required = "required"} )
-          end 
+          end
           -- TODO(istoimenova): preconsented_groups will be suspended due to lack of time
-          -- 
+          --
           -- table.insert(data_dictionary,  { name = "app_policies."..tostring(app_IDs[i])..".preconsented_groups", elem_required = "required"} )
         end
       end
