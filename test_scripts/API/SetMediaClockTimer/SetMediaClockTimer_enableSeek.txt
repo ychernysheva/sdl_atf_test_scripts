@@ -1,0 +1,7 @@
+./test_scripts/API/SetMediaClockTimer/ATF_HP_SetMediaClockTimer_With_Valid_enableSeek_Parameter.lua
+./test_scripts/API/SetMediaClockTimer/ATF_P_SetMediaClockTimer_enableSeek_Absent.lua
+./test_scripts/API/SetMediaClockTimer/ATF_P_SetMediaClockTimer_enableSeek_True.lua
+./test_scripts/API/SetMediaClockTimer/ATF_P_SetMediaClockTimer_enableSeek_False.lua
+./test_scripts/API/SetMediaClockTimer/ATF_N_SetMediaClockTimer_enableSeek_Wrong_Value_Type.lua
+./test_scripts/API/SetMediaClockTimer/ATF_N_SetMediaClockTimer_enableSeek_Wrong_Json_Syntax_In_Parameter.lua
+./test_scripts/API/SetMediaClockTimer/ATF_N_SetMediaClockTimer_enableSeek_Null_Value.lua
