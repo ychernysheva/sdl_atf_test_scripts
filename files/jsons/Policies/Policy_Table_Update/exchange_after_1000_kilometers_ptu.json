@@ -1,8 +1,6 @@
 {
   "policy_table" : {
     "module_config" : {
-      "preloaded_pt" : true,
-      "preloaded_date" : "2015-12-02",
       "exchange_after_x_ignition_cycles" : 100,
       "exchange_after_x_kilometers" : 1000,
       "exchange_after_x_days" : 30,
@@ -49,7 +47,7 @@
         ],
         "parameters" : ["odometer"]
         }
-        , 
+        ,
         "OnVehicleData": {
         "hmi_levels": [
         "BACKGROUND",
@@ -58,7 +56,7 @@
         ],
         "parameters" : ["odometer"]
         }
-        , 
+        ,
           "AddCommand" : {
             "hmi_levels" : ["BACKGROUND",
               "FULL",
@@ -1571,7 +1569,7 @@
             }
           }
         },
-        
+
         "group1" : {
           "languages" : {
             "de-de" : {
