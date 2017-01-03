@@ -29,7 +29,7 @@ local commonPreconditions = require('user_modules/shared_testcases/commonPrecond
 --[[ Local Variables ]]
 local timeoutAfterXSeconds = 50
 local secondsBetweenRetries = {2, 5, 200}
-local pathToIni = config.pathToSDL .. "smartDeviceLink.ini"
+local pathToIni = config.pathToSDL .. "/smartDeviceLink.ini"
 -- ToDo (ovikhrov): After clarification parameter can be changed to "PathToSnapshot"
 local parameterName = "SystemFilesPath"
 
@@ -39,13 +39,13 @@ require('cardinalities')
 local mobile_session = require('mobile_session')
 
 --[[ Local Functions ]]
-local function getValueFromIniFile(pathToIni, parameterName)
-  local f = assert(io.open(pathToIni, "r"))
+local function getValueFromIniFile(path_to_ini, parameter_name)
+  local f = assert(io.open(path_to_ini, "r"))
   local fileContent = f:read("*all")
-    local ParameterValue 
-      ParameterValue = string.match(fileContent, parameterName .. " =.- (.-)\n")
-      f:close()
-return ParameterValue
+  local ParameterValue
+  ParameterValue = string.match(fileContent, parameter_name .. " =.- (.-)\n")
+  f:close()
+  return ParameterValue
 end
 
 local function SetModuleconfigForPreDataConsent(timeout, retries)
@@ -87,7 +87,6 @@ function Test.Precondition_Backup_preloadedPT()
   commonPreconditions:BackupFile("sdl_preloaded_pt.json")
 end
 
-
 function Test:Precondition_SetP_Module_Config_Values_ForPre_DataConsent()
   SetModuleconfigForPreDataConsent(timeoutAfterXSeconds, secondsBetweenRetries, self)
 end
@@ -113,70 +112,14 @@ function Test:Precondition_StartSession()
   self.mobileSession:StartService(7)
 end
 
-
-
 --[[ Test ]]
 function Test:TestStep_Register_App_And_Check_PolicyUpdate()
 
-  local CorIdRAI = self.mobileSession:SendRPC("RegisterAppInterface",
-    {
-      syncMsgVersion =
-      {
-        majorVersion = 3,
-        minorVersion = 0
-      },
-      appName = "SPT",
-      isMediaApplication = true,
-      languageDesired = "EN-US",
-      hmiDisplayLanguageDesired = "EN-US",
-      appID = "1234567",
-      deviceInfo =
-      {
-        os = "Android",
-        carrier = "Megafon",
-        firmwareRev = "Name: Linux, Version: 3.4.0-perf",
-        osVersion = "4.4.2",
-        maxNumberRFCOMMPorts = 1
-      }
-    })
-  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered",
-    {
-      application =
-      {
-        appName = "SPT",
-        policyAppID = "1234567",
-        isMediaApplication = true,
-        hmiDisplayLanguageDesired = "EN-US",
-        deviceInfo =
-        {
-          name = "127.0.0.1",
-          id = config.deviceMAC,
-          transportType = "WIFI",
-          isSDLAllowed = false
-        }
-      }
-    })
-  :Do(function(_,data)
-      local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", {appID = data.params.application.appID})
-      EXPECT_HMIRESPONSE(RequestId, {result = {code = 0, isSDLAllowed = false}, method = "SDL.ActivateApp"})
-      :Do(function(_,_)
-          local RequestIdGetUserFriendlyMessage = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
-          EXPECT_HMIRESPONSE(RequestIdGetUserFriendlyMessage,{result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
-          :Do(function(_,_)
-              self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = "127.0.0.1"}})
-              EXPECT_HMICALL("BasicCommunication.ActivateApp")
-              :Do(function(_,data1)
-                  self.hmiConnection:SendResponse(data1.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
-                  EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"})
-                end)
-            end)
-        end)
-    end)
+  local CorIdRAI = self.mobileSession:SendRPC("RegisterAppInterface", config.application2.registerAppInterfaceParams)
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
   EXPECT_RESPONSE(CorIdRAI, { success = true, resultCode = "SUCCESS"})
   EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
   EXPECT_HMICALL("BasicCommunication.PolicyUpdate", {timeout = timeoutAfterXSeconds, retry = secondsBetweenRetries, file = getValueFromIniFile(pathToIni, parameterName) .. "/sdl_snapshot.json"})
-   :Do(function(_,_)
-    end)
 end
 
 --[[ Postconditions ]]
@@ -185,4 +128,4 @@ function Test.Postcondition_SDLStop()
 end
 function Test.Postcondition_Restore_preloaded()
   commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
-end 
+end
