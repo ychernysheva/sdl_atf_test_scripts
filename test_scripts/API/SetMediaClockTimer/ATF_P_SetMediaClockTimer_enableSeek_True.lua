@@ -77,7 +77,7 @@ end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
-function Test:TestStep_SetMediaClockTimer_Without_enableSeek_Parameter()
+function Test:TestStep_SetMediaClockTimer_enableSeek_True()
 local cid = self.mobileSession:SendRPC("SetMediaClockTimer",
             {
                startTime =
