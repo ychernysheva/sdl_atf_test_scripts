@@ -24,7 +24,19 @@ local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
 local commonSteps = require("user_modules/shared_testcases/commonSteps")
 local testCasesForPolicyTable = require("user_modules/shared_testcases/testCasesForPolicyTable")
 
+--[[ Local Variables ]]
+local r_actual = { }
+
+--[[ Local Functions ]]
+local function get_id_by_val(t, v)
+  for i = 1, #t do
+    if (t[i] == v) then return i end
+  end
+  return nil
+end
+
 --[[ General Precondition before ATF start ]]
+commonFunctions:SDLForceStop()
 commonSteps:DeleteLogsFileAndPolicyTable()
 testCasesForPolicyTable.Delete_Policy_table_snapshot()
 
@@ -32,57 +44,52 @@ testCasesForPolicyTable.Delete_Policy_table_snapshot()
 Test = require("connecttest")
 require("user_modules/AppTypes")
 
---[[ Preconditions ]]
-commonFunctions:newTestCasesGroup("Precondition")
+-- [[ Notifications ]]
+EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
+:Do(function()
+    table.insert(r_actual, "BC.PolicyUpdate")
+  end)
+:Times(AnyNumber())
+:Pin()
+
+EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",{ status = "UPDATING" })
+:Do(function(_, d)
+    table.insert(r_actual, "SDL.OnStatusUpdate: " .. d.params.status)
+  end)
+:Times(AnyNumber())
+:Pin()
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 function Test:TestStep_CheckMessagesSequence()
-  local is_test_fail = false
-  local message_number = 1
   local RequestId_GetUrls = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
+  table.insert(r_actual, "SDL.GetURLS: request")
   EXPECT_HMIRESPONSE(RequestId_GetUrls)
-  :Do(function(_,_)
+  :Do(function()
+      table.insert(r_actual, "SDL.GetURLS: response")
+      EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY" })
+      :Do(function()
+          table.insert(r_actual, "OnSystemRequest")
+        end)
       self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest", { requestType = "PROPRIETARY", fileName = "PolicyTableUpdate"})
-
-      if(message_number ~= 1) then
-        commonFunctions:printError("Error: SDL.GetURLS reponse is not received as message 1 after SDL.GetURLS request. Real: "..message_number)
-        is_test_fail = true
-      else
-        print("SDL.GetURLS is received as message "..message_number.." after SDL.GetURLS request")
-      end
-      message_number = message_number + 1
+      table.insert(r_actual, "BC.OnSystemRequest")
     end)
+end
 
-  EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "PROPRIETARY"})
-  :Do(function(_,_)
-      if( (message_number ~= 2) and (message_number ~= 3)) then
-        commonFunctions:printError("Error: SDL.OnStatusUpdate reponse is not received as message 2/3 after SDL.GetURLS request. Real: "..message_number)
-        is_test_fail = true
-      else
-        print("OnSystemRequest is received as message "..message_number.." after SDL.GetURLS request")
-      end
-      message_number = message_number + 1
-    end)
-
-  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",{status = "UPDATING"})
-  :Do(function(_,data)
-      if( (message_number ~= 2) and (message_number ~= 3)) then
-        commonFunctions:printError("Error: SDL.OnStatusUpdate reponse is not received as message 2/3 after SDL.GetURLS request. Real: "..message_number)
-        is_test_fail = true
-      else
-        print("SDL.OnStatusUpdate("..data.params.status..") is received as message "..message_number.." after SDL.GetURLS request")
-      end
-      message_number = message_number + 1
-    end)
-
-  if(is_test_fail == true) then
-    self:FailTestCase("Test is FAILED. See prints.")
+function Test:ValidateResult()
+  commonFunctions:printTable(r_actual)
+  local onSystemRequestId = get_id_by_val(r_actual, "OnSystemRequest")
+  local onStatusUpdate = get_id_by_val(r_actual, "SDL.OnStatusUpdate: UPDATING")
+  print("Id of 'OnSystemRequest': " .. onSystemRequestId)
+  print("Id of 'SDL.OnStatusUpdate: UPDATING': " .. onStatusUpdate)
+  if onStatusUpdate < onSystemRequestId then
+    self:FailTestCase("Unexpected 'SDL.OnStatusUpdate: UPDATING' before 'OnSystemRequest'")
   end
 end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
+
 function Test.Postcondition_StopSDL()
   StopSDL()
 end
