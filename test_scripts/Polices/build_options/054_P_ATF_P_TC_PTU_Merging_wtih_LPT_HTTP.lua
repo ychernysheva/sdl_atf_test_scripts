@@ -1,9 +1,3 @@
---UNREADY:
--- In https://github.com/smartdevicelink/sdl_atf_test_scripts/pull/247/ there are
---attached ptu_prop.json at ptu.json that need to be renamed and
---copied at: /tmp/fs/mp/images/ivsu_cache/, for lines containing "/tmp/fs/mp/images/ivsu_cache/ptu.json"
--- functions in Test section need to be updated
-
 -- Requirement summary:
 -- [PolicyTableUpdate] Merging PTU and LPT after getting Policy Table Update
 --
@@ -40,30 +34,6 @@ local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local mobile_session = require('mobile_session')
 
 
---[[ Local Functions ]]
-local registerAppInterfaceParams =
-{
-  syncMsgVersion =
-  {
-    majorVersion = 3,
-    minorVersion = 0
-  },
-  appName = "Media Application",
-  isMediaApplication = true,
-  languageDesired = 'EN-US',
-  hmiDisplayLanguageDesired = 'EN-US',
-  appHMIType = {"NAVIGATION"},
-  appID = "MyTestApp",
-  deviceInfo =
-  {
-    os = "Android",
-    carrier = "Megafon",
-    firmwareRev = "Name: Linux, Version: 3.4.0-perf",
-    osVersion = "4.4.2",
-    maxNumberRFCOMMPorts = 1
-  }
-}
-
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
 
@@ -83,8 +53,8 @@ function Test:Precondition_OpenNewSession()
 end
 
 function Test:Precondition_RAI_NewSession()
-  local corId = self.mobileSession2:SendRPC("RegisterAppInterface", registerAppInterfaceParams)
-  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = "Media Application" }})
+  local corId = self.mobileSession2:SendRPC("RegisterAppInterface", config.application2.registerAppInterfaceParams)
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = "Test Application2" }})
   self.mobileSession2:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
   self.mobileSession2:ExpectNotification("OnPermissionsChange")
 end
@@ -94,12 +64,12 @@ function Test:Precondition_CheckThatAppID_SecondApp_Present_In_DataBase()
   local app2_exist = false
 
   for _, value in pairs(app_id_table) do
-    if ( value == registerAppInterfaceParams.appID) then
+    if ( value == config.application2.registerAppInterfaceParams.appID) then
       app2_exist = true
     end
   end
   if(app2_exist == false) then
-    self:FailTestCase("Application "..registerAppInterfaceParams.appID.." doesn't exist in Local PT.")
+    self:FailTestCase("Application " .. config.application2.registerAppInterfaceParams.appID .. " doesn't exist in Local PT.")
   end
 end
 
@@ -112,7 +82,7 @@ function Test:TestStep_PoliciesManager_changes_UP_TO_DATE()
 
   EXPECT_RESPONSE(CorIdSystemRequest, { success = true, resultCode = "SUCCESS"})
   EXPECT_HMICALL("BasicCommunication.SystemRequest"):Times(0)
-  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UP_TO_DATE"}, {"UPDATE_NEEDED"}):Times(2)
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", { status = "UP_TO_DATE" }, { status = "UPDATE_NEEDED" }):Times(AtLeast(1))
 end
 
 function Test:TestStep_CheckThatAppID_SecondApp_StillPresent_In_DataBase()
@@ -120,12 +90,12 @@ function Test:TestStep_CheckThatAppID_SecondApp_StillPresent_In_DataBase()
   local app2_exist = false
 
   for _, value in pairs(app_id_table) do
-    if ( value == registerAppInterfaceParams.appID) then
+    if ( value == config.application2.registerAppInterfaceParams.appID) then
       app2_exist = true
     end
   end
   if(app2_exist == false) then
-    self:FailTestCase("Application "..registerAppInterfaceParams.appID.." doesn't exist in Local PT.")
+    self:FailTestCase("Application " .. config.application2.registerAppInterfaceParams.appID .. " doesn't exist in Local PT.")
   end
 end
 
