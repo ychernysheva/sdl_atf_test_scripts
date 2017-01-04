@@ -21,24 +21,20 @@
 
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
---ToDo: Should be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
 config.defaultProtocolVersion = 2
 
 --[[ Required Shared libraries ]]
-local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require ('user_modules/shared_testcases/commonSteps')
-local testCasesForPolicyTableSnapshot = require ('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
-local commonTestCases = require ('user_modules/shared_testcases/commonTestCases')
-local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
+local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 
 --[[ Local Variables ]]
-local exchangeDays = testCasesForPolicyTableSnapshot:get_data_from_Preloaded_PT("module_config.exchange_after_x_days")
+local exchangeDays = 30
 local currentSystemDaysAfterEpoch
 
 --[[ General Precondition before ATF start ]]
+commonFunctions:SDLForceStop()
 commonSteps:DeleteLogsFiles()
 commonSteps:DeletePolicyTable()
-commonPreconditions:Connecttest_without_ExitBySDLDisconnect_WithoutOpenConnectionRegisterApp("connecttest_ConnectMobile.lua")
 
 --[[ Local Functions ]]
 local function CreatePTUFromExisted()
@@ -59,25 +55,27 @@ local function setPtExchangedXDaysAfterEpochInDB(daysAfterEpochFromPTS)
   os.execute(DBQuery)
   os.execute(" sleep 1 ")
 end
-CreatePTUFromExisted()
+
 --[[ General Settings for configuration ]]
 Test = require('connecttest')
 require('cardinalities')
-require("user_modules/AppTypes")
+require('user_modules/AppTypes')
 local mobile_session = require('mobile_session')
 
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
-
+function Test.Preconditions_Set_Exchange_After_X_Days_For_PTU()
+  CreatePTUFromExisted()
+end
 
 function Test:Precondition_Update_Policy_With_Exchange_After_X_Days_Value()
   currentSystemDaysAfterEpoch = getSystemDaysAfterEpoch()
-  
-  local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", { requestType = "HTTP", fileName = "PolicyTableUpdate", },"files/tmp_PTU.json")
-  
-  EXPECT_RESPONSE(CorIdSystemRequest, { success = true, resultCode = "SUCCESS"})
+
+  local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", { requestType = "HTTP", fileName = "PolicyTableUpdate" },"files/tmp_PTU.json")
+
+  EXPECT_RESPONSE(CorIdSystemRequest, { success = true, resultCode = "SUCCESS" })
   EXPECT_HMICALL("BasicCommunication.SystemRequest"):Times(0)
-  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status="UP_TO_DATE"})
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", { status="UP_TO_DATE" })
 end
 
 function Test.Precondition_StopSDL()
@@ -85,7 +83,7 @@ function Test.Precondition_StopSDL()
 end
 
 function Test.Precondition_SetExchangedXDaysInDB()
-  setPtExchangedXDaysAfterEpochInDB(currentSystemDaysAfterEpoch - exchangeDays)
+  setPtExchangedXDaysAfterEpochInDB(currentSystemDaysAfterEpoch - exchangeDays - 1)
 end
 
 function Test.Precondition_StartSDL_FirstLifeCycle()
@@ -113,50 +111,15 @@ end
 commonFunctions:newTestCasesGroup("Test")
 
 function Test:TestStep_Register_App_And_Check_That_PTU_Triggered()
-  local CorIdRAI = self.mobileSession:SendRPC("RegisterAppInterface",
-    {
-      syncMsgVersion =
-      {
-        majorVersion = 3,
-        minorVersion = 0
-      },
-      appName = "Test Application",
-      isMediaApplication = true,
-      languageDesired = "EN-US",
-      hmiDisplayLanguageDesired = "EN-US",
-      appID = "0000001",
-      deviceInfo =
-      {
-        os = "Android",
-        carrier = "Megafon",
-        firmwareRev = "Name: Linux, Version: 3.4.0-perf",
-        osVersion = "4.4.2",
-        maxNumberRFCOMMPorts = 1
-      }
-    })
-  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered",
-    {
-      application =
-      {
-        appName = "Test Application",
-        policyAppID = "0000001",
-        isMediaApplication = true,
-        hmiDisplayLanguageDesired = "EN-US",
-        deviceInfo =
-        {
-          name = "127.0.0.1",
-          id = config.deviceMAC,
-          transportType = "WIFI",
-          isSDLAllowed = true
-        }
-      }
-    })
-  EXPECT_RESPONSE(CorIdRAI, { success = true, resultCode = "SUCCESS"})
-  
+  local CorIdRAI = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
+
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
+  EXPECT_RESPONSE(CorIdRAI, { success = true, resultCode = "SUCCESS" })
+
   EXPECT_HMICALL("BasicCommunication.PolicyUpdate"):Times(0)
-  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status="UPDATE_NEEDED"})
-  EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "HTTP"})
-  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status="UPDATING"})
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", { status="UPDATE_NEEDED" }, { status="UPDATING" }):Times(AtLeast(1))
+  EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "HTTP" })
+
 end
 
 --[[ Postcondition ]]
