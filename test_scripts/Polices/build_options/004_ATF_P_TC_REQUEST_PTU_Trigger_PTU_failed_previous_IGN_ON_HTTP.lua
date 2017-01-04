@@ -28,15 +28,10 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 --[[ Required Shared libraries ]]
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
-local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
-local testCasesForPolicyTableSnapshot = require ('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
-
---[[ Local Variables ]]
-local hmi_app_id1, hmi_app_id2
 
 --[[ General Precondition before ATF start ]]
---TODO: Should be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
 config.defaultProtocolVersion = 2
+commonFunctions:SDLForceStop()
 commonSteps:DeleteLogsFileAndPolicyTable()
 
 --[[ General Settings for configuration ]]
@@ -46,7 +41,7 @@ require('user_modules/AppTypes')
 local mobile_session = require('mobile_session')
 
 --[[ Preconditions ]]
-commonFunctions:newTestCasesGroup("Preconditions")  
+commonFunctions:newTestCasesGroup("Preconditions")
 
 function Test:Precondition_HTTP_Successful_Flow ()
   commonFunctions:check_ptu_sequence_partly(self, "files/ptu_general.json", "ptu_general.json")
@@ -58,28 +53,10 @@ function Test:Precondition_StartNewSession()
 end
 
 function Test:Precondition_RegisterNewApplication()
-  hmi_app_id1 = self.applications[config.application1.registerAppInterfaceParams.appName]
   local correlationId = self.mobileSession1:SendRPC("RegisterAppInterface", config.application2.registerAppInterfaceParams)
-   EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
-
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", { status = "UPDATE_NEEDED" })
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application2.registerAppInterfaceParams.appName } })
-  :Do(function(_,_data2)
-      hmi_app_id2 = _data2.params.application.appID
-
-      EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATING"})
-
-      testCasesForPolicyTableSnapshot:verify_PTS(true,
-        {config.application1.registerAppInterfaceParams.appID, config.application2.registerAppInterfaceParams.appID},
-        {config.deviceMAC},
-        {hmi_app_id1, hmi_app_id2})
-
-      local timeout_after_x_seconds = testCasesForPolicyTableSnapshot:get_data_from_PTS("module_config.timeout_after_x_seconds")
-      local seconds_between_retries = {}
-      for i = 1, #testCasesForPolicyTableSnapshot.pts_seconds_between_retries do
-        seconds_between_retries[i] = testCasesForPolicyTableSnapshot.pts_seconds_between_retries[i].value
-      end
-     end)
-  self.mobileSession1:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS"})
+  self.mobileSession1:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS" })
 end
 
 function Test:Precondition_Suspend()
@@ -120,25 +97,8 @@ commonFunctions:newTestCasesGroup("Test")
 
 function Test:TestStep_PTU_NotSuccessful_AppID_ListedPT_NewIgnCycle()
   local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
-   EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
-
-  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application1.appName } })
-  :Do(function(_,_)
-      EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATING"})
-
-      testCasesForPolicyTableSnapshot:verify_PTS(true,
-        {config.application1.registerAppInterfaceParams.appID, config.application2.registerAppInterfaceParams.appID},
-        {config.deviceMAC},
-        {hmi_app_id1, hmi_app_id2})
-
-      local timeout_after_x_seconds = testCasesForPolicyTableSnapshot:get_data_from_PTS("module_config.timeout_after_x_seconds")
-      local seconds_between_retries = {}
-      for i = 1, #testCasesForPolicyTableSnapshot.pts_seconds_between_retries do
-        seconds_between_retries[i] = testCasesForPolicyTableSnapshot.pts_seconds_between_retries[i].value
-      end
-    end)
-
-  self.mobileSession:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS"})
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", { status = "UPDATE_NEEDED" })
+  self.mobileSession:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS" })
 end
 
 --[[ Postconditions ]]
