@@ -1,5 +1,4 @@
 ./test_scripts/Polices/build_options/ATF_P_TC_PTU_Proprietary_Send_BC_PolicyUpdate_To_HMI_In_Case_PTU_Is_Triggered.lua
-
 ./test_scripts/Polices/build_options/ATF_P_PTS_creation_rule_PROPRIETARY.lua
 ./test_scripts/Polices/build_options/ATF_PTU_Trigger_kilometers.lua
 ./test_scripts/Polices/build_options/ATF_P_Check_STATUS_UPDATE_NEEDED.lua
