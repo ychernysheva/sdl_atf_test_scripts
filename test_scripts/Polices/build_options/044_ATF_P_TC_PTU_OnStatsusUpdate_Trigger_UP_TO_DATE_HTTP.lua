@@ -48,6 +48,10 @@ require('user_modules/AppTypes')
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
+function Test.Wait()
+	os.execute("sleep 2")
+end
+
 function Test:TestStep_PoliciesManager_changes_UP_TO_DATE()
   assert(commonFunctions:File_exists("files/ptu.json"))
   local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest",
