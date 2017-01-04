@@ -23,11 +23,18 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 --[[ Required Shared libraries ]]
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
-local testCasesForPolicyTableSnapshot = require ('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
+
+--[[ Local variables ]]
+local ts_on_system_request = nil
+local ts_on_status_update = nil
+
+local r_expected_timeout = 60
+local attempts = (r_expected_timeout / 5) + 1
 
 --[[ General Precondition before ATF start ]]
+commonFunctions:SDLForceStop()
 commonSteps:DeleteLogsFileAndPolicyTable()
---TODO: Should be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
+
 config.defaultProtocolVersion = 2
 
 --[[ General Settings for configuration ]]
@@ -35,55 +42,51 @@ Test = require('connecttest')
 require('cardinalities')
 require('user_modules/AppTypes')
 
+--[[ Specific Notifications ]]
+function Test:RegisterNotification()
+  self.mobileSession:ExpectNotification("OnSystemRequest")
+  :Do(function(_, d)
+      if d.payload.requestType == "HTTP" and not ts_on_system_request then
+        ts_on_system_request = os.time()
+      end
+    end)
+  :Times(AtLeast(1))
+  :Pin()
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate")
+  :Do(function(_, d)
+      if d.params.status == "UPDATE_NEEDED" and not ts_on_status_update then
+        ts_on_status_update = os.time()
+      end
+    end)
+  :Times(AnyNumber())
+  :Pin()
+end
+
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
-function Test:TestStep_ChangeStatus_Update_Needed()
-  local time_update_needed = {}
-  local time_system_request = {}
-  local endpoints = {}
-  local is_test_fail = false
-  local timeout_pts = testCasesForPolicyTableSnapshot:get_data_from_PTS("module_config.timeout_after_x_seconds")
-  local seconds_between_retries = {}
-  print(#testCasesForPolicyTableSnapshot)
-  for i = 1, #testCasesForPolicyTableSnapshot.pts_seconds_between_retries do
-    seconds_between_retries[i] = testCasesForPolicyTableSnapshot.pts_seconds_between_retries[i].value
+for i = 1, attempts do
+  Test["Waiting " .. i * 5 .. " sec"] = function()
+    os.execute("sleep 5")
   end
-  local time_wait = (timeout_pts*seconds_between_retries[1]*1000)
+end
 
-  local function verify_retry_sequence()
-    time_update_needed[#time_update_needed + 1] = timestamp()
-    local time_1 = time_update_needed[#time_update_needed]
-    local time_2 = time_system_request[#time_system_request]
-    local timeout = (time_1 - time_2)
-    if( ( timeout > (timeout_pts*1000 + 2000) ) or ( timeout < (timeout_pts*1000 - 2000) )) then
-      is_test_fail = true
-      commonFunctions:printError("ERROR: timeout for first retry sequence is not as expected: "..timeout_pts.."msec(5sec tolerance). real: "..timeout.."ms")
-    else
-      print("timeout is as expected: "..tostring(timeout_pts*1000).."ms. real: "..timeout)
-    end
+function Test:ValidateResult()
+  print("TS for OnSystemRequest: " .. tostring(ts_on_system_request))
+  print("TS for SDL.OnStatusUpdate: " .. tostring(ts_on_status_update))
+  if not ts_on_system_request then
+    self:FailTestCase("Expected OnSystemRequest request was not sent")
   end
-
-  local RequestId_GetUrls = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
-  EXPECT_HMIRESPONSE(RequestId_GetUrls,{result = {code = 0, method = "SDL.GetURLS", urls = endpoints} } )
-  :Do(function(_,_)
-      self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",{ requestType = "HTTP", fileName = "PolicyTableUpdate" })
-
-      EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "HTTP", fileType = "JSON"}):Timeout(12000)
-      :Do(function(_,_) time_system_request[#time_system_request + 1] = timestamp() end)
-      EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATING"}, {status = "UPDATE_NEEDED"}):Times(2):Timeout(time_wait)
-      :Do(function(_,data)
-          if(data.params.status == "UPDATE_NEEDED" ) then
-            --first retry sequence
-            verify_retry_sequence()
-          end
-        end)
-    end)
-
-  commonTestCases.DelayedExp(time_wait)
-
-  if(is_test_fail == true) then
-    self:FailTestCase("Test is FAILED. See prints.")
+  if not ts_on_status_update then
+    self:FailTestCase("Expected SDL.OnStatusUpdate(UPDATE_NEEDED) notification was not sent")
+  end
+  local r_actual_timeout = ts_on_status_update - ts_on_system_request
+  print("Expected: " .. r_expected_timeout)
+  print("Actual: " .. r_actual_timeout)
+  -- tolerance 2 sec.
+  if (r_actual_timeout < r_expected_timeout - 2) or (r_actual_timeout > r_expected_timeout + 2) then
+    local msg = "\nExpected timeout '" .. r_expected_timeout .. "', actual '" .. r_actual_timeout .. "'"
+    self:FailTestCase(msg)
   end
 end
 
