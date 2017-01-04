@@ -8,14 +8,14 @@
 -- [HMI API] OnStatusUpdate
 --
 -- Description:
--- PoliciesManager must check the stored status of PTUpdate upon every Ign_On and IN CASE the status is UPDATE_NEEDED 
+-- PoliciesManager must check the stored status of PTUpdate upon every Ign_On and IN CASE the status is UPDATE_NEEDED
 -- PoliciesManager must initiate the PTUpdate sequence right after the first app registers on SDL
 -- 1. Used preconditions: device and app with app_ID is running the application is not yet connected to SDL
 -- the status of PTU Update is UPDATE_NEEDED
--- 2. Performed steps: IGN_ON happens 
+-- 2. Performed steps: IGN_ON happens
 --
 -- Expected result:
--- 1. PolicyManager checks the status of PTU Update 
+-- 1. PolicyManager checks the status of PTU Update
 -- 2. On application with app_ID registering :
 --   2.1. app_ID->SDL:RegisterAppInterface()
 --   2.2. SDL->app_ID:SUCCESS:RegisterAppInterface()
@@ -49,7 +49,7 @@ commonFunctions:newTestCasesGroup("Preconditions")
 function Test.Precondition_SDLStop()
   StopSDL()
 end
-  
+
 function Test:Precondition_DeleteLogsAndPolicyTable()
   commonSteps:DeleteLogsFiles()
   commonSteps:DeletePolicyTable()
@@ -119,7 +119,7 @@ end
 
 function Test:TestStep_RegisterApp_failed_retry_strategy_in_prev_IGN_cycle()
   local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
-  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"}, {status = "UPDATING"})
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application1.appName } })
   EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
       :Do(function(_,data)
