@@ -27,14 +27,15 @@ local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
 local commonSteps = require("user_modules/shared_testcases/commonSteps")
 
 --[[ Local Variables ]]
-local policy_file_name = "PolicyTableUpdate"
 local ptu_file = "files/jsons/Policies/build_options/ptu_18269.json"
 local sequence = { }
 local attempts = 16
 local r_expected = {
+  "http://policies.telematics.ford.com/api/policies",
   "http://policies.domain1.ford.com/api/policies",
   "http://policies.domain2.ford.com/api/policies",
-"http://policies.domain3.ford.com/api/policies"}
+  "http://policies.domain3.ford.com/api/policies",
+  "http://policies.domain4.ford.com/api/policies"}
 local r_actual = { }
 
 --[[ Local Functions ]]
@@ -59,36 +60,25 @@ require("user_modules/AppTypes")
 config.defaultProtocolVersion = 2
 
 --[[ Specific Notifications ]]
-EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate")
-:Do(function(_, _)
-    -- log("SDL->HMI: SDL.OnStatusUpdate()", d.params.status)
-  end)
-:Times(AnyNumber())
-:Pin()
-
-EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
-:Do(function(_, _)
-    log("SDL->HMI: BC.PolicyUpdate()")
-  end)
-:Times(AnyNumber())
-:Pin()
+function Test:RegisterNotification()
+  self.mobileSession:ExpectNotification("OnSystemRequest")
+  :Do(function(_, d)
+    if d.payload.requestType == "HTTP" then
+      log("SDL->MOB1: OnSystemRequest()", d.payload.requestType, d.payload.url)
+      table.insert(r_actual, d.payload.url)
+    end
+    end)
+  :Times(AnyNumber())
+  :Pin()
+end
 
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
 
 function Test:Update_LPT()
+  local policy_file_name = "PolicyTableUpdate"
   local corId = self.mobileSession:SendRPC("SystemRequest", { requestType = "HTTP", fileName = policy_file_name }, ptu_file)
   EXPECT_RESPONSE(corId, { success = true, resultCode = "SUCCESS" })
-end
-
-function Test:RegisterNotification()
-  self.mobileSession:ExpectNotification("OnSystemRequest")
-  :Do(function(_, d)
-      log("SDL->MOB: OnSystemRequest()", d.payload.requestType, d.payload.url)
-      table.insert(r_actual, d.payload.url)
-    end)
-  :Times(AnyNumber())
-  :Pin()
 end
 
 --[[ Test ]]
@@ -99,15 +89,19 @@ function Test:StartNewMobileSession()
   self.mobileSession2:StartService(7)
 end
 
-function Test:RegisterNewApp()
-  EXPECT_HMICALL("BasicCommunication.UpdateAppList")
+function Test:RegisterNotification()
+  self.mobileSession2:ExpectNotification("OnSystemRequest")
   :Do(function(_, d)
-      self.hmiConnection:SendResponse(d.id, d.method, "SUCCESS", { })
-      self.applications = { }
-      for _, app in pairs(d.params.applications) do
-        self.applications[app.appName] = app.appID
-      end
+    if d.payload.requestType == "HTTP" then
+      log("SDL->MOB2: OnSystemRequest()", d.payload.requestType, d.payload.url)
+      table.insert(r_actual, d.payload.url)
+    end
     end)
+  :Times(AnyNumber())
+  :Pin()
+end
+
+function Test:RegisterNewApp()
   local corId = self.mobileSession2:SendRPC("RegisterAppInterface", config.application2.registerAppInterfaceParams)
   self.mobileSession2:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
 end
@@ -135,7 +129,7 @@ end
 function Test:ValidateResult()
   for i = 1, 3 do
     if r_expected[i] ~= r_actual[i] then
-      local m = table.concat({"\nExpected url:\n", r_expected[i], "\nActual:\n", r_actual[i], "\n"})
+      local m = table.concat({"\nExpected url:\n", tostring(r_expected[i]), "\nActual:\n", tostring(r_actual[i]), "\n"})
       self:FailTestCase(m)
     end
   end
