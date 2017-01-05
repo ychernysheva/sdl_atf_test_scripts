@@ -58,8 +58,10 @@ commonFunctions:newTestCasesGroup("Test")
 
 function Test:TestStep_PoliciesManager_changes_UP_TO_DATE()
   testCasesForPolicyTable:flow_SUCCEESS_EXTERNAL_PROPRIETARY(self)
+end
 
-  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate"):Times(0)
+function Test:AbsenceOfEvents()
+	EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate"):Times(0)
   EXPECT_HMICALL("BasicCommunication.PolicyUpdate"):Times(0)
 end
 
