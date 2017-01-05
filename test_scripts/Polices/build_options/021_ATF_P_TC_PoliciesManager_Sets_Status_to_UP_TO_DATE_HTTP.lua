@@ -32,7 +32,6 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 --[[ Required Shared libraries ]]
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
-local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
@@ -49,10 +48,11 @@ commonFunctions:newTestCasesGroup("Test")
 
 function Test:TestStep_PoliciesManager_changes_UP_TO_DATE()
   commonFunctions:check_ptu_sequence_partly(self, "files/ptu.json", "PolicyTableUpdate")
+end
 
-  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {}):Times(0)
-  EXPECT_HMICALL("BasicCommunication.PolicyUpdate",{}):Times(0)
-  commonTestCases:DelayedExp(60*1000)
+function Test:AbsenceOfEvents()
+	EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate"):Times(0)
+  EXPECT_HMICALL("BasicCommunication.PolicyUpdate"):Times(0)
 end
 
 --[[ Postconditions ]]
