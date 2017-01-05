@@ -98,15 +98,12 @@ function Test:Precondition_Activate_App_And_Consent_Device_To_Start_PTU()
 end
 
 function Test:Preconditions_Set_Odometer_Value1()
-  local cidVehicle = self.mobileSession:SendRPC("SubscribeVehicleData", {odometer = true})
+  local cid_vehicle = self.mobileSession:SendRPC("SubscribeVehicleData", {odometer = true})
   EXPECT_HMICALL("VehicleInfo.SubscribeVehicleData")
-  :Do(function(_,data) self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {}) end)
-
-  EXPECT_RESPONSE(cidVehicle, { success = true, resultCode = "SUCCESS" })
-  :Do(function()
-    self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", {odometer = 500})
-    EXPECT_NOTIFICATION("OnVehicleData", {odometer = 500})
-  end)
+  :Do(function(_,data)
+    self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+    end)
+  EXPECT_RESPONSE(cid_vehicle, { success = true, resultCode = "SUCCESS" })
 end
 
 function Test:Precondition_Update_Policy_With_New_Exchange_After_X_Kilometers_Value()
@@ -123,8 +120,7 @@ function Test:Precondition_Update_Policy_With_New_Exchange_After_X_Kilometers_Va
       :Do(function()
           local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest",
             { fileName = "PolicyTableUpdate", requestType = "PROPRIETARY" },
-            --"files/tmp_sdl_preloaded_pt.json")
-            "files/jsons/Policies/Policy_Table_Update/odometer_ptu.json")
+            "files/jsons/Policies/Policy_Table_Update/exchange_after_1000_kilometers_ptu.json")
           local systemRequestId
           EXPECT_HMICALL("BasicCommunication.SystemRequest")
           :Do(function(_,data)
@@ -141,66 +137,25 @@ function Test:Precondition_Update_Policy_With_New_Exchange_After_X_Kilometers_Va
               EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UP_TO_DATE"})
             end)
         end)
+    end)
+    EXPECT_HMICALL("VehicleInfo.GetVehicleData", { odometer = true })
+  :Do(function(_, d)
+    self.hmiConnection:SendResponse(d.id, d.method, "SUCCESS", { odometer = 1234 })
     end)
 end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 function Test:TestStep_Set_Odometer_Value_NO_PTU_Is_Triggered()
-
-  self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", {odometer = 999})
-  EXPECT_NOTIFICATION("OnVehicleData", {odometer = 999})
+  self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", {odometer = 2200})
+  EXPECT_NOTIFICATION("OnVehicleData", {odometer = 2200})
   EXPECT_HMICALL("BasicCommunication.PolicyUpdate"):Times(0)
   EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"}):Times(0)
 end
 
 function Test:TestStep_Set_Odometer_Value_And_Check_That_PTU_Is_Triggered()
-
-  self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", {odometer = 1000})
-  EXPECT_NOTIFICATION("OnVehicleData", {odometer = 1000})
-  EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
-  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
-end
-
-function Test:TestStep_Update_Policy_With_New_Exchange_After_X_Kilometers_Value()
-  local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
-  EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
-  :Do(function()
-      self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",
-        {
-          requestType = "PROPRIETARY",
-          fileName = "filename"
-        }
-      )
-      EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY" })
-      :Do(function()
-          local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest",
-            { fileName = "PolicyTableUpdate", requestType = "PROPRIETARY" },
-            --"files/tmp_sdl_preloaded_pt.json")
-            "files/jsons/Policies/Policy_Table_Update/odometer_ptu.json")
-          local systemRequestId
-          EXPECT_HMICALL("BasicCommunication.SystemRequest")
-          :Do(function(_,data)
-              systemRequestId = data.id
-              self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate",
-                {
-                  policyfile = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate"
-                })
-              local function to_run()
-                self.hmiConnection:SendResponse(systemRequestId,"BasicCommunication.SystemRequest", "SUCCESS", {})
-              end
-              RUN_AFTER(to_run, 800)
-              self.mobileSession:ExpectResponse(CorIdSystemRequest, {success = true, resultCode = "SUCCESS"})
-              EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UP_TO_DATE"})
-            end)
-        end)
-    end)
-end
-
-function Test:TestStep_Set_Odometer_Value_And_Check_That_PTU_Is_Triggered()
-
-  self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", {odometer = 1001})
-  EXPECT_NOTIFICATION("OnVehicleData", {odometer = 1001})
+  self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", {odometer = 2250})
+  EXPECT_NOTIFICATION("OnVehicleData", {odometer = 2250})
   EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
   EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
 end
