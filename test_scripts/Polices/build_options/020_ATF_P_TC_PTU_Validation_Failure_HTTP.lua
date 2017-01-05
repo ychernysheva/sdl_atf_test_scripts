@@ -160,7 +160,11 @@ function Test:Update_LPT()
     end)
 end
 
-function Test.Test_ShowSequence()
+for i = 1, 5 do
+  Test["Waiting " .. i .. " sec"] = function() os.execute("sleep 1") end
+end
+
+function Test.ShowSequence()
   show_log()
 end
 
