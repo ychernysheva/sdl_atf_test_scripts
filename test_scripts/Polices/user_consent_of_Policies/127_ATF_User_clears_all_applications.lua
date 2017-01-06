@@ -108,12 +108,14 @@ function Test:Precondition_Register_app2()
 end
 
 function Test:Precondition_Unregister_app1()
-  self.mobileSession:SendRPC("UnregisterAppInterface",{})
+  local cid = self.mobileSession:SendRPC("UnregisterAppInterface",{})
+  self.mobileSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS"} )
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered", {appID = self.HMIAppID, unexpectedDisconnect = false})
 end
 
 function Test:Precondition_Unregister_app2()
-  self.mobileSession2:SendRPC("UnregisterAppInterface",{})
+  local cid = self.mobileSession2:SendRPC("UnregisterAppInterface",{})
+  self.mobileSession2:ExpectResponse(cid, { success = true, resultCode = "SUCCESS"} )
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered", {appID = self.HMIAppID2, unexpectedDisconnect = false})
 end
 
