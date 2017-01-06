@@ -257,7 +257,7 @@ function Test:TestCase_SendRPC_with_STEAL_FOCUS_Value()
         return false
       end
     end)
-  EXPECT_RESPONSE(CorIdAlert, { success = false, resultCode = "SUCCESS"})
+  EXPECT_RESPONSE(CorIdAlert, { success = true, resultCode = "SUCCESS"})
 end
 
 --[[ Postconditions ]]
