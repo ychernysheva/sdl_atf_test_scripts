@@ -1,3 +1,6 @@
+local commonSteps = require("user_modules/shared_testcases/commonSteps")
+commonSteps:DeleteLogsFileAndPolicyTable()
+
 revsdl = require("user_modules/revsdl")
 
 revsdl.AddUnknownFunctionIDs()
