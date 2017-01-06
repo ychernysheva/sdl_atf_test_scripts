@@ -89,6 +89,7 @@ function Test:Precondition_DeactivateApp()
 end
 
 function Test:Preconditions_Update_Policy_With_Steal_Focus_FalseValue_for_Current_App()
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", { status = "UPDATING" }, { status = "UP_TO_DATE" }):Times(2)
   local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
   EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
   :Do(function()
@@ -118,10 +119,13 @@ function Test:Preconditions_Update_Policy_With_Steal_Focus_FalseValue_for_Curren
               end
               RUN_AFTER(to_run, 800)
               self.mobileSession:ExpectResponse(CorIdSystemRequest, {success = true, resultCode = "SUCCESS"})
-              EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UP_TO_DATE"})
             end)
         end)
     end)
+end
+
+function Test.Wait()
+  os.execute("sleep 2")
 end
 
 --[[Test]]
