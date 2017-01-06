@@ -23,6 +23,7 @@ local commonFunctions = require ('user_modules/shared_testcases/commonFunctions'
 local commonSteps = require ('user_modules/shared_testcases/commonSteps')
 
 --[[ General Precondition before ATF start ]]
+commonFunctions:SDLForceStop()
 commonSteps:DeleteLogsFiles()
 commonSteps:DeletePolicyTable()
 
@@ -34,12 +35,12 @@ local mobile_session = require('mobile_session')
 --[[ Local Functions ]]
 local function BackupPreloaded()
   os.execute('cp ' .. config.pathToSDL .. 'sdl_preloaded_pt.json' .. ' ' .. config.pathToSDL .. 'backup_sdl_preloaded_pt.json')
-  os.execute('rm ' .. config.pathToSDL .. 'policy.sqlite')
 end
 
 local function RestorePreloadedPT()
   os.execute('rm ' .. config.pathToSDL .. 'sdl_preloaded_pt.json')
   os.execute('cp ' .. config.pathToSDL .. 'backup_sdl_preloaded_pt.json' .. ' ' .. config.pathToSDL .. 'sdl_preloaded_pt.json')
+  os.execute('rm ' .. config.pathToSDL .. 'backup_sdl_preloaded_pt.json')
 end
 
 local function SetNickNameForSpecificApp()
@@ -54,13 +55,13 @@ local function SetNickNameForSpecificApp()
     data.policy_table.functional_groupings["DataConsent-2"] = nil
   end
   data.policy_table.app_policies["1234567"] = {
-        keep_context = false,
-        steal_focus = false,
-        priority = "NONE",
-        default_hmi = "NONE",
-        groups = {"Base-4"},
-        nicknames = {"SPT"}
-      }
+    keep_context = false,
+    steal_focus = false,
+    priority = "NONE",
+    default_hmi = "NONE",
+    groups = {"Base-4"},
+    nicknames = {"SPT"}
+  }
   data = json.encode(data)
   file = io.open(pathToFile, "w")
   file:write(data)
@@ -68,24 +69,24 @@ local function SetNickNameForSpecificApp()
 end
 
 --[[ Preconditions ]]
-function Test:Precondition_StopSDL()
+function Test.Precondition_StopSDL()
   StopSDL()
 end
 
-function Test:Precondition_DeleteLogsAndPolicyTable()
+function Test.Precondition_DeleteLogsAndPolicyTable()
   commonSteps:DeleteLogsFiles()
   commonSteps:DeletePolicyTable()
 end
 
-function Test:Precondition_Backup_sdl_preloaded_pt()
+function Test.Precondition_Backup_sdl_preloaded_pt()
   BackupPreloaded()
 end
 
-function Test:Precondition_Set_NickName_Permissions_For_Specific_AppId()
+function Test.Precondition_Set_NickName_Permissions_For_Specific_AppId()
   SetNickNameForSpecificApp()
 end
 
-function Test:Precondition_StartSDL_FirstLifeCycle()
+function Test.Precondition_StartSDL_FirstLifeCycle()
   StartSDL(config.pathToSDL, config.ExitOnCrash)
 end
 
@@ -106,13 +107,24 @@ function Test:Precondition_StartSession()
   self.mobileSession:StartService(7)
 end
 
-function Test:Precondition_RestorePreloadedPT()
+function Test.Precondition_RestorePreloadedPT()
   RestorePreloadedPT()
 end
 
 --[[ Test ]]
+
+function Test:TestStep_Register_DefaultApp()
+  local CorIdRAI = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
+  EXPECT_RESPONSE(CorIdRAI, { success = true, resultCode = "SUCCESS"})
+end
+
+function Test:Precondition_StartSession()
+  self.mobileSession2 = mobile_session.MobileSession(self, self.mobileConnection)
+  self.mobileSession2:StartService(7)
+end
+
 function Test:TestStep_Register_App_Which_Name_Not_Listad_In_PT_DISALLOWED()
-  local CorIdRAI = self.mobileSession:SendRPC("RegisterAppInterface",
+  local CorIdRAI = self.mobileSession2:SendRPC("RegisterAppInterface",
     {
       syncMsgVersion =
       {
@@ -133,7 +145,7 @@ function Test:TestStep_Register_App_Which_Name_Not_Listad_In_PT_DISALLOWED()
         maxNumberRFCOMMPorts = 1
       }
     })
-  EXPECT_RESPONSE(CorIdRAI, { success = false, resultCode = "DISALLOWED"})  
+  self.mobileSession2:ExpectResponse(CorIdRAI, { success = false, resultCode = "DISALLOWED"})
 end
 
 --[[ Postconditions ]]
@@ -141,3 +153,5 @@ commonFunctions:newTestCasesGroup("Postconditions")
 function Test.Postcondition_SDLStop()
   StopSDL()
 end
+
+return Test
