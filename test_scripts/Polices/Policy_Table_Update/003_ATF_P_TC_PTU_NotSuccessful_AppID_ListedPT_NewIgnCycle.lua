@@ -143,8 +143,6 @@ function Test:TestStep_PTU_NotSuccessful_AppID_ListedPT_NewIgnCycle()
 
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application1.appName } })
   :Do(function(_,_)
-      EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
-
       EXPECT_HMICALL("BasicCommunication.PolicyUpdate",{file = "/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json" })
       :Do(function(_,_data4)
           testCasesForPolicyTableSnapshot:verify_PTS(true,
