@@ -8,9 +8,9 @@
 -- greater than to the value of "exchange_after_x_kilometers" field ("module_config" section) of policies database, SDL must trigger a
 -- PolicyTableUpdate sequence
 -- 1. Used preconditions:
---   SDL is built with "-DEXTENDED_POLICY: HTTP" flag
---   The odometer value was "1234" when previous PTU was successfully applied.
---   Policies DataBase contains "exchange_after_x_kilometers" = 1000
+-- SDL is built with "-DEXTENDED_POLICY: HTTP" flag
+-- The odometer value was "1234" when previous PTU was successfully applied.
+-- Policies DataBase contains "exchange_after_x_kilometers" = 1000
 -- 2. Performed steps:
 -- SDL->HMI: Vehicleinfo.SubscribeVehicleData ("odometer")
 -- HMI->SDL: Vehicleinfo.SubscribeVehicleData (SUCCESS)
@@ -44,27 +44,27 @@ commonSteps:DeletePolicyTable()
 local function UpdatePolicy()
 
   local PermissionForSubscribeVehicleData =
-        [[
-        "SubscribeVehicleData": {
-        "hmi_levels": [
-        "BACKGROUND",
-        "FULL",
-        "LIMITED"
-        ],
-        "parameters" : ["odometer"]
-        }
-        ]].. ", \n"
+  [[
+  "SubscribeVehicleData": {
+    "hmi_levels": [
+    "BACKGROUND",
+    "FULL",
+    "LIMITED"
+    ],
+    "parameters" : ["odometer"]
+  }
+  ]].. ", \n"
   local PermissionForOnVehicleData =
-        [[
-        "OnVehicleData": {
-        "hmi_levels": [
-        "BACKGROUND",
-        "FULL",
-        "LIMITED"
-        ],
-        "parameters" : ["odometer"]
-        }
-        ]].. ", \n"
+  [[
+  "OnVehicleData": {
+    "hmi_levels": [
+    "BACKGROUND",
+    "FULL",
+    "LIMITED"
+    ],
+    "parameters" : ["odometer"]
+  }
+  ]].. ", \n"
 
   local PermissionLinesForBase4 = PermissionForSubscribeVehicleData..PermissionForOnVehicleData
   local PTName = testCasesForPolicyTable:createPolicyTableFile_temp(PermissionLinesForBase4, nil, nil, {"SubscribeVehicleData","OnVehicleData"})
@@ -107,7 +107,7 @@ function Test:Preconditions_Set_Odometer_Value1()
   local cid_vehicle = self.mobileSession:SendRPC("SubscribeVehicleData", {odometer = true})
   EXPECT_HMICALL("VehicleInfo.SubscribeVehicleData")
   :Do(function(_,data)
-    self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
     end)
   EXPECT_RESPONSE(cid_vehicle, { success = true, resultCode = "SUCCESS" })
 end
@@ -118,7 +118,7 @@ function Test:Precondition_Update_Policy_With_New_Exchange_After_X_Kilometers_Va
   EXPECT_RESPONSE(corId, { success = true, resultCode = "SUCCESS" })
   EXPECT_HMICALL("VehicleInfo.GetVehicleData", { odometer = true })
   :Do(function(_, d)
-    self.hmiConnection:SendResponse(d.id, d.method, "SUCCESS", { odometer = 1234 })
+      self.hmiConnection:SendResponse(d.id, d.method, "SUCCESS", { odometer = 1234 })
     end)
 end
 
@@ -136,7 +136,7 @@ function Test:TestStep_Set_Odometer_Value_And_Check_That_PTU_Is_Triggered()
   self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", {odometer = 2250})
   EXPECT_NOTIFICATION("OnVehicleData", {odometer = 2250})
   -- self.mobileSession:ExpectNotification("OnSystemRequest", { requestType = "HTTP" })
-  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"}, {status = "UPDATING"}):Times(AtLeast(1))
 end
 
 --[[ Postcondition ]]
