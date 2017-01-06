@@ -34,6 +34,7 @@ local testCasesForPolicyTableSnapshot = require('user_modules/shared_testcases/t
 local ServerAddress = commonFunctions:read_parameter_from_smart_device_link_ini("ServerAddress")
 
 --[[ General Precondition before ATF start ]]
+commonFunctions:SDLForceStop()
 commonSteps:DeleteLogsFileAndPolicyTable()
 
 --TODO(vvvakulenko): Should be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
@@ -44,87 +45,78 @@ Test = require('connecttest')
 require('cardinalities')
 require('user_modules/AppTypes')
 
-
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
-function Test:TestStep_NoPTU_Up_To_Date()
-  local language_status_up_to_date = testCasesForPolicyTableSnapshot:get_data_from_Preloaded_PT("consumer_friendly_messages.messages.StatusUpToDate.languages.en-us.line1")
-  local request_id_status_up_to_date = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"StatusNeeded"}})
-  EXPECT_HMIRESPONSE(request_id_status_up_to_date, { messages = { {messageCode = "StatusNeeded", line1 = language_status_up_to_date}}})
-end
-
-function Test:TestStep_ActivateApp_TriggerPTU_Update_Needed()
+function Test:TestStep_ActivateApp_StatusNeeded()
 
   local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.applications[config.application1.registerAppInterfaceParams.appName]})
   EXPECT_HMIRESPONSE(RequestId)
-  :Do(function(_,_)
-      local RequestId1 = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
+  :Do(function()
+      local RequestId1 = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", { language = "EN-US", messageCodes = { "DataConsent" }})
 
       EXPECT_HMIRESPONSE( RequestId1, {result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
-      :Do(function(_,_)
+      :Do(function()
 
           self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality",
             {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = ServerAddress, isSDLAllowed = true}})
 
-          EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", { status = "UPDATE_NEEDED" })
+          -- EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", { status = "UPDATE_NEEDED" })
 
           EXPECT_HMICALL("BasicCommunication.PolicyUpdate",{})
           :Do(function(_,data)
               self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-          end)
+            end)
 
           local language_status_needed = testCasesForPolicyTableSnapshot:get_data_from_Preloaded_PT("consumer_friendly_messages.messages.StatusNeeded.languages.en-us.line1")
-
-          local request_id_status_needed = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"StatusNeeded"}})
-          EXPECT_HMIRESPONSE(request_id_status_needed, { messages = { {messageCode = "StatusNeeded", line1 = language_status_needed}}})
+          local request_id_status_needed = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", { language = "EN-US", messageCodes = { "StatusNeeded" }})
+          EXPECT_HMIRESPONSE(request_id_status_needed, { messages = { { messageCode = "StatusNeeded", line1 = language_status_needed }}})
 
         end)
     end)
 
   EXPECT_HMICALL("BasicCommunication.ActivateApp")
-  :Do(function(_,data) self.hmiConnection:SendResponse(data.id,"BasicCommunication.ActivateApp", "SUCCESS", {}) end)
+  :Do(function(_, data) self.hmiConnection:SendResponse(data.id,"BasicCommunication.ActivateApp", "SUCCESS", {}) end)
 
-  EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"})
+  EXPECT_NOTIFICATION("OnHMIStatus", { hmiLevel = "FULL", systemContext = "MAIN" })
 end
 
-function Test:TestStep_PTU_SUCCESS()
+function Test:TestStep_PTU_SUCCESS_StatusPending_StatusUpToDate()
   local SystemFilesPath = "/tmp/fs/mp/images/ivsu_cache/"
 
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", { status = "UPDATING" }, { status = "UP_TO_DATE" }):Times(2)
+  :Do(function(exp,_)
+      if(exp.occurences == 1) then
+        local language_status_pending = testCasesForPolicyTableSnapshot:get_data_from_Preloaded_PT("consumer_friendly_messages.messages.StatusPending.languages.en-us.line1")
+        local request_id_status_up_to_date = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", { language = "EN-US", messageCodes = { "StatusPending" }})
+        EXPECT_HMIRESPONSE(request_id_status_up_to_date, { messages = { { messageCode = "StatusPending", line1 = language_status_pending }}})
+      elseif (exp.occurences == 2) then
+        local language_status_up_to_date = testCasesForPolicyTableSnapshot:get_data_from_Preloaded_PT("consumer_friendly_messages.messages.StatusUpToDate.languages.en-us.line1")
+        local request_id_status_up_to_date = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", { language = "EN-US", messageCodes = { "StatusUpToDate" }})
+        EXPECT_HMIRESPONSE(request_id_status_up_to_date, { messages = { { messageCode = "StatusUpToDate", line1 = language_status_up_to_date }}})
+      end
+    end)
+
   local RequestId_GetUrls = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
-  EXPECT_HMIRESPONSE(RequestId_GetUrls,{result = {code = 0, method = "SDL.GetURLS"} })
-  :Do(function(_,_)
-      self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",{ requestType = "PROPRIETARY", fileName = "PolicyTableUpdate"})
-      EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "PROPRIETARY"})
-      :Do(function(_,_)
-
-          EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",
-            {status = "UPDATING"}, {status = "UP_TO_DATE"}):Times(2)
-          :Do(function(exp,_)
-              if(exp.occurences == 1) then
-                local language_status_pending = testCasesForPolicyTableSnapshot:get_data_from_Preloaded_PT("consumer_friendly_messages.messages.StatusUpToDate.languages.en-us.line1")
-                local request_id_status_up_to_date = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"StatusPending"}})
-                EXPECT_HMIRESPONSE(request_id_status_up_to_date, { messages = { {messageCode = "StatusPending", line1 = language_status_pending}}})
-              elseif (exp.occurences == 2) then
-                local language_status_up_to_date = testCasesForPolicyTableSnapshot:get_data_from_Preloaded_PT("consumer_friendly_messages.messages.StatusUpToDate.languages.en-us.line1")
-                local request_id_status_up_to_date = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"StatusNeeded"}})
-                EXPECT_HMIRESPONSE(request_id_status_up_to_date, { messages = { {messageCode = "StatusNeeded", line1 = language_status_up_to_date}}})
-              end
-            end)
-
-          local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", {requestType = "PROPRIETARY", fileName = "PolicyTableUpdate"}, "files/ptu.json")
+  EXPECT_HMIRESPONSE(RequestId_GetUrls,{ result = { code = 0, method = "SDL.GetURLS" } })
+  :Do(function()
+      self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",{ requestType = "PROPRIETARY", fileName = "PolicyTableUpdate" })
+      EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY" })
+      :Do(function()
+          local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", { requestType = "PROPRIETARY", fileName = "PolicyTableUpdate" }, "files/ptu.json")
           EXPECT_HMICALL("BasicCommunication.SystemRequest",{ requestType = "PROPRIETARY", fileName = SystemFilesPath.."PolicyTableUpdate" })
-          :Do(function(_,_data1)
-              self.hmiConnection:SendResponse(_data1.id,"BasicCommunication.SystemRequest", "SUCCESS", {})
-              self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate", { policyfile = SystemFilesPath.."PolicyTableUpdate"})
+          :Do(function(_, data)
+              self.hmiConnection:SendResponse(data.id, "BasicCommunication.SystemRequest", "SUCCESS", {})
+              self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate", { policyfile = SystemFilesPath.."PolicyTableUpdate" })
             end)
-          EXPECT_RESPONSE(CorIdSystemRequest, { success = true, resultCode = "SUCCESS"})
+          EXPECT_RESPONSE(CorIdSystemRequest, { success = true, resultCode = "SUCCESS" })
         end)
     end)
 end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
+
 function Test.Postcondition_Stop()
   StopSDL()
 end
