@@ -26,6 +26,7 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 local mobileSession = require("mobile_session")
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
+local commonTestCases = require("user_modules/shared_testcases/commonTestCases")
 local json = require("modules/json")
 
 --[[ Local Variables ]]
@@ -165,6 +166,7 @@ function Test:RegisterNotification()
 end
 
 function Test:RegisterApp_2()
+  commonTestCases:DelayedExp(5000)
   local corId = self.mobileSession2:SendRPC("RegisterAppInterface", config.application2.registerAppInterfaceParams)
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
   :Do(function(_, data)
@@ -173,41 +175,14 @@ function Test:RegisterApp_2()
   self.mobileSession2:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
 end
 
-for i = 1, 3 do
-  Test["Waiting " .. i .. " sec"] = function()
-    os.execute("sleep 1")
-  end
-end
-
--- function Test.UpdatePTS_2()
--- ptu.policy_table.device_data = nil
--- ptu.policy_table.usage_and_error_counts = nil
--- ptu.policy_table.app_policies["0000002"] = { keep_context = false, steal_focus = false, priority = "NONE", default_hmi = "NONE" }
--- ptu.policy_table.app_policies["0000002"]["groups"] = { "Base-4", "Base-6" }
--- end
-
--- function Test.StorePTSInFile()
--- local f = io.open(ptu_file_name, "w")
--- f:write(json.encode(ptu))
--- f:close()
--- end
-
--- function Test:PTU_2()
--- local policy_file_name = "PolicyTableUpdate"
--- local corId = self.mobileSession2:SendRPC("SystemRequest", { requestType = "HTTP", fileName = policy_file_name }, ptu_file_name)
--- log("MOB2->SDL: RQ: SystemRequest")
--- self.mobileSession2:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
--- :Do(function(_, _)
--- log("SDL->MOB2: RS: SUCCESS: SystemRequest")
--- end)
--- end
-
 function Test:ValidateResult()
+  print("AppId: " .. tostring(r_actual_app))
+  print("URL: " .. tostring(r_actual_url))
   if not r_actual_app or not r_actual_url then
     self:FailTestCase("Expected OnSystemRequest notification was NOT sent to any of registered applications")
   elseif r_actual_url ~= r_expected[r_actual_app] then
     local msg = table.concat({
-        "\nExpected URLS is '", r_expected[r_actual_app], "'",
+        "\nExpected URL is '", r_expected[r_actual_app], "'",
         "\nActual is '", r_actual_url, "'" })
     self:FailTestCase(msg)
   end
