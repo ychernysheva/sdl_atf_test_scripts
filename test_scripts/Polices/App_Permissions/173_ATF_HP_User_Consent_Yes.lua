@@ -72,9 +72,6 @@ local function Get_RPCs()
     end
   end
 
-  -- for i = 1, #RPC_Permission_for_1234567 do
-  -- print("allowed_rps = "..RPC_Permission_for_1234567[i])
-  -- end
 end
 
 --[[ General Settings for configuration ]]
@@ -210,7 +207,6 @@ end
 --[[ Test ]]
 function Test:TestStep_User_Consents_New_Permissions_After_App_Activation()
   Get_RPCs()
-  local is_test_fail = false
   local RequestIdActivateApp = self.hmiConnection:SendRequest("SDL.ActivateApp", {appID = self.applications["SPT"]})
 
   EXPECT_HMIRESPONSE(RequestIdActivateApp,
@@ -239,56 +235,6 @@ function Test:TestStep_User_Consents_New_Permissions_After_App_Activation()
         { appID = self.applications["SPT"], source = "GUI", consentedFunctions = {{name = "New_permissions", allowed = true, id = functionalGroupID} }})
     end)
   EXPECT_NOTIFICATION("OnPermissionsChange", {})
-  :Do(function(_,_data2)
-      if(_data2.payload.permissionItem ~= nil) then
-        -- Will be used to check if all needed RPC for permissions are received
-        local is_perm_item_receved = {}
-        for i = 1, #RPC_Permission_for_1234567 do
-          is_perm_item_receved[i] = false
-        end
-
-        -- will be used to check RPCs that needs permission
-        local is_perm_item_needed = {}
-        for i = 1, #_data2.payload.permissionItem do
-          is_perm_item_needed[i] = false
-        end
-
-        for i = 1, #_data2.payload.permissionItem do
-          for j = 1, #RPC_Permission_for_1234567 do
-            if(_data2.payload.permissionItem[i].rpcName == RPC_Permission_for_1234567[j]) then
-              is_perm_item_receved[j] = true
-              is_perm_item_needed[i] = true
-              break
-            end
-          end
-        end
-        -- check that all RPCs from notification are requesting permission
-        for i = 1,#is_perm_item_needed do
-          if (is_perm_item_needed[i] == false) then
-            commonFunctions:printError("RPC: ".._data2.payload.permissionItem[i].rpcName.." should not be sent")
-            is_test_fail = true
-          end
-        end
-
-        -- check that all RPCs that request permission are received
-        for i = 1,#is_perm_item_receved do
-          if (is_perm_item_receved[i] == false) then
-            commonFunctions:printError("RPC: "..RPC_Permission_for_1234567[i].." is not sent")
-            is_test_fail = true
-          end
-        end
-
-      else
-        is_test_fail = true
-        commonFunctions:printError("Elements for param permissionItem are empty")
-      end
-      if(is_test_fail == true) then
-        self:FailTestCase("Test is FAILED. See prints.")
-      end
-    end)
-
-  -- Permissions based on preloaded_pt file
-  --ToDo: (vikhrov) develop functions for extracting permissions for specific groups and compare it with permissionItem from OnPermissionsChange
 end
 
 function Test:TestStep_Check_Allowed_RPC()
