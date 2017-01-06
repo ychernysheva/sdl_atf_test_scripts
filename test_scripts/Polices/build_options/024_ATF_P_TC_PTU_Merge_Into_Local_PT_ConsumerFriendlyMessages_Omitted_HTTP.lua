@@ -32,15 +32,16 @@
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 
 --[[ Required Shared libraries ]]
+local mobile_session = require("mobile_session")
 local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
 local commonSteps = require("user_modules/shared_testcases/commonSteps")
-local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
+local commonTestCases = require("user_modules/shared_testcases/commonTestCases")
 local json = require("modules/json")
 
 --[[ Local Variables ]]
 local db_file = config.pathToSDL .. "/" .. commonFunctions:read_parameter_from_smart_device_link_ini("AppStorageFolder") .. "/policy.sqlite"
 local ptu_file = os.tmpname()
-local ptu
+local ptu = nil
 local r_expected
 local r_actual
 
@@ -52,26 +53,70 @@ end
 --[[ General Precondition before ATF start ]]
 commonFunctions:SDLForceStop()
 commonSteps:DeleteLogsFileAndPolicyTable()
-testCasesForPolicyTable.Delete_Policy_table_snapshot()
 
 --[[ General Settings for configuration ]]
-Test = require("connecttest")
+Test = require("user_modules/connecttest_resumption")
 require("user_modules/AppTypes")
-
---[[ Specific Notifications ]]
-function Test:RegisterNotification()
-  self.mobileSession:ExpectNotification("OnSystemRequest")
-  :Do(function(_, d)
-      ptu = json.decode(d.binaryData)
-    end)
-  :Times(AtLeast(1))
-  :Pin()
-end
 
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
 
+function Test:ConnectMobile()
+  self:connectMobile()
+  EXPECT_HMICALL("BasicCommunication.UpdateDeviceList",
+    {
+      deviceList = {
+        {
+          id = config.deviceMAC,
+          name = "127.0.0.1",
+          transportType = "WIFI"
+        }
+      }
+    }
+    ):Do(function(_,data)
+      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+    end)
+  :Times(AtLeast(1))
+end
+
+function Test:StartMobileSession()
+  self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
+  self.mobileSession:StartService(7)
+end
+
+function Test:RegisterApp()
+  local reqId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered",
+    {
+      application =
+      {
+        deviceInfo =
+        {
+          id = config.deviceMAC,
+          name = "127.0.0.1",
+          transportType = "WIFI"
+        }
+      }
+    })
+  self.mobileSession:ExpectResponse(reqId, { success = true, resultCode = "SUCCESS" })
+end
+
+function Test:GetPTS()
+  commonTestCases:DelayedExp(3000)
+  self.mobileSession:ExpectNotification("OnSystemRequest")
+  :Do(function(_, d)
+      if d.payload.requestType == "HTTP" then
+        ptu = json.decode(d.binaryData)
+      end
+    end)
+  :Times(AnyNumber())
+end
+
 function Test:ValidatePTS()
+  if not ptu then
+    self:FailTestCase("Expected PTS is not received")
+    return
+  end
   if ptu.policy_table.consumer_friendly_messages.messages then
     self:FailTestCase("Expected absence of 'consumer_friendly_messages.messages' section in PTS")
   end
@@ -92,25 +137,25 @@ function Test.StorePTSInFile()
   f:close()
 end
 
-function Test.Precondition_Wait()
+function Test.Wait()
   os.execute("sleep 3")
 end
 
-function Test.Precondition_NoteNumOfRecords()
+function Test.NoteNumOfRecords()
   r_expected = get_num_records()
 end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
-function Test:TestStep_Perform_PTU_Success()
+function Test:PerformPTUSuccess()
   local policy_file_name = "PolicyTableUpdate"
   local corId = self.mobileSession:SendRPC("SystemRequest", { requestType = "HTTP", fileName = policy_file_name }, ptu_file)
   EXPECT_RESPONSE(corId, { success = true, resultCode = "SUCCESS" })
   EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", { status = "UP_TO_DATE" })
 end
 
-function Test:TestStep_ValidateNumberMessages()
+function Test:ValidateNumberMessages()
   self.mobileSession:ExpectAny()
   :ValidIf(function(_, _)
       r_actual = get_num_records()
@@ -130,7 +175,7 @@ function Test.Clean()
   os.remove(ptu_file)
 end
 
-function Test.Postcondition_StopSDL()
+function Test.StopSDL()
   StopSDL()
 end
 
