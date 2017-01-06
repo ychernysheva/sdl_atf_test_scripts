@@ -181,8 +181,7 @@ function testCasesForRAI:InitHMI_onReady_without_UI_GetCapabilities(self)
   self.hmiConnection:SendNotification("BasicCommunication.OnReady")
 end
 
---[[@InitHMI_onReady_without_UI_GetCapabilities: replace original InitHMIOnReady from connecttest 
---! without expect UI.GetCapabilites
+--[[@get_data_steeringWheelLocation: read steeringWheelLocation from hmi_capabilities
 --! @parameters: NO
 --]]
 function testCasesForRAI.get_data_steeringWheelLocation()
@@ -202,6 +201,33 @@ function testCasesForRAI.get_data_steeringWheelLocation()
   end
 
   return value
+end
+
+--[[@write_data_steeringWheelLocation: write value to steeringWheelLocation
+--! in hmi_capabilities.json
+--! @parameters: value
+--! @value - new value for steeringWheelLocation
+--]]
+function testCasesForRAI.write_data_steeringWheelLocation(value)
+  local path_to_file = config.pathToSDL .. 'hmi_capabilities.json'
+  local file  = io.open(path_to_file, "r")
+  local json_data = file:read("*all") -- may be abbreviated to "*a";
+  
+  file:close()
+
+  local json = require("modules/json")
+         
+  local data = json.decode(json_data)
+
+  if( data.UI.hmiCapabilities.steeringWheelLocation ~= nil ) then
+    data.UI.hmiCapabilities.steeringWheelLocation = value
+  end
+
+  data = json.encode(data)
+  
+  file = io.open(path_to_file, "w")
+  file:write(data)
+  file:close()
 end
 
 return testCasesForRAI
