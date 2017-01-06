@@ -1,3 +1,8 @@
+revsdl = require("user_modules/revsdl")
+
+revsdl.AddUnknownFunctionIDs()
+revsdl.SubscribeToRcInterface()
+
 Test = require('connecttest')
 require('cardinalities')
 local events = require('events')
