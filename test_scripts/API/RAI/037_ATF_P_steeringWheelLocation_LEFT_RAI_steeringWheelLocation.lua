@@ -16,10 +16,9 @@
 -- In InitHMI_OnReady HMI replies with parameter steeringWeelLocation = LEFT to UI.GetCapabilities
 --
 -- 2. Performed steps
--- Register 2 new applications.
+-- Register new applications.
 --
 -- Expected result:
--- for each application: 
 -- SDL->mobile: RegisterAppInterface_response steeringWeelLocation is provided equal to LEFT
 ---------------------------------------------------------------------------------------------
 
@@ -199,28 +198,15 @@ function Test:Precondition_StartSession()
 	self.mobileSession:StartService(7)
 end
 
-function Test:Precondition_SecondSession()
-		self.mobileSession1 = mobile_session.MobileSession(self, self.mobileConnection)
-		self.mobileSession1:StartService(7)
-end
-
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
-function Test:TestStep_RAI_FirstApp_steeringWheelLocation()
+function Test:TestStep_RAI_steeringWheelLocation()
 	local CorIdRegister = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
 		
 	EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application1.registerAppInterfaceParams.appName }})
 	EXPECT_RESPONSE(CorIdRegister, { success=true, resultCode = "SUCCESS", steeringWheelLocation = "LEFT" })
 	EXPECT_NOTIFICATION("OnHMIStatus", { systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE"})
-end
-
-function Test:TestStep_RAI_SecondApp_steeringWheelLocation()
-	local CorIdRegister = self.mobileSession1:SendRPC("RegisterAppInterface", config.application2.registerAppInterfaceParams)
-		
-	EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application2.registerAppInterfaceParams.appName }})
-	self.mobileSession1:ExpectResponse(CorIdRegister, { success=true, resultCode = "SUCCESS", steeringWheelLocation = "LEFT" })
-	self.mobileSession1:ExpectNotification("OnHMIStatus", { systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE"})
 end
 
 --[[ Postconditions ]]
