@@ -38,8 +38,6 @@ local mobile_session = require('mobile_session')
 local value_steering_wheel_location = testCasesForRAI.get_data_steeringWheelLocation()
 
 --[[ General Precondition before ATF start ]]
-commonPreconditions:BackupFile("hmi_capabilities.json")
-testCasesForRAI.write_data_steeringWheelLocation("LEFT")
 commonSteps:DeleteLogsFiles()
 commonSteps:DeletePolicyTable()
 testCasesForRAI:Connecttest_onlywith_StartSDL_InitHMIOnReady("connecttest_initHMI.lua")
