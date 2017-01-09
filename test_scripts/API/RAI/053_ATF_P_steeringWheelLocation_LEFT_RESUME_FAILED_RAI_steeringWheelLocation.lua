@@ -245,16 +245,13 @@ end
 commonFunctions:newTestCasesGroup("Test")
 
 function Test:TestStep_RAI_RESUME_FAILED_steeringWheelLocation()
-	local CorIdRegister = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
 	config.application1.registerAppInterfaceParams.hashID = "sdfgTYWRTdfhsdfgh"
-		
+	local CorIdRegister = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
+			
 	EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application1.registerAppInterfaceParams.appName }})
 	EXPECT_HMICALL("BasicCommunication.ActivateApp", {})
 	:Do(function(_,data) self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {}) end)
-
-	--TODO(istoimenova): SDL register application with SUCCESS, should be checked for defect on appropriate version.
 	EXPECT_RESPONSE(CorIdRegister, { success = true, resultCode = "RESUME_FAILED", steeringWheelLocation = "LEFT" })
-
 
 	EXPECT_NOTIFICATION("OnHMIStatus", 
 		{systemContext="MAIN", hmiLevel="NONE", audioStreamingState="NOT_AUDIBLE"}, 
