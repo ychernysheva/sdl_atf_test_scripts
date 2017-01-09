@@ -77,8 +77,6 @@ end
 --[[ General Precondition before ATF start ]]
 commonPreconditions:BackupFile("sdl_preloaded_pt.json")
 update_sdl_preloaded_pt_json()
-commonPreconditions:BackupFile("hmi_capabilities.json")
-testCasesForRAI.write_data_steeringWheelLocation("LEFT")
 commonSteps:DeleteLogsFiles()
 commonSteps:DeletePolicyTable()
 testCasesForRAI:Connecttest_onlywith_StartSDL_InitHMIOnReady("connecttest_initHMI.lua")
