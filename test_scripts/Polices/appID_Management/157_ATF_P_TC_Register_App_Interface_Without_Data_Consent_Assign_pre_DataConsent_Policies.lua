@@ -25,10 +25,16 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 --[[ Required Shared libraries ]]
 local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
 local commonSteps = require("user_modules/shared_testcases/commonSteps")
-local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
-local testCasesForPolicyTableSnapshot = require('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
+
+--[[ Local Functions ]]
+local function get_permission_code(app_id)
+  local query = "select fg.name from app_group ag, functional_group fg where ag.functional_group_id = fg.id and application_id = '" .. app_id .. "'"
+  local result = commonFunctions:get_data_policy_sql(config.pathToSDL.."/storage/policy.sqlite", query)
+  return result[1]
+end
 
 --[[ General Precondition before ATF start ]]
+commonFunctions:SDLForceStop()
 commonSteps:DeleteLogsFileAndPolicyTable()
 
 --[[ General Settings for configuration ]]
@@ -38,10 +44,13 @@ require("user_modules/AppTypes")
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
 function Test:Preconfition_trigger_user_request_update_from_HMI()
-  testCasesForPolicyTable:trigger_user_request_update_from_HMI(self)
-  local app_permission = testCasesForPolicyTableSnapshot:get_data_from_PTS("app_policies."..config.application1.registerAppInterfaceParams.appID)
-  if(app_permission ~= "pre_DataConsent") then
-    self:FailTestCase("Assigned app permissions is not for pre_DataConsent, real: " ..app_permission)
+  local r_actual = get_permission_code("0000001")
+  local r_expected = get_permission_code("pre_DataConsent")
+  print("Actual: '" .. tostring(r_actual) .. "'")
+  print("Expected: '" .. tostring(r_expected) .. "'")
+  if r_actual ~= r_expected then
+    local msg = table.concat({"Assigned app permissions is not for pre_DataConsent, expected '", r_expected, "', actual '", r_actual, "'"})
+    self:FailTestCase(msg)
   end
 end
 
