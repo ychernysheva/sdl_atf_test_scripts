@@ -73,10 +73,10 @@ end
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
-function Test:TestStep_RAI_RESUME_FAILED_steeringWheelLocation()
-	local CorIdRegister = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
+function Test:TestStep_RAI_WRONG_LANGUAGE_steeringWheelLocation()
 	config.application1.registerAppInterfaceParams.languageDesired = "RU-RU"
-
+	local CorIdRegister = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
+	
 	EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application1.registerAppInterfaceParams.appName }})
 	--TODO(istoimenova): SDL returns SUCCESS, should be checked on propriate version
 	EXPECT_RESPONSE(CorIdRegister, { success = true, resultCode = "WRONG_LANGUAGE", steeringWheelLocation = value_steering_wheel_location })
