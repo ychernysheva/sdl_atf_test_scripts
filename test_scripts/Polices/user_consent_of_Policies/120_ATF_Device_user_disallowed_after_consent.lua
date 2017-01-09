@@ -85,24 +85,38 @@ function Test:TestStep1_Send_RPC_from_default_disallowed()
   :Times(0)
 end
 
-function Test:TestStep2_Allow_device()
-  testCasesForPolicyTable:trigger_getting_device_consent(self, config.application1.registerAppInterfaceParams.appName, config.deviceMAC)
+function Test:ActivateApp()
+  local requestId1 = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.applications[config.application1.registerAppInterfaceParams.appName] })
+  EXPECT_HMIRESPONSE(requestId1)
+  :Do(function(_, data1)
+      if data1.result.isSDLAllowed ~= true then
+        local requestId2 = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", { language = "EN-US", messageCodes = { "DataConsent" } })
+        EXPECT_HMIRESPONSE(requestId2)
+        :Do(function(_, _)
+            self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", { allowed = true, source = "GUI", device = { id = config.deviceMAC, name = "127.0.0.1" } })
+            EXPECT_HMICALL("BasicCommunication.ActivateApp")
+            :Do(function(_, data2)
+                self.hmiConnection:SendResponse(data2.id,"BasicCommunication.ActivateApp", "SUCCESS", { })
+              end)
+            :Times(1)
+          end)
+      end
+    end)
 end
 
 function Test:TestStep3_Send_RPC_from_default_again()
   local RequestIDAddCommand = self.mobileSession:SendRPC("AddCommand", { cmdID = 111, menuParams = { position = 1, menuName ="Command111" } })
   EXPECT_HMICALL("UI.AddCommand",{})
   :Do(function(_,data)
-    self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-  end)
+      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+    end)
   EXPECT_RESPONSE(RequestIDAddCommand, { success = true, resultCode = "SUCCESS" })
   EXPECT_NOTIFICATION("OnHashChange")
-
 end
 
 function Test:Precondition_Check_App_assigned_BASE4()
   local group_app_id_table = commonFunctions:get_data_policy_sql(config.pathToSDL.."/storage/policy.sqlite", "SELECT functional_group_id FROM app_group where application_id = '0000001'")
-  
+
   local group_app_id
   for _, value in pairs(group_app_id_table) do
     group_app_id = value
