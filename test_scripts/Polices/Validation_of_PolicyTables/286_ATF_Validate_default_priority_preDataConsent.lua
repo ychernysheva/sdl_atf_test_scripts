@@ -1,20 +1,20 @@
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
---    [Policies] "pre_DataConsent" policies assigned to the application and "priority" value
+-- [Policies] "pre_DataConsent" policies assigned to the application and "priority" value
 --
 -- Description:
---     Providing to HMI app`s default priority value of "pre_DataConsent" if "pre_DataConsent" policies assigned to the application
---     1. Used preconditions:
--- 			SDL and HMI are running
---			Close default connection
---			Connect device
+-- Providing to HMI app`s default priority value of "pre_DataConsent" if "pre_DataConsent" policies assigned to the application
+-- 1. Used preconditions:
+-- SDL and HMI are running
+-- Close default connection
+-- Connect device
 --
---     2. Performed steps
---			Register app-> "pre_DataConsent" policies are assigned to the application
---		    Activate app
+-- 2. Performed steps
+-- Register app-> "pre_DataConsent" policies are assigned to the application
+-- Activate app
 --
 -- Expected result:
---     PoliciesManager must provide to HMI the app`s priority value(NONE) taken from "priority" field in "pre_DataConsent" section of PolicyTable
+-- PoliciesManager must provide to HMI the app`s priority value(NONE) taken from "priority" field in "pre_DataConsent" section of PolicyTable
 ---------------------------------------------------------------------------------------------
 
 --[[ General configuration parameters ]]
@@ -52,18 +52,18 @@ function Test:Precondition_Connect_device()
   commonTestCases:DelayedExp(2000)
   self:connectMobile()
   EXPECT_HMICALL("BasicCommunication.UpdateDeviceList",
-  {
-    deviceList = {
-      {
-        id = config.deviceMAC,
-        name = "127.0.0.1",
-        transportType = "WIFI"
+    {
+      deviceList = {
+        {
+          id = config.deviceMAC,
+          name = "127.0.0.1",
+          transportType = "WIFI"
+        }
       }
     }
-  }
-  ):Do(function(_,data)
-  self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-  end)
+    ):Do(function(_,data)
+      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+    end)
 end
 
 --[[ Test ]]
@@ -74,28 +74,28 @@ function Test:TestStep1_Priority_NONE_OnAppRegistered()
   self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
   self.mobileSession:StartService(7)
   :Do(function()
-    local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
-    EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", {priority ="NONE"})
-    :Do(function(_,data)
-      self.HMIAppID = data.params.application.appID
+      local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
+      EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", {priority = nil })
+      :Do(function(_,data)
+          self.HMIAppID = data.params.application.appID
+        end)
+      self.mobileSession:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS" })
+      self.mobileSession:ExpectNotification("OnHMIStatus", {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
     end)
-    self.mobileSession:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS" })
-    self.mobileSession:ExpectNotification("OnHMIStatus", {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
-  end)
 end
 
 function Test:TestStep2_Priority_NONE_ActivateApp()
   local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.applications[config.application1.registerAppInterfaceParams.appName]})
-  EXPECT_HMIRESPONSE(RequestId, {result = { code = 0, method ="SDL.ActivateApp", priority ="NONE"}})
+  EXPECT_HMIRESPONSE(RequestId, {result = { code = 0, method ="SDL.ActivateApp", priority = nil }})
   :Do(function(_,data)
-    if data.result.priority ~= "NONE" then
-      commonFunctions:userPrint(31, "Error: wrong behavior of SDL - priority should be NONE")
-    end
-  end)
+      if data.result.priority ~= nil then
+        commonFunctions:userPrint(31, "Error: wrong behavior of SDL - priority should be omitted")
+      end
+    end)
   EXPECT_HMICALL("BasicCommunication.ActivateApp"):Times(0)
   EXPECT_NOTIFICATION("OnHMIStatus", {}):Times(0)
 
-  EXPECT_HMICALL("BasicCommunication.UpdateAppList",{applications = { {appName = config.application1.registerAppInterfaceParams.appName}}})
+  -- EXPECT_HMICALL("BasicCommunication.UpdateAppList",{applications = { {appName = config.application1.registerAppInterfaceParams.appName}}})
 end
 
 function Test:Precondition_Check_priority_pre_DataConsent()
@@ -131,7 +131,6 @@ function Test:Precondition_Check_priority_pre_DataConsent()
   end
 
 end
-
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
