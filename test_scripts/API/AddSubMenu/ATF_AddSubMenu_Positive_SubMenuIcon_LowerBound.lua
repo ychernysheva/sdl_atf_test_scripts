@@ -56,36 +56,36 @@ end
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 function Test:AddSubMenu_SubMenuIconLowerBound()
-	local cid = self.mobileSession:SendRPC("AddSubMenu",
-		{
-			menuID = 2000,
-			position = 200,
-			menuName ="SubMenu", 
-			subMenuIcon =
-			    {
-					imageType = "DYNAMIC",
-					value = "s"
-				} 
-		})
-	EXPECT_HMICALL("UI.AddSubMenu", 
-		{ 
-			menuID = 2000,
-			menuParams = 
-				{
-				    position = 200,
-					menuName ="SubMenu"
-			    },
-			subMenuIcon =
-					   {
-							imageType = "DYNAMIC",
-							value = "s"
-						}
-		})
-	:Do(function(_,data)
-		self.hmiConnection:SendError(data.id, data.method, "WARNINGS", "Image doesn't exists in the system")
-	end)
-	EXPECT_RESPONSE(cid, { success = true, resultCode = "WARNINGS", info = "Image doesn't exists in the system" })
-	EXPECT_NOTIFICATION("OnHashChange")
+  local cid = self.mobileSession:SendRPC("AddSubMenu",
+  {
+    menuID = 2000,
+    position = 200,
+    menuName ="SubMenu",
+    subMenuIcon =
+    {
+      imageType = "DYNAMIC",
+      value = "s"
+    }
+  })
+  EXPECT_HMICALL("UI.AddSubMenu",
+  {
+    menuID = 2000,
+    menuParams =
+    {
+      position = 200,
+      menuName ="SubMenu"
+    },
+    subMenuIcon =
+    {
+      imageType = "DYNAMIC",
+      value = "s"
+    }
+  })
+  :Do(function(_,data)
+  self.hmiConnection:SendError(data.id, data.method, "WARNINGS", "Image doesn't exists in the system")
+  end)
+  EXPECT_RESPONSE(cid, { success = true, resultCode = "WARNINGS", info = "Image doesn't exists in the system" })
+  EXPECT_NOTIFICATION("OnHashChange")
 end
 
 --[[ Postconditions ]]
