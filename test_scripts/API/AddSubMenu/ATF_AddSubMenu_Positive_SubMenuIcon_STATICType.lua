@@ -1,19 +1,19 @@
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
---		[GENIVI] AddSubMenu: SDL must support new "subMenuIcon" parameter
---		[AddSubMenu] Conditions for SDL to transfer AddSubMenu with "subMenuIcon" param to HMI
+--	[GENIVI] AddSubMenu: SDL must support new "subMenuIcon" parameter
+--	[AddSubMenu] Conditions for SDL to transfer AddSubMenu with "subMenuIcon" param to HMI
 --
 -- Description:
--- 		 Mobile app sends AddSubMenu with STATIC "subMenuIcon" and the requested image exists in the system
+-- 	Mobile app sends AddSubMenu with STATIC "subMenuIcon" and the requested image exists in the system
 -- 1. Used preconditions:
--- 		Delete files and policy table from previous ignition cycle if any
--- 		Start SDL and HMI
+-- 	Delete files and policy table from previous ignition cycle if any
+-- 	Start SDL and HMI
 --      Activate application
 -- 2. Performed steps:
--- 		Send AddSubMenu RPC without <subMenuIcon> parameter
+-- 	Send AddSubMenu RPC without <subMenuIcon> parameter
 --
 -- Expected result:
--- 		SDL must transfer AddSubMenu to HMI and respond with SUCCESS received from HMI to mobile app
+-- 	SDL must transfer AddSubMenu to HMI and respond with SUCCESS received from HMI to mobile app
 ---------------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
@@ -58,36 +58,36 @@ commonSteps:PutFile("PutFile_menuIcon", "menuIcon.jpg")
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 function Test:AddSubMenu_SubMenuIconSTATIC()
-	local cid = self.mobileSession:SendRPC("AddSubMenu",
-		{
-			menuID = 2000,
-			position = 200,
-			menuName ="SubMenu", 
-			subMenuIcon =
-			    {
-					imageType = "STATIC",
-					value = storagePath .. "menuIcon.jpg"
-				} 
-		}) 
-	EXPECT_HMICALL("UI.AddSubMenu", 
-		{ 
-			menuID = 2000,
-			menuParams = 
-				{
-				    position = 200,
-					menuName ="SubMenu"
-			    },
-			subMenuIcon =
-					   {
-							imageType = "STATIC",
-							value = storagePath .. "menuIcon.jpg"
-						}
-		}) 
-	:Do(function(_,data)
-		self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {}) 
-	end)
-	EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})
-	EXPECT_NOTIFICATION("OnHashChange")
+  local cid = self.mobileSession:SendRPC("AddSubMenu",
+  {
+    menuID = 2000,
+    position = 200,
+    menuName ="SubMenu",
+    subMenuIcon =
+    {
+      imageType = "STATIC",
+      value = storagePath .. "menuIcon.jpg"
+    }
+  })
+  EXPECT_HMICALL("UI.AddSubMenu",
+  {
+    menuID = 2000,
+    menuParams =
+    {
+      position = 200,
+      menuName ="SubMenu"
+    },
+    subMenuIcon =
+    {
+      imageType = "STATIC",
+      value = storagePath .. "menuIcon.jpg"
+    }
+  })
+  :Do(function(_,data)
+  self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+  end)
+  EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})
+  EXPECT_NOTIFICATION("OnHashChange")
 end
 
 --[[ Postconditions ]]
