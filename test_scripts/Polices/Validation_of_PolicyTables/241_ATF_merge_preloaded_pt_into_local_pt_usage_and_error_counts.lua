@@ -1,5 +1,4 @@
 ---------------------------------------------------------------------------------------------
--- TODO(istoimenova): Update when "[GENIVI] Local Policy Table DB is not created according to data dictionary" is fixed
 -- Requirement summary:
 -- [Policies] Merging rules for "usage_and_error_count" section
 --
@@ -31,16 +30,17 @@ local json = require("modules/json")
 local TESTED_DATA = {
   preloaded_date = {"1988-12-01","2015-05-02"},
   usage_and_error_count = {
-      count_of_iap_buffer_full = "0",
-      count_sync_out_of_memory = "0",
-      count_of_sync_reboots = "0"
-    },
+    count_of_iap_buffer_full = "0",
+    count_sync_out_of_memory = "0",
+    count_of_sync_reboots = "0"
+  },
   app_level = {
-      app_registration_language_gui = "FR-FR",
-      app_registration_language_vui = "ES-ES",
-      count_of_rejected_rpcs_calls = "0",
-      count_of_rejections_duplicate_name = "0",
-      count_of_rejections_nickname_mismatch = "0"
+    app_registration_language_gui = "FR-FR",
+    app_registration_language_vui = "ES-ES",
+    count_of_rejected_rpcs_calls = "0",
+    count_of_rejections_duplicate_name = "0",
+    count_of_rejections_nickname_mismatch = "0",
+    application_id = "0000001"
   }
 }
 
@@ -205,11 +205,10 @@ prepareInitialPreloadedPT()
 commonPreconditions:Connecttest_without_ExitBySDLDisconnect_WithoutOpenConnectionRegisterApp("connecttest_ConnectMobile.lua")
 
 --[[ General configuration parameters ]]
---Test = require('user_modules/connecttest_ConnectMobile')
+-- Test = require('user_modules/connecttest_ConnectMobile')
 Test = require('connecttest')
 require('cardinalities')
 require('user_modules/AppTypes')
-
 
 function Test.checkLocalPT(checkTable)
   local expectedLocalPtValues
@@ -265,7 +264,7 @@ function Test:TestStep_VerifyInitialLocalPT()
     { query = 'select count_of_rejected_rpcs_calls from app_level', expectedValues = {TESTED_DATA.app_level.count_of_rejected_rpcs_calls} },
     { query = 'select count_of_rejections_duplicate_name from app_level', expectedValues = {TESTED_DATA.app_level.count_of_rejections_duplicate_name} },
     { query = 'select count_of_rejections_nickname_mismatch from app_level', expectedValues = {TESTED_DATA.app_level.count_of_rejections_nickname_mismatch} },
-    { query = 'select application_id from app_level', expectedValues = {} }
+    { query = 'select application_id from app_level', expectedValues = {TESTED_DATA.app_level.application_id} }
   }
   if not self.checkLocalPT(checks) then
     self:FailTestCase("SDL has wrong values in LocalPT")
@@ -297,7 +296,7 @@ function Test:TestStep_VerifyNewLocalPT()
     { query = 'select count_of_rejected_rpcs_calls from app_level', expectedValues = {TESTED_DATA.app_level.count_of_rejected_rpcs_calls} },
     { query = 'select count_of_rejections_duplicate_name from app_level', expectedValues = {TESTED_DATA.app_level.count_of_rejections_duplicate_name} },
     { query = 'select count_of_rejections_nickname_mismatch from app_level', expectedValues = {TESTED_DATA.app_level.count_of_rejections_nickname_mismatch} },
-    { query = 'select application_id from app_level', expectedValues = {} }
+    { query = 'select application_id from app_level', expectedValues = {TESTED_DATA.app_level.application_id} }
   }
   if not self.checkLocalPT(checks) then
     self:FailTestCase("SDL has wrong values in LocalPT")
