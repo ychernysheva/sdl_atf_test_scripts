@@ -20,16 +20,23 @@
 ---------------------------------------------------------------------------------------------
 
 --[[ General configuration parameters ]]
-Test = require('connecttest')
-local config = require('config')
-config.defaultProtocolVersion = 2
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
+config.defaultProtocolVersion = 2
 
 --[[ Required Shared libraries ]]
 local json = require("modules/json")
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require ('user_modules/shared_testcases/commonSteps')
 local mobile_session = require('mobile_session')
+local config = require('config')
+
+--[[ General Precondition before ATF start ]]
+commonFunctions:SDLForceStop()
+commonSteps:DeleteLogsFileAndPolicyTable()
+
+--[[ General configuration parameters ]]
+Test = require('connecttest')
+
 require('cardinalities')
 require('user_modules/AppTypes')
 
@@ -47,7 +54,7 @@ local TESTED_DATA = {
           keep_context = true,
           steal_focus = false,
           priority = "NONE",
-          default_hmi = "LIMITED",
+          default_hmi = "NONE",
           RequestType = {
             "TRAFFIC_MESSAGE_CHANNEL",
             "PROPRIETARY",
@@ -150,8 +157,8 @@ local function addApplicationToPTJsonFile(basicFile, newPtFile, appName, app)
   newPtu:close()
 end
 
-local function activateAppInSpecificLevel(self, HMIAppID, hmi_level)
-  local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = HMIAppID, level = hmi_level})
+local function activateApp(self, HMIAppID)
+  local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = HMIAppID})
 
   --hmi side: expect SDL.ActivateApp response
   EXPECT_HMIRESPONSE(RequestId)
@@ -178,7 +185,7 @@ local function activateAppInSpecificLevel(self, HMIAppID, hmi_level)
               end)
             -- :Times()
           end)
-        EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = hmi_level, systemContext = "MAIN" })
+        EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN" })
       end
     end)
 end
@@ -422,7 +429,7 @@ function Test:updatePolicyInDifferentSessions(PTName, appName, mobileSession)
   end
 
   function Test:Precondition_PreparePreloadedPT()
-    commonSteps:DeletePolicyTable()
+    commonSteps:DeleteLogsFileAndPolicyTable()
     TestData:store("Store initial PreloadedPT", config.pathToSDL .. PRELOADED_PT_FILE_NAME, "initial_" .. PRELOADED_PT_FILE_NAME)
     self.backupPreloadedPT("backup_")
     self:preparePreloadedPT()
@@ -439,38 +446,43 @@ function Test:updatePolicyInDifferentSessions(PTName, appName, mobileSession)
     StartSDL(config.pathToSDL, config.ExitOnCrash, self)
   end
 
-  function Test:Precondition_InitHMIandMobileApp()
+  function Test:Precondition_InitHMI()
     self:initHMI()
+  end
+
+  function Test:Precondition_InitHMI_onReady()
     self:initHMI_onReady()
+  end
+
+  function Test:ConnectMobile()
     self:connectMobile()
+  end
+
+  function Test:StartMobileSession()
     self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
+    self.mobileSession:StartService(7)
   end
 
   --[[ Test ]]
   commonFunctions:newTestCasesGroup("Test")
 
   function Test:RegisterApp()
-    self.mobileSession:StartService(7)
-    :Do(function (_,_)
-        local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
-
-        EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
-        :Do(function(_,data)
-            HMIAppId = data.params.application.appID
-          end)
-        EXPECT_RESPONSE(correlationId, { success = true })
-        EXPECT_NOTIFICATION("OnPermissionsChange")
+    local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
+    EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
+    :Do(function(_,data)
+        HMIAppId = data.params.application.appID
       end)
+    EXPECT_RESPONSE(correlationId, { success = true })
+    -- EXPECT_NOTIFICATION("OnPermissionsChange")
   end
 
-  function Test:ActivateAppInLIMITED()
-    activateAppInSpecificLevel(self,HMIAppId,"LIMITED")
+  function Test:ActivateApp()
+    EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
+    activateApp(self, HMIAppId)
     TestData:store("Store LocalPT before PTU", constructPathToDatabase(), "beforePTU_policy.sqlite" )
   end
 
   function Test:UpdatePolicy_ExpectOnAppPermissionChangedWithAppID()
-    EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
-
     -- ToDo (aderiabin): This function must be replaced by call
     -- testCasesForPolicyTable:updatePolicyInDifferentSessions(Test, ptuAppRegistered,
     -- config.application1.registerAppInterfaceParams.appName,
@@ -482,6 +494,7 @@ function Test:updatePolicyInDifferentSessions(PTName, appName, mobileSession)
   end
 
   function Test:CheckPTUinLocalPT()
+    os.execute("sleep 5")
     -- TestData:store("Store PT snapshot before its testing", realPathToSnapshot, CORRECT_LINUX_PATH_TO_POLICY_SNAPSHOT_FILE)
     -- if (not self:checkPtsFile()) or (not self:checkSdl()) then
     -- self:FailTestCase()
