@@ -83,6 +83,8 @@ policies_happy_paths_HTTP
 
 ./test_scripts/Polices/build_options/ATF_P_TC_PTU_HTTP_PTU_Unsuccessful_Even_After_Retry_Strategy.lua		locally_PASS
 
+./test_scripts/Polices/build_options/013_ATF_P_TC_HMI_sends_GetURLs_one_app_registered_HTTP.lua APPLINK-30883 (Not implemented APPLINK-14831 & APPLINK-29036)
+
 policies_happy_paths_PROPRIETARY
 
 ./test_scripts/Polices/build_options/P_ATF_Register_NewApp_not_exist_inLocalPT_start_PTU_for_NewApp_PROPRIETARY.lua	locally_PASS
