@@ -79,8 +79,7 @@ function Test:TestStep_PoliciesManager_changes_status_UPDATING()
           EXPECT_RESPONSE(CorIdSystemRequest, { success = true, resultCode = "SUCCESS"})
         end)
 
-      EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",
-        { status = "UPDATE_NEEDED" }, {status = "UPDATING"}):Times(2)
+      EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate"):Times(Between(1,2))
       :Do(function(_,data)
           if(data.params.status == "UPDATE_NEEDED") then
             if(message_order ~= 1) then
