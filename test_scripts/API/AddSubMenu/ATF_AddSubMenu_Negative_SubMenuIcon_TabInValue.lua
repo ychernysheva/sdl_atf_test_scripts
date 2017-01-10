@@ -40,12 +40,11 @@ function Test:Precondition_ActivateApp()
 			local RequestIdGetMes = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", 
 			{language = "EN-US", messageCodes = {"DataConsent"}})
 			EXPECT_HMIRESPONSE(RequestIdGetMes)
-			:Do(function(_,data)
+			:Do(function()
 				self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", 
 				{allowed = true, source = "GUI", device = {id = config.deviceMAC, name = "127.0.0.1"}})
 				EXPECT_HMICALL("BasicCommunication.ActivateApp")
-				:Do(function(_,data
-					)
+				:Do(function(_,data)
 					self.hmiConnection:SendResponse(data.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
 				end)
 				:Times(AtLeast(1)) 
