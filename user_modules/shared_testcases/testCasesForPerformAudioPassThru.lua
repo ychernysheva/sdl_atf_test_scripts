@@ -66,7 +66,7 @@ function testCasesForPerformAudioPassThru:PerformAudioPassThru_AllParameters_SUC
       },
       audioPassThruDisplayText1 = "DisplayText1",
       audioPassThruDisplayText2 = "DisplayText2",
-      samplingRate = "8KHZ",
+      samplingRate = "16KHZ",
       maxDuration = 2000,
       bitsPerSample = "8_BIT",
       audioType = "PCM",
@@ -197,6 +197,94 @@ function testCasesForPerformAudioPassThru:PerformAudioPassThru_AllParameters_Upp
       maxDuration = 1000000,
       muteAudio = true,
       audioPassThruIcon = { imageType = "STATIC", value = string.rep ("a", 251).. ".png"}
+
+    })
+  :Do(function(_,data)
+      local function UIPerformAoudioResponce()
+        self.hmiConnection:SendResponse(data.id, "UI.PerformAudioPassThru", "SUCCESS", {})
+      end
+
+      RUN_AFTER(UIPerformAoudioResponce, 1500)
+    end)
+
+  if
+  self.appHMITypes["NAVIGATION"] == true or
+  self.appHMITypes["COMMUNICATION"] == true or
+  self.isMediaApplication == true then
+    --mobile side: expect OnHMIStatus notification
+    EXPECT_NOTIFICATION("OnHMIStatus",
+      {hmiLevel = "FULL", audioStreamingState = "ATTENUATED", systemContext = "MAIN"},
+      {hmiLevel = "FULL", audioStreamingState = "AUDIBLE", systemContext = "MAIN"})
+    :Times(2)
+  else
+    EXPECT_NOTIFICATION("OnHMIStatus")
+    :Times(0)
+  end
+
+  self.mobileSession:ExpectResponse(CorIdPerformAudioPassThruAppParVD, { success = true, resultCode = "SUCCESS",
+    })
+
+  commonTestCases:DelayedExp(1500)
+
+end
+
+function testCasesForPerformAudioPassThru:PerformAudioPassThru_AllParameters_Lower_SUCCESS(self)
+  local CorIdPerformAudioPassThruAppParVD= self.mobileSession:SendRPC("PerformAudioPassThru",
+    {
+      initialPrompt =
+      {
+        {
+          text = "",
+          type = "TEXT",
+        },
+
+      },
+      audioPassThruDisplayText1 = "1",
+      audioPassThruDisplayText2 = "2",
+      samplingRate = "8KHZ",
+      maxDuration = 1,
+      bitsPerSample = "8_BIT",
+      audioType = "PCM",
+      muteAudio = true,
+      audioPassThruIcon =
+        { value = "",
+          imageType = "STATIC"
+        }
+    })
+
+  -- hmi expects TTS.Speak request
+  EXPECT_HMICALL("TTS.Speak",
+    {
+      speakType = "AUDIO_PASS_THRU",
+      ttsChunks = { { text = "", type = "TEXT" } },
+      appID = self.applications[applicationName]
+    })
+  :Do(function(_,data)
+      -- send notification to start TTS.Speak
+      self.hmiConnection:SendNotification("TTS.Started",{ })
+
+      -- HMI sends TTS.Speak SUCCESS
+      local function ttsSpeakResponse()
+        self.hmiConnection:SendResponse (data.id, data.method, "SUCCESS", {})
+
+        -- HMI sends TTS.Stop
+        self.hmiConnection:SendNotification("TTS.Stopped")
+      end
+
+      RUN_AFTER(ttsSpeakResponse, 1000)
+    end)
+
+  -- hmi expects UI.PerformAudioPassThru request
+  EXPECT_HMICALL("UI.PerformAudioPassThru",
+    {
+      appID = self.applications[applicationName],
+      audioPassThruDisplayTexts = {
+        {fieldName = "audioPassThruDisplayText1", fieldText = "1"},
+        {fieldName = "audioPassThruDisplayText2", fieldText = "2"},
+      },
+      maxDuration = 1,
+      muteAudio = true,
+      audioPassThruIcon = { imageType = "", value = "icon.png"}
 
     })
   :Do(function(_,data)
