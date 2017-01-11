@@ -28,7 +28,6 @@ config.defaultProtocolVersion = 2
 --[[ Required Shared libraries ]]
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require ('user_modules/shared_testcases/commonSteps')
-local testCasesForPolicyTable = require ('user_modules/shared_testcases/testCasesForPolicyTable')
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFiles()
@@ -76,12 +75,12 @@ function Test:TestStep_Start_Update_First_Time_And_Trigger_New_PTU_Via_UpdateSDL
       self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",{ fileName = "PolicyTableUpdate", requestType = "PROPRIETARY"})
       EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY", fileType = "JSON" } )
       :Do(function(_,_)
-        -- Reuest for new PTU
-      local RequestIdUpdateSDL = self.hmiConnection:SendRequest("SDL.UpdateSDL")
-      EXPECT_HMIRESPONSE(RequestIdUpdateSDL,{result = {code = 0, method = "SDL.UpdateSDL"}})
+          -- Reuest for new PTU
+          local RequestIdUpdateSDL = self.hmiConnection:SendRequest("SDL.UpdateSDL")
+          EXPECT_HMIRESPONSE(RequestIdUpdateSDL,{result = {code = 0, method = "SDL.UpdateSDL"}})
 
           local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", {requestType = "PROPRIETARY", fileName = "PolicyTableUpdate"},
-            "files/ptu_general.json")
+          "files/ptu_general.json")
 
           EXPECT_HMICALL("BasicCommunication.SystemRequest",{
               requestType = "PROPRIETARY",
@@ -91,18 +90,16 @@ function Test:TestStep_Start_Update_First_Time_And_Trigger_New_PTU_Via_UpdateSDL
               self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate",
                 { policyfile = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate"})
 
-              EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UP_TO_DATE"})
+              EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UP_TO_DATE"}, { status = "UPDATE_NEEDED" }):Times(2)
+              :Do(function(e, d)
+                  if (e.occurences == 2) and (d.params.status == "UPDATE_NEEDED") then
+                    EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
+                  end
+                end)
             end)
           EXPECT_RESPONSE(CorIdSystemRequest, { success = true, resultCode = "SUCCESS"})
         end)
     end)
-end
-
-function Test:Test_Verify_New_PTU_is_Triggered()
-  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", { status = "UPDATE_NEEDED" })
-  :Do(function()
-    EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
-  end)
 end
 
 --[[ Postconditions ]]
