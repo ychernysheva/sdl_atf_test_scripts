@@ -25,9 +25,9 @@ config.defaultProtocolVersion = 2
 --[[ Required Shared libraries ]]
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
-local json = require('json')
 
 --[[ General Precondition before ATF start ]]
+commonFunctions:SDLForceStop()
 commonSteps:DeleteLogsFileAndPolicyTable()
 
 --[[ General Settings for configuration ]]
@@ -147,26 +147,20 @@ end
 
 function Test.TestStep2_ActivateAppInSpecificLevel()
   commonSteps:ActivateAppInSpecificLevel(Test,HMIAppID)
+end
+
+function Test.Wait()
   os.execute("sleep 3")
 end
 
 function Test:TestStep2_Check_count_of_rejections_duplicate_name_incremented_in_PT()
-  local json_data
   local appID = "0000003"
-  local file = io.open("/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json", "r")
-  if file then
-    json_data = file:read("*all") -- may be abbreviated to "*a";
-    file:close()
-
-    local data = json.decode(json_data)
-    local CountOfRejectionsDuplicateName = data.policy_table.usage_and_error_counts.app_level[appID].count_of_rejections_duplicate_name
-    if CountOfRejectionsDuplicateName == 1 then
-      return true
-    else
-      self:FailTestCase("Wrong count_of_run_attempts_while_revoked. Expected: " .. 1 .. ", Actual: " .. CountOfRejectionsDuplicateName)
-    end
+  local query = "select count_of_rejections_duplicate_name from app_level where application_id = '" .. appID .. "'"
+  local CountOfRejectionsDuplicateName = commonFunctions:get_data_policy_sql(config.pathToSDL.."/storage/policy.sqlite", query)[1]
+  if CountOfRejectionsDuplicateName == '1' then
+    return true
   else
-    self:FailTestCase("PT snapshot was not found")
+    self:FailTestCase("Wrong count_of_run_attempts_while_revoked. Expected: " .. 1 .. ", Actual: " .. CountOfRejectionsDuplicateName)
   end
 end
 
