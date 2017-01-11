@@ -284,7 +284,7 @@ function testCasesForPerformAudioPassThru:PerformAudioPassThru_AllParameters_Low
       },
       maxDuration = 1,
       muteAudio = true,
-      audioPassThruIcon = { imageType = "", value = "icon.png"}
+      audioPassThruIcon = { imageType = "STATIC", value = ""}
 
     })
   :Do(function(_,data)
@@ -313,6 +313,41 @@ function testCasesForPerformAudioPassThru:PerformAudioPassThru_AllParameters_Low
     })
 
   commonTestCases:DelayedExp(1500)
+
+end
+
+function testCasesForPerformAudioPassThru:PerformAudioPassThru_MandatoryParameters_audioPassThruIcon_SUCCESS(self)
+  local CorIdPerfAudioPassThruOnlyMandatoryVD= self.mobileSession:SendRPC("PerformAudioPassThru",
+    {
+      samplingRate = "22KHZ",
+      maxDuration = 500500,
+      bitsPerSample = "16_BIT",
+      audioType = "PCM",
+      audioPassThruIcon =
+        { value = "icon.png",
+          imageType = "STATIC"
+        }
+    })
+
+   -- hmi expects UI.PerformAudioPassThru request
+  EXPECT_HMICALL("UI.PerformAudioPassThru",
+    {
+      appID = self.applications[applicationName],
+      audioPassThruDisplayTexts = {
+        {fieldName = "audioPassThruDisplayText1", fieldText = ""},
+        {fieldName = "audioPassThruDisplayText2", fieldText = ""},
+      },      
+      maxDuration = 500500,
+      muteAudio = true,
+      audioPassThruIcon = { imageType = "STATIC", value = "icon.png"}
+
+    })
+  :Do(function(_,data)
+        self.hmiConnection:SendResponse(data.id, "UI.PerformAudioPassThru", "SUCCESS", {})
+      end)
+
+  self.mobileSession:ExpectResponse(CorIdPerfAudioPassThruOnlyMandatoryVD, { success = true, resultCode = "SUCCESS", 
+    })
 
 end
 
