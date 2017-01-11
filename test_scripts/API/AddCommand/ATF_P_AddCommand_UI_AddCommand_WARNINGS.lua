@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
--- SDL must send WARNINGS (success:true) to mobile app in case HMI respond WARNINGS at least to one component of RPC
+-- SDL must send WARNINGS (success:true) to mobile app in case HMI respond WARNINGS at least to one HMI-portions
 --
 -- Description:
 -- test is intended to check that SDL sends WARNINGS (success:true) to mobile app in case HMI respond WARNINGS to at least one HMI-portions
@@ -16,14 +16,17 @@
 ---------------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
+config.SDLStoragePath = config.pathToSDL .. "storage/"
 -- ToDo (vvvakulenko): remove after issue "ATF does not stop HB timers by closing session and connection" is resolved
 config.defaultProtocolVersion = 2
 
 --[[ Required Shared libraries ]]
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
+local commonSteps = require ('user_modules/shared_testcases/commonSteps')
 
 --[[ Local Variables ]]
-local storagePath = config.pathToSDL .. "storage/" 
+local storagePath = config.SDLStoragePath..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
+local ServerAddress = commonFunctions.read_parameter_from_smart_device_link_ini("ServerAddress") 
 local grammarIDValue
 
 --[[ General Precondition before ATF start ]]
@@ -36,38 +39,27 @@ require('user_modules/AppTypes')
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
 
-function Test:Precondition_ActivationApp()			
-  local request_id = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.applications["Test Application"]})
+function Test:Precondition_ActivationApp()
+  local request_id = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.applications[config.application1.registerAppInterfaceParams.appName]})
   EXPECT_HMIRESPONSE(request_id)
   :Do(function(_,data)
-    if
-    data.result.isSDLAllowed ~= true then
+    if (data.result.isSDLAllowed ~= true) then
       local request_id1 = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
       EXPECT_HMIRESPONSE(request_id1)
-      :Do(function(_,_)						
-        self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = "127.0.0.1"}})
+      :Do(function(_,_)   
+        self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = ServerAddress}})
         EXPECT_HMICALL("BasicCommunication.ActivateApp")
         :Do(function(_,_)
           self.hmiConnection:SendResponse(data.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
         end)
-        :Times(2)
+        :Times(1)
       end)
     end
   end)
   EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"}) 
 end
 
-function Test:Precondition_PutFile()
-  local cid = self.mobileSession:SendRPC("PutFile",
-  {			
-    syncFileName = "icon.png",
-    fileType	= "GRAPHIC_PNG",
-    persistentFile = false,
-    systemFile = false
-  }, "files/icon.png")
-  
-  EXPECT_RESPONSE(cid, { success = true})			
-end
+commonSteps:PutFile("Precondition_PutFile", "icon.png")
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
@@ -76,9 +68,9 @@ function Test:TestStep_AddCommand_VR_warning()
   local cid = self.mobileSession:SendRPC("AddCommand",
   {
     cmdID = 11,
-    menuParams = 	
+    menuParams =  
     { 
-      parentID = 1,
+      parentID = 0,
       position = 0,
       menuName ="Commandpositive"
     }, 
@@ -87,7 +79,7 @@ function Test:TestStep_AddCommand_VR_warning()
       "VRCommandonepositive",
       "VRCommandonepositivedouble"
     }, 
-    cmdIcon = 	
+    cmdIcon =   
     { 
       value ="icon.png",
       imageType ="STATIC"
@@ -103,7 +95,7 @@ function Test:TestStep_AddCommand_VR_warning()
     },
     menuParams = 
     { 
-      parentID = 1,	
+      parentID = 0, 
       position = 0,
       menuName ="Commandpositive"
     }
@@ -111,6 +103,7 @@ function Test:TestStep_AddCommand_VR_warning()
   :Do(function(_,data)
     self.hmiConnection:SendResponse(data.id, "UI.AddCommand", "WARNINGS", {})
   end)
+  
   EXPECT_HMICALL("VR.AddCommand", 
   { 
     cmdID = 11,
