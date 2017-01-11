@@ -49,13 +49,43 @@ end
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 function Test:TestStep_PTU_appPermissionsConsentNeeded_true()
+
   local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
   EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
   :Do(function(_,_)
+      EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATING"}, {status = "UP_TO_DATE"}):Times(2)
+      :Do(function(_,data)
+          if(data.params.status == "UP_TO_DATE") then
+
+            EXPECT_HMINOTIFICATION("SDL.OnAppPermissionChanged",
+              {appID = self.applications[config.application1.registerAppInterfaceParams.appName], appPermissionsConsentNeeded = true })
+            :Do(function(_,_)
+                local RequestIdListOfPermissions = self.hmiConnection:SendRequest("SDL.GetListOfPermissions",
+                  { appID = self.applications[config.application1.registerAppInterfaceParams.appName] })
+
+                EXPECT_HMIRESPONSE(RequestIdListOfPermissions)
+                :Do(function(_,data1)
+                    local groups = {}
+                    if #data1.result.allowedFunctions > 0 then
+                      for i = 1, #data1.result.allowedFunctions do
+                        groups[i] = {
+                          name = data1.result.allowedFunctions[i].name,
+                          id = data1.result.allowedFunctions[i].id,
+                          allowed = true}
+                      end
+                    end
+
+                    self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent", { appID = self.applications[config.application1.registerAppInterfaceParams.appName], consentedFunctions = groups, source = "GUI"})
+                    EXPECT_NOTIFICATION("OnPermissionsChange")
+                  end)
+              end)
+          end
+        end)
       self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest", { requestType = "PROPRIETARY", fileName = "filename"})
 
       EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY" })
       :Do(function(_,_)
+
           self.mobileSession:SendRPC("SystemRequest", { fileName = "PolicyTableUpdate", requestType = "PROPRIETARY"}, "files/PTU_NewPermissionsForUserConsent.json")
 
           local systemRequestId
@@ -70,34 +100,6 @@ function Test:TestStep_PTU_appPermissionsConsentNeeded_true()
               RUN_AFTER(to_run, 500)
             end)
 
-          EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATING"}, {status = "UP_TO_DATE"}):Times(2)
-          :Do(function(_,data)
-              if(data.params.status == "UP_TO_DATE") then
-
-                EXPECT_HMINOTIFICATION("SDL.OnAppPermissionChanged",
-                  {appID = self.applications[config.application1.registerAppInterfaceParams.appName], appPermissionsConsentNeeded = true })
-                :Do(function(_,_)
-                    local RequestIdListOfPermissions = self.hmiConnection:SendRequest("SDL.GetListOfPermissions",
-                      { appID = self.applications[config.application1.registerAppInterfaceParams.appName] })
-
-                    EXPECT_HMIRESPONSE(RequestIdListOfPermissions)
-                    :Do(function(_,data1)
-                      local groups = {}
-                      if #data1.result.allowedFunctions > 0 then
-                        for i = 1, #data1.result.allowedFunctions do
-                          groups[i] = {
-                                        name = data1.result.allowedFunctions[i].name,
-                                        id = data1.result.allowedFunctions[i].id,
-                                        allowed = true}
-                        end
-                      end
-
-                      self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent", { appID = self.applications[config.application1.registerAppInterfaceParams.appName], consentedFunctions = groups, source = "GUI"})
-                      EXPECT_NOTIFICATION("OnPermissionsChange")
-                    end)
-                end)
-              end
-          end)
         end)
     end)
 end
