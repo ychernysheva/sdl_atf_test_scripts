@@ -125,19 +125,19 @@ function Test:UpdatePolicy_ExpectOnAppPermissionChangedWithAppID()
   EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
   :Do(function()
 
-  testCasesForPolicyTable:updatePolicyInDifferentSessions(Test, ptu_app_registered,
-    config.application1.registerAppInterfaceParams.appName,
-    self.mobileSession)
-  end)
+      testCasesForPolicyTable:updatePolicyInDifferentSessions(Test, ptu_app_registered,
+        config.application1.registerAppInterfaceParams.appName,
+        self.mobileSession)
 
-  EXPECT_NOTIFICATION("OnPermissionsChange")
-  :ValidIf(function (_, data)
-      if data.payload~=nil then
-        return true
-      else
-        print("OnPermissionsChange came without permissions")
-        return false
-      end
+      EXPECT_NOTIFICATION("OnPermissionsChange")
+      :ValidIf(function (_, data)
+          if data.payload~=nil then
+            return true
+          else
+            print("OnPermissionsChange came without permissions")
+            return false
+          end
+        end)
     end)
 end
 
