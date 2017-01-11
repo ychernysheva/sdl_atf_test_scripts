@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
--- SDL must send WARNINGS (success:true) to mobile app in case HMI respond WARNINGS at least to one component of RPC
+-- SDL must send WARNINGS (success:true) to mobile app in case HMI respond WARNINGS at least to one HMI-portions
 --
 -- Description:
 -- test is intended to check that SDL sends WARNINGS (success:true) to mobile app in case HMI respond WARNINGS to at least one HMI-portions
@@ -17,12 +17,15 @@
 
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
+config.SDLStoragePath = config.pathToSDL .. "storage/"
 
 --[[ Required Shared libraries ]]
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
+local commonSteps = require ('user_modules/shared_testcases/commonSteps')
 
 --[[ Local Variables ]]
-local storagePath = config.pathToSDL .. "storage/"
+local storagePath = config.SDLStoragePath..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
+local ServerAddress = commonFunctions.read_parameter_from_smart_device_link_ini("ServerAddress")
 
 --[[ General Precondition before ATF start ]]
 commonFunctions:SDLForceStop()
@@ -34,38 +37,27 @@ require('user_modules/AppTypes')
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
 
-function Test:Precondition_ActivationApp()			
-  local request_id = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.applications["Test Application"]})
+function Test:Precondition_ActivationApp()
+  local request_id = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.applications[config.application1.registerAppInterfaceParams.appName]})
   EXPECT_HMIRESPONSE(request_id)
   :Do(function(_,data)
-    if
-    data.result.isSDLAllowed ~= true then
+    if (data.result.isSDLAllowed ~= true) then
       local request_id1 = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
       EXPECT_HMIRESPONSE(request_id1)
-      :Do(function(_,_)						
-        self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = "127.0.0.1"}})
+      :Do(function(_,_)   
+        self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = ServerAddress}})
         EXPECT_HMICALL("BasicCommunication.ActivateApp")
         :Do(function(_,_)
           self.hmiConnection:SendResponse(data.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
         end)
-        :Times(2)
+        :Times(1)
       end)
     end
   end)
   EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"}) 
 end
 
-function Test:Precondition_PutFile()
-  local cid_put_file = self.mobileSession:SendRPC("PutFile",
-  {			
-    syncFileName = "icon.png",
-    fileType	= "GRAPHIC_PNG",
-    persistentFile = false,
-    systemFile = false
-  }, "files/icon.png")
-  
-  EXPECT_RESPONSE(cid_put_file, { success = true})			
-end
+commonSteps:PutFile("Precondition_PutFile", "icon.png")
 
 function Test:Precondition_AddSubMenu()
   --mobile side: sending AddSubMenu request
@@ -87,7 +79,7 @@ function Test:Precondition_AddSubMenu()
   :Do(function(_,data)
     --hmi side: sending UI.AddSubMenu response
     self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-  end)		
+  end)    
   --mobile side: expect AddSubMenu response
   EXPECT_RESPONSE(cor_id_add_submenu, { success = true, resultCode = "SUCCESS" })
   --mobile side: expect OnHashChange notification
@@ -99,9 +91,9 @@ function Test:Precondition_AddCommand()
   local cid_add_cmd = self.mobileSession:SendRPC("AddCommand",
   {
     cmdID = 11,
-    menuParams = 	
+    menuParams =  
     { 
-      parentID = 1,
+      parentID = 0,
       position = 0,
       menuName ="Commandpositive"
     }, 
@@ -110,7 +102,7 @@ function Test:Precondition_AddCommand()
       "VRCommandonepositive",
       "VRCommandonepositivedouble"
     }, 
-    cmdIcon = 	
+    cmdIcon =   
     { 
       value ="icon.png",
       imageType ="DYNAMIC"
@@ -127,7 +119,7 @@ function Test:Precondition_AddCommand()
     },
     menuParams = 
     { 
-      parentID = 1,	
+      parentID = 0, 
       position = 0,
       menuName ="Commandpositive"
     }
@@ -135,7 +127,7 @@ function Test:Precondition_AddCommand()
   :Do(function(_,data)
     --hmi side: sending UI.AddCommand response
     self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-  end)	
+  end)  
   --hmi side: expect VR.AddCommand request
   EXPECT_HMICALL("VR.AddCommand", 
   { 
@@ -145,8 +137,7 @@ function Test:Precondition_AddCommand()
     {
       "VRCommandonepositive", 
       "VRCommandonepositivedouble"
-    },
-    grammarID = 123
+    }
   })
   :Do(function(_,data)
     self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
@@ -159,12 +150,12 @@ end
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
-function Test:TestStep_DeleteCommand()
+function Test:TestStep_DeleteCommand_warning()
   --mobile side: sending DeleteCommand request
   local cid_del_cmd = self.mobileSession:SendRPC("DeleteCommand",
   {
     cmdID = 11
-  })	
+  })  
   --hmi side: expect UI.DeleteCommand request
   EXPECT_HMICALL("UI.DeleteCommand", 
   { 
@@ -174,19 +165,18 @@ function Test:TestStep_DeleteCommand()
   :Do(function(_,data)
     --hmi side: sending UI.DeleteCommand response
     self.hmiConnection:SendResponse(data.id, "UI.DeleteCommand", "SUCCESS", {})
-  end)	
+  end)  
   --hmi side: expect VR.DeleteCommand request
   EXPECT_HMICALL("VR.DeleteCommand", 
   { 
     cmdID = 11,
-    type = "Choice",
-    grammarID = 123,
-    appID = self.applications["Test Application"]
+    type = "Command",
+    appID = self.applications[config.application1.registerAppInterfaceParams.appName]
   })
   :Do(function(_,data)
     --hmi side: sending VR.DeleteCommand response
     self.hmiConnection:SendResponse(data.id, "VR.DeleteCommand", "WARNINGS", {})
-  end)				
+  end)        
   EXPECT_RESPONSE(cid_del_cmd, { success = true, resultCode = "WARNINGS" })
   EXPECT_NOTIFICATION("OnHashChange")
 end
