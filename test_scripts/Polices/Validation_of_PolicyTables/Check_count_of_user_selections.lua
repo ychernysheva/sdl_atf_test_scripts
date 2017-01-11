@@ -160,7 +160,7 @@ function Test:TestStep2_Check_count_of_rejections_duplicate_name_incremented_in_
   if CountOfRejectionsDuplicateName == '1' then
     return true
   else
-    self:FailTestCase("Wrong count_of_run_attempts_while_revoked. Expected: " .. 1 .. ", Actual: " .. CountOfRejectionsDuplicateName)
+    self:FailTestCase("Wrong count_of_rejections_duplicate_name. Expected: " .. 1 .. ", Actual: " .. CountOfRejectionsDuplicateName)
   end
 end
 
