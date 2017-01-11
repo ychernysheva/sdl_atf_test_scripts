@@ -32,45 +32,34 @@ local commonFunctions = require ('user_modules/shared_testcases/commonFunctions'
 require('user_modules/AppTypes')
 
 --[[ General Precondition before ATF start ]]
+commonFunctions:SDLForceStop()
 commonSteps:DeleteLogsFiles()
 commonSteps:DeletePolicyTable()
 
 --[[ Local Variables ]]
-local pathToSnapshot
 local appID = config.application1.registerAppInterfaceParams["appID"]
 local countAppActivation
-
---[[ Local Functions ]]
-local function GetCountOfUserSelectionsFromPTS(pathToFile)
-  local file = io.open(pathToFile, "r")
-  local json_data = file:read("*all") -- may be abbreviated to "*a";
-  file:close()
-  local json = require("modules/json")
-  local data = json.decode(json_data)
-  local userSelectionsCounteFromPTS = data.policy_table.usage_and_error_counts.app_level[appID].count_of_user_selections
-  return userSelectionsCounteFromPTS
-end
 
 --[[ Preconditions ]]
 function Test:Precondition_Activate_App_Consent_Device()
   local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", {appID = self.applications["Test Application"]})
   EXPECT_HMIRESPONSE(RequestId, {result = {code = 0, isSDLAllowed = false}, method = "SDL.ActivateApp"})
   :Do(function(_,_)
-    local RequestIdGetUserFriendlyMessage = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
-    EXPECT_HMIRESPONSE(RequestIdGetUserFriendlyMessage,{result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
-    :Do(function(_,_)
-      self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = "127.0.0.1"}})
-      EXPECT_HMICALL("BasicCommunication.ActivateApp")
-      :Do(function(_,data)
-        self.hmiConnection:SendResponse(data.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
-      end)
-      :Times(AtLeast(1))  
+      local RequestIdGetUserFriendlyMessage = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
+      EXPECT_HMIRESPONSE(RequestIdGetUserFriendlyMessage,{result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
+      :Do(function(_,_)
+          self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = "127.0.0.1"}})
+          EXPECT_HMICALL("BasicCommunication.ActivateApp")
+          :Do(function(_,data)
+              self.hmiConnection:SendResponse(data.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
+            end)
+          :Times(AtLeast(1))
+        end)
     end)
-  end)
   EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"})
   :Do(function()
-    countAppActivation = 1
-  end)
+      countAppActivation = 1
+    end)
 end
 
 function Test:Precondition_Deactivate_App()
@@ -89,12 +78,13 @@ end
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 function Test:TestStep_Get_New_PTS_And_Check_Counter()
-  self.hmiConnection:SendNotification("SDL.OnPolicyUpdate")
-  EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
-  :ValidIf(function(_,data)
-      pathToSnapshot = data.params.file
-      return GetCountOfUserSelectionsFromPTS(pathToSnapshot) == countAppActivation
-    end)
+  local query = "select count_of_user_selections from app_level where application_id = '" .. appID .. "'"
+  local CountOfRejectionsDuplicateName = commonFunctions:get_data_policy_sql(config.pathToSDL.."/storage/policy.sqlite", query)[1]
+  if CountOfRejectionsDuplicateName == tostring(countAppActivation) then
+    return true
+  else
+    self:FailTestCase("Wrong count_of_user_selections. Expected: " .. countAppActivation .. ", Actual: " .. CountOfRejectionsDuplicateName)
+  end
 end
 
 --[[ Postcondition ]]
