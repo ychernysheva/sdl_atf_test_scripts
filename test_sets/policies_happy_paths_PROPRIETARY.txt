@@ -14,7 +14,6 @@
 ./test_scripts/Polices/build_options/ATF_PTU_Trigger_days.lua
 ./test_scripts/Polices/build_options/ATF_transfer_SystemRequest_from_app_to_HMI.lua
 ./test_scripts/Polices/build_options/ATF_P_timeout_countdown_start_PROPRIETARY.lua
-./test_scripts/Polices/build_options/ATF_Start_PTU_retry_sequence.lua APPLINK-31286
 ./test_scripts/Polices/build_options/ATF_P_Check_STATUS_vai_USER_Request.lua
 ./test_scripts/Polices/build_options/001_ATF_P_TC_SDL_Build_Flag_DEXTENDED_POLICY_PROPRIETARY.lua
 ./test_scripts/Polices/build_options/ATF_Check_SDL_respond_GetURLs_Request_fromHMI_PROPRIETARY.lua APPLINK-31278
