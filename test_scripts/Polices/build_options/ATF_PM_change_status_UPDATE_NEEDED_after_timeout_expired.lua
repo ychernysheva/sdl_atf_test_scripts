@@ -25,6 +25,7 @@ local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 
 --[[ General Precondition before ATF start ]]
+commonFunctions:SDLForceStop()
 commonSteps:DeleteLogsFileAndPolicyTable()
 
 --[[ General Settings for configuration ]]
@@ -67,7 +68,7 @@ local function timestamp()
 end
 
 local function policyUpdate(self)
-  local pathToSnaphot = "/tmp/fs/mp/images/ivsu_cache/ptu.json"
+  local pathToSnaphot = "files/ptu.json"
   local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
   EXPECT_HMIRESPONSE(RequestIdGetURLS)
   :Do(function(_,_)
