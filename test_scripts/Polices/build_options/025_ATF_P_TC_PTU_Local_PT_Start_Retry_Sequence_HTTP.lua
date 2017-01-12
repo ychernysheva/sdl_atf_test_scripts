@@ -26,6 +26,7 @@
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 
 --[[ Required Shared libraries ]]
+local mobile_session = require("mobile_session")
 local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
 local commonSteps = require("user_modules/shared_testcases/commonSteps")
 
@@ -83,29 +84,51 @@ commonFunctions:SDLForceStop()
 commonSteps:DeleteLogsFileAndPolicyTable()
 
 --[[ General Settings for configuration ]]
-Test = require("connecttest")
+Test = require("user_modules/connecttest_resumption")
 require('cardinalities')
 require("user_modules/AppTypes")
 
 config.defaultProtocolVersion = 2
 
---[[ Specific Notifications ]]
-EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate")
-:Do(function(_, d)
-    log("SDL->HMI: SDL.OnStatusUpdate", d.params.status)
-    table.insert(r_actual_status, d.params.status)
-  end)
-:Times(AnyNumber())
-:Pin()
+--[[ Preconditions ]]
+commonFunctions:newTestCasesGroup("Preconditions")
 
-function Test:RegisterEvents()
-  self.mobileSession:ExpectNotification("OnSystemRequest")
-  :Do(function()
-      log("SDL->MOB: OnSystemRequest")
-      table.insert(timestamps, os.time())
+function Test:ConnectMobile()
+  self:connectMobile()
+end
+
+function Test:StartSession()
+  self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
+  self.mobileSession:StartService(7)
+end
+
+function Test:RAI()
+  local corId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application1.registerAppInterfaceParams.appName } })
+  :Do(
+    function(_, d1)
+      self.applications[config.application1.registerAppInterfaceParams.appID] = d1.params.application.appID
+      EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate")
+      :Do(
+        function(_, d2)
+          log("SDL->HMI: SDL.OnStatusUpdate", d2.params.status)
+          table.insert(r_actual_status, d2.params.status)
+        end)
+      :Times(AnyNumber())
+      :Pin()
+      self.mobileSession:ExpectNotification("OnSystemRequest")
+      :Do(
+        function(_, d2)
+          if d2.payload.requestType == "HTTP" then
+            log("SDL->MOB: OnSystemRequest")
+            table.insert(timestamps, os.time())
+          end
+        end)
+      :Times(AnyNumber())
+      :Pin()
     end)
-  :Times(AnyNumber())
-  :Pin()
+  self.mobileSession:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
+  self.mobileSession:ExpectNotification("OnHMIStatus", { hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN" })
 end
 
 --[[ Test ]]
@@ -122,7 +145,7 @@ end
 function Test.TestStep_ShowTimeouts()
   print("--- Seconds between retries ----------------------")
   r_actual = timestamps[2] - timestamps[1]
-  print(r_actual)
+  print(tostring(r_actual))
   print("--------------------------------------------------")
 end
 
