@@ -60,3 +60,4 @@ policies_happy_paths_PROPRIETARY
 ./test_scripts/Polices/build_options/008_ATF_P_TC_REQUEST_PTU_UPDATE_NEEDED_new_PTU_REQUEST_HTTP.lua APPLINK-30938
 ./test_scripts/Polices/build_options/006_ATF_P_TC_PTU_Trigger_IGN_Cycles_HTTP.lua APPLINK-30938
 ./test_scripts/Polices/build_options/039_ATF_P_TC_PTU_HMI_Level_Affected_Apps_FULL_LIMITED_HTTP.lua APPLINK-30938
+./test_scripts/Polices/build_options/P_ATF_Register_NewApp_not_exist_inLocalPT_FinishPTU_PROPRIETARY.lua APPLINK-30938
