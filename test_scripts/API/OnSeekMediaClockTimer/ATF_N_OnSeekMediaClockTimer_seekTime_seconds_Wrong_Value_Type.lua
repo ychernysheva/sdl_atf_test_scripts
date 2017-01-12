@@ -79,7 +79,7 @@ end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
-function Test:TestStep_OnSeekMediaClockTimer_With_Wrong_seconds_Value_Type_appID()
+function Test:TestStep_OnSeekMediaClockTimer_With_Wrong_seconds_Value_Type()
  self.hmiConnection:SendNotification("UI.OnSeekMediaClockTimer",{seekTime =  {hours = 30, minutes = 30, seconds = "string"}, appID = self.applications["Test Application"]})
 
  EXPECT_NOTIFICATION("OnSeekMediaClockTimer"):Times(0)
