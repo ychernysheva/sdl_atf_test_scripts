@@ -14,7 +14,7 @@
 -- Activate app
 --
 -- Expected result:
--- PoliciesManager must provide to HMI the app`s priority value(NONE) taken from "priority" field in "pre_DataConsent" section of PolicyTable
+-- PoliciesManager must not provide to HMI the app`s priority value
 ---------------------------------------------------------------------------------------------
 
 --[[ General configuration parameters ]]
@@ -31,6 +31,7 @@ local testCasesForPolicyTable = require('user_modules/shared_testcases/testCases
 commonSteps:DeleteLogsFileAndPolicyTable()
 testCasesForPolicyTable.Delete_Policy_table_snapshot()
 commonPreconditions:Connecttest_without_ExitBySDLDisconnect_WithoutOpenConnectionRegisterApp("connecttest_connect_device.lua")
+commonPreconditions:BackupFile("sdl_preloaded_pt.json")
 --TODO(istoimenova): shall be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
 config.defaultProtocolVersion = 2
 
@@ -91,11 +92,9 @@ function Test:TestStep2_Priority_NONE_ActivateApp()
       if data.result.priority ~= nil then
         commonFunctions:userPrint(31, "Error: wrong behavior of SDL - priority should be omitted")
       end
+      EXPECT_NOTIFICATION("OnHMIStatus", {}):Times(0)
+      EXPECT_HMICALL("BasicCommunication.ActivateApp"):Times(0)
     end)
-  EXPECT_HMICALL("BasicCommunication.ActivateApp"):Times(0)
-  EXPECT_NOTIFICATION("OnHMIStatus", {}):Times(0)
-
-  -- EXPECT_HMICALL("BasicCommunication.UpdateAppList",{applications = { {appName = config.application1.registerAppInterfaceParams.appName}}})
 end
 
 function Test:Precondition_Check_priority_pre_DataConsent()
@@ -129,11 +128,12 @@ function Test:Precondition_Check_priority_pre_DataConsent()
   if(is_predata ~= "1") then
     self:FailTestCase("Application is not assigned to pre_DataConsent, is_predata = "..priority_id)
   end
-
 end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
+testCasesForPolicyTable:Restore_preloaded_pt()
+
 function Test.Postcondition_SDLStop()
   StopSDL()
 end
