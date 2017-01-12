@@ -343,27 +343,34 @@ function Test:Precondition_StartSDL()
   StartSDL(config.pathToSDL, config.ExitOnCrash, self)
 end
 
-function Test:Precondition_InitHMIandMobileApp()
+function Test:Precondition_InitHMI()
   self:initHMI()
+end
+
+function Test:Precondition_InitHMI_onReady()
   self:initHMI_onReady()
+end
+
+function Test:Precondition_ConnectMobile()
   self:connectMobile()
+end
+
+function Test:Precondition_StartMobileSession()
   self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
+  self.mobileSession:StartService(7)
 end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
 function Test:RegisterApp()
-  self.mobileSession:StartService(7)
-  :Do(function (_,_)
-      local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", TESTED_DATA.application.registerAppInterfaceParams)
-      EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
-      :Do(function(_,data)
-          HMIAppId = data.params.application.appID
-        end)
-      EXPECT_RESPONSE(correlationId, { success = true })
-      EXPECT_NOTIFICATION("OnPermissionsChange")
+  local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", TESTED_DATA.application.registerAppInterfaceParams)
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
+  :Do(function(_,data)
+      HMIAppId = data.params.application.appID
     end)
+  EXPECT_RESPONSE(correlationId, { success = true })
+  EXPECT_NOTIFICATION("OnPermissionsChange")
 end
 
 function Test.AppInNoneNMinutes()
@@ -394,22 +401,29 @@ end
 
 function Test:InitHMI()
   self:initHMI()
+end
+
+function Test:InitHMI_onReady()
   self:initHMI_onReady()
+end
+
+function Test:ConnectMobile()
   self:connectMobile()
+end
+
+function Test:StartMobileSession()
   self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
+  self.mobileSession:StartService(7)
 end
 
 function Test:RegisterApp2()
-  self.mobileSession:StartService(7)
-  :Do(function (_,_)
-      local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", TESTED_DATA.application.registerAppInterfaceParams)
-      EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
-      :Do(function(_,data)
-          HMIAppId = data.params.application.appID
-        end)
-      EXPECT_RESPONSE(correlationId, { success = true })
-      EXPECT_NOTIFICATION("OnPermissionsChange")
+  local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", TESTED_DATA.application.registerAppInterfaceParams)
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
+  :Do(function(_,data)
+      HMIAppId = data.params.application.appID
     end)
+  EXPECT_RESPONSE(correlationId, { success = true })
+  EXPECT_NOTIFICATION("OnPermissionsChange")
 end
 
 function Test.AppInNoneXMinutes()
@@ -458,7 +472,7 @@ end
 commonFunctions:newTestCasesGroup("Postconditions")
 
 function Test.Postcondition()
-  --commonSteps:DeletePolicyTable()
+  commonSteps:DeletePolicyTable()
   Test.restorePreloadedPT("backup_")
   TestData:info()
 end
