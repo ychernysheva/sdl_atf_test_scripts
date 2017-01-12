@@ -455,8 +455,6 @@ function Test:updatePolicyInDifferentSessions(PTName, appName, mobileSession)
   end
 
   function Test:UpdatePolicy_ExpectOnAppPermissionChangedWithAppID()
-    EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
-
     -- ToDo (aderiabin): This function must be replaced by call
     -- testCasesForPolicyTable:updatePolicyInDifferentSessions(Test, ptuAppRegistered,
     -- config.application1.registerAppInterfaceParams.appName,
@@ -468,6 +466,7 @@ function Test:updatePolicyInDifferentSessions(PTName, appName, mobileSession)
   end
 
   function Test:CheckPTUinLocalPT()
+    os.execute("sleep 5")
     -- TestData:store("Store PT snapshot before its testing", realPathToSnapshot, CORRECT_LINUX_PATH_TO_POLICY_SNAPSHOT_FILE)
     -- if (not self:checkPtsFile()) or (not self:checkSdl()) then
     -- self:FailTestCase()
