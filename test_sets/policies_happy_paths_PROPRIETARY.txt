@@ -5,7 +5,6 @@
 ./test_scripts/Polices/build_options/ATF_PolicyManager_changes_status_to_UPDATING_PROPRIETARY.lua APPLINK-31273
 ./test_scripts/Polices/build_options/ATF_P_OnStatusUpdate_Trigger_PROPRIETARY.lua APPLINK-31037
 ./test_scripts/Polices/build_options/ATF_P_Timeout_wait_response_PTU_PROPRIETARY.lua APPLINK-31278
-./test_scripts/Polices/build_options/P_ATF_Register_NewApp_not_exist_inLocalPT_FinishPTU_PROPRIETARY.lua APPLINK-30938
 ./test_scripts/Polices/build_options/ATF_P_Transfer_OnSystemRequest_toApp_PROPRIETARY.lua
 ./test_scripts/Polices/build_options/ATF_transfer_SystemRequest_from_HMI_to_app_PROPRIETARY.lua
 ./test_scripts/Polices/build_options/ATF_PM_change_status_UPDATE_NEEDED_after_timeout_expired.lua APPLINK-31037
