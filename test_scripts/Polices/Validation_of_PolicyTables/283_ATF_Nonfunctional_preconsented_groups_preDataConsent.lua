@@ -17,7 +17,6 @@
 ---------------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
---[ToDo: should be removed when fixed: "ATF does not stop HB timers by closing session and connection"
 config.defaultProtocolVersion = 2
 
 --[[ Required Shared libraries ]]
@@ -98,12 +97,7 @@ function Test:TestStep_StartSDL()
 end
 
 function Test.TestStep_Validate_wrong_preconsented_groups_Preloaded()
-  --TODO(istoimenova): Should be checked when ATF problem is fixed with SDL crash
   EXPECT_HMINOTIFICATION("BasicCommunication.OnSDLClose"):Times(0)
-  -- local result = testCasesForPolicySDLErrorsStops:CheckSDLShutdown(self)
-  -- if (result == false) then
-  -- self:FailTestCase("Error: SDL doesn't stop.")
-  -- end
 end
 
 function Test:TestStep_CheckSDLLogError()
@@ -116,12 +110,12 @@ end
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
 
-function Test.Postcondition_Restore_preloaded()
-  Restore_preloaded()
-end
-
 function Test.Postcondition_SDLStop()
   StopSDL()
+end
+
+function Test.Postcondition_Restore_preloaded()
+  Restore_preloaded()
 end
 
 return Test
