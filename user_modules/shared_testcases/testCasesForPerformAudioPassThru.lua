@@ -17,13 +17,13 @@ function testCasesForPerformAudioPassThru:Check_audioPassThruIcon_Existence(self
   local result1 = commonSteps:file_exists(PathToAppFolder .. string.rep ("a", 251).. ".png")
   local result2 = commonSteps:file_exists(PathToAppFolder .. "")
   if(result == true) then
-    print("audioPassThruIcon exists at application's sandbox")
+    print("The audioPassThruIcon exists at application's sandbox")
   elseif (result1 == true) then
-    print("audioPassThruIcon exists at application's sandbox") 
+    print("The audioPassThruIcon exists at application's sandbox")
   elseif (result2 == true) then
-    print("audioPassThruIcon exists at application's sandbox") 
+    print("The audioPassThruIcon exists at application's sandbox")
   else
-    self:FailTestCase ("audioPassThruIcon does not exist at application's sandbox!")
+    self:FailTestCase ("The audioPassThruIcon does not exist at application's sandbox!")
   end
 end
 
@@ -72,9 +72,9 @@ function testCasesForPerformAudioPassThru:PerformAudioPassThru_AllParameters_SUC
       audioType = "PCM",
       muteAudio = true,
       audioPassThruIcon =
-        { value = "icon.png",
-          imageType = "STATIC"
-        }
+      { value = "icon.png",
+        imageType = "STATIC"
+      }
     })
 
   -- hmi expects TTS.Speak request
@@ -144,13 +144,13 @@ end
 function testCasesForPerformAudioPassThru:PerformAudioPassThru_AllParameters_Upper_SUCCESS(self)
   local CorIdPerformAudioPassThruAppParVD= self.mobileSession:SendRPC("PerformAudioPassThru",
     {
- 	  initialPrompt =
-				      {
-				        {
-				          text = string.rep("a", 500),
-				          type = "TEXT",
-				        }
-				      },
+      initialPrompt =
+      {
+        {
+          text = string.rep("a", 500),
+          type = "TEXT",
+        }
+      },
       audioPassThruDisplayText1 = string.rep("a", 500),
       audioPassThruDisplayText2 = string.rep("a", 500),
       samplingRate = "44KHZ",
@@ -159,9 +159,9 @@ function testCasesForPerformAudioPassThru:PerformAudioPassThru_AllParameters_Upp
       audioType = "PCM",
       muteAudio = true,
       audioPassThruIcon =
-        { value = string.rep ("a", 251).. ".png",
-          imageType = "STATIC"
-        }
+      { value = string.rep ("a", 251).. ".png",
+        imageType = "STATIC"
+      }
     })
 
   -- hmi expects TTS.Speak request
@@ -247,9 +247,9 @@ function testCasesForPerformAudioPassThru:PerformAudioPassThru_AllParameters_Low
       audioType = "PCM",
       muteAudio = true,
       audioPassThruIcon =
-        { value = "",
-          imageType = "STATIC"
-        }
+      { value = "",
+        imageType = "STATIC"
+      }
     })
 
   -- hmi expects TTS.Speak request
@@ -324,31 +324,121 @@ function testCasesForPerformAudioPassThru:PerformAudioPassThru_MandatoryParamete
       bitsPerSample = "16_BIT",
       audioType = "PCM",
       audioPassThruIcon =
-        { value = "icon.png",
-          imageType = "STATIC"
-        }
+      { value = "icon.png",
+        imageType = "STATIC"
+      }
     })
 
-   -- hmi expects UI.PerformAudioPassThru request
+  -- hmi expects UI.PerformAudioPassThru request
   EXPECT_HMICALL("UI.PerformAudioPassThru",
     {
       appID = self.applications[applicationName],
       audioPassThruDisplayTexts = {
         {fieldName = "audioPassThruDisplayText1", fieldText = ""},
         {fieldName = "audioPassThruDisplayText2", fieldText = ""},
-      },      
+      },
       maxDuration = 500500,
       muteAudio = true,
       audioPassThruIcon = { imageType = "STATIC", value = "icon.png"}
 
     })
   :Do(function(_,data)
+      self.hmiConnection:SendResponse(data.id, "UI.PerformAudioPassThru", "SUCCESS", {})
+    end)
+
+  self.mobileSession:ExpectResponse(CorIdPerfAudioPassThruOnlyMandatoryVD, { success = true, resultCode = "SUCCESS",
+    })
+
+end
+
+function testCasesForPerformAudioPassThru:PerformAudioPassThru_Diff_Speech_Capabilities(self, ttsChunksType_value)
+  local ttsChunksType_array = {
+    {text = "4025",type = "PRE_RECORDED"},
+    {text = "Sapi",type = "SAPI_PHONEMES"},
+    {text = "LHplus", type = "LHPLUS_PHONEMES"},
+    {text = "Silence", type = "SILENCE"}
+  }
+  local ttsChunksType = {}
+	
+	for i = 1, #ttsChunksType_array do
+	    -- print (ttsChunksType_array[i].type)
+	    if(ttsChunksType_array[i].type == ttsChunksType_value) then
+	      --print("IN"..i)
+	      ttsChunksType = ttsChunksType_array[i]
+	    end
+	  end
+  
+  print(ttsChunksType.type, ttsChunksType.text)
+
+  if ( (ttsChunksType.type == "PRE_RECORDED") or
+    (ttsChunksType.type == "SAPI_PHONEMES") or
+    (ttsChunksType.type == "LHPLUS_PHONEMES") or
+    (ttsChunksType.type == "SILENCE")
+  )
+  then
+  --print ("IN")
+    local CorIdPerformAudioPassThruSpeechCap = self.mobileSession:SendRPC("PerformAudioPassThru",
+      {
+        initialPrompt = {
+				          {
+				            text = ttsChunksType.text,
+				            type = ttsChunksType.type
+				          },
+
+        				},
+        audioPassThruDisplayText1 = "DisplayText1",
+        audioPassThruDisplayText2 = "DisplayText2",
+        samplingRate = "8KHZ",
+        maxDuration = 2000,
+        bitsPerSample = "8_BIT",
+        audioType = "PCM",
+        muteAudio = true,
+	        audioPassThruIcon =
+	        { value = "icon.png",
+	          imageType = "STATIC"
+	        }
+
+      })
+
+    --hmi side: expect for TTS.Speak
+    EXPECT_HMICALL("TTS.Speak",
+      {
+        ttsChunks =
+        {
+
+          {
+            text = ttsChunksType.text,
+            type = ttsChunksType.type
+          },
+        }
+
+      })
+    :Do(function(_,data)
+
+        self.hmiConnection:SendResponse(data.id, "TTS.Speak", "UNSUPPORTED_RESOURCE", { })
+
+      end)
+
+    --hmi side: expect for UI.PerformAudioPassThru
+    EXPECT_HMICALL("UI.PerformAudioPassThru",
+      {
+        appID = self.applications[applicationName],
+        audioPassThruDisplayTexts = {
+          {fieldName = "audioPassThruDisplayText1", fieldText = "DisplayText1"},
+          {fieldName = "audioPassThruDisplayText2", fieldText = "DisplayText2"},
+        },
+        maxDuration = 2000,
+        muteAudio = true,
+        audioPassThruIcon = { imageType = "STATIC", value = "icon.png"}
+      })
+    :Do(function(_,data)
         self.hmiConnection:SendResponse(data.id, "UI.PerformAudioPassThru", "SUCCESS", {})
       end)
 
-  self.mobileSession:ExpectResponse(CorIdPerfAudioPassThruOnlyMandatoryVD, { success = true, resultCode = "SUCCESS", 
-    })
-
+    self.mobileSession:ExpectResponse(CorIdPerformAudioPassThruSpeechCap, { success = true, resultCode = "WARNINGS"})
+  else 
+  	print ("Unexpected TTS.Chunks type")
+  end
 end
 
 return testCasesForPerformAudioPassThru
