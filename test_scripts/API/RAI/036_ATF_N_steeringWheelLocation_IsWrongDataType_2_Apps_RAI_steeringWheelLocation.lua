@@ -219,7 +219,7 @@ function Test:TestStep_RAI_SecondApp_steeringWheelLocation()
 	local CorIdRegister = self.mobileSession1:SendRPC("RegisterAppInterface", config.application2.registerAppInterfaceParams)
 		
 	EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application2.registerAppInterfaceParams.appName }})
-	self.mobileSession1:ExpectResponse(CorIdRegister, { success=true, resultCode = "SUCCESS", steeringWheelLocation = value_steering_wheel_location })
+	self.mobileSession1:ExpectResponse(CorIdRegister, { success=true, resultCode = "SUCCESS", hmiCapabilities = { steeringWheelLocation = value_steering_wheel_location } })
 	self.mobileSession1:ExpectNotification("OnHMIStatus", { systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE"})
 end
 
