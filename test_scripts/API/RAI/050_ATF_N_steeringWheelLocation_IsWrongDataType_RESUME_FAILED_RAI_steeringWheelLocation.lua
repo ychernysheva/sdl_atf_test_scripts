@@ -253,7 +253,7 @@ function Test:TestStep_RAI_RESUME_FAILED_steeringWheelLocation()
 	EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application1.registerAppInterfaceParams.appName }})
 	EXPECT_HMICALL("BasicCommunication.ActivateApp", {})
 	:Do(function(_,data) self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {}) end)
-	EXPECT_RESPONSE(CorIdRegister, { success = true, resultCode = "RESUME_FAILED", steeringWheelLocation = value_steering_wheel_location })
+	EXPECT_RESPONSE(CorIdRegister, { success = true, resultCode = "RESUME_FAILED", hmiCapabilities = { steeringWheelLocation = value_steering_wheel_location } })
 
 	EXPECT_NOTIFICATION("OnHMIStatus", 
 		{systemContext="MAIN", hmiLevel="NONE", audioStreamingState="NOT_AUDIBLE"}, 
