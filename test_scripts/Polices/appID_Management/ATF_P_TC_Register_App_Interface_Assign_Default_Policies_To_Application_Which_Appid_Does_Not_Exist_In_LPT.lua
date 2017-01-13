@@ -24,7 +24,6 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
 local commonSteps = require("user_modules/shared_testcases/commonSteps")
 
-
 --[[ Local Variables ]]
 local db_file = config.pathToSDL .. "/" .. commonFunctions:read_parameter_from_smart_device_link_ini("AppStorageFolder") .. "/policy.sqlite"
 local r_expected = { }
@@ -104,36 +103,25 @@ function Test:TestStep_ActivateApp()
           end)
       end
     end)
+  os.execute("sleep 1")
+end
 
+function Test.StopSDL()
+  StopSDL()
 end
 
 function Test.TestStep_FetchLPTDB()
+  os.execute("sleep 3")
   local query = "select fg.name from app_group ag inner join functional_group fg on fg.id = ag.functional_group_id where ag.application_id = "
-  local i = 1
-  while(#r_expected == 0) do
-    r_expected = execute_sqlite_query(db_file, query .. '"default"')
-    r_actual = execute_sqlite_query(db_file, query .. '"0000001"')
-    print("Waiting " .. i .. "s")
-    os.execute("sleep 1")
-    i = i + 1
+  r_expected = execute_sqlite_query(db_file, query .. '"default"')
+  r_actual = execute_sqlite_query(db_file, query .. '"0000001"')
+end
+
+function Test.TestStep_ValidateResult()
+  if not is_array_equal(r_expected, r_actual) then
+    return false, "\nExpected groups:\n" .. commonFunctions:convertTableToString(r_expected, 1) .. "\nActual groups:\n" .. commonFunctions:convertTableToString(r_actual, 1)
   end
-end
-
-function Test:TestStep_ValidateResult()
-  self.mobileSession:ExpectAny()
-  :ValidIf(function(_, _)
-      if not is_array_equal(r_expected, r_actual) then
-        return false, "\nExpected groups:\n" .. commonFunctions:convertTableToString(r_expected, 1) .. "\nActual groups:\n" .. commonFunctions:convertTableToString(r_actual, 1)
-      end
-      return true
-    end)
-  :Times(1)
-end
-
---[[ Postconditions ]]
-commonFunctions:newTestCasesGroup("Postconditions")
-function Test.Postcondition_StopSDL()
-  StopSDL()
+  return true
 end
 
 return Test
