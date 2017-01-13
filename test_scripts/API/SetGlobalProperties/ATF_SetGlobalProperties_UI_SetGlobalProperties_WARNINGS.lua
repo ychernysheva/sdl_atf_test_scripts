@@ -3,16 +3,16 @@
 -- SDL must send WARNINGS (success:true) to mobile app in case HMI respond WARNINGS at least to one HMI-portions
 --
 -- Description:
--- test is intended to check that SDL sends WARNINGS (success:true) to mobile app in case HMI respond WARNINGS to at least one HMI-portions
+-- test is intended to check that SDL sends WARNINGS (success:true) to mobile app in case HMI respond WARNINGS to at least one component of RPC
 -- in this test case when UI.SetGlobalProperties gets WARNINGS is checked
--- 1. Used preconditions: App is activated and registered SUCESSFULLY
+-- 1. Used preconditions: App is activated and registered SUCCESSFULLY
 -- 2. Performed steps: 
 -- MOB -> SDL: sends SetGlobalProperties
--- SDL -> HMI: resends UI.SetGlobalProperties with imageType if vrHelp which is not supported by HMI, and TTS.SetGlobalProperties with all valid params
+-- SDL -> HMI: resends UI.SetGlobalProperties
 -- HMI -> SDL: VR.SetGlobalProperties (WARNINGS), TTS.SetGlobalProperties (SUCCESS)
 --
 -- Expected result:
--- SDL -> MOB: appID: (WARNINGS, success: true: SetGlobalProperties)
+-- SDL -> MOB: SetGlobalProperties (resultcode: WARNINGS, success: true)
 ---------------------------------------------------------------------------------------------
 
 --[[ General configuration parameters ]]
@@ -25,10 +25,12 @@ local commonSteps = require ('user_modules/shared_testcases/commonSteps')
 
 --[[ Local Variables ]]
 local storagePath = config.SDLStoragePath..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
-local ServerAddress = commonFunctions.read_parameter_from_smart_device_link_ini("ServerAddress")
+local ServerAddress = commonFunctions:read_parameter_from_smart_device_link_ini("ServerAddress")
 
 --[[ General Precondition before ATF start ]]
 commonFunctions:SDLForceStop()
+commonSteps:DeleteLogsFiles()
+commonSteps:DeletePolicyTable()
 
 --[[ General Settings for configuration ]]
 Test = require('connecttest')
@@ -47,14 +49,17 @@ function Test:Precondition_ActivationApp()
       :Do(function(_,_)		
         self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = ServerAddress}})
         EXPECT_HMICALL("BasicCommunication.ActivateApp")
-        :Do(function(_,_)
-          self.hmiConnection:SendResponse(data.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
+        :Do(function(_,data1)
+          self.hmiConnection:SendResponse(data1.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
         end)
-        :Times(1)
       end)
     end
   end)
   EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"}) 
+end
+
+function Test.Precondition_PutFile()
+  commonSteps:PutFile("Precondition_PutFile", "action.png")
 end
 
 --[[ Test ]]
@@ -103,7 +108,7 @@ function Test:TestStep_SetGlobalProperties_WARNINGS()
 		timeoutPrompt = 
 		{{
 				text = "Timeout prompt",
-				type = "SAPI_PHONEMES"
+				type = "TEXT"
 			}},
 		helpPrompt = 
 		{{
@@ -112,11 +117,21 @@ function Test:TestStep_SetGlobalProperties_WARNINGS()
 			}},
 		appID = self.applications["Test Application"]
 	})
+
+	:ValidIf(function(_,data)
+	  local value_Icon = storagePath .. "action.png"
+		if (string.match(data.params.cmdIcon.value, "%S*" .. "("..string.sub(storagePath, 2).."action.png)" .. "$") == nil ) then
+		  print("\27[31m value of menuIcon is WRONG. Expected: ~".. value_Icon .. "; Real: " .. data.params.cmdIcon.value .. "\27[0m")
+		return false
+	  else
+		return true
+	  end
+	end)
+
 	:Do(function(_,data)
 		self.hmiConnection:SendResponse(data.id, "TTS.SetGlobalProperties", "SUCCESS", {})
 	end)
-	
-	--hmi side: expect UI.SetGlobalProperties request
+		--hmi side: expect UI.SetGlobalProperties request
 	EXPECT_HMICALL("UI.SetGlobalProperties",
 	{
 	    vrHelpTitle = "VR help title",
@@ -125,7 +140,7 @@ function Test:TestStep_SetGlobalProperties_WARNINGS()
 				position = 1,
 				image = 
 				{
-					imageType = "STATIC",
+					imageType = "DYNAMIC",
 					value = storagePath .. "action.png"
 				},
 				text = "VR help item"
@@ -133,7 +148,7 @@ function Test:TestStep_SetGlobalProperties_WARNINGS()
 		menuTitle = "Menu Title",
 		menuIcon = 
 		{
-			imageType = "STATIC",
+			imageType = "DYNAMIC",
 			value = storagePath .. "action.png"
 		},
 		keyboardProperties = 
@@ -143,8 +158,19 @@ function Test:TestStep_SetGlobalProperties_WARNINGS()
 		},
 		appID = self.applications[config.application1.registerAppInterfaceParams.appName]
 	})
+
+	:ValidIf(function(_,data)
+	  local value_Icon = storagePath .. "action.png"
+		if (string.match(data.params.cmdIcon.value, "%S*" .. "("..string.sub(storagePath, 2).."action.png)" .. "$") == nil ) then
+		  print("\27[31m value of menuIcon is WRONG. Expected: ~".. value_Icon .. "; Real: " .. data.params.cmdIcon.value .. "\27[0m")
+		return false
+	  else
+		return true
+	  end
+	end)		
+
 	:Do(function(_,data)
-		self.hmiConnection:SendResponse(data.id, "UI.SetGlobalProperties", "UNSUPPORTED_RESOURCE", {})
+		self.hmiConnection:SendResponse(data.id, "UI.SetGlobalProperties", "WARNINGS", {})
 	end)
 	--mobile side: expect SetGlobalProperties response
 	EXPECT_RESPONSE(cid, { success = true, resultCode = "WARNINGS"})
