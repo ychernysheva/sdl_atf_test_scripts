@@ -1,18 +1,18 @@
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
--- SDL must send WARNINGS (success:true) to mobile app in case HMI respond WARNINGS at least to one HMI-portions
+-- SDL must send WARNINGS (success:true) to mobile app in case HMI respond WARNINGS at least to one component of RPC
 --
 -- Description:
 -- test is intended to check that SDL sends WARNINGS (success:true) to mobile app in case HMI respond WARNINGS to at least one HMI-portions
 -- in this test case when UI.AddCommand gets WARNINGS is checked
--- 1. Used preconditions: App is activated and registered SUCESSFULLY
+-- 1. Used preconditions: App is activated and registered SUCCESSFULLY
 -- 2. Performed steps: 
 -- MOB -> SDL: sends AddCommand
--- SDL -> HMI: resends VR.AddCommand with all valid params, UI.AddCommand with imageType of cmdIcon which is not supported by HMI
+-- SDL -> HMI: resends VR.AddCommand 
 -- HMI -> SDL: VR.AddCommand (SUCCESS), UI.AddCommand (WARNINGS)
 --
 -- Expected result:
--- SDL -> MOB: appID: (WARNINGS, success: true: AddCommand)
+-- SDL -> MOB: AddCommand (result code: WARNINGS, success: true)
 ---------------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
@@ -26,8 +26,7 @@ local commonSteps = require ('user_modules/shared_testcases/commonSteps')
 
 --[[ Local Variables ]]
 local storagePath = config.SDLStoragePath..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
-local ServerAddress = commonFunctions.read_parameter_from_smart_device_link_ini("ServerAddress") 
-local grammarIDValue
+local ServerAddress = commonFunctions:read_parameter_from_smart_device_link_ini("ServerAddress") 
 
 --[[ General Precondition before ATF start ]]
 commonFunctions:SDLForceStop()
@@ -49,10 +48,9 @@ function Test:Precondition_ActivationApp()
       :Do(function(_,_)   
         self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = ServerAddress}})
         EXPECT_HMICALL("BasicCommunication.ActivateApp")
-        :Do(function(_,_)
-          self.hmiConnection:SendResponse(data.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
+        :Do(function(_,data1)
+          self.hmiConnection:SendResponse(data1.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
         end)
-        :Times(1)
       end)
     end
   end)
@@ -64,7 +62,7 @@ commonSteps:PutFile("Precondition_PutFile", "icon.png")
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
-function Test:TestStep_AddCommand_VR_warning()
+function Test:TestStep_AddCommand_UI_warnings()
   local cid = self.mobileSession:SendRPC("AddCommand",
   {
     cmdID = 11,
@@ -82,7 +80,7 @@ function Test:TestStep_AddCommand_VR_warning()
     cmdIcon =   
     { 
       value ="icon.png",
-      imageType ="STATIC"
+      imageType ="DYNAMIC"
     }
   })
   EXPECT_HMICALL("UI.AddCommand", 
@@ -91,7 +89,7 @@ function Test:TestStep_AddCommand_VR_warning()
     cmdIcon = 
     {
       value = storagePath .."icon.png", 
-      imageType = "STATIC"
+      imageType = "DYNAMIC"
     },
     menuParams = 
     { 
@@ -112,8 +110,7 @@ function Test:TestStep_AddCommand_VR_warning()
       "VRCommandonepositive", 
       "VRCommandonepositivedouble"
     },
-    type = "Command",
-    grammarID = grammarIDValue
+    type = "Command"
   })
   :Do(function(_,data)
     grammarIDValue = data.params.grammarID
