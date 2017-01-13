@@ -22,7 +22,7 @@
 --2.3 HMI sends UI.PerformAudioPassThru (SUCCESS) to SDL
 --2.4 HMI sends TTS.Speak (UNSUPPORTED_RESOURCE) to SDL
 -- Expected result:
--- SDL sends PerformAudioPassThru (WARNINGS) to mobile app
+-- SDL sends PerformAudioPassThru (WARNINGS, success:true) to mobile app
 
 ---------------------------------------------------------------------------------------------
 
@@ -60,7 +60,7 @@ end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
-function Test:TestStep_PerformAudioPassThru_PRE_RECORDED_WARNINGS()
+function Test:TestStep_PerformAudioPassThru_PRE_SAPI_PHONEMES()
   testCasesForPerformAudioPassThru:PerformAudioPassThru_Diff_Speech_Capabilities (self, "SAPI_PHONEMES")
 end
 
