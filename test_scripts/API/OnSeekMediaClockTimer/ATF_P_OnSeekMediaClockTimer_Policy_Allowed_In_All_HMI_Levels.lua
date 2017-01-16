@@ -12,7 +12,7 @@
 -- 1. Used preconditions:
 -- a) First SDL life cycle
 -- b) OnSeekMediaClockTimer notification allowed in preloaded file for default app for all HMI levels
--- c) App successfylly registered, consented and activated
+-- c) App successfully registered, consented and activated
 --
 -- 2. Performed steps:
 -- a) HMI sends OnSeekMediaClockTimer notification to SDL in all HMI levels.
@@ -20,7 +20,6 @@
 -- Expected result:
 -- a) SDL resends OnSeekMediaClockTimer notification to mobile app for all HMI levels.
 ---------------------------------------------------------------------------------------------
-
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 --ToDo: shall be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
@@ -47,13 +46,11 @@ local function AddPermossionToPpreloadedFile()
   file:close()
   local json = require("modules/json")
   local data = json.decode(json_data)
-
   if data.policy_table.functional_groupings["DataConsent-2"] then
     data.policy_table.functional_groupings["DataConsent-2"] = {rpcs = json.null}
   end
-  -- set permissions on SetMediaClockTimer for default app
-  data.policy_table.functional_groupings["Base-4"].rpcs["OnSeekMediaClockTimer"] = {hmi_levels = {"BACKGROUND", "FULL", "LIMITED", "NONE"}}
-  
+  -- set permissions on OnSeekMediaClockTimer for default app
+  data.policy_table.functional_groupings["Base-4"].rpcs["OnSeekMediaClockTimer"] = {hmi_levels = {"BACKGROUND", "FULL", "LIMITED", "NONE"}}  
   data = json.encode(data)
   file = io.open(pathToFile, "w")
   file:write(data)
