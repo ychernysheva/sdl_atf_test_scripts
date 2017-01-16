@@ -14,7 +14,7 @@
 -- 1. Used preconditions:
 -- a) First SDL life cycle
 -- b) OnSeekMediaClockTimer notification allowed in preloaded file for default app
--- c) App successfylly registered, consented and activated
+-- c) App successfully registered, consented and activated
 --
 -- 2. Performed steps:
 -- a) HMI sends OnSeekMediaClockTimer notification to SDL with minutes lower bound value ("0") of seekTime parameter.
