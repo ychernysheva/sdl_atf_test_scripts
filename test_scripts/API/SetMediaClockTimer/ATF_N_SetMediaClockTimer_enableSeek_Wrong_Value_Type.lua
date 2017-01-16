@@ -1,6 +1,6 @@
 --------------------------------------------------------------------------------------------
 -- Requirement summary:
--- INVALID_DATA
+-- [GeneralResultCodes] INVALID_DATA wrong type
 --
 -- Description:
 -- In case the request comes to SDL with wrong type parameters (including parameters of the structures), SDL must respond with resultCode "INVALID_DATA" and success:"false" value.
@@ -43,13 +43,10 @@ local function AddPermossionToPpreloadedFile()
   file:close()
   local json = require("modules/json")
   local data = json.decode(json_data)
-
   if data.policy_table.functional_groupings["DataConsent-2"] then
-    data.policy_table.functional_groupings["DataConsent-2"] = {rpcs = json.null}
-  end
+    data.policy_table.functional_groupings["DataConsent-2"] = {rpcs = json.null}  end
   -- set permissions on SetMediaClockTimer for default app
-  data.policy_table.functional_groupings["Base-4"].rpcs["SetMediaClockTimer"] = {hmi_levels = {"BACKGROUND", "FULL", "LIMITED", "NONE"}}
-  
+  data.policy_table.functional_groupings["Base-4"].rpcs["SetMediaClockTimer"] = {hmi_levels = {"BACKGROUND", "FULL", "LIMITED", "NONE"}}  
   data = json.encode(data)
   file = io.open(pathToFile, "w")
   file:write(data)
@@ -93,7 +90,6 @@ local cid = self.mobileSession:SendRPC("SetMediaClockTimer",
               updateMode = "COUNTUP",
               enableSeek = "string"
             })
-
 EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA"})
 end
 
