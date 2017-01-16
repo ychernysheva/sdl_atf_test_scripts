@@ -23,65 +23,95 @@
 
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
-
---[[ Required Shared libraries ]]
-local commonSteps = require('user_modules/shared_testcases/commonSteps')
-local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
-local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
-local testCasesForPolicyTableSnapshot = require('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
-
---[[ General Precondition before ATF start ]]
-commonSteps:DeleteLogsFileAndPolicyTable()
-
---ToDo: shall be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
 config.defaultProtocolVersion = 2
 
+--[[ Required Shared libraries ]]
+local mobile_session = require("mobile_session")
+local commonSteps = require('user_modules/shared_testcases/commonSteps')
+local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
+
+--[[ General Precondition before ATF start ]]
+commonFunctions:SDLForceStop()
+commonSteps:DeleteLogsFileAndPolicyTable()
+
 --[[ General Settings for configuration ]]
-Test = require('connecttest')
+Test = require("user_modules/connecttest_resumption")
 require('cardinalities')
 require('user_modules/AppTypes')
 
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
-function Test:Precondition_trigger_getting_device_consent()
-  testCasesForPolicyTable:trigger_getting_device_consent(self, config.application1.registerAppInterfaceParams.appName, config.deviceMAC)
+
+function Test:ConnectMobile()
+  self:connectMobile()
+end
+function Test:StartSession()
+  self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
+  self.mobileSession:StartService(7)
+end
+
+function Test:RAI()
+  local corId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", { status = "UPDATE_NEEDED" })
+  :Times(0)
+  EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
+  :Times(0)
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application1.registerAppInterfaceParams.appName } })
+  :Do(
+    function(_, d1)
+      self.applications[config.application1.registerAppInterfaceParams.appID] = d1.params.application.appID
+    end)
+  self.mobileSession:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
+  :Do(
+    function()
+      self.mobileSession:ExpectNotification("OnHMIStatus", { hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN" })
+      self.mobileSession:ExpectNotification("OnPermissionsChange")
+      :Times(1)
+    end)
 end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
-function Test:TestStep_Sending_PTS_to_mobile_application()
-  local is_test_fail = false
-  local endpoints = {}
-
-  for i = 1, #testCasesForPolicyTableSnapshot.pts_endpoints do
-    if (testCasesForPolicyTableSnapshot.pts_endpoints[i].service == "0x07") then
-      endpoints[#endpoints + 1] = { url = testCasesForPolicyTableSnapshot.pts_endpoints[i].value, appID = nil}
-    end
-  end
-  if #endpoints==0 then
-    self:FailTestCase("Problem with accessing in Policy table snapshot. Value not exists")
-  end
-  local RequestId_GetUrls = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
-
-  EXPECT_HMIRESPONSE(RequestId_GetUrls,{result = {code = 0, method = "SDL.GetURLS", urls = endpoints} } )
-  :Do(function(_,_)
-
-      self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",{
-          requestType = "PROPRIETARY",
-          fileName = "PolicyTableUpdate",
-          url = endpoints[1].url,
-          appID = endpoints[1].appID })
-      EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY", fileType = "JSON", url = {endpoints[1].url}} )
+function Test:Trigger_getting_device_consent()
+  local requestId1 = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.applications[config.application1.registerAppInterfaceParams.appID] })
+  EXPECT_HMIRESPONSE(requestId1)
+  :Do(
+    function(_, d1)
+      if d1.result.isSDLAllowed ~= true then
+        local requestId2 = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", { language = "EN-US", messageCodes = { "DataConsent" } })
+        EXPECT_HMIRESPONSE(requestId2)
+        :Do(
+          function()
+            self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", { allowed = true, source = "GUI", device = { id = config.deviceMAC, name = "127.0.0.1" } })
+            EXPECT_HMICALL("BasicCommunication.ActivateApp")
+            :Do(
+              function(_, d2)
+                self.hmiConnection:SendResponse(d2.id,"BasicCommunication.ActivateApp", "SUCCESS", { })
+                self.mobileSession:ExpectNotification("OnHMIStatus", { hmiLevel = "FULL", audioStreamingState = "AUDIBLE", systemContext = "MAIN" })
+              end)
+          end)
+      end
     end)
-
-  if(is_test_fail == true) then
-    self:FailTestCase("Test is FAILED. See prints.")
-  end
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", { status = "UPDATE_NEEDED" }, { status = "UPDATING" }):Times(2)
+  EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
+  :Do(
+    function(_, d)
+      self.hmiConnection:SendResponse(d.id, d.method, "SUCCESS", { })
+      local requestId = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
+      EXPECT_HMIRESPONSE(requestId)
+      :Do(
+        function()
+          local policy_file_name = "PolicyTableUpdate"
+          self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest", { requestType = "PROPRIETARY", fileName = policy_file_name })
+          self.mobileSession:ExpectNotification("OnSystemRequest", { requestType = "PROPRIETARY" })
+        end)
+    end)
 end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
+
 function Test.Postcondition_StopSDL()
   StopSDL()
 end
