@@ -1,10 +1,9 @@
 --------------------------------------------------------------------------------------------
 -- Requirement summary:
--- [GENIVI] SetMediaClockTimer: SDL must support new parameter "enableSeek" and transfer OnSeekMediaClockTimer notification from HMI to mobile app
+-- [GENIVI] SetMediaClockTimer: SDL must support new parameter "enableSeek"
 --
 -- Description:
 -- SDL must support and process new "enableSeek" param at SetMediaClockTimer
--- In case "enableSeek" is true -> SDL expects OnSeekMediaClockTimer from HMI and trabsfer this notification to mobile app
 --
 -- 1. Used preconditions:
 -- a) First SDL life cycle
@@ -44,13 +43,10 @@ local function AddPermossionToPpreloadedFile()
   file:close()
   local json = require("modules/json")
   local data = json.decode(json_data)
-
   if data.policy_table.functional_groupings["DataConsent-2"] then
-    data.policy_table.functional_groupings["DataConsent-2"] = {rpcs = json.null}
-  end
+    data.policy_table.functional_groupings["DataConsent-2"] = {rpcs = json.null}  end
   -- set permissions on SetMediaClockTimer for default app
-  data.policy_table.functional_groupings["Base-4"].rpcs["SetMediaClockTimer"] = {hmi_levels = {"BACKGROUND", "FULL", "LIMITED", "NONE"}}
-  
+  data.policy_table.functional_groupings["Base-4"].rpcs["SetMediaClockTimer"] = {hmi_levels = {"BACKGROUND", "FULL", "LIMITED", "NONE"}}  
   data = json.encode(data)
   file = io.open(pathToFile, "w")
   file:write(data)
@@ -115,7 +111,6 @@ EXPECT_HMICALL("UI.SetMediaClockTimer",
 :Do(function(_,data)
 self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 end)
-
 EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})
 end
 
