@@ -59,6 +59,8 @@ policies_happy_paths_HTTP
 ./test_scripts/Polices/build_options/TC002_SDL_Build_HTTP_Flow_DEXTENDED_POLICY_No_Flag.lua APPLINK-30985
 ./test_scripts/Polices/build_options/TC003_REQUEST_PTU_Trigger_App_Excluded_PT_HTTP.lua APPLINK-30938
 ./test_scripts/Polices/build_options/011_ATF_P_TC_PTS_Define_URL_to_send_PTS_HTTP.lua APPLINK-31339
+./test_scripts/Polices/build_options/025_ATF_P_TC_PTU_Local_PT_Start_Retry_Sequence_HTTP.lua APPLINK-31518 
+./test_scripts/Polices/build_options/ATF_P_TC_PTU_Cycleing_Through_The_URLs_During_Retry_Sequence.lua APPLINK-31325
 
 policies_happy_paths_PROPRIETARY
 ./test_scripts/Polices/build_options/P_ATF_Register_NewApp_not_exist_inLocalPT_start_PTU_for_NewApp_PROPRIETARY.lua	locally_PASS
