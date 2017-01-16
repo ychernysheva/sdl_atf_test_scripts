@@ -8,7 +8,7 @@
 -- 1. Used preconditions:
 -- a) First SDL life cycle
 -- b) SetMediaClockTimer RPC allowed in preloaded file for default app
--- c) App successfylly registered, consented and activated
+-- c) App successfully registered, consented and activated
 --
 -- 2. Performed steps:
 -- a) Sens SetMediaClockTimer request with with wrong json syntax in enableSeek
@@ -48,8 +48,7 @@ local function AddPermossionToPpreloadedFile()
     data.policy_table.functional_groupings["DataConsent-2"] = {rpcs = json.null}
   end
   -- set permissions on SetMediaClockTimer for default app
-  data.policy_table.functional_groupings["Base-4"].rpcs["SetMediaClockTimer"] = {hmi_levels = {"BACKGROUND", "FULL", "LIMITED", "NONE"}}
-  
+  data.policy_table.functional_groupings["Base-4"].rpcs["SetMediaClockTimer"] = {hmi_levels = {"BACKGROUND", "FULL", "LIMITED", "NONE"}}  
   data = json.encode(data)
   file = io.open(pathToFile, "w")
   file:write(data)
@@ -77,7 +76,6 @@ end
 commonFunctions:newTestCasesGroup("Test")
 function Test:TestStep_SetMediaClockTimer_With_Wrong_Json_Syntax_in_enableSeek()
 self.mobileSession.correlationId = self.mobileSession.correlationId + 1
-
         local msg =
         {
           serviceType      = 7,
@@ -89,7 +87,6 @@ self.mobileSession.correlationId = self.mobileSession.correlationId + 1
           payload          = '{"startTime":{"seconds":34,"hours":0,"minutes":12},"endTime":{"seconds":33,"hours":11,"minutes":22},"updateMode":"COUNTUP", "enableSeek" true}'
         }
         self.mobileSession:Send(msg)
-
         self.mobileSession:ExpectResponse(self.mobileSession.correlationId, { success = false, resultCode = "INVALID_DATA" })
 end
 
