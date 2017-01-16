@@ -5,7 +5,7 @@
 -- Description:
 -- test is intended to check that SDL sends WARNINGS (success:true) to mobile app in case HMI respond WARNINGS to at least one HMI-portions
 -- in this test case when UI.DeleteCommand gets WARNINGS is checked
--- 1. Used preconditions: App is registered and activated SUCCESSFULLY
+-- 1. Used preconditions: App is registered and activated SUCCESSFULLY. AddCommand is sent SUCCESSFULLY
 -- 2. Performed steps: 
 -- MOB -> SDL: sends DeleteCommand
 -- SDL -> HMI: resends VR.DeleteCommand
