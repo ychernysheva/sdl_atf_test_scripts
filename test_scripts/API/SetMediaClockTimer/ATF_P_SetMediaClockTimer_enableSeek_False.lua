@@ -10,13 +10,13 @@
 -- 1. Used preconditions:
 -- a) First SDL life cycle
 -- b) SetMediaClockTimer RPC allowed in preloaded file for default app
--- c) App successfylly registered, consented and activated
+-- c) App successfully registered, consented and activated
 --
 -- 2. Performed steps:
--- a) Sens SetMediaClockTimer request with enableSeek = fasle parameter
+-- a) Send SetMediaClockTimer request with enableSeek = fasle parameter
 --
 -- Expected result:
--- a) SDL successfylly transfer SetMediaClockTimer with enableSeek = false parameter to HMI and transfer SUCCESS resultCode to mobile
+-- a) SDL successfully transfer SetMediaClockTimer with enableSeek = false parameter to HMI and transfer SUCCESS resultCode to mobile
 ---------------------------------------------------------------------------------------------
 
 --[[ General configuration parameters ]]
@@ -45,13 +45,11 @@ local function AddPermossionToPpreloadedFile()
   file:close()
   local json = require("modules/json")
   local data = json.decode(json_data)
-
   if data.policy_table.functional_groupings["DataConsent-2"] then
     data.policy_table.functional_groupings["DataConsent-2"] = {rpcs = json.null}
   end
   -- set permissions on SetMediaClockTimer for default app
-  data.policy_table.functional_groupings["Base-4"].rpcs["SetMediaClockTimer"] = {hmi_levels = {"BACKGROUND", "FULL", "LIMITED", "NONE"}}
-  
+  data.policy_table.functional_groupings["Base-4"].rpcs["SetMediaClockTimer"] = {hmi_levels = {"BACKGROUND", "FULL", "LIMITED", "NONE"}}  
   data = json.encode(data)
   file = io.open(pathToFile, "w")
   file:write(data)
@@ -95,7 +93,6 @@ local cid = self.mobileSession:SendRPC("SetMediaClockTimer",
               updateMode = "COUNTUP",
               enableSeek = false
             })
-
 EXPECT_HMICALL("UI.SetMediaClockTimer",
             {
               startTime =
@@ -116,7 +113,6 @@ EXPECT_HMICALL("UI.SetMediaClockTimer",
 :Do(function(_,data)
 self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 end)
-
 EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})
 end
 
