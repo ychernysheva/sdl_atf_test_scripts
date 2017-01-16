@@ -13,12 +13,11 @@
 -- c) App successfylly registered, consented and activated
 --
 -- 2. Performed steps:
--- a) Sens SetMediaClockTimer request with enableSeek = true parameter
+-- a) Send SetMediaClockTimer request with enableSeek = true parameter
 --
 -- Expected result:
--- a) SDL successfylly transfer SetMediaClockTimer with enableSeek = true parameter to HMI and transfer SUCCESS resultCode to mobile
+-- a) SDL successfully transfer SetMediaClockTimer with enableSeek = true parameter to HMI and transfer SUCCESS resultCode to mobile
 ---------------------------------------------------------------------------------------------
-
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 --ToDo: shall be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
@@ -45,13 +44,10 @@ local function AddPermossionToPpreloadedFile()
   file:close()
   local json = require("modules/json")
   local data = json.decode(json_data)
-
   if data.policy_table.functional_groupings["DataConsent-2"] then
-    data.policy_table.functional_groupings["DataConsent-2"] = {rpcs = json.null}
-  end
+    data.policy_table.functional_groupings["DataConsent-2"] = {rpcs = json.null}  end
   -- set permissions on SetMediaClockTimer for default app
-  data.policy_table.functional_groupings["Base-4"].rpcs["SetMediaClockTimer"] = {hmi_levels = {"BACKGROUND", "FULL", "LIMITED", "NONE"}}
-  
+  data.policy_table.functional_groupings["Base-4"].rpcs["SetMediaClockTimer"] = {hmi_levels = {"BACKGROUND", "FULL", "LIMITED", "NONE"}}  
   data = json.encode(data)
   file = io.open(pathToFile, "w")
   file:write(data)
@@ -116,7 +112,6 @@ EXPECT_HMICALL("UI.SetMediaClockTimer",
 :Do(function(_,data)
 self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 end)
-
 EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})
 end
 
