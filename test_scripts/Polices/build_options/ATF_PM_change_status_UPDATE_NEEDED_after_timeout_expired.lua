@@ -154,10 +154,10 @@ function Test:Precondition_RegisterApplication_In_NewSession()
       end)
     EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "PROPRIETARY" })
     EXPECT_HMINOTIFICATION ("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
-    :Timeout(60000)
+    :Timeout(63000)
     :Do(function (_,_)
         local diff = tonumber(timestamp()) - tonumber(OnSystemRequest_time)
-        if diff > 60000 and diff < 61000 then
+        if diff > 59000 and diff < 61000 then
           return true
         else
           return false
