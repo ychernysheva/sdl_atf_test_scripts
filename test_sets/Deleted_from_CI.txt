@@ -1,6 +1,6 @@
 policies_happy_paths_EXTERNAL_PROPRIETARY
 ./test_scripts/Polices/user_consent_of_Policies/ATF_Factory_reset.lua APPLINK-30921
-./test_scripts/Polices/Policy_Table_Update/018_ATF_P_TC_Sending_PTS_to_mobile_application.lua APPLINK-30390
+./test_scripts/Polices/Policy_Table_Update/018_ATF_P_TC_Sending_PTS_to_mobile_application.lua APPLINK-31534
 ./test_scripts/Polices/Policy_Table_Update/022_ATF_P_TC_Got_PTU_from_mobile_application.lua APPLINK-30390
 ./test_scripts/Polices/Policy_Table_Update/024_ATF_P_TC_PTU_validation_rules.lua APPLINK-30390
 ./test_scripts/Polices/Policy_Table_Update/025_ATF_P_TC_PTU_validation_failure.lua APPLINK-30390
@@ -39,6 +39,7 @@ policies_happy_paths_EXTERNAL_PROPRIETARY
 ./test_scripts/Polices/Validation_of_PolicyTables/Check_count_of_removals_for_bad_behavior_too_many_pending_requests.lua Not_actual_after_requirement_clarification_in_APPLINK-30610
 ./test_scripts/Polices/user_consent_of_Policies/127_ATF_User_clears_all_applications.lua locally_PASS
 ./test_scripts/Polices/App_Permissions/171_ATF_HP_OnPermissionsChange_With_Assigned_Policy_After_App_Registration.lua APPLINK-31357
+./test_scripts/Polices/Policy_Table_Update/007_ATF_P_TC_OnStatusUpdate_UPDATE_NEEDED_new_PTU_request.lua APPLINK-31548
 
 policies_happy_paths_HTTP
 ./test_scripts/Polices/build_options/032_ATF_P_TC_PTU_Restarting_Policy_Table_Exchange_HTTP.lua 	APPLINK-30985, APPLINK-30390	
