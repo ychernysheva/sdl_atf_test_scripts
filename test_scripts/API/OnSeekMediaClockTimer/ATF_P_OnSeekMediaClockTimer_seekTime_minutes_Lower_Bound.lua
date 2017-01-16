@@ -2,10 +2,14 @@
 -- Requirement summary:
 -- [MOBILE_API] New OnSeekMediaClockTimer notification
 -- [HMI_API] New OnSeekMediaClockTimer notification
+-- onseekmediaclocktimer_enableseek/onseekmediaclocktimer_seekTime_minutes_lower_bound
 --
 -- Description:
 -- [HMI_API] <param name="minutes" type="Integer" minvalue="0" maxvalue="59" mandatory="true">
 -- [MOBILE_API] <param name="minutes" type="Integer" minvalue="0" maxvalue="59">
+-- In case
+-- SDL receives OnSeekMediaClockTimer notification from HMI and this notification is valid and allowed by Policies
+-- SDL must: transfer OnSeekMediaClockTimer notification from HMI to mobile app
 --
 -- 1. Used preconditions:
 -- a) First SDL life cycle
@@ -45,13 +49,11 @@ local function AddPermossionToPpreloadedFile()
   file:close()
   local json = require("modules/json")
   local data = json.decode(json_data)
-
   if data.policy_table.functional_groupings["DataConsent-2"] then
     data.policy_table.functional_groupings["DataConsent-2"] = {rpcs = json.null}
   end
   -- set permissions on SetMediaClockTimer for default app
-  data.policy_table.functional_groupings["Base-4"].rpcs["OnSeekMediaClockTimer"] = {hmi_levels = {"BACKGROUND", "FULL", "LIMITED", "NONE"}}
-  
+  data.policy_table.functional_groupings["Base-4"].rpcs["OnSeekMediaClockTimer"] = {hmi_levels = {"BACKGROUND", "FULL", "LIMITED", "NONE"}}  
   data = json.encode(data)
   file = io.open(pathToFile, "w")
   file:write(data)
@@ -79,7 +81,6 @@ end
 commonFunctions:newTestCasesGroup("Test")
 function Test:TestStep_OnSeekMediaClockTimer_minutes_Value_Of_seekTime_Is_Lower_Bound()
  self.hmiConnection:SendNotification("UI.OnSeekMediaClockTimer",{seekTime =  {hours = 0, minutes = 0, seconds = 33}, appID = self.applications["Test Application"]})
-
  EXPECT_NOTIFICATION("OnSeekMediaClockTimer", {seekTime = {hours = 0, minutes = 0, seconds = 33}})
 end
 
