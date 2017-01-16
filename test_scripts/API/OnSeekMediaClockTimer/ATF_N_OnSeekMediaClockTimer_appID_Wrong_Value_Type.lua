@@ -20,7 +20,6 @@
 -- Expected result:
 -- a) SDL does not resend OnSeekMediaClockTimer notification to mobile app.
 ---------------------------------------------------------------------------------------------
-
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 --ToDo: shall be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
