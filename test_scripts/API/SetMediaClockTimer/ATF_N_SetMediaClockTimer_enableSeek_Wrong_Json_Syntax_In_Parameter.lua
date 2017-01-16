@@ -1,6 +1,6 @@
 --------------------------------------------------------------------------------------------
 -- Requirement summary:
--- INVALID_DATA
+-- [GeneralResultCodes] INVALID_DATA wrong json 
 --
 -- Description:
 -- In case the request comes to SDL with wrong json syntax, SDL must respond with resultCode "INVALID_DATA" and success:"false" value.
@@ -14,7 +14,7 @@
 -- a) Sens SetMediaClockTimer request with with wrong json syntax in enableSeek
 --
 -- Expected result:
--- a) SDL respond with resultCode "INVALID_DATA" and success:"false"
+-- a) SDL responds with resultCode "INVALID_DATA" and success:"false"
 ---------------------------------------------------------------------------------------------
 
 --[[ General configuration parameters ]]
@@ -43,7 +43,6 @@ local function AddPermossionToPpreloadedFile()
   file:close()
   local json = require("modules/json")
   local data = json.decode(json_data)
-
   if data.policy_table.functional_groupings["DataConsent-2"] then
     data.policy_table.functional_groupings["DataConsent-2"] = {rpcs = json.null}
   end
