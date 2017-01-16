@@ -47,13 +47,11 @@ local function AddPermossionToPpreloadedFile()
   file:close()
   local json = require("modules/json")
   local data = json.decode(json_data)
-
   if data.policy_table.functional_groupings["DataConsent-2"] then
     data.policy_table.functional_groupings["DataConsent-2"] = {rpcs = json.null}
   end
   -- set permissions on OnSeekMediaClockTimer for default app
-  data.policy_table.functional_groupings["Base-4"].rpcs["OnSeekMediaClockTimer"] = {hmi_levels = {"BACKGROUND", "FULL", "LIMITED", "NONE"}}
-  
+  data.policy_table.functional_groupings["Base-4"].rpcs["OnSeekMediaClockTimer"] = {hmi_levels = {"BACKGROUND", "FULL", "LIMITED", "NONE"}}  
   data = json.encode(data)
   file = io.open(pathToFile, "w")
   file:write(data)
@@ -81,7 +79,6 @@ end
 commonFunctions:newTestCasesGroup("Test")
 function Test:TestStep_OnSeekMediaClockTimer_With_Fake_Parameter_In_seekTime_Structure()
  self.hmiConnection:SendNotification("UI.OnSeekMediaClockTimer",{seekTime =  {fakeparameter = "fake", hours = 1, minutes = 1, seconds = 59}, appID = self.applications["Test Application"]})
-
  EXPECT_NOTIFICATION("OnSeekMediaClockTimer", {seekTime = {hours = 1, minutes = 1, seconds = 59}})
   :ValidIf(function(_,data)
     if data.seekTime.fakeparameter then
