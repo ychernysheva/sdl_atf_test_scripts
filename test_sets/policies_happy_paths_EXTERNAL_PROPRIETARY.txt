@@ -41,7 +41,6 @@
 ./test_scripts/Polices/user_consent_of_Policies/105_ATF_ActivateApp_isSDLAllowed_true.lua APPLINK-31327_APPLINK-31278
 ./test_scripts/Polices/user_consent_of_Policies/001_ATF_HP_Device_Data_Section_Validation.lua
 ./test_scripts/Polices/user_consent_of_Policies/100_ATF_TC_P_isAppPermissionsRevoked_true.lua
-./test_scripts/Polices/user_consent_of_Policies/127_ATF_User_clears_all_applications.lua APPLINK-31278_APPLINK-31328
 ./test_scripts/Polices/user_consent_of_Policies/126_ATF_User_consent_prompt_persists.lua
 ./test_scripts/Polices/user_consent_of_Policies/112_ATF_User_consents_permissions.lua
 ./test_scripts/Polices/user_consent_of_Policies/107_ATF_UpdateDeviceList_isSDLAllowed_false.lua
