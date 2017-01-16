@@ -74,4 +74,5 @@ policies_happy_paths_PROPRIETARY
 ./test_scripts/Polices/build_options/006_ATF_P_TC_PTU_Trigger_IGN_Cycles_HTTP.lua APPLINK-30938
 ./test_scripts/Polices/build_options/039_ATF_P_TC_PTU_HMI_Level_Affected_Apps_FULL_LIMITED_HTTP.lua APPLINK-30938
 ./test_scripts/Polices/build_options/ATF_Start_PTU_retry_sequence.lua APPLINK-31286
-./test_scripts/Polices/build_options/ATF_PTU_in_case_of_failed_retry_strategy_during_previous_IGN_ON.lua APPLINK-31311
+./test_scripts/Polices/build_options/ATF_PTU_in_case_of_failed_retry_strategy_during_previous_IGN_ON.lua APPLINK-31311_for_future_planning
+./test_scripts/Polices/build_options/P_ATF_Register_NewApp_not_exist_inLocalPT_FinishPTU_PROPRIETARY.lua APPLINK-30938
