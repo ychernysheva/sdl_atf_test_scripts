@@ -2,15 +2,17 @@
 -- Requirement summary:
 -- [MOBILE_API] New OnSeekMediaClockTimer notification
 -- [HMI_API] New OnSeekMediaClockTimer notification
+-- Processing invalid notifications from HMI that SDL should transfer to mobile app
 --
 -- Description:
 -- [HMI_API] <param name="secnds" type="Integer" minvalue="0" maxvalue="59" mandatory="true">
 -- [MOBILE_API] <param name="secnds" type="Integer" minvalue="0" maxvalue="59">
+-- In case HMI sends invalid notification that SDL should transfer to mobile app, SDL must log the issue and ignore this notification.
 --
 -- 1. Used preconditions:
 -- a) First SDL life cycle
 -- b) OnSeekMediaClockTimer notification allowed in preloaded file for default app
--- c) App successfylly registered, consented and activated
+-- c) App successfully registered, consented and activated
 --
 -- 2. Performed steps:
 -- a) HMI sends OnSeekMediaClockTimer notification to SDL with secnds out upper bound value ("60") of seekTime parameter.
@@ -45,13 +47,11 @@ local function AddPermossionToPpreloadedFile()
   file:close()
   local json = require("modules/json")
   local data = json.decode(json_data)
-
   if data.policy_table.functional_groupings["DataConsent-2"] then
     data.policy_table.functional_groupings["DataConsent-2"] = {rpcs = json.null}
   end
-  -- set permissions on SetMediaClockTimer for default app
-  data.policy_table.functional_groupings["Base-4"].rpcs["OnSeekMediaClockTimer"] = {hmi_levels = {"BACKGROUND", "FULL", "LIMITED", "NONE"}}
-  
+  -- set permissions on OnSeekMediaClockTimer for default app
+  data.policy_table.functional_groupings["Base-4"].rpcs["OnSeekMediaClockTimer"] = {hmi_levels = {"BACKGROUND", "FULL", "LIMITED", "NONE"}}  
   data = json.encode(data)
   file = io.open(pathToFile, "w")
   file:write(data)
@@ -77,9 +77,8 @@ end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
-function Test:TestStep_OnSeekMediaClockTimer_secnds_Value_Of_seekTime_Is_Out_Upper_Bound()
+function Test:TestStep_OnSeekMediaClockTimer_seconds_Value_Of_seekTime_Is_Out_Upper_Bound()
  self.hmiConnection:SendNotification("UI.OnSeekMediaClockTimer",{seekTime =  {hours = 30, minutes = 30, seconds = 60}, appID = self.applications["Test Application"]})
-
  EXPECT_NOTIFICATION("OnSeekMediaClockTimer", {seekTime = {hours = 30, minutes = 30, seconds = 60}}):Times(0)
 end
 
