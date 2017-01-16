@@ -2,7 +2,7 @@
 -- Requirement summary:
 -- [MOBILE_API] New OnSeekMediaClockTimer notification
 -- [HMI_API] New OnSeekMediaClockTimer notification
--- 
+-- Processing invalid notifications from HMI that SDL should transfer to mobile app 
 --
 -- Description:
 -- Parameters wrong type
@@ -12,7 +12,7 @@
 -- 1. Used preconditions:
 -- a) First SDL life cycle
 -- b) OnSeekMediaClockTimer notification allowed in preloaded file for default app
--- c) App successfylly registered, consented and activated
+-- c) App successfully registered, consented and activated
 --
 -- 2. Performed steps:
 -- a) HMI sends OnSeekMediaClockTimer notification to SDL with wrong minutes value type (string).
@@ -47,13 +47,11 @@ local function AddPermossionToPpreloadedFile()
   file:close()
   local json = require("modules/json")
   local data = json.decode(json_data)
-
   if data.policy_table.functional_groupings["DataConsent-2"] then
     data.policy_table.functional_groupings["DataConsent-2"] = {rpcs = json.null}
   end
-  -- set permissions on SetMediaClockTimer for default app
-  data.policy_table.functional_groupings["Base-4"].rpcs["OnSeekMediaClockTimer"] = {hmi_levels = {"BACKGROUND", "FULL", "LIMITED", "NONE"}}
-  
+  -- set permissions on OnSeekMediaClockTimer for default app
+  data.policy_table.functional_groupings["Base-4"].rpcs["OnSeekMediaClockTimer"] = {hmi_levels = {"BACKGROUND", "FULL", "LIMITED", "NONE"}}  
   data = json.encode(data)
   file = io.open(pathToFile, "w")
   file:write(data)
@@ -81,7 +79,6 @@ end
 commonFunctions:newTestCasesGroup("Test")
 function Test:TestStep_OnSeekMediaClockTimer_With_Wrong_minutes_Value_Type()
  self.hmiConnection:SendNotification("UI.OnSeekMediaClockTimer",{seekTime =  {hours = 30, minutes = "string", seconds = 30}, appID = self.applications["Test Application"]})
-
  EXPECT_NOTIFICATION("OnSeekMediaClockTimer"):Times(0)
 end
 
