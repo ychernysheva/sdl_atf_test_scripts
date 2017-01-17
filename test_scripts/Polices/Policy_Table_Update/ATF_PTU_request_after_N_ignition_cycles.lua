@@ -88,6 +88,10 @@ function Test:Precondition_OnIgnitionCycleOver()
   self.hmiConnection:SendNotification("BasicCommunication.OnIgnitionCycleOver")
 end
 
+function Test:Precondition_OnExitAllApplicaitons()
+  self.hmiConnection:SendNotification("BasicCommunication.OnExitAllApplications", { reason = "IGNITION_OFF"})
+end
+
 function Test.Precondition_StopSDL()
   StopSDL()
 end
