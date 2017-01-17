@@ -30,13 +30,13 @@
 work_dir = "~/SmartDeviceLinkCore/"
 
 sdl_repository = "https://github.com/smartdevicelink/sdl_core/"
-sdl_branch = "develop"
+sdl_branch = "4.2.0"
 
 atf_repository = "https://github.com/smartdevicelink/sdl_atf/"
-atf_branch = "BUILD_SERVER_VERSION"
+atf_branch = "4.2.0"
 
 scripts_repository = "https://github.com/smartdevicelink/sdl_atf_test_scripts/"
-scripts_branch = "develop"
+scripts_branch = "4.2.0"
 
 sdl_clone_dir = work_dir + "sdl_core/"
 sdl_build_dir = sdl_clone_dir + "build/"
