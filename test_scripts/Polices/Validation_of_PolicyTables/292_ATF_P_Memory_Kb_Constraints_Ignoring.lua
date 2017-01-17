@@ -33,6 +33,7 @@ local testCasesForPolicyTable = require ('user_modules/shared_testcases/testCase
 local commonPreconditions = require ('user_modules/shared_testcases/commonPreconditions')
 
 --[[ General Precondition before ATF start ]]
+commonFunctions:SDLForceStop()
 commonSteps:DeleteLogsFiles()
 commonSteps:DeletePolicyTable()
 testCasesForPolicyTable.Delete_Policy_table_snapshot()
@@ -49,8 +50,17 @@ require('user_modules/AppTypes')
 commonFunctions:newTestCasesGroup("Test")
 
 function Test:TestStep_PredataConsent_Send_PutFile_Bigger_Than_AppDirectoryQuota_OUT_OF_MEMORY()
-  local cid = self.mobileSession:SendRPC("PutFile", {syncFileName ="1166384_bytes_audio_2.mp3", fileType ="AUDIO_MP3"}, "files/MP3_1140kb.mp3")
+  local cid = self.mobileSession:SendRPC("PutFile", {syncFileName ="1166384_bytes_audio_1.mp3", fileType ="AUDIO_MP3"}, "files/MP3_1140kb.mp3")
   EXPECT_RESPONSE(cid, { success = false, resultCode = "OUT_OF_MEMORY" }):Timeout(15000)
+end
+
+function Test.Wait()
+  os.execute("sleep 3")
+end
+
+function Test:TestStep_PredataConsent_Send_PutFile_Bigger_Than_AppDirectoryQuota_OUT_OF_MEMORY()
+  local cid = self.mobileSession:SendRPC("PutFile", {syncFileName ="icon1.png", fileType ="AUDIO_MP3"}, "files/icon.png")
+  EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" }):Timeout(15000)
 end
 
 function Test:TestStep_trigger_getting_device_consent()
@@ -66,35 +76,44 @@ function Test:Precondition_Update_Policy_With_memory_kb_Param()
   local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
   EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
   :Do(function()
-          self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",{requestType = "PROPRIETARY", fileName = "filename"})
-          EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY" })
-          :Do(function()
-              local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", {fileName = "PolicyTableUpdate", requestType = "PROPRIETARY"},
-                "files/ptu_memory_kb_app_1234567.json")
-              local systemRequestId
-              EXPECT_HMICALL("BasicCommunication.SystemRequest")
-              :Do(function(_,data)
-                  systemRequestId = data.id
-                  self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate",
-                    {
-                      policyfile = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate"
-                    })
-                  local function to_run()
-                    self.hmiConnection:SendResponse(systemRequestId, "BasicCommunication.SystemRequest", "SUCCESS", {})
-                    self.mobileSession:ExpectResponse(CorIdSystemRequest, {success = true, resultCode = "SUCCESS"})
-                  end
-                  RUN_AFTER(to_run, 800)
-                end)
+      self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",{requestType = "PROPRIETARY", fileName = "filename"})
+      EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY" })
+      :Do(function()
+          local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", {fileName = "PolicyTableUpdate", requestType = "PROPRIETARY"},
+          "files/ptu_memory_kb_app_1234567.json")
+          local systemRequestId
+          EXPECT_HMICALL("BasicCommunication.SystemRequest")
+          :Do(function(_,data)
+              systemRequestId = data.id
+              self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate",
+                {
+                  policyfile = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate"
+                })
+              local function to_run()
+                self.hmiConnection:SendResponse(systemRequestId, "BasicCommunication.SystemRequest", "SUCCESS", {})
+                self.mobileSession:ExpectResponse(CorIdSystemRequest, {success = true, resultCode = "SUCCESS"})
+              end
+              RUN_AFTER(to_run, 800)
             end)
-  end)
+        end)
+    end)
 
   EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",
     {status = "UPDATING"}, {status = "UP_TO_DATE"}):Times(2)
 end
 
-function Test:TestStep_AppId_Send_PutFile_Bigger_Than_AppDirectoryQuota_OUT_OF_MEMORY()
+function Test:TestStep_PredataConsent_Send_PutFile_Bigger_Than_AppDirectoryQuota_OUT_OF_MEMORY()
   local cid = self.mobileSession:SendRPC("PutFile", {syncFileName ="1166384_bytes_audio_2.mp3", fileType ="AUDIO_MP3"}, "files/MP3_1140kb.mp3")
   EXPECT_RESPONSE(cid, { success = false, resultCode = "OUT_OF_MEMORY" }):Timeout(15000)
+end
+
+function Test.Wait()
+  os.execute("sleep 3")
+end
+
+function Test:TestStep_PredataConsent_Send_PutFile_Bigger_Than_AppDirectoryQuota_OUT_OF_MEMORY()
+  local cid = self.mobileSession:SendRPC("PutFile", {syncFileName ="icon2.png", fileType ="AUDIO_MP3"}, "files/icon.png")
+  EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" }):Timeout(15000)
 end
 
 --[[ Postconditions ]]

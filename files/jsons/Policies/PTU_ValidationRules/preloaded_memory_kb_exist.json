@@ -1,6 +1,7 @@
 {
     "policy_table": {
         "module_config": {
+            "preloaded_pt": true,
             "exchange_after_x_ignition_cycles": 100,
             "exchange_after_x_kilometers": 1800,
             "exchange_after_x_days": 30,
@@ -2261,7 +2262,7 @@
                 "groups": ["DataConsent-2"]
             },
             "pre_DataConsent": {
-		"memory_kb":2000,
+		"memory_kb":200,
                 "keep_context": false,
                 "steal_focus": false,
                 "priority": "NORMAL",
