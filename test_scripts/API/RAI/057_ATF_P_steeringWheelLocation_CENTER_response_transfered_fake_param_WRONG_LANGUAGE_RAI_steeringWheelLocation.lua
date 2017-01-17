@@ -212,7 +212,7 @@ function Test:TestStep_RAI_WRONG_LANGUAGE_steeringWheelLocation()
 	local CorIdRegister = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
 	
 	EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application1.registerAppInterfaceParams.appName }})
-	EXPECT_RESPONSE(CorIdRegister, { success = true, resultCode = "WRONG_LANGUAGE", steeringWheelLocation = "LEFT" })
+	EXPECT_RESPONSE(CorIdRegister, { success = true, resultCode = "WRONG_LANGUAGE", hmiCapabilities = { steeringWheelLocation = "LEFT" } })
 	EXPECT_NOTIFICATION("OnHMIStatus", {systemContext="MAIN", hmiLevel="NONE", audioStreamingState="NOT_AUDIBLE"} )
 end
 
