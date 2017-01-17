@@ -2331,7 +2331,7 @@
         "groups": [
           "Base-4"
         ],
-	"memory_kb":1500,
+	"memory_kb":300,
         "RequestType":[
           "TRAFFIC_MESSAGE_CHANNEL",
           "PROPRIETARY",
