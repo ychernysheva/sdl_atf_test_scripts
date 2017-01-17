@@ -5,6 +5,8 @@ revsdl = require("user_modules/revsdl")
 
 revsdl.AddUnknownFunctionIDs()
 revsdl.SubscribeToRcInterface()
+config.ValidateSchema = false
+config.application1.registerAppInterfaceParams.appHMIType = { "REMOTE_CONTROL" }
 
 Test = require('connecttest')
 require('cardinalities')
@@ -103,7 +105,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "ButtonPress"
-								  },							  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" },
@@ -114,7 +116,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "ChangeRegistration"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED"},
@@ -125,7 +127,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "CreateInteractionChoiceSet"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED"},
@@ -158,7 +160,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "DeleteInteractionChoiceSet"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED"},
@@ -169,7 +171,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "DeleteSubMenu"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" },
@@ -180,7 +182,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "EncodedSyncPData"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED"},
@@ -191,7 +193,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "EndAudioPassThru"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED"},
@@ -213,7 +215,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "GetInteriorVehicleData"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" },
@@ -224,7 +226,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "GetInteriorVehicleDataCapabilities"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" },
@@ -235,7 +237,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "ListFiles"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" },
@@ -246,7 +248,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "OnAppInterfaceUnregistered"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED" },
@@ -257,7 +259,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "OnAudioPassThru"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED" },
@@ -268,7 +270,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "OnButtonEvent"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED" },
@@ -312,7 +314,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "OnEncodedSyncPData"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" },
@@ -323,7 +325,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "OnHMIStatus"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" },
@@ -334,7 +336,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "OnHashChange"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED" },
@@ -367,7 +369,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "OnPermissionsChange"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" },
@@ -378,7 +380,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "OnSystemRequest"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "FULL", "LIMITED" },
@@ -389,7 +391,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "PerformAudioPassThru"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "FULL", "LIMITED" },
@@ -411,7 +413,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "PutFile"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" },
@@ -433,7 +435,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "ResetGlobalProperties"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "FULL" },
@@ -444,7 +446,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "ScrollableMessage"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" },
@@ -499,7 +501,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "SetMediaClockTimer"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED" },
@@ -510,7 +512,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "Show"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "FULL" },
@@ -521,7 +523,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "Slider"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "FULL", "LIMITED" },
@@ -554,7 +556,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "SystemRequest"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" },
@@ -565,7 +567,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "UnregisterAppInterface"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED" },
@@ -680,11 +682,11 @@ local arrayGroups_nonPrimaryRC = {
 											userDisallowed = {}
 										 },
 										 rpcName = "SystemRequest"
-									  },									  
+									  },
 									 }
-						}						
-	
-						
+						}
+
+
 
 ---------------------------------------------------------------------------------------------
 -------------------------------------STARTING COMMON FUNCTIONS-------------------------------
@@ -738,11 +740,11 @@ end
 
 ---------------------------------------------------------------------------------------------
 ----------------------------------------END COMMON FUNCTIONS---------------------------------
----------------------------------------------------------------------------------------------	
+---------------------------------------------------------------------------------------------
 
-	
-	
-	
+
+
+
 
 
 --======================================REVSDL-1577========================================--
@@ -759,62 +761,62 @@ end
 	--Begin Test suit CommonRequestCheck.1 for Req.#1 (TCs: REVSDL-1616 - [REVSDL-1577][TC-04]: RSDL sets device as driver in case receiving RC.OnDeviceRankChanged ("DRIVER", deviceID).)
 
 	--Description: In case RSDL receives RC.OnDeviceRankChanged ("DRIVER", deviceID) from HMI, Rev-SDL must set the named device as driver's one.
-	
+
 
 	--Begin Test case CommonRequestCheck.1
 	--Description: 	In case RSDL receives RC.OnDeviceRankChanged ("DRIVER", deviceID) from HMI, Rev-SDL must set the named device as driver's one.
-					
 
-		--Requirement/Diagrams id in jira: 
+
+		--Requirement/Diagrams id in jira:
 				--REVSDL-1577
 				--TC: REVSDL-1616, REVSDL-1617
 
-		--Verification criteria: 
+		--Verification criteria:
 				--In case RSDL receives RC.OnDeviceRankChanged ("DRIVER", deviceID) from HMI, Rev-SDL must set the named device as driver's one.
-		
-		-----------------------------------------------------------------------------------------	
-	
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.1.1
 			--Description: Set device1 to Driver's device from HMI (TC: REVSDL-1617)
 				function Test:OnDeviceRankChanged_Driver()
 
 					--hmi side: send request RC.OnDeviceRankChanged
-					self.hmiConnection:SendNotification("RC.OnDeviceRankChanged", 
+					self.hmiConnection:SendNotification("RC.OnDeviceRankChanged",
 															{deviceRank = "DRIVER", device = {name = "127.0.0.1", id = 1, isSDLAllowed = true}})
-					
+
 					--mobile side: Expect OnPermissionsChange notification for Driver's device
 					EXPECT_NOTIFICATION("OnPermissionsChange", arrayGroups_PrimaryRC )
-					
+
 					--mobile side: OnHMIStatus notifications with deviceRank = "DRIVER"
-					EXPECT_NOTIFICATION("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", deviceRank = "DRIVER" })					
-				
+					EXPECT_NOTIFICATION("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", deviceRank = "DRIVER" })
+
 				end
 			--End Test case CommonRequestCheck.1.1
-	
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.1.2
 			--Description: Set device1 to Passenger's device from HMI (TC: REVSDL-1616)
 				function Test:OnDeviceRankChanged_Passenger()
 
 					--hmi side: send request RC.OnDeviceRankChanged
-					self.hmiConnection:SendNotification("RC.OnDeviceRankChanged", 
+					self.hmiConnection:SendNotification("RC.OnDeviceRankChanged",
 															{deviceRank = "PASSENGER", device = {name = "127.0.0.1", id = 1, isSDLAllowed = true}})
-					
+
 					--mobile side: Expect OnPermissionsChange notification for Passenger's device
 					EXPECT_NOTIFICATION("OnPermissionsChange", arrayGroups_nonPrimaryRC )
-					
+
 					--mobile side: OnHMIStatus notifications with deviceRank = "PASSENGER"
-					EXPECT_NOTIFICATION("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", deviceRank = "PASSENGER" })					
-				
+					EXPECT_NOTIFICATION("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", deviceRank = "PASSENGER" })
+
 				end
 			--End Test case CommonRequestCheck.1.2
-	
-		-----------------------------------------------------------------------------------------		
-	
+
+		-----------------------------------------------------------------------------------------
+
 	--End Test case CommonRequestCheck.1
-	
---=================================================END TEST CASES 1==========================================================--	
+
+--=================================================END TEST CASES 1==========================================================--
 
 
 
@@ -825,90 +827,90 @@ end
 	--Begin Test suit CommonRequestCheck.2 for Req.#2 (TCs: REVSDL-1618 - [REVSDL-1577][TC-06]: Switch from driver's to passenger's device and vice versa when receiving OnDeviceRankChanged().)
 
 	--Description: In case RSDL knows a device to be driver's and RC.OnDeviceRankChanged ("DRIVER", deviceID) for another device comes from HMI, RSDL must set the named device as driver's and set the previous one to passenger's.
-	
+
 
 	--Begin Test case CommonRequestCheck.2.1
 	--Description: 	In case RSDL knows a device to be driver's and RC.OnDeviceRankChanged ("DRIVER", deviceID) for another device comes from HMI, RSDL must set the named device as driver's and set the previous one to passenger's.
-					
 
-		--Requirement/Diagrams id in jira: 
+
+		--Requirement/Diagrams id in jira:
 				--REVSDL-1577
 				--TC: REVSDL-1618
 
-		--Verification criteria: 
+		--Verification criteria:
 				--In case RSDL knows a device to be driver's and RC.OnDeviceRankChanged ("DRIVER", deviceID) for another device comes from HMI, RSDL must set the named device as driver's and set the previous one to passenger's.
-	
-		-----------------------------------------------------------------------------------------	
-	
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case Precondition.1
 			--Description: Connect device2 for precondition
 				function Test:ConnectDevice2()
 
 					newConnectionDevice2(self, device2, device2Port)
-				
+
 				end
 			--End Test case Precondition.1
-	
-		-----------------------------------------------------------------------------------------	
-	
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case Precondition.2
 			--Description: Register App from Device2
 				function Test:App1Device2Register()
 
 					  --mobile side: RegisterAppInterface request
 					  self.mobileSession21:StartService(7)
-					  :Do(function()    
+					  :Do(function()
 					   local CorIdRAI = self.mobileSession21:SendRPC("RegisterAppInterface",
 							   {
-								   
-								syncMsgVersion = 
-								{ 
+
+								syncMsgVersion =
+								{
 								 majorVersion = 2,
 								 minorVersion = 2,
-								}, 
+								},
 								appName ="SyncProxyTester",
-								ttsName = 
-								{ 
-								  
-								 { 
+								ttsName =
+								{
+
+								 {
 								  text ="4005",
 								  type ="PRE_RECORDED",
-								 }, 
-								}, 
+								 },
+								},
 								isMediaApplication = true,
 								languageDesired ="EN-US",
 								hmiDisplayLanguageDesired ="EN-US",
 								appHMIType = { "NAVIGATION", "REMOTE_CONTROL" },
 								appID ="123456",
-							   
+
 							   })
 
-					   --mobile side: RegisterAppInterface response 
+					   --mobile side: RegisterAppInterface response
 					   self.mobileSession21:ExpectResponse(CorIdRAI, { success = true, resultCode = "SUCCESS"})
 					  end)
-				
+
 				end
 			--End Test case Precondition.2
-	
-		-----------------------------------------------------------------------------------------		
-	
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.2.1.1
 			--Description: Set device1 to Driver's device from HMI
 				function Test:OnDeviceRankChanged_Driver()
 
 					--hmi side: send request RC.OnDeviceRankChanged
-					self.hmiConnection:SendNotification("RC.OnDeviceRankChanged", 
+					self.hmiConnection:SendNotification("RC.OnDeviceRankChanged",
 															{deviceRank = "DRIVER", device = {name = "127.0.0.1", id = 1, isSDLAllowed = true}})
-					
+
 					--mobile side: Expect OnPermissionsChange notification for Driver's device
 					EXPECT_NOTIFICATION("OnPermissionsChange", arrayGroups_PrimaryRC )
-					
+
 					--mobile side: OnHMIStatus notifications with deviceRank = "DRIVER"
-					EXPECT_NOTIFICATION("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", deviceRank = "DRIVER" })					
-				
+					EXPECT_NOTIFICATION("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", deviceRank = "DRIVER" })
+
 				end
 			--End Test case CommonRequestCheck.2.1.1
-	
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.1.2
@@ -916,27 +918,27 @@ end
 				function Test:OnDeviceRankChanged_SetAnotherToDriver()
 
 					--hmi side: send request RC.OnDeviceRankChanged to Device2
-					self.hmiConnection:SendNotification("RC.OnDeviceRankChanged", 
+					self.hmiConnection:SendNotification("RC.OnDeviceRankChanged",
 															{deviceRank = "DRIVER", device = {name = device2, id = 2, isSDLAllowed = true}})
-					
+
 					--APP FROM DEVICE1:
 					--mobile side: Expect OnPermissionsChange notification for Device1 is Passenger
-					EXPECT_NOTIFICATION("OnPermissionsChange", arrayGroups_nonPrimaryRC )					
+					EXPECT_NOTIFICATION("OnPermissionsChange", arrayGroups_nonPrimaryRC )
 					--mobile side: OnHMIStatus notifications with deviceRank = "PASSENGER"
-					EXPECT_NOTIFICATION("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", deviceRank = "PASSENGER" })					
-					
+					EXPECT_NOTIFICATION("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", deviceRank = "PASSENGER" })
+
 					--APP FROM DEVICE2:
 					self.mobileSession21:ExpectNotification("OnPermissionsChange", arrayGroups_PrimaryRC )
 					--mobile side: OnHMIStatus notifications with deviceRank = "DRIVER"
-					self.mobileSession21:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", deviceRank = "DRIVER" })					
-				
+					self.mobileSession21:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", deviceRank = "DRIVER" })
+
 				end
 			--End Test case CommonRequestCheck.2.1.2
-	
+
 		-----------------------------------------------------------------------------------------
-	--End Test case CommonRequestCheck.2.1	
-	
-	
+	--End Test case CommonRequestCheck.2.1
+
+
 --=================================================END TEST CASES 2==========================================================--
 
 
@@ -946,37 +948,37 @@ end
 	--Begin Test suit CommonRequestCheck.3 for Req.#3 (TCs: REVSDL-1617 - [REVSDL-1577][TC-05]: RSDL sets device as passenger in case receiving RC.OnDeviceRankChanged ("PASSENGER", deviceID))
 
 	--Description: In case RSDL knows a device to be driver's and RC.OnDeviceRankChanged ("PASSENGER", deviceID) for the same device comes from HMI, RSDL must set this device as passenger's
-	
+
 
 	--Begin Test case CommonRequestCheck.3.1
 	--Description: 	In case RSDL knows a device to be driver's and RC.OnDeviceRankChanged ("PASSENGER", deviceID) for the same device comes from HMI, RSDL must set this device as passenger's
-					
 
-		--Requirement/Diagrams id in jira: 
+
+		--Requirement/Diagrams id in jira:
 				--REVSDL-1577
 
-		--Verification criteria: 
+		--Verification criteria:
 				--In case RSDL knows a device to be driver's and RC.OnDeviceRankChanged ("PASSENGER", deviceID) for the same device comes from HMI, RSDL must set this device as passenger's
-		
-		-----------------------------------------------------------------------------------------	
-	
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.3.1.1
 			--Description: Set device1 to Driver's device from HMI
 				function Test:OnDeviceRankChanged_Driver()
 
 					--hmi side: send request RC.OnDeviceRankChanged
-					self.hmiConnection:SendNotification("RC.OnDeviceRankChanged", 
+					self.hmiConnection:SendNotification("RC.OnDeviceRankChanged",
 															{deviceRank = "DRIVER", device = {name = "127.0.0.1", id = 1, isSDLAllowed = true}})
-					
+
 					--mobile side: Expect OnPermissionsChange notification for Driver's device
 					EXPECT_NOTIFICATION("OnPermissionsChange", arrayGroups_PrimaryRC )
-					
+
 					--mobile side: OnHMIStatus notifications with deviceRank = "DRIVER"
-					EXPECT_NOTIFICATION("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", deviceRank = "DRIVER" })					
-				
+					EXPECT_NOTIFICATION("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", deviceRank = "DRIVER" })
+
 				end
 			--End Test case CommonRequestCheck.3.1.1
-	
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.3.1.2
@@ -984,52 +986,52 @@ end
 				function Test:OnDeviceRankChanged_DriverToPassenger()
 
 					--hmi side: send request RC.OnDeviceRankChanged
-					self.hmiConnection:SendNotification("RC.OnDeviceRankChanged", 
+					self.hmiConnection:SendNotification("RC.OnDeviceRankChanged",
 															{deviceRank = "PASSENGER", device = {name = "127.0.0.1", id = 1, isSDLAllowed = true}})
-					
+
 					--mobile side: Expect OnPermissionsChange notification for Passenger's device
 					EXPECT_NOTIFICATION("OnPermissionsChange", arrayGroups_nonPrimaryRC )
-					
+
 					--mobile side: OnHMIStatus notifications with deviceRank = "PASSENGER"
-					EXPECT_NOTIFICATION("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", deviceRank = "PASSENGER" })					
-				
+					EXPECT_NOTIFICATION("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", deviceRank = "PASSENGER" })
+
 				end
 			--End Test case CommonRequestCheck.3.1.2
-	
+
 		-----------------------------------------------------------------------------------------
 	--End Test case CommonRequestCheck.3.1
-	
-	
+
+
 	--Begin Test case CommonRequestCheck.3.2
 	--Description: 	In case RSDL knows a device to be driver's and RC.OnDeviceRankChanged ("PASSENGER", deviceID) for the same device comes from HMI, RSDL must set this device as passenger's
-					
 
-		--Requirement/Diagrams id in jira: 
+
+		--Requirement/Diagrams id in jira:
 				--REVSDL-1577
 				--TC: REVSDL-1619
 
-		--Verification criteria: 
+		--Verification criteria:
 				--In case RSDL knows a device to be driver's and RC.OnDeviceRankChanged ("PASSENGER", deviceID) for the same device comes from HMI, RSDL must set this device as passenger's
-		
-		-----------------------------------------------------------------------------------------	
-	
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.3.2.1
 			--Description: Set device1 to Driver's device from HMI
 				function Test:TC3_Driver()
 
 					--hmi side: send request RC.OnDeviceRankChanged
-					self.hmiConnection:SendNotification("RC.OnDeviceRankChanged", 
+					self.hmiConnection:SendNotification("RC.OnDeviceRankChanged",
 															{deviceRank = "DRIVER", device = {name = "127.0.0.1", id = 1, isSDLAllowed = true}})
-					
+
 					--mobile side: Expect OnPermissionsChange notification for Driver's device
 					EXPECT_NOTIFICATION("OnPermissionsChange", arrayGroups_PrimaryRC )
-					
+
 					--mobile side: OnHMIStatus notifications with deviceRank = "DRIVER"
-					EXPECT_NOTIFICATION("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", deviceRank = "DRIVER" })					
-				
+					EXPECT_NOTIFICATION("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", deviceRank = "DRIVER" })
+
 				end
 			--End Test case CommonRequestCheck.3.2.1
-	
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.3.2.2
@@ -1049,12 +1051,12 @@ end
 						},
 						moduleType = "RADIO",
 						buttonPressMode = "LONG",
-						buttonName = "VOLUME_UP"						
+						buttonName = "VOLUME_UP"
 					})
-							
+
 					--hmi side: expect Buttons.ButtonPress request
-					EXPECT_HMICALL("Buttons.ButtonPress", 
-									{ 
+					EXPECT_HMICALL("Buttons.ButtonPress",
+									{
 										zone =
 										{
 											colspan = 2,
@@ -1071,21 +1073,21 @@ end
 						:Do(function(_,data)
 							--hmi side: sending Buttons.ButtonPress response
 							self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-						end)								
-					
+						end)
+
 					--App_1 recevies SUCCESS.
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.3.2.2
-			
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.3.2.3
 			--Description: activate App1 to FULL
 				function Test:TC3_App1FULL()
 
 					--hmi side: sending SDL.ActivateApp request
-					local rid = self.hmiConnection:SendRequest("SDL.ActivateApp", 
+					local rid = self.hmiConnection:SendRequest("SDL.ActivateApp",
 																{ appID = self.applications["Test Application"] })
 
 					--hmi side: Waiting for SDL.ActivateApp response
@@ -1093,11 +1095,11 @@ end
 					self.mobileSession:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "FULL"})
 				end
 			--End Test case CommonRequestCheck.3.2.3
-			
-		-----------------------------------------------------------------------------------------		
-		
+
+		-----------------------------------------------------------------------------------------
+
 		--Begin Test case CommonRequestCheck.3.2.4
-			--Description: Positive case and in boundary conditions (SUCCESS) 
+			--Description: Positive case and in boundary conditions (SUCCESS)
 			function Test:TC3_ShowUI_SUCCESS()
 
 				--mobile side: sending Show request
@@ -1106,11 +1108,11 @@ end
 															mainField1 = "Show Line 1"
 														})
 				--hmi side: expect UI.Show request
-				EXPECT_HMICALL("UI.Show", 
-								{ 
-									
-									showStrings = 
-									{							
+				EXPECT_HMICALL("UI.Show",
+								{
+
+									showStrings =
+									{
 										{
 										fieldName = "mainField1",
 										fieldText = "Show Line 1"
@@ -1121,34 +1123,34 @@ end
 						--hmi side: sending UI.Show response
 						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 					end)
-				
+
 				--mobile side: expect Show response SUCCESS
 				EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
-				
+
 			end
 		--End Test case CommonRequestCheck.3.2.4
 
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.3.2.5
 			--Description: Set device1 to Passenger's device from HMI
 				function Test:TC3_DriverToPassenger()
 
 					--hmi side: send request RC.OnDeviceRankChanged
-					self.hmiConnection:SendNotification("RC.OnDeviceRankChanged", 
+					self.hmiConnection:SendNotification("RC.OnDeviceRankChanged",
 															{deviceRank = "PASSENGER", device = {name = "127.0.0.1", id = 1, isSDLAllowed = true}})
-					
+
 					--mobile side: Expect OnPermissionsChange notification for Passenger's device
 					EXPECT_NOTIFICATION("OnPermissionsChange", arrayGroups_nonPrimaryRC )
-					
+
 					--mobile side: OnHMIStatus notifications with deviceRank = "PASSENGER"
-					EXPECT_NOTIFICATION("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", deviceRank = "PASSENGER" })					
-				
+					EXPECT_NOTIFICATION("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", deviceRank = "PASSENGER" })
+
 				end
 			--End Test case CommonRequestCheck.3.2.5
-	
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.3.2.6
 			--Description: application sends ButtonPress as Front Passenger (driver_allow SUCCESS)
 				function Test:TC3_App1DriverAllow()
@@ -1166,12 +1168,12 @@ end
 						},
 						moduleType = "RADIO",
 						buttonPressMode = "LONG",
-						buttonName = "VOLUME_UP"						
+						buttonName = "VOLUME_UP"
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application1"],
 									moduleType = "RADIO",
 									zone =
@@ -1184,13 +1186,13 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
-							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})					
-							
+							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
+
 							--hmi side: expect Buttons.ButtonPress request
-							EXPECT_HMICALL("Buttons.ButtonPress", 
-											{ 
+							EXPECT_HMICALL("Buttons.ButtonPress",
+											{
 												zone =
 												{
 													colspan = 2,
@@ -1209,14 +1211,14 @@ end
 									self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 								end)
 						end)
-					
+
 					--App_1 recevies SUCCESS.
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.3.2.6
-			
-		-----------------------------------------------------------------------------------------		
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.3.2.7
 			--Description: application sends ButtonPress as Driver (auto_allow SUCCESS)
 				function Test:TC3_App1AutoAllow()
@@ -1233,12 +1235,12 @@ end
 						},
 						moduleType = "RADIO",
 						buttonPressMode = "LONG",
-						buttonName = "VOLUME_UP"						
+						buttonName = "VOLUME_UP"
 					})
-					
+
 				--hmi side: expect Buttons.ButtonPress request
-				EXPECT_HMICALL("Buttons.ButtonPress", 
-								{ 
+				EXPECT_HMICALL("Buttons.ButtonPress",
+								{
 									zone =
 									{
 										colspan = 2,
@@ -1255,16 +1257,16 @@ end
 					:Do(function(_,data)
 						--hmi side: sending Buttons.ButtonPress response
 						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-					end)					
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.3.2.7
-			
-		-----------------------------------------------------------------------------------------		
+
+		-----------------------------------------------------------------------------------------
 
 		--Begin Test case CommonRequestCheck.3.2.4
-			--Description: Positive case and in boundary conditions (DISALLOWED) 
+			--Description: Positive case and in boundary conditions (DISALLOWED)
 			function Test:TC3_ShowUI_DISALLOWED()
 
 				--mobile side: sending Show request
@@ -1272,30 +1274,30 @@ end
 														{
 															mainField1 = "Show Line 1"
 														})
-				
+
 				--mobile side: expect Show response DISALLOWED
 				EXPECT_RESPONSE(cid, { success = false, resultCode = "DISALLOWED" })
-				
+
 			end
 		--End Test case CommonRequestCheck.3.2.4
 
 		-----------------------------------------------------------------------------------------
 	--End Test case CommonRequestCheck.3.2
-	
+
 
 	--Begin Test case CommonRequestCheck.3.3 (restart SDL before running this test suite)
 	--Description: 	In case RSDL knows a device to be driver's and RC.OnDeviceRankChanged ("PASSENGER", deviceID) for the same device comes from HMI, RSDL must set this device as passenger's
-					
 
-		--Requirement/Diagrams id in jira: 
+
+		--Requirement/Diagrams id in jira:
 				--REVSDL-1577
 				--TC: REVSDL-1620
 
-		--Verification criteria: 
+		--Verification criteria:
 				--In case RSDL knows a device to be driver's and RC.OnDeviceRankChanged ("PASSENGER", deviceID) for the same device comes from HMI, RSDL must set this device as passenger's
-		
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.3.3.1
 			--Description: application sends ButtonPress as Front Passenger (driver_allow SUCCESS)
 				function Test:TC3_App1DriverAllow()
@@ -1313,12 +1315,12 @@ end
 						},
 						moduleType = "RADIO",
 						buttonPressMode = "LONG",
-						buttonName = "VOLUME_UP"						
+						buttonName = "VOLUME_UP"
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application1"],
 									moduleType = "RADIO",
 									zone =
@@ -1331,13 +1333,13 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
-							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})					
-							
+							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
+
 							--hmi side: expect Buttons.ButtonPress request
-							EXPECT_HMICALL("Buttons.ButtonPress", 
-											{ 
+							EXPECT_HMICALL("Buttons.ButtonPress",
+											{
 												zone =
 												{
 													colspan = 2,
@@ -1356,14 +1358,14 @@ end
 									self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 								end)
 						end)
-					
+
 					--App_1 recevies SUCCESS.
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.3.3.1
-			
-		-----------------------------------------------------------------------------------------		
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.3.3.2
 			--Description: application sends ButtonPress as Driver (auto_allow SUCCESS)
 				function Test:TC3_App1AutoAllow()
@@ -1380,12 +1382,12 @@ end
 						},
 						moduleType = "RADIO",
 						buttonPressMode = "LONG",
-						buttonName = "VOLUME_UP"						
+						buttonName = "VOLUME_UP"
 					})
-					
+
 				--hmi side: expect Buttons.ButtonPress request
-				EXPECT_HMICALL("Buttons.ButtonPress", 
-								{ 
+				EXPECT_HMICALL("Buttons.ButtonPress",
+								{
 									zone =
 									{
 										colspan = 2,
@@ -1402,16 +1404,16 @@ end
 					:Do(function(_,data)
 						--hmi side: sending Buttons.ButtonPress response
 						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-					end)					
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.3.3.2
-			
-		-----------------------------------------------------------------------------------------		
+
+		-----------------------------------------------------------------------------------------
 
 		--Begin Test case CommonRequestCheck.3.3.3
-			--Description: Positive case and in boundary conditions (DISALLOWED) 
+			--Description: Positive case and in boundary conditions (DISALLOWED)
 			function Test:TC3_ShowUI_DISALLOWED()
 
 				--mobile side: sending Show request
@@ -1419,32 +1421,32 @@ end
 														{
 															mainField1 = "Show Line 1"
 														})
-				
+
 				--mobile side: expect Show response DISALLOWED
 				EXPECT_RESPONSE(cid, { success = false, resultCode = "DISALLOWED" })
-				
+
 			end
 		--End Test case CommonRequestCheck.3.3.3
 
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.3.3.4
 			--Description: Set device1 to Driver's device from HMI
 				function Test:TC3_Driver()
 
 					--hmi side: send request RC.OnDeviceRankChanged
-					self.hmiConnection:SendNotification("RC.OnDeviceRankChanged", 
+					self.hmiConnection:SendNotification("RC.OnDeviceRankChanged",
 															{deviceRank = "DRIVER", device = {name = "127.0.0.1", id = 1, isSDLAllowed = true}})
-					
+
 					--mobile side: Expect OnPermissionsChange notification for Driver's device
 					EXPECT_NOTIFICATION("OnPermissionsChange", arrayGroups_PrimaryRC )
-					
+
 					--mobile side: OnHMIStatus notifications with deviceRank = "DRIVER"
-					EXPECT_NOTIFICATION("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "LIMITED", audioStreamingState = "NOT_AUDIBLE", deviceRank = "DRIVER" })					
-				
+					EXPECT_NOTIFICATION("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "LIMITED", audioStreamingState = "NOT_AUDIBLE", deviceRank = "DRIVER" })
+
 				end
 			--End Test case CommonRequestCheck.3.3.4
-	
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.3.3.5
@@ -1464,12 +1466,12 @@ end
 						},
 						moduleType = "RADIO",
 						buttonPressMode = "LONG",
-						buttonName = "VOLUME_UP"						
+						buttonName = "VOLUME_UP"
 					})
-							
+
 					--hmi side: expect Buttons.ButtonPress request
-					EXPECT_HMICALL("Buttons.ButtonPress", 
-									{ 
+					EXPECT_HMICALL("Buttons.ButtonPress",
+									{
 										zone =
 										{
 											colspan = 2,
@@ -1486,21 +1488,21 @@ end
 						:Do(function(_,data)
 							--hmi side: sending Buttons.ButtonPress response
 							self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-						end)								
-					
+						end)
+
 					--App_1 recevies SUCCESS.
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.3.3.5
-			
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.3.3.6
 			--Description: activate App1 to FULL
 				function Test:TC3_App1FULL()
 
 					--hmi side: sending SDL.ActivateApp request
-					local rid = self.hmiConnection:SendRequest("SDL.ActivateApp", 
+					local rid = self.hmiConnection:SendRequest("SDL.ActivateApp",
 																{ appID = self.applications["Test Application"] })
 
 					--hmi side: Waiting for SDL.ActivateApp response
@@ -1508,11 +1510,11 @@ end
 					self.mobileSession:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "FULL" })
 				end
 			--End Test case CommonRequestCheck.3.3.6
-			
-		-----------------------------------------------------------------------------------------		
-		
+
+		-----------------------------------------------------------------------------------------
+
 		--Begin Test case CommonRequestCheck.3.3.7
-			--Description: Positive case and in boundary conditions (SUCCESS) 
+			--Description: Positive case and in boundary conditions (SUCCESS)
 			function Test:TC3_ShowUI_SUCCESS()
 
 				--mobile side: sending Show request
@@ -1521,11 +1523,11 @@ end
 															mainField1 = "Show Line 1"
 														})
 				--hmi side: expect UI.Show request
-				EXPECT_HMICALL("UI.Show", 
-								{ 
-									
-									showStrings = 
-									{							
+				EXPECT_HMICALL("UI.Show",
+								{
+
+									showStrings =
+									{
 										{
 										fieldName = "mainField1",
 										fieldText = "Show Line 1"
@@ -1536,26 +1538,26 @@ end
 						--hmi side: sending UI.Show response
 						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 					end)
-				
+
 				--mobile side: expect Show response SUCCESS
 				EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
-				
+
 			end
 		--End Test case CommonRequestCheck.3.3.7
 
 		-----------------------------------------------------------------------------------------
 	--End Test case CommonRequestCheck.3.3
-	
---=================================================END TEST CASES 3==========================================================--	
+
+--=================================================END TEST CASES 3==========================================================--
 
 
 
 
 
-	
 
 
 
-		
-	
-return Test	
+
+
+
+return Test

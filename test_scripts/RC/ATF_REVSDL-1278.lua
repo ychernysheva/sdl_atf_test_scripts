@@ -5,6 +5,8 @@ revsdl = require("user_modules/revsdl")
 
 revsdl.AddUnknownFunctionIDs()
 revsdl.SubscribeToRcInterface()
+config.ValidateSchema = false
+config.application1.registerAppInterfaceParams.appHMIType = { "REMOTE_CONTROL" }
 
 Test = require('connecttest')
 require('cardinalities')
@@ -93,7 +95,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "ButtonPress"
-								  },							  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" },
@@ -104,7 +106,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "ChangeRegistration"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED"},
@@ -115,7 +117,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "CreateInteractionChoiceSet"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED"},
@@ -148,7 +150,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "DeleteInteractionChoiceSet"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED"},
@@ -159,7 +161,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "DeleteSubMenu"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" },
@@ -170,7 +172,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "EncodedSyncPData"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED"},
@@ -181,7 +183,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "EndAudioPassThru"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED"},
@@ -203,7 +205,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "GetInteriorVehicleData"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" },
@@ -214,7 +216,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "GetInteriorVehicleDataCapabilities"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" },
@@ -225,7 +227,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "ListFiles"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" },
@@ -236,7 +238,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "OnAppInterfaceUnregistered"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED" },
@@ -247,7 +249,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "OnAudioPassThru"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED" },
@@ -258,7 +260,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "OnButtonEvent"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED" },
@@ -302,7 +304,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "OnEncodedSyncPData"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" },
@@ -313,7 +315,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "OnHMIStatus"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" },
@@ -324,7 +326,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "OnHashChange"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED" },
@@ -357,7 +359,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "OnPermissionsChange"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" },
@@ -368,7 +370,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "OnSystemRequest"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "FULL", "LIMITED" },
@@ -379,7 +381,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "PerformAudioPassThru"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "FULL", "LIMITED" },
@@ -401,7 +403,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "PutFile"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" },
@@ -423,7 +425,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "ResetGlobalProperties"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "FULL" },
@@ -434,7 +436,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "ScrollableMessage"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" },
@@ -489,7 +491,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "SetMediaClockTimer"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED" },
@@ -500,7 +502,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "Show"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "FULL" },
@@ -511,7 +513,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "Slider"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "FULL", "LIMITED" },
@@ -544,7 +546,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "SystemRequest"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" },
@@ -555,7 +557,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "UnregisterAppInterface"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED" },
@@ -670,11 +672,11 @@ local arrayGroups_nonPrimaryRC = {
 											userDisallowed = {}
 										 },
 										 rpcName = "SystemRequest"
-									  },									  
+									  },
 									 }
-						}						
-	
-						
+						}
+
+
 
 ---------------------------------------------------------------------------------------------
 -------------------------------------STARTING COMMON FUNCTIONS-------------------------------
@@ -696,12 +698,12 @@ end
 
 ---------------------------------------------------------------------------------------------
 ----------------------------------------END COMMON FUNCTIONS---------------------------------
----------------------------------------------------------------------------------------------	
+---------------------------------------------------------------------------------------------
 
-	
-	
-	
-	
+
+
+
+
 
 --======================================REVSDL-1278=========================================--
 ---------------------------------------------------------------------------------------------
@@ -715,34 +717,34 @@ end
 	--Begin Test suit CommonRequestCheck.1 for Req.#1
 
 	--Description: 1. In case an application with AppHMIType "REMOTE_CONTROL" successfully registers from passenger's device at SDL and this application is not present in HMILevel resumption list, RSDL must notify this app via OnHMIStatus (NONE, params) about assigned NONE HMILevel.
-	
+
 
 	--Begin Test case CommonRequestCheck.1.1
 	--Description: 	In case an application with AppHMIType "REMOTE_CONTROL" successfully registers from passenger's device at SDL and this application is not present in HMILevel resumption list, RSDL must notify this app via OnHMIStatus (NONE, params) about assigned NONE HMILevel.
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-1278
 				--TC: REVSDL-1299, REVSDL-1337
 
-		--Verification criteria: 
+		--Verification criteria:
 				--1. Assign NONE for passenger's rc-app - by RegisterAppInterface
 				--2. Assign NONE for passenger's rc-app - by using 'exit' command from vehicle HMI
 
 		-----------------------------------------------------------------------------------------
-				
+
 			--Begin Test case Precondition.1.1.1
 			--Description: Register new session for register new app
 				function Test:TC1_Precondition1()
 				  self.mobileSession1 = mobile_session.MobileSession(
-					self.expectations_list,
+					self,
 					self.mobileConnection)
 				end
 			--End Test case Precondition.1.1.1
-			
+
 		-----------------------------------------------------------------------------------------
-			
+
 			--Begin Test case CommonRequestCheck.1.1.2
-			--Description: Check that RSDL notified connected mobile app via OnHMIStatus (NONE, params) about assigned NONE HMILevel. 
+			--Description: Check that RSDL notified connected mobile app via OnHMIStatus (NONE, params) about assigned NONE HMILevel.
 				function Test:TC1_App1NONE()
 					self.mobileSession1:StartService(7)
 					:Do(function()
@@ -761,36 +763,36 @@ end
 							  appID = "1"
 							})
 
-							EXPECT_HMICALL("BasicCommunication.OnAppRegistered", 
+							EXPECT_HMICALL("BasicCommunication.OnAppRegistered",
 							{
-							  application = 
+							  application =
 							  {
 								appName = "Test Application1"
 							  }
 							})
 							:Do(function(_,data)
 								self.applications["Test Application1"] = data.params.application.appID
-								
+
 								--RSDL sends BC.ActivateApp (level: NONE) to HMI
-								EXPECT_HMICALL("BasicCommunication.ActivateApp", 
+								EXPECT_HMICALL("BasicCommunication.ActivateApp",
 								{
 								  appID = self.applications["Test Application1"],
 								  level = "NONE",
 								  priority = "NONE"
-								})									
-								
+								})
+
 							end)
-							
+
 							--SDL sends RegisterAppInterface_response (success:true) with the following resultCodes: SUCCESS
 							self.mobileSession1:ExpectResponse(CorIdRegister, { success = true, resultCode = "SUCCESS" })
-							
+
 							--mobile side: Expect OnPermissionsChange notification for Passenger's device
 							self.mobileSession1:ExpectNotification("OnPermissionsChange", arrayGroups_nonPrimaryRC )
-							
+
 							--check OnHMIStatus with deviceRank = "PASSENGER"
 							self.mobileSession1:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", deviceRank = "PASSENGER" })
 							:Timeout(5000)
-							
+
 						end)
 					end
 			--End Test case CommonRequestCheck.1.1.2
@@ -813,12 +815,12 @@ end
 						},
 						moduleType = "RADIO",
 						buttonPressMode = "LONG",
-						buttonName = "VOLUME_UP"						
+						buttonName = "VOLUME_UP"
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application1"],
 									moduleType = "RADIO",
 									zone =
@@ -831,13 +833,13 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect Buttons.ButtonPress request
-							EXPECT_HMICALL("Buttons.ButtonPress", 
-											{ 
+							EXPECT_HMICALL("Buttons.ButtonPress",
+											{
 												zone =
 												{
 													colspan = 2,
@@ -855,37 +857,37 @@ end
 									--hmi side: sending Buttons.ButtonPress response
 									self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 								end)
-					end)								
-					
+					end)
+
 					--Mobile side: RSDL sends OnHMIStatus (LIMITED,params)
 					self.mobileSession1:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "LIMITED", audioStreamingState = "NOT_AUDIBLE"})
-					
+
 					self.mobileSession1:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.1.1.3
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.1.1.4
-			--Description: 
+			--Description:
 							--1. HMI sends to RSDL: BasicCommunication.OnExitApplication(USER_EXIT, appID)
-							--2. RSDL returns to App_1: OnHMIStatus(NONE) notification. 
+							--2. RSDL returns to App_1: OnHMIStatus(NONE) notification.
 				function Test:EXIT_Application()
 
 					--hmi side: HMI send BC.OnExitApplication to Rsdl.
 					self.hmiConnection:SendNotification("BasicCommunication.OnExitApplication", {appID = self.applications["Test Application1"], reason = "USER_EXIT"})
-					
+
 					--mobile side: Check that OnHMIStatus(NONE, deviceRank:Driver) sent by RSDL and received by App1
 					self.mobileSession1:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE" })
 					:Timeout(5000)
-				
+
 				end
 			--End Test case CommonRequestCheck.1.1.4
 
 		-----------------------------------------------------------------------------------------
 	--End Test case CommonRequestCheck.1.1
-	
---=================================================END TEST CASES 1==========================================================--	
+
+--=================================================END TEST CASES 1==========================================================--
 
 
 
@@ -894,27 +896,27 @@ end
 	--Begin Test suit CommonRequestCheck.2 for Req.#2
 
 	--Description: 2. --An application with AppHMILevel "BACKGROUND"
-	
+
 
 	--Begin Test case CommonRequestCheck.2.1
-	--Description: 	--An application with AppHMIType "REMOTE_CONTROL" 
-						--From passenger's device 
-						--Of NONE HMILevel 
-						--Sends a remote-control RPC 
-						--And this RPC is allowed by app's assigned policies 
-						--And this RPC is from "auto_allow" section (see REVSDL-966 for details), 
+	--Description: 	--An application with AppHMIType "REMOTE_CONTROL"
+						--From passenger's device
+						--Of NONE HMILevel
+						--Sends a remote-control RPC
+						--And this RPC is allowed by app's assigned policies
+						--And this RPC is from "auto_allow" section (see REVSDL-966 for details),
 						--RSDL must notify this app via OnHMIStatus (BACKGROUND, params) about assigned BACKGROUND HMILevel.
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-1278
 				--TC: REVSDL-1300, REVSDL-1336
 
-		--Verification criteria: 
+		--Verification criteria:
 				--1. Assign BACKGROUND for passenger's rc-app - by sending RPC from "auto_allow"
 				--2. Assign BACKGROUND for passenger's rc-app - by receiving phonecall or emergency occurence notified from HMI
 
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.2.1.1
 			--Description: application sends ButtonPress as Driver and ModuleType = RADIO, buttonPressMode = LONG (BACKGROUND)
 				function Test:TC2_App1BACKGROUND()
@@ -931,12 +933,12 @@ end
 						},
 						moduleType = "RADIO",
 						buttonPressMode = "LONG",
-						buttonName = "VOLUME_UP"						
+						buttonName = "VOLUME_UP"
 					})
-					
+
 				--hmi side: expect Buttons.ButtonPress request
-				EXPECT_HMICALL("Buttons.ButtonPress", 
-								{ 
+				EXPECT_HMICALL("Buttons.ButtonPress",
+								{
 									zone =
 									{
 										colspan = 2,
@@ -953,15 +955,15 @@ end
 					:Do(function(_,data)
 						--hmi side: sending Buttons.ButtonPress response
 						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-					end)					
-					
+					end)
+
 					--Mobile side: RSDL sends OnHMIStatus (BACKGROUND,params)
-					self.mobileSession:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "BACKGROUND", audioStreamingState = "NOT_AUDIBLE"})					
-					
+					self.mobileSession:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "BACKGROUND", audioStreamingState = "NOT_AUDIBLE"})
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.2.1.1
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.1.2
@@ -981,12 +983,12 @@ end
 						},
 						moduleType = "RADIO",
 						buttonPressMode = "LONG",
-						buttonName = "VOLUME_UP"						
+						buttonName = "VOLUME_UP"
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -999,13 +1001,13 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect Buttons.ButtonPress request
-							EXPECT_HMICALL("Buttons.ButtonPress", 
-											{ 
+							EXPECT_HMICALL("Buttons.ButtonPress",
+											{
 												zone =
 												{
 													colspan = 2,
@@ -1023,15 +1025,15 @@ end
 									--hmi side: sending Buttons.ButtonPress response
 									self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 								end)
-					end)								
-					
+					end)
+
 					--Mobile side: RSDL sends OnHMIStatus (LIMITED,params)
 					self.mobileSession:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "LIMITED", audioStreamingState = "NOT_AUDIBLE"})
-					
+
 					self.mobileSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.2.1.2
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.1.3
@@ -1042,34 +1044,34 @@ end
 
 					--hmi side: HMI send BC.OnPhoneCall to Rsdl.
 					self.hmiConnection:SendNotification("BasicCommunication.OnPhoneCall", {isActive = true})
-					
+
 					--mobile side: Check that OnHMIStatus(BACKGROUND) sent by RSDL and received by App1
 					self.mobileSession:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "BACKGROUND", audioStreamingState = "NOT_AUDIBLE" })
 					:Timeout(5000)
-				
+
 				end
 			--End Test case CommonRequestCheck.2.1.3
 
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.2.1.4
-			--Description: 
+			--Description:
 							--1. HMI sends to RSDL: BasicCommunication.OnExitApplication(USER_EXIT, appID)
-							--2. RSDL returns to App_1: OnHMIStatus(NONE) notification. 
+							--2. RSDL returns to App_1: OnHMIStatus(NONE) notification.
 				function Test:TC2_PreconditionNONE()
 
 					--hmi side: HMI send BC.OnExitApplication to Rsdl.
 					self.hmiConnection:SendNotification("BasicCommunication.OnExitApplication", {appID = self.applications["Test Application"], reason = "USER_EXIT"})
-					
+
 					--mobile side: Check that OnHMIStatus(NONE, deviceRank:Driver) sent by RSDL and received by App1
 					self.mobileSession:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE" })
 					:Timeout(5000)
-				
+
 				end
 			--End Test case CommonRequestCheck.2.1.4
 
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.2.1.5
 			--Description: application sends ButtonPress as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO (set HMILevel=LIMITED again)
 				function Test:TC2_PreconditionApp1LIMITED_2()
@@ -1087,12 +1089,12 @@ end
 						},
 						moduleType = "RADIO",
 						buttonPressMode = "LONG",
-						buttonName = "VOLUME_UP"						
+						buttonName = "VOLUME_UP"
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -1105,13 +1107,13 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect Buttons.ButtonPress request
-							EXPECT_HMICALL("Buttons.ButtonPress", 
-											{ 
+							EXPECT_HMICALL("Buttons.ButtonPress",
+											{
 												zone =
 												{
 													colspan = 2,
@@ -1129,35 +1131,35 @@ end
 									--hmi side: sending Buttons.ButtonPress response
 									self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 								end)
-					end)								
-					
+					end)
+
 					--Mobile side: RSDL sends OnHMIStatus (LIMITED,params)
 					self.mobileSession:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "LIMITED", audioStreamingState = "NOT_AUDIBLE"})
-					
+
 					self.mobileSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.2.1.5
-			
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--[[Begin Test case CommonRequestCheck.2.1.6  : Removed this case due to defect: REVSDL-1378
-			--Description: 
+			--Description:
 							--1. HMI sends to RSDL: OnEmergencyEvent(ON)
 							--2. RSDL returns to mobile: OnHMIStatus(BACKGROUND, params) notification.
 				function Test:TC2_OnEmergencyEventBACKGROUND()
 
 					--hmi side: HMI send BC.OnPhoneCall to Rsdl.
 					self.hmiConnection:SendNotification("BasicCommunication.OnEmergencyEvent", {enabled = true})
-					
+
 					--mobile side: Check that OnHMIStatus(BACKGROUND) sent by RSDL and received by App1
 					self.mobileSession:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "BACKGROUND", audioStreamingState = "NOT_AUDIBLE" })
 					:Timeout(5000)
-				
+
 				end
 			--End Test case CommonRequestCheck.2.1.6
 
 		-----------------------------------------------------------------------------------------]]
-		
+
 	--End Test case CommonRequestCheck.2.1
 --=================================================END TEST CASES 2==========================================================--
 
@@ -1168,23 +1170,23 @@ end
 	--Begin Test suit CommonRequestCheck.3 for Req.#3
 
 	--Description: 3. --An application with AppHMILevel "NONE" or "BACKGROUND"
-	
+
 
 	--Begin Test case CommonRequestCheck.3.1
-	--Description: 	--An application with AppHMIType "REMOTE_CONTROL" 
-						--An application with AppHMIType "REMOTE_CONTROL" 
-						--From passenger's device 
-						--Of NONE or BACKGROUND HMILevel sends an RPC 
-						--And this RPC is allowed by app's assigned policies 
-						--And this RPC is from "driver_allow" section (see REVSDL-966 for details) 
-						--And the driver accepted the permission prompt 
+	--Description: 	--An application with AppHMIType "REMOTE_CONTROL"
+						--An application with AppHMIType "REMOTE_CONTROL"
+						--From passenger's device
+						--Of NONE or BACKGROUND HMILevel sends an RPC
+						--And this RPC is allowed by app's assigned policies
+						--And this RPC is from "driver_allow" section (see REVSDL-966 for details)
+						--And the driver accepted the permission prompt
 						--RSDL must notify this app via OnHMIStatus (LIMITED, params) about assigned LIMITED HMILevel.
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-1278
 				--TC: REVSDL-1328, REVSDL-1359
 
-		--Verification criteria: 
+		--Verification criteria:
 				--1. Assign LIMITED for passenger's rc-app - from NONE
 				--2. Assign LIMITED for passenger's rc-app - from BACKGROUND
 
@@ -1207,12 +1209,12 @@ end
 						},
 						moduleType = "RADIO",
 						buttonPressMode = "LONG",
-						buttonName = "VOLUME_UP"						
+						buttonName = "VOLUME_UP"
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -1225,13 +1227,13 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect Buttons.ButtonPress request
-							EXPECT_HMICALL("Buttons.ButtonPress", 
-											{ 
+							EXPECT_HMICALL("Buttons.ButtonPress",
+											{
 												zone =
 												{
 													colspan = 2,
@@ -1249,35 +1251,35 @@ end
 									--hmi side: sending Buttons.ButtonPress response
 									self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 								end)
-					end)								
-					
+					end)
+
 					--Mobile side: RSDL sends OnHMIStatus (LIMITED,params)
 					self.mobileSession:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "LIMITED", audioStreamingState = "NOT_AUDIBLE"})
-					
+
 					self.mobileSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.3.1.1
-			
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.3.1.2
-			--Description: 
+			--Description:
 							--1. HMI sends to RSDL: BasicCommunication.OnExitApplication(USER_EXIT, appID)
-							--2. RSDL returns to App_1: OnHMIStatus(NONE) notification. 
+							--2. RSDL returns to App_1: OnHMIStatus(NONE) notification.
 				function Test:TC2_PreconditionNONE()
 
 					--hmi side: HMI send BC.OnExitApplication to Rsdl.
 					self.hmiConnection:SendNotification("BasicCommunication.OnExitApplication", {appID = self.applications["Test Application"], reason = "USER_EXIT"})
-					
+
 					--mobile side: Check that OnHMIStatus(NONE, deviceRank:Driver) sent by RSDL and received by App1
 					self.mobileSession:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE" })
 					:Timeout(5000)
-				
+
 				end
 			--End Test case CommonRequestCheck.3.1.2
 
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.3.1.3
 			--Description: application sends ButtonPress as Driver and ModuleType = RADIO, buttonPressMode = LONG (BACKGROUND)
 				function Test:TC2_App1BACKGROUND()
@@ -1294,12 +1296,12 @@ end
 						},
 						moduleType = "RADIO",
 						buttonPressMode = "LONG",
-						buttonName = "VOLUME_UP"						
+						buttonName = "VOLUME_UP"
 					})
-					
+
 				--hmi side: expect Buttons.ButtonPress request
-				EXPECT_HMICALL("Buttons.ButtonPress", 
-								{ 
+				EXPECT_HMICALL("Buttons.ButtonPress",
+								{
 									zone =
 									{
 										colspan = 2,
@@ -1316,17 +1318,17 @@ end
 					:Do(function(_,data)
 						--hmi side: sending Buttons.ButtonPress response
 						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-					end)					
-					
+					end)
+
 					--Mobile side: RSDL sends OnHMIStatus (BACKGROUND,params)
-					self.mobileSession:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "BACKGROUND", audioStreamingState = "NOT_AUDIBLE"})					
-					
+					self.mobileSession:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "BACKGROUND", audioStreamingState = "NOT_AUDIBLE"})
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.3.1.3
-			
-		-----------------------------------------------------------------------------------------		
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.3.1.4
 			--Description: application sends ButtonPress as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO (set BACKGROUND to LIMITED)
 				function Test:TC2_BACKGROUNDToLIMITED()
@@ -1344,12 +1346,12 @@ end
 						},
 						moduleType = "RADIO",
 						buttonPressMode = "LONG",
-						buttonName = "VOLUME_UP"						
+						buttonName = "VOLUME_UP"
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -1362,13 +1364,13 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect Buttons.ButtonPress request
-							EXPECT_HMICALL("Buttons.ButtonPress", 
-											{ 
+							EXPECT_HMICALL("Buttons.ButtonPress",
+											{
 												zone =
 												{
 													colspan = 2,
@@ -1386,16 +1388,16 @@ end
 									--hmi side: sending Buttons.ButtonPress response
 									self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 								end)
-					end)								
-					
+					end)
+
 					--Mobile side: RSDL sends OnHMIStatus (LIMITED,params)
 					self.mobileSession:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "LIMITED", audioStreamingState = "NOT_AUDIBLE"})
-					
+
 					self.mobileSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.3.1.4
-			
-		-----------------------------------------------------------------------------------------		
+
+		-----------------------------------------------------------------------------------------
 	--End Test case CommonRequestCheck.3.1
 --=================================================END TEST CASES 3==========================================================--
 
@@ -1408,22 +1410,22 @@ end
 	--Begin Test suit CommonRequestCheck.4 for Req.#4
 
 	--Description: . --An application with AppHMILevel "NONE" or "BACKGROUND"
-	
+
 
 	--Begin Test case CommonRequestCheck.4.1
-	--Description: 	--An application with AppHMIType "REMOTE_CONTROL" 
-						--An application with AppHMIType "REMOTE_CONTROL" 
-						--From passenger's device 
-						--Of LIMITED HMILevel sends an RPC 
-						--And this RPC is allowed by app's assigned policies 
-						--And this RPC is from "auto_allow" section (see REVSDL-966 for details), 
+	--Description: 	--An application with AppHMIType "REMOTE_CONTROL"
+						--An application with AppHMIType "REMOTE_CONTROL"
+						--From passenger's device
+						--Of LIMITED HMILevel sends an RPC
+						--And this RPC is allowed by app's assigned policies
+						--And this RPC is from "auto_allow" section (see REVSDL-966 for details),
 						--RSDL must not change the HMILevel of this app.
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-1278
 				--TC: REVSDL-1329
 
-		--Verification criteria: 
+		--Verification criteria:
 				--1. Leave passenger's rc-app in LIMITED
 
 		-----------------------------------------------------------------------------------------
@@ -1445,12 +1447,12 @@ end
 						},
 						moduleType = "RADIO",
 						buttonPressMode = "LONG",
-						buttonName = "VOLUME_UP"						
+						buttonName = "VOLUME_UP"
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -1463,13 +1465,13 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect Buttons.ButtonPress request
-							EXPECT_HMICALL("Buttons.ButtonPress", 
-											{ 
+							EXPECT_HMICALL("Buttons.ButtonPress",
+											{
 												zone =
 												{
 													colspan = 2,
@@ -1487,17 +1489,17 @@ end
 									--hmi side: sending Buttons.ButtonPress response
 									self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 								end)
-					end)								
-					
+					end)
+
 					--Mobile side: RSDL sends OnHMIStatus (LIMITED,params)
 					self.mobileSession:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "LIMITED", audioStreamingState = "NOT_AUDIBLE"})
-					
+
 					self.mobileSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.4.1.1
-			
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.4.1.2
 			--Description: From App_1 mobile application, send an RPC which is allowed by App_1's assigned policies and this RPC is from "auto_allow" section. (zone=Driver)
 				function Test:TC4_StillLIMITED()
@@ -1514,12 +1516,12 @@ end
 						},
 						moduleType = "RADIO",
 						buttonPressMode = "LONG",
-						buttonName = "VOLUME_UP"						
+						buttonName = "VOLUME_UP"
 					})
-					
+
 				--hmi side: expect Buttons.ButtonPress request
-				EXPECT_HMICALL("Buttons.ButtonPress", 
-								{ 
+				EXPECT_HMICALL("Buttons.ButtonPress",
+								{
 									zone =
 									{
 										colspan = 2,
@@ -1536,45 +1538,45 @@ end
 					:Do(function(_,data)
 						--hmi side: sending Buttons.ButtonPress response
 						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-					end)					
-					
+					end)
+
 					--Mobile side: RSDL doesn't sends OnHMIStatus (BACKGROUND,params)
 					self.mobileSession:ExpectNotification("OnHMIStatus")
 					:Times(0)
-					
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.4.1.2
-			
-		-----------------------------------------------------------------------------------------		
+
+		-----------------------------------------------------------------------------------------
 	--End Test case CommonRequestCheck.4.1
 --=================================================END TEST CASES 4==========================================================--
-		
 
 
-		
+
+
 
 --=================================================BEGIN TEST CASES 5==========================================================--
 	--Begin Test suit CommonRequestCheck.5 for Req.#5
 
 	--Description: . --An application with AppHMILevel "NONE" or "BACKGROUND"
-	
+
 
 	--Begin Test case CommonRequestCheck.5.1
-	--Description: 	--An application with AppHMIType "REMOTE_CONTROL" 
-						--An application with AppHMIType "REMOTE_CONTROL" 
-						--From passenger's device 
-						--Of LIMITED HMILevel sends an RPC 
-						--And this RPC is allowed by app's assigned policies 
-						--And this RPC is from "driver_allow" section (see REVSDL-966 for details) 
-						--And the the permission prompt is either denied by the driver, timed out or unsuccessful 
+	--Description: 	--An application with AppHMIType "REMOTE_CONTROL"
+						--An application with AppHMIType "REMOTE_CONTROL"
+						--From passenger's device
+						--Of LIMITED HMILevel sends an RPC
+						--And this RPC is allowed by app's assigned policies
+						--And this RPC is from "driver_allow" section (see REVSDL-966 for details)
+						--And the the permission prompt is either denied by the driver, timed out or unsuccessful
 						--RSDL must not change the HMILevel of this app.
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-1278
 				--TC: REVSDL-1330, REVSDL-1358
 
-		--Verification criteria: 
+		--Verification criteria:
 				--1. Leave passenger's rc-app in BACKGROUND/NONE - NONE case
 				--2. Leave passenger's rc-app in BACKGROUND/NONE - BACKGROUND case
 
@@ -1597,12 +1599,12 @@ end
 						},
 						moduleType = "RADIO",
 						buttonPressMode = "LONG",
-						buttonName = "VOLUME_UP"						
+						buttonName = "VOLUME_UP"
 					})
-					
+
 					--hmi side: expect RSDL sends RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -1615,13 +1617,13 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = false})
-							
+
 							--hmi side: expect Buttons.ButtonPress request
-							EXPECT_HMICALL("Buttons.ButtonPress", 
-											{ 
+							EXPECT_HMICALL("Buttons.ButtonPress",
+											{
 												zone =
 												{
 													colspan = 2,
@@ -1640,20 +1642,20 @@ end
 								--hmi side: sending Buttons.ButtonPress response
 								self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 							end)
-							
+
 					end)
 
 					--Check RSDL log: HMI sends RC.GetInteriorVehicleDataConsent(resultCode:SUCCESS, allowed:false) to RSDL and HMILevel of App_1 is not changed.
 					self.mobileSession:ExpectNotification("OnHMIStatus")
-					:Times(0)					
-					
+					:Times(0)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false, info: "The driver disallows this remote-control RPC" to this application.
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "USER_DISALLOWED", info = "The driver disallows this remote-control RPC" })
 				end
 			--End Test case CommonRequestCheck.5.1.1
-			
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.5.1.2
 			--Description: application sends ButtonPress as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO (TIMEOUT 10s)
 				function Test:TC5_NONETimeout10s()
@@ -1671,12 +1673,12 @@ end
 						},
 						moduleType = "RADIO",
 						buttonPressMode = "LONG",
-						buttonName = "VOLUME_UP"						
+						buttonName = "VOLUME_UP"
 					})
-					
+
 					--hmi side: expect RSDL sends RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -1690,13 +1692,13 @@ end
 									}
 								})
 						:Do(function(_,data)
-							local function HMIResponse()						
+							local function HMIResponse()
 								--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 								self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "TIMED_OUT", {})
-								
+
 								--hmi side: expect Buttons.ButtonPress request
-								EXPECT_HMICALL("Buttons.ButtonPress", 
-												{ 
+								EXPECT_HMICALL("Buttons.ButtonPress",
+												{
 													zone =
 													{
 														colspan = 2,
@@ -1717,21 +1719,21 @@ end
 								end)
 							end
 
-							RUN_AFTER(HMIResponse, 10000)							
-					end)								
-					
+							RUN_AFTER(HMIResponse, 10000)
+					end)
+
 					--Check RSDL log: HMI sends RC.GetInteriorVehicleDataConsent(resultCode:SUCCESS, allowed:false) to RSDL and HMILevel of App_1 is not changed.
 					self.mobileSession:ExpectNotification("OnHMIStatus")
 					:Times(0)
-					
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false, info: "The driver disallows this remote-control RPC" to this application.
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "USER_DISALLOWED", info = "The driver disallows this remote-control RPC" })
 					:Timeout(11000)
 				end
 			--End Test case CommonRequestCheck.5.1.2
-			
-		-----------------------------------------------------------------------------------------		
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.5.1.3
 			--Description: application sends ButtonPress as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO (Emulation HMI sending the erroneous response)
 				function Test:TC5_NONEError()
@@ -1749,12 +1751,12 @@ end
 						},
 						moduleType = "RADIO",
 						buttonPressMode = "LONG",
-						buttonName = "VOLUME_UP"						
+						buttonName = "VOLUME_UP"
 					})
-					
+
 					--hmi side: expect RSDL sends RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -1767,13 +1769,13 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", {"SUCCESS"}, {allowed = true})
-							
+
 							--hmi side: expect Buttons.ButtonPress request
-							EXPECT_HMICALL("Buttons.ButtonPress", 
-											{ 
+							EXPECT_HMICALL("Buttons.ButtonPress",
+											{
 												zone =
 												{
 													colspan = 2,
@@ -1792,20 +1794,20 @@ end
 								--hmi side: sending Buttons.ButtonPress response
 								self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 							end)
-							
+
 					end)
-					
+
 					--Check RSDL log: HMI sends RC.GetInteriorVehicleDataConsent(resultCode:SUCCESS, allowed:false) to RSDL and HMILevel of App_1 is not changed.
 					self.mobileSession:ExpectNotification("OnHMIStatus")
-					:Times(0)					
-					
+					:Times(0)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false, info: "The driver disallows this remote-control RPC" to this application.
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "USER_DISALLOWED", info = "The driver disallows this remote-control RPC" })
 				end
 			--End Test case CommonRequestCheck.5.1.3
-			
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.5.1.4
 			--Description: application sends ButtonPress as Driver and ModuleType = RADIO, buttonPressMode = LONG (changing HMILevel to BACKGROUND)
 				function Test:TC5_BACKGROUND()
@@ -1822,12 +1824,12 @@ end
 						},
 						moduleType = "RADIO",
 						buttonPressMode = "LONG",
-						buttonName = "VOLUME_UP"						
+						buttonName = "VOLUME_UP"
 					})
-					
+
 				--hmi side: expect Buttons.ButtonPress request
-				EXPECT_HMICALL("Buttons.ButtonPress", 
-								{ 
+				EXPECT_HMICALL("Buttons.ButtonPress",
+								{
 									zone =
 									{
 										colspan = 2,
@@ -1844,17 +1846,17 @@ end
 					:Do(function(_,data)
 						--hmi side: sending Buttons.ButtonPress response
 						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-					end)					
-					
+					end)
+
 					--Mobile side: RSDL sends OnHMIStatus (BACKGROUND,params)
-					self.mobileSession:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "BACKGROUND", audioStreamingState = "NOT_AUDIBLE"})					
-					
+					self.mobileSession:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "BACKGROUND", audioStreamingState = "NOT_AUDIBLE"})
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.5.1.4
-			
-		-----------------------------------------------------------------------------------------		
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.5.1.5
 			--Description: application sends ButtonPress as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO (Driver denied permission)
 				function Test:TC5_BACKGROUNDDenied()
@@ -1872,12 +1874,12 @@ end
 						},
 						moduleType = "RADIO",
 						buttonPressMode = "LONG",
-						buttonName = "VOLUME_UP"						
+						buttonName = "VOLUME_UP"
 					})
-					
+
 					--hmi side: expect RSDL sends RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -1890,13 +1892,13 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = false})
-							
+
 							--hmi side: expect Buttons.ButtonPress request
-							EXPECT_HMICALL("Buttons.ButtonPress", 
-											{ 
+							EXPECT_HMICALL("Buttons.ButtonPress",
+											{
 												zone =
 												{
 													colspan = 2,
@@ -1915,20 +1917,20 @@ end
 								--hmi side: sending Buttons.ButtonPress response
 								self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 							end)
-							
+
 					end)
 
 					--Check RSDL log: HMI sends RC.GetInteriorVehicleDataConsent(resultCode:SUCCESS, allowed:false) to RSDL and HMILevel of App_1 is not changed.
 					self.mobileSession:ExpectNotification("OnHMIStatus")
-					:Times(0)					
-					
+					:Times(0)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false, info: "The driver disallows this remote-control RPC" to this application.
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "USER_DISALLOWED", info = "The driver disallows this remote-control RPC" })
 				end
 			--End Test case CommonRequestCheck.5.1.5
-			
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.5.1.6
 			--Description: application sends ButtonPress as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO (TIMEOUT 10s)
 				function Test:TC5_BACKGROUNDTimeout10s()
@@ -1946,12 +1948,12 @@ end
 						},
 						moduleType = "RADIO",
 						buttonPressMode = "LONG",
-						buttonName = "VOLUME_UP"						
+						buttonName = "VOLUME_UP"
 					})
-					
+
 					--hmi side: expect RSDL sends RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -1965,13 +1967,13 @@ end
 									}
 								})
 						:Do(function(_,data)
-							local function HMIResponse()						
+							local function HMIResponse()
 								--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 								self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "TIMED_OUT", {})
-								
+
 								--hmi side: expect Buttons.ButtonPress request
-								EXPECT_HMICALL("Buttons.ButtonPress", 
-												{ 
+								EXPECT_HMICALL("Buttons.ButtonPress",
+												{
 													zone =
 													{
 														colspan = 2,
@@ -1992,21 +1994,21 @@ end
 								end)
 							end
 
-							RUN_AFTER(HMIResponse, 10000)							
-					end)								
-					
+							RUN_AFTER(HMIResponse, 10000)
+					end)
+
 					--Check RSDL log: HMI sends RC.GetInteriorVehicleDataConsent(resultCode:SUCCESS, allowed:false) to RSDL and HMILevel of App_1 is not changed.
 					self.mobileSession:ExpectNotification("OnHMIStatus")
 					:Times(0)
-					
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false, info: "The driver disallows this remote-control RPC" to this application.
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "USER_DISALLOWED", info = "The driver disallows this remote-control RPC" })
 					:Timeout(11000)
 				end
 			--End Test case CommonRequestCheck.5.1.6
-			
-		-----------------------------------------------------------------------------------------		
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.5.1.7
 			--Description: application sends ButtonPress as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO (Emulation HMI sending the erroneous response)
 				function Test:TC5_BACKGROUNDError()
@@ -2024,12 +2026,12 @@ end
 						},
 						moduleType = "RADIO",
 						buttonPressMode = "LONG",
-						buttonName = "VOLUME_UP"						
+						buttonName = "VOLUME_UP"
 					})
-					
+
 					--hmi side: expect RSDL sends RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -2042,13 +2044,13 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", {"SUCCESS"}, {allowed = true})
-							
+
 							--hmi side: expect Buttons.ButtonPress request
-							EXPECT_HMICALL("Buttons.ButtonPress", 
-											{ 
+							EXPECT_HMICALL("Buttons.ButtonPress",
+											{
 												zone =
 												{
 													colspan = 2,
@@ -2067,22 +2069,22 @@ end
 								--hmi side: sending Buttons.ButtonPress response
 								self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 							end)
-							
+
 					end)
-					
+
 					--Check RSDL log: HMI sends RC.GetInteriorVehicleDataConsent(resultCode:SUCCESS, allowed:false) to RSDL and HMILevel of App_1 is not changed.
 					self.mobileSession:ExpectNotification("OnHMIStatus")
-					:Times(0)					
-					
+					:Times(0)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false, info: "The driver disallows this remote-control RPC" to this application.
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "USER_DISALLOWED", info = "The driver disallows this remote-control RPC" })
 				end
 			--End Test case CommonRequestCheck.5.1.7
-			
+
 		-----------------------------------------------------------------------------------------
 	--End Test case CommonRequestCheck.5.1
 --=================================================END TEST CASES 5==========================================================--
 
 
-		
-return Test	
+
+return Test

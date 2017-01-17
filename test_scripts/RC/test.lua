@@ -5,6 +5,8 @@ revsdl = require("user_modules/revsdl")
 
 revsdl.AddUnknownFunctionIDs()
 revsdl.SubscribeToRcInterface()
+config.ValidateSchema = false
+config.application1.registerAppInterfaceParams.appHMIType = { "REMOTE_CONTROL" }
 
 Test = require('connecttest')
 require('cardinalities')
@@ -19,7 +21,7 @@ local module = require('testbase')
 --AppID configured in Preloaded PT file
 local appid = "8675311"
 
-						
+
 --List permission of "OnPermissionsChange" for PrimaryDevice and NonPrimaryDevice
 --NonPrimaryNotification Group
 local arrayGroups_nonPrimaryRCNotification = {
@@ -94,7 +96,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "ButtonPress"
-								  },							  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" },
@@ -105,7 +107,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "ChangeRegistration"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED"},
@@ -116,7 +118,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "CreateInteractionChoiceSet"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED"},
@@ -149,7 +151,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "DeleteInteractionChoiceSet"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED"},
@@ -160,7 +162,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "DeleteSubMenu"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" },
@@ -171,7 +173,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "EncodedSyncPData"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED"},
@@ -182,7 +184,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "EndAudioPassThru"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED"},
@@ -204,7 +206,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "GetInteriorVehicleData"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" },
@@ -215,7 +217,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "GetInteriorVehicleDataCapabilities"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" },
@@ -226,7 +228,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "ListFiles"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" },
@@ -237,7 +239,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "OnAppInterfaceUnregistered"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED" },
@@ -248,7 +250,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "OnAudioPassThru"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED" },
@@ -259,7 +261,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "OnButtonEvent"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED" },
@@ -303,7 +305,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "OnEncodedSyncPData"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" },
@@ -314,7 +316,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "OnHMIStatus"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" },
@@ -325,7 +327,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "OnHashChange"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED" },
@@ -358,7 +360,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "OnPermissionsChange"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" },
@@ -369,7 +371,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "OnSystemRequest"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "FULL", "LIMITED" },
@@ -380,7 +382,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "PerformAudioPassThru"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "FULL", "LIMITED" },
@@ -402,7 +404,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "PutFile"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" },
@@ -424,7 +426,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "ResetGlobalProperties"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "FULL" },
@@ -435,7 +437,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "ScrollableMessage"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" },
@@ -490,7 +492,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "SetMediaClockTimer"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED" },
@@ -501,7 +503,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "Show"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "FULL" },
@@ -512,7 +514,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "Slider"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "FULL", "LIMITED" },
@@ -545,7 +547,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "SystemRequest"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" },
@@ -556,7 +558,7 @@ local arrayGroups_PrimaryRC = {
 										userDisallowed = {}
 									 },
 									 rpcName = "UnregisterAppInterface"
-								  },								  
+								  },
 								  {
 									 hmiPermissions = {
 										allowed = { "BACKGROUND", "FULL", "LIMITED" },
@@ -671,12 +673,12 @@ local arrayGroups_nonPrimaryRC = {
 											userDisallowed = {}
 										 },
 										 rpcName = "SystemRequest"
-									  },									  
+									  },
 									 }
-						}						
-						
+						}
 
-						
+
+
 ---------------------------------------------------------------------------------------------
 -------------------------------------STARTING COMMON FUNCTIONS-------------------------------
 ---------------------------------------------------------------------------------------------
@@ -697,9 +699,9 @@ end
 
 ---------------------------------------------------------------------------------------------
 ----------------------------------------END COMMON FUNCTIONS---------------------------------
----------------------------------------------------------------------------------------------	
-	
-	
+---------------------------------------------------------------------------------------------
+
+
 
 --======================================REVSDL-2162========================================--
 ---------------------------------------------------------------------------------------------
@@ -717,59 +719,59 @@ end
 --=================================================BEGIN TEST CASES 4==========================================================--
 	--Begin Test suit CommonRequestCheck.4 for Req.#4
 
-	--Description: 4. In case 	a. remote-control driver's app sends GetInteriorVehicleDataCapabilities request (with any set of parameters) 
+	--Description: 4. In case 	a. remote-control driver's app sends GetInteriorVehicleDataCapabilities request (with any set of parameters)
 								-- RSDL must check this app's assigned policies and transfer only allowed moduleTypes via RC.GetInteriorVehicleDataCapabilities to the vehicle
 
 	--Begin Test case CommonRequestCheck.4.1
 	--Description: 	RSDL must check this app's assigned policies and transfer only allowed moduleTypes via RC.GetInteriorVehicleDataCapabilities to the vehicle
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-2162
 
-		--Verification criteria: 
+		--Verification criteria:
 				-- RSDL must check this app's assigned policies and transfer only allowed moduleTypes via RC.GetInteriorVehicleDataCapabilities to the vehicle
 
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case Precondition.4.1
 			--Description: Register new session for register new apps
 				function Test:TC4_NewApps()
-				
+
 				  self.mobileSession1 = mobile_session.MobileSession(
 					self.expectations_list,
 					self.mobileConnection)
-					
+
 				end
 			--End Test case Precondition.4.1
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case Precondition.4.1
 			--Description: Register new session for register new apps
 				function Test:TC4_RegisterAppID()
-				
+
 					--mobile side: RegisterAppInterface request
 					  self.mobileSession1:StartService(7)
-					  :Do(function()    
+					  :Do(function()
 					   local CorIdRAI = self.mobileSession1:SendRPC("RegisterAppInterface",
 							   {
-								   
-								syncMsgVersion = 
-								{ 
+
+								syncMsgVersion =
+								{
 								 majorVersion = 2,
 								 minorVersion = 2,
-								}, 
+								},
 								appName ="App1",
-								ttsName = 
-								{ 
-									 
-									{ 
+								ttsName =
+								{
+
+									{
 										text ="Testes",
 										type ="TEXT",
-									}, 
-								}, 
-								vrSynonyms = 
-								{ 
+									},
+								},
+								vrSynonyms =
+								{
 									"Testes",
 								},
 								isMediaApplication = true,
@@ -777,12 +779,12 @@ end
 								hmiDisplayLanguageDesired ="EN-US",
 								appHMIType = { "NAVIGATION", "REMOTE_CONTROL" },
 								appID = appid,
-							   
+
 							   })
 
-						EXPECT_HMICALL("BasicCommunication.OnAppRegistered", 
+						EXPECT_HMICALL("BasicCommunication.OnAppRegistered",
 						{
-						  application = 
+						  application =
 						  {
 							appName = "App1"
 						  }
@@ -790,29 +792,29 @@ end
 						:Do(function(_,data)
 							self.applications["App1"] = data.params.application.appID
 							ID = data.params.application.appID
-						end)						   
+						end)
 
-							   
-					   --mobile side: RegisterAppInterface response 
+
+					   --mobile side: RegisterAppInterface response
 					   self.mobileSession1:ExpectResponse(CorIdRAI, { success = true, resultCode = "WARNINGS"},
 							{
-								   
-								syncMsgVersion = 
-								{ 
+
+								syncMsgVersion =
+								{
 								 majorVersion = 2,
 								 minorVersion = 2,
-								}, 
+								},
 								appName ="App1",
-								ttsName = 
-								{ 
-									 
-									{ 
+								ttsName =
+								{
+
+									{
 										text ="Testes",
 										type ="TEXT",
-									}, 
-								}, 
-								vrSynonyms = 
-								{ 
+									},
+								},
+								vrSynonyms =
+								{
 									"Testes",
 								},
 								isMediaApplication = true,
@@ -820,37 +822,37 @@ end
 								hmiDisplayLanguageDesired ="EN-US",
 								appHMIType = { "NAVIGATION", "REMOTE_CONTROL" },
 								appID = appid,
-							   
+
 							}
 					   )
-					   
+
 						--mobile side: Expect OnPermissionsChange notification for Passenger's device
-						self.mobileSession1:ExpectNotification("OnPermissionsChange", arrayGroups_nonPrimaryRC )				
+						self.mobileSession1:ExpectNotification("OnPermissionsChange", arrayGroups_nonPrimaryRC )
 					end)
-					
+
 				end
 			--End Test case Precondition.4.1
-			
-		-----------------------------------------------------------------------------------------		
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.4.1.1
 			--Description: Set device1 to Driver's device from HMI
 				function Test:OnDeviceRankChanged_Driver()
 
 					--hmi side: send request RC.OnDeviceRankChanged
-					self.hmiConnection:SendNotification("RC.OnDeviceRankChanged", 
+					self.hmiConnection:SendNotification("RC.OnDeviceRankChanged",
 															{deviceRank = "DRIVER", device = {name = "127.0.0.1", id = 1, isSDLAllowed = true}})
-					
+
 					--mobile side: Expect OnPermissionsChange notification for Driver's device
 					self.mobileSession1:ExpectNotification("OnPermissionsChange", arrayGroups_PrimaryRC )
-					
+
 					--mobile side: OnHMIStatus notifications with deviceRank = "DRIVER"
-					self.mobileSession1:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", deviceRank = "DRIVER" })					
-				
+					self.mobileSession1:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", deviceRank = "DRIVER" })
+
 				end
 			--End Test case CommonRequestCheck.4.1.1
-	
-		-----------------------------------------------------------------------------------------		
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.4.1.2
 			--Description: application sends GetInteriorVehicleDataCapabilities as Driver and ModuleType = RADIO
@@ -868,7 +870,7 @@ end
 						},
 						moduleTypes = {"RADIO", "RADIO", "CLIMATE"}
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataCapabilities request
 					EXPECT_HMICALL("RC.GetInteriorVehicleDataCapabilities")
 					:Do(function(_,data)
@@ -899,8 +901,8 @@ end
 															}
 														}
 						})
-					end)					
-				
+					end)
+
 					--mobile side: expect SUCCESS response
 					self.mobileSession1:ExpectResponse(cid, { success = true, resultCode = "SUCCESS", interiorVehicleDataCapabilities = {
 																								{
@@ -931,7 +933,7 @@ end
 			--End Test case CommonRequestCheck.4.1.2
 
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.4.1.3
 			--Description: application sends GetInteriorVehicleDataCapabilities as Driver and ModuleType = {}
 				function Test:AutoAllow_DriverModuleTypeEmpty()
@@ -948,7 +950,7 @@ end
 						},
 						moduleTypes = {}
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataCapabilities request
 					EXPECT_HMICALL("RC.GetInteriorVehicleDataCapabilities")
 					:Do(function(_,data)
@@ -968,8 +970,8 @@ end
 															}
 														}
 						})
-					end)					
-				
+					end)
+
 					--mobile side: expect SUCCESS response
 					self.mobileSession1:ExpectResponse(cid, { success = true, resultCode = "SUCCESS", interiorVehicleDataCapabilities = {
 																								{
@@ -983,13 +985,13 @@ end
 																									},
 																									moduleType = "RADIO"
 																								}
-																					}			
+																					}
 					})
 				end
 			--End Test case CommonRequestCheck.4.1.3
 
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.4.1.4
 			--Description: application sends GetInteriorVehicleDataCapabilities as Driver and without ModuleType
 				function Test:AutoAllow_DriverWithoutModuleType()
@@ -1005,7 +1007,7 @@ end
 							level = 0
 						}
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataCapabilities request
 					EXPECT_HMICALL("RC.GetInteriorVehicleDataCapabilities")
 					:Do(function(_,data)
@@ -1025,8 +1027,8 @@ end
 															}
 														}
 						})
-					end)					
-				
+					end)
+
 					--mobile side: expect SUCCESS response
 					self.mobileSession1:ExpectResponse(cid, { success = true, resultCode = "SUCCESS", interiorVehicleDataCapabilities = {
 																								{
@@ -1040,19 +1042,19 @@ end
 																									},
 																									moduleType = "RADIO"
 																								}
-																					}			
+																					}
 					})
 				end
 			--End Test case CommonRequestCheck.4.1.4
 
-		-----------------------------------------------------------------------------------------		
-		
+		-----------------------------------------------------------------------------------------
+
 	--End Test case CommonRequestCheck.4.1
 
-	
---=================================================END TEST CASES 4==========================================================--			
+
+--=================================================END TEST CASES 4==========================================================--
 
 
 
-		
+
 return Test
