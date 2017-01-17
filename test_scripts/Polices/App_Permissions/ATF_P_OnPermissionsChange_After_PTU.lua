@@ -1,4 +1,3 @@
-
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
 -- OnPermissionsChange send after app's permissions change by Policy Table Update
@@ -27,16 +26,13 @@ config.defaultProtocolVersion = 2
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require ('user_modules/shared_testcases/commonSteps')
 
+--[[ General Precondition before ATF start ]]
+commonFunctions:SDLForceStop()
+commonSteps:DeleteLogsFileAndPolicyTable()
+
 --[[ General Settings for configuration ]]
 Test = require('connecttest')
 require('cardinalities')
-local mobile_session = require('mobile_session')
-
---[[ Preconditions ]]
-function Test:Precondition_DeleteLogsAndPolicyTable()
-  commonSteps:DeleteLogsFiles()
-  commonSteps:DeletePolicyTable()
-end
 
 function Test:TestStep_Assign_To_App_Default_Permissions_And_Check_Them_In_OnPermissionsChange()
 
@@ -102,7 +98,7 @@ function Test:TestStep_Update_Policy_With_New_Permissions_And_Check_Them_In_OnPe
               EXPECT_NOTIFICATION("OnPermissionsChange", {})
               :ValidIf(function(_,data1)
                   local tableOfPolicyPermissions = commonFunctions:convert_ptu_to_permissions_change_data("files/ptu_general_0000001.json", "Base-8", true)
-                if commonFunctions:is_table_equal(tableOfPolicyPermissions, data1.payload.permissionItem) then
+                  if commonFunctions:is_table_equal(tableOfPolicyPermissions, data1.payload.permissionItem) then
                     return true
                   else
                     return false
@@ -114,6 +110,10 @@ function Test:TestStep_Update_Policy_With_New_Permissions_And_Check_Them_In_OnPe
 end
 
 --[[ Postcondition ]]
-function Test:Postcondition_StopSDL()
-StopSDL()
+commonFunctions:newTestCasesGroup("Postconditions")
+
+function Test.Postconditions_StopSDL()
+  StopSDL()
 end
+
+return Test
