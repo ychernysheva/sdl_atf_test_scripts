@@ -4,11 +4,17 @@
             "0000001": {
                 "groups": ["Base-4", "Base-6"],
                 "priority": "NONE",
+				"keep_context": false,
+                "steal_focus": false,
+				"default_hmi": "NONE",
                 "nicknames": ["Test Application", "App1"]
             },
             "app_new": {
                 "groups": ["Base-4", "Base-6"],
                 "priority": "NONE",
+				"keep_context": false,
+                "steal_focus": false,
+				"default_hmi": "NONE",
                 "nicknames": ["New Application"]                
             },
             "default": {

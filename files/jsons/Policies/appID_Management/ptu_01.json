@@ -1,12 +1,15 @@
 {
-    "policy_table": {        
+    "policy_table": {
         "app_policies": {
             "0000001": "default",
             "123_xyz": {
                 "groups": ["Base-6"],
                 "priority": "NONE",
-                "nicknames": ["Media Application", "MediaApp"]                
-            },            
+				"keep_context": false,
+                "steal_focus": false,
+				"default_hmi": "NONE",
+                "nicknames": ["Media Application", "MediaApp"]
+            },
             "default": {
                 "keep_context": false,
                 "steal_focus": false,
@@ -1215,7 +1218,7 @@
                 },
                 "user_consent_prompt": "VehicleInfo"
             }
-        },        
+        },
         "module_config": {
             "endpoints": {
                 "0x04": {
@@ -1250,7 +1253,6 @@
                 "NORMAL": 4,
                 "VOICECOM": 20
             },
-            "preloaded_pt": false,
             "seconds_between_retries": [
                 1,
                 5,
