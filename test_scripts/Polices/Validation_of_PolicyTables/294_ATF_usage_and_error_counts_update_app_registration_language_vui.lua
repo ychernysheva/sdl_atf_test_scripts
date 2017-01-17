@@ -406,6 +406,10 @@ function Test:TestStep_Check_app_registration_language_vui_PTS()
   end
 end
 
+function Test.Wait()
+  os.execute("sleep 3")
+end
+
 function Test:CheckLocalPTBeforeUpdate()
   local checks = {
     {
@@ -433,6 +437,10 @@ function Test:InitiatePTUForGetSnapshot()
     self.mobileSession)
   -- updatePolicyInDifferentSessions(Test, ptu_first_app_registered,
   -- TESTED_DATA.application.registerAppInterfaceParams.appName, self.mobileSession)
+end
+
+function Test.Wait()
+  os.execute("sleep 3")
 end
 
 function Test:CheckPTUinLocalPT()
