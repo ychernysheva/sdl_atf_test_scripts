@@ -111,6 +111,10 @@ function Test:Send_TOO_MANY_REQUESTS_WHILE_IN_NONE_HMI_LEVEL()
   EXPECT_NOTIFICATION("OnAppInterfaceUnregistered", {reason = "REQUEST_WHILE_IN_NONE_HMI_LEVEL"})
 end
 
+function Test.Wait()
+  os.execute("sleep 3")
+end
+
 function Test:Check_TOO_MANY_REQUESTS_in_DB()
   local db_path = config.pathToSDL.."storage/policy.sqlite"
   local sql_query = "SELECT count_of_removals_for_bad_behavior FROM app_level WHERE application_id = '" .. config.application1.registerAppInterfaceParams.appID .. "'"
