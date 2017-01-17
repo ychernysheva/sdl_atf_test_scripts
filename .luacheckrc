@@ -17,5 +17,6 @@ globals = {
   "AtMost", 
   "AtLeast", 
   "Between", 
-  "AnyNumber" 
+  "AnyNumber",
+  "timestamp"
   }
