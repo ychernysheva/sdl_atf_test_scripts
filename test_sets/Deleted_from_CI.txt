@@ -40,6 +40,7 @@ policies_happy_paths_EXTERNAL_PROPRIETARY
 ./test_scripts/Polices/user_consent_of_Policies/127_ATF_User_clears_all_applications.lua locally_PASS
 ./test_scripts/Polices/App_Permissions/171_ATF_HP_OnPermissionsChange_With_Assigned_Policy_After_App_Registration.lua APPLINK-31357
 ./test_scripts/Polices/Policy_Table_Update/007_ATF_P_TC_OnStatusUpdate_UPDATE_NEEDED_new_PTU_request.lua APPLINK-31548
+./test_scripts/Polices/appID_Management/161_P_ATF_PolicyTable_RAI_with_NULL_policies_RPCs_DISALLOWED.lua APPLINK-31357
 
 policies_happy_paths_HTTP
 ./test_scripts/Polices/build_options/032_ATF_P_TC_PTU_Restarting_Policy_Table_Exchange_HTTP.lua 	APPLINK-30985, APPLINK-30390	
