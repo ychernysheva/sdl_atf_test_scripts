@@ -711,7 +711,7 @@ function newConnectionDevice2(self, DeviceIP, Port)
   local fileConnection = file_connection.FileConnection("mobile2.out", tcpConnection)
   self.mobileConnection2 = mobile.MobileConnection(fileConnection)
   self.mobileSession21 = mobile_session.MobileSession(
-		self.expectations_list,
+		self,
 		self.mobileConnection2,
 		config.application1.registerAppInterfaceParams
 	)
@@ -727,7 +727,7 @@ function newConnectionDevice3(self, DeviceIP1, Port)
   local fileConnection = file_connection.FileConnection("mobile3.out", tcpConnection)
   self.mobileConnection3 = mobile.MobileConnection(fileConnection)
   self.mobileSession31 = mobile_session.MobileSession(
-		self.expectations_list,
+		self,
 		self.mobileConnection3,
 		config.application1.registerAppInterfaceParams
 	)
@@ -7582,7 +7582,7 @@ end
 				function Test:PreconditionNewSession()
 					--New session1
 					self.mobileSession1 = mobile_session.MobileSession(
-						self.expectations_list,
+						self,
 						self.mobileConnection)
 				end
 			--End Test case Precondition.6.2.1
@@ -10477,7 +10477,7 @@ end
 				function Test:TC11_PreconditionNewSession()
 					--New session1
 					self.mobileSession1 = mobile_session.MobileSession(
-						self.expectations_list,
+						self,
 						self.mobileConnection)
 				end
 			--End Test case Precondition.11.1.1

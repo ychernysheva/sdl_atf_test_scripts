@@ -699,7 +699,7 @@ function newConnectionDevice2(self, DeviceIP, Port)
   local fileConnection = file_connection.FileConnection("mobile2.out", tcpConnection)
   self.mobileConnection2 = mobile.MobileConnection(fileConnection)
   self.mobileSession21 = mobile_session.MobileSession(
-		self.expectations_list,
+		self,
 		self.mobileConnection2,
 		config.application51.registerAppInterfaceParams
 	)
@@ -715,7 +715,7 @@ function newConnectionDevice3(self, DeviceIP1, Port1)
   local fileConnection = file_connection.FileConnection("mobile3.out", tcpConnection)
   self.mobileConnection3 = mobile.MobileConnection(fileConnection)
   self.mobileSession31 = mobile_session.MobileSession(
-		self.expectations_list,
+		self,
 		self.mobileConnection3,
 		config.application52.registerAppInterfaceParams
 	)

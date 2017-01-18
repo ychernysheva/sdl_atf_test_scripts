@@ -714,7 +714,7 @@ function newConnectionDevice2(self, DeviceIP, Port)
   local fileConnection = file_connection.FileConnection("mobile2.out", tcpConnection)
   self.mobileConnection2 = mobile.MobileConnection(fileConnection)
   self.mobileSession21 = mobile_session.MobileSession(
-		self.expectations_list,
+		self,
 		self.mobileConnection2,
 		config.application1.registerAppInterfaceParams
 	)
@@ -730,7 +730,7 @@ function newConnectionDevice3(self, DeviceIP1, Port)
   local fileConnection = file_connection.FileConnection("mobile3.out", tcpConnection)
   self.mobileConnection3 = mobile.MobileConnection(fileConnection)
   self.mobileSession31 = mobile_session.MobileSession(
-		self.expectations_list,
+		self,
 		self.mobileConnection3,
 		config.application1.registerAppInterfaceParams
 	)
@@ -785,7 +785,7 @@ end
 			function Test:TC1_NewApps()
 
 			  self.mobileSession11 = mobile_session.MobileSession(
-				self.expectations_list,
+				self,
 				self.mobileConnection)
 			end
 			--End Test case Precondition.1.1.1
@@ -1037,7 +1037,7 @@ end
 			function Test:TC1_NewApps()
 
 			  self.mobileSession11 = mobile_session.MobileSession(
-				self.expectations_list,
+				self,
 				self.mobileConnection)
 			end
 			--End Test case Precondition.1.2.1
@@ -1304,7 +1304,7 @@ end
 			function Test:TC2_NewApps()
 
 			  self.mobileSession11 = mobile_session.MobileSession(
-				self.expectations_list,
+				self,
 				self.mobileConnection)
 			end
 			--End Test case Precondition.2.1.1
@@ -1556,7 +1556,7 @@ end
 			function Test:TC2_NewApps()
 
 			  self.mobileSession11 = mobile_session.MobileSession(
-				self.expectations_list,
+				self,
 				self.mobileConnection)
 			end
 			--End Test case Precondition.2.2.1
@@ -1823,7 +1823,7 @@ end
 			function Test:TC3_NewApps()
 
 			  self.mobileSession11 = mobile_session.MobileSession(
-				self.expectations_list,
+				self,
 				self.mobileConnection)
 			end
 			--End Test case Precondition.2.1.1
@@ -2075,7 +2075,7 @@ end
 			function Test:TC3_NewApps()
 
 			  self.mobileSession11 = mobile_session.MobileSession(
-				self.expectations_list,
+				self,
 				self.mobileConnection)
 			end
 			--End Test case Precondition.3.2.1
@@ -2336,11 +2336,11 @@ end
 			function Test:TC4_NewApps()
 
 			self.mobileSession11 = mobile_session.MobileSession(
-				self.expectations_list,
+				self,
 				self.mobileConnection)
 
 			self.mobileSession12 = mobile_session.MobileSession(
-				self.expectations_list,
+				self,
 				self.mobileConnection)
 
 			end
@@ -2562,11 +2562,11 @@ end
 			function Test:TC4_NewApps()
 
 			self.mobileSession11 = mobile_session.MobileSession(
-				self.expectations_list,
+				self,
 				self.mobileConnection)
 
 			self.mobileSession12 = mobile_session.MobileSession(
-				self.expectations_list,
+				self,
 				self.mobileConnection)
 
 			end
@@ -2801,11 +2801,11 @@ end
 			function Test:TC5_NewApps()
 
 			self.mobileSession11 = mobile_session.MobileSession(
-				self.expectations_list,
+				self,
 				self.mobileConnection)
 
 			self.mobileSession12 = mobile_session.MobileSession(
-				self.expectations_list,
+				self,
 				self.mobileConnection)
 
 			end
@@ -3028,11 +3028,11 @@ end
 			function Test:TC5_NewApps()
 
 			self.mobileSession11 = mobile_session.MobileSession(
-				self.expectations_list,
+				self,
 				self.mobileConnection)
 
 			self.mobileSession12 = mobile_session.MobileSession(
-				self.expectations_list,
+				self,
 				self.mobileConnection)
 
 			end
@@ -3267,11 +3267,11 @@ end
 			function Test:TC4_NewApps()
 
 			self.mobileSession11 = mobile_session.MobileSession(
-				self.expectations_list,
+				self,
 				self.mobileConnection)
 
 			self.mobileSession12 = mobile_session.MobileSession(
-				self.expectations_list,
+				self,
 				self.mobileConnection)
 
 			end
@@ -3494,11 +3494,11 @@ end
 			function Test:TC4_NewApps()
 
 			self.mobileSession11 = mobile_session.MobileSession(
-				self.expectations_list,
+				self,
 				self.mobileConnection)
 
 			self.mobileSession12 = mobile_session.MobileSession(
-				self.expectations_list,
+				self,
 				self.mobileConnection)
 
 			end
@@ -3734,7 +3734,7 @@ end
 			function Test:TC7_NewApps()
 
 			self.mobileSession11 = mobile_session.MobileSession(
-				self.expectations_list,
+				self,
 				self.mobileConnection)
 
 			end
@@ -3948,11 +3948,11 @@ end
 			function Test:TC7_NewApps()
 
 			self.mobileSession11 = mobile_session.MobileSession(
-				self.expectations_list,
+				self,
 				self.mobileConnection)
 
 			self.mobileSession12 = mobile_session.MobileSession(
-				self.expectations_list,
+				self,
 				self.mobileConnection)
 
 			end
@@ -4155,11 +4155,11 @@ end
 			function Test:TC7_NewApps()
 
 			self.mobileSession11 = mobile_session.MobileSession(
-				self.expectations_list,
+				self,
 				self.mobileConnection)
 
 			self.mobileSession12 = mobile_session.MobileSession(
-				self.expectations_list,
+				self,
 				self.mobileConnection)
 
 			end
@@ -4407,11 +4407,11 @@ end
 			function Test:TC5_NewApps()
 
 			self.mobileSession11 = mobile_session.MobileSession(
-				self.expectations_list,
+				self,
 				self.mobileConnection)
 
 			self.mobileSession12 = mobile_session.MobileSession(
-				self.expectations_list,
+				self,
 				self.mobileConnection)
 
 			end
@@ -4626,11 +4626,11 @@ end
 			function Test:TC5_NewApps()
 
 			self.mobileSession11 = mobile_session.MobileSession(
-				self.expectations_list,
+				self,
 				self.mobileConnection)
 
 			self.mobileSession12 = mobile_session.MobileSession(
-				self.expectations_list,
+				self,
 				self.mobileConnection)
 
 			end
@@ -4846,11 +4846,11 @@ end
 			function Test:TC7_NewApps()
 
 			self.mobileSession11 = mobile_session.MobileSession(
-				self.expectations_list,
+				self,
 				self.mobileConnection)
 
 			self.mobileSession12 = mobile_session.MobileSession(
-				self.expectations_list,
+				self,
 				self.mobileConnection)
 
 			end
@@ -5065,11 +5065,11 @@ end
 			function Test:TC7_NewApps()
 
 			self.mobileSession11 = mobile_session.MobileSession(
-				self.expectations_list,
+				self,
 				self.mobileConnection)
 
 			self.mobileSession12 = mobile_session.MobileSession(
-				self.expectations_list,
+				self,
 				self.mobileConnection)
 
 			end
@@ -5284,7 +5284,7 @@ end
 			function Test:TC10_NewApps()
 
 			self.mobileSession11 = mobile_session.MobileSession(
-				self.expectations_list,
+				self,
 				self.mobileConnection)
 
 			end
@@ -5496,11 +5496,11 @@ end
 			function Test:TC10_NewApps()
 
 			self.mobileSession11 = mobile_session.MobileSession(
-				self.expectations_list,
+				self,
 				self.mobileConnection)
 
 			self.mobileSession12 = mobile_session.MobileSession(
-				self.expectations_list,
+				self,
 				self.mobileConnection)
 
 			end
@@ -5713,11 +5713,11 @@ end
 			function Test:TC11_NewApps()
 
 			self.mobileSession11 = mobile_session.MobileSession(
-				self.expectations_list,
+				self,
 				self.mobileConnection)
 
 			self.mobileSession12 = mobile_session.MobileSession(
-				self.expectations_list,
+				self,
 				self.mobileConnection)
 
 			end
@@ -5929,11 +5929,11 @@ end
 			function Test:TC11_NewApps()
 
 			self.mobileSession11 = mobile_session.MobileSession(
-				self.expectations_list,
+				self,
 				self.mobileConnection)
 
 			self.mobileSession12 = mobile_session.MobileSession(
-				self.expectations_list,
+				self,
 				self.mobileConnection)
 
 			end
@@ -6143,11 +6143,11 @@ end
 			function Test:TC5_NewApps()
 
 			self.mobileSession11 = mobile_session.MobileSession(
-				self.expectations_list,
+				self,
 				self.mobileConnection)
 
 			self.mobileSession12 = mobile_session.MobileSession(
-				self.expectations_list,
+				self,
 				self.mobileConnection)
 
 			end
@@ -6359,11 +6359,11 @@ end
 			function Test:TC5_NewApps()
 
 			self.mobileSession11 = mobile_session.MobileSession(
-				self.expectations_list,
+				self,
 				self.mobileConnection)
 
 			self.mobileSession12 = mobile_session.MobileSession(
-				self.expectations_list,
+				self,
 				self.mobileConnection)
 
 			end

@@ -1842,7 +1842,7 @@ end
 			--Description: Register new session for register new app
 				function Test:TC3_Precondition1()
 				  self.mobileSession1 = mobile_session.MobileSession(
-					self.expectations_list,
+					self,
 					self.mobileConnection)
 				end
 			--End Test case Precondition.3.1.1
