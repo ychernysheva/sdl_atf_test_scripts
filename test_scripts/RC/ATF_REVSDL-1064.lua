@@ -142,17 +142,17 @@ end
 			--Description:
 							--1. HMI sends to RSDL: BasicCommunication.OnExitApplication(USER_EXIT, appID)
 							--2. RSDL returns to App_1: OnHMIStatus(NONE) notification.
-				-- function Test:TC1_USEREXIT_LIMITEDToNONE()
+				function Test:TC1_USEREXIT_LIMITEDToNONE()
 
-				-- 	--hmi side: HMI send BC.OnExitApplication to Rsdl.
-				-- 	self.hmiConnection:SendNotification("BasicCommunication.OnExitApplication", {appID = self.applications["Test Application"], reason = "USER_EXIT"})
+					--hmi side: HMI send BC.OnExitApplication to Rsdl.
+					self.hmiConnection:SendNotification("BasicCommunication.OnExitApplication", {appID = self.applications["Test Application"], reason = "USER_EXIT"})
 
-				-- 	--mobile side: Check that OnHMIStatus(NONE, deviceRank:Driver) sent by RSDL and received by App1
-				-- 	self.mobileSession:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE" })
-				-- 	:Timeout(5000)
+					--mobile side: Check that OnHMIStatus(NONE, deviceRank:Driver) sent by RSDL and received by App1
+					self.mobileSession:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE" })
+					:Timeout(5000)
 
-				-- end
-			--End Test case CommonRequestCheck.1.2
+				end
+			-- End Test case CommonRequestCheck.1.2
 
 		-----------------------------------------------------------------------------------------
 	--End Test case CommonRequestCheck.1
