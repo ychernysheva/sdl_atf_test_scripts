@@ -743,11 +743,8 @@ end
 
 			--Begin Test case CommonRequestCheck.1.1.1
 			--Description: application sends GetInteriorVehicleDataCapabilities as Driver and ModuleType = RADIO
-<<<<<<< .mine
 				function Test:AutoAllow_DriverRADIO()
-=======
-				function Test:TC_AutoAllow_DriverRADIO()
->>>>>>> .r913
+
 					local cid = self.mobileSession:SendRPC("GetInteriorVehicleDataCapabilities",
 					{
 						zone =
@@ -3462,7 +3459,7 @@ end
 				function Test:TC4_NewApps()
 
 				  self.mobileSession1 = mobile_session.MobileSession(
-					self.expectations_list,
+					self,
 					self.mobileConnection)
 
 				end
@@ -3771,12 +3768,6 @@ end
 
 
 
-
-<<<<<<< .mine
-=======
-
-
->>>>>>> .r907
 --=================================================BEGIN TEST CASES 5==========================================================--
 	--Begin Test suit CommonRequestCheck.5 for Req.#5
 

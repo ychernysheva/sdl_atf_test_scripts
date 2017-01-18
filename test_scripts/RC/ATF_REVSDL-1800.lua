@@ -5,8 +5,9 @@ revsdl = require("user_modules/revsdl")
 
 revsdl.AddUnknownFunctionIDs()
 revsdl.SubscribeToRcInterface()
-config.ValidateSchema = false'
-'
+config.ValidateSchema = false
+config.application1.registerAppInterfaceParams.appHMIType = { "REMOTE_CONTROL" }
+
 Test = require('connecttest')
 require('cardinalities')
 local events = require('events')
