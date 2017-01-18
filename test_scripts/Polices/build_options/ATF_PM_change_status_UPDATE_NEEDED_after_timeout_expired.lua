@@ -21,6 +21,7 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 config.defaultProtocolVersion = 2
 
 --[[ Required Shared libraries ]]
+local mobile_session = require('mobile_session')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 
@@ -29,147 +30,75 @@ commonFunctions:SDLForceStop()
 commonSteps:DeleteLogsFileAndPolicyTable()
 
 --[[ General Settings for configuration ]]
-Test = require('connecttest')
-require('cardinalities')
+Test = require("user_modules/connecttest_resumption")
 require('user_modules/AppTypes')
-local mobile_session = require('mobile_session')
-
---[[ Local Variables ]]
-local OnSystemRequest_time = nil
-local registerAppInterfaceParams =
-{
-  syncMsgVersion =
-  {
-    majorVersion = 3,
-    minorVersion = 0
-  },
-  appName = "Media Application",
-  isMediaApplication = true,
-  languageDesired = 'EN-US',
-  hmiDisplayLanguageDesired = 'EN-US',
-  appHMIType = {"NAVIGATION"},
-  appID = "MyTestApp",
-  deviceInfo =
-  {
-    os = "Android",
-    carrier = "Megafon",
-    firmwareRev = "Name: Linux, Version: 3.4.0-perf",
-    osVersion = "4.4.2",
-    maxNumberRFCOMMPorts = 1
-  }
-}
-
---[[ Local Functions ]]
-local function timestamp()
-  local f = io.popen("date +%s")
-  local o = f:read("*all")
-  f:close()
-  return (o:gsub("\n", ""))
-end
-
-local function policyUpdate(self)
-  local pathToSnaphot = "files/ptu.json"
-  local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
-  EXPECT_HMIRESPONSE(RequestIdGetURLS)
-  :Do(function(_,_)
-      self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",
-        {
-          requestType = "PROPRIETARY",
-          appID = self.applications ["Test Application"],
-          fileName = "PTU"
-        }
-      )
-    end)
-  EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "PROPRIETARY" })
-  :Do(function(_,_)
-      local CorIdSystemRequest = self.mobileSession:SendRPC ("SystemRequest",
-        {
-          requestType = "PROPRIETARY",
-          fileName = "PTU"
-        },
-        pathToSnaphot
-      )
-      EXPECT_HMICALL("BasicCommunication.SystemRequest")
-      :Do(function(_,data)
-          self.hmiConnection:SendResponse(data.id,"BasicCommunication.SystemRequest", "SUCCESS", {})
-        end)
-      EXPECT_RESPONSE(CorIdSystemRequest, {success = true, resultCode = "SUCCESS"})
-      :Do(function(_,_)
-          self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate",
-            {
-              policyfile = "/tmp/fs/mp/images/ivsu_cache/PTU"
-            })
-        end)
-      :Do(function(_,_)
-          EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UP_TO_DATE"})
-        end)
-    end)
-end
 
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
-function Test:Preconditions_Update_Policy()
-  policyUpdate(self)
+
+function Test:ConnectMobile()
+  self:connectMobile()
 end
 
-function Test:Precondition_CreateNewSession()
-  self.mobileSession1 = mobile_session.MobileSession(
-    self,
-    self.mobileConnection)
-  self.mobileSession1:StartService(7)
+function Test:StartSession()
+  self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
+  self.mobileSession:StartService(7)
 end
 
-function Test:Precondition_RegisterApplication_In_NewSession()
-  local corId = self.mobileSession1:SendRPC("RegisterAppInterface", registerAppInterfaceParams)
-  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = "Media Application" }})
-  :Do(function (_, _)
-      OnSystemRequest_time = timestamp()
+--[[ Test ]]
+commonFunctions:newTestCasesGroup ("Test")
+
+function Test:RAI_PTU()
+  local corId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
+  :Do(
+    function()
+      EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
+      :Do(
+        function(_, d)
+          self.hmiConnection:SendResponse(d.id, d.method, "SUCCESS", { })
+          local requestId = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
+          EXPECT_HMIRESPONSE(requestId)
+          :Do(
+            function()
+              self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest", { requestType = "PROPRIETARY", fileName = "PTU" })
+              self.mobileSession:ExpectNotification("OnSystemRequest", { requestType = "PROPRIETARY" })
+              :Do(
+                function()
+                  local OnSystemRequest_time = os.time()
+                  print("OnSystemRequest: " .. tostring(OnSystemRequest_time))
+                  EXPECT_HMINOTIFICATION ("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
+                  :ValidIf(
+                    function()
+                      local OnStatusUpdate_time = os.time()
+                      print("OnStatusUpdate: " .. tostring(OnStatusUpdate_time))
+                      local diff = tonumber(OnStatusUpdate_time) - tonumber(OnSystemRequest_time)
+                      print("Timeout: " .. diff)
+                      if diff >= 60 and diff <= 61 then
+                        return true
+                      else
+                        return false, "Expected timeout '60' sec., actual '" .. diff .. "' sec."
+                      end
+                    end)
+                  :Timeout(63000)
+                end)
+            end)
+        end)
     end)
-  self.mobileSession1:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
-  self.mobileSession1:ExpectNotification("OnPermissionsChange")
-  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate")
-  :ValidIf(function(exp,data)
-      if exp.occurences == 1 and data.params.status == "UPDATE_NEEDED" then
-        return true
-      elseif exp.occurences == 2 and data.params.status == "UPDATING" then
-        return true
-      else
-        return false
-      end
-      end):Times(2)
-  end
+  self.mobileSession:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
+  :Do(
+    function()
+      self.mobileSession:ExpectNotification("OnHMIStatus", { hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN" })
+      self.mobileSession:ExpectNotification("OnPermissionsChange")
+    end)
+end
 
-  --[[ Test ]]
-  commonFunctions:newTestCasesGroup ("Test")
-  function Test:TestStep_Start_New_PolicyUpdate_Wait_UPDATE_NEEDED_status()
-    local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
-    EXPECT_HMIRESPONSE(RequestIdGetURLS)
-    :Do(function(_,_)
-        self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",
-          {
-            requestType = "PROPRIETARY",
-            fileName = "PTU"
-          }
-        )
-      end)
-    EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "PROPRIETARY" })
-    EXPECT_HMINOTIFICATION ("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
-    :Timeout(63000)
-    :Do(function (_,_)
-        local diff = tonumber(timestamp()) - tonumber(OnSystemRequest_time)
-        if diff > 59000 and diff < 61000 then
-          return true
-        else
-          return false
-        end
-      end)
-  end
+--[[ Postconditions ]]
+commonFunctions:newTestCasesGroup("Postconditions")
 
-  --[[ Postconditions ]]
-  commonFunctions:newTestCasesGroup("Postconditions")
-  Test["StopSDL"] = function()
-    StopSDL()
-  end
+function Test.Postconditions_StopSDL()
+  StopSDL()
+end
 
-  return Test
+return Test
 
