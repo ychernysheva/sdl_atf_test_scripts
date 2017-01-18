@@ -6,6 +6,7 @@ revsdl = require("user_modules/revsdl")
 revsdl.AddUnknownFunctionIDs()
 revsdl.SubscribeToRcInterface()
 config.ValidateSchema = false
+config.application1.registerAppInterfaceParams.appHMIType = { "REMOTE_CONTROL" }
 
 Test = require('connecttest')
 require('cardinalities')
@@ -10937,7 +10938,7 @@ end
 				function Test:PreconditionNewSession()
 					--New session1
 					self.mobileSession1 = mobile_session.MobileSession(
-						self.expectations_list,
+						self,
 						self.mobileConnection)
 				end
 			--End Test case Precondition.5.
@@ -11792,7 +11793,7 @@ end
 				function Test:PreconditionNewSession()
 					--New session1
 					self.mobileSession1 = mobile_session.MobileSession(
-						self.expectations_list,
+						self,
 						self.mobileConnection)
 				end
 			--End Test case Precondition.5.
@@ -12683,7 +12684,7 @@ end
 				function Test:PreconditionNewSession()
 					--New session1
 					self.mobileSession1 = mobile_session.MobileSession(
-						self.expectations_list,
+						self,
 						self.mobileConnection)
 				end
 			--End Test case Precondition.5.
@@ -15799,32 +15800,32 @@ end
 				function Test:PreconditionNewSession()
 					--New session1
 					self.mobileSession1 = mobile_session.MobileSession(
-						self.expectations_list,
+						self,
 						self.mobileConnection)
 
 					--New session2
 					self.mobileSession2 = mobile_session.MobileSession(
-						self.expectations_list,
+						self,
 						self.mobileConnection)
 
 					--New session3
 					self.mobileSession3 = mobile_session.MobileSession(
-						self.expectations_list,
+						self,
 						self.mobileConnection)
 
 					--New session1
 					self.mobileSession4 = mobile_session.MobileSession(
-						self.expectations_list,
+						self,
 						self.mobileConnection)
 
 					--New session2
 					self.mobileSession5 = mobile_session.MobileSession(
-						self.expectations_list,
+						self,
 						self.mobileConnection)
 
 					--New session3
 					self.mobileSession6 = mobile_session.MobileSession(
-						self.expectations_list,
+						self,
 						self.mobileConnection)
 				end
 			--End Test case Precondition.9.1.1
@@ -16596,32 +16597,32 @@ end
 				function Test:PreconditionNewSession()
 					--New session1
 					self.mobileSession1 = mobile_session.MobileSession(
-						self.expectations_list,
+						self,
 						self.mobileConnection)
 
 					--New session2
 					self.mobileSession2 = mobile_session.MobileSession(
-						self.expectations_list,
+						self,
 						self.mobileConnection)
 
 					--New session3
 					self.mobileSession3 = mobile_session.MobileSession(
-						self.expectations_list,
+						self,
 						self.mobileConnection)
 
 					--New session1
 					self.mobileSession4 = mobile_session.MobileSession(
-						self.expectations_list,
+						self,
 						self.mobileConnection)
 
 					--New session2
 					self.mobileSession5 = mobile_session.MobileSession(
-						self.expectations_list,
+						self,
 						self.mobileConnection)
 
 					--New session3
 					self.mobileSession6 = mobile_session.MobileSession(
-						self.expectations_list,
+						self,
 						self.mobileConnection)
 				end
 			--End Test case Precondition.9.2.1
@@ -17692,32 +17693,32 @@ end
 				function Test:PreconditionNewSession()
 					--New session1
 					self.mobileSession1 = mobile_session.MobileSession(
-						self.expectations_list,
+						self,
 						self.mobileConnection)
 
 					--New session2
 					self.mobileSession2 = mobile_session.MobileSession(
-						self.expectations_list,
+						self,
 						self.mobileConnection)
 
 					--New session3
 					self.mobileSession3 = mobile_session.MobileSession(
-						self.expectations_list,
+						self,
 						self.mobileConnection)
 
 					--New session1
 					self.mobileSession4 = mobile_session.MobileSession(
-						self.expectations_list,
+						self,
 						self.mobileConnection)
 
 					--New session2
 					self.mobileSession5 = mobile_session.MobileSession(
-						self.expectations_list,
+						self,
 						self.mobileConnection)
 
 					--New session3
 					self.mobileSession6 = mobile_session.MobileSession(
-						self.expectations_list,
+						self,
 						self.mobileConnection)
 				end
 			--End Test case Precondition.9.3.1
