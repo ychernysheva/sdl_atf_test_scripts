@@ -47,6 +47,7 @@ policies_happy_paths_EXTERNAL_PROPRIETARY
 ./test_scripts/Polices/build_options/ATF_For_PTU_use_consented_device_only.lua APPLINK-31603
 ./test_scripts/Polices/Validation_of_PolicyTables/292_ATF_P_Memory_Kb_Constraints_Ignoring.lua APPLINK-31600
 ./test_scripts/Polices/Validation_of_PolicyTables/Check_count_of_removals_for_bad_behavior_REQUEST_WHILE_IN_NONE_HMI_LEVEL.lua APPLINK-31602
+./test_scripts/Polices/App_Permissions/174_ATF_HP_User_Consent_NO.lua APPLINK-31604
 
 policies_happy_paths_HTTP
 ./test_scripts/Polices/build_options/032_ATF_P_TC_PTU_Restarting_Policy_Table_Exchange_HTTP.lua 	APPLINK-30985, APPLINK-30390
