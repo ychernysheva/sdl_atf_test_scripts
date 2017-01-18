@@ -170,7 +170,6 @@
 ./test_scripts/Polices/App_Permissions/189_ATF_P_TC_General_Result_Codes_Disallowed_Rpc_Is_Omitted_In_The_Policy_Table.lua
 ./test_scripts/Polices/App_Permissions/ATF_P_Successful_Nickname_Validation.lua
 ./test_scripts/Polices/App_Permissions/173_ATF_HP_User_Consent_Yes.lua
-./test_scripts/Polices/App_Permissions/174_ATF_HP_User_Consent_NO.lua
 ./test_scripts/Polices/App_Permissions/192_ATF_P_No_Permission_Notification_To_HMI_In_First_App_Registration.lua
 ./test_scripts/Polices/App_Permissions/ATF_P_APP_UNAUTHORIZED_If_Failed_Nickname_Validation_After_PTU.lua
 ./test_scripts/Polices/Related_HMI_API/ATF_OnPolicyUpdate_initiation_of_PTU.lua
