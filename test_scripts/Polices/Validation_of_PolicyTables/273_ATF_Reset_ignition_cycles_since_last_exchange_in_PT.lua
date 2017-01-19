@@ -1,22 +1,22 @@
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
---   [Policies] "ignition_cycles_since_last_exchange" reset in LocalPT
+-- [Policies] "ignition_cycles_since_last_exchange" reset in LocalPT
 --
 -- Description:
---     Reseting value in 'ignition_cycles_since_last_exchange' section of LocalPT
---     1. Used preconditions:
---      Delete log file and policy table if any
---      Start SDL and HMI
---      Perform ignition OFF
---      Perform ignition ON
---      Register app
---      Activate app-> PTU is triggered
+-- Reseting value in 'ignition_cycles_since_last_exchange' section of LocalPT
+-- 1. Used preconditions:
+-- Delete log file and policy table if any
+-- Start SDL and HMI
+-- Perform ignition OFF
+-- Perform ignition ON
+-- Register app
+-- Activate app-> PTU is triggered
 --
---     2. Performed steps
---      Check "ignition_cycles_since_last_exchange" value of LocalPT
+-- 2. Performed steps
+-- Check "ignition_cycles_since_last_exchange" value of LocalPT
 --
 -- Expected result:
---     On successful PolicyTable exchange, Policies Manager must reset to "0" the value in 'ignition_cycles_since_last_exchange"
+-- On successful PolicyTable exchange, Policies Manager must reset to "0" the value in 'ignition_cycles_since_last_exchange"
 ---------------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
@@ -114,6 +114,10 @@ end
 function Test:Precondition_Registering_app()
   local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application1.appName } })
+  :Do(
+    function(_, d)
+      self.applications[config.application1.registerAppInterfaceParams.appName] = d.params.application.appID
+    end)
   self.mobileSession:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS"})
 end
 
