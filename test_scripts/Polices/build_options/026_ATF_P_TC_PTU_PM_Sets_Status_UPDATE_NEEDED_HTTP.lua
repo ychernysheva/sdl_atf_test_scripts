@@ -102,7 +102,8 @@ function Test:RAI_PTU()
       local onSystemRequestRecieved = false
       self.mobileSession:ExpectNotification("OnSystemRequest")
       :Do(
-        function(_, d2)
+        function(e2, d2)
+          print(e2.occurences .. ":" .. d2.payload.requestType)
           if (not onSystemRequestRecieved) and (d2.payload.requestType == "HTTP") then
             onSystemRequestRecieved = true
             ts_on_system_request = os.time()
@@ -110,6 +111,7 @@ function Test:RAI_PTU()
           end
         end)
       :Times(AnyNumber())
+      :Pin()
     end)
   self.mobileSession:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
   :Do(
@@ -154,7 +156,7 @@ function Test:ValidateResult()
   print("Expected: " .. r_expected_timeout)
   print("Actual: " .. r_actual_timeout)
   -- tolerance 2 sec.
-  if (r_actual_timeout < r_expected_timeout - 2) or (r_actual_timeout > r_expected_timeout + 2) then
+  if (r_actual_timeout < r_expected_timeout) or (r_actual_timeout > r_expected_timeout + 1) then
     local msg = "\nExpected timeout '" .. r_expected_timeout .. "', actual '" .. r_actual_timeout .. "'"
     self:FailTestCase(msg)
   end
