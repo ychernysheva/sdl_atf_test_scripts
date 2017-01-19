@@ -20,3 +20,6 @@
 ./test_scripts/RC/ATF_REVSDL-1678.lua
 ./test_scripts/RC/ATF_REVSDL-1587.lua
 ./test_scripts/RC/test.lua
+./test_scripts/RC/REVSDL-1983/01_REVSDL-1983_Pre_DriverDriverRADIO.lua
+./test_scripts/RC/REVSDL-1983/02-REVSDL-RegisteredApp2.lua
+./test_scripts/RC/REVSDL-1983/03-ATF_REVSDL-1983_USER_EXIT.lua
