@@ -89,7 +89,7 @@ function Test:Precondition_OnIgnitionCycleOver()
 end
 
 function Test:Precondition_OnExitAllApplicaitons()
-  self.hmiConnection:SendNotification("BasicCommunication.OnExitAllApplications", { reason = "IGNITION_OFF"})
+  self.hmiConnection:SendNotification("BasicCommunication.OnExitAllApplications", { reason = "IGNITION_OFF" })
 end
 
 function Test.Precondition_StopSDL()
@@ -130,6 +130,10 @@ function Test:TestStep_Check_PTU_Triggered_On_OnIgnitionCycleOver()
   self.hmiConnection:SendNotification("BasicCommunication.OnIgnitionCycleOver")
 end
 
+function Test:Precondition_OnExitAllApplicaitons()
+  self.hmiConnection:SendNotification("BasicCommunication.OnExitAllApplications", { reason = "IGNITION_OFF" })
+end
+
 function Test.TestStep_SDLStop()
   StopSDL()
 end
@@ -152,10 +156,17 @@ function Test:TestStep_Register_App_And_Check_PTU_Triggered()
   self.mobileSession:StartService(7)
   :Do(function()
       local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
+      EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application1.registerAppInterfaceParams.appName } })
+      :Do(
+        function()
+          EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
+          :Do(
+            function()
+              EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
+            end)
+        end)
       self.mobileSession:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS" })
     end)
-  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
-  EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
 end
 
 --[[ Postconditions ]]
