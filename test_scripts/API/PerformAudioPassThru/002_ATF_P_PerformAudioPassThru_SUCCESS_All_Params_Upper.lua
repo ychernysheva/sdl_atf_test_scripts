@@ -92,7 +92,7 @@ function Test:TestStep_PerformAudioPassThru_AllParameters_Upper_SUCCESS()
       appID = self.applications[config.application1.registerAppInterfaceParams.appName]
     })
   :Do(function(_,data)
-      self.hmiConnection:SendNotification("TTS.Started",{ })
+      self.hmiConnection:SendNotification("TTS.Started",{})
 
       local function ttsSpeakResponse()
         self.hmiConnection:SendResponse (data.id, data.method, "SUCCESS", {})
@@ -118,10 +118,10 @@ function Test:TestStep_PerformAudioPassThru_AllParameters_Upper_SUCCESS()
     })
   :Do(function(_,data)
 
-      local function UIPerformAoudioResponce()
+      local function UIPerformAudioResponse()
         self.hmiConnection:SendResponse(data.id, "UI.PerformAudioPassThru", "SUCCESS", {})
       end
-      RUN_AFTER(UIPerformAoudioResponce, 1500)
+      RUN_AFTER(UIPerformAudioResponse, 1500)
   end)
 
   if
