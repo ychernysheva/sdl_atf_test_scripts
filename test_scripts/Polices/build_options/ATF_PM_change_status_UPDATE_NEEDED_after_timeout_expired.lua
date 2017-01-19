@@ -25,6 +25,14 @@ local mobile_session = require('mobile_session')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 
+--[[ Local Functions ]]
+local function timestamp()
+  local f = io.popen("date +%s%3N")
+  local o = f:read("*all")
+  f:close()
+  return (o:gsub("\n", ""))
+end
+
 --[[ General Precondition before ATF start ]]
 commonFunctions:SDLForceStop()
 commonSteps:DeleteLogsFileAndPolicyTable()
@@ -65,19 +73,19 @@ function Test:RAI_PTU()
               self.mobileSession:ExpectNotification("OnSystemRequest", { requestType = "PROPRIETARY" })
               :Do(
                 function()
-                  local OnSystemRequest_time = os.time()
+                  local OnSystemRequest_time = timestamp()
                   print("OnSystemRequest: " .. tostring(OnSystemRequest_time))
                   EXPECT_HMINOTIFICATION ("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
                   :ValidIf(
                     function()
-                      local OnStatusUpdate_time = os.time()
+                      local OnStatusUpdate_time = timestamp()
                       print("OnStatusUpdate: " .. tostring(OnStatusUpdate_time))
                       local diff = tonumber(OnStatusUpdate_time) - tonumber(OnSystemRequest_time)
-                      print("Timeout: " .. diff)
-                      if diff >= 60 and diff <= 61 then
+                      print("Timeout: " .. diff .. " ms")
+                      if diff >= 59500 and diff <= 60500 then
                         return true
                       else
-                        return false, "Expected timeout '60' sec., actual '" .. diff .. "' sec."
+                        return false, "Expected timeout '60000' ms, actual '" .. diff .. "' ms (tolerance = 500ms)"
                       end
                     end)
                   :Timeout(63000)
