@@ -5,570 +5,18 @@ revsdl = require("user_modules/revsdl")
 
 revsdl.AddUnknownFunctionIDs()
 revsdl.SubscribeToRcInterface()
+config.ValidateSchema = false
+config.application1.registerAppInterfaceParams.appHMIType = { "REMOTE_CONTROL" }
 
 Test = require('connecttest')
 require('cardinalities')
 local events = require('events')
 local mobile_session = require('mobile_session')
-local mobile  = require('mobile_connection')
-local tcp = require('tcp_connection')
-local file_connection  = require('file_connection')
-local config = require('config')
-local module = require('testbase')
 
 --List of resultscode
 local RESULTS_CODE = {"SUCCESS", "WARNINGS", "RESUME_FAILED", "WRONG_LANGUAGE"}
 
 --List permission of "OnPermissionsChange" for PrimaryDevice and NonPrimaryDevice
---NonPrimaryNotification Group
-local arrayGroups_nonPrimaryRCNotification = {
-								permissionItem = {
-									  {
-										 hmiPermissions = {
-											allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" },
-											userDisallowed = {}
-										 },
-										 parameterPermissions = {
-											allowed = {},
-											userDisallowed = {}
-										 },
-										 rpcName = "OnHMIStatus"
-									  },
-									  {
-										 hmiPermissions = {
-											allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" },
-											userDisallowed = {}
-										 },
-										 parameterPermissions = {
-											allowed = {},
-											userDisallowed = {}
-										 },
-										 rpcName = "OnPermissionsChange"
-									  }
-									 }
-						}
---groups_PrimaryRC Group
-local arrayGroups_PrimaryRC = {
-							permissionItem = {
-								  {
-									 hmiPermissions = {
-										allowed = { "BACKGROUND", "FULL", "LIMITED"},
-										userDisallowed = {}
-									 },
-									 parameterPermissions = {
-										allowed = {},
-										userDisallowed = {}
-									 },
-									 rpcName = "AddCommand"
-								  },
-								  {
-									 hmiPermissions = {
-										allowed = { "BACKGROUND", "FULL", "LIMITED"},
-										userDisallowed = {}
-									 },
-									 parameterPermissions = {
-										allowed = {},
-										userDisallowed = {}
-									 },
-									 rpcName = "AddSubMenu"
-								  },
-								  {
-									 hmiPermissions = {
-										allowed = {"FULL", "LIMITED"},
-										userDisallowed = {}
-									 },
-									 parameterPermissions = {
-										allowed = {},
-										userDisallowed = {}
-									 },
-									 rpcName = "Alert"
-								  },
-								  {
-									 hmiPermissions = {
-										allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" },
-										userDisallowed = {}
-									 },
-									 parameterPermissions = {
-										allowed = {},
-										userDisallowed = {}
-									 },
-									 rpcName = "ButtonPress"
-								  },							  
-								  {
-									 hmiPermissions = {
-										allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" },
-										userDisallowed = {}
-									 },
-									 parameterPermissions = {
-										allowed = {},
-										userDisallowed = {}
-									 },
-									 rpcName = "ChangeRegistration"
-								  },								  
-								  {
-									 hmiPermissions = {
-										allowed = { "BACKGROUND", "FULL", "LIMITED"},
-										userDisallowed = {}
-									 },
-									 parameterPermissions = {
-										allowed = {},
-										userDisallowed = {}
-									 },
-									 rpcName = "CreateInteractionChoiceSet"
-								  },								  
-								  {
-									 hmiPermissions = {
-										allowed = { "BACKGROUND", "FULL", "LIMITED"},
-										userDisallowed = {}
-									 },
-									 parameterPermissions = {
-										allowed = {},
-										userDisallowed = {}
-									 },
-									 rpcName = "DeleteCommand"
-								  },
-								  {
-									 hmiPermissions = {
-										allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" },
-										userDisallowed = {}
-									 },
-									 parameterPermissions = {
-										allowed = {},
-										userDisallowed = {}
-									 },
-									 rpcName = "DeleteFile"
-								  },
-								  {
-									 hmiPermissions = {
-										allowed = { "BACKGROUND", "FULL", "LIMITED"},
-										userDisallowed = {}
-									 },
-									 parameterPermissions = {
-										allowed = {},
-										userDisallowed = {}
-									 },
-									 rpcName = "DeleteInteractionChoiceSet"
-								  },								  
-								  {
-									 hmiPermissions = {
-										allowed = { "BACKGROUND", "FULL", "LIMITED"},
-										userDisallowed = {}
-									 },
-									 parameterPermissions = {
-										allowed = {},
-										userDisallowed = {}
-									 },
-									 rpcName = "DeleteSubMenu"
-								  },								  
-								  {
-									 hmiPermissions = {
-										allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" },
-										userDisallowed = {}
-									 },
-									 parameterPermissions = {
-										allowed = {},
-										userDisallowed = {}
-									 },
-									 rpcName = "EncodedSyncPData"
-								  },								  
-								  {
-									 hmiPermissions = {
-										allowed = { "BACKGROUND", "FULL", "LIMITED"},
-										userDisallowed = {}
-									 },
-									 parameterPermissions = {
-										allowed = {},
-										userDisallowed = {}
-									 },
-									 rpcName = "EndAudioPassThru"
-								  },								  
-								  {
-									 hmiPermissions = {
-										allowed = { "BACKGROUND", "FULL", "LIMITED"},
-										userDisallowed = {}
-									 },
-									 parameterPermissions = {
-										allowed = {},
-										userDisallowed = {}
-									 },
-									 rpcName = "GenericResponse"
-								  },
-								  {
-									 hmiPermissions = {
-										allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" },
-										userDisallowed = {}
-									 },
-									 parameterPermissions = {
-										allowed = {},
-										userDisallowed = {}
-									 },
-									 rpcName = "GetInteriorVehicleData"
-								  },								  
-								  {
-									 hmiPermissions = {
-										allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" },
-										userDisallowed = {}
-									 },
-									 parameterPermissions = {
-										allowed = {},
-										userDisallowed = {}
-									 },
-									 rpcName = "GetInteriorVehicleDataCapabilities"
-								  },								  
-								  {
-									 hmiPermissions = {
-										allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" },
-										userDisallowed = {}
-									 },
-									 parameterPermissions = {
-										allowed = {},
-										userDisallowed = {}
-									 },
-									 rpcName = "ListFiles"
-								  },								  
-								  {
-									 hmiPermissions = {
-										allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" },
-										userDisallowed = {}
-									 },
-									 parameterPermissions = {
-										allowed = {},
-										userDisallowed = {}
-									 },
-									 rpcName = "OnAppInterfaceUnregistered"
-								  },								  
-								  {
-									 hmiPermissions = {
-										allowed = { "BACKGROUND", "FULL", "LIMITED" },
-										userDisallowed = {}
-									 },
-									 parameterPermissions = {
-										allowed = {},
-										userDisallowed = {}
-									 },
-									 rpcName = "OnAudioPassThru"
-								  },								  
-								  {
-									 hmiPermissions = {
-										allowed = { "BACKGROUND", "FULL", "LIMITED" },
-										userDisallowed = {}
-									 },
-									 parameterPermissions = {
-										allowed = {},
-										userDisallowed = {}
-									 },
-									 rpcName = "OnButtonEvent"
-								  },								  
-								  {
-									 hmiPermissions = {
-										allowed = { "BACKGROUND", "FULL", "LIMITED" },
-										userDisallowed = {}
-									 },
-									 parameterPermissions = {
-										allowed = {},
-										userDisallowed = {}
-									 },
-									 rpcName = "OnButtonPress"
-								  },
-								  {
-									 hmiPermissions = {
-										allowed = { "BACKGROUND", "FULL", "LIMITED" },
-										userDisallowed = {}
-									 },
-									 parameterPermissions = {
-										allowed = {},
-										userDisallowed = {}
-									 },
-									 rpcName = "OnCommand"
-								  },
-								  {
-									 hmiPermissions = {
-										allowed = { "BACKGROUND", "FULL", "LIMITED" },
-										userDisallowed = {}
-									 },
-									 parameterPermissions = {
-										allowed = {},
-										userDisallowed = {}
-									 },
-									 rpcName = "OnDriverDistraction"
-								  },
-								  {
-									 hmiPermissions = {
-										allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" },
-										userDisallowed = {}
-									 },
-									 parameterPermissions = {
-										allowed = {},
-										userDisallowed = {}
-									 },
-									 rpcName = "OnEncodedSyncPData"
-								  },								  
-								  {
-									 hmiPermissions = {
-										allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" },
-										userDisallowed = {}
-									 },
-									 parameterPermissions = {
-										allowed = {},
-										userDisallowed = {}
-									 },
-									 rpcName = "OnHMIStatus"
-								  },								  
-								  {
-									 hmiPermissions = {
-										allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" },
-										userDisallowed = {}
-									 },
-									 parameterPermissions = {
-										allowed = {},
-										userDisallowed = {}
-									 },
-									 rpcName = "OnHashChange"
-								  },								  
-								  {
-									 hmiPermissions = {
-										allowed = { "BACKGROUND", "FULL", "LIMITED" },
-										userDisallowed = {}
-									 },
-									 parameterPermissions = {
-										allowed = {},
-										userDisallowed = {}
-									 },
-									 rpcName = "OnInteriorVehicleData"
-								  },
-								  {
-									 hmiPermissions = {
-										allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" },
-										userDisallowed = {}
-									 },
-									 parameterPermissions = {
-										allowed = {},
-										userDisallowed = {}
-									 },
-									 rpcName = "OnLanguageChange"
-								  },
-								  {
-									 hmiPermissions = {
-										allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" },
-										userDisallowed = {}
-									 },
-									 parameterPermissions = {
-										allowed = {},
-										userDisallowed = {}
-									 },
-									 rpcName = "OnPermissionsChange"
-								  },								  
-								  {
-									 hmiPermissions = {
-										allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" },
-										userDisallowed = {}
-									 },
-									 parameterPermissions = {
-										allowed = {},
-										userDisallowed = {}
-									 },
-									 rpcName = "OnSystemRequest"
-								  },								  
-								  {
-									 hmiPermissions = {
-										allowed = { "FULL", "LIMITED" },
-										userDisallowed = {}
-									 },
-									 parameterPermissions = {
-										allowed = {},
-										userDisallowed = {}
-									 },
-									 rpcName = "PerformAudioPassThru"
-								  },								  
-								  {
-									 hmiPermissions = {
-										allowed = { "FULL", "LIMITED" },
-										userDisallowed = {}
-									 },
-									 parameterPermissions = {
-										allowed = {},
-										userDisallowed = {}
-									 },
-									 rpcName = "PerformInteraction"
-								  },
-								  {
-									 hmiPermissions = {
-										allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" },
-										userDisallowed = {}
-									 },
-									 parameterPermissions = {
-										allowed = {},
-										userDisallowed = {}
-									 },
-									 rpcName = "PutFile"
-								  },								  
-								  {
-									 hmiPermissions = {
-										allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" },
-										userDisallowed = {}
-									 },
-									 parameterPermissions = {
-										allowed = {},
-										userDisallowed = {}
-									 },
-									 rpcName = "RegisterAppInterface"
-								  },
-								  {
-									 hmiPermissions = {
-										allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" },
-										userDisallowed = {}
-									 },
-									 parameterPermissions = {
-										allowed = {},
-										userDisallowed = {}
-									 },
-									 rpcName = "ResetGlobalProperties"
-								  },								  
-								  {
-									 hmiPermissions = {
-										allowed = { "FULL" },
-										userDisallowed = {}
-									 },
-									 parameterPermissions = {
-										allowed = {},
-										userDisallowed = {}
-									 },
-									 rpcName = "ScrollableMessage"
-								  },								  
-								  {
-									 hmiPermissions = {
-										allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" },
-										userDisallowed = {}
-									 },
-									 parameterPermissions = {
-										allowed = {},
-										userDisallowed = {}
-									 },
-									 rpcName = "SetAppIcon"
-								  },
-								  {
-									 hmiPermissions = {
-										allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" },
-										userDisallowed = {}
-									 },
-									 parameterPermissions = {
-										allowed = {},
-										userDisallowed = {}
-									 },
-									 rpcName = "SetDisplayLayout"
-								  },
-								  {
-									 hmiPermissions = {
-										allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" },
-										userDisallowed = {}
-									 },
-									 parameterPermissions = {
-										allowed = {},
-										userDisallowed = {}
-									 },
-									 rpcName = "SetGlobalProperties"
-								  },
-								  {
-									 hmiPermissions = {
-										allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" },
-										userDisallowed = {}
-									 },
-									 parameterPermissions = {
-										allowed = {},
-										userDisallowed = {}
-									 },
-									 rpcName = "SetInteriorVehicleData"
-								  },
-								  {
-									 hmiPermissions = {
-										allowed = { "BACKGROUND", "FULL", "LIMITED" },
-										userDisallowed = {}
-									 },
-									 parameterPermissions = {
-										allowed = {},
-										userDisallowed = {}
-									 },
-									 rpcName = "SetMediaClockTimer"
-								  },								  
-								  {
-									 hmiPermissions = {
-										allowed = { "BACKGROUND", "FULL", "LIMITED" },
-										userDisallowed = {}
-									 },
-									 parameterPermissions = {
-										allowed = {},
-										userDisallowed = {}
-									 },
-									 rpcName = "Show"
-								  },								  
-								  {
-									 hmiPermissions = {
-										allowed = { "FULL" },
-										userDisallowed = {}
-									 },
-									 parameterPermissions = {
-										allowed = {},
-										userDisallowed = {}
-									 },
-									 rpcName = "Slider"
-								  },								  
-								  {
-									 hmiPermissions = {
-										allowed = { "FULL", "LIMITED" },
-										userDisallowed = {}
-									 },
-									 parameterPermissions = {
-										allowed = {},
-										userDisallowed = {}
-									 },
-									 rpcName = "Speak"
-								  },
-								  {
-									 hmiPermissions = {
-										allowed = { "BACKGROUND", "FULL", "LIMITED" },
-										userDisallowed = {}
-									 },
-									 parameterPermissions = {
-										allowed = {},
-										userDisallowed = {}
-									 },
-									 rpcName = "SubscribeButton"
-								  },
-								  {
-									 hmiPermissions = {
-										allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" },
-										userDisallowed = {}
-									 },
-									 parameterPermissions = {
-										allowed = {},
-										userDisallowed = {}
-									 },
-									 rpcName = "SystemRequest"
-								  },								  
-								  {
-									 hmiPermissions = {
-										allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" },
-										userDisallowed = {}
-									 },
-									 parameterPermissions = {
-										allowed = {},
-										userDisallowed = {}
-									 },
-									 rpcName = "UnregisterAppInterface"
-								  },								  
-								  {
-									 hmiPermissions = {
-										allowed = { "BACKGROUND", "FULL", "LIMITED" },
-										userDisallowed = {}
-									 },
-									 parameterPermissions = {
-										allowed = {},
-										userDisallowed = {}
-									 },
-									 rpcName = "UnsubscribeButton"
-								  }
-								}
-						}
 --groups_nonPrimaryRC Group
 local arrayGroups_nonPrimaryRC = {
 								permissionItem = {
@@ -670,11 +118,10 @@ local arrayGroups_nonPrimaryRC = {
 											userDisallowed = {}
 										 },
 										 rpcName = "SystemRequest"
-									  },									  
+									  },
 									 }
-						}						
-		
-						
+						}
+
 
 ---------------------------------------------------------------------------------------------
 -------------------------------------STARTING COMMON FUNCTIONS-------------------------------
@@ -696,12 +143,12 @@ end
 
 ---------------------------------------------------------------------------------------------
 ----------------------------------------END COMMON FUNCTIONS---------------------------------
----------------------------------------------------------------------------------------------	
+---------------------------------------------------------------------------------------------
 
-	
-	
-	
-	
+
+
+
+
 
 --======================================REVSDL-966=========================================--
 ---------------------------------------------------------------------------------------------
@@ -716,20 +163,20 @@ end
 	--Begin Test suit CommonRequestCheck.1 for Req.#1
 
 	--Description: 1. In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies and "equipment" section of policies database contains this RPC name with <params> in <moduleType> in "auto_allow" sub-section of <interiorZone> section - RSDL must send this RPC with these <params> to the vehicle (HMI).
-	
+
 
 	--Begin Test case CommonRequestCheck.1.1
 	--Description: 	For ButtonPress
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-966
 				--TC: REVSDL-1219
 
-		--Verification criteria: 
+		--Verification criteria:
 				--In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies and "equipment" section of policies database contains this RPC name with <params> in <moduleType> in "auto_allow" sub-section of <interiorZone> section - RSDL must send this RPC with these <params> to the vehicle (HMI).
 
 		-----------------------------------------------------------------------------------------
-				
+
 			--Begin Test case CommonRequestCheck.1.1.1
 			--Description: application sends ButtonPress as Driver and ModuleType = RADIO, buttonPressMode = LONG
 				function Test:ButtonPress_AutoAllowDriverRADIO_ButtonPressMode_LONG()
@@ -746,12 +193,12 @@ end
 						},
 						moduleType = "RADIO",
 						buttonPressMode = "LONG",
-						buttonName = "VOLUME_UP"						
+						buttonName = "VOLUME_UP"
 					})
-					
+
 				--hmi side: expect Buttons.ButtonPress request
-				EXPECT_HMICALL("Buttons.ButtonPress", 
-								{ 
+				EXPECT_HMICALL("Buttons.ButtonPress",
+								{
 									zone =
 									{
 										colspan = 2,
@@ -768,14 +215,14 @@ end
 					:Do(function(_,data)
 						--hmi side: sending Buttons.ButtonPress response
 						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-					end)					
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.1.1.1
-			
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.1.1.2
 			--Description: application sends ButtonPress as Driver and ModuleType = RADIO, buttonPressMode = SHORT
 				function Test:ButtonPress_AutoAllowDriverRADIO_ButtonPressMode_SHORT()
@@ -792,12 +239,12 @@ end
 						},
 						moduleType = "RADIO",
 						buttonPressMode = "SHORT",
-						buttonName = "VOLUME_UP"						
+						buttonName = "VOLUME_UP"
 					})
-					
+
 				--hmi side: expect Buttons.ButtonPress request
-				EXPECT_HMICALL("Buttons.ButtonPress", 
-								{ 
+				EXPECT_HMICALL("Buttons.ButtonPress",
+								{
 									zone =
 									{
 										colspan = 2,
@@ -814,14 +261,14 @@ end
 					:Do(function(_,data)
 						--hmi side: sending Buttons.ButtonPress response
 						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-					end)					
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.1.1.2
-			
-		-----------------------------------------------------------------------------------------		
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.1.1.3
 			--Description: application sends ButtonPress as Driver and ModuleType = RADIO, buttonName = VOLUME_UP
 				function Test:ButtonPress_AutoAllowDriverRADIO_ButtonName_VOLUME_UP()
@@ -838,12 +285,12 @@ end
 						},
 						moduleType = "RADIO",
 						buttonPressMode = "SHORT",
-						buttonName = "VOLUME_UP"						
+						buttonName = "VOLUME_UP"
 					})
-					
+
 				--hmi side: expect Buttons.ButtonPress request
-				EXPECT_HMICALL("Buttons.ButtonPress", 
-								{ 
+				EXPECT_HMICALL("Buttons.ButtonPress",
+								{
 									zone =
 									{
 										colspan = 2,
@@ -860,14 +307,14 @@ end
 					:Do(function(_,data)
 						--hmi side: sending Buttons.ButtonPress response
 						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-					end)					
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.1.1.3
-			
-		-----------------------------------------------------------------------------------------		
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.1.1.4
 			--Description: application sends ButtonPress as Driver and ModuleType = RADIO, buttonName = VOLUME_DOWN
 				function Test:ButtonPress_AutoAllowDriverRADIO_ButtonName_VOLUME_DOWN()
@@ -884,12 +331,12 @@ end
 						},
 						moduleType = "RADIO",
 						buttonPressMode = "SHORT",
-						buttonName = "VOLUME_DOWN"						
+						buttonName = "VOLUME_DOWN"
 					})
-					
+
 				--hmi side: expect Buttons.ButtonPress request
-				EXPECT_HMICALL("Buttons.ButtonPress", 
-								{ 
+				EXPECT_HMICALL("Buttons.ButtonPress",
+								{
 									zone =
 									{
 										colspan = 2,
@@ -906,13 +353,13 @@ end
 					:Do(function(_,data)
 						--hmi side: sending Buttons.ButtonPress response
 						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-					end)					
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.1.1.4
-			
-		-----------------------------------------------------------------------------------------	
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.1.1.5
 			--Description: application sends ButtonPress as Driver and ModuleType = RADIO, buttonName = EJECT
@@ -930,12 +377,12 @@ end
 						},
 						moduleType = "RADIO",
 						buttonPressMode = "SHORT",
-						buttonName = "EJECT"						
+						buttonName = "EJECT"
 					})
-					
+
 				--hmi side: expect Buttons.ButtonPress request
-				EXPECT_HMICALL("Buttons.ButtonPress", 
-								{ 
+				EXPECT_HMICALL("Buttons.ButtonPress",
+								{
 									zone =
 									{
 										colspan = 2,
@@ -952,13 +399,13 @@ end
 					:Do(function(_,data)
 						--hmi side: sending Buttons.ButtonPress response
 						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-					end)					
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.1.1.5
-			
-		-----------------------------------------------------------------------------------------	
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.1.1.6
 			--Description: application sends ButtonPress as Driver and ModuleType = RADIO, buttonName = SOURCE
@@ -976,12 +423,12 @@ end
 						},
 						moduleType = "RADIO",
 						buttonPressMode = "SHORT",
-						buttonName = "SOURCE"						
+						buttonName = "SOURCE"
 					})
-					
+
 				--hmi side: expect Buttons.ButtonPress request
-				EXPECT_HMICALL("Buttons.ButtonPress", 
-								{ 
+				EXPECT_HMICALL("Buttons.ButtonPress",
+								{
 									zone =
 									{
 										colspan = 2,
@@ -998,12 +445,12 @@ end
 					:Do(function(_,data)
 						--hmi side: sending Buttons.ButtonPress response
 						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-					end)					
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.1.1.6
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.1.1.7
@@ -1022,12 +469,12 @@ end
 						},
 						moduleType = "RADIO",
 						buttonPressMode = "SHORT",
-						buttonName = "SHUFFLE"						
+						buttonName = "SHUFFLE"
 					})
-					
+
 				--hmi side: expect Buttons.ButtonPress request
-				EXPECT_HMICALL("Buttons.ButtonPress", 
-								{ 
+				EXPECT_HMICALL("Buttons.ButtonPress",
+								{
 									zone =
 									{
 										colspan = 2,
@@ -1044,12 +491,12 @@ end
 					:Do(function(_,data)
 						--hmi side: sending Buttons.ButtonPress response
 						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-					end)					
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.1.1.7
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.1.1.8
@@ -1068,12 +515,12 @@ end
 						},
 						moduleType = "RADIO",
 						buttonPressMode = "SHORT",
-						buttonName = "REPEAT"						
+						buttonName = "REPEAT"
 					})
-					
+
 				--hmi side: expect Buttons.ButtonPress request
-				EXPECT_HMICALL("Buttons.ButtonPress", 
-								{ 
+				EXPECT_HMICALL("Buttons.ButtonPress",
+								{
 									zone =
 									{
 										colspan = 2,
@@ -1090,12 +537,12 @@ end
 					:Do(function(_,data)
 						--hmi side: sending Buttons.ButtonPress response
 						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-					end)					
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.1.1.8
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.1.1.9
@@ -1114,12 +561,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "LONG",
-						buttonName = "AC_MAX"						
+						buttonName = "AC_MAX"
 					})
-					
+
 				--hmi side: expect Buttons.ButtonPress request
-				EXPECT_HMICALL("Buttons.ButtonPress", 
-								{ 
+				EXPECT_HMICALL("Buttons.ButtonPress",
+								{
 									zone =
 									{
 										colspan = 2,
@@ -1136,12 +583,12 @@ end
 					:Do(function(_,data)
 						--hmi side: sending Buttons.ButtonPress response
 						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-					end)					
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.1.1.9
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.1.1.10
@@ -1160,12 +607,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "SHORT",
-						buttonName = "AC_MAX"						
+						buttonName = "AC_MAX"
 					})
-					
+
 				--hmi side: expect Buttons.ButtonPress request
-				EXPECT_HMICALL("Buttons.ButtonPress", 
-								{ 
+				EXPECT_HMICALL("Buttons.ButtonPress",
+								{
 									zone =
 									{
 										colspan = 2,
@@ -1182,12 +629,12 @@ end
 					:Do(function(_,data)
 						--hmi side: sending Buttons.ButtonPress response
 						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-					end)					
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.1.1.10
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.1.1.11
@@ -1206,12 +653,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "SHORT",
-						buttonName = "AC_MAX"						
+						buttonName = "AC_MAX"
 					})
-					
+
 				--hmi side: expect Buttons.ButtonPress request
-				EXPECT_HMICALL("Buttons.ButtonPress", 
-								{ 
+				EXPECT_HMICALL("Buttons.ButtonPress",
+								{
 									zone =
 									{
 										colspan = 2,
@@ -1228,12 +675,12 @@ end
 					:Do(function(_,data)
 						--hmi side: sending Buttons.ButtonPress response
 						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-					end)					
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.1.1.11
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.1.1.12
@@ -1252,12 +699,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "SHORT",
-						buttonName = "AC"						
+						buttonName = "AC"
 					})
-					
+
 				--hmi side: expect Buttons.ButtonPress request
-				EXPECT_HMICALL("Buttons.ButtonPress", 
-								{ 
+				EXPECT_HMICALL("Buttons.ButtonPress",
+								{
 									zone =
 									{
 										colspan = 2,
@@ -1274,14 +721,14 @@ end
 					:Do(function(_,data)
 						--hmi side: sending Buttons.ButtonPress response
 						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-					end)					
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.1.1.12
-			
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.1.1.13
 			--Description: application sends ButtonPress as Driver and ModuleType = CLIMATE, buttonName = RECIRCULATE
 				function Test:ButtonPress_AutoAllowDriverCLIMATE_ButtonName_RECIRCULATE()
@@ -1298,12 +745,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "SHORT",
-						buttonName = "RECIRCULATE"						
+						buttonName = "RECIRCULATE"
 					})
-					
+
 				--hmi side: expect Buttons.ButtonPress request
-				EXPECT_HMICALL("Buttons.ButtonPress", 
-								{ 
+				EXPECT_HMICALL("Buttons.ButtonPress",
+								{
 									zone =
 									{
 										colspan = 2,
@@ -1320,14 +767,14 @@ end
 					:Do(function(_,data)
 						--hmi side: sending Buttons.ButtonPress response
 						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-					end)					
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.1.1.13
-			
-		-----------------------------------------------------------------------------------------		
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.1.1.14
 			--Description: application sends ButtonPress as Driver and ModuleType = CLIMATE, buttonName = FAN_UP
 				function Test:ButtonPress_AutoAllowDriverCLIMATE_ButtonName_FAN_UP()
@@ -1344,12 +791,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "SHORT",
-						buttonName = "FAN_UP"						
+						buttonName = "FAN_UP"
 					})
-					
+
 				--hmi side: expect Buttons.ButtonPress request
-				EXPECT_HMICALL("Buttons.ButtonPress", 
-								{ 
+				EXPECT_HMICALL("Buttons.ButtonPress",
+								{
 									zone =
 									{
 										colspan = 2,
@@ -1366,14 +813,14 @@ end
 					:Do(function(_,data)
 						--hmi side: sending Buttons.ButtonPress response
 						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-					end)					
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.1.1.14
-			
-		-----------------------------------------------------------------------------------------			
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.1.1.15
 			--Description: application sends ButtonPress as Driver and ModuleType = CLIMATE, buttonName = FAN_DOWN
 				function Test:ButtonPress_AutoAllowDriverCLIMATE_ButtonName_FAN_DOWN()
@@ -1390,12 +837,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "SHORT",
-						buttonName = "FAN_DOWN"						
+						buttonName = "FAN_DOWN"
 					})
-					
+
 				--hmi side: expect Buttons.ButtonPress request
-				EXPECT_HMICALL("Buttons.ButtonPress", 
-								{ 
+				EXPECT_HMICALL("Buttons.ButtonPress",
+								{
 									zone =
 									{
 										colspan = 2,
@@ -1412,14 +859,14 @@ end
 					:Do(function(_,data)
 						--hmi side: sending Buttons.ButtonPress response
 						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-					end)					
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.1.1.15
-			
-		-----------------------------------------------------------------------------------------		
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.1.1.16
 			--Description: application sends ButtonPress as Driver and ModuleType = CLIMATE, buttonName = TEMP_UP
 				function Test:ButtonPress_AutoAllowDriverCLIMATE_ButtonName_TEMP_UP()
@@ -1436,12 +883,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "SHORT",
-						buttonName = "TEMP_UP"						
+						buttonName = "TEMP_UP"
 					})
-					
+
 				--hmi side: expect Buttons.ButtonPress request
-				EXPECT_HMICALL("Buttons.ButtonPress", 
-								{ 
+				EXPECT_HMICALL("Buttons.ButtonPress",
+								{
 									zone =
 									{
 										colspan = 2,
@@ -1458,14 +905,14 @@ end
 					:Do(function(_,data)
 						--hmi side: sending Buttons.ButtonPress response
 						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-					end)					
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.1.1.16
-			
-		-----------------------------------------------------------------------------------------		
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.1.1.17
 			--Description: application sends ButtonPress as Driver and ModuleType = CLIMATE, buttonName = TEMP_DOWN
 				function Test:ButtonPress_AutoAllowDriverCLIMATE_ButtonName_TEMP_DOWN()
@@ -1482,12 +929,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "SHORT",
-						buttonName = "TEMP_DOWN"						
+						buttonName = "TEMP_DOWN"
 					})
-					
+
 				--hmi side: expect Buttons.ButtonPress request
-				EXPECT_HMICALL("Buttons.ButtonPress", 
-								{ 
+				EXPECT_HMICALL("Buttons.ButtonPress",
+								{
 									zone =
 									{
 										colspan = 2,
@@ -1504,12 +951,12 @@ end
 					:Do(function(_,data)
 						--hmi side: sending Buttons.ButtonPress response
 						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-					end)					
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.1.1.17
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.1.1.18
@@ -1528,12 +975,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "SHORT",
-						buttonName = "DEFROST_MAX"						
+						buttonName = "DEFROST_MAX"
 					})
-					
+
 				--hmi side: expect Buttons.ButtonPress request
-				EXPECT_HMICALL("Buttons.ButtonPress", 
-								{ 
+				EXPECT_HMICALL("Buttons.ButtonPress",
+								{
 									zone =
 									{
 										colspan = 2,
@@ -1550,14 +997,14 @@ end
 					:Do(function(_,data)
 						--hmi side: sending Buttons.ButtonPress response
 						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-					end)					
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.1.1.18
-			
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.1.1.19
 			--Description: application sends ButtonPress as Driver and ModuleType = CLIMATE, buttonName = DEFROST
 				function Test:ButtonPress_AutoAllowDriverCLIMATE_ButtonName_DEFROST()
@@ -1574,12 +1021,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "SHORT",
-						buttonName = "DEFROST"						
+						buttonName = "DEFROST"
 					})
-					
+
 				--hmi side: expect Buttons.ButtonPress request
-				EXPECT_HMICALL("Buttons.ButtonPress", 
-								{ 
+				EXPECT_HMICALL("Buttons.ButtonPress",
+								{
 									zone =
 									{
 										colspan = 2,
@@ -1596,14 +1043,14 @@ end
 					:Do(function(_,data)
 						--hmi side: sending Buttons.ButtonPress response
 						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-					end)					
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.1.1.19
-			
-		-----------------------------------------------------------------------------------------		
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.1.1.20
 			--Description: application sends ButtonPress as Driver and ModuleType = CLIMATE, buttonName = DEFROST_REAR
 				function Test:ButtonPress_AutoAllowDriverCLIMATE_ButtonName_DEFROST_REAR()
@@ -1620,12 +1067,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "SHORT",
-						buttonName = "DEFROST_REAR"						
+						buttonName = "DEFROST_REAR"
 					})
-					
+
 				--hmi side: expect Buttons.ButtonPress request
-				EXPECT_HMICALL("Buttons.ButtonPress", 
-								{ 
+				EXPECT_HMICALL("Buttons.ButtonPress",
+								{
 									zone =
 									{
 										colspan = 2,
@@ -1642,12 +1089,12 @@ end
 					:Do(function(_,data)
 						--hmi side: sending Buttons.ButtonPress response
 						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-					end)					
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.1.1.20
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.1.1.21
@@ -1666,12 +1113,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "SHORT",
-						buttonName = "UPPER_VENT"						
+						buttonName = "UPPER_VENT"
 					})
-					
+
 				--hmi side: expect Buttons.ButtonPress request
-				EXPECT_HMICALL("Buttons.ButtonPress", 
-								{ 
+				EXPECT_HMICALL("Buttons.ButtonPress",
+								{
 									zone =
 									{
 										colspan = 2,
@@ -1688,14 +1135,14 @@ end
 					:Do(function(_,data)
 						--hmi side: sending Buttons.ButtonPress response
 						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-					end)					
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.1.1.21
-			
-		-----------------------------------------------------------------------------------------		
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.1.1.22
 			--Description: application sends ButtonPress as Driver and ModuleType = CLIMATE, buttonName = LOWER_VENT
 				function Test:ButtonPress_AutoAllowDriverCLIMATE_ButtonName_LOWER_VENT()
@@ -1712,12 +1159,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "SHORT",
-						buttonName = "LOWER_VENT"						
+						buttonName = "LOWER_VENT"
 					})
-					
+
 				--hmi side: expect Buttons.ButtonPress request
-				EXPECT_HMICALL("Buttons.ButtonPress", 
-								{ 
+				EXPECT_HMICALL("Buttons.ButtonPress",
+								{
 									zone =
 									{
 										colspan = 2,
@@ -1734,14 +1181,14 @@ end
 					:Do(function(_,data)
 						--hmi side: sending Buttons.ButtonPress response
 						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-					end)					
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.1.1.22
-			
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.1.1.23
 			--Description: application sends ButtonPress as front passenger and ModuleType = CLIMATE, buttonPressMode = LONG
 				function Test:ButtonPress_AutoAllowFrontCLIMATE_ButtonPressMode_LONG()
@@ -1758,12 +1205,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "LONG",
-						buttonName = "AC_MAX"						
+						buttonName = "AC_MAX"
 					})
-					
+
 				--hmi side: expect Buttons.ButtonPress request
-				EXPECT_HMICALL("Buttons.ButtonPress", 
-								{ 
+				EXPECT_HMICALL("Buttons.ButtonPress",
+								{
 									zone =
 									{
 										colspan = 2,
@@ -1780,12 +1227,12 @@ end
 					:Do(function(_,data)
 						--hmi side: sending Buttons.ButtonPress response
 						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-					end)					
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.1.1.23
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.1.1.24
@@ -1804,12 +1251,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "SHORT",
-						buttonName = "AC_MAX"						
+						buttonName = "AC_MAX"
 					})
-					
+
 				--hmi side: expect Buttons.ButtonPress request
-				EXPECT_HMICALL("Buttons.ButtonPress", 
-								{ 
+				EXPECT_HMICALL("Buttons.ButtonPress",
+								{
 									zone =
 									{
 										colspan = 2,
@@ -1826,12 +1273,12 @@ end
 					:Do(function(_,data)
 						--hmi side: sending Buttons.ButtonPress response
 						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-					end)					
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.1.1.24
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.1.1.25
@@ -1850,12 +1297,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "SHORT",
-						buttonName = "AC_MAX"						
+						buttonName = "AC_MAX"
 					})
-					
+
 				--hmi side: expect Buttons.ButtonPress request
-				EXPECT_HMICALL("Buttons.ButtonPress", 
-								{ 
+				EXPECT_HMICALL("Buttons.ButtonPress",
+								{
 									zone =
 									{
 										colspan = 2,
@@ -1872,12 +1319,12 @@ end
 					:Do(function(_,data)
 						--hmi side: sending Buttons.ButtonPress response
 						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-					end)					
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.1.1.25
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.1.1.26
@@ -1896,12 +1343,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "SHORT",
-						buttonName = "AC"						
+						buttonName = "AC"
 					})
-					
+
 				--hmi side: expect Buttons.ButtonPress request
-				EXPECT_HMICALL("Buttons.ButtonPress", 
-								{ 
+				EXPECT_HMICALL("Buttons.ButtonPress",
+								{
 									zone =
 									{
 										colspan = 2,
@@ -1918,14 +1365,14 @@ end
 					:Do(function(_,data)
 						--hmi side: sending Buttons.ButtonPress response
 						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-					end)					
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.1.1.26
-			
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.1.1.27
 			--Description: application sends ButtonPress as front passenger and ModuleType = CLIMATE, buttonName = RECIRCULATE
 				function Test:ButtonPress_AutoAllowFrontCLIMATE_ButtonName_RECIRCULATE()
@@ -1942,12 +1389,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "SHORT",
-						buttonName = "RECIRCULATE"						
+						buttonName = "RECIRCULATE"
 					})
-					
+
 				--hmi side: expect Buttons.ButtonPress request
-				EXPECT_HMICALL("Buttons.ButtonPress", 
-								{ 
+				EXPECT_HMICALL("Buttons.ButtonPress",
+								{
 									zone =
 									{
 										colspan = 2,
@@ -1964,14 +1411,14 @@ end
 					:Do(function(_,data)
 						--hmi side: sending Buttons.ButtonPress response
 						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-					end)					
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.1.1.27
-			
-		-----------------------------------------------------------------------------------------		
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.1.1.28
 			--Description: application sends ButtonPress as front passenger and ModuleType = CLIMATE, buttonName = FAN_UP
 				function Test:ButtonPress_AutoAllowFrontCLIMATE_ButtonName_FAN_UP()
@@ -1988,12 +1435,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "SHORT",
-						buttonName = "FAN_UP"						
+						buttonName = "FAN_UP"
 					})
-					
+
 				--hmi side: expect Buttons.ButtonPress request
-				EXPECT_HMICALL("Buttons.ButtonPress", 
-								{ 
+				EXPECT_HMICALL("Buttons.ButtonPress",
+								{
 									zone =
 									{
 										colspan = 2,
@@ -2010,14 +1457,14 @@ end
 					:Do(function(_,data)
 						--hmi side: sending Buttons.ButtonPress response
 						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-					end)					
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.1.1.28
-			
-		-----------------------------------------------------------------------------------------			
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.1.1.29
 			--Description: application sends ButtonPress as front passenger and ModuleType = CLIMATE, buttonName = FAN_DOWN
 				function Test:ButtonPress_AutoAllowFrontCLIMATE_ButtonName_FAN_DOWN()
@@ -2034,12 +1481,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "SHORT",
-						buttonName = "FAN_DOWN"						
+						buttonName = "FAN_DOWN"
 					})
-					
+
 				--hmi side: expect Buttons.ButtonPress request
-				EXPECT_HMICALL("Buttons.ButtonPress", 
-								{ 
+				EXPECT_HMICALL("Buttons.ButtonPress",
+								{
 									zone =
 									{
 										colspan = 2,
@@ -2056,14 +1503,14 @@ end
 					:Do(function(_,data)
 						--hmi side: sending Buttons.ButtonPress response
 						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-					end)					
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.1.1.29
-			
-		-----------------------------------------------------------------------------------------		
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.1.1.30
 			--Description: application sends ButtonPress as front passenger and ModuleType = CLIMATE, buttonName = TEMP_UP
 				function Test:ButtonPress_AutoAllowFrontCLIMATE_ButtonName_TEMP_UP()
@@ -2080,12 +1527,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "SHORT",
-						buttonName = "TEMP_UP"						
+						buttonName = "TEMP_UP"
 					})
-					
+
 				--hmi side: expect Buttons.ButtonPress request
-				EXPECT_HMICALL("Buttons.ButtonPress", 
-								{ 
+				EXPECT_HMICALL("Buttons.ButtonPress",
+								{
 									zone =
 									{
 										colspan = 2,
@@ -2102,14 +1549,14 @@ end
 					:Do(function(_,data)
 						--hmi side: sending Buttons.ButtonPress response
 						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-					end)					
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.1.1.30
-			
-		-----------------------------------------------------------------------------------------		
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.1.1.31
 			--Description: application sends ButtonPress as front passenger and ModuleType = CLIMATE, buttonName = TEMP_DOWN
 				function Test:ButtonPress_AutoAllowFrontCLIMATE_ButtonName_TEMP_DOWN()
@@ -2126,12 +1573,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "SHORT",
-						buttonName = "TEMP_DOWN"						
+						buttonName = "TEMP_DOWN"
 					})
-					
+
 				--hmi side: expect Buttons.ButtonPress request
-				EXPECT_HMICALL("Buttons.ButtonPress", 
-								{ 
+				EXPECT_HMICALL("Buttons.ButtonPress",
+								{
 									zone =
 									{
 										colspan = 2,
@@ -2148,12 +1595,12 @@ end
 					:Do(function(_,data)
 						--hmi side: sending Buttons.ButtonPress response
 						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-					end)					
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.1.1.31
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.1.1.32
@@ -2172,12 +1619,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "SHORT",
-						buttonName = "DEFROST_MAX"						
+						buttonName = "DEFROST_MAX"
 					})
-					
+
 				--hmi side: expect Buttons.ButtonPress request
-				EXPECT_HMICALL("Buttons.ButtonPress", 
-								{ 
+				EXPECT_HMICALL("Buttons.ButtonPress",
+								{
 									zone =
 									{
 										colspan = 2,
@@ -2194,14 +1641,14 @@ end
 					:Do(function(_,data)
 						--hmi side: sending Buttons.ButtonPress response
 						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-					end)					
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.1.1.32
-			
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.1.1.33
 			--Description: application sends ButtonPress as front passenger and ModuleType = CLIMATE, buttonName = DEFROST
 				function Test:ButtonPress_AutoAllowFrontCLIMATE_ButtonName_DEFROST()
@@ -2218,12 +1665,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "SHORT",
-						buttonName = "DEFROST"						
+						buttonName = "DEFROST"
 					})
-					
+
 				--hmi side: expect Buttons.ButtonPress request
-				EXPECT_HMICALL("Buttons.ButtonPress", 
-								{ 
+				EXPECT_HMICALL("Buttons.ButtonPress",
+								{
 									zone =
 									{
 										colspan = 2,
@@ -2240,14 +1687,14 @@ end
 					:Do(function(_,data)
 						--hmi side: sending Buttons.ButtonPress response
 						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-					end)					
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.1.1.33
-			
-		-----------------------------------------------------------------------------------------		
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.1.1.34
 			--Description: application sends ButtonPress as front passenger and ModuleType = CLIMATE, buttonName = DEFROST_REAR
 				function Test:ButtonPress_AutoAllowFrontCLIMATE_ButtonName_DEFROST_REAR()
@@ -2264,12 +1711,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "SHORT",
-						buttonName = "DEFROST_REAR"						
+						buttonName = "DEFROST_REAR"
 					})
-					
+
 				--hmi side: expect Buttons.ButtonPress request
-				EXPECT_HMICALL("Buttons.ButtonPress", 
-								{ 
+				EXPECT_HMICALL("Buttons.ButtonPress",
+								{
 									zone =
 									{
 										colspan = 2,
@@ -2286,12 +1733,12 @@ end
 					:Do(function(_,data)
 						--hmi side: sending Buttons.ButtonPress response
 						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-					end)					
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.1.1.34
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.1.1.35
@@ -2310,12 +1757,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "SHORT",
-						buttonName = "UPPER_VENT"						
+						buttonName = "UPPER_VENT"
 					})
-					
+
 				--hmi side: expect Buttons.ButtonPress request
-				EXPECT_HMICALL("Buttons.ButtonPress", 
-								{ 
+				EXPECT_HMICALL("Buttons.ButtonPress",
+								{
 									zone =
 									{
 										colspan = 2,
@@ -2332,14 +1779,14 @@ end
 					:Do(function(_,data)
 						--hmi side: sending Buttons.ButtonPress response
 						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-					end)					
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.1.1.35
-			
-		-----------------------------------------------------------------------------------------		
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.1.1.36
 			--Description: application sends ButtonPress as front passenger and ModuleType = CLIMATE, buttonName = LOWER_VENT
 				function Test:ButtonPress_AutoAllowFrontCLIMATE_ButtonName_LOWER_VENT()
@@ -2356,12 +1803,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "SHORT",
-						buttonName = "LOWER_VENT"						
+						buttonName = "LOWER_VENT"
 					})
-					
+
 				--hmi side: expect Buttons.ButtonPress request
-				EXPECT_HMICALL("Buttons.ButtonPress", 
-								{ 
+				EXPECT_HMICALL("Buttons.ButtonPress",
+								{
 									zone =
 									{
 										colspan = 2,
@@ -2378,14 +1825,14 @@ end
 					:Do(function(_,data)
 						--hmi side: sending Buttons.ButtonPress response
 						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-					end)					
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.1.1.36
-			
-		-----------------------------------------------------------------------------------------			
-			
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.1.1.37
 			--Description: application sends ButtonPress as Left Rare Passenger (col=0/ row=1/ level=0) and ModuleType = RADIO, buttonName = SHUFFLE
 				function Test:ButtonPress_AutoAllowLeftRADIO()
@@ -2402,12 +1849,12 @@ end
 						},
 						moduleType = "RADIO",
 						buttonPressMode = "SHORT",
-						buttonName = "SHUFFLE"						
+						buttonName = "SHUFFLE"
 					})
-					
+
 				--hmi side: expect Buttons.ButtonPress request
-				EXPECT_HMICALL("Buttons.ButtonPress", 
-								{ 
+				EXPECT_HMICALL("Buttons.ButtonPress",
+								{
 									zone =
 									{
 										colspan = 2,
@@ -2424,28 +1871,28 @@ end
 					:Do(function(_,data)
 						--hmi side: sending Buttons.ButtonPress response
 						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-					end)					
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.1.1.37
-			
-		-----------------------------------------------------------------------------------------	
+
+		-----------------------------------------------------------------------------------------
 	--End Test case CommonRequestCheck.1.1
-	
-	
+
+
 	--Begin Test case CommonRequestCheck.1.2
 	--Description: 	For GetInteriorVehicleData
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-966
 				--TC: REVSDL-1219
 
-		--Verification criteria: 
+		--Verification criteria:
 				--In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies and "equipment" section of policies database contains this RPC name with <params> in <moduleType> in "auto_allow" sub-section of <interiorZone> section - RSDL must send this RPC with these <params> to the vehicle (HMI).
 
 		-----------------------------------------------------------------------------------------
-				
+
 			--Begin Test case CommonRequestCheck.1.2.1
 			--Description: application sends GetInteriorVehicleData as Driver and ModuleType = RADIO
 				function Test:GetInterior_AutoDriverRADIO()
@@ -2455,7 +1902,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -2465,7 +1912,7 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true					
+						subscribe = true
 					})
 
 					--hmi side: expect RC.GetInteriorVehicleData request
@@ -2504,18 +1951,18 @@ end
 											radioEnable = true,
 											state = "ACQUIRING"
 										}
-									}	
+									}
 							})
-							
-						end)						
+
+						end)
 
 						--mobile side: expect SUCCESS response
 						EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})
 				end
 			--End Test case CommonRequestCheck.1.2.1
-			
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.1.2.2
 			--Description: application sends GetInteriorVehicleData as Driver and ModuleType = CLIMATE
 				function Test:GetInterior_AutoDriverCLIMATE()
@@ -2525,7 +1972,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -2536,8 +1983,8 @@ end
 							}
 						},
 						subscribe = true
-					})		
-					
+					})
+
 					--hmi side: expect RC.GetInteriorVehicleData request
 					EXPECT_HMICALL("RC.GetInteriorVehicleData")
 						:Do(function(_,data)
@@ -2546,7 +1993,7 @@ end
 								moduleData =
 								{
 									moduleType = "CLIMATE",
-									moduleZone = 
+									moduleZone =
 									{
 										colspan = 2,
 										row = 0,
@@ -2570,12 +2017,12 @@ end
 								}
 							})
 						end)
-					
+
 					--mobile side: expect SUCCESS response with info
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})
 				end
 			--End Test case CommonRequestCheck.1.2.2
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.1.2.3
@@ -2587,7 +2034,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -2598,8 +2045,8 @@ end
 							}
 						},
 						subscribe = true
-					})		
-					
+					})
+
 					--hmi side: expect RC.GetInteriorVehicleData request
 					EXPECT_HMICALL("RC.GetInteriorVehicleData")
 						:Do(function(_,data)
@@ -2608,7 +2055,7 @@ end
 								moduleData =
 								{
 									moduleType = "CLIMATE",
-									moduleZone = 
+									moduleZone =
 									{
 										colspan = 2,
 										row = 0,
@@ -2632,29 +2079,29 @@ end
 								}
 							})
 						end)
-					
+
 					--mobile side: expect SUCCESS response with info
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})
 				end
 			--End Test case CommonRequestCheck.1.2.3
-			
+
 		-----------------------------------------------------------------------------------------
-	--End Test case CommonRequestCheck.1.2	
-	
-	
-	
+	--End Test case CommonRequestCheck.1.2
+
+
+
 	--Begin Test case CommonRequestCheck.1.3
 	--Description: 	For SetInteriorVehicleData
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-966
 				--TC: REVSDL-1219
 
-		--Verification criteria: 
+		--Verification criteria:
 				--In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies and "equipment" section of policies database contains this RPC name with <params> in <moduleType> in "auto_allow" sub-section of <interiorZone> section - RSDL must send this RPC with these <params> to the vehicle (HMI).
 
 		-----------------------------------------------------------------------------------------
-				
+
 			--Begin Test case CommonRequestCheck.1.3.1
 			--Description: application sends SetInteriorVehicleData as Driver and ModuleType = RADIO
 				function Test:SetInterior_AutoDriverRADIO()
@@ -2692,7 +2139,7 @@ end
 								radioEnable = true,
 								state = "ACQUIRING"
 							}
-						}				
+						}
 					})
 
 					--hmi side: expect RC.SetInteriorVehicleData request
@@ -2731,18 +2178,18 @@ end
 											radioEnable = true,
 											state = "ACQUIRING"
 										}
-									}	
+									}
 							})
-							
-						end)						
+
+						end)
 
 						--mobile side: expect SUCCESS response
 						EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})
 				end
 			--End Test case CommonRequestCheck.1.3.1
-			
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.1.3.2
 			--Description: application sends SetInteriorVehicleData as Driver and ModuleType = CLIMATE
 				function Test:SetInterior_AutoDriverCLIMATE()
@@ -2752,7 +2199,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -2774,8 +2221,8 @@ end
 								temperatureUnit = "CELSIUS"
 							}
 						}
-					})		
-					
+					})
+
 					--hmi side: expect RC.SetInteriorVehicleData request
 					EXPECT_HMICALL("RC.SetInteriorVehicleData")
 						:Do(function(_,data)
@@ -2784,7 +2231,7 @@ end
 								moduleData =
 								{
 									moduleType = "CLIMATE",
-									moduleZone = 
+									moduleZone =
 									{
 										colspan = 2,
 										row = 0,
@@ -2808,12 +2255,12 @@ end
 								}
 							})
 						end)
-					
+
 					--mobile side: expect SUCCESS response with info
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})
 				end
 			--End Test case CommonRequestCheck.1.3.2
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.1.3.3
@@ -2825,7 +2272,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -2847,8 +2294,8 @@ end
 								temperatureUnit = "CELSIUS"
 							}
 						}
-					})		
-					
+					})
+
 					--hmi side: expect RC.SetInteriorVehicleData request
 					EXPECT_HMICALL("RC.SetInteriorVehicleData")
 						:Do(function(_,data)
@@ -2857,7 +2304,7 @@ end
 								moduleData =
 								{
 									moduleType = "CLIMATE",
-									moduleZone = 
+									moduleZone =
 									{
 										colspan = 2,
 										row = 0,
@@ -2881,14 +2328,14 @@ end
 								}
 							})
 						end)
-					
+
 					--mobile side: expect SUCCESS response with info
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})
 				end
 			--End Test case CommonRequestCheck.1.3.3
-			
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.1.3.4
 			--Description: application sends GetInteriorVehicleData as Right Rare Passenger (col=1/ row=1/ level=0) and ModuleType = RADIO
 				function Test:SetInterior_AutoRightRADIO()
@@ -2914,7 +2361,7 @@ end
 								signalChangeThreshold = 60,
 								radioEnable = true,
 								state = "ACQUIRING"
-							}			
+							}
 					})
 
 					--hmi side: expect RC.SetInteriorVehicleData request
@@ -2943,19 +2390,19 @@ end
 											state = "ACQUIRING"
 										}
 							})
-							
-						end)						
+
+						end)
 
 						--mobile side: expect SUCCESS response
 						EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})
 				end
 			--End Test case CommonRequestCheck.1.3.4
-			
-		-----------------------------------------------------------------------------------------		
-		
+
+		-----------------------------------------------------------------------------------------
+
 	--End Test case CommonRequestCheck.1.3
-	
---=================================================END TEST CASES 1==========================================================--	
+
+--=================================================END TEST CASES 1==========================================================--
 
 
 
@@ -2964,24 +2411,24 @@ end
 --=================================================BEGIN TEST CASES 2==========================================================--
 	--Begin Test suit CommonRequestCheck.2 for Req.#2
 
-	--Description: 2. In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies 
-						--and "equipment" section of policies database contains this RPC name with <params> in <moduleType> in "driver_allow" sub-section of <interiorZone> section 
-						--and driver's permission has not yet been obtained for this app&<interiorZone>&<moduleType> 
+	--Description: 2. In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies
+						--and "equipment" section of policies database contains this RPC name with <params> in <moduleType> in "driver_allow" sub-section of <interiorZone> section
+						--and driver's permission has not yet been obtained for this app&<interiorZone>&<moduleType>
 						--RSDL must send the RC.GetInteriorVehicleDataConsent for getting driver's allowance to the vehicle (HMI).
-	
+
 
 	--Begin Test case CommonRequestCheck.2.1
 	--Description: 	For ButtonPress
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-966
 				--TC: REVSDL-1380
 
-		--Verification criteria: 
-				--In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies 
+		--Verification criteria:
+				--In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies
 
 		-----------------------------------------------------------------------------------------
-				
+
 			--Begin Test case CommonRequestCheck.2.1.1
 			--Description: application sends ButtonPress as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO
 				function Test:ButtonPress_DriverAllowFrontRADIO()
@@ -2999,12 +2446,12 @@ end
 						},
 						moduleType = "RADIO",
 						buttonPressMode = "LONG",
-						buttonName = "VOLUME_UP"						
+						buttonName = "VOLUME_UP"
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -3017,13 +2464,13 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect Buttons.ButtonPress request
-							EXPECT_HMICALL("Buttons.ButtonPress", 
-											{ 
+							EXPECT_HMICALL("Buttons.ButtonPress",
+											{
 												zone =
 												{
 													colspan = 2,
@@ -3041,12 +2488,12 @@ end
 									--hmi side: sending Buttons.ButtonPress response
 									self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 								end)
-					end)								
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.2.1.1
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.1.2
@@ -3066,12 +2513,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "SHORT",
-						buttonName = "LOWER_VENT"						
+						buttonName = "LOWER_VENT"
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -3084,13 +2531,13 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect Buttons.ButtonPress request
-							EXPECT_HMICALL("Buttons.ButtonPress", 
-											{ 
+							EXPECT_HMICALL("Buttons.ButtonPress",
+											{
 												zone =
 												{
 													colspan = 2,
@@ -3108,28 +2555,28 @@ end
 									--hmi side: sending Buttons.ButtonPress response
 									self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 								end)
-					end)								
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.2.1.2
-		
+
 		-----------------------------------------------------------------------------------------
 	--End Test case CommonRequestCheck.2.1
-	
-		
+
+
 	--Begin Test case CommonRequestCheck.2.2 (Stop SDL before running this test suite)
 	--Description: 	For GetInteriorVehicleData
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-966
 				--TC: REVSDL-1380
 
-		--Verification criteria: 
-				--In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies 
+		--Verification criteria:
+				--In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies
 
 		-----------------------------------------------------------------------------------------
-				
+
 			--Begin Test case CommonRequestCheck.2.2.1
 			--Description: application sends GetInteriorVehicleData as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO
 				function Test:GetInterior_DriverAllowFrontRADIO()
@@ -3139,7 +2586,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -3149,12 +2596,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -3167,10 +2614,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect RC.GetInteriorVehicleData request
 							EXPECT_HMICALL("RC.GetInteriorVehicleData")
 							:Do(function(_,data)
@@ -3207,16 +2654,16 @@ end
 													radioEnable = true,
 													state = "ACQUIRING"
 												}
-											}	
+											}
 									})
-									
+
 							end)
-					end)								
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.2.2.1
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.2.2
@@ -3228,7 +2675,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -3238,12 +2685,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -3256,10 +2703,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect RC.GetInteriorVehicleData request
 							EXPECT_HMICALL("RC.GetInteriorVehicleData")
 							:Do(function(_,data)
@@ -3296,18 +2743,18 @@ end
 													radioEnable = true,
 													state = "ACQUIRING"
 												}
-											}	
+											}
 									})
-									
+
 							end)
-					end)								
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.2.2.2
-		
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.2.2.3
 			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE
 				function Test:GetInterior_DriverAllowLeftCLIMATE()
@@ -3317,7 +2764,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -3327,12 +2774,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -3345,10 +2792,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect RC.GetInteriorVehicleData request
 							EXPECT_HMICALL("RC.GetInteriorVehicleData")
 							:Do(function(_,data)
@@ -3357,7 +2804,7 @@ end
 										moduleData =
 										{
 											moduleType = "CLIMATE",
-											moduleZone = 
+											moduleZone =
 											{
 												colspan = 2,
 												row = 1,
@@ -3380,30 +2827,30 @@ end
 											}
 										}
 									})
-									
+
 							end)
-					end)								
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.2.2.3
-		
-		-----------------------------------------------------------------------------------------		
+
+		-----------------------------------------------------------------------------------------
 	--End Test case CommonRequestCheck.2.2
-		
-		
+
+
 	--Begin Test case CommonRequestCheck.2.3 (Stop SDL before running this test suite)
 	--Description: 	For GetInteriorVehicleData
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-966
 				--TC: REVSDL-1380
 
-		--Verification criteria: 
-				--In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies 
+		--Verification criteria:
+				--In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies
 
 		-----------------------------------------------------------------------------------------
-				
+
 			--Begin Test case CommonRequestCheck.2.3.1
 			--Description: application sends SetInteriorVehicleData as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO
 				function Test:SetInterior_DriverAllowFrontRADIO()
@@ -3441,12 +2888,12 @@ end
 								radioEnable = true,
 								state = "ACQUIRING"
 							}
-						}				
+						}
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -3459,10 +2906,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect RC.SetInteriorVehicleData request
 							EXPECT_HMICALL("RC.SetInteriorVehicleData")
 							:Do(function(_,data)
@@ -3499,16 +2946,16 @@ end
 													radioEnable = true,
 													state = "ACQUIRING"
 												}
-											}	
+											}
 									})
-									
+
 								end)
-					end)								
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.2.3.1
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.3.2
@@ -3532,12 +2979,12 @@ end
 								frequencyFraction = 3,
 								band = "FM"
 							}
-						}				
+						}
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -3550,10 +2997,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect RC.SetInteriorVehicleData request
 							EXPECT_HMICALL("RC.SetInteriorVehicleData")
 							:Do(function(_,data)
@@ -3574,18 +3021,18 @@ end
 													frequencyFraction = 3,
 													band = "FM"
 												}
-											}	
+											}
 									})
-									
+
 								end)
-					end)								
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.2.3.2
-		
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.2.3.3
 			--Description: application sends SetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE
 				function Test:SetInterior_DriverAllowLeftCLIMATE()
@@ -3595,7 +3042,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -3612,10 +3059,10 @@ end
 							}
 						}
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -3628,10 +3075,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect RC.SetInteriorVehicleData request
 							EXPECT_HMICALL("RC.SetInteriorVehicleData")
 							:Do(function(_,data)
@@ -3640,7 +3087,7 @@ end
 										moduleData =
 										{
 											moduleType = "CLIMATE",
-											moduleZone = 
+											moduleZone =
 											{
 												colspan = 2,
 												row = 1,
@@ -3657,17 +3104,17 @@ end
 											}
 										}
 									})
-									
+
 								end)
-					end)								
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.2.3.3
-		
-		-----------------------------------------------------------------------------------------		
+
+		-----------------------------------------------------------------------------------------
 	--End Test case CommonRequestCheck.2.3
-		
+
 --=================================================END TEST CASES 2==========================================================--
 
 
@@ -3676,20 +3123,20 @@ end
 	--Begin Test suit CommonRequestCheck.3 for Req.#3
 
 	--Description: 1. In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies and "equipment" section of policies database contains this RPC name with <params> in <moduleType> in "driver_allow" sub-section of <interiorZone> section and the vehicle (HMI) responds with "allowed: true" for RSDL's RC.GetInteriorVehicleDataConsent - RSDL must send this (app's initial) RPC with these <params> to the vehicle (HMI). and "equipment" section of policies database contains this RPC name with <params> in <moduleType> in "driver_allow" sub-section of <interiorZone> section and the vehicle (HMI) responds with "allowed: true" for RSDL's RC.GetInteriorVehicleDataConsent - RSDL must send this (app's initial) RPC with these <params> to the vehicle (HMI).
-	
+
 
 	--Begin Test case CommonRequestCheck.3.1
 	--Description: 	For ButtonPress
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-966
 				--TC: REVSDL-1382
 
-		--Verification criteria: 
-				--In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies and "equipment" section of policies database contains this RPC name with <params> in <moduleType> in "driver_allow" sub-section of <interiorZone> section and the vehicle (HMI) responds with "allowed: true" for RSDL's RC.GetInteriorVehicleDataConsent - RSDL must send this (app's initial) RPC with these <params> to the vehicle (HMI). 
+		--Verification criteria:
+				--In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies and "equipment" section of policies database contains this RPC name with <params> in <moduleType> in "driver_allow" sub-section of <interiorZone> section and the vehicle (HMI) responds with "allowed: true" for RSDL's RC.GetInteriorVehicleDataConsent - RSDL must send this (app's initial) RPC with these <params> to the vehicle (HMI).
 
 		-----------------------------------------------------------------------------------------
-				
+
 			--Begin Test case CommonRequestCheck.3.1.1
 			--Description: application sends ButtonPress as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO
 				function Test:ButtonPress_DriverAllowFrontRADIO()
@@ -3707,12 +3154,12 @@ end
 						},
 						moduleType = "RADIO",
 						buttonPressMode = "LONG",
-						buttonName = "VOLUME_UP"						
+						buttonName = "VOLUME_UP"
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -3725,13 +3172,13 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect Buttons.ButtonPress request
-							EXPECT_HMICALL("Buttons.ButtonPress", 
-											{ 
+							EXPECT_HMICALL("Buttons.ButtonPress",
+											{
 												zone =
 												{
 													colspan = 2,
@@ -3749,12 +3196,12 @@ end
 									--hmi side: sending Buttons.ButtonPress response
 									self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 								end)
-					end)								
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.3.1.1
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.3.1.2
@@ -3774,12 +3221,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "SHORT",
-						buttonName = "LOWER_VENT"						
+						buttonName = "LOWER_VENT"
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -3792,13 +3239,13 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect Buttons.ButtonPress request
-							EXPECT_HMICALL("Buttons.ButtonPress", 
-											{ 
+							EXPECT_HMICALL("Buttons.ButtonPress",
+											{
 												zone =
 												{
 													colspan = 2,
@@ -3816,28 +3263,28 @@ end
 									--hmi side: sending Buttons.ButtonPress response
 									self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 								end)
-					end)								
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.3.1.2
-		
+
 		-----------------------------------------------------------------------------------------
 	--End Test case CommonRequestCheck.3.1
-	
-		
+
+
 	--Begin Test case CommonRequestCheck.3.2
 	--Description: 	For GetInteriorVehicleData
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-966
 				--TC: REVSDL-1382
 
-		--Verification criteria: 
-				--In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies and "equipment" section of policies database contains this RPC name with <params> in <moduleType> in "driver_allow" sub-section of <interiorZone> section and the vehicle (HMI) responds with "allowed: true" for RSDL's RC.GetInteriorVehicleDataConsent - RSDL must send this (app's initial) RPC with these <params> to the vehicle (HMI). 
+		--Verification criteria:
+				--In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies and "equipment" section of policies database contains this RPC name with <params> in <moduleType> in "driver_allow" sub-section of <interiorZone> section and the vehicle (HMI) responds with "allowed: true" for RSDL's RC.GetInteriorVehicleDataConsent - RSDL must send this (app's initial) RPC with these <params> to the vehicle (HMI).
 
 		-----------------------------------------------------------------------------------------
-				
+
 			--Begin Test case CommonRequestCheck.3.2.1
 			--Description: application sends GetInteriorVehicleData as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO
 				function Test:GetInterior_DriverAllowFrontRADIO()
@@ -3847,7 +3294,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -3857,12 +3304,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -3875,10 +3322,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect RC.GetInteriorVehicleData request
 							EXPECT_HMICALL("RC.GetInteriorVehicleData")
 							:Do(function(_,data)
@@ -3915,16 +3362,16 @@ end
 													radioEnable = true,
 													state = "ACQUIRING"
 												}
-											}	
+											}
 									})
-									
+
 							end)
-					end)								
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.3.2.1
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.3.2.2
@@ -3936,7 +3383,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -3946,12 +3393,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -3964,10 +3411,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect RC.GetInteriorVehicleData request
 							EXPECT_HMICALL("RC.GetInteriorVehicleData")
 							:Do(function(_,data)
@@ -4004,18 +3451,18 @@ end
 													radioEnable = true,
 													state = "ACQUIRING"
 												}
-											}	
+											}
 									})
-									
+
 							end)
-					end)								
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.3.2.2
-		
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.3.2.3
 			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE
 				function Test:GetInterior_DriverAllowLeftCLIMATE()
@@ -4025,7 +3472,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -4035,12 +3482,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -4053,10 +3500,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect RC.GetInteriorVehicleData request
 							EXPECT_HMICALL("RC.GetInteriorVehicleData")
 							:Do(function(_,data)
@@ -4065,7 +3512,7 @@ end
 										moduleData =
 										{
 											moduleType = "CLIMATE",
-											moduleZone = 
+											moduleZone =
 											{
 												colspan = 2,
 												row = 1,
@@ -4088,30 +3535,30 @@ end
 											}
 										}
 									})
-									
+
 							end)
-					end)								
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.3.2.3
-		
-		-----------------------------------------------------------------------------------------		
+
+		-----------------------------------------------------------------------------------------
 	--End Test case CommonRequestCheck.3.2
-		
-		
+
+
 	--Begin Test case CommonRequestCheck.3.3
 	--Description: 	For SetInteriorVehicleData
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-966
 				--TC: REVSDL-1382
 
-		--Verification criteria: 
-				--In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies and "equipment" section of policies database contains this RPC name with <params> in <moduleType> in "driver_allow" sub-section of <interiorZone> section and the vehicle (HMI) responds with "allowed: true" for RSDL's RC.GetInteriorVehicleDataConsent - RSDL must send this (app's initial) RPC with these <params> to the vehicle (HMI). 
+		--Verification criteria:
+				--In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies and "equipment" section of policies database contains this RPC name with <params> in <moduleType> in "driver_allow" sub-section of <interiorZone> section and the vehicle (HMI) responds with "allowed: true" for RSDL's RC.GetInteriorVehicleDataConsent - RSDL must send this (app's initial) RPC with these <params> to the vehicle (HMI).
 
 		-----------------------------------------------------------------------------------------
-				
+
 			--Begin Test case CommonRequestCheck.3.3.1
 			--Description: application sends SetInteriorVehicleData as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO
 				function Test:SetInterior_DriverAllowFrontRADIO()
@@ -4149,12 +3596,12 @@ end
 								radioEnable = true,
 								state = "ACQUIRING"
 							}
-						}				
+						}
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -4167,10 +3614,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect RC.SetInteriorVehicleData request
 							EXPECT_HMICALL("RC.SetInteriorVehicleData")
 							:Do(function(_,data)
@@ -4207,16 +3654,16 @@ end
 													radioEnable = true,
 													state = "ACQUIRING"
 												}
-											}	
+											}
 									})
-									
+
 								end)
-					end)								
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.3.3.1
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.3.3.2
@@ -4240,12 +3687,12 @@ end
 								frequencyFraction = 3,
 								band = "FM"
 							}
-						}				
+						}
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -4258,10 +3705,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect RC.SetInteriorVehicleData request
 							EXPECT_HMICALL("RC.SetInteriorVehicleData")
 							:Do(function(_,data)
@@ -4282,18 +3729,18 @@ end
 													frequencyFraction = 3,
 													band = "FM"
 												}
-											}	
+											}
 									})
-									
+
 								end)
-					end)								
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.3.3.2
-		
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.3.3.3
 			--Description: application sends SetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE
 				function Test:SetInterior_DriverAllowLeftCLIMATE()
@@ -4303,7 +3750,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -4320,10 +3767,10 @@ end
 							}
 						}
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -4336,10 +3783,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect RC.SetInteriorVehicleData request
 							EXPECT_HMICALL("RC.SetInteriorVehicleData")
 							:Do(function(_,data)
@@ -4348,7 +3795,7 @@ end
 										moduleData =
 										{
 											moduleType = "CLIMATE",
-											moduleZone = 
+											moduleZone =
 											{
 												colspan = 2,
 												row = 1,
@@ -4365,18 +3812,18 @@ end
 											}
 										}
 									})
-									
+
 								end)
-					end)								
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.3.3.3
-		
-		-----------------------------------------------------------------------------------------		
+
+		-----------------------------------------------------------------------------------------
 	--End Test case CommonRequestCheck.3.3
-		
---=================================================END TEST CASES 3==========================================================--	
+
+--=================================================END TEST CASES 3==========================================================--
 
 
 
@@ -4384,25 +3831,25 @@ end
 --=================================================BEGIN TEST CASES 4==========================================================--
 	--Begin Test suit CommonRequestCheck.4 for Req.#4
 
-	--Description: 4. In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies 
-						--and "equipment" section of policies database contains this RPC name with <params> in <moduleType> in "driver_allow" sub-section of <interiorZone> section 
-						--and the vehicle (HMI) responds with "allowed: true" for RSDL's RC.GetInteriorVehicleDataConsent 
-						--and RSDL has processed this (app's initial) RPC 
+	--Description: 4. In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies
+						--and "equipment" section of policies database contains this RPC name with <params> in <moduleType> in "driver_allow" sub-section of <interiorZone> section
+						--and the vehicle (HMI) responds with "allowed: true" for RSDL's RC.GetInteriorVehicleDataConsent
+						--and RSDL has processed this (app's initial) RPC
 						--RSDL must further process RPCs with the same <interiorZone> for the same <moduleType> controlling from the same application without new permission request.
-	
+
 
 	--Begin Test case CommonRequestCheck.4.1
 	--Description: 	For ButtonPress
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-966
 				--TC: REVSDL-1383
 
-		--Verification criteria: 
-				--In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies 
+		--Verification criteria:
+				--In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies
 
 		-----------------------------------------------------------------------------------------
-				
+
 			--Begin Test case CommonRequestCheck.4.1.1
 			--Description: application sends ButtonPress as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO in the first time
 				function Test:ButtonPress_DriverAllowFrontRADIO_1()
@@ -4420,12 +3867,12 @@ end
 						},
 						moduleType = "RADIO",
 						buttonPressMode = "LONG",
-						buttonName = "VOLUME_UP"						
+						buttonName = "VOLUME_UP"
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -4438,13 +3885,13 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect Buttons.ButtonPress request
-							EXPECT_HMICALL("Buttons.ButtonPress", 
-											{ 
+							EXPECT_HMICALL("Buttons.ButtonPress",
+											{
 												zone =
 												{
 													colspan = 2,
@@ -4462,14 +3909,14 @@ end
 									--hmi side: sending Buttons.ButtonPress response
 									self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 								end)
-					end)								
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.4.1.1
-			
+
 		-----------------------------------------------------------------------------------------
-				
+
 			--Begin Test case CommonRequestCheck.4.1.2
 			--Description: application sends ButtonPress as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO in the second time
 				function Test:ButtonPress_DriverAllowFrontRADIO_2()
@@ -4487,12 +3934,12 @@ end
 						},
 						moduleType = "RADIO",
 						buttonPressMode = "LONG",
-						buttonName = "VOLUME_UP"						
+						buttonName = "VOLUME_UP"
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI doesn't appear
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -4507,10 +3954,10 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect Buttons.ButtonPress request
-					EXPECT_HMICALL("Buttons.ButtonPress", 
-									{ 
+					EXPECT_HMICALL("Buttons.ButtonPress",
+									{
 										zone =
 										{
 											colspan = 2,
@@ -4528,14 +3975,14 @@ end
 							--hmi side: sending Buttons.ButtonPress response
 							self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 						end)
-								
-					
+
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.4.1.2
-			
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.4.1.3
 			--Description: application sends ButtonPress as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO in the third time (different buttonPressMode, buttonName)
 				function Test:ButtonPress_DriverAllowFrontRADIO_3()
@@ -4553,12 +4000,12 @@ end
 						},
 						moduleType = "RADIO",
 						buttonPressMode = "SHORT",
-						buttonName = "REPEAT"						
+						buttonName = "REPEAT"
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI doesn't appear
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -4573,10 +4020,10 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect Buttons.ButtonPress request
-					EXPECT_HMICALL("Buttons.ButtonPress", 
-									{ 
+					EXPECT_HMICALL("Buttons.ButtonPress",
+									{
 										zone =
 										{
 											colspan = 2,
@@ -4588,20 +4035,20 @@ end
 										},
 										moduleType = "RADIO",
 										buttonPressMode = "SHORT",
-										buttonName = "REPEAT"	
+										buttonName = "REPEAT"
 									})
 						:Do(function(_,data)
 							--hmi side: sending Buttons.ButtonPress response
 							self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 						end)
-								
-					
+
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.4.1.3
-			
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.4.1.4
 			--Description: application sends GetInteriorVehicleData as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO in the second time
 				function Test:GetInterior_DriverAllowFrontRADIO_4()
@@ -4611,7 +4058,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -4621,12 +4068,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -4641,7 +4088,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.GetInteriorVehicleData request
 					EXPECT_HMICALL("RC.GetInteriorVehicleData")
 					:Do(function(_,data)
@@ -4678,17 +4125,17 @@ end
 											radioEnable = true,
 											state = "ACQUIRING"
 										}
-									}	
+									}
 							})
-							
-					end)								
-					
+
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.4.1.4
-			
-		-----------------------------------------------------------------------------------------		
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.4.1.5
 			--Description: application sends GetInteriorVehicleData as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO in the third time
 				function Test:GetInterior_DriverAllowFrontRADIO_5()
@@ -4698,7 +4145,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -4708,12 +4155,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = false							
+						subscribe = false
 					})
-					
+
 					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -4728,7 +4175,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.GetInteriorVehicleData request
 					EXPECT_HMICALL("RC.GetInteriorVehicleData")
 					:Do(function(_,data)
@@ -4765,17 +4212,17 @@ end
 											radioEnable = true,
 											state = "ACQUIRING"
 										}
-									}	
+									}
 							})
-							
-					end)								
-					
+
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.4.1.5
-			
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.4.1.6
 			--Description: application sends SetInteriorVehicleData as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO in the second time
 				function Test:SetInterior_DriverAllowFrontRADIO_6()
@@ -4813,12 +4260,12 @@ end
 								radioEnable = true,
 								state = "ACQUIRING"
 							}
-						}				
+						}
 					})
-					
+
 					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -4833,7 +4280,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.SetInteriorVehicleData request
 					EXPECT_HMICALL("RC.SetInteriorVehicleData")
 					:Do(function(_,data)
@@ -4870,17 +4317,17 @@ end
 											radioEnable = true,
 											state = "ACQUIRING"
 										}
-									}	
+									}
 							})
-							
-						end)							
-					
+
+						end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.4.1.6
-			
-		-----------------------------------------------------------------------------------------		
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.4.1.7
 			--Description: application sends SetInteriorVehicleData as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO in the third time
 				function Test:SetInterior_DriverAllowFrontRADIO_7()
@@ -4918,12 +4365,12 @@ end
 								radioEnable = true,
 								state = "ACQUIRING"
 							}
-						}				
+						}
 					})
-					
+
 					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -4938,7 +4385,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.SetInteriorVehicleData request
 					EXPECT_HMICALL("RC.SetInteriorVehicleData")
 					:Do(function(_,data)
@@ -4975,18 +4422,18 @@ end
 											radioEnable = true,
 											state = "ACQUIRING"
 										}
-									}	
+									}
 							})
-							
-						end)							
-					
+
+						end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.4.1.7
-			
-		-----------------------------------------------------------------------------------------		
-		
-		
+
+		-----------------------------------------------------------------------------------------
+
+
 
 			--Begin Test case CommonRequestCheck.4.1.8
 			--Description: application sends ButtonPress as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE in the first time
@@ -5005,12 +4452,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "SHORT",
-						buttonName = "LOWER_VENT"						
+						buttonName = "LOWER_VENT"
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -5023,13 +4470,13 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect Buttons.ButtonPress request
-							EXPECT_HMICALL("Buttons.ButtonPress", 
-											{ 
+							EXPECT_HMICALL("Buttons.ButtonPress",
+											{
 												zone =
 												{
 													colspan = 2,
@@ -5047,13 +4494,13 @@ end
 									--hmi side: sending Buttons.ButtonPress response
 									self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 								end)
-					end)								
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.4.1.8
-		
-		-----------------------------------------------------------------------------------------		
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.4.1.9
 			--Description: application sends ButtonPress as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE in the second time
@@ -5072,12 +4519,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "SHORT",
-						buttonName = "LOWER_VENT"						
+						buttonName = "LOWER_VENT"
 					})
-					
-					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI 
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+
+					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -5092,10 +4539,10 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect Buttons.ButtonPress request
-					EXPECT_HMICALL("Buttons.ButtonPress", 
-									{ 
+					EXPECT_HMICALL("Buttons.ButtonPress",
+									{
 										zone =
 										{
 											colspan = 2,
@@ -5112,13 +4559,13 @@ end
 						:Do(function(_,data)
 							--hmi side: sending Buttons.ButtonPress response
 							self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-						end)							
-					
+						end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.4.1.9
-		
-		-----------------------------------------------------------------------------------------	
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.4.1.10
 			--Description: application sends ButtonPress as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE in the third time
@@ -5137,12 +4584,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "LONG",
-						buttonName = "DEFROST_MAX"						
+						buttonName = "DEFROST_MAX"
 					})
-					
-					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI 
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+
+					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -5157,10 +4604,10 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect Buttons.ButtonPress request
-					EXPECT_HMICALL("Buttons.ButtonPress", 
-									{ 
+					EXPECT_HMICALL("Buttons.ButtonPress",
+									{
 										zone =
 										{
 											colspan = 2,
@@ -5177,14 +4624,14 @@ end
 						:Do(function(_,data)
 							--hmi side: sending Buttons.ButtonPress response
 							self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-						end)							
-					
+						end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.4.1.10
-		
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.4.1.11
 			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE in the second time
 				function Test:GetInterior_DriverAllowLeftCLIMATE_4()
@@ -5194,7 +4641,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -5204,12 +4651,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -5224,7 +4671,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.GetInteriorVehicleData request
 					EXPECT_HMICALL("RC.GetInteriorVehicleData")
 					:Do(function(_,data)
@@ -5233,7 +4680,7 @@ end
 								moduleData =
 								{
 									moduleType = "CLIMATE",
-									moduleZone = 
+									moduleZone =
 									{
 										colspan = 2,
 										row = 1,
@@ -5256,14 +4703,14 @@ end
 									}
 								}
 							})
-							
-					end)								
-					
+
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.4.1.11
-		
-		-----------------------------------------------------------------------------------------		
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.4.1.12
 			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE in the third time
@@ -5274,7 +4721,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -5284,12 +4731,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = false							
+						subscribe = false
 					})
-					
+
 					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -5304,7 +4751,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.GetInteriorVehicleData request
 					EXPECT_HMICALL("RC.GetInteriorVehicleData")
 					:Do(function(_,data)
@@ -5313,7 +4760,7 @@ end
 								moduleData =
 								{
 									moduleType = "CLIMATE",
-									moduleZone = 
+									moduleZone =
 									{
 										colspan = 2,
 										row = 1,
@@ -5336,13 +4783,13 @@ end
 									}
 								}
 							})
-							
-					end)								
-					
+
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.4.1.12
-		
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.4.1.13
@@ -5354,7 +4801,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -5371,10 +4818,10 @@ end
 							}
 						}
 					})
-					
+
 					--hmi side: expect doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -5389,7 +4836,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.SetInteriorVehicleData request
 					EXPECT_HMICALL("RC.SetInteriorVehicleData")
 					:Do(function(_,data)
@@ -5398,7 +4845,7 @@ end
 								moduleData =
 								{
 									moduleType = "CLIMATE",
-									moduleZone = 
+									moduleZone =
 									{
 										colspan = 2,
 										row = 1,
@@ -5415,15 +4862,15 @@ end
 									}
 								}
 							})
-							
-					end)								
-					
+
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.4.1.13
-		
-		-----------------------------------------------------------------------------------------		
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.4.1.14
 			--Description: application sends SetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE in the third time
 				function Test:SetInterior_DriverAllowLeftCLIMATE_7()
@@ -5433,7 +4880,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -5450,10 +4897,10 @@ end
 							}
 						}
 					})
-					
+
 					--hmi side: expect doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -5468,7 +4915,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.SetInteriorVehicleData request
 					EXPECT_HMICALL("RC.SetInteriorVehicleData")
 					:Do(function(_,data)
@@ -5477,7 +4924,7 @@ end
 								moduleData =
 								{
 									moduleType = "CLIMATE",
-									moduleZone = 
+									moduleZone =
 									{
 										colspan = 2,
 										row = 1,
@@ -5494,30 +4941,30 @@ end
 									}
 								}
 							})
-							
-					end)								
-					
+
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.4.1.14
-		
-		-----------------------------------------------------------------------------------------		
+
+		-----------------------------------------------------------------------------------------
 	--End Test case CommonRequestCheck.4.1
-		
-		
-		
+
+
+
 	--Begin Test case CommonRequestCheck.4.2
 	--Description: 	For GetInteriorVehicleData
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-966
 				--TC: REVSDL-1383
 
-		--Verification criteria: 
-				--In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies and "equipment" section of policies database contains this RPC name with <params> in <moduleType> in "driver_allow" sub-section of <interiorZone> section and the vehicle (HMI) responds with "allowed: true" for RSDL's RC.GetInteriorVehicleDataConsent - RSDL must send this (app's initial) RPC with these <params> to the vehicle (HMI). 
+		--Verification criteria:
+				--In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies and "equipment" section of policies database contains this RPC name with <params> in <moduleType> in "driver_allow" sub-section of <interiorZone> section and the vehicle (HMI) responds with "allowed: true" for RSDL's RC.GetInteriorVehicleDataConsent - RSDL must send this (app's initial) RPC with these <params> to the vehicle (HMI).
 
 		-----------------------------------------------------------------------------------------
-				
+
 			--Begin Test case CommonRequestCheck.4.2.1
 			--Description: application sends GetInteriorVehicleData as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO in the first time
 				function Test:GetInterior_DriverAllowFrontRADIO_1()
@@ -5527,7 +4974,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -5537,12 +4984,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -5555,10 +5002,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect RC.GetInteriorVehicleData request
 							EXPECT_HMICALL("RC.GetInteriorVehicleData")
 							:Do(function(_,data)
@@ -5595,18 +5042,18 @@ end
 													radioEnable = true,
 													state = "ACQUIRING"
 												}
-											}	
+											}
 									})
-									
+
 							end)
-					end)								
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.4.2.1
-			
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.4.2.2
 			--Description: application sends GetInteriorVehicleData as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO in the second time
 				function Test:GetInterior_DriverAllowFrontRADIO_2()
@@ -5616,7 +5063,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -5626,12 +5073,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -5646,7 +5093,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.GetInteriorVehicleData request
 					EXPECT_HMICALL("RC.GetInteriorVehicleData")
 					:Do(function(_,data)
@@ -5683,17 +5130,17 @@ end
 											radioEnable = true,
 											state = "ACQUIRING"
 										}
-									}	
+									}
 							})
-							
-					end)								
-					
+
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.4.2.2
-			
-		-----------------------------------------------------------------------------------------		
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.4.2.3
 			--Description: application sends GetInteriorVehicleData as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO in the third time
 				function Test:GetInterior_DriverAllowFrontRADIO_3()
@@ -5703,7 +5150,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -5713,12 +5160,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = false							
+						subscribe = false
 					})
-					
+
 					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -5733,7 +5180,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.GetInteriorVehicleData request
 					EXPECT_HMICALL("RC.GetInteriorVehicleData")
 					:Do(function(_,data)
@@ -5770,17 +5217,17 @@ end
 											radioEnable = true,
 											state = "ACQUIRING"
 										}
-									}	
+									}
 							})
-							
-					end)								
-					
+
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.4.2.3
-			
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.4.2.4
 			--Description: application sends ButtonPress as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO in the second time
 				function Test:ButtonPress_DriverAllowFrontRADIO_4()
@@ -5798,12 +5245,12 @@ end
 						},
 						moduleType = "RADIO",
 						buttonPressMode = "LONG",
-						buttonName = "VOLUME_UP"						
+						buttonName = "VOLUME_UP"
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI doesn't appear
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -5818,10 +5265,10 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect Buttons.ButtonPress request
-					EXPECT_HMICALL("Buttons.ButtonPress", 
-									{ 
+					EXPECT_HMICALL("Buttons.ButtonPress",
+									{
 										zone =
 										{
 											colspan = 2,
@@ -5839,14 +5286,14 @@ end
 							--hmi side: sending Buttons.ButtonPress response
 							self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 						end)
-								
-					
+
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.4.2.4
-			
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.4.2.5
 			--Description: application sends ButtonPress as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO in the third time (different buttonPressMode, buttonName)
 				function Test:ButtonPress_DriverAllowFrontRADIO_5()
@@ -5864,12 +5311,12 @@ end
 						},
 						moduleType = "RADIO",
 						buttonPressMode = "SHORT",
-						buttonName = "REPEAT"						
+						buttonName = "REPEAT"
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI doesn't appear
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -5884,10 +5331,10 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect Buttons.ButtonPress request
-					EXPECT_HMICALL("Buttons.ButtonPress", 
-									{ 
+					EXPECT_HMICALL("Buttons.ButtonPress",
+									{
 										zone =
 										{
 											colspan = 2,
@@ -5899,18 +5346,18 @@ end
 										},
 										moduleType = "RADIO",
 										buttonPressMode = "SHORT",
-										buttonName = "REPEAT"	
+										buttonName = "REPEAT"
 									})
 						:Do(function(_,data)
 							--hmi side: sending Buttons.ButtonPress response
 							self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 						end)
-								
-					
+
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.4.2.5
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.4.2.6
@@ -5950,12 +5397,12 @@ end
 								radioEnable = true,
 								state = "ACQUIRING"
 							}
-						}				
+						}
 					})
-					
+
 					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -5970,7 +5417,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.SetInteriorVehicleData request
 					EXPECT_HMICALL("RC.SetInteriorVehicleData")
 					:Do(function(_,data)
@@ -6007,17 +5454,17 @@ end
 											radioEnable = true,
 											state = "ACQUIRING"
 										}
-									}	
+									}
 							})
-							
-						end)							
-					
+
+						end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.4.2.6
-			
-		-----------------------------------------------------------------------------------------		
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.4.2.7
 			--Description: application sends SetInteriorVehicleData as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO in the third time
 				function Test:SetInterior_DriverAllowFrontRADIO_7()
@@ -6055,12 +5502,12 @@ end
 								radioEnable = true,
 								state = "ACQUIRING"
 							}
-						}				
+						}
 					})
-					
+
 					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -6075,7 +5522,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.SetInteriorVehicleData request
 					EXPECT_HMICALL("RC.SetInteriorVehicleData")
 					:Do(function(_,data)
@@ -6112,17 +5559,17 @@ end
 											radioEnable = true,
 											state = "ACQUIRING"
 										}
-									}	
+									}
 							})
-							
-						end)							
-					
+
+						end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.4.2.7
-			
+
 		-----------------------------------------------------------------------------------------
-		
+
 
 			--Begin Test case CommonRequestCheck.4.2.8
 			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = RADIO in the first time
@@ -6133,7 +5580,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -6143,12 +5590,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -6161,10 +5608,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect RC.GetInteriorVehicleData request
 							EXPECT_HMICALL("RC.GetInteriorVehicleData")
 							:Do(function(_,data)
@@ -6201,17 +5648,17 @@ end
 													radioEnable = true,
 													state = "ACQUIRING"
 												}
-											}	
+											}
 									})
-									
+
 							end)
-					end)								
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.4.2.8
-			
-		-----------------------------------------------------------------------------------------		
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.4.2.9
 			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = RADIO in the second time
@@ -6222,7 +5669,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -6232,12 +5679,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -6252,7 +5699,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.GetInteriorVehicleData request
 					EXPECT_HMICALL("RC.GetInteriorVehicleData")
 					:Do(function(_,data)
@@ -6289,16 +5736,16 @@ end
 											radioEnable = true,
 											state = "ACQUIRING"
 										}
-									}	
+									}
 							})
-							
-					end)								
-					
+
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.4.2.9
-			
-		-----------------------------------------------------------------------------------------		
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.4.2.10
 			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = RADIO in the third time
@@ -6309,7 +5756,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -6319,12 +5766,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = false							
+						subscribe = false
 					})
-					
+
 					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -6339,7 +5786,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.GetInteriorVehicleData request
 					EXPECT_HMICALL("RC.GetInteriorVehicleData")
 					:Do(function(_,data)
@@ -6376,17 +5823,17 @@ end
 											radioEnable = true,
 											state = "ACQUIRING"
 										}
-									}	
+									}
 							})
-							
-					end)								
-					
+
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.4.2.10
-		
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.4.2.11
 			--Description: application sends SetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = RADIO in the second time
 				function Test:SetInterior_DriverAllowLeftRADIO_4()
@@ -6408,12 +5855,12 @@ end
 								frequencyFraction = 3,
 								band = "FM"
 							}
-						}				
+						}
 					})
-					
+
 					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -6428,7 +5875,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.SetInteriorVehicleData request
 					EXPECT_HMICALL("RC.SetInteriorVehicleData")
 					:Do(function(_,data)
@@ -6449,15 +5896,15 @@ end
 											frequencyFraction = 3,
 											band = "FM"
 										}
-									}	
+									}
 							})
-							
+
 					end)
-					
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.4.2.11
-		
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.4.2.12
@@ -6481,12 +5928,12 @@ end
 								frequencyFraction = 3,
 								band = "AM"
 							}
-						}				
+						}
 					})
-					
+
 					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -6501,7 +5948,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.SetInteriorVehicleData request
 					EXPECT_HMICALL("RC.SetInteriorVehicleData")
 					:Do(function(_,data)
@@ -6522,18 +5969,18 @@ end
 											frequencyFraction = 3,
 											band = "AM"
 										}
-									}	
+									}
 							})
-							
+
 					end)
-					
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.4.2.12
-		
+
 		-----------------------------------------------------------------------------------------
-		
-		
+
+
 			--Begin Test case CommonRequestCheck.4.2.13
 			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE in the first time
 				function Test:GetInterior_DriverAllowLeftCLIMATE_1()
@@ -6543,7 +5990,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -6553,12 +6000,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -6571,10 +6018,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect RC.GetInteriorVehicleData request
 							EXPECT_HMICALL("RC.GetInteriorVehicleData")
 							:Do(function(_,data)
@@ -6583,7 +6030,7 @@ end
 										moduleData =
 										{
 											moduleType = "CLIMATE",
-											moduleZone = 
+											moduleZone =
 											{
 												colspan = 2,
 												row = 1,
@@ -6606,16 +6053,16 @@ end
 											}
 										}
 									})
-									
+
 							end)
-					end)								
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.4.2.13
-		
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.4.2.14
 			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE in the second time
 				function Test:GetInterior_DriverAllowLeftCLIMATE_2()
@@ -6625,7 +6072,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -6635,12 +6082,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -6655,7 +6102,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.GetInteriorVehicleData request
 					EXPECT_HMICALL("RC.GetInteriorVehicleData")
 					:Do(function(_,data)
@@ -6664,7 +6111,7 @@ end
 								moduleData =
 								{
 									moduleType = "CLIMATE",
-									moduleZone = 
+									moduleZone =
 									{
 										colspan = 2,
 										row = 1,
@@ -6687,14 +6134,14 @@ end
 									}
 								}
 							})
-							
-					end)								
-					
+
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.4.2.14
-		
-		-----------------------------------------------------------------------------------------		
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.4.2.15
 			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE in the third time
@@ -6705,7 +6152,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -6715,12 +6162,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = false							
+						subscribe = false
 					})
-					
+
 					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -6735,7 +6182,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.GetInteriorVehicleData request
 					EXPECT_HMICALL("RC.GetInteriorVehicleData")
 					:Do(function(_,data)
@@ -6744,7 +6191,7 @@ end
 								moduleData =
 								{
 									moduleType = "CLIMATE",
-									moduleZone = 
+									moduleZone =
 									{
 										colspan = 2,
 										row = 1,
@@ -6767,15 +6214,15 @@ end
 									}
 								}
 							})
-							
-					end)								
-					
+
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.4.2.15
-		
-		-----------------------------------------------------------------------------------------		
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.4.2.16
 			--Description: application sends ButtonPress as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE in the second time
 				function Test:ButtonPress_DriverAllowLeftCLIMATE_4()
@@ -6793,12 +6240,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "SHORT",
-						buttonName = "LOWER_VENT"						
+						buttonName = "LOWER_VENT"
 					})
-					
-					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI 
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+
+					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -6813,10 +6260,10 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect Buttons.ButtonPress request
-					EXPECT_HMICALL("Buttons.ButtonPress", 
-									{ 
+					EXPECT_HMICALL("Buttons.ButtonPress",
+									{
 										zone =
 										{
 											colspan = 2,
@@ -6833,13 +6280,13 @@ end
 						:Do(function(_,data)
 							--hmi side: sending Buttons.ButtonPress response
 							self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-						end)							
-					
+						end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.4.2.16
-		
-		-----------------------------------------------------------------------------------------	
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.4.2.17
 			--Description: application sends ButtonPress as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE in the third time
@@ -6858,12 +6305,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "LONG",
-						buttonName = "DEFROST_MAX"						
+						buttonName = "DEFROST_MAX"
 					})
-					
-					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI 
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+
+					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -6878,10 +6325,10 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect Buttons.ButtonPress request
-					EXPECT_HMICALL("Buttons.ButtonPress", 
-									{ 
+					EXPECT_HMICALL("Buttons.ButtonPress",
+									{
 										zone =
 										{
 											colspan = 2,
@@ -6898,13 +6345,13 @@ end
 						:Do(function(_,data)
 							--hmi side: sending Buttons.ButtonPress response
 							self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-						end)							
-					
+						end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.4.2.17
-		
-		-----------------------------------------------------------------------------------------		
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.4.2.18
 			--Description: application sends SetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE in the second time
@@ -6915,7 +6362,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -6932,10 +6379,10 @@ end
 							}
 						}
 					})
-					
+
 					--hmi side: expect doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -6950,7 +6397,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.SetInteriorVehicleData request
 					EXPECT_HMICALL("RC.SetInteriorVehicleData")
 					:Do(function(_,data)
@@ -6959,7 +6406,7 @@ end
 								moduleData =
 								{
 									moduleType = "CLIMATE",
-									moduleZone = 
+									moduleZone =
 									{
 										colspan = 2,
 										row = 1,
@@ -6976,15 +6423,15 @@ end
 									}
 								}
 							})
-							
-					end)								
-					
+
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.4.2.18
-		
-		-----------------------------------------------------------------------------------------		
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.4.2.19
 			--Description: application sends SetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE in the third time
 				function Test:SetInterior_DriverAllowLeftCLIMATE_7()
@@ -6994,7 +6441,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -7011,10 +6458,10 @@ end
 							}
 						}
 					})
-					
+
 					--hmi side: expect doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -7029,7 +6476,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.SetInteriorVehicleData request
 					EXPECT_HMICALL("RC.SetInteriorVehicleData")
 					:Do(function(_,data)
@@ -7038,7 +6485,7 @@ end
 								moduleData =
 								{
 									moduleType = "CLIMATE",
-									moduleZone = 
+									moduleZone =
 									{
 										colspan = 2,
 										row = 1,
@@ -7055,31 +6502,31 @@ end
 									}
 								}
 							})
-							
-					end)								
-					
+
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.4.2.19
-		
-		-----------------------------------------------------------------------------------------		
-	--End Test case CommonRequestCheck.4.2		
-		
-		
-		
+
+		-----------------------------------------------------------------------------------------
+	--End Test case CommonRequestCheck.4.2
+
+
+
 
 	--Begin Test case CommonRequestCheck.4.3
 	--Description: 	For SetInteriorVehicleData
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-966
 				--TC: REVSDL-1383
 
-		--Verification criteria: 
-				--In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies and "equipment" section of policies database contains this RPC name with <params> in <moduleType> in "driver_allow" sub-section of <interiorZone> section and the vehicle (HMI) responds with "allowed: true" for RSDL's RC.GetInteriorVehicleDataConsent - RSDL must send this (app's initial) RPC with these <params> to the vehicle (HMI). 
+		--Verification criteria:
+				--In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies and "equipment" section of policies database contains this RPC name with <params> in <moduleType> in "driver_allow" sub-section of <interiorZone> section and the vehicle (HMI) responds with "allowed: true" for RSDL's RC.GetInteriorVehicleDataConsent - RSDL must send this (app's initial) RPC with these <params> to the vehicle (HMI).
 
 		-----------------------------------------------------------------------------------------
-				
+
 			--Begin Test case CommonRequestCheck.4.3.1
 			--Description: application sends SetInteriorVehicleData as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO in the first time
 				function Test:SetInterior_DriverAllowFrontRADIO_1()
@@ -7117,12 +6564,12 @@ end
 								radioEnable = true,
 								state = "ACQUIRING"
 							}
-						}				
+						}
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -7135,10 +6582,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect RC.SetInteriorVehicleData request
 							EXPECT_HMICALL("RC.SetInteriorVehicleData")
 							:Do(function(_,data)
@@ -7175,18 +6622,18 @@ end
 													radioEnable = true,
 													state = "ACQUIRING"
 												}
-											}	
+											}
 									})
-									
+
 								end)
-					end)								
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.4.3.1
-			
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.4.3.2
 			--Description: application sends SetInteriorVehicleData as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO in the second time
 				function Test:SetInterior_DriverAllowFrontRADIO_2()
@@ -7224,12 +6671,12 @@ end
 								radioEnable = true,
 								state = "ACQUIRING"
 							}
-						}				
+						}
 					})
-					
+
 					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -7244,7 +6691,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.SetInteriorVehicleData request
 					EXPECT_HMICALL("RC.SetInteriorVehicleData")
 					:Do(function(_,data)
@@ -7281,17 +6728,17 @@ end
 											radioEnable = true,
 											state = "ACQUIRING"
 										}
-									}	
+									}
 							})
-							
-						end)							
-					
+
+						end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.4.3.2
-			
-		-----------------------------------------------------------------------------------------		
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.4.3.3
 			--Description: application sends SetInteriorVehicleData as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO in the third time
 				function Test:SetInterior_DriverAllowFrontRADIO_3()
@@ -7329,12 +6776,12 @@ end
 								radioEnable = true,
 								state = "ACQUIRING"
 							}
-						}				
+						}
 					})
-					
+
 					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -7349,7 +6796,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.SetInteriorVehicleData request
 					EXPECT_HMICALL("RC.SetInteriorVehicleData")
 					:Do(function(_,data)
@@ -7386,17 +6833,17 @@ end
 											radioEnable = true,
 											state = "ACQUIRING"
 										}
-									}	
+									}
 							})
-							
-						end)							
-					
+
+						end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.4.3.3
-			
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.4.3.4
 			--Description: application sends ButtonPress as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO in the second time
 				function Test:ButtonPress_DriverAllowFrontRADIO_4()
@@ -7414,12 +6861,12 @@ end
 						},
 						moduleType = "RADIO",
 						buttonPressMode = "LONG",
-						buttonName = "VOLUME_UP"						
+						buttonName = "VOLUME_UP"
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI doesn't appear
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -7434,10 +6881,10 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect Buttons.ButtonPress request
-					EXPECT_HMICALL("Buttons.ButtonPress", 
-									{ 
+					EXPECT_HMICALL("Buttons.ButtonPress",
+									{
 										zone =
 										{
 											colspan = 2,
@@ -7455,14 +6902,14 @@ end
 							--hmi side: sending Buttons.ButtonPress response
 							self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 						end)
-								
-					
+
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.4.3.4
-			
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.4.3.5
 			--Description: application sends ButtonPress as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO in the third time (different buttonPressMode, buttonName)
 				function Test:ButtonPress_DriverAllowFrontRADIO_5()
@@ -7480,12 +6927,12 @@ end
 						},
 						moduleType = "RADIO",
 						buttonPressMode = "SHORT",
-						buttonName = "REPEAT"						
+						buttonName = "REPEAT"
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI doesn't appear
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -7500,10 +6947,10 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect Buttons.ButtonPress request
-					EXPECT_HMICALL("Buttons.ButtonPress", 
-									{ 
+					EXPECT_HMICALL("Buttons.ButtonPress",
+									{
 										zone =
 										{
 											colspan = 2,
@@ -7515,20 +6962,20 @@ end
 										},
 										moduleType = "RADIO",
 										buttonPressMode = "SHORT",
-										buttonName = "REPEAT"	
+										buttonName = "REPEAT"
 									})
 						:Do(function(_,data)
 							--hmi side: sending Buttons.ButtonPress response
 							self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 						end)
-								
-					
+
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.4.3.5
-			
-		-----------------------------------------------------------------------------------------		
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.4.3.6
 			--Description: application sends GetInteriorVehicleData as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO in the second time
 				function Test:GetInterior_DriverAllowFrontRADIO_6()
@@ -7538,7 +6985,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -7548,12 +6995,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -7568,7 +7015,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.GetInteriorVehicleData request
 					EXPECT_HMICALL("RC.GetInteriorVehicleData")
 					:Do(function(_,data)
@@ -7605,17 +7052,17 @@ end
 											radioEnable = true,
 											state = "ACQUIRING"
 										}
-									}	
+									}
 							})
-							
-					end)								
-					
+
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.4.3.6
-			
-		-----------------------------------------------------------------------------------------		
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.4.3.7
 			--Description: application sends GetInteriorVehicleData as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO in the third time
 				function Test:GetInterior_DriverAllowFrontRADIO_7()
@@ -7625,7 +7072,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -7635,12 +7082,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = false							
+						subscribe = false
 					})
-					
+
 					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -7655,7 +7102,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.GetInteriorVehicleData request
 					EXPECT_HMICALL("RC.GetInteriorVehicleData")
 					:Do(function(_,data)
@@ -7692,16 +7139,16 @@ end
 											radioEnable = true,
 											state = "ACQUIRING"
 										}
-									}	
+									}
 							})
-							
-					end)								
-					
+
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.4.3.6
-			
-		-----------------------------------------------------------------------------------------	
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.4.3.8
 			--Description: application sends SetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = RADIO in the fist time
@@ -7724,12 +7171,12 @@ end
 								frequencyFraction = 3,
 								band = "FM"
 							}
-						}				
+						}
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -7742,10 +7189,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect RC.SetInteriorVehicleData request
 							EXPECT_HMICALL("RC.SetInteriorVehicleData")
 							:Do(function(_,data)
@@ -7766,16 +7213,16 @@ end
 													frequencyFraction = 3,
 													band = "FM"
 												}
-											}	
+											}
 									})
-									
+
 								end)
-					end)								
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.4.3.8
-		
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.4.3.9
@@ -7799,12 +7246,12 @@ end
 								frequencyFraction = 3,
 								band = "FM"
 							}
-						}				
+						}
 					})
-					
+
 					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -7819,7 +7266,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.SetInteriorVehicleData request
 					EXPECT_HMICALL("RC.SetInteriorVehicleData")
 					:Do(function(_,data)
@@ -7840,15 +7287,15 @@ end
 											frequencyFraction = 3,
 											band = "FM"
 										}
-									}	
+									}
 							})
-							
+
 					end)
-					
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.4.3.9
-		
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.4.3.10
@@ -7872,12 +7319,12 @@ end
 								frequencyFraction = 3,
 								band = "AM"
 							}
-						}				
+						}
 					})
-					
+
 					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -7892,7 +7339,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.SetInteriorVehicleData request
 					EXPECT_HMICALL("RC.SetInteriorVehicleData")
 					:Do(function(_,data)
@@ -7913,17 +7360,17 @@ end
 											frequencyFraction = 3,
 											band = "AM"
 										}
-									}	
+									}
 							})
-							
+
 					end)
-					
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.4.3.10
-		
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.4.3.11
 			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = RADIO in the second time
 				function Test:GetInterior_DriverAllowLeftRADIO_4()
@@ -7933,7 +7380,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -7943,12 +7390,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -7963,7 +7410,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.GetInteriorVehicleData request
 					EXPECT_HMICALL("RC.GetInteriorVehicleData")
 					:Do(function(_,data)
@@ -8000,16 +7447,16 @@ end
 											radioEnable = true,
 											state = "ACQUIRING"
 										}
-									}	
+									}
 							})
-							
-					end)								
-					
+
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.4.3.11
-			
-		-----------------------------------------------------------------------------------------		
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.4.3.12
 			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = RADIO in the third time
@@ -8020,7 +7467,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -8030,12 +7477,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = false							
+						subscribe = false
 					})
-					
+
 					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -8050,7 +7497,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.GetInteriorVehicleData request
 					EXPECT_HMICALL("RC.GetInteriorVehicleData")
 					:Do(function(_,data)
@@ -8087,17 +7534,17 @@ end
 											radioEnable = true,
 											state = "ACQUIRING"
 										}
-									}	
+									}
 							})
-							
-					end)								
-					
+
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.4.3.12
-		
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.4.3.13
 			--Description: application sends SetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE in the first time
 				function Test:SetInterior_DriverAllowLeftCLIMATE_1()
@@ -8107,7 +7554,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -8124,10 +7571,10 @@ end
 							}
 						}
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -8140,10 +7587,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect RC.SetInteriorVehicleData request
 							EXPECT_HMICALL("RC.SetInteriorVehicleData")
 							:Do(function(_,data)
@@ -8152,7 +7599,7 @@ end
 										moduleData =
 										{
 											moduleType = "CLIMATE",
-											moduleZone = 
+											moduleZone =
 											{
 												colspan = 2,
 												row = 1,
@@ -8169,14 +7616,14 @@ end
 											}
 										}
 									})
-									
+
 								end)
-					end)								
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.4.3.13
-		
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.4.3.14
@@ -8188,7 +7635,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -8205,10 +7652,10 @@ end
 							}
 						}
 					})
-					
+
 					--hmi side: expect doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -8223,7 +7670,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.SetInteriorVehicleData request
 					EXPECT_HMICALL("RC.SetInteriorVehicleData")
 					:Do(function(_,data)
@@ -8232,7 +7679,7 @@ end
 								moduleData =
 								{
 									moduleType = "CLIMATE",
-									moduleZone = 
+									moduleZone =
 									{
 										colspan = 2,
 										row = 1,
@@ -8249,15 +7696,15 @@ end
 									}
 								}
 							})
-							
-					end)								
-					
+
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.4.3.14
-		
-		-----------------------------------------------------------------------------------------		
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.4.3.15
 			--Description: application sends SetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE in the third time
 				function Test:SetInterior_DriverAllowLeftCLIMATE_3()
@@ -8267,7 +7714,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -8284,10 +7731,10 @@ end
 							}
 						}
 					})
-					
+
 					--hmi side: expect doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -8302,7 +7749,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.SetInteriorVehicleData request
 					EXPECT_HMICALL("RC.SetInteriorVehicleData")
 					:Do(function(_,data)
@@ -8311,7 +7758,7 @@ end
 								moduleData =
 								{
 									moduleType = "CLIMATE",
-									moduleZone = 
+									moduleZone =
 									{
 										colspan = 2,
 										row = 1,
@@ -8328,15 +7775,15 @@ end
 									}
 								}
 							})
-							
-					end)								
-					
+
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.4.3.15
-		
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.4.3.16
 			--Description: application sends ButtonPress as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE in the second time
 				function Test:ButtonPress_DriverAllowLeftCLIMATE_4()
@@ -8354,12 +7801,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "SHORT",
-						buttonName = "LOWER_VENT"						
+						buttonName = "LOWER_VENT"
 					})
-					
-					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI 
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+
+					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -8374,10 +7821,10 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect Buttons.ButtonPress request
-					EXPECT_HMICALL("Buttons.ButtonPress", 
-									{ 
+					EXPECT_HMICALL("Buttons.ButtonPress",
+									{
 										zone =
 										{
 											colspan = 2,
@@ -8394,13 +7841,13 @@ end
 						:Do(function(_,data)
 							--hmi side: sending Buttons.ButtonPress response
 							self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-						end)							
-					
+						end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.4.3.16
-		
-		-----------------------------------------------------------------------------------------	
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.4.3.17
 			--Description: application sends ButtonPress as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE in the third time
@@ -8419,12 +7866,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "LONG",
-						buttonName = "DEFROST_MAX"						
+						buttonName = "DEFROST_MAX"
 					})
-					
-					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI 
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+
+					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -8439,10 +7886,10 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect Buttons.ButtonPress request
-					EXPECT_HMICALL("Buttons.ButtonPress", 
-									{ 
+					EXPECT_HMICALL("Buttons.ButtonPress",
+									{
 										zone =
 										{
 											colspan = 2,
@@ -8459,14 +7906,14 @@ end
 						:Do(function(_,data)
 							--hmi side: sending Buttons.ButtonPress response
 							self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-						end)							
-					
+						end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.4.3.17
-		
-		-----------------------------------------------------------------------------------------			
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.4.3.18
 			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE in the second time
 				function Test:GetInterior_DriverAllowLeftCLIMATE_6()
@@ -8476,7 +7923,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -8486,12 +7933,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -8506,7 +7953,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.GetInteriorVehicleData request
 					EXPECT_HMICALL("RC.GetInteriorVehicleData")
 					:Do(function(_,data)
@@ -8515,7 +7962,7 @@ end
 								moduleData =
 								{
 									moduleType = "CLIMATE",
-									moduleZone = 
+									moduleZone =
 									{
 										colspan = 2,
 										row = 1,
@@ -8538,14 +7985,14 @@ end
 									}
 								}
 							})
-							
-					end)								
-					
+
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.4.3.18
-		
-		-----------------------------------------------------------------------------------------		
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.4.3.19
 			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE in the third time
@@ -8556,7 +8003,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -8566,12 +8013,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = false							
+						subscribe = false
 					})
-					
+
 					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -8586,7 +8033,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.GetInteriorVehicleData request
 					EXPECT_HMICALL("RC.GetInteriorVehicleData")
 					:Do(function(_,data)
@@ -8595,7 +8042,7 @@ end
 								moduleData =
 								{
 									moduleType = "CLIMATE",
-									moduleZone = 
+									moduleZone =
 									{
 										colspan = 2,
 										row = 1,
@@ -8618,41 +8065,41 @@ end
 									}
 								}
 							})
-							
-					end)								
-					
+
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.4.3.19
-		
-		-----------------------------------------------------------------------------------------		
+
+		-----------------------------------------------------------------------------------------
 	--End Test case CommonRequestCheck.4.3
 
 --=================================================END TEST CASES 4==========================================================--
 
-		
-	
-	
-	
+
+
+
+
 --=================================================BEGIN TEST CASES 5==========================================================--
 	--Begin Test suit CommonRequestCheck.5 for Req.#5
 
-	--Description: 5. In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies 
-						--and "equipment" section of policies database contains this RPC name with <params> in <moduleType> in "driver_allow" sub-section of <interiorZone> section 
-						--and the vehicle (HMI) responds with "allowed: true" for RSDL's RC.GetInteriorVehicleDataConsent 
-						--and RSDL has processed this (app's initial) RPC 
-						--and the same or another application sends a valid RPC with the same <interiorZone> and different <moduleType> and params that exist in "driver_allow" sub-section 
+	--Description: 5. In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies
+						--and "equipment" section of policies database contains this RPC name with <params> in <moduleType> in "driver_allow" sub-section of <interiorZone> section
+						--and the vehicle (HMI) responds with "allowed: true" for RSDL's RC.GetInteriorVehicleDataConsent
+						--and RSDL has processed this (app's initial) RPC
+						--and the same or another application sends a valid RPC with the same <interiorZone> and different <moduleType> and params that exist in "driver_allow" sub-section
 						--RSDL must send a new RC.GetInteriorVehicleDataConsent for this different <moduleType> to the vehicle (HMI)
-	
+
 
 	--Begin Test case CommonRequestCheck.5.1
 	--Description: 	For ButtonPress
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-966
 				--TC: REVSDL-1385, REVSDL-1386
 
-		--Verification criteria: 
+		--Verification criteria:
 				--In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies
 
 		-----------------------------------------------------------------------------------------
@@ -8674,12 +8121,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "SHORT",
-						buttonName = "LOWER_VENT"						
+						buttonName = "LOWER_VENT"
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -8692,13 +8139,13 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect Buttons.ButtonPress request
-							EXPECT_HMICALL("Buttons.ButtonPress", 
-											{ 
+							EXPECT_HMICALL("Buttons.ButtonPress",
+											{
 												zone =
 												{
 													colspan = 2,
@@ -8716,12 +8163,12 @@ end
 									--hmi side: sending Buttons.ButtonPress response
 									self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 								end)
-					end)								
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.5.1.1
-		
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.1.2
@@ -8733,7 +8180,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -8743,12 +8190,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -8761,10 +8208,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect RC.GetInteriorVehicleData request
 							EXPECT_HMICALL("RC.GetInteriorVehicleData")
 							:Do(function(_,data)
@@ -8801,18 +8248,18 @@ end
 													radioEnable = true,
 													state = "ACQUIRING"
 												}
-											}	
+											}
 									})
-									
+
 							end)
-					end)								
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.5.1.2
-		
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.5.1.3
 			--Description: application sends ButtonPress as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE in the second time (doesn't ask driver's permission)
 				function Test:ButtonPress_SameAppLeftCLIMATE_3()
@@ -8830,12 +8277,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "SHORT",
-						buttonName = "LOWER_VENT"						
+						buttonName = "LOWER_VENT"
 					})
-					
-					--hmi side: expect RSDL send RC.GetInteriorVehicleDataConsent request to HMI 
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+
+					--hmi side: expect RSDL send RC.GetInteriorVehicleDataConsent request to HMI
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -8850,10 +8297,10 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect Buttons.ButtonPress request
-					EXPECT_HMICALL("Buttons.ButtonPress", 
-									{ 
+					EXPECT_HMICALL("Buttons.ButtonPress",
+									{
 										zone =
 										{
 											colspan = 2,
@@ -8870,13 +8317,13 @@ end
 						:Do(function(_,data)
 							--hmi side: sending Buttons.ButtonPress response
 							self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-						end)							
-					
+						end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.5.1.3
-		
-		-----------------------------------------------------------------------------------------	
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.1.4
 			--Description: application sends ButtonPress as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE in the third time doesn't ask driver's permission)
@@ -8895,12 +8342,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "LONG",
-						buttonName = "DEFROST_MAX"						
+						buttonName = "DEFROST_MAX"
 					})
-					
-					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI 
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+
+					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -8915,10 +8362,10 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect Buttons.ButtonPress request
-					EXPECT_HMICALL("Buttons.ButtonPress", 
-									{ 
+					EXPECT_HMICALL("Buttons.ButtonPress",
+									{
 										zone =
 										{
 											colspan = 2,
@@ -8935,14 +8382,14 @@ end
 						:Do(function(_,data)
 							--hmi side: sending Buttons.ButtonPress response
 							self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-						end)							
-					
+						end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.5.1.4
-		
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.5.1.5
 			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE in the second time(doesn't ask driver's permission)
 				function Test:GetInterior_SameAppLeftCLIMATE_5()
@@ -8952,7 +8399,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -8962,12 +8409,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -8982,7 +8429,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.GetInteriorVehicleData request
 					EXPECT_HMICALL("RC.GetInteriorVehicleData")
 					:Do(function(_,data)
@@ -8991,7 +8438,7 @@ end
 								moduleData =
 								{
 									moduleType = "CLIMATE",
-									moduleZone = 
+									moduleZone =
 									{
 										colspan = 2,
 										row = 1,
@@ -9014,14 +8461,14 @@ end
 									}
 								}
 							})
-							
-					end)								
-					
+
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.5.1.5
-		
-		-----------------------------------------------------------------------------------------		
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.1.6
 			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE in the third time (doesn't ask driver's permission)
@@ -9032,7 +8479,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -9042,12 +8489,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = false							
+						subscribe = false
 					})
-					
+
 					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -9062,7 +8509,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.GetInteriorVehicleData request
 					EXPECT_HMICALL("RC.GetInteriorVehicleData")
 					:Do(function(_,data)
@@ -9071,7 +8518,7 @@ end
 								moduleData =
 								{
 									moduleType = "CLIMATE",
-									moduleZone = 
+									moduleZone =
 									{
 										colspan = 2,
 										row = 1,
@@ -9094,13 +8541,13 @@ end
 									}
 								}
 							})
-							
-					end)								
-					
+
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.5.1.6
-		
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.1.7
@@ -9112,7 +8559,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -9129,10 +8576,10 @@ end
 							}
 						}
 					})
-					
+
 					--hmi side: expect doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -9147,7 +8594,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.SetInteriorVehicleData request
 					EXPECT_HMICALL("RC.SetInteriorVehicleData")
 					:Do(function(_,data)
@@ -9156,7 +8603,7 @@ end
 								moduleData =
 								{
 									moduleType = "CLIMATE",
-									moduleZone = 
+									moduleZone =
 									{
 										colspan = 2,
 										row = 1,
@@ -9173,15 +8620,15 @@ end
 									}
 								}
 							})
-							
-					end)								
-					
+
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.5.1.7
-		
-		-----------------------------------------------------------------------------------------		
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.5.1.8
 			--Description: application sends SetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE in the third time (doesn't ask driver's permission)
 				function Test:SetInterior_SameAppLeftCLIMATE_8()
@@ -9191,7 +8638,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -9208,10 +8655,10 @@ end
 							}
 						}
 					})
-					
+
 					--hmi side: expect doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -9226,7 +8673,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.SetInteriorVehicleData request
 					EXPECT_HMICALL("RC.SetInteriorVehicleData")
 					:Do(function(_,data)
@@ -9235,7 +8682,7 @@ end
 								moduleData =
 								{
 									moduleType = "CLIMATE",
-									moduleZone = 
+									moduleZone =
 									{
 										colspan = 2,
 										row = 1,
@@ -9252,14 +8699,14 @@ end
 									}
 								}
 							})
-							
-					end)								
-					
+
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.5.1.8
-		
-		-----------------------------------------------------------------------------------------	
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.1.9
 			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = RADIO in the second time(doesn't ask driver's permission)
@@ -9270,7 +8717,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -9280,12 +8727,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -9300,7 +8747,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.GetInteriorVehicleData request
 					EXPECT_HMICALL("RC.GetInteriorVehicleData")
 					:Do(function(_,data)
@@ -9337,16 +8784,16 @@ end
 											radioEnable = true,
 											state = "ACQUIRING"
 										}
-									}	
+									}
 							})
-							
-					end)								
-					
+
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.5.1.9
-			
-		-----------------------------------------------------------------------------------------		
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.1.10
 			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = RADIO in the third time(doesn't ask driver's permission)
@@ -9357,7 +8804,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -9367,12 +8814,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = false							
+						subscribe = false
 					})
-					
+
 					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -9387,7 +8834,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.GetInteriorVehicleData request
 					EXPECT_HMICALL("RC.GetInteriorVehicleData")
 					:Do(function(_,data)
@@ -9424,17 +8871,17 @@ end
 											radioEnable = true,
 											state = "ACQUIRING"
 										}
-									}	
+									}
 							})
-							
-					end)								
-					
+
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.5.1.10
-		
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.5.1.11
 			--Description: application sends SetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = RADIO in the second time(doesn't ask driver's permission)
 				function Test:SetInterior_SameAppLeftRADIO_11()
@@ -9456,12 +8903,12 @@ end
 								frequencyFraction = 3,
 								band = "FM"
 							}
-						}				
+						}
 					})
-					
+
 					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -9476,7 +8923,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.SetInteriorVehicleData request
 					EXPECT_HMICALL("RC.SetInteriorVehicleData")
 					:Do(function(_,data)
@@ -9497,15 +8944,15 @@ end
 											frequencyFraction = 3,
 											band = "FM"
 										}
-									}	
+									}
 							})
-							
+
 					end)
-					
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.5.1.11
-		
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.1.12
@@ -9529,12 +8976,12 @@ end
 								frequencyFraction = 3,
 								band = "AM"
 							}
-						}				
+						}
 					})
-					
+
 					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -9549,7 +8996,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.SetInteriorVehicleData request
 					EXPECT_HMICALL("RC.SetInteriorVehicleData")
 					:Do(function(_,data)
@@ -9570,27 +9017,27 @@ end
 											frequencyFraction = 3,
 											band = "AM"
 										}
-									}	
+									}
 							})
-							
+
 					end)
-					
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.5.1.12
-		
-		-----------------------------------------------------------------------------------------		
+
+		-----------------------------------------------------------------------------------------
 	--End Test case CommonRequestCheck.5.1
-	
-	
+
+
 	--Begin Test case CommonRequestCheck.5.2
 	--Description: 	For GetInteriorVehicleData
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-966
 				--TC: REVSDL-1385, REVSDL-1386
 
-		--Verification criteria: 
+		--Verification criteria:
 				--In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies
 
 		-----------------------------------------------------------------------------------------
@@ -9604,7 +9051,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -9614,12 +9061,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -9632,10 +9079,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect RC.GetInteriorVehicleData request
 							EXPECT_HMICALL("RC.GetInteriorVehicleData")
 							:Do(function(_,data)
@@ -9672,16 +9119,16 @@ end
 													radioEnable = true,
 													state = "ACQUIRING"
 												}
-											}	
+											}
 									})
-									
+
 							end)
-					end)								
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.5.2.1
-		
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.2.2
@@ -9693,7 +9140,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -9703,12 +9150,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -9721,10 +9168,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect RC.GetInteriorVehicleData request
 							EXPECT_HMICALL("RC.GetInteriorVehicleData")
 							:Do(function(_,data)
@@ -9733,7 +9180,7 @@ end
 										moduleData =
 										{
 											moduleType = "CLIMATE",
-											moduleZone = 
+											moduleZone =
 											{
 												colspan = 2,
 												row = 1,
@@ -9756,16 +9203,16 @@ end
 											}
 										}
 									})
-									
+
 							end)
-					end)								
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.5.2.2
-		
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.5.2.3
 			--Description: application sends ButtonPress as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE in the second time (doesn't ask driver's permission)
 				function Test:ButtonPress_SameAppLeftCLIMATE_3()
@@ -9783,12 +9230,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "SHORT",
-						buttonName = "LOWER_VENT"						
+						buttonName = "LOWER_VENT"
 					})
-					
-					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI 
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+
+					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -9803,10 +9250,10 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect Buttons.ButtonPress request
-					EXPECT_HMICALL("Buttons.ButtonPress", 
-									{ 
+					EXPECT_HMICALL("Buttons.ButtonPress",
+									{
 										zone =
 										{
 											colspan = 2,
@@ -9823,13 +9270,13 @@ end
 						:Do(function(_,data)
 							--hmi side: sending Buttons.ButtonPress response
 							self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-						end)							
-					
+						end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.5.2.3
-		
-		-----------------------------------------------------------------------------------------	
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.2.4
 			--Description: application sends ButtonPress as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE in the third time doesn't ask driver's permission)
@@ -9848,12 +9295,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "LONG",
-						buttonName = "DEFROST_MAX"						
+						buttonName = "DEFROST_MAX"
 					})
-					
-					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI 
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+
+					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -9868,10 +9315,10 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect Buttons.ButtonPress request
-					EXPECT_HMICALL("Buttons.ButtonPress", 
-									{ 
+					EXPECT_HMICALL("Buttons.ButtonPress",
+									{
 										zone =
 										{
 											colspan = 2,
@@ -9888,14 +9335,14 @@ end
 						:Do(function(_,data)
 							--hmi side: sending Buttons.ButtonPress response
 							self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-						end)							
-					
+						end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.5.2.4
-		
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.5.2.5
 			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE in the second time(doesn't ask driver's permission)
 				function Test:GetInterior_SameAppLeftCLIMATE_5()
@@ -9905,7 +9352,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -9915,12 +9362,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -9935,7 +9382,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.GetInteriorVehicleData request
 					EXPECT_HMICALL("RC.GetInteriorVehicleData")
 					:Do(function(_,data)
@@ -9944,7 +9391,7 @@ end
 								moduleData =
 								{
 									moduleType = "CLIMATE",
-									moduleZone = 
+									moduleZone =
 									{
 										colspan = 2,
 										row = 1,
@@ -9967,14 +9414,14 @@ end
 									}
 								}
 							})
-							
-					end)								
-					
+
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.5.2.5
-		
-		-----------------------------------------------------------------------------------------		
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.2.6
 			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE in the third time (doesn't ask driver's permission)
@@ -9985,7 +9432,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -9995,12 +9442,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = false							
+						subscribe = false
 					})
-					
+
 					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -10015,7 +9462,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.GetInteriorVehicleData request
 					EXPECT_HMICALL("RC.GetInteriorVehicleData")
 					:Do(function(_,data)
@@ -10024,7 +9471,7 @@ end
 								moduleData =
 								{
 									moduleType = "CLIMATE",
-									moduleZone = 
+									moduleZone =
 									{
 										colspan = 2,
 										row = 1,
@@ -10047,13 +9494,13 @@ end
 									}
 								}
 							})
-							
-					end)								
-					
+
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.5.2.6
-		
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.2.7
@@ -10065,7 +9512,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -10082,10 +9529,10 @@ end
 							}
 						}
 					})
-					
+
 					--hmi side: expect doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -10100,7 +9547,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.SetInteriorVehicleData request
 					EXPECT_HMICALL("RC.SetInteriorVehicleData")
 					:Do(function(_,data)
@@ -10109,7 +9556,7 @@ end
 								moduleData =
 								{
 									moduleType = "CLIMATE",
-									moduleZone = 
+									moduleZone =
 									{
 										colspan = 2,
 										row = 1,
@@ -10126,15 +9573,15 @@ end
 									}
 								}
 							})
-							
-					end)								
-					
+
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.5.2.7
-		
-		-----------------------------------------------------------------------------------------		
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.5.2.8
 			--Description: application sends SetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE in the third time (doesn't ask driver's permission)
 				function Test:SetInterior_SameAppLeftCLIMATE_8()
@@ -10144,7 +9591,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -10161,10 +9608,10 @@ end
 							}
 						}
 					})
-					
+
 					--hmi side: expect doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -10179,7 +9626,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.SetInteriorVehicleData request
 					EXPECT_HMICALL("RC.SetInteriorVehicleData")
 					:Do(function(_,data)
@@ -10188,7 +9635,7 @@ end
 								moduleData =
 								{
 									moduleType = "CLIMATE",
-									moduleZone = 
+									moduleZone =
 									{
 										colspan = 2,
 										row = 1,
@@ -10205,14 +9652,14 @@ end
 									}
 								}
 							})
-							
-					end)								
-					
+
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.5.2.8
-		
-		-----------------------------------------------------------------------------------------	
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.2.9
 			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = RADIO in the second time(doesn't ask driver's permission)
@@ -10223,7 +9670,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -10233,12 +9680,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -10253,7 +9700,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.GetInteriorVehicleData request
 					EXPECT_HMICALL("RC.GetInteriorVehicleData")
 					:Do(function(_,data)
@@ -10290,16 +9737,16 @@ end
 											radioEnable = true,
 											state = "ACQUIRING"
 										}
-									}	
+									}
 							})
-							
-					end)								
-					
+
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.5.2.9
-			
-		-----------------------------------------------------------------------------------------		
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.2.10
 			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = RADIO in the third time(doesn't ask driver's permission)
@@ -10310,7 +9757,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -10320,12 +9767,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = false							
+						subscribe = false
 					})
-					
+
 					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -10340,7 +9787,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.GetInteriorVehicleData request
 					EXPECT_HMICALL("RC.GetInteriorVehicleData")
 					:Do(function(_,data)
@@ -10377,17 +9824,17 @@ end
 											radioEnable = true,
 											state = "ACQUIRING"
 										}
-									}	
+									}
 							})
-							
-					end)								
-					
+
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.5.2.10
-		
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.5.2.11
 			--Description: application sends SetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = RADIO in the second time(doesn't ask driver's permission)
 				function Test:SetInterior_SameAppLeftRADIO_11()
@@ -10409,12 +9856,12 @@ end
 								frequencyFraction = 3,
 								band = "FM"
 							}
-						}				
+						}
 					})
-					
+
 					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -10429,7 +9876,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.SetInteriorVehicleData request
 					EXPECT_HMICALL("RC.SetInteriorVehicleData")
 					:Do(function(_,data)
@@ -10450,15 +9897,15 @@ end
 											frequencyFraction = 3,
 											band = "FM"
 										}
-									}	
+									}
 							})
-							
+
 					end)
-					
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.5.2.11
-		
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.2.12
@@ -10482,12 +9929,12 @@ end
 								frequencyFraction = 3,
 								band = "AM"
 							}
-						}				
+						}
 					})
-					
+
 					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -10502,7 +9949,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.SetInteriorVehicleData request
 					EXPECT_HMICALL("RC.SetInteriorVehicleData")
 					:Do(function(_,data)
@@ -10523,27 +9970,27 @@ end
 											frequencyFraction = 3,
 											band = "AM"
 										}
-									}	
+									}
 							})
-							
+
 					end)
-					
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.5.2.12
-		
+
 		-----------------------------------------------------------------------------------------
-	--End Test case CommonRequestCheck.5.2	
-	
-	
+	--End Test case CommonRequestCheck.5.2
+
+
 	--Begin Test case CommonRequestCheck.5.3
 	--Description: 	For SetInteriorVehicleData
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-966
 				--TC: REVSDL-1385, REVSDL-1386
 
-		--Verification criteria: 
+		--Verification criteria:
 				--In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies
 
 		-----------------------------------------------------------------------------------------
@@ -10569,12 +10016,12 @@ end
 								frequencyFraction = 3,
 								band = "FM"
 							}
-						}				
+						}
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -10587,10 +10034,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect RC.SetInteriorVehicleData request
 							EXPECT_HMICALL("RC.SetInteriorVehicleData")
 							:Do(function(_,data)
@@ -10611,18 +10058,18 @@ end
 													frequencyFraction = 3,
 													band = "FM"
 												}
-											}	
+											}
 									})
-									
+
 								end)
-					end)								
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.5.3.1
-		
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.5.3.2
 			--Description: application sends SetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE (first time, asking driver's permission)
 				function Test:SetInterior_SameAppLeftCLIMATE_2()
@@ -10632,7 +10079,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -10649,10 +10096,10 @@ end
 							}
 						}
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -10665,10 +10112,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect RC.SetInteriorVehicleData request
 							EXPECT_HMICALL("RC.SetInteriorVehicleData")
 							:Do(function(_,data)
@@ -10677,7 +10124,7 @@ end
 										moduleData =
 										{
 											moduleType = "CLIMATE",
-											moduleZone = 
+											moduleZone =
 											{
 												colspan = 2,
 												row = 1,
@@ -10694,16 +10141,16 @@ end
 											}
 										}
 									})
-									
+
 								end)
-					end)								
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.5.3.2
-		
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.5.3.3
 			--Description: application sends ButtonPress as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE in the second time (doesn't ask driver's permission)
 				function Test:ButtonPress_SameAppLeftCLIMATE_3()
@@ -10721,12 +10168,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "SHORT",
-						buttonName = "LOWER_VENT"						
+						buttonName = "LOWER_VENT"
 					})
-					
-					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI 
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+
+					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -10741,10 +10188,10 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect Buttons.ButtonPress request
-					EXPECT_HMICALL("Buttons.ButtonPress", 
-									{ 
+					EXPECT_HMICALL("Buttons.ButtonPress",
+									{
 										zone =
 										{
 											colspan = 2,
@@ -10761,13 +10208,13 @@ end
 						:Do(function(_,data)
 							--hmi side: sending Buttons.ButtonPress response
 							self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-						end)							
-					
+						end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.5.3.3
-		
-		-----------------------------------------------------------------------------------------	
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.3.4
 			--Description: application sends ButtonPress as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE in the third time doesn't ask driver's permission)
@@ -10786,12 +10233,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "LONG",
-						buttonName = "DEFROST_MAX"						
+						buttonName = "DEFROST_MAX"
 					})
-					
-					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI 
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+
+					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -10806,10 +10253,10 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect Buttons.ButtonPress request
-					EXPECT_HMICALL("Buttons.ButtonPress", 
-									{ 
+					EXPECT_HMICALL("Buttons.ButtonPress",
+									{
 										zone =
 										{
 											colspan = 2,
@@ -10826,14 +10273,14 @@ end
 						:Do(function(_,data)
 							--hmi side: sending Buttons.ButtonPress response
 							self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-						end)							
-					
+						end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.5.3.4
-		
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.5.3.5
 			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE in the second time(doesn't ask driver's permission)
 				function Test:GetInterior_SameAppLeftCLIMATE_5()
@@ -10843,7 +10290,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -10853,12 +10300,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -10873,7 +10320,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.GetInteriorVehicleData request
 					EXPECT_HMICALL("RC.GetInteriorVehicleData")
 					:Do(function(_,data)
@@ -10882,7 +10329,7 @@ end
 								moduleData =
 								{
 									moduleType = "CLIMATE",
-									moduleZone = 
+									moduleZone =
 									{
 										colspan = 2,
 										row = 1,
@@ -10905,14 +10352,14 @@ end
 									}
 								}
 							})
-							
-					end)								
-					
+
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.5.3.5
-		
-		-----------------------------------------------------------------------------------------		
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.3.6
 			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE in the third time (doesn't ask driver's permission)
@@ -10923,7 +10370,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -10933,12 +10380,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = false							
+						subscribe = false
 					})
-					
+
 					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -10953,7 +10400,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.GetInteriorVehicleData request
 					EXPECT_HMICALL("RC.GetInteriorVehicleData")
 					:Do(function(_,data)
@@ -10962,7 +10409,7 @@ end
 								moduleData =
 								{
 									moduleType = "CLIMATE",
-									moduleZone = 
+									moduleZone =
 									{
 										colspan = 2,
 										row = 1,
@@ -10985,13 +10432,13 @@ end
 									}
 								}
 							})
-							
-					end)								
-					
+
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.5.3.6
-		
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.3.7
@@ -11003,7 +10450,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -11020,10 +10467,10 @@ end
 							}
 						}
 					})
-					
+
 					--hmi side: expect doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -11038,7 +10485,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.SetInteriorVehicleData request
 					EXPECT_HMICALL("RC.SetInteriorVehicleData")
 					:Do(function(_,data)
@@ -11047,7 +10494,7 @@ end
 								moduleData =
 								{
 									moduleType = "CLIMATE",
-									moduleZone = 
+									moduleZone =
 									{
 										colspan = 2,
 										row = 1,
@@ -11064,15 +10511,15 @@ end
 									}
 								}
 							})
-							
-					end)								
-					
+
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.5.3.7
-		
-		-----------------------------------------------------------------------------------------		
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.5.3.8
 			--Description: application sends SetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE in the third time (doesn't ask driver's permission)
 				function Test:SetInterior_SameAppLeftCLIMATE_8()
@@ -11082,7 +10529,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -11099,10 +10546,10 @@ end
 							}
 						}
 					})
-					
+
 					--hmi side: expect doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -11117,7 +10564,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.SetInteriorVehicleData request
 					EXPECT_HMICALL("RC.SetInteriorVehicleData")
 					:Do(function(_,data)
@@ -11126,7 +10573,7 @@ end
 								moduleData =
 								{
 									moduleType = "CLIMATE",
-									moduleZone = 
+									moduleZone =
 									{
 										colspan = 2,
 										row = 1,
@@ -11143,14 +10590,14 @@ end
 									}
 								}
 							})
-							
-					end)								
-					
+
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.5.3.8
-		
-		-----------------------------------------------------------------------------------------	
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.3.9
 			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = RADIO in the second time(doesn't ask driver's permission)
@@ -11161,7 +10608,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -11171,12 +10618,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -11191,7 +10638,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.GetInteriorVehicleData request
 					EXPECT_HMICALL("RC.GetInteriorVehicleData")
 					:Do(function(_,data)
@@ -11228,16 +10675,16 @@ end
 											radioEnable = true,
 											state = "ACQUIRING"
 										}
-									}	
+									}
 							})
-							
-					end)								
-					
+
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.5.3.9
-			
-		-----------------------------------------------------------------------------------------		
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.3.10
 			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = RADIO in the third time(doesn't ask driver's permission)
@@ -11248,7 +10695,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -11258,12 +10705,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = false							
+						subscribe = false
 					})
-					
+
 					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -11278,7 +10725,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.GetInteriorVehicleData request
 					EXPECT_HMICALL("RC.GetInteriorVehicleData")
 					:Do(function(_,data)
@@ -11315,17 +10762,17 @@ end
 											radioEnable = true,
 											state = "ACQUIRING"
 										}
-									}	
+									}
 							})
-							
-					end)								
-					
+
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.5.3.10
-		
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.5.3.11
 			--Description: application sends SetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = RADIO in the second time(doesn't ask driver's permission)
 				function Test:SetInterior_SameAppLeftRADIO_11()
@@ -11347,12 +10794,12 @@ end
 								frequencyFraction = 3,
 								band = "FM"
 							}
-						}				
+						}
 					})
-					
+
 					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -11367,7 +10814,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.SetInteriorVehicleData request
 					EXPECT_HMICALL("RC.SetInteriorVehicleData")
 					:Do(function(_,data)
@@ -11388,15 +10835,15 @@ end
 											frequencyFraction = 3,
 											band = "FM"
 										}
-									}	
+									}
 							})
-							
+
 					end)
-					
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.5.3.11
-		
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.3.12
@@ -11420,12 +10867,12 @@ end
 								frequencyFraction = 3,
 								band = "AM"
 							}
-						}				
+						}
 					})
-					
+
 					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -11440,7 +10887,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.SetInteriorVehicleData request
 					EXPECT_HMICALL("RC.SetInteriorVehicleData")
 					:Do(function(_,data)
@@ -11461,43 +10908,43 @@ end
 											frequencyFraction = 3,
 											band = "AM"
 										}
-									}	
+									}
 							})
-							
+
 					end)
-					
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.5.3.12
-		
+
 		-----------------------------------------------------------------------------------------
 	--End Test case CommonRequestCheck.5.3
-	
-	
+
+
 	--Begin Test case CommonRequestCheck.5.4
 	--Description: 	For ButtonPress
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-966
 				--TC: REVSDL-1385, REVSDL-1386
 
-		--Verification criteria: 
+		--Verification criteria:
 				--In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies
 
 		-----------------------------------------------------------------------------------------
-				
+
 			--Begin Test case Precondition.5.
 			--Description: Register new session
 				function Test:PreconditionNewSession()
 					--New session1
 					self.mobileSession1 = mobile_session.MobileSession(
-						self.expectations_list,
-						self.mobileConnection)						
+						self,
+						self.mobileConnection)
 				end
 			--End Test case Precondition.5.
 
 		-----------------------------------------------------------------------------------------
-			
+
 			--Begin Test case Precondition.5.
 			--Description: Register App1 for precondition
 					function Test:TC5_PassengerDevice_App1()
@@ -11518,9 +10965,9 @@ end
 								  appID = "1"
 								})
 
-								EXPECT_HMICALL("BasicCommunication.OnAppRegistered", 
+								EXPECT_HMICALL("BasicCommunication.OnAppRegistered",
 								{
-								  application = 
+								  application =
 								  {
 									appName = "Test Application1"
 								  }
@@ -11528,21 +10975,21 @@ end
 								:Do(function(_,data)
 									self.applications["Test Application1"] = data.params.application.appID
 								end)
-								
+
 								--SDL sends RegisterAppInterface_response (success:true) with the following resultCodes: SUCCESS
 								self.mobileSession1:ExpectResponse(CorIdRegister, { success = true, resultCode = "SUCCESS" })
-								
+
 								--mobile side: Expect OnPermissionsChange notification for Passenger's device
-								self.mobileSession1:ExpectNotification("OnPermissionsChange", arrayGroups_nonPrimaryRC )								
-								
+								self.mobileSession1:ExpectNotification("OnPermissionsChange", arrayGroups_nonPrimaryRC )
+
 								--check OnHMIStatus with deviceRank = "PASSENGER"
 								self.mobileSession1:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", deviceRank = "PASSENGER" })
 								:Timeout(3000)
-								
+
 							end)
 						end
 			--End Test case Precondition.5.
-				
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.4.1
@@ -11562,12 +11009,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "SHORT",
-						buttonName = "LOWER_VENT"						
+						buttonName = "LOWER_VENT"
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -11580,13 +11027,13 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect Buttons.ButtonPress request
-							EXPECT_HMICALL("Buttons.ButtonPress", 
-											{ 
+							EXPECT_HMICALL("Buttons.ButtonPress",
+											{
 												zone =
 												{
 													colspan = 2,
@@ -11604,12 +11051,12 @@ end
 									--hmi side: sending Buttons.ButtonPress response
 									self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 								end)
-					end)								
-					
+					end)
+
 					self.mobileSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.5.4.1
-		
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.4.2
@@ -11621,7 +11068,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -11631,12 +11078,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application1"],
 									moduleType = "RADIO",
 									zone =
@@ -11649,10 +11096,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect RC.GetInteriorVehicleData request
 							EXPECT_HMICALL("RC.GetInteriorVehicleData")
 							:Do(function(_,data)
@@ -11689,18 +11136,18 @@ end
 													radioEnable = true,
 													state = "ACQUIRING"
 												}
-											}	
+											}
 									})
-									
+
 							end)
-					end)								
-					
+					end)
+
 					self.mobileSession1:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.5.4.2
-		
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.5.4.3
 			--Description: application sends ButtonPress as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE in the second time (asking driver's permission)
 				function Test:ButtonPress_App2LeftCLIMATE_3()
@@ -11718,12 +11165,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "SHORT",
-						buttonName = "LOWER_VENT"						
+						buttonName = "LOWER_VENT"
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application1"],
 									moduleType = "CLIMATE",
 									zone =
@@ -11736,18 +11183,18 @@ end
 										level = 0
 									}
 					})
-					:Do(function(_,data)						
+					:Do(function(_,data)
 						--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL and HMI auto reject this request.
 						self.hmiConnection:Send('{"jsonrpc":"2.0","id":'..tostring(data.id)..',"error":{"code":4,"message":"Already consented!","data":{"method":"RC.GetInteriorVehicleDataConsent"}}}')
 
-					end)								
-					
+					end)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false
 					self.mobileSession1:ExpectResponse(cid, { success = false, resultCode = "USER_DISALLOWED" })
 				end
 			--End Test case CommonRequestCheck.5.4.3
-		
-		-----------------------------------------------------------------------------------------	
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.4.4
 			--Description: application sends ButtonPress as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE in the third time doesn't ask driver's permission)
@@ -11766,12 +11213,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "LONG",
-						buttonName = "DEFROST_MAX"						
+						buttonName = "DEFROST_MAX"
 					})
-					
-					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI 
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+
+					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application1"],
 									moduleType = "CLIMATE",
 									zone =
@@ -11784,19 +11231,19 @@ end
 										level = 0
 									}
 					})
-					:Do(function(_,data)						
+					:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL and HMI auto reject this request.
 							self.hmiConnection:Send('{"jsonrpc":"2.0","id":'..tostring(data.id)..',"error":{"code":4,"message":"Already consented!","data":{"method":"RC.GetInteriorVehicleDataConsent"}}}')
 
 					end)
-					
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false
 					self.mobileSession1:ExpectResponse(cid, { success = false, resultCode = "USER_DISALLOWED" })
 				end
 			--End Test case CommonRequestCheck.5.4.4
-		
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.5.4.5
 			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE in the second time(doesn't ask driver's permission)
 				function Test:GetInterior_App2LeftCLIMATE_5()
@@ -11806,7 +11253,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -11816,12 +11263,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application1"],
 									moduleType = "CLIMATE",
 									zone =
@@ -11834,18 +11281,18 @@ end
 										level = 0
 									}
 					})
-					:Do(function(_,data)						
+					:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL and HMI auto reject this request.
 							self.hmiConnection:Send('{"jsonrpc":"2.0","id":'..tostring(data.id)..',"error":{"code":4,"message":"Already consented!","data":{"method":"RC.GetInteriorVehicleDataConsent"}}}')
 
 					end)
-					
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false
 					self.mobileSession1:ExpectResponse(cid, { success = false, resultCode = "USER_DISALLOWED" })
 				end
 			--End Test case CommonRequestCheck.5.4.5
-		
-		-----------------------------------------------------------------------------------------		
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.4.6
 			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE in the third time (doesn't ask driver's permission)
@@ -11856,7 +11303,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -11866,12 +11313,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = false							
+						subscribe = false
 					})
-					
+
 					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application1"],
 									moduleType = "CLIMATE",
 									zone =
@@ -11884,17 +11331,17 @@ end
 										level = 0
 									}
 					})
-					:Do(function(_,data)						
+					:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL and HMI auto reject this request.
 							self.hmiConnection:Send('{"jsonrpc":"2.0","id":'..tostring(data.id)..',"error":{"code":4,"message":"Already consented!","data":{"method":"RC.GetInteriorVehicleDataConsent"}}}')
 
 					end)
-					
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false
 					self.mobileSession1:ExpectResponse(cid, { success = false, resultCode = "USER_DISALLOWED" })
 				end
 			--End Test case CommonRequestCheck.5.4.6
-		
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.4.7
@@ -11906,7 +11353,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -11923,10 +11370,10 @@ end
 							}
 						}
 					})
-					
+
 					--hmi side: expect doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application1"],
 									moduleType = "CLIMATE",
 									zone =
@@ -11939,19 +11386,19 @@ end
 										level = 0
 									}
 					})
-					:Do(function(_,data)						
+					:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL and HMI auto reject this request.
 							self.hmiConnection:Send('{"jsonrpc":"2.0","id":'..tostring(data.id)..',"error":{"code":4,"message":"Already consented!","data":{"method":"RC.GetInteriorVehicleDataConsent"}}}')
 
 					end)
-					
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false
 					self.mobileSession1:ExpectResponse(cid, { success = false, resultCode = "USER_DISALLOWED" })
 				end
 			--End Test case CommonRequestCheck.5.4.7
-		
-		-----------------------------------------------------------------------------------------		
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.5.4.8
 			--Description: application sends SetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE in the third time (doesn't ask driver's permission)
 				function Test:SetInterior_App2LeftCLIMATE_8()
@@ -11961,7 +11408,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -11978,10 +11425,10 @@ end
 							}
 						}
 					})
-					
+
 					--hmi side: expect doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application1"],
 									moduleType = "CLIMATE",
 									zone =
@@ -11994,18 +11441,18 @@ end
 										level = 0
 									}
 					})
-					:Do(function(_,data)						
+					:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL and HMI auto reject this request.
 							self.hmiConnection:Send('{"jsonrpc":"2.0","id":'..tostring(data.id)..',"error":{"code":4,"message":"Already consented!","data":{"method":"RC.GetInteriorVehicleDataConsent"}}}')
 
 					end)
-					
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false
 					self.mobileSession1:ExpectResponse(cid, { success = false, resultCode = "USER_DISALLOWED" })
 				end
 			--End Test case CommonRequestCheck.5.4.8
-		
-		-----------------------------------------------------------------------------------------	
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.4.9
 			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = RADIO in the second time(doesn't ask driver's permission)
@@ -12016,7 +11463,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -12026,12 +11473,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application1"],
 									moduleType = "RADIO",
 									zone =
@@ -12046,7 +11493,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.GetInteriorVehicleData request
 					EXPECT_HMICALL("RC.GetInteriorVehicleData")
 					:Do(function(_,data)
@@ -12083,16 +11530,16 @@ end
 											radioEnable = true,
 											state = "ACQUIRING"
 										}
-									}	
+									}
 							})
-							
-					end)								
-					
+
+					end)
+
 					self.mobileSession1:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.5.4.9
-			
-		-----------------------------------------------------------------------------------------		
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.4.10
 			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = RADIO in the third time(doesn't ask driver's permission)
@@ -12103,7 +11550,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -12113,12 +11560,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = false							
+						subscribe = false
 					})
-					
+
 					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application1"],
 									moduleType = "RADIO",
 									zone =
@@ -12133,7 +11580,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.GetInteriorVehicleData request
 					EXPECT_HMICALL("RC.GetInteriorVehicleData")
 					:Do(function(_,data)
@@ -12170,17 +11617,17 @@ end
 											radioEnable = true,
 											state = "ACQUIRING"
 										}
-									}	
+									}
 							})
-							
-					end)								
-					
+
+					end)
+
 					self.mobileSession1:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.5.4.10
-		
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.5.4.11
 			--Description: application sends SetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = RADIO in the second time(doesn't ask driver's permission)
 				function Test:SetInterior_App2LeftRADIO_11()
@@ -12202,12 +11649,12 @@ end
 								frequencyFraction = 3,
 								band = "FM"
 							}
-						}				
+						}
 					})
-					
+
 					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application1"],
 									moduleType = "RADIO",
 									zone =
@@ -12222,7 +11669,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.SetInteriorVehicleData request
 					EXPECT_HMICALL("RC.SetInteriorVehicleData")
 					:Do(function(_,data)
@@ -12243,15 +11690,15 @@ end
 											frequencyFraction = 3,
 											band = "FM"
 										}
-									}	
+									}
 							})
-							
+
 					end)
-					
+
 					self.mobileSession1:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.5.4.11
-		
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.4.12
@@ -12275,12 +11722,12 @@ end
 								frequencyFraction = 3,
 								band = "AM"
 							}
-						}				
+						}
 					})
-					
+
 					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application1"],
 									moduleType = "RADIO",
 									zone =
@@ -12295,7 +11742,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.SetInteriorVehicleData request
 					EXPECT_HMICALL("RC.SetInteriorVehicleData")
 					:Do(function(_,data)
@@ -12316,43 +11763,43 @@ end
 											frequencyFraction = 3,
 											band = "AM"
 										}
-									}	
+									}
 							})
-							
+
 					end)
-					
+
 					self.mobileSession1:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.5.4.12
-		
-		-----------------------------------------------------------------------------------------		
+
+		-----------------------------------------------------------------------------------------
 	--End Test case CommonRequestCheck.5.4
-	
-	
+
+
 	--Begin Test case CommonRequestCheck.5.5
 	--Description: 	For GetInteriorVehicleData
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-966
 				--TC: REVSDL-1385, REVSDL-1386
 
-		--Verification criteria: 
+		--Verification criteria:
 				--In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies
 
 		-----------------------------------------------------------------------------------------
-				
+
 			--Begin Test case Precondition.5.
 			--Description: Register new session
 				function Test:PreconditionNewSession()
 					--New session1
 					self.mobileSession1 = mobile_session.MobileSession(
-						self.expectations_list,
-						self.mobileConnection)						
+						self,
+						self.mobileConnection)
 				end
 			--End Test case Precondition.5.
 
 		-----------------------------------------------------------------------------------------
-			
+
 			--Begin Test case Precondition.5.
 			--Description: Register App1 for precondition
 					function Test:TC1_PassengerDevice_App1()
@@ -12373,9 +11820,9 @@ end
 								  appID = "1"
 								})
 
-								EXPECT_HMICALL("BasicCommunication.OnAppRegistered", 
+								EXPECT_HMICALL("BasicCommunication.OnAppRegistered",
 								{
-								  application = 
+								  application =
 								  {
 									appName = "Test Application1"
 								  }
@@ -12383,20 +11830,20 @@ end
 								:Do(function(_,data)
 									self.applications["Test Application1"] = data.params.application.appID
 								end)
-								
+
 								--SDL sends RegisterAppInterface_response (success:true) with the following resultCodes: SUCCESS
 								self.mobileSession1:ExpectResponse(CorIdRegister, { success = true, resultCode = "SUCCESS" })
-								
+
 								--mobile side: Expect OnPermissionsChange notification for Passenger's device
-								self.mobileSession1:ExpectNotification("OnPermissionsChange", arrayGroups_nonPrimaryRC )								
-								
+								self.mobileSession1:ExpectNotification("OnPermissionsChange", arrayGroups_nonPrimaryRC )
+
 								--check OnHMIStatus with deviceRank = "PASSENGER"
 								self.mobileSession1:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", deviceRank = "PASSENGER" })
 								:Timeout(3000)
-								
+
 							end)
 						end
-			--End Test case Precondition.5.				
+			--End Test case Precondition.5.
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.5.1
@@ -12408,7 +11855,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -12418,12 +11865,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -12436,10 +11883,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect RC.GetInteriorVehicleData request
 							EXPECT_HMICALL("RC.GetInteriorVehicleData")
 							:Do(function(_,data)
@@ -12476,16 +11923,16 @@ end
 													radioEnable = true,
 													state = "ACQUIRING"
 												}
-											}	
+											}
 									})
-									
+
 							end)
-					end)								
-					
+					end)
+
 					self.mobileSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.5.5.1
-		
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.5.2
@@ -12497,7 +11944,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -12507,12 +11954,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application1"],
 									moduleType = "CLIMATE",
 									zone =
@@ -12525,10 +11972,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect RC.GetInteriorVehicleData request
 							EXPECT_HMICALL("RC.GetInteriorVehicleData")
 							:Do(function(_,data)
@@ -12537,7 +11984,7 @@ end
 										moduleData =
 										{
 											moduleType = "CLIMATE",
-											moduleZone = 
+											moduleZone =
 											{
 												colspan = 2,
 												row = 1,
@@ -12560,16 +12007,16 @@ end
 											}
 										}
 									})
-									
+
 							end)
-					end)								
-					
+					end)
+
 					self.mobileSession1:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.5.5.2
-		
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.5.5.3
 			--Description: application sends ButtonPress as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE in the second time (doesn't ask driver's permission)
 				function Test:ButtonPress_DifferentAppLeftCLIMATE_3()
@@ -12587,12 +12034,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "SHORT",
-						buttonName = "LOWER_VENT"						
+						buttonName = "LOWER_VENT"
 					})
-					
-					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI 
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+
+					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application1"],
 									moduleType = "CLIMATE",
 									zone =
@@ -12607,10 +12054,10 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect Buttons.ButtonPress request
-					EXPECT_HMICALL("Buttons.ButtonPress", 
-									{ 
+					EXPECT_HMICALL("Buttons.ButtonPress",
+									{
 										zone =
 										{
 											colspan = 2,
@@ -12627,13 +12074,13 @@ end
 						:Do(function(_,data)
 							--hmi side: sending Buttons.ButtonPress response
 							self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-						end)							
-					
+						end)
+
 					self.mobileSession1:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.5.5.3
-		
-		-----------------------------------------------------------------------------------------	
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.5.4
 			--Description: application sends ButtonPress as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE in the third time doesn't ask driver's permission)
@@ -12652,12 +12099,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "LONG",
-						buttonName = "DEFROST_MAX"						
+						buttonName = "DEFROST_MAX"
 					})
-					
-					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI 
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+
+					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application1"],
 									moduleType = "CLIMATE",
 									zone =
@@ -12672,10 +12119,10 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect Buttons.ButtonPress request
-					EXPECT_HMICALL("Buttons.ButtonPress", 
-									{ 
+					EXPECT_HMICALL("Buttons.ButtonPress",
+									{
 										zone =
 										{
 											colspan = 2,
@@ -12692,14 +12139,14 @@ end
 						:Do(function(_,data)
 							--hmi side: sending Buttons.ButtonPress response
 							self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-						end)							
-					
+						end)
+
 					self.mobileSession1:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.5.5.4
-		
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.5.5.5
 			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE in the second time(doesn't ask driver's permission)
 				function Test:GetInterior_DifferentAppLeftCLIMATE_5()
@@ -12709,7 +12156,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -12719,12 +12166,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application1"],
 									moduleType = "CLIMATE",
 									zone =
@@ -12739,7 +12186,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.GetInteriorVehicleData request
 					EXPECT_HMICALL("RC.GetInteriorVehicleData")
 					:Do(function(_,data)
@@ -12748,7 +12195,7 @@ end
 								moduleData =
 								{
 									moduleType = "CLIMATE",
-									moduleZone = 
+									moduleZone =
 									{
 										colspan = 2,
 										row = 1,
@@ -12771,14 +12218,14 @@ end
 									}
 								}
 							})
-							
-					end)								
-					
+
+					end)
+
 					self.mobileSession1:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.5.5.5
-		
-		-----------------------------------------------------------------------------------------		
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.5.6
 			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE in the third time (doesn't ask driver's permission)
@@ -12789,7 +12236,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -12799,12 +12246,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = false							
+						subscribe = false
 					})
-					
+
 					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application1"],
 									moduleType = "CLIMATE",
 									zone =
@@ -12819,7 +12266,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.GetInteriorVehicleData request
 					EXPECT_HMICALL("RC.GetInteriorVehicleData")
 					:Do(function(_,data)
@@ -12828,7 +12275,7 @@ end
 								moduleData =
 								{
 									moduleType = "CLIMATE",
-									moduleZone = 
+									moduleZone =
 									{
 										colspan = 2,
 										row = 1,
@@ -12851,13 +12298,13 @@ end
 									}
 								}
 							})
-							
-					end)								
-					
+
+					end)
+
 					self.mobileSession1:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.5.5.6
-		
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.5.7
@@ -12869,7 +12316,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -12886,10 +12333,10 @@ end
 							}
 						}
 					})
-					
+
 					--hmi side: expect doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application1"],
 									moduleType = "CLIMATE",
 									zone =
@@ -12904,7 +12351,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.SetInteriorVehicleData request
 					EXPECT_HMICALL("RC.SetInteriorVehicleData")
 					:Do(function(_,data)
@@ -12913,7 +12360,7 @@ end
 								moduleData =
 								{
 									moduleType = "CLIMATE",
-									moduleZone = 
+									moduleZone =
 									{
 										colspan = 2,
 										row = 1,
@@ -12930,15 +12377,15 @@ end
 									}
 								}
 							})
-							
-					end)								
-					
+
+					end)
+
 					self.mobileSession1:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.5.5.7
-		
-		-----------------------------------------------------------------------------------------		
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.5.5.8
 			--Description: application sends SetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE in the third time (doesn't ask driver's permission)
 				function Test:SetInterior_DifferentAppLeftCLIMATE_8()
@@ -12948,7 +12395,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -12965,10 +12412,10 @@ end
 							}
 						}
 					})
-					
+
 					--hmi side: expect doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application1"],
 									moduleType = "CLIMATE",
 									zone =
@@ -12983,7 +12430,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.SetInteriorVehicleData request
 					EXPECT_HMICALL("RC.SetInteriorVehicleData")
 					:Do(function(_,data)
@@ -12992,7 +12439,7 @@ end
 								moduleData =
 								{
 									moduleType = "CLIMATE",
-									moduleZone = 
+									moduleZone =
 									{
 										colspan = 2,
 										row = 1,
@@ -13009,14 +12456,14 @@ end
 									}
 								}
 							})
-							
-					end)								
-					
+
+					end)
+
 					self.mobileSession1:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.5.5.8
-		
-		-----------------------------------------------------------------------------------------	
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.5.9
 			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = RADIO in the second time(asking driver's permission)
@@ -13027,7 +12474,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -13037,12 +12484,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application4"],
 									moduleType = "RADIO",
 									zone =
@@ -13055,17 +12502,17 @@ end
 										level = 0
 									}
 								})
-					:Do(function(_,data)						
+					:Do(function(_,data)
 						--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL and HMI auto reject this request.
 						self.hmiConnection:Send('{"jsonrpc":"2.0","id":'..tostring(data.id)..',"error":{"code":4,"message":"Already consented!","data":{"method":"RC.GetInteriorVehicleDataConsent"}}}')
-					end)								
-					
+					end)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false
 					self.mobileSession1:ExpectResponse(cid, { success = false, resultCode = "USER_DISALLOWED" })
 				end
 			--End Test case CommonRequestCheck.5.5.9
-			
-		-----------------------------------------------------------------------------------------		
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.5.10
 			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = RADIO in the third time(doesn't ask driver's permission)
@@ -13076,7 +12523,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -13086,12 +12533,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = false							
+						subscribe = false
 					})
-					
+
 					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application1"],
 									moduleType = "RADIO",
 									zone =
@@ -13104,18 +12551,18 @@ end
 										level = 0
 									}
 					})
-					:Do(function(_,data)						
+					:Do(function(_,data)
 						--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL and HMI auto reject this request.
 						self.hmiConnection:Send('{"jsonrpc":"2.0","id":'..tostring(data.id)..',"error":{"code":4,"message":"Already consented!","data":{"method":"RC.GetInteriorVehicleDataConsent"}}}')
-					end)								
-					
+					end)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false
 					self.mobileSession1:ExpectResponse(cid, { success = false, resultCode = "USER_DISALLOWED" })
 				end
 			--End Test case CommonRequestCheck.5.5.10
-		
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.5.5.11
 			--Description: application sends SetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = RADIO in the second time(doesn't ask driver's permission)
 				function Test:SetInterior_DifferentAppLeftRADIO_11()
@@ -13137,12 +12584,12 @@ end
 								frequencyFraction = 3,
 								band = "FM"
 							}
-						}				
+						}
 					})
-					
+
 					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application1"],
 									moduleType = "RADIO",
 									zone =
@@ -13155,16 +12602,16 @@ end
 										level = 0
 									}
 					})
-					:Do(function(_,data)						
+					:Do(function(_,data)
 						--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL and HMI auto reject this request.
 						self.hmiConnection:Send('{"jsonrpc":"2.0","id":'..tostring(data.id)..',"error":{"code":4,"message":"Already consented!","data":{"method":"RC.GetInteriorVehicleDataConsent"}}}')
-					end)								
-					
+					end)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false
 					self.mobileSession1:ExpectResponse(cid, { success = false, resultCode = "USER_DISALLOWED" })
 				end
 			--End Test case CommonRequestCheck.5.5.11
-		
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.5.12
@@ -13188,12 +12635,12 @@ end
 								frequencyFraction = 3,
 								band = "AM"
 							}
-						}				
+						}
 					})
-					
+
 					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application1"],
 									moduleType = "RADIO",
 									zone =
@@ -13206,44 +12653,44 @@ end
 										level = 0
 									}
 					})
-					:Do(function(_,data)						
+					:Do(function(_,data)
 						--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL and HMI auto reject this request.
 						self.hmiConnection:Send('{"jsonrpc":"2.0","id":'..tostring(data.id)..',"error":{"code":4,"message":"Already consented!","data":{"method":"RC.GetInteriorVehicleDataConsent"}}}')
-					end)								
-					
+					end)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false
 					self.mobileSession1:ExpectResponse(cid, { success = false, resultCode = "USER_DISALLOWED" })
 				end
 			--End Test case CommonRequestCheck.5.5.12
-		
+
 		-----------------------------------------------------------------------------------------
-	--End Test case CommonRequestCheck.5.5	
-	
-	
+	--End Test case CommonRequestCheck.5.5
+
+
 	--Begin Test case CommonRequestCheck.5.6
 	--Description: 	For SetInteriorVehicleData
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-966
 				--TC: REVSDL-1385, REVSDL-1386
 
-		--Verification criteria: 
+		--Verification criteria:
 				--In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies
 
 		-----------------------------------------------------------------------------------------
-				
+
 			--Begin Test case Precondition.5.
 			--Description: Register new session
 				function Test:PreconditionNewSession()
 					--New session1
 					self.mobileSession1 = mobile_session.MobileSession(
-						self.expectations_list,
-						self.mobileConnection)						
+						self,
+						self.mobileConnection)
 				end
 			--End Test case Precondition.5.
 
 		-----------------------------------------------------------------------------------------
-			
+
 			--Begin Test case Precondition.5.
 			--Description: Register App1 for precondition
 					function Test:TC1_PassengerDevice_App1()
@@ -13264,9 +12711,9 @@ end
 								  appID = "1"
 								})
 
-								EXPECT_HMICALL("BasicCommunication.OnAppRegistered", 
+								EXPECT_HMICALL("BasicCommunication.OnAppRegistered",
 								{
-								  application = 
+								  application =
 								  {
 									appName = "Test Application1"
 								  }
@@ -13274,20 +12721,20 @@ end
 								:Do(function(_,data)
 									self.applications["Test Application1"] = data.params.application.appID
 								end)
-								
+
 								--SDL sends RegisterAppInterface_response (success:true) with the following resultCodes: SUCCESS
 								self.mobileSession1:ExpectResponse(CorIdRegister, { success = true, resultCode = "SUCCESS" })
-								
+
 								--mobile side: Expect OnPermissionsChange notification for Passenger's device
-								self.mobileSession1:ExpectNotification("OnPermissionsChange", arrayGroups_nonPrimaryRC )								
-								
+								self.mobileSession1:ExpectNotification("OnPermissionsChange", arrayGroups_nonPrimaryRC )
+
 								--check OnHMIStatus with deviceRank = "PASSENGER"
 								self.mobileSession1:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", deviceRank = "PASSENGER" })
 								:Timeout(3000)
-								
+
 							end)
 						end
-			--End Test case Precondition.5.				
+			--End Test case Precondition.5.
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.6.1
@@ -13311,12 +12758,12 @@ end
 								frequencyFraction = 3,
 								band = "FM"
 							}
-						}				
+						}
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -13329,10 +12776,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect RC.SetInteriorVehicleData request
 							EXPECT_HMICALL("RC.SetInteriorVehicleData")
 							:Do(function(_,data)
@@ -13353,18 +12800,18 @@ end
 													frequencyFraction = 3,
 													band = "FM"
 												}
-											}	
+											}
 									})
-									
+
 								end)
-					end)								
-					
+					end)
+
 					self.mobileSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.5.6.1
-		
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.5.6.2
 			--Description: application sends SetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE (first time, asking driver's permission)
 				function Test:SetInterior_App2LeftCLIMATE_2()
@@ -13374,7 +12821,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -13391,10 +12838,10 @@ end
 							}
 						}
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application1"],
 									moduleType = "CLIMATE",
 									zone =
@@ -13407,10 +12854,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect RC.SetInteriorVehicleData request
 							EXPECT_HMICALL("RC.SetInteriorVehicleData")
 							:Do(function(_,data)
@@ -13419,7 +12866,7 @@ end
 										moduleData =
 										{
 											moduleType = "CLIMATE",
-											moduleZone = 
+											moduleZone =
 											{
 												colspan = 2,
 												row = 1,
@@ -13436,16 +12883,16 @@ end
 											}
 										}
 									})
-									
+
 								end)
-					end)								
-					
+					end)
+
 					self.mobileSession1:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.5.6.2
-		
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.5.6.3
 			--Description: application sends ButtonPress as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE in the second time (doesn't ask driver's permission)
 				function Test:ButtonPress_App2LeftCLIMATE_3()
@@ -13463,12 +12910,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "SHORT",
-						buttonName = "LOWER_VENT"						
+						buttonName = "LOWER_VENT"
 					})
-					
-					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI 
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+
+					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application1"],
 									moduleType = "CLIMATE",
 									zone =
@@ -13483,10 +12930,10 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect Buttons.ButtonPress request
-					EXPECT_HMICALL("Buttons.ButtonPress", 
-									{ 
+					EXPECT_HMICALL("Buttons.ButtonPress",
+									{
 										zone =
 										{
 											colspan = 2,
@@ -13503,13 +12950,13 @@ end
 						:Do(function(_,data)
 							--hmi side: sending Buttons.ButtonPress response
 							self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-						end)							
-					
+						end)
+
 					self.mobileSession1:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.5.6.3
-		
-		-----------------------------------------------------------------------------------------	
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.6.4
 			--Description: application sends ButtonPress as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE in the third time doesn't ask driver's permission)
@@ -13528,12 +12975,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "LONG",
-						buttonName = "DEFROST_MAX"						
+						buttonName = "DEFROST_MAX"
 					})
-					
-					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI 
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+
+					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application1"],
 									moduleType = "CLIMATE",
 									zone =
@@ -13548,10 +12995,10 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect Buttons.ButtonPress request
-					EXPECT_HMICALL("Buttons.ButtonPress", 
-									{ 
+					EXPECT_HMICALL("Buttons.ButtonPress",
+									{
 										zone =
 										{
 											colspan = 2,
@@ -13568,14 +13015,14 @@ end
 						:Do(function(_,data)
 							--hmi side: sending Buttons.ButtonPress response
 							self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-						end)							
-					
+						end)
+
 					self.mobileSession1:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.5.6.4
-		
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.5.6.5
 			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE in the second time(doesn't ask driver's permission)
 				function Test:GetInterior_DifferentAppLeftCLIMATE_5()
@@ -13585,7 +13032,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -13595,12 +13042,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application1"],
 									moduleType = "CLIMATE",
 									zone =
@@ -13615,7 +13062,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.GetInteriorVehicleData request
 					EXPECT_HMICALL("RC.GetInteriorVehicleData")
 					:Do(function(_,data)
@@ -13624,7 +13071,7 @@ end
 								moduleData =
 								{
 									moduleType = "CLIMATE",
-									moduleZone = 
+									moduleZone =
 									{
 										colspan = 2,
 										row = 1,
@@ -13647,14 +13094,14 @@ end
 									}
 								}
 							})
-							
-					end)								
-					
+
+					end)
+
 					self.mobileSession1:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.5.6.5
-		
-		-----------------------------------------------------------------------------------------		
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.6.6
 			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE in the third time (doesn't ask driver's permission)
@@ -13665,7 +13112,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -13675,12 +13122,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = false							
+						subscribe = false
 					})
-					
+
 					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application1"],
 									moduleType = "CLIMATE",
 									zone =
@@ -13695,7 +13142,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.GetInteriorVehicleData request
 					EXPECT_HMICALL("RC.GetInteriorVehicleData")
 					:Do(function(_,data)
@@ -13704,7 +13151,7 @@ end
 								moduleData =
 								{
 									moduleType = "CLIMATE",
-									moduleZone = 
+									moduleZone =
 									{
 										colspan = 2,
 										row = 1,
@@ -13727,13 +13174,13 @@ end
 									}
 								}
 							})
-							
-					end)								
-					
+
+					end)
+
 					self.mobileSession1:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.5.6.6
-		
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.6.7
@@ -13745,7 +13192,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -13762,10 +13209,10 @@ end
 							}
 						}
 					})
-					
+
 					--hmi side: expect doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application1"],
 									moduleType = "CLIMATE",
 									zone =
@@ -13780,7 +13227,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.SetInteriorVehicleData request
 					EXPECT_HMICALL("RC.SetInteriorVehicleData")
 					:Do(function(_,data)
@@ -13789,7 +13236,7 @@ end
 								moduleData =
 								{
 									moduleType = "CLIMATE",
-									moduleZone = 
+									moduleZone =
 									{
 										colspan = 2,
 										row = 1,
@@ -13806,15 +13253,15 @@ end
 									}
 								}
 							})
-							
-					end)								
-					
+
+					end)
+
 					self.mobileSession1:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.5.6.7
-		
-		-----------------------------------------------------------------------------------------		
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.5.6.8
 			--Description: application sends SetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE in the third time (doesn't ask driver's permission)
 				function Test:SetInterior_DifferentAppLeftCLIMATE_8()
@@ -13824,7 +13271,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -13841,10 +13288,10 @@ end
 							}
 						}
 					})
-					
+
 					--hmi side: expect doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application1"],
 									moduleType = "CLIMATE",
 									zone =
@@ -13859,7 +13306,7 @@ end
 					})
 					:Times(0)
 
-							
+
 					--hmi side: expect RC.SetInteriorVehicleData request
 					EXPECT_HMICALL("RC.SetInteriorVehicleData")
 					:Do(function(_,data)
@@ -13868,7 +13315,7 @@ end
 								moduleData =
 								{
 									moduleType = "CLIMATE",
-									moduleZone = 
+									moduleZone =
 									{
 										colspan = 2,
 										row = 1,
@@ -13885,14 +13332,14 @@ end
 									}
 								}
 							})
-							
-					end)								
-					
+
+					end)
+
 					self.mobileSession1:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.5.6.8
-		
-		-----------------------------------------------------------------------------------------	
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.6.9
 			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = RADIO in the second time(doesn't ask driver's permission)
@@ -13903,7 +13350,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -13913,12 +13360,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application1"],
 									moduleType = "RADIO",
 									zone =
@@ -13931,17 +13378,17 @@ end
 										level = 0
 									}
 					})
-					:Do(function(_,data)						
+					:Do(function(_,data)
 						--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL and HMI auto reject this request.
 						self.hmiConnection:Send('{"jsonrpc":"2.0","id":'..tostring(data.id)..',"error":{"code":4,"message":"Already consented!","data":{"method":"RC.GetInteriorVehicleDataConsent"}}}')
-					end)								
-					
+					end)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false
 					self.mobileSession1:ExpectResponse(cid, { success = false, resultCode = "USER_DISALLOWED" })
 				end
 			--End Test case CommonRequestCheck.5.6.9
-			
-		-----------------------------------------------------------------------------------------		
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.6.10
 			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = RADIO in the third time(doesn't ask driver's permission)
@@ -13952,7 +13399,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -13962,12 +13409,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = false							
+						subscribe = false
 					})
-					
+
 					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application1"],
 									moduleType = "RADIO",
 									zone =
@@ -13980,18 +13427,18 @@ end
 										level = 0
 									}
 					})
-					:Do(function(_,data)						
+					:Do(function(_,data)
 						--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL and HMI auto reject this request.
 						self.hmiConnection:Send('{"jsonrpc":"2.0","id":'..tostring(data.id)..',"error":{"code":4,"message":"Already consented!","data":{"method":"RC.GetInteriorVehicleDataConsent"}}}')
-					end)								
-					
+					end)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false
 					self.mobileSession1:ExpectResponse(cid, { success = false, resultCode = "USER_DISALLOWED" })
 				end
 			--End Test case CommonRequestCheck.5.6.10
-		
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.5.6.11
 			--Description: application sends SetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = RADIO in the second time(doesn't ask driver's permission)
 				function Test:SetInterior_DifferentAppLeftRADIO_11()
@@ -14013,12 +13460,12 @@ end
 								frequencyFraction = 3,
 								band = "FM"
 							}
-						}				
+						}
 					})
-					
+
 					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application1"],
 									moduleType = "RADIO",
 									zone =
@@ -14031,16 +13478,16 @@ end
 										level = 0
 									}
 					})
-					:Do(function(_,data)						
+					:Do(function(_,data)
 						--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL and HMI auto reject this request.
 						self.hmiConnection:Send('{"jsonrpc":"2.0","id":'..tostring(data.id)..',"error":{"code":4,"message":"Already consented!","data":{"method":"RC.GetInteriorVehicleDataConsent"}}}')
-					end)								
-					
+					end)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false
 					self.mobileSession1:ExpectResponse(cid, { success = false, resultCode = "USER_DISALLOWED" })
 				end
 			--End Test case CommonRequestCheck.5.6.11
-		
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.6.12
@@ -14064,12 +13511,12 @@ end
 								frequencyFraction = 3,
 								band = "AM"
 							}
-						}				
+						}
 					})
-					
+
 					--hmi side: expect RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application1"],
 									moduleType = "RADIO",
 									zone =
@@ -14082,46 +13529,46 @@ end
 										level = 0
 									}
 					})
-					:Do(function(_,data)						
+					:Do(function(_,data)
 						--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL and HMI auto reject this request.
 						self.hmiConnection:Send('{"jsonrpc":"2.0","id":'..tostring(data.id)..',"error":{"code":4,"message":"Already consented!","data":{"method":"RC.GetInteriorVehicleDataConsent"}}}')
-					end)								
-					
+					end)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false
 					self.mobileSession1:ExpectResponse(cid, { success = false, resultCode = "USER_DISALLOWED" })
 				end
 			--End Test case CommonRequestCheck.5.6.12
 		-----------------------------------------------------------------------------------------
 	--End Test case CommonRequestCheck.5.6
-	
-	
---=================================================END TEST CASES 5==========================================================--	
-	
-	
-	
-	
-	
+
+
+--=================================================END TEST CASES 5==========================================================--
+
+
+
+
+
 --=================================================BEGIN TEST CASES 6==========================================================--
 	--Begin Test suit CommonRequestCheck.6 for Req.#6
 
-	--Description: 1. In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies 
-						--and "equipment" section of policies database contains this RPC name with <params> in <moduleType> in "driver_allow" sub-section of <interiorZone> section 
-						--and the vehicle (HMI) responds with "disallow" for RC.GetInteriorVehicleDataConsent 
+	--Description: 1. In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies
+						--and "equipment" section of policies database contains this RPC name with <params> in <moduleType> in "driver_allow" sub-section of <interiorZone> section
+						--and the vehicle (HMI) responds with "disallow" for RC.GetInteriorVehicleDataConsent
 						--RSDL must respond with "resultCode: USER_DISALLOWED, success: false, info: "The driver disallows this remote-control RPC" to this application.
-	
+
 
 	--Begin Test case CommonRequestCheck.6.1
 	--Description: 	For ButtonPress
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-966
 				--TC: REVSDL-1389
 
-		--Verification criteria: 
-				--In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies 
+		--Verification criteria:
+				--In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies
 
 		-----------------------------------------------------------------------------------------
-				
+
 			--Begin Test case CommonRequestCheck.6.1.1
 			--Description: application sends ButtonPress as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO
 				function Test:ButtonPress_DriverAllowFrontRADIO()
@@ -14139,12 +13586,12 @@ end
 						},
 						moduleType = "RADIO",
 						buttonPressMode = "LONG",
-						buttonName = "VOLUME_UP"						
+						buttonName = "VOLUME_UP"
 					})
-					
+
 					--hmi side: expect RSDL sends RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -14157,13 +13604,13 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = false})
-							
+
 							--hmi side: expect Buttons.ButtonPress request
-							EXPECT_HMICALL("Buttons.ButtonPress", 
-											{ 
+							EXPECT_HMICALL("Buttons.ButtonPress",
+											{
 												zone =
 												{
 													colspan = 2,
@@ -14182,14 +13629,14 @@ end
 								--hmi side: sending Buttons.ButtonPress response
 								self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 							end)
-							
-					end)								
-					
+
+					end)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false, info: "The driver disallows this remote-control RPC" to this application.
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "USER_DISALLOWED", info = "The driver disallows this remote-control RPC" })
 				end
 			--End Test case CommonRequestCheck.6.1.1
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.6.1.2
@@ -14209,12 +13656,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "SHORT",
-						buttonName = "LOWER_VENT"						
+						buttonName = "LOWER_VENT"
 					})
-					
+
 					--hmi side: expect RSDL sends RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -14227,13 +13674,13 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = false})
-							
+
 							--hmi side: expect Buttons.ButtonPress request
-							EXPECT_HMICALL("Buttons.ButtonPress", 
-											{ 
+							EXPECT_HMICALL("Buttons.ButtonPress",
+											{
 												zone =
 												{
 													colspan = 2,
@@ -14248,29 +13695,29 @@ end
 												buttonName = "LOWER_VENT"
 							})
 							:Times(0)
-					end)								
-					
+					end)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false, info: "The driver disallows this remote-control RPC" to this application.
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "USER_DISALLOWED", info = "The driver disallows this remote-control RPC" })
 				end
 			--End Test case CommonRequestCheck.6.1.2
-		
+
 		-----------------------------------------------------------------------------------------
 	--End Test case CommonRequestCheck.6.1
-	
-		
+
+
 	--Begin Test case CommonRequestCheck.6.2
 	--Description: 	For GetInteriorVehicleData
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-966
 				--TC: REVSDL-1389
 
-		--Verification criteria: 
-				--In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies 
+		--Verification criteria:
+				--In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies
 
 		-----------------------------------------------------------------------------------------
-				
+
 			--Begin Test case CommonRequestCheck.6.2.1
 			--Description: application sends GetInteriorVehicleData as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO
 				function Test:GetInterior_DriverAllowFrontRADIO()
@@ -14280,7 +13727,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -14290,12 +13737,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RSDL sends RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -14308,10 +13755,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = false})
-							
+
 							--hmi side: expect RC.GetInteriorVehicleData request
 							EXPECT_HMICALL("RC.GetInteriorVehicleData")
 							:Times(0)
@@ -14349,17 +13796,17 @@ end
 													radioEnable = true,
 													state = "ACQUIRING"
 												}
-											}	
+											}
 							})
-									
+
 							end)
-					end)								
-					
+					end)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false, info: "The driver disallows this remote-control RPC" to this application.
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "USER_DISALLOWED", info = "The driver disallows this remote-control RPC" })
 				end
 			--End Test case CommonRequestCheck.6.2.1
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.6.2.2
@@ -14371,7 +13818,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -14381,12 +13828,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RSDL sends RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -14399,10 +13846,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = false})
-							
+
 							--hmi side: expect RC.GetInteriorVehicleData request
 							EXPECT_HMICALL("RC.GetInteriorVehicleData")
 							:Times(0)
@@ -14440,19 +13887,19 @@ end
 													radioEnable = true,
 													state = "ACQUIRING"
 												}
-											}	
+											}
 									})
-									
+
 							end)
-					end)								
-					
+					end)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false, info: "The driver disallows this remote-control RPC" to this application.
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "USER_DISALLOWED", info = "The driver disallows this remote-control RPC" })
 				end
 			--End Test case CommonRequestCheck.6.2.2
-		
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.6.2.3
 			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE
 				function Test:GetInterior_DriverAllowLeftCLIMATE()
@@ -14462,7 +13909,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -14472,12 +13919,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RSDL sends RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -14490,10 +13937,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = false})
-							
+
 							--hmi side: expect RC.GetInteriorVehicleData request
 							EXPECT_HMICALL("RC.GetInteriorVehicleData")
 							:Times(0)
@@ -14503,7 +13950,7 @@ end
 										moduleData =
 										{
 											moduleType = "CLIMATE",
-											moduleZone = 
+											moduleZone =
 											{
 												colspan = 2,
 												row = 1,
@@ -14526,31 +13973,31 @@ end
 											}
 										}
 									})
-									
+
 							end)
-					end)								
-					
+					end)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false, info: "The driver disallows this remote-control RPC" to this application.
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "USER_DISALLOWED", info = "The driver disallows this remote-control RPC" })
 				end
 			--End Test case CommonRequestCheck.6.2.3
-		
-		-----------------------------------------------------------------------------------------		
+
+		-----------------------------------------------------------------------------------------
 	--End Test case CommonRequestCheck.6.2
-		
-		
+
+
 	--Begin Test case CommonRequestCheck.6.3
 	--Description: 	For GetInteriorVehicleData
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-966
 				--TC: REVSDL-1389
 
-		--Verification criteria: 
-				--In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies 
+		--Verification criteria:
+				--In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies
 
 		-----------------------------------------------------------------------------------------
-				
+
 			--Begin Test case CommonRequestCheck.6.3.1
 			--Description: application sends SetInteriorVehicleData as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO
 				function Test:SetInterior_DriverAllowFrontRADIO()
@@ -14588,12 +14035,12 @@ end
 								radioEnable = true,
 								state = "ACQUIRING"
 							}
-						}				
+						}
 					})
-					
+
 					--hmi side: expect RSDL sends RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -14606,10 +14053,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = false})
-							
+
 							--hmi side: expect RC.SetInteriorVehicleData request
 							EXPECT_HMICALL("RC.SetInteriorVehicleData")
 							:Times(0)
@@ -14647,17 +14094,17 @@ end
 													radioEnable = true,
 													state = "ACQUIRING"
 												}
-											}	
+											}
 									})
-									
+
 								end)
-					end)								
-					
+					end)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false, info: "The driver disallows this remote-control RPC" to this application.
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "USER_DISALLOWED", info = "The driver disallows this remote-control RPC" })
 				end
 			--End Test case CommonRequestCheck.6.3.1
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.6.3.2
@@ -14681,12 +14128,12 @@ end
 								frequencyFraction = 3,
 								band = "FM"
 							}
-						}				
+						}
 					})
-					
+
 					--hmi side: expect RSDL sends RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -14699,10 +14146,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = false})
-							
+
 							--hmi side: expect RC.SetInteriorVehicleData request
 							EXPECT_HMICALL("RC.SetInteriorVehicleData")
 							:Times(0)
@@ -14724,19 +14171,19 @@ end
 													frequencyFraction = 3,
 													band = "FM"
 												}
-											}	
+											}
 									})
-									
+
 								end)
-					end)								
-					
+					end)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false, info: "The driver disallows this remote-control RPC" to this application.
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "USER_DISALLOWED", info = "The driver disallows this remote-control RPC" })
 				end
 			--End Test case CommonRequestCheck.6.3.2
-		
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.6.3.3
 			--Description: application sends SetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE
 				function Test:SetInterior_DriverAllowLeftCLIMATE()
@@ -14746,7 +14193,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -14763,10 +14210,10 @@ end
 							}
 						}
 					})
-					
+
 					--hmi side: expect RSDL sends RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -14779,10 +14226,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = false})
-							
+
 							--hmi side: expect RC.SetInteriorVehicleData request
 							EXPECT_HMICALL("RC.SetInteriorVehicleData")
 							:Times(0)
@@ -14792,7 +14239,7 @@ end
 										moduleData =
 										{
 											moduleType = "CLIMATE",
-											moduleZone = 
+											moduleZone =
 											{
 												colspan = 2,
 												row = 1,
@@ -14809,46 +14256,46 @@ end
 											}
 										}
 									})
-									
+
 								end)
-					end)								
-					
+					end)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false, info: "The driver disallows this remote-control RPC" to this application.
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "USER_DISALLOWED", info = "The driver disallows this remote-control RPC" })
 				end
 			--End Test case CommonRequestCheck.6.3.3
-		
-		-----------------------------------------------------------------------------------------		
+
+		-----------------------------------------------------------------------------------------
 	--End Test case CommonRequestCheck.6.3
-		
---=================================================END TEST CASES 6==========================================================--	
-	
-	
-	
-	
+
+--=================================================END TEST CASES 6==========================================================--
+
+
+
+
 
 
 --=================================================BEGIN TEST CASES 7==========================================================--
 	--Begin Test suit CommonRequestCheck.7 for Req.#7
 
-	--Description: 7. In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies 
-						--and "equipment" section of policies database contains this RPC name with <params> in <moduleType> in "driver_allow" sub-section of <interiorZone> section 
-						--and the vehicle (HMI) responds with "disallow" for RC.GetInteriorVehicleDataConsent 
+	--Description: 7. In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies
+						--and "equipment" section of policies database contains this RPC name with <params> in <moduleType> in "driver_allow" sub-section of <interiorZone> section
+						--and the vehicle (HMI) responds with "disallow" for RC.GetInteriorVehicleDataConsent
 						--RSDL must respond with "resultCode: USER_DISALLOWED, success: false, info: "The driver disallows this remote-control RPC" to this application.
-	
+
 
 	--Begin Test case CommonRequestCheck.7.1
 	--Description: 	For ButtonPress
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-966
 				--TC: REVSDL-1390
 
-		--Verification criteria: 
-				--In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies 
+		--Verification criteria:
+				--In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies
 
 		-----------------------------------------------------------------------------------------
-				
+
 			--Begin Test case CommonRequestCheck.7.1.1
 			--Description: application sends ButtonPress as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO
 				function Test:ButtonPress_DriverAllowFrontRADIO()
@@ -14866,12 +14313,12 @@ end
 						},
 						moduleType = "RADIO",
 						buttonPressMode = "LONG",
-						buttonName = "VOLUME_UP"						
+						buttonName = "VOLUME_UP"
 					})
-					
+
 					--hmi side: expect RSDL sends RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -14885,13 +14332,13 @@ end
 									}
 								})
 						:Do(function(_,data)
-							local function HMIResponse()						
+							local function HMIResponse()
 								--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 								self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "TIMED_OUT", {})
-								
+
 								--hmi side: expect Buttons.ButtonPress request
-								EXPECT_HMICALL("Buttons.ButtonPress", 
-												{ 
+								EXPECT_HMICALL("Buttons.ButtonPress",
+												{
 													zone =
 													{
 														colspan = 2,
@@ -14912,15 +14359,15 @@ end
 								end)
 							end
 
-							RUN_AFTER(HMIResponse, 10000)							
-					end)								
-					
+							RUN_AFTER(HMIResponse, 10000)
+					end)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false, info: "The driver disallows this remote-control RPC" to this application.
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "USER_DISALLOWED", info = "The driver disallows this remote-control RPC" })
 					:Timeout(11000)
 				end
 			--End Test case CommonRequestCheck.7.1.1
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.7.1.2
@@ -14940,12 +14387,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "SHORT",
-						buttonName = "LOWER_VENT"						
+						buttonName = "LOWER_VENT"
 					})
-					
+
 					--hmi side: expect RSDL sends RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -14959,13 +14406,13 @@ end
 									}
 								})
 						:Do(function(_,data)
-							local function HMIResponse()						
+							local function HMIResponse()
 									--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 									self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "TIMED_OUT", {})
-									
+
 									--hmi side: expect Buttons.ButtonPress request
-									EXPECT_HMICALL("Buttons.ButtonPress", 
-													{ 
+									EXPECT_HMICALL("Buttons.ButtonPress",
+													{
 														zone =
 														{
 															colspan = 2,
@@ -14982,31 +14429,31 @@ end
 									:Times(0)
 							end
 
-							RUN_AFTER(HMIResponse, 10000)									
-					end)								
-					
+							RUN_AFTER(HMIResponse, 10000)
+					end)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false, info: "The driver disallows this remote-control RPC" to this application.
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "USER_DISALLOWED", info = "The driver disallows this remote-control RPC" })
 					:Timeout(11000)
 				end
 			--End Test case CommonRequestCheck.7.1.2
-		
+
 		-----------------------------------------------------------------------------------------
 	--End Test case CommonRequestCheck.7.1
-	
-		
+
+
 	--Begin Test case CommonRequestCheck.7.2
 	--Description: 	For GetInteriorVehicleData
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-966
 				--TC: REVSDL-1390
 
-		--Verification criteria: 
-				--In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies 
+		--Verification criteria:
+				--In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies
 
 		-----------------------------------------------------------------------------------------
-				
+
 			--Begin Test case CommonRequestCheck.7.2.1
 			--Description: application sends GetInteriorVehicleData as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO
 				function Test:GetInterior_DriverAllowFrontRADIO()
@@ -15016,7 +14463,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -15026,12 +14473,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RSDL sends RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -15046,10 +14493,10 @@ end
 								})
 						:Do(function(_,data)
 
-							local function HMIResponse()						
+							local function HMIResponse()
 									--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 									self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "TIMED_OUT", {})
-									
+
 									--hmi side: expect RC.GetInteriorVehicleData request
 									EXPECT_HMICALL("RC.GetInteriorVehicleData")
 									:Times(0)
@@ -15087,21 +14534,21 @@ end
 															radioEnable = true,
 															state = "ACQUIRING"
 														}
-													}	
+													}
 									})
-											
+
 									end)
 							end
 
-							RUN_AFTER(HMIResponse, 10000)									
-					end)								
-					
+							RUN_AFTER(HMIResponse, 10000)
+					end)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false, info: "The driver disallows this remote-control RPC" to this application.
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "USER_DISALLOWED", info = "The driver disallows this remote-control RPC" })
 					:Timeout(11000)
 				end
 			--End Test case CommonRequestCheck.7.2.1
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.7.2.2
@@ -15113,7 +14560,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -15123,12 +14570,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RSDL sends RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -15142,10 +14589,10 @@ end
 									}
 								})
 						:Do(function(_,data)
-							local function HMIResponse()						
+							local function HMIResponse()
 									--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 									self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "TIMED_OUT", {})
-									
+
 									--hmi side: expect RC.GetInteriorVehicleData request
 									EXPECT_HMICALL("RC.GetInteriorVehicleData")
 									:Times(0)
@@ -15183,23 +14630,23 @@ end
 															radioEnable = true,
 															state = "ACQUIRING"
 														}
-													}	
+													}
 											})
-											
+
 									end)
 							end
 
-							RUN_AFTER(HMIResponse, 10000)									
-					end)								
-					
+							RUN_AFTER(HMIResponse, 10000)
+					end)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false, info: "The driver disallows this remote-control RPC" to this application.
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "USER_DISALLOWED", info = "The driver disallows this remote-control RPC" })
 					:Timeout(11000)
 				end
 			--End Test case CommonRequestCheck.7.2.2
-		
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.7.2.3
 			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE
 				function Test:GetInterior_DriverAllowLeftCLIMATE()
@@ -15209,7 +14656,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -15219,12 +14666,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RSDL sends RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -15238,10 +14685,10 @@ end
 									}
 								})
 						:Do(function(_,data)
-							local function HMIResponse()						
+							local function HMIResponse()
 									--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 									self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "TIMED_OUT", {})
-									
+
 									--hmi side: expect RC.GetInteriorVehicleData request
 									EXPECT_HMICALL("RC.GetInteriorVehicleData")
 									:Times(0)
@@ -15251,7 +14698,7 @@ end
 												moduleData =
 												{
 													moduleType = "CLIMATE",
-													moduleZone = 
+													moduleZone =
 													{
 														colspan = 2,
 														row = 1,
@@ -15274,35 +14721,35 @@ end
 													}
 												}
 											})
-											
+
 									end)
 							end
 
-							RUN_AFTER(HMIResponse, 10000)									
-					end)								
-					
+							RUN_AFTER(HMIResponse, 10000)
+					end)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false, info: "The driver disallows this remote-control RPC" to this application.
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "USER_DISALLOWED", info = "The driver disallows this remote-control RPC" })
 					:Timeout(11000)
 				end
 			--End Test case CommonRequestCheck.7.2.3
-		
+
 		-----------------------------------------------------------------------------------------
 	--End Test case CommonRequestCheck.7.2
-		
-		
+
+
 	--Begin Test case CommonRequestCheck.7.3
 	--Description: 	For GetInteriorVehicleData
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-966
 				--TC: REVSDL-1390
 
-		--Verification criteria: 
-				--In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies 
+		--Verification criteria:
+				--In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies
 
 		-----------------------------------------------------------------------------------------
-				
+
 			--Begin Test case CommonRequestCheck.7.3.1
 			--Description: application sends SetInteriorVehicleData as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO
 				function Test:SetInterior_DriverAllowFrontRADIO()
@@ -15340,12 +14787,12 @@ end
 								radioEnable = true,
 								state = "ACQUIRING"
 							}
-						}				
+						}
 					})
-					
+
 					--hmi side: expect RSDL sends RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -15359,10 +14806,10 @@ end
 									}
 								})
 						:Do(function(_,data)
-							local function HMIResponse()						
+							local function HMIResponse()
 									--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 									self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "TIMED_OUT", {})
-									
+
 									--hmi side: expect RC.SetInteriorVehicleData request
 									EXPECT_HMICALL("RC.SetInteriorVehicleData")
 									:Times(0)
@@ -15400,21 +14847,21 @@ end
 															radioEnable = true,
 															state = "ACQUIRING"
 														}
-													}	
+													}
 											})
-											
+
 										end)
 							end
 
-							RUN_AFTER(HMIResponse, 10000)										
-					end)								
-					
+							RUN_AFTER(HMIResponse, 10000)
+					end)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false, info: "The driver disallows this remote-control RPC" to this application.
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "USER_DISALLOWED", info = "The driver disallows this remote-control RPC" })
 					:Timeout(11000)
 				end
 			--End Test case CommonRequestCheck.7.3.1
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.7.3.2
@@ -15438,12 +14885,12 @@ end
 								frequencyFraction = 3,
 								band = "FM"
 							}
-						}				
+						}
 					})
-					
+
 					--hmi side: expect RSDL sends RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -15457,10 +14904,10 @@ end
 									}
 								})
 						:Do(function(_,data)
-							local function HMIResponse()						
+							local function HMIResponse()
 									--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 									self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "TIMED_OUT", {})
-									
+
 									--hmi side: expect RC.SetInteriorVehicleData request
 									EXPECT_HMICALL("RC.SetInteriorVehicleData")
 									:Times(0)
@@ -15482,23 +14929,23 @@ end
 															frequencyFraction = 3,
 															band = "FM"
 														}
-													}	
+													}
 											})
-											
+
 										end)
 							end
 
-							RUN_AFTER(HMIResponse, 10000)										
-					end)								
-					
+							RUN_AFTER(HMIResponse, 10000)
+					end)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false, info: "The driver disallows this remote-control RPC" to this application.
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "USER_DISALLOWED", info = "The driver disallows this remote-control RPC" })
 					:Timeout(11000)
 				end
 			--End Test case CommonRequestCheck.7.3.2
-		
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.7.3.3
 			--Description: application sends SetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE
 				function Test:SetInterior_DriverAllowLeftCLIMATE()
@@ -15508,7 +14955,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -15525,10 +14972,10 @@ end
 							}
 						}
 					})
-					
+
 					--hmi side: expect RSDL sends RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -15542,10 +14989,10 @@ end
 									}
 								})
 						:Do(function(_,data)
-							local function HMIResponse()						
+							local function HMIResponse()
 									--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 									self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "TIMED_OUT", {})
-									
+
 									--hmi side: expect RC.SetInteriorVehicleData request
 									EXPECT_HMICALL("RC.SetInteriorVehicleData")
 									:Times(0)
@@ -15555,7 +15002,7 @@ end
 												moduleData =
 												{
 													moduleType = "CLIMATE",
-													moduleZone = 
+													moduleZone =
 													{
 														colspan = 2,
 														row = 1,
@@ -15572,51 +15019,51 @@ end
 													}
 												}
 											})
-											
+
 										end)
 							end
 
-							RUN_AFTER(HMIResponse, 10000)										
-					end)								
-					
+							RUN_AFTER(HMIResponse, 10000)
+					end)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false, info: "The driver disallows this remote-control RPC" to this application.
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "USER_DISALLOWED", info = "The driver disallows this remote-control RPC" })
 					:Timeout(11000)
 				end
 			--End Test case CommonRequestCheck.7.3.3
-		
-		-----------------------------------------------------------------------------------------		
+
+		-----------------------------------------------------------------------------------------
 	--End Test case CommonRequestCheck.7.3
-		
---=================================================END TEST CASES 7==========================================================--		
-	
-	
-	
-	
-	
-	
-	
+
+--=================================================END TEST CASES 7==========================================================--
+
+
+
+
+
+
+
 --=================================================BEGIN TEST CASES 8==========================================================--
 	--Begin Test suit CommonRequestCheck.8 for Req.#8
 
-	--Description: 8. In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies 
-						--and "equipment" section of policies database contains this RPC name with <params> in <moduleType> in "driver_allow" sub-section of <interiorZone> section 
-						--and the vehicle (HMI) responds with any erroneous resultCode for RC.GetInteriorVehicleDataConsent 
+	--Description: 8. In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies
+						--and "equipment" section of policies database contains this RPC name with <params> in <moduleType> in "driver_allow" sub-section of <interiorZone> section
+						--and the vehicle (HMI) responds with any erroneous resultCode for RC.GetInteriorVehicleDataConsent
 						--RSDL must respond with "resultCode: USER_DISALLOWED, success: false, info: "The driver disallows this remote-control RPC" to this application.
-	
+
 
 	--Begin Test case CommonRequestCheck.8.1
 	--Description: 	For ButtonPress
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-966
 				--TC: REVSDL-1391
 
-		--Verification criteria: 
-				--In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies 
+		--Verification criteria:
+				--In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies
 
 		-----------------------------------------------------------------------------------------
-				
+
 			--Begin Test case CommonRequestCheck.8.1.1
 			--Description: application sends ButtonPress as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO
 				function Test:ButtonPress_DriverAllowFrontRADIO()
@@ -15634,12 +15081,12 @@ end
 						},
 						moduleType = "RADIO",
 						buttonPressMode = "LONG",
-						buttonName = "VOLUME_UP"						
+						buttonName = "VOLUME_UP"
 					})
-					
+
 					--hmi side: expect RSDL sends RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -15652,13 +15099,13 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", {"SUCCESS"}, {allowed = true})
-							
+
 							--hmi side: expect Buttons.ButtonPress request
-							EXPECT_HMICALL("Buttons.ButtonPress", 
-											{ 
+							EXPECT_HMICALL("Buttons.ButtonPress",
+											{
 												zone =
 												{
 													colspan = 2,
@@ -15677,14 +15124,14 @@ end
 								--hmi side: sending Buttons.ButtonPress response
 								self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 							end)
-							
-					end)								
-					
+
+					end)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false, info: "The driver disallows this remote-control RPC" to this application.
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "USER_DISALLOWED", info = "The driver disallows this remote-control RPC" })
 				end
 			--End Test case CommonRequestCheck.8.1.1
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.8.1.2
@@ -15704,12 +15151,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "SHORT",
-						buttonName = "LOWER_VENT"						
+						buttonName = "LOWER_VENT"
 					})
-					
+
 					--hmi side: expect RSDL sends RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -15722,13 +15169,13 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "ERROR", {allowed = true})
-							
+
 							--hmi side: expect Buttons.ButtonPress request
-							EXPECT_HMICALL("Buttons.ButtonPress", 
-											{ 
+							EXPECT_HMICALL("Buttons.ButtonPress",
+											{
 												zone =
 												{
 													colspan = 2,
@@ -15743,29 +15190,29 @@ end
 												buttonName = "LOWER_VENT"
 							})
 							:Times(0)
-					end)								
-					
+					end)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false, info: "The driver disallows this remote-control RPC" to this application.
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "USER_DISALLOWED", info = "The driver disallows this remote-control RPC" })
 				end
 			--End Test case CommonRequestCheck.8.1.2
-		
+
 		-----------------------------------------------------------------------------------------
 	--End Test case CommonRequestCheck.8.1
-	
-		
+
+
 	--Begin Test case CommonRequestCheck.8.2
 	--Description: 	For GetInteriorVehicleData
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-966
 				--TC: REVSDL-1391
 
-		--Verification criteria: 
-				--In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies 
+		--Verification criteria:
+				--In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies
 
 		-----------------------------------------------------------------------------------------
-				
+
 			--Begin Test case CommonRequestCheck.8.2.1
 			--Description: application sends GetInteriorVehicleData as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO
 				function Test:GetInterior_DriverAllowFrontRADIO()
@@ -15775,7 +15222,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -15785,12 +15232,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RSDL sends RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -15803,10 +15250,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "", {allowed = true})
-							
+
 							--hmi side: expect RC.GetInteriorVehicleData request
 							EXPECT_HMICALL("RC.GetInteriorVehicleData")
 							:Times(0)
@@ -15844,17 +15291,17 @@ end
 													radioEnable = true,
 													state = "ACQUIRING"
 												}
-											}	
+											}
 							})
-									
+
 							end)
-					end)								
-					
+					end)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false, info: "The driver disallows this remote-control RPC" to this application.
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "USER_DISALLOWED", info = "The driver disallows this remote-control RPC" })
 				end
 			--End Test case CommonRequestCheck.8.2.1
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.8.2.2
@@ -15866,7 +15313,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -15876,12 +15323,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RSDL sends RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -15894,10 +15341,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", 123, {allowed = true})
-							
+
 							--hmi side: expect RC.GetInteriorVehicleData request
 							EXPECT_HMICALL("RC.GetInteriorVehicleData")
 							:Times(0)
@@ -15935,19 +15382,19 @@ end
 													radioEnable = true,
 													state = "ACQUIRING"
 												}
-											}	
+											}
 									})
-									
+
 							end)
-					end)								
-					
+					end)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false, info: "The driver disallows this remote-control RPC" to this application.
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "USER_DISALLOWED", info = "The driver disallows this remote-control RPC" })
 				end
 			--End Test case CommonRequestCheck.8.2.2
-		
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.8.2.3
 			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE
 				function Test:GetInterior_DriverAllowLeftCLIMATE()
@@ -15957,7 +15404,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -15967,12 +15414,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RSDL sends RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -15985,10 +15432,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", true, {allowed = true})
-							
+
 							--hmi side: expect RC.GetInteriorVehicleData request
 							EXPECT_HMICALL("RC.GetInteriorVehicleData")
 							:Times(0)
@@ -15998,7 +15445,7 @@ end
 										moduleData =
 										{
 											moduleType = "CLIMATE",
-											moduleZone = 
+											moduleZone =
 											{
 												colspan = 2,
 												row = 1,
@@ -16021,31 +15468,31 @@ end
 											}
 										}
 									})
-									
+
 							end)
-					end)								
-					
+					end)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false, info: "The driver disallows this remote-control RPC" to this application.
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "USER_DISALLOWED", info = "The driver disallows this remote-control RPC" })
 				end
 			--End Test case CommonRequestCheck.8.2.3
-		
-		-----------------------------------------------------------------------------------------		
+
+		-----------------------------------------------------------------------------------------
 	--End Test case CommonRequestCheck.8.2
-		
-		
+
+
 	--Begin Test case CommonRequestCheck.8.3
 	--Description: 	For GetInteriorVehicleData
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-966
 				--TC: REVSDL-1391
 
-		--Verification criteria: 
-				--In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies 
+		--Verification criteria:
+				--In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies
 
 		-----------------------------------------------------------------------------------------
-				
+
 			--Begin Test case CommonRequestCheck.8.3.1
 			--Description: application sends SetInteriorVehicleData as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO
 				function Test:SetInterior_DriverAllowFrontRADIO()
@@ -16083,12 +15530,12 @@ end
 								radioEnable = true,
 								state = "ACQUIRING"
 							}
-						}				
+						}
 					})
-					
+
 					--hmi side: expect RSDL sends RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -16101,10 +15548,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "RADIO", {allowed = true})
-							
+
 							--hmi side: expect RC.SetInteriorVehicleData request
 							EXPECT_HMICALL("RC.SetInteriorVehicleData")
 							:Times(0)
@@ -16142,17 +15589,17 @@ end
 													radioEnable = true,
 													state = "ACQUIRING"
 												}
-											}	
+											}
 									})
-									
+
 								end)
-					end)								
-					
+					end)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false, info: "The driver disallows this remote-control RPC" to this application.
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "USER_DISALLOWED", info = "The driver disallows this remote-control RPC" })
 				end
 			--End Test case CommonRequestCheck.8.3.1
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.8.3.2
@@ -16176,12 +15623,12 @@ end
 								frequencyFraction = 3,
 								band = "FM"
 							}
-						}				
+						}
 					})
-					
+
 					--hmi side: expect RSDL sends RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -16194,10 +15641,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "reboot", {allowed = true})
-							
+
 							--hmi side: expect RC.SetInteriorVehicleData request
 							EXPECT_HMICALL("RC.SetInteriorVehicleData")
 							:Times(0)
@@ -16219,19 +15666,19 @@ end
 													frequencyFraction = 3,
 													band = "FM"
 												}
-											}	
+											}
 									})
-									
+
 								end)
-					end)								
-					
+					end)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false, info: "The driver disallows this remote-control RPC" to this application.
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "USER_DISALLOWED", info = "The driver disallows this remote-control RPC" })
 				end
 			--End Test case CommonRequestCheck.8.3.2
-		
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.8.3.3
 			--Description: application sends SetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE
 				function Test:SetInterior_DriverAllowLeftCLIMATE()
@@ -16241,7 +15688,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -16258,10 +15705,10 @@ end
 							}
 						}
 					})
-					
+
 					--hmi side: expect RSDL sends RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -16274,10 +15721,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", {}, {allowed = true})
-							
+
 							--hmi side: expect RC.SetInteriorVehicleData request
 							EXPECT_HMICALL("RC.SetInteriorVehicleData")
 							:Times(0)
@@ -16287,7 +15734,7 @@ end
 										moduleData =
 										{
 											moduleType = "CLIMATE",
-											moduleZone = 
+											moduleZone =
 											{
 												colspan = 2,
 												row = 1,
@@ -16304,22 +15751,22 @@ end
 											}
 										}
 									})
-									
+
 								end)
-					end)								
-					
+					end)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false, info: "The driver disallows this remote-control RPC" to this application.
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "USER_DISALLOWED", info = "The driver disallows this remote-control RPC" })
 				end
 			--End Test case CommonRequestCheck.8.3.3
-		
-		-----------------------------------------------------------------------------------------		
+
+		-----------------------------------------------------------------------------------------
 	--End Test case CommonRequestCheck.8.3
-		
---=================================================END TEST CASES 8==========================================================--	
-	
-	
-	
+
+--=================================================END TEST CASES 8==========================================================--
+
+
+
 
 
 
@@ -16327,64 +15774,64 @@ end
 	--Begin Test suit CommonRequestCheck.9 for Req.#9
 
 	--Description: 9. In case:
-						--the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies 
-						--and "equipment" section of policies database contains this RPC name with <params> in <moduleType> in "driver_allow" sub-section of <interiorZone> section 
-						--and the vehicle (HMI) responds with "allowed: true" for RSDL's RC.GetInteriorVehicleDataConsent 
-						--and RSDL has processed this (app's initial) RPC 
-						--and another application sends a valid RPC with the same or different <interiorZone> and same <moduleType> and params that exist in "driver_allow" sub-section 
-						--==> RSDL must send a new RC.GetInteriorVehicleDataConsent for such application to the vehicle (HMI) 
+						--the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies
+						--and "equipment" section of policies database contains this RPC name with <params> in <moduleType> in "driver_allow" sub-section of <interiorZone> section
+						--and the vehicle (HMI) responds with "allowed: true" for RSDL's RC.GetInteriorVehicleDataConsent
+						--and RSDL has processed this (app's initial) RPC
+						--and another application sends a valid RPC with the same or different <interiorZone> and same <moduleType> and params that exist in "driver_allow" sub-section
+						--==> RSDL must send a new RC.GetInteriorVehicleDataConsent for such application to the vehicle (HMI)
 						--Source: MOM, p.9
-	
+
 
 	--Begin Test case CommonRequestCheck.9.1
 	--Description: 	For ButtonPress (RADIO)
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-966
 				--TC: REVSDL-1392
 
-		--Verification criteria: 
+		--Verification criteria:
 				--In case: the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies
-				
+
 		-----------------------------------------------------------------------------------------
-				
+
 			--Begin Test case Precondition.9.1.1
 			--Description: Register new session for check OnHMIStatus with deviceRank = "PASSENGER"
 				function Test:PreconditionNewSession()
 					--New session1
 					self.mobileSession1 = mobile_session.MobileSession(
-						self.expectations_list,
+						self,
 						self.mobileConnection)
-					
+
 					--New session2
 					self.mobileSession2 = mobile_session.MobileSession(
-						self.expectations_list,
+						self,
 						self.mobileConnection)
 
 					--New session3
 					self.mobileSession3 = mobile_session.MobileSession(
-						self.expectations_list,
+						self,
 						self.mobileConnection)
-						
+
 					--New session1
 					self.mobileSession4 = mobile_session.MobileSession(
-						self.expectations_list,
+						self,
 						self.mobileConnection)
-					
+
 					--New session2
 					self.mobileSession5 = mobile_session.MobileSession(
-						self.expectations_list,
+						self,
 						self.mobileConnection)
 
 					--New session3
 					self.mobileSession6 = mobile_session.MobileSession(
-						self.expectations_list,
-						self.mobileConnection)						
+						self,
+						self.mobileConnection)
 				end
 			--End Test case Precondition.9.1.1
 
 		-----------------------------------------------------------------------------------------
-			
+
 			--Begin Test case Precondition.9.1.2
 			--Description: Register App1 for precondition
 					function Test:TC1_PassengerDevice_App1()
@@ -16405,9 +15852,9 @@ end
 								  appID = "1"
 								})
 
-								EXPECT_HMICALL("BasicCommunication.OnAppRegistered", 
+								EXPECT_HMICALL("BasicCommunication.OnAppRegistered",
 								{
-								  application = 
+								  application =
 								  {
 									appName = "Test Application1"
 								  }
@@ -16415,23 +15862,23 @@ end
 								:Do(function(_,data)
 									self.applications["Test Application1"] = data.params.application.appID
 								end)
-								
+
 								--SDL sends RegisterAppInterface_response (success:true) with the following resultCodes: SUCCESS
 								self.mobileSession1:ExpectResponse(CorIdRegister, { success = true, resultCode = "SUCCESS" })
-								
+
 								--mobile side: Expect OnPermissionsChange notification for Passenger's device
-								self.mobileSession1:ExpectNotification("OnPermissionsChange", arrayGroups_nonPrimaryRC )								
-								
+								self.mobileSession1:ExpectNotification("OnPermissionsChange", arrayGroups_nonPrimaryRC )
+
 								--check OnHMIStatus with deviceRank = "PASSENGER"
 								self.mobileSession1:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", deviceRank = "PASSENGER" })
 								:Timeout(3000)
-								
+
 							end)
 						end
-			--End Test case Precondition.9.1.2	
+			--End Test case Precondition.9.1.2
 
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case Precondition.9.1.3
 			--Description: Register App2 for precondition
 					function Test:TC1_PassengerDevice_App2()
@@ -16452,9 +15899,9 @@ end
 								  appID = "2"
 								})
 
-								EXPECT_HMICALL("BasicCommunication.OnAppRegistered", 
+								EXPECT_HMICALL("BasicCommunication.OnAppRegistered",
 								{
-								  application = 
+								  application =
 								  {
 									appName = "Test Application2"
 								  }
@@ -16462,22 +15909,22 @@ end
 								:Do(function(_,data)
 									self.applications["Test Application2"] = data.params.application.appID
 								end)
-								
+
 								--SDL sends RegisterAppInterface_response (success:true) with the following resultCodes: SUCCESS
 								self.mobileSession2:ExpectResponse(CorIdRegister, { success = true, resultCode = "SUCCESS" })
-								
+
 								--mobile side: Expect OnPermissionsChange notification for Passenger's device
-								self.mobileSession2:ExpectNotification("OnPermissionsChange", arrayGroups_nonPrimaryRC )								
-								
+								self.mobileSession2:ExpectNotification("OnPermissionsChange", arrayGroups_nonPrimaryRC )
+
 								--check OnHMIStatus with deviceRank = "PASSENGER"
 								self.mobileSession2:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", deviceRank = "PASSENGER" })
 								:Timeout(3000)
-								
+
 							end)
 						end
-			--End Test case Precondition.9.1.3	
+			--End Test case Precondition.9.1.3
 
-		-----------------------------------------------------------------------------------------	
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case Precondition.9.1.4
 			--Description: Register App3 for precondition
@@ -16499,9 +15946,9 @@ end
 								  appID = "3"
 								})
 
-								EXPECT_HMICALL("BasicCommunication.OnAppRegistered", 
+								EXPECT_HMICALL("BasicCommunication.OnAppRegistered",
 								{
-								  application = 
+								  application =
 								  {
 									appName = "Test Application3"
 								  }
@@ -16509,22 +15956,22 @@ end
 								:Do(function(_,data)
 									self.applications["Test Application3"] = data.params.application.appID
 								end)
-								
+
 								--SDL sends RegisterAppInterface_response (success:true) with the following resultCodes: SUCCESS
 								self.mobileSession3:ExpectResponse(CorIdRegister, { success = true, resultCode = "SUCCESS" })
-								
+
 								--mobile side: Expect OnPermissionsChange notification for Passenger's device
-								self.mobileSession3:ExpectNotification("OnPermissionsChange", arrayGroups_nonPrimaryRC )								
-								
+								self.mobileSession3:ExpectNotification("OnPermissionsChange", arrayGroups_nonPrimaryRC )
+
 								--check OnHMIStatus with deviceRank = "PASSENGER"
 								self.mobileSession3:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", deviceRank = "PASSENGER" })
 								:Timeout(3000)
-								
+
 							end)
 						end
-			--End Test case Precondition.9.1.4	
+			--End Test case Precondition.9.1.4
 
-		-----------------------------------------------------------------------------------------	
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case Precondition.9.1.5
 			--Description: Register App4 for precondition
@@ -16546,9 +15993,9 @@ end
 								  appID = "4"
 								})
 
-								EXPECT_HMICALL("BasicCommunication.OnAppRegistered", 
+								EXPECT_HMICALL("BasicCommunication.OnAppRegistered",
 								{
-								  application = 
+								  application =
 								  {
 									appName = "Test Application4"
 								  }
@@ -16556,22 +16003,22 @@ end
 								:Do(function(_,data)
 									self.applications["Test Application4"] = data.params.application.appID
 								end)
-								
+
 								--SDL sends RegisterAppInterface_response (success:true) with the following resultCodes: SUCCESS
 								self.mobileSession4:ExpectResponse(CorIdRegister, { success = true, resultCode = "SUCCESS" })
-								
+
 								--mobile side: Expect OnPermissionsChange notification for Passenger's device
-								self.mobileSession4:ExpectNotification("OnPermissionsChange", arrayGroups_nonPrimaryRC )								
-								
+								self.mobileSession4:ExpectNotification("OnPermissionsChange", arrayGroups_nonPrimaryRC )
+
 								--check OnHMIStatus with deviceRank = "PASSENGER"
 								self.mobileSession4:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", deviceRank = "PASSENGER" })
 								:Timeout(3000)
-								
+
 							end)
 						end
-			--End Test case Precondition.9.1.5	
+			--End Test case Precondition.9.1.5
 
-		-----------------------------------------------------------------------------------------	
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case Precondition.9.1.6
 			--Description: Register App5 for precondition
@@ -16593,9 +16040,9 @@ end
 								  appID = "5"
 								})
 
-								EXPECT_HMICALL("BasicCommunication.OnAppRegistered", 
+								EXPECT_HMICALL("BasicCommunication.OnAppRegistered",
 								{
-								  application = 
+								  application =
 								  {
 									appName = "Test Application5"
 								  }
@@ -16603,23 +16050,23 @@ end
 								:Do(function(_,data)
 									self.applications["Test Application5"] = data.params.application.appID
 								end)
-								
+
 								--SDL sends RegisterAppInterface_response (success:true) with the following resultCodes: SUCCESS
 								self.mobileSession5:ExpectResponse(CorIdRegister, { success = true, resultCode = "SUCCESS" })
-								
+
 								--mobile side: Expect OnPermissionsChange notification for Passenger's device
-								self.mobileSession5:ExpectNotification("OnPermissionsChange", arrayGroups_nonPrimaryRC )								
-								
+								self.mobileSession5:ExpectNotification("OnPermissionsChange", arrayGroups_nonPrimaryRC )
+
 								--check OnHMIStatus with deviceRank = "PASSENGER"
 								self.mobileSession5:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", deviceRank = "PASSENGER" })
 								:Timeout(3000)
-								
+
 							end)
 						end
-			--End Test case Precondition.9.1.6	
+			--End Test case Precondition.9.1.6
 
 		-----------------------------------------------------------------------------------------
-			
+
 			--Begin Test case CommonRequestCheck.9.1.7
 			--Description: application sends ButtonPress as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO
 				function Test:ButtonPress_App1FrontRADIO()
@@ -16637,12 +16084,12 @@ end
 						},
 						moduleType = "RADIO",
 						buttonPressMode = "LONG",
-						buttonName = "VOLUME_UP"						
+						buttonName = "VOLUME_UP"
 					})
-					
+
 					--hmi side: expect RSDL sends RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -16655,13 +16102,13 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", {"SUCCESS"}, {allowed = true})
-							
+
 							--hmi side: expect Buttons.ButtonPress request
-							EXPECT_HMICALL("Buttons.ButtonPress", 
-											{ 
+							EXPECT_HMICALL("Buttons.ButtonPress",
+											{
 												zone =
 												{
 													colspan = 2,
@@ -16680,16 +16127,16 @@ end
 								--hmi side: sending Buttons.ButtonPress response
 								self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 							end)
-							
-					end)								
-					
+
+					end)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false, info: "The driver disallows this remote-control RPC" to this application.
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "USER_DISALLOWED", info = "The driver disallows this remote-control RPC" })
 				end
 			--End Test case CommonRequestCheck.9.1.7
-			
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.9.1.8
 			--Description: application sends ButtonPress as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO (same zone and same moduleType)
 				function Test:ButtonPress_App2FrontRADIO_SameZone()
@@ -16707,12 +16154,12 @@ end
 						},
 						moduleType = "RADIO",
 						buttonPressMode = "LONG",
-						buttonName = "VOLUME_UP"						
+						buttonName = "VOLUME_UP"
 					})
-					
+
 					--hmi side: expect RSDL sends RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application1"],
 									moduleType = "RADIO",
 									zone =
@@ -16725,19 +16172,19 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL and HMI auto reject this request.
 							self.hmiConnection:Send('{"jsonrpc":"2.0","id":'..tostring(data.id)..',"error":{"code":4,"message":"Already consented!","data":{"method":"RC.GetInteriorVehicleDataConsent"}}}')
-							
-					end)								
-					
+
+					end)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false
 					self.mobileSession1:ExpectResponse(cid, { success = false, resultCode = "USER_DISALLOWED" })
 				end
 			--End Test case CommonRequestCheck.9.1.8
-			
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.9.1.9
 			--Description: application sends GetInteriorVehicleData as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO (same zone and same moduleType)
 				function Test:GetInterior_App3FrontRADIO_SameZone()
@@ -16747,7 +16194,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -16757,12 +16204,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application2"],
 									moduleType = "RADIO",
 									zone =
@@ -16775,18 +16222,18 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL and HMI auto reject this request.
 							self.hmiConnection:Send('{"jsonrpc":"2.0","id":'..tostring(data.id)..',"error":{"code":4,"message":"Already consented!","data":{"method":"RC.GetInteriorVehicleDataConsent"}}}')
-						
-					end)								
-					
+
+					end)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false
 					self.mobileSession2:ExpectResponse(cid, { success = false, resultCode = "USER_DISALLOWED" })
 				end
 			--End Test case CommonRequestCheck.9.1.9
-			
-		-----------------------------------------------------------------------------------------		
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.9.1.10
 			--Description: application sends SetInteriorVehicleData as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO (same zone and same moduleType)
@@ -16825,12 +16272,12 @@ end
 								radioEnable = true,
 								state = "ACQUIRING"
 							}
-						}				
+						}
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application3"],
 									moduleType = "RADIO",
 									zone =
@@ -16843,17 +16290,17 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL and HMI auto reject this request.
 							self.hmiConnection:Send('{"jsonrpc":"2.0","id":'..tostring(data.id)..',"error":{"code":4,"message":"Already consented!","data":{"method":"RC.GetInteriorVehicleDataConsent"}}}')
-			
-					end)								
-					
+
+					end)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false
 					self.mobileSession3:ExpectResponse(cid, { success = false, resultCode = "USER_DISALLOWED" })
 				end
 			--End Test case CommonRequestCheck.9.1.10
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.9.1.11
@@ -16865,7 +16312,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -16875,12 +16322,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application4"],
 									moduleType = "RADIO",
 									zone =
@@ -16893,16 +16340,16 @@ end
 										level = 0
 									}
 								})
-					:Do(function(_,data)						
+					:Do(function(_,data)
 						--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL and HMI auto reject this request.
 						self.hmiConnection:Send('{"jsonrpc":"2.0","id":'..tostring(data.id)..',"error":{"code":4,"message":"Already consented!","data":{"method":"RC.GetInteriorVehicleDataConsent"}}}')
-					end)								
-					
+					end)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false
 					self.mobileSession4:ExpectResponse(cid, { success = false, resultCode = "USER_DISALLOWED" })
 				end
 			--End Test case CommonRequestCheck.9.1.11
-		
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.9.1.12
@@ -16926,12 +16373,12 @@ end
 								frequencyFraction = 3,
 								band = "FM"
 							}
-						}				
+						}
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application5"],
 									moduleType = "RADIO",
 									zone =
@@ -16944,19 +16391,19 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL and HMI auto reject this request.
 							self.hmiConnection:Send('{"jsonrpc":"2.0","id":'..tostring(data.id)..',"error":{"code":4,"message":"Already consented!","data":{"method":"RC.GetInteriorVehicleDataConsent"}}}')
-					
-					end)								
-					
+
+					end)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false
 					self.mobileSession5:ExpectResponse(cid, { success = false, resultCode = "USER_DISALLOWED" })
 				end
 			--End Test case CommonRequestCheck.9.1.12
-		
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.9.1.13
 			--Description: application sends ButtonPress as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE (first time, asking permission)
 				function Test:ButtonPress_App1LeftCLIMATE()
@@ -16974,12 +16421,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "SHORT",
-						buttonName = "LOWER_VENT"						
+						buttonName = "LOWER_VENT"
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -16992,13 +16439,13 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect Buttons.ButtonPress request
-							EXPECT_HMICALL("Buttons.ButtonPress", 
-											{ 
+							EXPECT_HMICALL("Buttons.ButtonPress",
+											{
 												zone =
 												{
 													colspan = 2,
@@ -17016,14 +16463,14 @@ end
 									--hmi side: sending Buttons.ButtonPress response
 									self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 								end)
-					end)								
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.9.1.13
-		
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.9.1.14
 			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE (same zone and same moduleType)
 				function Test:GetInterior_App2LeftCLIMATE_SameZone()
@@ -17033,7 +16480,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -17043,12 +16490,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application1"],
 									moduleType = "CLIMATE",
 									zone =
@@ -17061,18 +16508,18 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL and HMI auto reject this request.
 							self.hmiConnection:Send('{"jsonrpc":"2.0","id":'..tostring(data.id)..',"error":{"code":4,"message":"Already consented!","data":{"method":"RC.GetInteriorVehicleDataConsent"}}}')
 
-					end)								
-					
+					end)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false
 					self.mobileSession1:ExpectResponse(cid, { success = false, resultCode = "USER_DISALLOWED" })
 				end
 			--End Test case CommonRequestCheck.9.1.14
-		
-		-----------------------------------------------------------------------------------------	
+
+		-----------------------------------------------------------------------------------------
 
 
 			--Begin Test case CommonRequestCheck.9.1.15
@@ -17084,7 +16531,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -17101,10 +16548,10 @@ end
 							}
 						}
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application2"],
 									moduleType = "CLIMATE",
 									zone =
@@ -17117,71 +16564,71 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL and HMI auto reject this request.
 							self.hmiConnection:Send('{"jsonrpc":"2.0","id":'..tostring(data.id)..',"error":{"code":4,"message":"Already consented!","data":{"method":"RC.GetInteriorVehicleDataConsent"}}}')
 
-					end)								
-					
+					end)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false
 					self.mobileSession2:ExpectResponse(cid, { success = false, resultCode = "USER_DISALLOWED" })
 				end
 			--End Test case CommonRequestCheck.9.1.15
-		
-		-----------------------------------------------------------------------------------------		
+
+		-----------------------------------------------------------------------------------------
 	--End Test case CommonRequestCheck.9.1
-		
-		
-		
+
+
+
 	--Begin Test case CommonRequestCheck.9.2
 	--Description: 	For GetInteriorVehicleData (RADIO and CLIMATE)
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-966
 				--TC: REVSDL-1392
 
-		--Verification criteria: 
+		--Verification criteria:
 				--In case: the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies
-				
+
 		-----------------------------------------------------------------------------------------
-				
+
 			--Begin Test case Precondition.9.2.1
 			--Description: Register new session for check OnHMIStatus with deviceRank = "PASSENGER"
 				function Test:PreconditionNewSession()
 					--New session1
 					self.mobileSession1 = mobile_session.MobileSession(
-						self.expectations_list,
+						self,
 						self.mobileConnection)
-					
+
 					--New session2
 					self.mobileSession2 = mobile_session.MobileSession(
-						self.expectations_list,
+						self,
 						self.mobileConnection)
 
 					--New session3
 					self.mobileSession3 = mobile_session.MobileSession(
-						self.expectations_list,
+						self,
 						self.mobileConnection)
-						
+
 					--New session1
 					self.mobileSession4 = mobile_session.MobileSession(
-						self.expectations_list,
+						self,
 						self.mobileConnection)
-					
+
 					--New session2
 					self.mobileSession5 = mobile_session.MobileSession(
-						self.expectations_list,
+						self,
 						self.mobileConnection)
 
 					--New session3
 					self.mobileSession6 = mobile_session.MobileSession(
-						self.expectations_list,
-						self.mobileConnection)						
+						self,
+						self.mobileConnection)
 				end
 			--End Test case Precondition.9.2.1
 
 		-----------------------------------------------------------------------------------------
-			
+
 			--Begin Test case Precondition.9.2.2
 			--Description: Register App1 for precondition
 					function Test:Pre_PassengerDevice_App1()
@@ -17202,9 +16649,9 @@ end
 								  appID = "1"
 								})
 
-								EXPECT_HMICALL("BasicCommunication.OnAppRegistered", 
+								EXPECT_HMICALL("BasicCommunication.OnAppRegistered",
 								{
-								  application = 
+								  application =
 								  {
 									appName = "Test Application1"
 								  }
@@ -17212,23 +16659,23 @@ end
 								:Do(function(_,data)
 									self.applications["Test Application1"] = data.params.application.appID
 								end)
-								
+
 								--SDL sends RegisterAppInterface_response (success:true) with the following resultCodes: SUCCESS
 								self.mobileSession1:ExpectResponse(CorIdRegister, { success = true, resultCode = "SUCCESS" })
-								
+
 								--mobile side: Expect OnPermissionsChange notification for Passenger's device
-								self.mobileSession1:ExpectNotification("OnPermissionsChange", arrayGroups_nonPrimaryRC )								
-								
+								self.mobileSession1:ExpectNotification("OnPermissionsChange", arrayGroups_nonPrimaryRC )
+
 								--check OnHMIStatus with deviceRank = "PASSENGER"
 								self.mobileSession1:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", deviceRank = "PASSENGER" })
 								:Timeout(3000)
-								
+
 							end)
 						end
-			--End Test case Precondition.9.2.2	
+			--End Test case Precondition.9.2.2
 
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case Precondition.9.2.3
 			--Description: Register App2 for precondition
 					function Test:Pre_PassengerDevice_App2()
@@ -17249,9 +16696,9 @@ end
 								  appID = "2"
 								})
 
-								EXPECT_HMICALL("BasicCommunication.OnAppRegistered", 
+								EXPECT_HMICALL("BasicCommunication.OnAppRegistered",
 								{
-								  application = 
+								  application =
 								  {
 									appName = "Test Application2"
 								  }
@@ -17259,22 +16706,22 @@ end
 								:Do(function(_,data)
 									self.applications["Test Application2"] = data.params.application.appID
 								end)
-								
+
 								--SDL sends RegisterAppInterface_response (success:true) with the following resultCodes: SUCCESS
 								self.mobileSession2:ExpectResponse(CorIdRegister, { success = true, resultCode = "SUCCESS" })
-								
+
 								--mobile side: Expect OnPermissionsChange notification for Passenger's device
-								self.mobileSession2:ExpectNotification("OnPermissionsChange", arrayGroups_nonPrimaryRC )								
-								
+								self.mobileSession2:ExpectNotification("OnPermissionsChange", arrayGroups_nonPrimaryRC )
+
 								--check OnHMIStatus with deviceRank = "PASSENGER"
 								self.mobileSession2:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", deviceRank = "PASSENGER" })
 								:Timeout(3000)
-								
+
 							end)
 						end
-			--End Test case Precondition.9.2.3	
+			--End Test case Precondition.9.2.3
 
-		-----------------------------------------------------------------------------------------	
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case Precondition.9.2.4
 			--Description: Register App3 for precondition
@@ -17296,9 +16743,9 @@ end
 								  appID = "3"
 								})
 
-								EXPECT_HMICALL("BasicCommunication.OnAppRegistered", 
+								EXPECT_HMICALL("BasicCommunication.OnAppRegistered",
 								{
-								  application = 
+								  application =
 								  {
 									appName = "Test Application3"
 								  }
@@ -17306,22 +16753,22 @@ end
 								:Do(function(_,data)
 									self.applications["Test Application3"] = data.params.application.appID
 								end)
-								
+
 								--SDL sends RegisterAppInterface_response (success:true) with the following resultCodes: SUCCESS
 								self.mobileSession3:ExpectResponse(CorIdRegister, { success = true, resultCode = "SUCCESS" })
-								
+
 								--mobile side: Expect OnPermissionsChange notification for Passenger's device
-								self.mobileSession3:ExpectNotification("OnPermissionsChange", arrayGroups_nonPrimaryRC )								
-								
+								self.mobileSession3:ExpectNotification("OnPermissionsChange", arrayGroups_nonPrimaryRC )
+
 								--check OnHMIStatus with deviceRank = "PASSENGER"
 								self.mobileSession3:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", deviceRank = "PASSENGER" })
 								:Timeout(3000)
-								
+
 							end)
 						end
-			--End Test case Precondition.9.2.4	
+			--End Test case Precondition.9.2.4
 
-		-----------------------------------------------------------------------------------------	
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case Precondition.9.2.5
 			--Description: Register App4 for precondition
@@ -17343,9 +16790,9 @@ end
 								  appID = "4"
 								})
 
-								EXPECT_HMICALL("BasicCommunication.OnAppRegistered", 
+								EXPECT_HMICALL("BasicCommunication.OnAppRegistered",
 								{
-								  application = 
+								  application =
 								  {
 									appName = "Test Application4"
 								  }
@@ -17353,22 +16800,22 @@ end
 								:Do(function(_,data)
 									self.applications["Test Application4"] = data.params.application.appID
 								end)
-								
+
 								--SDL sends RegisterAppInterface_response (success:true) with the following resultCodes: SUCCESS
 								self.mobileSession4:ExpectResponse(CorIdRegister, { success = true, resultCode = "SUCCESS" })
-								
+
 								--mobile side: Expect OnPermissionsChange notification for Passenger's device
-								self.mobileSession4:ExpectNotification("OnPermissionsChange", arrayGroups_nonPrimaryRC )								
-								
+								self.mobileSession4:ExpectNotification("OnPermissionsChange", arrayGroups_nonPrimaryRC )
+
 								--check OnHMIStatus with deviceRank = "PASSENGER"
 								self.mobileSession4:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", deviceRank = "PASSENGER" })
 								:Timeout(3000)
-								
+
 							end)
 						end
-			--End Test case Precondition.9.2.5	
+			--End Test case Precondition.9.2.5
 
-		-----------------------------------------------------------------------------------------	
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case Precondition.9.2.6
 			--Description: Register App5 for precondition
@@ -17390,9 +16837,9 @@ end
 								  appID = "5"
 								})
 
-								EXPECT_HMICALL("BasicCommunication.OnAppRegistered", 
+								EXPECT_HMICALL("BasicCommunication.OnAppRegistered",
 								{
-								  application = 
+								  application =
 								  {
 									appName = "Test Application5"
 								  }
@@ -17400,23 +16847,23 @@ end
 								:Do(function(_,data)
 									self.applications["Test Application5"] = data.params.application.appID
 								end)
-								
+
 								--SDL sends RegisterAppInterface_response (success:true) with the following resultCodes: SUCCESS
 								self.mobileSession5:ExpectResponse(CorIdRegister, { success = true, resultCode = "SUCCESS" })
-								
+
 								--mobile side: Expect OnPermissionsChange notification for Passenger's device
-								self.mobileSession5:ExpectNotification("OnPermissionsChange", arrayGroups_nonPrimaryRC )								
-								
+								self.mobileSession5:ExpectNotification("OnPermissionsChange", arrayGroups_nonPrimaryRC )
+
 								--check OnHMIStatus with deviceRank = "PASSENGER"
 								self.mobileSession5:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", deviceRank = "PASSENGER" })
 								:Timeout(3000)
-								
+
 							end)
 						end
-			--End Test case Precondition.9.2.6	
+			--End Test case Precondition.9.2.6
 
 		-----------------------------------------------------------------------------------------
-			
+
 			--Begin Test case CommonRequestCheck.9.2.7
 			--Description: application sends GetInteriorVehicleData as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO (first time, asking permission)
 				function Test:GetInterior_App1FrontRADIO()
@@ -17426,7 +16873,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -17436,12 +16883,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -17454,10 +16901,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect RC.GetInteriorVehicleData request
 							EXPECT_HMICALL("RC.GetInteriorVehicleData")
 							:Do(function(_,data)
@@ -17494,18 +16941,18 @@ end
 													radioEnable = true,
 													state = "ACQUIRING"
 												}
-											}	
+											}
 									})
-									
+
 							end)
-					end)								
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.9.2.7
-			
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.9.2.8
 			--Description: application sends GetInteriorVehicleData as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO
 				function Test:GetInterior_App2FrontRADIO()
@@ -17515,7 +16962,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -17525,12 +16972,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application1"],
 									moduleType = "RADIO",
 									zone =
@@ -17543,10 +16990,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect RC.GetInteriorVehicleData request
 							EXPECT_HMICALL("RC.GetInteriorVehicleData")
 							:Do(function(_,data)
@@ -17583,18 +17030,18 @@ end
 													radioEnable = true,
 													state = "ACQUIRING"
 												}
-											}	
+											}
 									})
-									
+
 							end)
-					end)								
-					
+					end)
+
 					self.mobileSession1:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.9.2.8
-			
-		-----------------------------------------------------------------------------------------		
-			
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.9.2.9
 			--Description: application sends ButtonPress as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO
 				function Test:ButtonPress_App3FrontRADIO()
@@ -17612,12 +17059,12 @@ end
 						},
 						moduleType = "RADIO",
 						buttonPressMode = "LONG",
-						buttonName = "VOLUME_UP"						
+						buttonName = "VOLUME_UP"
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application2"],
 									moduleType = "RADIO",
 									zone =
@@ -17630,13 +17077,13 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect Buttons.ButtonPress request
-							EXPECT_HMICALL("Buttons.ButtonPress", 
-											{ 
+							EXPECT_HMICALL("Buttons.ButtonPress",
+											{
 												zone =
 												{
 													colspan = 2,
@@ -17654,12 +17101,12 @@ end
 									--hmi side: sending Buttons.ButtonPress response
 									self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 								end)
-					end)								
-					
+					end)
+
 					self.mobileSession2:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.9.2.9
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.9.2.10
@@ -17671,7 +17118,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -17681,12 +17128,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application3"],
 									moduleType = "RADIO",
 									zone =
@@ -17699,10 +17146,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect RC.GetInteriorVehicleData request
 							EXPECT_HMICALL("RC.GetInteriorVehicleData")
 							:Do(function(_,data)
@@ -17739,18 +17186,18 @@ end
 													radioEnable = true,
 													state = "ACQUIRING"
 												}
-											}	
+											}
 									})
-									
+
 							end)
-					end)								
-					
+					end)
+
 					self.mobileSession3:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.9.2.10
-			
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.9.2.11
 			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = RADIO
 				function Test:GetInterior_App5LeftRADIO()
@@ -17760,7 +17207,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -17770,12 +17217,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application4"],
 									moduleType = "RADIO",
 									zone =
@@ -17788,10 +17235,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect RC.GetInteriorVehicleData request
 							EXPECT_HMICALL("RC.GetInteriorVehicleData")
 							:Do(function(_,data)
@@ -17828,18 +17275,18 @@ end
 													radioEnable = true,
 													state = "ACQUIRING"
 												}
-											}	
+											}
 									})
-									
+
 							end)
-					end)								
-					
+					end)
+
 					self.mobileSession4:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.9.2.11
-		
-		-----------------------------------------------------------------------------------------			
-			
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.9.2.12
 			--Description: application sends SetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = RADIO
 				function Test:SetInterior_App6LeftRADIO()
@@ -17861,12 +17308,12 @@ end
 								frequencyFraction = 3,
 								band = "FM"
 							}
-						}				
+						}
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application5"],
 									moduleType = "RADIO",
 									zone =
@@ -17879,10 +17326,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect RC.SetInteriorVehicleData request
 							EXPECT_HMICALL("RC.SetInteriorVehicleData")
 							:Do(function(_,data)
@@ -17903,16 +17350,16 @@ end
 													frequencyFraction = 3,
 													band = "FM"
 												}
-											}	
+											}
 									})
-									
+
 								end)
-					end)								
-					
+					end)
+
 					self.mobileSession5:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.9.2.12
-		
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.9.2.13
@@ -17924,7 +17371,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -17934,12 +17381,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -17952,10 +17399,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect RC.GetInteriorVehicleData request
 							EXPECT_HMICALL("RC.GetInteriorVehicleData")
 							:Do(function(_,data)
@@ -17964,7 +17411,7 @@ end
 										moduleData =
 										{
 											moduleType = "CLIMATE",
-											moduleZone = 
+											moduleZone =
 											{
 												colspan = 2,
 												row = 1,
@@ -17987,16 +17434,16 @@ end
 											}
 										}
 									})
-									
+
 							end)
-					end)								
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.9.2.13
-		
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.9.2.14
 			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE
 				function Test:GetInterior_App2LeftCLIMATE()
@@ -18006,7 +17453,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -18016,12 +17463,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application1"],
 									moduleType = "CLIMATE",
 									zone =
@@ -18034,10 +17481,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect RC.GetInteriorVehicleData request
 							EXPECT_HMICALL("RC.GetInteriorVehicleData")
 							:Do(function(_,data)
@@ -18046,7 +17493,7 @@ end
 										moduleData =
 										{
 											moduleType = "CLIMATE",
-											moduleZone = 
+											moduleZone =
 											{
 												colspan = 2,
 												row = 1,
@@ -18069,15 +17516,15 @@ end
 											}
 										}
 									})
-									
+
 							end)
-					end)								
-					
+					end)
+
 					self.mobileSession1:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.9.2.14
-		
-		-----------------------------------------------------------------------------------------		
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.9.2.15
 			--Description: application sends ButtonPress as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE
@@ -18096,12 +17543,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "SHORT",
-						buttonName = "LOWER_VENT"						
+						buttonName = "LOWER_VENT"
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application2"],
 									moduleType = "CLIMATE",
 									zone =
@@ -18114,13 +17561,13 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect Buttons.ButtonPress request
-							EXPECT_HMICALL("Buttons.ButtonPress", 
-											{ 
+							EXPECT_HMICALL("Buttons.ButtonPress",
+											{
 												zone =
 												{
 													colspan = 2,
@@ -18138,14 +17585,14 @@ end
 									--hmi side: sending Buttons.ButtonPress response
 									self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 								end)
-					end)								
-					
+					end)
+
 					self.mobileSession2:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.9.2.15
-		
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.9.2.16
 			--Description: application sends SetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE
 				function Test:SetInterior_App4LeftCLIMATE()
@@ -18155,7 +17602,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -18172,10 +17619,10 @@ end
 							}
 						}
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application3"],
 									moduleType = "CLIMATE",
 									zone =
@@ -18188,10 +17635,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect RC.SetInteriorVehicleData request
 							EXPECT_HMICALL("RC.SetInteriorVehicleData")
 							:Do(function(_,data)
@@ -18200,7 +17647,7 @@ end
 										moduleData =
 										{
 											moduleType = "CLIMATE",
-											moduleZone = 
+											moduleZone =
 											{
 												colspan = 2,
 												row = 1,
@@ -18217,14 +17664,14 @@ end
 											}
 										}
 									})
-									
+
 								end)
-					end)								
-					
+					end)
+
 					self.mobileSession3:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.9.2.16
-		
+
 		-----------------------------------------------------------------------------------------
 	--End Test case CommonRequestCheck.9.2
 
@@ -18232,52 +17679,52 @@ end
 	--Begin Test case CommonRequestCheck.9.3
 	--Description: 	For SetInteriorVehicleData (RADIO and CLIMATE)
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-966
 				--TC: REVSDL-1392
 
-		--Verification criteria: 
+		--Verification criteria:
 				--In case: the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies
-				
+
 		-----------------------------------------------------------------------------------------
-				
+
 			--Begin Test case Precondition.9.3.1
 			--Description: Register new session for check OnHMIStatus with deviceRank = "PASSENGER"
 				function Test:PreconditionNewSession()
 					--New session1
 					self.mobileSession1 = mobile_session.MobileSession(
-						self.expectations_list,
+						self,
 						self.mobileConnection)
-					
+
 					--New session2
 					self.mobileSession2 = mobile_session.MobileSession(
-						self.expectations_list,
+						self,
 						self.mobileConnection)
 
 					--New session3
 					self.mobileSession3 = mobile_session.MobileSession(
-						self.expectations_list,
+						self,
 						self.mobileConnection)
-						
+
 					--New session1
 					self.mobileSession4 = mobile_session.MobileSession(
-						self.expectations_list,
+						self,
 						self.mobileConnection)
-					
+
 					--New session2
 					self.mobileSession5 = mobile_session.MobileSession(
-						self.expectations_list,
+						self,
 						self.mobileConnection)
 
 					--New session3
 					self.mobileSession6 = mobile_session.MobileSession(
-						self.expectations_list,
-						self.mobileConnection)						
+						self,
+						self.mobileConnection)
 				end
 			--End Test case Precondition.9.3.1
 
 		-----------------------------------------------------------------------------------------
-			
+
 			--Begin Test case Precondition.9.3.2
 			--Description: Register App1 for precondition
 					function Test:Pre_PassengerDevice_App1()
@@ -18298,9 +17745,9 @@ end
 								  appID = "1"
 								})
 
-								EXPECT_HMICALL("BasicCommunication.OnAppRegistered", 
+								EXPECT_HMICALL("BasicCommunication.OnAppRegistered",
 								{
-								  application = 
+								  application =
 								  {
 									appName = "Test Application1"
 								  }
@@ -18308,23 +17755,23 @@ end
 								:Do(function(_,data)
 									self.applications["Test Application1"] = data.params.application.appID
 								end)
-								
+
 								--SDL sends RegisterAppInterface_response (success:true) with the following resultCodes: SUCCESS
 								self.mobileSession1:ExpectResponse(CorIdRegister, { success = true, resultCode = "SUCCESS" })
-								
+
 								--mobile side: Expect OnPermissionsChange notification for Passenger's device
-								self.mobileSession1:ExpectNotification("OnPermissionsChange", arrayGroups_nonPrimaryRC )								
-								
+								self.mobileSession1:ExpectNotification("OnPermissionsChange", arrayGroups_nonPrimaryRC )
+
 								--check OnHMIStatus with deviceRank = "PASSENGER"
 								self.mobileSession1:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", deviceRank = "PASSENGER" })
 								:Timeout(3000)
-								
+
 							end)
 						end
-			--End Test case Precondition.9.3.2	
+			--End Test case Precondition.9.3.2
 
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case Precondition.9.3.3
 			--Description: Register App2 for precondition
 					function Test:Pre_PassengerDevice_App2()
@@ -18345,9 +17792,9 @@ end
 								  appID = "2"
 								})
 
-								EXPECT_HMICALL("BasicCommunication.OnAppRegistered", 
+								EXPECT_HMICALL("BasicCommunication.OnAppRegistered",
 								{
-								  application = 
+								  application =
 								  {
 									appName = "Test Application2"
 								  }
@@ -18355,22 +17802,22 @@ end
 								:Do(function(_,data)
 									self.applications["Test Application2"] = data.params.application.appID
 								end)
-								
+
 								--SDL sends RegisterAppInterface_response (success:true) with the following resultCodes: SUCCESS
 								self.mobileSession2:ExpectResponse(CorIdRegister, { success = true, resultCode = "SUCCESS" })
-								
+
 								--mobile side: Expect OnPermissionsChange notification for Passenger's device
-								self.mobileSession2:ExpectNotification("OnPermissionsChange", arrayGroups_nonPrimaryRC )								
-								
+								self.mobileSession2:ExpectNotification("OnPermissionsChange", arrayGroups_nonPrimaryRC )
+
 								--check OnHMIStatus with deviceRank = "PASSENGER"
 								self.mobileSession2:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", deviceRank = "PASSENGER" })
 								:Timeout(3000)
-								
+
 							end)
 						end
-			--End Test case Precondition.9.3.3	
+			--End Test case Precondition.9.3.3
 
-		-----------------------------------------------------------------------------------------	
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case Precondition.9.3.4
 			--Description: Register App3 for precondition
@@ -18392,9 +17839,9 @@ end
 								  appID = "3"
 								})
 
-								EXPECT_HMICALL("BasicCommunication.OnAppRegistered", 
+								EXPECT_HMICALL("BasicCommunication.OnAppRegistered",
 								{
-								  application = 
+								  application =
 								  {
 									appName = "Test Application3"
 								  }
@@ -18402,22 +17849,22 @@ end
 								:Do(function(_,data)
 									self.applications["Test Application3"] = data.params.application.appID
 								end)
-								
+
 								--SDL sends RegisterAppInterface_response (success:true) with the following resultCodes: SUCCESS
 								self.mobileSession3:ExpectResponse(CorIdRegister, { success = true, resultCode = "SUCCESS" })
-								
+
 								--mobile side: Expect OnPermissionsChange notification for Passenger's device
-								self.mobileSession3:ExpectNotification("OnPermissionsChange", arrayGroups_nonPrimaryRC )								
-								
+								self.mobileSession3:ExpectNotification("OnPermissionsChange", arrayGroups_nonPrimaryRC )
+
 								--check OnHMIStatus with deviceRank = "PASSENGER"
 								self.mobileSession3:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", deviceRank = "PASSENGER" })
 								:Timeout(3000)
-								
+
 							end)
 						end
-			--End Test case Precondition.9.3.4	
+			--End Test case Precondition.9.3.4
 
-		-----------------------------------------------------------------------------------------	
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case Precondition.9.3.5
 			--Description: Register App4 for precondition
@@ -18439,9 +17886,9 @@ end
 								  appID = "4"
 								})
 
-								EXPECT_HMICALL("BasicCommunication.OnAppRegistered", 
+								EXPECT_HMICALL("BasicCommunication.OnAppRegistered",
 								{
-								  application = 
+								  application =
 								  {
 									appName = "Test Application4"
 								  }
@@ -18449,22 +17896,22 @@ end
 								:Do(function(_,data)
 									self.applications["Test Application4"] = data.params.application.appID
 								end)
-								
+
 								--SDL sends RegisterAppInterface_response (success:true) with the following resultCodes: SUCCESS
 								self.mobileSession4:ExpectResponse(CorIdRegister, { success = true, resultCode = "SUCCESS" })
-								
+
 								--mobile side: Expect OnPermissionsChange notification for Passenger's device
-								self.mobileSession4:ExpectNotification("OnPermissionsChange", arrayGroups_nonPrimaryRC )								
-								
+								self.mobileSession4:ExpectNotification("OnPermissionsChange", arrayGroups_nonPrimaryRC )
+
 								--check OnHMIStatus with deviceRank = "PASSENGER"
 								self.mobileSession4:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", deviceRank = "PASSENGER" })
 								:Timeout(3000)
-								
+
 							end)
 						end
-			--End Test case Precondition.9.3.5	
+			--End Test case Precondition.9.3.5
 
-		-----------------------------------------------------------------------------------------	
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case Precondition.9.3.6
 			--Description: Register App5 for precondition
@@ -18486,9 +17933,9 @@ end
 								  appID = "5"
 								})
 
-								EXPECT_HMICALL("BasicCommunication.OnAppRegistered", 
+								EXPECT_HMICALL("BasicCommunication.OnAppRegistered",
 								{
-								  application = 
+								  application =
 								  {
 									appName = "Test Application5"
 								  }
@@ -18496,23 +17943,23 @@ end
 								:Do(function(_,data)
 									self.applications["Test Application5"] = data.params.application.appID
 								end)
-								
+
 								--SDL sends RegisterAppInterface_response (success:true) with the following resultCodes: SUCCESS
 								self.mobileSession5:ExpectResponse(CorIdRegister, { success = true, resultCode = "SUCCESS" })
-								
+
 								--mobile side: Expect OnPermissionsChange notification for Passenger's device
-								self.mobileSession5:ExpectNotification("OnPermissionsChange", arrayGroups_nonPrimaryRC )								
-								
+								self.mobileSession5:ExpectNotification("OnPermissionsChange", arrayGroups_nonPrimaryRC )
+
 								--check OnHMIStatus with deviceRank = "PASSENGER"
 								self.mobileSession5:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", deviceRank = "PASSENGER" })
 								:Timeout(3000)
-								
+
 							end)
 						end
-			--End Test case Precondition.9.3.6	
+			--End Test case Precondition.9.3.6
 
 		-----------------------------------------------------------------------------------------
-			
+
 			--Begin Test case CommonRequestCheck.9.3.7
 			--Description: application sends SetInteriorVehicleData as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO (first time, asking permission)
 				function Test:SetInterior_App1FrontRADIO()
@@ -18550,12 +17997,12 @@ end
 								radioEnable = true,
 								state = "ACQUIRING"
 							}
-						}				
+						}
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -18568,10 +18015,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect RC.SetInteriorVehicleData request
 							EXPECT_HMICALL("RC.SetInteriorVehicleData")
 							:Do(function(_,data)
@@ -18608,18 +18055,18 @@ end
 													radioEnable = true,
 													state = "ACQUIRING"
 												}
-											}	
+											}
 									})
-									
+
 								end)
-					end)								
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.9.3.7
-			
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.9.3.8
 			--Description: application sends SetInteriorVehicleData as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO (same zone, same moduleType)
 				function Test:SetInterior_App2FrontRADIO()
@@ -18657,12 +18104,12 @@ end
 								radioEnable = true,
 								state = "ACQUIRING"
 							}
-						}				
+						}
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application1"],
 									moduleType = "RADIO",
 									zone =
@@ -18675,10 +18122,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect RC.SetInteriorVehicleData request
 							EXPECT_HMICALL("RC.SetInteriorVehicleData")
 							:Do(function(_,data)
@@ -18715,18 +18162,18 @@ end
 													radioEnable = true,
 													state = "ACQUIRING"
 												}
-											}	
+											}
 									})
-									
+
 								end)
-					end)								
-					
+					end)
+
 					self.mobileSession1:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.9.3.8
-			
-		-----------------------------------------------------------------------------------------		
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.9.3.9
 			--Description: application sends GetInteriorVehicleData as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO
 				function Test:GetInterior_App3FrontRADIO()
@@ -18736,7 +18183,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -18746,12 +18193,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application2"],
 									moduleType = "RADIO",
 									zone =
@@ -18764,10 +18211,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect RC.GetInteriorVehicleData request
 							EXPECT_HMICALL("RC.GetInteriorVehicleData")
 							:Do(function(_,data)
@@ -18804,16 +18251,16 @@ end
 													radioEnable = true,
 													state = "ACQUIRING"
 												}
-											}	
+											}
 									})
-									
+
 							end)
-					end)								
-					
+					end)
+
 					self.mobileSession2:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.9.3.9
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.9.3.10
@@ -18833,12 +18280,12 @@ end
 						},
 						moduleType = "RADIO",
 						buttonPressMode = "LONG",
-						buttonName = "VOLUME_UP"						
+						buttonName = "VOLUME_UP"
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application3"],
 									moduleType = "RADIO",
 									zone =
@@ -18851,13 +18298,13 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect Buttons.ButtonPress request
-							EXPECT_HMICALL("Buttons.ButtonPress", 
-											{ 
+							EXPECT_HMICALL("Buttons.ButtonPress",
+											{
 												zone =
 												{
 													colspan = 2,
@@ -18875,12 +18322,12 @@ end
 									--hmi side: sending Buttons.ButtonPress response
 									self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 								end)
-					end)								
-					
+					end)
+
 					self.mobileSession3:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.9.3.10
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.9.3.11
@@ -18892,7 +18339,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -18902,12 +18349,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application4"],
 									moduleType = "RADIO",
 									zone =
@@ -18920,10 +18367,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect RC.GetInteriorVehicleData request
 							EXPECT_HMICALL("RC.GetInteriorVehicleData")
 							:Do(function(_,data)
@@ -18960,16 +18407,16 @@ end
 													radioEnable = true,
 													state = "ACQUIRING"
 												}
-											}	
+											}
 									})
-									
+
 							end)
-					end)								
-					
+					end)
+
 					self.mobileSession4:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.9.3.11
-		
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.9.3.12
@@ -18993,12 +18440,12 @@ end
 								frequencyFraction = 3,
 								band = "FM"
 							}
-						}				
+						}
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application5"],
 									moduleType = "RADIO",
 									zone =
@@ -19011,10 +18458,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect RC.SetInteriorVehicleData request
 							EXPECT_HMICALL("RC.SetInteriorVehicleData")
 							:Do(function(_,data)
@@ -19035,18 +18482,18 @@ end
 													frequencyFraction = 3,
 													band = "FM"
 												}
-											}	
+											}
 									})
-									
+
 								end)
-					end)								
-					
+					end)
+
 					self.mobileSession5:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.9.3.12
-		
-		-----------------------------------------------------------------------------------------		
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.9.3.12
 			--Description: application sends SetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE
 				function Test:SetInterior_App1LeftCLIMATE()
@@ -19056,7 +18503,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -19073,10 +18520,10 @@ end
 							}
 						}
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -19089,10 +18536,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect RC.SetInteriorVehicleData request
 							EXPECT_HMICALL("RC.SetInteriorVehicleData")
 							:Do(function(_,data)
@@ -19101,7 +18548,7 @@ end
 										moduleData =
 										{
 											moduleType = "CLIMATE",
-											moduleZone = 
+											moduleZone =
 											{
 												colspan = 2,
 												row = 1,
@@ -19118,16 +18565,16 @@ end
 											}
 										}
 									})
-									
+
 								end)
-					end)								
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.9.3.12
-		
-		-----------------------------------------------------------------------------------------		
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.9.3.12
 			--Description: application sends SetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE
 				function Test:SetInterior_App2LeftCLIMATE()
@@ -19137,7 +18584,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -19154,10 +18601,10 @@ end
 							}
 						}
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application1"],
 									moduleType = "CLIMATE",
 									zone =
@@ -19170,10 +18617,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect RC.SetInteriorVehicleData request
 							EXPECT_HMICALL("RC.SetInteriorVehicleData")
 							:Do(function(_,data)
@@ -19182,7 +18629,7 @@ end
 										moduleData =
 										{
 											moduleType = "CLIMATE",
-											moduleZone = 
+											moduleZone =
 											{
 												colspan = 2,
 												row = 1,
@@ -19199,16 +18646,16 @@ end
 											}
 										}
 									})
-									
+
 								end)
-					end)								
-					
+					end)
+
 					self.mobileSession1:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.9.3.12
-		
-		-----------------------------------------------------------------------------------------			
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.9.3.13
 			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE
 				function Test:GetInterior_App3LeftCLIMATE()
@@ -19218,7 +18665,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -19228,12 +18675,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application2"],
 									moduleType = "CLIMATE",
 									zone =
@@ -19246,10 +18693,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect RC.GetInteriorVehicleData request
 							EXPECT_HMICALL("RC.GetInteriorVehicleData")
 							:Do(function(_,data)
@@ -19258,7 +18705,7 @@ end
 										moduleData =
 										{
 											moduleType = "CLIMATE",
-											moduleZone = 
+											moduleZone =
 											{
 												colspan = 2,
 												row = 1,
@@ -19281,15 +18728,15 @@ end
 											}
 										}
 									})
-									
+
 							end)
-					end)								
-					
+					end)
+
 					self.mobileSession2:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.9.3.13
-		
-		-----------------------------------------------------------------------------------------		
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.9.3.14
 			--Description: application sends ButtonPress as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE
@@ -19308,12 +18755,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "SHORT",
-						buttonName = "LOWER_VENT"						
+						buttonName = "LOWER_VENT"
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application3"],
 									moduleType = "CLIMATE",
 									zone =
@@ -19326,13 +18773,13 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect Buttons.ButtonPress request
-							EXPECT_HMICALL("Buttons.ButtonPress", 
-											{ 
+							EXPECT_HMICALL("Buttons.ButtonPress",
+											{
 												zone =
 												{
 													colspan = 2,
@@ -19350,16 +18797,16 @@ end
 									--hmi side: sending Buttons.ButtonPress response
 									self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 								end)
-					end)								
-					
+					end)
+
 					self.mobileSession3:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.9.3.14
-		
+
 		-----------------------------------------------------------------------------------------
 	--End Test case CommonRequestCheck.9.3
-		
-		
+
+
 --=================================================END TEST CASES 9==========================================================--
 
 
@@ -19371,24 +18818,24 @@ end
 --=================================================BEGIN TEST CASES 10==========================================================--
 	--Begin Test suit CommonRequestCheck.10 for Req.#10
 
-	--Description: 10. In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies 
-						--and "equipment" section of policies database contains this RPC name with <params> in <moduleType> in "driver_allow" sub-section of <interiorZone> section 
-						--and the permission for this app&<interiorZone>&<moduleType> was denied either by the driver or by timeout or erroneous HMI's response 
+	--Description: 10. In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies
+						--and "equipment" section of policies database contains this RPC name with <params> in <moduleType> in "driver_allow" sub-section of <interiorZone> section
+						--and the permission for this app&<interiorZone>&<moduleType> was denied either by the driver or by timeout or erroneous HMI's response
 						--RSDL must send the RC.GetInteriorVehicleDataConsent for getting driver's allowance to the vehicle (HMI).
-	
+
 
 	--Begin Test case CommonRequestCheck.10.1
 	--Description: 	For ButtonPress
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-966
 				--TC: REVSDL-1393
 
-		--Verification criteria: 
+		--Verification criteria:
 				--In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies
 
 		-----------------------------------------------------------------------------------------
-				
+
 			--Begin Test case CommonRequestCheck.10.1.1
 			--Description: application sends ButtonPress as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO (first time)
 				function Test:ButtonPress_DriverAllowFrontRADIO_DriverDenied()
@@ -19406,12 +18853,12 @@ end
 						},
 						moduleType = "RADIO",
 						buttonPressMode = "LONG",
-						buttonName = "VOLUME_UP"						
+						buttonName = "VOLUME_UP"
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -19424,13 +18871,13 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = false})
-							
+
 							--hmi side: expect Buttons.ButtonPress request
-							EXPECT_HMICALL("Buttons.ButtonPress", 
-											{ 
+							EXPECT_HMICALL("Buttons.ButtonPress",
+											{
 												zone =
 												{
 													colspan = 2,
@@ -19449,15 +18896,15 @@ end
 									--hmi side: sending Buttons.ButtonPress response
 									self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 								end)
-					end)								
-					
+					end)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false, info: "The driver disallows this remote-control RPC" to this application.
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "USER_DISALLOWED", info = "The driver disallows this remote-control RPC" })
 				end
 			--End Test case CommonRequestCheck.10.1.1
-			
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.10.1.2
 			--Description: application sends ButtonPress as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO (first time)
 				function Test:ButtonPress_DriverAllowFrontRADIO_Error()
@@ -19475,12 +18922,12 @@ end
 						},
 						moduleType = "RADIO",
 						buttonPressMode = "LONG",
-						buttonName = "VOLUME_UP"						
+						buttonName = "VOLUME_UP"
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -19493,13 +18940,13 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "ERROR", {allowed = true})
-							
+
 							--hmi side: expect Buttons.ButtonPress request
-							EXPECT_HMICALL("Buttons.ButtonPress", 
-											{ 
+							EXPECT_HMICALL("Buttons.ButtonPress",
+											{
 												zone =
 												{
 													colspan = 2,
@@ -19518,13 +18965,13 @@ end
 									--hmi side: sending Buttons.ButtonPress response
 									self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 								end)
-					end)								
-					
+					end)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false, info: "The driver disallows this remote-control RPC" to this application.
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "USER_DISALLOWED", info = "The driver disallows this remote-control RPC" })
 				end
 			--End Test case CommonRequestCheck.10.1.2
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.10.1.3
@@ -19544,12 +18991,12 @@ end
 						},
 						moduleType = "RADIO",
 						buttonPressMode = "LONG",
-						buttonName = "VOLUME_UP"						
+						buttonName = "VOLUME_UP"
 					})
-					
+
 					--hmi side: expect RSDL sends RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -19563,13 +19010,13 @@ end
 									}
 								})
 						:Do(function(_,data)
-							local function HMIResponse()						
+							local function HMIResponse()
 								--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 								self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "TIMED_OUT", {})
-								
+
 								--hmi side: expect Buttons.ButtonPress request
-								EXPECT_HMICALL("Buttons.ButtonPress", 
-												{ 
+								EXPECT_HMICALL("Buttons.ButtonPress",
+												{
 													zone =
 													{
 														colspan = 2,
@@ -19590,17 +19037,17 @@ end
 								end)
 							end
 
-							RUN_AFTER(HMIResponse, 10000)							
-					end)								
-					
+							RUN_AFTER(HMIResponse, 10000)
+					end)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false, info: "The driver disallows this remote-control RPC" to this application.
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "USER_DISALLOWED", info = "The driver disallows this remote-control RPC" })
 					:Timeout(11000)
 				end
 			--End Test case CommonRequestCheck.10.1.3
-			
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.10.1.4
 			--Description: application sends ButtonPress as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO (first time)
 				function Test:ButtonPress_DriverAllowFrontRADIO_SUCCESS()
@@ -19618,12 +19065,12 @@ end
 						},
 						moduleType = "RADIO",
 						buttonPressMode = "LONG",
-						buttonName = "VOLUME_UP"						
+						buttonName = "VOLUME_UP"
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -19636,13 +19083,13 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect Buttons.ButtonPress request
-							EXPECT_HMICALL("Buttons.ButtonPress", 
-											{ 
+							EXPECT_HMICALL("Buttons.ButtonPress",
+											{
 												zone =
 												{
 													colspan = 2,
@@ -19660,15 +19107,15 @@ end
 									--hmi side: sending Buttons.ButtonPress response
 									self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 								end)
-					end)								
-					
+					end)
+
 					--RSDL must respond with "resultCode: SUCCESS, success: true
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.10.1.4
-			
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.10.1.5
 			--Description: application sends ButtonPress as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE
 				function Test:ButtonPress_DriverAllowLeftCLIMATE_DriverDenied()
@@ -19686,12 +19133,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "SHORT",
-						buttonName = "LOWER_VENT"						
+						buttonName = "LOWER_VENT"
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -19704,13 +19151,13 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = false})
-							
+
 							--hmi side: expect Buttons.ButtonPress request
-							EXPECT_HMICALL("Buttons.ButtonPress", 
-											{ 
+							EXPECT_HMICALL("Buttons.ButtonPress",
+											{
 												zone =
 												{
 													colspan = 2,
@@ -19729,14 +19176,14 @@ end
 									--hmi side: sending Buttons.ButtonPress response
 									self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 								end)
-					end)								
-					
+					end)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false, info: "The driver disallows this remote-control RPC" to this application.
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "USER_DISALLOWED", info = "The driver disallows this remote-control RPC" })
 				end
 			--End Test case CommonRequestCheck.10.1.5
-		
-		-----------------------------------------------------------------------------------------		
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.10.1.6
 			--Description: application sends ButtonPress as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE
@@ -19755,12 +19202,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "SHORT",
-						buttonName = "LOWER_VENT"						
+						buttonName = "LOWER_VENT"
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -19773,13 +19220,13 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "Error", {allowed = true})
-							
+
 							--hmi side: expect Buttons.ButtonPress request
-							EXPECT_HMICALL("Buttons.ButtonPress", 
-											{ 
+							EXPECT_HMICALL("Buttons.ButtonPress",
+											{
 												zone =
 												{
 													colspan = 2,
@@ -19798,15 +19245,15 @@ end
 									--hmi side: sending Buttons.ButtonPress response
 									self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 								end)
-					end)								
-					
+					end)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false, info: "The driver disallows this remote-control RPC" to this application.
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "USER_DISALLOWED", info = "The driver disallows this remote-control RPC" })
 				end
 			--End Test case CommonRequestCheck.10.1.6
-		
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.10.1.7
 			--Description: application sends ButtonPress as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE
 				function Test:ButtonPress_DriverAllowLeftCLIMATE_TimeOut()
@@ -19824,12 +19271,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "SHORT",
-						buttonName = "LOWER_VENT"						
+						buttonName = "LOWER_VENT"
 					})
-					
+
 					--hmi side: expect RSDL sends RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -19843,13 +19290,13 @@ end
 									}
 								})
 						:Do(function(_,data)
-							local function HMIResponse()						
+							local function HMIResponse()
 									--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 									self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "TIMED_OUT", {})
-									
+
 									--hmi side: expect Buttons.ButtonPress request
-									EXPECT_HMICALL("Buttons.ButtonPress", 
-													{ 
+									EXPECT_HMICALL("Buttons.ButtonPress",
+													{
 														zone =
 														{
 															colspan = 2,
@@ -19866,15 +19313,15 @@ end
 									:Times(0)
 							end
 
-							RUN_AFTER(HMIResponse, 10000)									
-					end)								
-					
+							RUN_AFTER(HMIResponse, 10000)
+					end)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false, info: "The driver disallows this remote-control RPC" to this application.
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "USER_DISALLOWED", info = "The driver disallows this remote-control RPC" })
 					:Timeout(11000)
 				end
 			--End Test case CommonRequestCheck.10.1.7
-		
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.10.1.8
@@ -19894,12 +19341,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "SHORT",
-						buttonName = "LOWER_VENT"						
+						buttonName = "LOWER_VENT"
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -19912,13 +19359,13 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect Buttons.ButtonPress request
-							EXPECT_HMICALL("Buttons.ButtonPress", 
-											{ 
+							EXPECT_HMICALL("Buttons.ButtonPress",
+											{
 												zone =
 												{
 													colspan = 2,
@@ -19936,25 +19383,25 @@ end
 									--hmi side: sending Buttons.ButtonPress response
 									self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 								end)
-					end)								
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.10.1.8
-		
+
 		-----------------------------------------------------------------------------------------
 	--End Test case CommonRequestCheck.10.1
-	
-		
+
+
 	--Begin Test case CommonRequestCheck.10.2
 	--Description: 	For GetInteriorVehicleData
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-966
 				--TC: REVSDL-1393
 
-		--Verification criteria: 
-				--In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies 
+		--Verification criteria:
+				--In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies
 
 		-----------------------------------------------------------------------------------------
 
@@ -19967,7 +19414,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -19977,12 +19424,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -19995,10 +19442,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = false})
-							
+
 							--hmi side: expect RC.GetInteriorVehicleData request
 							EXPECT_HMICALL("RC.GetInteriorVehicleData")
 							:Times(0)
@@ -20036,17 +19483,17 @@ end
 													radioEnable = true,
 													state = "ACQUIRING"
 												}
-											}	
+											}
 									})
-									
+
 							end)
-					end)								
-					
+					end)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false, info: "The driver disallows this remote-control RPC" to this application.
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "USER_DISALLOWED", info = "The driver disallows this remote-control RPC" })
 				end
 			--End Test case CommonRequestCheck.10.2.1
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.10.2.2
@@ -20058,7 +19505,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -20068,12 +19515,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -20086,10 +19533,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", {}, {allowed = true})
-							
+
 							--hmi side: expect RC.GetInteriorVehicleData request
 							EXPECT_HMICALL("RC.GetInteriorVehicleData")
 							:Times(0)
@@ -20127,19 +19574,19 @@ end
 													radioEnable = true,
 													state = "ACQUIRING"
 												}
-											}	
+											}
 									})
-									
+
 							end)
-					end)								
-					
+					end)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false, info: "The driver disallows this remote-control RPC" to this application.
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "USER_DISALLOWED", info = "The driver disallows this remote-control RPC" })
 				end
 			--End Test case CommonRequestCheck.10.2.2
-			
-		-----------------------------------------------------------------------------------------		
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.10.2.3
 			--Description: application sends GetInteriorVehicleData as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO
 				function Test:GetInterior_DriverAllowFrontRADIO_TimeOut()
@@ -20149,7 +19596,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -20159,12 +19606,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RSDL sends RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -20179,10 +19626,10 @@ end
 								})
 						:Do(function(_,data)
 
-							local function HMIResponse()						
+							local function HMIResponse()
 									--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 									self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "TIMED_OUT", {})
-									
+
 									--hmi side: expect RC.GetInteriorVehicleData request
 									EXPECT_HMICALL("RC.GetInteriorVehicleData")
 									:Times(0)
@@ -20220,23 +19667,23 @@ end
 															radioEnable = true,
 															state = "ACQUIRING"
 														}
-													}	
+													}
 									})
-											
+
 									end)
 							end
 
-							RUN_AFTER(HMIResponse, 10000)									
-					end)								
-					
+							RUN_AFTER(HMIResponse, 10000)
+					end)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false, info: "The driver disallows this remote-control RPC" to this application.
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "USER_DISALLOWED", info = "The driver disallows this remote-control RPC" })
 					:Timeout(11000)
 				end
 			--End Test case CommonRequestCheck.10.2.3
-			
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.10.2.4
 			--Description: application sends GetInteriorVehicleData as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO
 				function Test:GetInterior_DriverAllowFrontRADIO_Sucess()
@@ -20246,7 +19693,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -20256,12 +19703,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -20274,10 +19721,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect RC.GetInteriorVehicleData request
 							EXPECT_HMICALL("RC.GetInteriorVehicleData")
 							:Do(function(_,data)
@@ -20314,18 +19761,18 @@ end
 													radioEnable = true,
 													state = "ACQUIRING"
 												}
-											}	
+											}
 									})
-									
+
 							end)
-					end)								
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.10.2.4
-			
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.10.2.5
 			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = RADIO
 				function Test:GetInterior_DriverAllowLeftRADIO_DriverDenied()
@@ -20335,7 +19782,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -20345,194 +19792,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
-					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
-									appID = self.applications["Test Application"],
-									moduleType = "RADIO",
-									zone =
-									{
-										colspan = 2,
-										row = 1,
-										rowspan = 2,
-										col = 0,
-										levelspan = 1,
-										level = 0
-									}
-								})
-						:Do(function(_,data)						
-							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
-							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = false})
-							
-							--hmi side: expect RC.GetInteriorVehicleData request
-							EXPECT_HMICALL("RC.GetInteriorVehicleData")
-							:Times(0)
-							:Do(function(_,data)
-									--hmi side: sending RC.GetInteriorVehicleData response
-									self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {
-											moduleData = {
-												moduleType = "RADIO",
-												moduleZone = {
-													col = 0,
-													colspan = 2,
-													level = 0,
-													levelspan = 1,
-													row = 1,
-													rowspan = 2
-												},
-												radioControlData = {
-													frequencyInteger = 99,
-													frequencyFraction = 3,
-													band = "FM",
-													rdsData = {
-														PS = "name",
-														RT = "radio",
-														CT = "YYYY-MM-DDThh:mm:ss.sTZD",
-														PI = "Sign",
-														PTY = 1,
-														TP = true,
-														TA = true,
-														REG = "Murica"
-													},
-													availableHDs = 3,
-													hdChannel = 1,
-													signalStrength = 50,
-													signalChangeThreshold = 60,
-													radioEnable = true,
-													state = "ACQUIRING"
-												}
-											}	
-									})
-									
-							end)
-					end)								
-					
-					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false, info: "The driver disallows this remote-control RPC" to this application.
-					EXPECT_RESPONSE(cid, { success = false, resultCode = "USER_DISALLOWED", info = "The driver disallows this remote-control RPC" })
-				end
-			--End Test case CommonRequestCheck.10.2.5
-		
-		-----------------------------------------------------------------------------------------		
-		
-			--Begin Test case CommonRequestCheck.10.2.6
-			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = RADIO
-				function Test:GetInterior_DriverAllowLeftRADIO_Error()
-					--mobile side: In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies
-					local cid = self.mobileSession:SendRPC("GetInteriorVehicleData",
-					{
-						moduleDescription =
-						{
-							moduleType = "RADIO",
-							moduleZone = 
-							{
-								colspan = 2,
-								row = 1,
-								rowspan = 2,
-								col = 0,
-								levelspan = 1,
-								level = 0,
-							}
-						},
-						subscribe = true							
-					})
-					
-					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
-									appID = self.applications["Test Application"],
-									moduleType = "RADIO",
-									zone =
-									{
-										colspan = 2,
-										row = 1,
-										rowspan = 2,
-										col = 0,
-										levelspan = 1,
-										level = 0
-									}
-								})
-						:Do(function(_,data)						
-							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
-							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", 123, {allowed = true})
-							
-							--hmi side: expect RC.GetInteriorVehicleData request
-							EXPECT_HMICALL("RC.GetInteriorVehicleData")
-							:Times(0)
-							:Do(function(_,data)
-									--hmi side: sending RC.GetInteriorVehicleData response
-									self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {
-											moduleData = {
-												moduleType = "RADIO",
-												moduleZone = {
-													col = 0,
-													colspan = 2,
-													level = 0,
-													levelspan = 1,
-													row = 1,
-													rowspan = 2
-												},
-												radioControlData = {
-													frequencyInteger = 99,
-													frequencyFraction = 3,
-													band = "FM",
-													rdsData = {
-														PS = "name",
-														RT = "radio",
-														CT = "YYYY-MM-DDThh:mm:ss.sTZD",
-														PI = "Sign",
-														PTY = 1,
-														TP = true,
-														TA = true,
-														REG = "Murica"
-													},
-													availableHDs = 3,
-													hdChannel = 1,
-													signalStrength = 50,
-													signalChangeThreshold = 60,
-													radioEnable = true,
-													state = "ACQUIRING"
-												}
-											}	
-									})
-									
-							end)
-					end)								
-					
-					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false, info: "The driver disallows this remote-control RPC" to this application.
-					EXPECT_RESPONSE(cid, { success = false, resultCode = "USER_DISALLOWED", info = "The driver disallows this remote-control RPC" })
-				end
-			--End Test case CommonRequestCheck.10.2.6
-		
-		-----------------------------------------------------------------------------------------
 
-			--Begin Test case CommonRequestCheck.10.2.7
-			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = RADIO
-				function Test:GetInterior_DriverAllowLeftRADIO_TimeOut()
-					--mobile side: In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies
-					local cid = self.mobileSession:SendRPC("GetInteriorVehicleData",
-					{
-						moduleDescription =
-						{
-							moduleType = "RADIO",
-							moduleZone = 
-							{
-								colspan = 2,
-								row = 1,
-								rowspan = 2,
-								col = 0,
-								levelspan = 1,
-								level = 0,
-							}
-						},
-						subscribe = true							
-					})
-					
-					--hmi side: expect RSDL sends RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -20546,10 +19811,192 @@ end
 									}
 								})
 						:Do(function(_,data)
-							local function HMIResponse()						
+							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
+							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = false})
+
+							--hmi side: expect RC.GetInteriorVehicleData request
+							EXPECT_HMICALL("RC.GetInteriorVehicleData")
+							:Times(0)
+							:Do(function(_,data)
+									--hmi side: sending RC.GetInteriorVehicleData response
+									self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {
+											moduleData = {
+												moduleType = "RADIO",
+												moduleZone = {
+													col = 0,
+													colspan = 2,
+													level = 0,
+													levelspan = 1,
+													row = 1,
+													rowspan = 2
+												},
+												radioControlData = {
+													frequencyInteger = 99,
+													frequencyFraction = 3,
+													band = "FM",
+													rdsData = {
+														PS = "name",
+														RT = "radio",
+														CT = "YYYY-MM-DDThh:mm:ss.sTZD",
+														PI = "Sign",
+														PTY = 1,
+														TP = true,
+														TA = true,
+														REG = "Murica"
+													},
+													availableHDs = 3,
+													hdChannel = 1,
+													signalStrength = 50,
+													signalChangeThreshold = 60,
+													radioEnable = true,
+													state = "ACQUIRING"
+												}
+											}
+									})
+
+							end)
+					end)
+
+					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false, info: "The driver disallows this remote-control RPC" to this application.
+					EXPECT_RESPONSE(cid, { success = false, resultCode = "USER_DISALLOWED", info = "The driver disallows this remote-control RPC" })
+				end
+			--End Test case CommonRequestCheck.10.2.5
+
+		-----------------------------------------------------------------------------------------
+
+			--Begin Test case CommonRequestCheck.10.2.6
+			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = RADIO
+				function Test:GetInterior_DriverAllowLeftRADIO_Error()
+					--mobile side: In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies
+					local cid = self.mobileSession:SendRPC("GetInteriorVehicleData",
+					{
+						moduleDescription =
+						{
+							moduleType = "RADIO",
+							moduleZone =
+							{
+								colspan = 2,
+								row = 1,
+								rowspan = 2,
+								col = 0,
+								levelspan = 1,
+								level = 0,
+							}
+						},
+						subscribe = true
+					})
+
+					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
+									appID = self.applications["Test Application"],
+									moduleType = "RADIO",
+									zone =
+									{
+										colspan = 2,
+										row = 1,
+										rowspan = 2,
+										col = 0,
+										levelspan = 1,
+										level = 0
+									}
+								})
+						:Do(function(_,data)
+							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
+							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", 123, {allowed = true})
+
+							--hmi side: expect RC.GetInteriorVehicleData request
+							EXPECT_HMICALL("RC.GetInteriorVehicleData")
+							:Times(0)
+							:Do(function(_,data)
+									--hmi side: sending RC.GetInteriorVehicleData response
+									self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {
+											moduleData = {
+												moduleType = "RADIO",
+												moduleZone = {
+													col = 0,
+													colspan = 2,
+													level = 0,
+													levelspan = 1,
+													row = 1,
+													rowspan = 2
+												},
+												radioControlData = {
+													frequencyInteger = 99,
+													frequencyFraction = 3,
+													band = "FM",
+													rdsData = {
+														PS = "name",
+														RT = "radio",
+														CT = "YYYY-MM-DDThh:mm:ss.sTZD",
+														PI = "Sign",
+														PTY = 1,
+														TP = true,
+														TA = true,
+														REG = "Murica"
+													},
+													availableHDs = 3,
+													hdChannel = 1,
+													signalStrength = 50,
+													signalChangeThreshold = 60,
+													radioEnable = true,
+													state = "ACQUIRING"
+												}
+											}
+									})
+
+							end)
+					end)
+
+					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false, info: "The driver disallows this remote-control RPC" to this application.
+					EXPECT_RESPONSE(cid, { success = false, resultCode = "USER_DISALLOWED", info = "The driver disallows this remote-control RPC" })
+				end
+			--End Test case CommonRequestCheck.10.2.6
+
+		-----------------------------------------------------------------------------------------
+
+			--Begin Test case CommonRequestCheck.10.2.7
+			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = RADIO
+				function Test:GetInterior_DriverAllowLeftRADIO_TimeOut()
+					--mobile side: In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies
+					local cid = self.mobileSession:SendRPC("GetInteriorVehicleData",
+					{
+						moduleDescription =
+						{
+							moduleType = "RADIO",
+							moduleZone =
+							{
+								colspan = 2,
+								row = 1,
+								rowspan = 2,
+								col = 0,
+								levelspan = 1,
+								level = 0,
+							}
+						},
+						subscribe = true
+					})
+
+					--hmi side: expect RSDL sends RC.GetInteriorVehicleDataConsent request to HMI
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
+									appID = self.applications["Test Application"],
+									moduleType = "RADIO",
+									zone =
+									{
+										colspan = 2,
+										row = 1,
+										rowspan = 2,
+										col = 0,
+										levelspan = 1,
+										level = 0
+									}
+								})
+						:Do(function(_,data)
+							local function HMIResponse()
 									--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 									self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "TIMED_OUT", {})
-									
+
 									--hmi side: expect RC.GetInteriorVehicleData request
 									EXPECT_HMICALL("RC.GetInteriorVehicleData")
 									:Times(0)
@@ -20587,23 +20034,23 @@ end
 															radioEnable = true,
 															state = "ACQUIRING"
 														}
-													}	
+													}
 											})
-											
+
 									end)
 							end
 
-							RUN_AFTER(HMIResponse, 10000)									
-					end)								
-					
+							RUN_AFTER(HMIResponse, 10000)
+					end)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false, info: "The driver disallows this remote-control RPC" to this application.
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "USER_DISALLOWED", info = "The driver disallows this remote-control RPC" })
 					:Timeout(11000)
 				end
 			--End Test case CommonRequestCheck.10.2.7
-		
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.10.2.8
 			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = RADIO
 				function Test:GetInterior_DriverAllowLeftRADIO_Success()
@@ -20613,7 +20060,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -20623,12 +20070,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -20641,10 +20088,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect RC.GetInteriorVehicleData request
 							EXPECT_HMICALL("RC.GetInteriorVehicleData")
 							:Do(function(_,data)
@@ -20681,18 +20128,18 @@ end
 													radioEnable = true,
 													state = "ACQUIRING"
 												}
-											}	
+											}
 									})
-									
+
 							end)
-					end)								
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.10.2.8
-		
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.10.2.9
 			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE
 				function Test:GetInterior_DriverAllowLeftCLIMATE_DriverDenied()
@@ -20702,7 +20149,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -20712,180 +20159,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
-									appID = self.applications["Test Application"],
-									moduleType = "CLIMATE",
-									zone =
-									{
-										colspan = 2,
-										row = 1,
-										rowspan = 2,
-										col = 0,
-										levelspan = 1,
-										level = 0
-									}
-								})
-						:Do(function(_,data)						
-							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
-							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = false})
-							
-							--hmi side: expect RC.GetInteriorVehicleData request
-							EXPECT_HMICALL("RC.GetInteriorVehicleData")
-							:Times(0)
-							:Do(function(_,data)
-									--hmi side: sending RC.GetInteriorVehicleData response
-									self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {
-										moduleData =
-										{
-											moduleType = "CLIMATE",
-											moduleZone = 
-											{
-												colspan = 2,
-												row = 1,
-												rowspan = 2,
-												col = 0,
-												levelspan = 1,
-												level = 0
-											},
-											climateControlData =
-											{
-												fanSpeed = 50,
-												circulateAirEnable = true,
-												dualModeEnable = true,
-												currentTemp = 30,
-												defrostZone = "FRONT",
-												acEnable = true,
-												desiredTemp = 24,
-												autoModeEnable = true,
-												temperatureUnit = "CELSIUS"
-											}
-										}
-									})
-									
-							end)
-					end)								
-					
-					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false, info: "The driver disallows this remote-control RPC" to this application.
-					EXPECT_RESPONSE(cid, { success = false, resultCode = "USER_DISALLOWED", info = "The driver disallows this remote-control RPC" })
-				end
-			--End Test case CommonRequestCheck.10.2.9
-		
-		-----------------------------------------------------------------------------------------		
-		
-			--Begin Test case CommonRequestCheck.10.2.10
-			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE
-				function Test:GetInterior_DriverAllowLeftCLIMATE_Error()
-					--mobile side: In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies
-					local cid = self.mobileSession:SendRPC("GetInteriorVehicleData",
-					{
-						moduleDescription =
-						{
-							moduleType = "CLIMATE",
-							moduleZone = 
-							{
-								colspan = 2,
-								row = 1,
-								rowspan = 2,
-								col = 0,
-								levelspan = 1,
-								level = 0,
-							}
-						},
-						subscribe = true							
-					})
-					
-					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
-									appID = self.applications["Test Application"],
-									moduleType = "CLIMATE",
-									zone =
-									{
-										colspan = 2,
-										row = 1,
-										rowspan = 2,
-										col = 0,
-										levelspan = 1,
-										level = 0
-									}
-								})
-						:Do(function(_,data)						
-							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
-							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", true, {allowed = true})
-							
-							--hmi side: expect RC.GetInteriorVehicleData request
-							EXPECT_HMICALL("RC.GetInteriorVehicleData")
-							:Times(0)
-							:Do(function(_,data)
-									--hmi side: sending RC.GetInteriorVehicleData response
-									self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {
-										moduleData =
-										{
-											moduleType = "CLIMATE",
-											moduleZone = 
-											{
-												colspan = 2,
-												row = 1,
-												rowspan = 2,
-												col = 0,
-												levelspan = 1,
-												level = 0
-											},
-											climateControlData =
-											{
-												fanSpeed = 50,
-												circulateAirEnable = true,
-												dualModeEnable = true,
-												currentTemp = 30,
-												defrostZone = "FRONT",
-												acEnable = true,
-												desiredTemp = 24,
-												autoModeEnable = true,
-												temperatureUnit = "CELSIUS"
-											}
-										}
-									})
-									
-							end)
-					end)								
-					
-					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false, info: "The driver disallows this remote-control RPC" to this application.
-					EXPECT_RESPONSE(cid, { success = false, resultCode = "USER_DISALLOWED", info = "The driver disallows this remote-control RPC" })
-				end
-			--End Test case CommonRequestCheck.10.2.10
-		
-		-----------------------------------------------------------------------------------------		
-		
-			--Begin Test case CommonRequestCheck.10.2.11
-			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE
-				function Test:GetInterior_DriverAllowLeftCLIMATE_TimeOut()
-					--mobile side: In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies
-					local cid = self.mobileSession:SendRPC("GetInteriorVehicleData",
-					{
-						moduleDescription =
-						{
-							moduleType = "CLIMATE",
-							moduleZone = 
-							{
-								colspan = 2,
-								row = 1,
-								rowspan = 2,
-								col = 0,
-								levelspan = 1,
-								level = 0,
-							}
-						},
-						subscribe = true							
-					})
-					
-					--hmi side: expect RSDL sends RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -20899,10 +20178,178 @@ end
 									}
 								})
 						:Do(function(_,data)
-							local function HMIResponse()						
+							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
+							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = false})
+
+							--hmi side: expect RC.GetInteriorVehicleData request
+							EXPECT_HMICALL("RC.GetInteriorVehicleData")
+							:Times(0)
+							:Do(function(_,data)
+									--hmi side: sending RC.GetInteriorVehicleData response
+									self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {
+										moduleData =
+										{
+											moduleType = "CLIMATE",
+											moduleZone =
+											{
+												colspan = 2,
+												row = 1,
+												rowspan = 2,
+												col = 0,
+												levelspan = 1,
+												level = 0
+											},
+											climateControlData =
+											{
+												fanSpeed = 50,
+												circulateAirEnable = true,
+												dualModeEnable = true,
+												currentTemp = 30,
+												defrostZone = "FRONT",
+												acEnable = true,
+												desiredTemp = 24,
+												autoModeEnable = true,
+												temperatureUnit = "CELSIUS"
+											}
+										}
+									})
+
+							end)
+					end)
+
+					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false, info: "The driver disallows this remote-control RPC" to this application.
+					EXPECT_RESPONSE(cid, { success = false, resultCode = "USER_DISALLOWED", info = "The driver disallows this remote-control RPC" })
+				end
+			--End Test case CommonRequestCheck.10.2.9
+
+		-----------------------------------------------------------------------------------------
+
+			--Begin Test case CommonRequestCheck.10.2.10
+			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE
+				function Test:GetInterior_DriverAllowLeftCLIMATE_Error()
+					--mobile side: In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies
+					local cid = self.mobileSession:SendRPC("GetInteriorVehicleData",
+					{
+						moduleDescription =
+						{
+							moduleType = "CLIMATE",
+							moduleZone =
+							{
+								colspan = 2,
+								row = 1,
+								rowspan = 2,
+								col = 0,
+								levelspan = 1,
+								level = 0,
+							}
+						},
+						subscribe = true
+					})
+
+					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
+									appID = self.applications["Test Application"],
+									moduleType = "CLIMATE",
+									zone =
+									{
+										colspan = 2,
+										row = 1,
+										rowspan = 2,
+										col = 0,
+										levelspan = 1,
+										level = 0
+									}
+								})
+						:Do(function(_,data)
+							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
+							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", true, {allowed = true})
+
+							--hmi side: expect RC.GetInteriorVehicleData request
+							EXPECT_HMICALL("RC.GetInteriorVehicleData")
+							:Times(0)
+							:Do(function(_,data)
+									--hmi side: sending RC.GetInteriorVehicleData response
+									self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {
+										moduleData =
+										{
+											moduleType = "CLIMATE",
+											moduleZone =
+											{
+												colspan = 2,
+												row = 1,
+												rowspan = 2,
+												col = 0,
+												levelspan = 1,
+												level = 0
+											},
+											climateControlData =
+											{
+												fanSpeed = 50,
+												circulateAirEnable = true,
+												dualModeEnable = true,
+												currentTemp = 30,
+												defrostZone = "FRONT",
+												acEnable = true,
+												desiredTemp = 24,
+												autoModeEnable = true,
+												temperatureUnit = "CELSIUS"
+											}
+										}
+									})
+
+							end)
+					end)
+
+					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false, info: "The driver disallows this remote-control RPC" to this application.
+					EXPECT_RESPONSE(cid, { success = false, resultCode = "USER_DISALLOWED", info = "The driver disallows this remote-control RPC" })
+				end
+			--End Test case CommonRequestCheck.10.2.10
+
+		-----------------------------------------------------------------------------------------
+
+			--Begin Test case CommonRequestCheck.10.2.11
+			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE
+				function Test:GetInterior_DriverAllowLeftCLIMATE_TimeOut()
+					--mobile side: In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies
+					local cid = self.mobileSession:SendRPC("GetInteriorVehicleData",
+					{
+						moduleDescription =
+						{
+							moduleType = "CLIMATE",
+							moduleZone =
+							{
+								colspan = 2,
+								row = 1,
+								rowspan = 2,
+								col = 0,
+								levelspan = 1,
+								level = 0,
+							}
+						},
+						subscribe = true
+					})
+
+					--hmi side: expect RSDL sends RC.GetInteriorVehicleDataConsent request to HMI
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
+									appID = self.applications["Test Application"],
+									moduleType = "CLIMATE",
+									zone =
+									{
+										colspan = 2,
+										row = 1,
+										rowspan = 2,
+										col = 0,
+										levelspan = 1,
+										level = 0
+									}
+								})
+						:Do(function(_,data)
+							local function HMIResponse()
 									--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 									self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "TIMED_OUT", {})
-									
+
 									--hmi side: expect RC.GetInteriorVehicleData request
 									EXPECT_HMICALL("RC.GetInteriorVehicleData")
 									:Times(0)
@@ -20912,7 +20359,7 @@ end
 												moduleData =
 												{
 													moduleType = "CLIMATE",
-													moduleZone = 
+													moduleZone =
 													{
 														colspan = 2,
 														row = 1,
@@ -20935,21 +20382,21 @@ end
 													}
 												}
 											})
-											
+
 									end)
 							end
 
-							RUN_AFTER(HMIResponse, 10000)									
-					end)								
-					
+							RUN_AFTER(HMIResponse, 10000)
+					end)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false, info: "The driver disallows this remote-control RPC" to this application.
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "USER_DISALLOWED", info = "The driver disallows this remote-control RPC" })
 					:Timeout(11000)
 				end
 			--End Test case CommonRequestCheck.10.2.11
-		
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.10.2.12
 			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE
 				function Test:GetInterior_DriverAllowLeftCLIMATE_Success()
@@ -20959,7 +20406,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -20969,12 +20416,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -20987,10 +20434,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect RC.GetInteriorVehicleData request
 							EXPECT_HMICALL("RC.GetInteriorVehicleData")
 							:Do(function(_,data)
@@ -20999,7 +20446,7 @@ end
 										moduleData =
 										{
 											moduleType = "CLIMATE",
-											moduleZone = 
+											moduleZone =
 											{
 												colspan = 2,
 												row = 1,
@@ -21022,30 +20469,30 @@ end
 											}
 										}
 									})
-									
+
 							end)
-					end)								
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.10.2.12
-		
-		-----------------------------------------------------------------------------------------		
+
+		-----------------------------------------------------------------------------------------
 	--End Test case CommonRequestCheck.10.2
-		
-		
+
+
 	--Begin Test case CommonRequestCheck.10.3
 	--Description: 	For GetInteriorVehicleData
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-966
 				--TC: REVSDL-1393
 
-		--Verification criteria: 
-				--In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies 
+		--Verification criteria:
+				--In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies
 
 		-----------------------------------------------------------------------------------------
-				
+
 			--Begin Test case CommonRequestCheck.10.3.1
 			--Description: application sends SetInteriorVehicleData as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO
 				function Test:SetInterior_DriverAllowFrontRADIO_DriverDenied()
@@ -21083,12 +20530,12 @@ end
 								radioEnable = true,
 								state = "ACQUIRING"
 							}
-						}				
+						}
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -21101,10 +20548,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = false})
-							
+
 							--hmi side: expect RC.SetInteriorVehicleData request
 							EXPECT_HMICALL("RC.SetInteriorVehicleData")
 							:Times(0)
@@ -21142,19 +20589,19 @@ end
 													radioEnable = true,
 													state = "ACQUIRING"
 												}
-											}	
+											}
 									})
-									
+
 								end)
-					end)								
-					
+					end)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false, info: "The driver disallows this remote-control RPC" to this application.
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "USER_DISALLOWED", info = "The driver disallows this remote-control RPC" })
 				end
 			--End Test case CommonRequestCheck.10.3.1
-			
-		-----------------------------------------------------------------------------------------				
-				
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.10.3.2
 			--Description: application sends SetInteriorVehicleData as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO
 				function Test:SetInterior_DriverAllowFrontRADIO_Error()
@@ -21192,12 +20639,12 @@ end
 								radioEnable = true,
 								state = "ACQUIRING"
 							}
-						}				
+						}
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -21210,10 +20657,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", false, {allowed = true})
-							
+
 							--hmi side: expect RC.SetInteriorVehicleData request
 							EXPECT_HMICALL("RC.SetInteriorVehicleData")
 							:Times(0)
@@ -21251,19 +20698,19 @@ end
 													radioEnable = true,
 													state = "ACQUIRING"
 												}
-											}	
+											}
 									})
-									
+
 								end)
-					end)								
-					
+					end)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false, info: "The driver disallows this remote-control RPC" to this application.
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "USER_DISALLOWED", info = "The driver disallows this remote-control RPC" })
 				end
 			--End Test case CommonRequestCheck.10.3.2
-			
-		-----------------------------------------------------------------------------------------				
-				
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.10.3.3
 			--Description: application sends SetInteriorVehicleData as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO
 				function Test:SetInterior_DriverAllowFrontRADIO_TimeOut()
@@ -21301,12 +20748,12 @@ end
 								radioEnable = true,
 								state = "ACQUIRING"
 							}
-						}				
+						}
 					})
-					
+
 					--hmi side: expect RSDL sends RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -21320,10 +20767,10 @@ end
 									}
 								})
 						:Do(function(_,data)
-							local function HMIResponse()						
+							local function HMIResponse()
 									--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 									self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "TIMED_OUT", {})
-									
+
 									--hmi side: expect RC.SetInteriorVehicleData request
 									EXPECT_HMICALL("RC.SetInteriorVehicleData")
 									:Times(0)
@@ -21361,23 +20808,23 @@ end
 															radioEnable = true,
 															state = "ACQUIRING"
 														}
-													}	
+													}
 											})
-											
+
 										end)
 							end
 
-							RUN_AFTER(HMIResponse, 10000)										
-					end)								
-					
+							RUN_AFTER(HMIResponse, 10000)
+					end)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false, info: "The driver disallows this remote-control RPC" to this application.
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "USER_DISALLOWED", info = "The driver disallows this remote-control RPC" })
 					:Timeout(11000)
 				end
 			--End Test case CommonRequestCheck.10.3.3
-			
+
 		-----------------------------------------------------------------------------------------
-				
+
 			--Begin Test case CommonRequestCheck.10.3.4
 			--Description: application sends SetInteriorVehicleData as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO
 				function Test:SetInterior_DriverAllowFrontRADIO_Success()
@@ -21415,12 +20862,12 @@ end
 								radioEnable = true,
 								state = "ACQUIRING"
 							}
-						}				
+						}
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -21433,10 +20880,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect RC.SetInteriorVehicleData request
 							EXPECT_HMICALL("RC.SetInteriorVehicleData")
 							:Do(function(_,data)
@@ -21473,16 +20920,16 @@ end
 													radioEnable = true,
 													state = "ACQUIRING"
 												}
-											}	
+											}
 									})
-									
+
 								end)
-					end)								
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.10.3.4
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.10.3.5
@@ -21506,12 +20953,12 @@ end
 								frequencyFraction = 3,
 								band = "FM"
 							}
-						}				
+						}
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -21524,10 +20971,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = false})
-							
+
 							--hmi side: expect RC.SetInteriorVehicleData request
 							EXPECT_HMICALL("RC.SetInteriorVehicleData")
 							:Times(0)
@@ -21549,19 +20996,19 @@ end
 													frequencyFraction = 3,
 													band = "FM"
 												}
-											}	
+											}
 									})
-									
+
 								end)
-					end)								
-					
+					end)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false, info: "The driver disallows this remote-control RPC" to this application.
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "USER_DISALLOWED", info = "The driver disallows this remote-control RPC" })
 				end
 			--End Test case CommonRequestCheck.10.3.5
-		
-		-----------------------------------------------------------------------------------------		
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.10.3.6
 			--Description: application sends SetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = RADIO
 				function Test:SetInterior_DriverAllowLeftRADIO_Error()
@@ -21583,12 +21030,12 @@ end
 								frequencyFraction = 3,
 								band = "FM"
 							}
-						}				
+						}
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -21601,10 +21048,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "", {allowed = true})
-							
+
 							--hmi side: expect RC.SetInteriorVehicleData request
 							EXPECT_HMICALL("RC.SetInteriorVehicleData")
 							:Times(0)
@@ -21626,19 +21073,19 @@ end
 													frequencyFraction = 3,
 													band = "FM"
 												}
-											}	
+											}
 									})
-									
+
 								end)
-					end)								
-					
+					end)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false, info: "The driver disallows this remote-control RPC" to this application.
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "USER_DISALLOWED", info = "The driver disallows this remote-control RPC" })
 				end
 			--End Test case CommonRequestCheck.10.3.6
-		
-		-----------------------------------------------------------------------------------------		
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.10.3.7
 			--Description: application sends SetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = RADIO
 				function Test:SetInterior_DriverAllowLeftRADIO_TimeOut()
@@ -21660,12 +21107,12 @@ end
 								frequencyFraction = 3,
 								band = "FM"
 							}
-						}				
+						}
 					})
-					
+
 					--hmi side: expect RSDL sends RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -21679,10 +21126,10 @@ end
 									}
 								})
 						:Do(function(_,data)
-							local function HMIResponse()						
+							local function HMIResponse()
 									--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 									self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "TIMED_OUT", {})
-									
+
 									--hmi side: expect RC.SetInteriorVehicleData request
 									EXPECT_HMICALL("RC.SetInteriorVehicleData")
 									:Times(0)
@@ -21704,23 +21151,23 @@ end
 															frequencyFraction = 3,
 															band = "FM"
 														}
-													}	
+													}
 											})
-											
+
 										end)
 							end
 
-							RUN_AFTER(HMIResponse, 10000)										
-					end)								
-					
+							RUN_AFTER(HMIResponse, 10000)
+					end)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false, info: "The driver disallows this remote-control RPC" to this application.
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "USER_DISALLOWED", info = "The driver disallows this remote-control RPC" })
 					:Timeout(11000)
 				end
 			--End Test case CommonRequestCheck.10.3.7
-		
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.10.3.8
 			--Description: application sends SetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = RADIO
 				function Test:SetInterior_DriverAllowLeftRADIO_Success()
@@ -21742,12 +21189,12 @@ end
 								frequencyFraction = 3,
 								band = "FM"
 							}
-						}				
+						}
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -21760,10 +21207,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect RC.SetInteriorVehicleData request
 							EXPECT_HMICALL("RC.SetInteriorVehicleData")
 							:Do(function(_,data)
@@ -21784,18 +21231,18 @@ end
 													frequencyFraction = 3,
 													band = "FM"
 												}
-											}	
+											}
 									})
-									
+
 								end)
-					end)								
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.10.3.8
-		
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.10.3.9
 			--Description: application sends SetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE
 				function Test:SetInterior_DriverAllowLeftCLIMATE_DriverDenied()
@@ -21805,7 +21252,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -21822,176 +21269,10 @@ end
 							}
 						}
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
-									appID = self.applications["Test Application"],
-									moduleType = "CLIMATE",
-									zone =
-									{
-										colspan = 2,
-										row = 1,
-										rowspan = 2,
-										col = 0,
-										levelspan = 1,
-										level = 0
-									}
-								})
-						:Do(function(_,data)						
-							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
-							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = false})
-							
-							--hmi side: expect RC.SetInteriorVehicleData request
-							EXPECT_HMICALL("RC.SetInteriorVehicleData")
-							:Times(0)
-							:Do(function(_,data)
-									--hmi side: sending RC.SetInteriorVehicleData response
-									self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {
-										moduleData =
-										{
-											moduleType = "CLIMATE",
-											moduleZone = 
-											{
-												colspan = 2,
-												row = 1,
-												rowspan = 2,
-												col = 0,
-												levelspan = 1,
-												level = 0
-											},
-											climateControlData =
-											{
-												fanSpeed = 50,
-												desiredTemp = 24,
-												temperatureUnit = "CELSIUS"
-											}
-										}
-									})
-									
-								end)
-					end)								
-					
-					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false, info: "The driver disallows this remote-control RPC" to this application.
-					EXPECT_RESPONSE(cid, { success = false, resultCode = "USER_DISALLOWED", info = "The driver disallows this remote-control RPC" })
-				end
-			--End Test case CommonRequestCheck.10.3.9
-		
-		-----------------------------------------------------------------------------------------		
-		
-			--Begin Test case CommonRequestCheck.10.3.10
-			--Description: application sends SetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE
-				function Test:SetInterior_DriverAllowLeftCLIMATE_Error()
-					--mobile side: In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies
-					local cid = self.mobileSession:SendRPC("SetInteriorVehicleData",
-					{
-						moduleData =
-						{
-							moduleType = "CLIMATE",
-							moduleZone = 
-							{
-								colspan = 2,
-								row = 1,
-								rowspan = 2,
-								col = 0,
-								levelspan = 1,
-								level = 0
-							},
-							climateControlData =
-							{
-								fanSpeed = 50,
-								desiredTemp = 24,
-								temperatureUnit = "CELSIUS"
-							}
-						}
-					})
-					
-					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
-									appID = self.applications["Test Application"],
-									moduleType = "CLIMATE",
-									zone =
-									{
-										colspan = 2,
-										row = 1,
-										rowspan = 2,
-										col = 0,
-										levelspan = 1,
-										level = 0
-									}
-								})
-						:Do(function(_,data)						
-							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
-							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "UNSUCCESS", {allowed = true})
-							
-							--hmi side: expect RC.SetInteriorVehicleData request
-							EXPECT_HMICALL("RC.SetInteriorVehicleData")
-							:Times(0)
-							:Do(function(_,data)
-									--hmi side: sending RC.SetInteriorVehicleData response
-									self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {
-										moduleData =
-										{
-											moduleType = "CLIMATE",
-											moduleZone = 
-											{
-												colspan = 2,
-												row = 1,
-												rowspan = 2,
-												col = 0,
-												levelspan = 1,
-												level = 0
-											},
-											climateControlData =
-											{
-												fanSpeed = 50,
-												desiredTemp = 24,
-												temperatureUnit = "CELSIUS"
-											}
-										}
-									})
-									
-								end)
-					end)								
-					
-					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false, info: "The driver disallows this remote-control RPC" to this application.
-					EXPECT_RESPONSE(cid, { success = false, resultCode = "USER_DISALLOWED", info = "The driver disallows this remote-control RPC" })
-				end
-			--End Test case CommonRequestCheck.10.3.10
-		
-		-----------------------------------------------------------------------------------------		
-		
-			--Begin Test case CommonRequestCheck.10.3.11
-			--Description: application sends SetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE
-				function Test:SetInterior_DriverAllowLeftCLIMATE_TimeOut()
-					--mobile side: In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies
-					local cid = self.mobileSession:SendRPC("SetInteriorVehicleData",
-					{
-						moduleData =
-						{
-							moduleType = "CLIMATE",
-							moduleZone = 
-							{
-								colspan = 2,
-								row = 1,
-								rowspan = 2,
-								col = 0,
-								levelspan = 1,
-								level = 0
-							},
-							climateControlData =
-							{
-								fanSpeed = 50,
-								desiredTemp = 24,
-								temperatureUnit = "CELSIUS"
-							}
-						}
-					})
-					
-					--hmi side: expect RSDL sends RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -22005,10 +21286,176 @@ end
 									}
 								})
 						:Do(function(_,data)
-							local function HMIResponse()						
+							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
+							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = false})
+
+							--hmi side: expect RC.SetInteriorVehicleData request
+							EXPECT_HMICALL("RC.SetInteriorVehicleData")
+							:Times(0)
+							:Do(function(_,data)
+									--hmi side: sending RC.SetInteriorVehicleData response
+									self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {
+										moduleData =
+										{
+											moduleType = "CLIMATE",
+											moduleZone =
+											{
+												colspan = 2,
+												row = 1,
+												rowspan = 2,
+												col = 0,
+												levelspan = 1,
+												level = 0
+											},
+											climateControlData =
+											{
+												fanSpeed = 50,
+												desiredTemp = 24,
+												temperatureUnit = "CELSIUS"
+											}
+										}
+									})
+
+								end)
+					end)
+
+					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false, info: "The driver disallows this remote-control RPC" to this application.
+					EXPECT_RESPONSE(cid, { success = false, resultCode = "USER_DISALLOWED", info = "The driver disallows this remote-control RPC" })
+				end
+			--End Test case CommonRequestCheck.10.3.9
+
+		-----------------------------------------------------------------------------------------
+
+			--Begin Test case CommonRequestCheck.10.3.10
+			--Description: application sends SetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE
+				function Test:SetInterior_DriverAllowLeftCLIMATE_Error()
+					--mobile side: In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies
+					local cid = self.mobileSession:SendRPC("SetInteriorVehicleData",
+					{
+						moduleData =
+						{
+							moduleType = "CLIMATE",
+							moduleZone =
+							{
+								colspan = 2,
+								row = 1,
+								rowspan = 2,
+								col = 0,
+								levelspan = 1,
+								level = 0
+							},
+							climateControlData =
+							{
+								fanSpeed = 50,
+								desiredTemp = 24,
+								temperatureUnit = "CELSIUS"
+							}
+						}
+					})
+
+					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
+									appID = self.applications["Test Application"],
+									moduleType = "CLIMATE",
+									zone =
+									{
+										colspan = 2,
+										row = 1,
+										rowspan = 2,
+										col = 0,
+										levelspan = 1,
+										level = 0
+									}
+								})
+						:Do(function(_,data)
+							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
+							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "UNSUCCESS", {allowed = true})
+
+							--hmi side: expect RC.SetInteriorVehicleData request
+							EXPECT_HMICALL("RC.SetInteriorVehicleData")
+							:Times(0)
+							:Do(function(_,data)
+									--hmi side: sending RC.SetInteriorVehicleData response
+									self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {
+										moduleData =
+										{
+											moduleType = "CLIMATE",
+											moduleZone =
+											{
+												colspan = 2,
+												row = 1,
+												rowspan = 2,
+												col = 0,
+												levelspan = 1,
+												level = 0
+											},
+											climateControlData =
+											{
+												fanSpeed = 50,
+												desiredTemp = 24,
+												temperatureUnit = "CELSIUS"
+											}
+										}
+									})
+
+								end)
+					end)
+
+					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false, info: "The driver disallows this remote-control RPC" to this application.
+					EXPECT_RESPONSE(cid, { success = false, resultCode = "USER_DISALLOWED", info = "The driver disallows this remote-control RPC" })
+				end
+			--End Test case CommonRequestCheck.10.3.10
+
+		-----------------------------------------------------------------------------------------
+
+			--Begin Test case CommonRequestCheck.10.3.11
+			--Description: application sends SetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE
+				function Test:SetInterior_DriverAllowLeftCLIMATE_TimeOut()
+					--mobile side: In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies
+					local cid = self.mobileSession:SendRPC("SetInteriorVehicleData",
+					{
+						moduleData =
+						{
+							moduleType = "CLIMATE",
+							moduleZone =
+							{
+								colspan = 2,
+								row = 1,
+								rowspan = 2,
+								col = 0,
+								levelspan = 1,
+								level = 0
+							},
+							climateControlData =
+							{
+								fanSpeed = 50,
+								desiredTemp = 24,
+								temperatureUnit = "CELSIUS"
+							}
+						}
+					})
+
+					--hmi side: expect RSDL sends RC.GetInteriorVehicleDataConsent request to HMI
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
+									appID = self.applications["Test Application"],
+									moduleType = "CLIMATE",
+									zone =
+									{
+										colspan = 2,
+										row = 1,
+										rowspan = 2,
+										col = 0,
+										levelspan = 1,
+										level = 0
+									}
+								})
+						:Do(function(_,data)
+							local function HMIResponse()
 									--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 									self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "TIMED_OUT", {})
-									
+
 									--hmi side: expect RC.SetInteriorVehicleData request
 									EXPECT_HMICALL("RC.SetInteriorVehicleData")
 									:Times(0)
@@ -22018,7 +21465,7 @@ end
 												moduleData =
 												{
 													moduleType = "CLIMATE",
-													moduleZone = 
+													moduleZone =
 													{
 														colspan = 2,
 														row = 1,
@@ -22035,21 +21482,21 @@ end
 													}
 												}
 											})
-											
+
 										end)
 							end
 
-							RUN_AFTER(HMIResponse, 10000)										
-					end)								
-					
+							RUN_AFTER(HMIResponse, 10000)
+					end)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false, info: "The driver disallows this remote-control RPC" to this application.
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "USER_DISALLOWED", info = "The driver disallows this remote-control RPC" })
 					:Timeout(11000)
 				end
 			--End Test case CommonRequestCheck.10.3.12
-		
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.10.3.13
 			--Description: application sends SetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE
 				function Test:SetInterior_DriverAllowLeftCLIMATE_Success()
@@ -22059,7 +21506,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -22076,10 +21523,10 @@ end
 							}
 						}
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -22092,10 +21539,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect RC.SetInteriorVehicleData request
 							EXPECT_HMICALL("RC.SetInteriorVehicleData")
 							:Do(function(_,data)
@@ -22104,7 +21551,7 @@ end
 										moduleData =
 										{
 											moduleType = "CLIMATE",
-											moduleZone = 
+											moduleZone =
 											{
 												colspan = 2,
 												row = 1,
@@ -22121,17 +21568,17 @@ end
 											}
 										}
 									})
-									
+
 								end)
-					end)								
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.10.3.13
-		
-		-----------------------------------------------------------------------------------------		
+
+		-----------------------------------------------------------------------------------------
 	--End Test case CommonRequestCheck.10.3
-		
+
 --=================================================END TEST CASES 10==========================================================--
 
 
@@ -22140,26 +21587,26 @@ end
 --=================================================BEGIN TEST CASES 11==========================================================--
 	--Begin Test suit CommonRequestCheck.11 for Req.#11
 
-	--Description: 11. In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies 
-					--and "equipment" section of policies database contains this RPC name with <params> in <moduleType> in "driver_allow" sub-section of <interiorZone> section 
-					--and the vehicle (HMI) responds with "allowed: true" for RSDL's RC.GetInteriorVehicleDataConsent 
-					--and RSDL has processed this (app's initial) RPC 
-					--and RSDL gets BC.OnExitApplication (USER_EXIT) for this application from HMI 
+	--Description: 11. In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies
+					--and "equipment" section of policies database contains this RPC name with <params> in <moduleType> in "driver_allow" sub-section of <interiorZone> section
+					--and the vehicle (HMI) responds with "allowed: true" for RSDL's RC.GetInteriorVehicleDataConsent
+					--and RSDL has processed this (app's initial) RPC
+					--and RSDL gets BC.OnExitApplication (USER_EXIT) for this application from HMI
 					--RSDL must take off the driver's permissions from this application (that is, trigger a permission prompt upon this app's next controlling request)
-	
+
 
 	--Begin Test case CommonRequestCheck.11.1
 	--Description: 	For ButtonPress
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-966
 				--TC: REVSDL-1448
 
-		--Verification criteria: 
-				--In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies 
+		--Verification criteria:
+				--In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies
 
 		-----------------------------------------------------------------------------------------
-				
+
 			--Begin Test case CommonRequestCheck.11.1.1
 			--Description: application sends ButtonPress as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO
 				function Test:ButtonPress_DriverAllowFrontRADIO_Time1()
@@ -22177,12 +21624,12 @@ end
 						},
 						moduleType = "RADIO",
 						buttonPressMode = "LONG",
-						buttonName = "VOLUME_UP"						
+						buttonName = "VOLUME_UP"
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -22195,13 +21642,13 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect Buttons.ButtonPress request
-							EXPECT_HMICALL("Buttons.ButtonPress", 
-											{ 
+							EXPECT_HMICALL("Buttons.ButtonPress",
+											{
 												zone =
 												{
 													colspan = 2,
@@ -22219,30 +21666,30 @@ end
 									--hmi side: sending Buttons.ButtonPress response
 									self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 								end)
-					end)								
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.11.1.1
-			
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.11.1.2
 			--Description: From HMI trigger HMILevel to change. Press EXIT_Application button ( BC.OnExitApplication (USER_EXIT)).
 				function Test:EXIT_Application()
 
 					--hmi side: HMI send BC.OnExitApplication to Rsdl.
 					self.hmiConnection:SendNotification("BasicCommunication.OnExitApplication", {appID = self.applications["Test Application"], reason = "USER_EXIT"})
-					
+
 					--mobile side: Check that OnHMIStatus(NONE, deviceRank:Driver) sent by RSDL and received by App1
 					EXPECT_NOTIFICATION("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE" })
 					:Timeout(5000)
-				
+
 				end
 			--End Test case CommonRequestCheck.11.1.2
 
-		-----------------------------------------------------------------------------------------		
-		
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.11.1.3
 			--Description: application sends ButtonPress as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO
 				function Test:ButtonPress_DriverAllowFrontRADIO_Time2()
@@ -22260,12 +21707,12 @@ end
 						},
 						moduleType = "RADIO",
 						buttonPressMode = "LONG",
-						buttonName = "VOLUME_UP"						
+						buttonName = "VOLUME_UP"
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -22278,13 +21725,13 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect Buttons.ButtonPress request
-							EXPECT_HMICALL("Buttons.ButtonPress", 
-											{ 
+							EXPECT_HMICALL("Buttons.ButtonPress",
+											{
 												zone =
 												{
 													colspan = 2,
@@ -22302,12 +21749,12 @@ end
 									--hmi side: sending Buttons.ButtonPress response
 									self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 								end)
-					end)								
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.11.1.3
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.11.1.4
@@ -22327,12 +21774,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "SHORT",
-						buttonName = "LOWER_VENT"						
+						buttonName = "LOWER_VENT"
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -22345,13 +21792,13 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect Buttons.ButtonPress request
-							EXPECT_HMICALL("Buttons.ButtonPress", 
-											{ 
+							EXPECT_HMICALL("Buttons.ButtonPress",
+											{
 												zone =
 												{
 													colspan = 2,
@@ -22369,29 +21816,29 @@ end
 									--hmi side: sending Buttons.ButtonPress response
 									self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 								end)
-					end)								
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.11.1.4
-		
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.11.1.5
 			--Description: From HMI trigger HMILevel to change. Press EXIT_Application button ( BC.OnExitApplication (USER_EXIT)).
 				function Test:EXIT_Application()
 
 					--hmi side: HMI send BC.OnExitApplication to Rsdl.
 					self.hmiConnection:SendNotification("BasicCommunication.OnExitApplication", {appID = self.applications["Test Application"], reason = "USER_EXIT"})
-					
+
 					--mobile side: Check that OnHMIStatus(NONE, deviceRank:Driver) sent by RSDL and received by App1
 					EXPECT_NOTIFICATION("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE" })
 					:Timeout(5000)
-				
+
 				end
 			--End Test case CommonRequestCheck.11.1.5
 
-		-----------------------------------------------------------------------------------------		
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.11.1.6
 			--Description: application sends ButtonPress as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE
@@ -22410,12 +21857,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "SHORT",
-						buttonName = "LOWER_VENT"						
+						buttonName = "LOWER_VENT"
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -22428,13 +21875,13 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect Buttons.ButtonPress request
-							EXPECT_HMICALL("Buttons.ButtonPress", 
-											{ 
+							EXPECT_HMICALL("Buttons.ButtonPress",
+											{
 												zone =
 												{
 													colspan = 2,
@@ -22452,28 +21899,28 @@ end
 									--hmi side: sending Buttons.ButtonPress response
 									self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 								end)
-					end)								
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.11.1.6
-		
-		-----------------------------------------------------------------------------------------		
+
+		-----------------------------------------------------------------------------------------
 	--End Test case CommonRequestCheck.11.1
-	
-		
+
+
 	--Begin Test case CommonRequestCheck.11.2
 	--Description: 	For GetInteriorVehicleData
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-966
 				--TC: REVSDL-1448
 
-		--Verification criteria: 
-				--In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies 
+		--Verification criteria:
+				--In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies
 
 		-----------------------------------------------------------------------------------------
-				
+
 			--Begin Test case CommonRequestCheck.11.2.1
 			--Description: application sends GetInteriorVehicleData as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO
 				function Test:GetInterior_DriverAllowFrontRADIO_Time1()
@@ -22483,7 +21930,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -22493,12 +21940,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -22511,10 +21958,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect RC.GetInteriorVehicleData request
 							EXPECT_HMICALL("RC.GetInteriorVehicleData")
 							:Do(function(_,data)
@@ -22551,34 +21998,34 @@ end
 													radioEnable = true,
 													state = "ACQUIRING"
 												}
-											}	
+											}
 									})
-									
+
 							end)
-					end)								
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.11.2.1
-			
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.11.2.2
 			--Description: From HMI trigger HMILevel to change. Press EXIT_Application button ( BC.OnExitApplication (USER_EXIT)).
 				function Test:EXIT_Application()
 
 					--hmi side: HMI send BC.OnExitApplication to Rsdl.
 					self.hmiConnection:SendNotification("BasicCommunication.OnExitApplication", {appID = self.applications["Test Application"], reason = "USER_EXIT"})
-					
+
 					--mobile side: Check that OnHMIStatus(NONE, deviceRank:Driver) sent by RSDL and received by App1
 					EXPECT_NOTIFICATION("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE" })
 					:Timeout(5000)
-				
+
 				end
 			--End Test case CommonRequestCheck.11.2.2
 
-		-----------------------------------------------------------------------------------------			
-		
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.11.2.3
 			--Description: application sends GetInteriorVehicleData as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO
 				function Test:GetInterior_DriverAllowFrontRADIO_Time2()
@@ -22588,7 +22035,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -22598,12 +22045,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -22616,10 +22063,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect RC.GetInteriorVehicleData request
 							EXPECT_HMICALL("RC.GetInteriorVehicleData")
 							:Do(function(_,data)
@@ -22656,16 +22103,16 @@ end
 													radioEnable = true,
 													state = "ACQUIRING"
 												}
-											}	
+											}
 									})
-									
+
 							end)
-					end)								
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.11.2.3
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.11.2.2
@@ -22677,7 +22124,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -22687,12 +22134,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -22705,10 +22152,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect RC.GetInteriorVehicleData request
 							EXPECT_HMICALL("RC.GetInteriorVehicleData")
 							:Do(function(_,data)
@@ -22745,34 +22192,34 @@ end
 													radioEnable = true,
 													state = "ACQUIRING"
 												}
-											}	
+											}
 									})
-									
+
 							end)
-					end)								
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.11.2.2
-		
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.11.2.3
 			--Description: From HMI trigger HMILevel to change. Press EXIT_Application button ( BC.OnExitApplication (USER_EXIT)).
 				function Test:EXIT_Application()
 
 					--hmi side: HMI send BC.OnExitApplication to Rsdl.
 					self.hmiConnection:SendNotification("BasicCommunication.OnExitApplication", {appID = self.applications["Test Application"], reason = "USER_EXIT"})
-					
+
 					--mobile side: Check that OnHMIStatus(NONE, deviceRank:Driver) sent by RSDL and received by App1
 					EXPECT_NOTIFICATION("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE" })
 					:Timeout(5000)
-				
+
 				end
 			--End Test case CommonRequestCheck.11.2.3
 
-		-----------------------------------------------------------------------------------------		
-		
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.11.2.4
 			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = RADIO
 				function Test:GetInterior_DriverAllowLeftRADIO_Time2()
@@ -22782,7 +22229,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -22792,12 +22239,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -22810,10 +22257,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect RC.GetInteriorVehicleData request
 							EXPECT_HMICALL("RC.GetInteriorVehicleData")
 							:Do(function(_,data)
@@ -22850,18 +22297,18 @@ end
 													radioEnable = true,
 													state = "ACQUIRING"
 												}
-											}	
+											}
 									})
-									
+
 							end)
-					end)								
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.11.2.4
-		
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.11.2.5
 			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE
 				function Test:GetInterior_DriverAllowLeftCLIMATE_Time1()
@@ -22871,7 +22318,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -22881,12 +22328,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -22899,10 +22346,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect RC.GetInteriorVehicleData request
 							EXPECT_HMICALL("RC.GetInteriorVehicleData")
 							:Do(function(_,data)
@@ -22911,7 +22358,7 @@ end
 										moduleData =
 										{
 											moduleType = "CLIMATE",
-											moduleZone = 
+											moduleZone =
 											{
 												colspan = 2,
 												row = 1,
@@ -22934,32 +22381,32 @@ end
 											}
 										}
 									})
-									
+
 							end)
-					end)								
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.11.2.5
-		
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.11.2.6
 			--Description: From HMI trigger HMILevel to change. Press EXIT_Application button ( BC.OnExitApplication (USER_EXIT)).
 				function Test:EXIT_Application()
 
 					--hmi side: HMI send BC.OnExitApplication to Rsdl.
 					self.hmiConnection:SendNotification("BasicCommunication.OnExitApplication", {appID = self.applications["Test Application"], reason = "USER_EXIT"})
-					
+
 					--mobile side: Check that OnHMIStatus(NONE, deviceRank:Driver) sent by RSDL and received by App1
 					EXPECT_NOTIFICATION("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE" })
 					:Timeout(5000)
-				
+
 				end
 			--End Test case CommonRequestCheck.11.2.6
 
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.11.2.7
 			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE
 				function Test:GetInterior_DriverAllowLeftCLIMATE_Time2()
@@ -22969,7 +22416,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -22979,12 +22426,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -22997,10 +22444,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect RC.GetInteriorVehicleData request
 							EXPECT_HMICALL("RC.GetInteriorVehicleData")
 							:Do(function(_,data)
@@ -23009,7 +22456,7 @@ end
 										moduleData =
 										{
 											moduleType = "CLIMATE",
-											moduleZone = 
+											moduleZone =
 											{
 												colspan = 2,
 												row = 1,
@@ -23032,30 +22479,30 @@ end
 											}
 										}
 									})
-									
+
 							end)
-					end)								
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.11.2.7
-		
+
 		-----------------------------------------------------------------------------------------
 	--End Test case CommonRequestCheck.11.2
-		
-		
+
+
 	--Begin Test case CommonRequestCheck.11.3
 	--Description: 	For SetInteriorVehicleData
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-966
 				--TC: REVSDL-1448
 
-		--Verification criteria: 
-				--In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies 
+		--Verification criteria:
+				--In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies
 
 		-----------------------------------------------------------------------------------------
-				
+
 			--Begin Test case CommonRequestCheck.11.3.1
 			--Description: application sends SetInteriorVehicleData as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO
 				function Test:SetInterior_DriverAllowFrontRADIO_Time1()
@@ -23093,12 +22540,12 @@ end
 								radioEnable = true,
 								state = "ACQUIRING"
 							}
-						}				
+						}
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -23111,10 +22558,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect RC.SetInteriorVehicleData request
 							EXPECT_HMICALL("RC.SetInteriorVehicleData")
 							:Do(function(_,data)
@@ -23151,29 +22598,29 @@ end
 													radioEnable = true,
 													state = "ACQUIRING"
 												}
-											}	
+											}
 									})
-									
+
 								end)
-					end)								
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.11.3.1
-			
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.11.3.2
 			--Description: From HMI trigger HMILevel to change. Press EXIT_Application button ( BC.OnExitApplication (USER_EXIT)).
 				function Test:EXIT_Application()
 
 					--hmi side: HMI send BC.OnExitApplication to Rsdl.
 					self.hmiConnection:SendNotification("BasicCommunication.OnExitApplication", {appID = self.applications["Test Application"], reason = "USER_EXIT"})
-					
+
 					--mobile side: Check that OnHMIStatus(NONE, deviceRank:Driver) sent by RSDL and received by App1
 					EXPECT_NOTIFICATION("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE" })
 					:Timeout(5000)
-				
+
 				end
 			--End Test case CommonRequestCheck.11.3.2
 
@@ -23216,12 +22663,12 @@ end
 								radioEnable = true,
 								state = "ACQUIRING"
 							}
-						}				
+						}
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -23234,10 +22681,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect RC.SetInteriorVehicleData request
 							EXPECT_HMICALL("RC.SetInteriorVehicleData")
 							:Do(function(_,data)
@@ -23274,16 +22721,16 @@ end
 													radioEnable = true,
 													state = "ACQUIRING"
 												}
-											}	
+											}
 									})
-									
+
 								end)
-					end)								
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.11.3.3
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.11.3.4
@@ -23307,12 +22754,12 @@ end
 								frequencyFraction = 3,
 								band = "FM"
 							}
-						}				
+						}
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -23325,10 +22772,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect RC.SetInteriorVehicleData request
 							EXPECT_HMICALL("RC.SetInteriorVehicleData")
 							:Do(function(_,data)
@@ -23349,33 +22796,33 @@ end
 													frequencyFraction = 3,
 													band = "FM"
 												}
-											}	
+											}
 									})
-									
+
 								end)
-					end)								
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.11.3.4
-		
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.11.3.5
 			--Description: From HMI trigger HMILevel to change. Press EXIT_Application button ( BC.OnExitApplication (USER_EXIT)).
 				function Test:EXIT_Application()
 
 					--hmi side: HMI send BC.OnExitApplication to Rsdl.
 					self.hmiConnection:SendNotification("BasicCommunication.OnExitApplication", {appID = self.applications["Test Application"], reason = "USER_EXIT"})
-					
+
 					--mobile side: Check that OnHMIStatus(NONE, deviceRank:Driver) sent by RSDL and received by App1
 					EXPECT_NOTIFICATION("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE" })
 					:Timeout(5000)
-				
+
 				end
 			--End Test case CommonRequestCheck.11.3.5
 
-		-----------------------------------------------------------------------------------------		
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.11.3.6
 			--Description: application sends SetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = RADIO
@@ -23398,12 +22845,12 @@ end
 								frequencyFraction = 3,
 								band = "FM"
 							}
-						}				
+						}
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -23416,10 +22863,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect RC.SetInteriorVehicleData request
 							EXPECT_HMICALL("RC.SetInteriorVehicleData")
 							:Do(function(_,data)
@@ -23440,19 +22887,19 @@ end
 													frequencyFraction = 3,
 													band = "FM"
 												}
-											}	
+											}
 									})
-									
+
 								end)
-					end)								
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.11.3.6
-		
+
 		-----------------------------------------------------------------------------------------
-		
-		
+
+
 			--Begin Test case CommonRequestCheck.11.3.7
 			--Description: application sends SetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE
 				function Test:SetInterior_DriverAllowLeftCLIMATE_Time1()
@@ -23462,7 +22909,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -23479,10 +22926,10 @@ end
 							}
 						}
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -23495,10 +22942,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect RC.SetInteriorVehicleData request
 							EXPECT_HMICALL("RC.SetInteriorVehicleData")
 							:Do(function(_,data)
@@ -23507,7 +22954,7 @@ end
 										moduleData =
 										{
 											moduleType = "CLIMATE",
-											moduleZone = 
+											moduleZone =
 											{
 												colspan = 2,
 												row = 1,
@@ -23524,32 +22971,32 @@ end
 											}
 										}
 									})
-									
+
 								end)
-					end)								
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.11.3.7
-		
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.11.3.8
 			--Description: From HMI trigger HMILevel to change. Press EXIT_Application button ( BC.OnExitApplication (USER_EXIT)).
 				function Test:EXIT_Application()
 
 					--hmi side: HMI send BC.OnExitApplication to Rsdl.
 					self.hmiConnection:SendNotification("BasicCommunication.OnExitApplication", {appID = self.applications["Test Application"], reason = "USER_EXIT"})
-					
+
 					--mobile side: Check that OnHMIStatus(NONE, deviceRank:Driver) sent by RSDL and received by App1
 					EXPECT_NOTIFICATION("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE" })
 					:Timeout(5000)
-				
+
 				end
 			--End Test case CommonRequestCheck.11.3.8
 
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.11.3.9
 			--Description: application sends SetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE
 				function Test:SetInterior_DriverAllowLeftCLIMATE_Time2()
@@ -23559,7 +23006,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -23576,10 +23023,10 @@ end
 							}
 						}
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -23592,10 +23039,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect RC.SetInteriorVehicleData request
 							EXPECT_HMICALL("RC.SetInteriorVehicleData")
 							:Do(function(_,data)
@@ -23604,7 +23051,7 @@ end
 										moduleData =
 										{
 											moduleType = "CLIMATE",
-											moduleZone = 
+											moduleZone =
 											{
 												colspan = 2,
 												row = 1,
@@ -23621,17 +23068,17 @@ end
 											}
 										}
 									})
-									
+
 								end)
-					end)								
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.11.3.9
-		
+
 		-----------------------------------------------------------------------------------------
 	--End Test case CommonRequestCheck.11.3
-		
+
 --=================================================END TEST CASES 11==========================================================--
 
 
@@ -23642,16 +23089,16 @@ end
 	--Begin Test suit CommonRequestCheck.12 for Req.#12
 
 	--Description: 12. In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies and "equipment" section of policies database omits this RPC name with <params> in <moduleType> of both "auto_allow" and "driver_allow" sub-sections of <interiorZone> section - RSDL must respond with "resultCode: DISALLOWED, success: false, info: "The RPC is disallowed by vehicle settings" to this application (that is, without asking a driver for permission).
-	
+
 
 	--Begin Test case CommonRequestCheck.12.1
 	--Description: 	In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies and "equipment" section of policies database omits this RPC name with <params> in <moduleType> of both "auto_allow" and "driver_allow" sub-sections of <interiorZone> section - RSDL must respond with "resultCode: DISALLOWED, success: false, info: "The RPC is disallowed by vehicle settings" to this application (that is, without asking a driver for permission).
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-966
 				--TC: REVSDL-1561
 
-		--Verification criteria: 
+		--Verification criteria:
 				--In case RPC_1 is omitted in both "auto_allow" and "driver_allow" sections.
 				--RSDL must respond with "resultCode: DISALLOWED, success: false, info: "The RPC is disallowed by vehicle settings" to this application (that is, without asking a driver for permission).
 
@@ -23674,12 +23121,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "SHORT",
-						buttonName = "LOWER_VENT"						
+						buttonName = "LOWER_VENT"
 					})
-					
+
 					--hmi side: RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -23693,13 +23140,13 @@ end
 									}
 					})
 					:Times(0)
-						
-								
+
+
 					--RSDL must respond with "resultCode: DISALLOWED, success: false, info: "The RPC is disallowed by vehicle settings" to this application
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "DISALLOWED", info = "The RPC is disallowed by vehicle settings" })
 				end
 			--End Test case CommonRequestCheck.12.1.1
-		
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.12.1.2
@@ -23711,7 +23158,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -23721,12 +23168,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: --hmi side: RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -23740,15 +23187,15 @@ end
 									}
 					})
 					:Times(0)
-								
-					
+
+
 					--RSDL must respond with "resultCode: DISALLOWED, success: false, info: "The RPC is disallowed by vehicle settings" to this application
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "DISALLOWED", info = "The RPC is disallowed by vehicle settings" })
 				end
 			--End Test case CommonRequestCheck.12.1.2
-		
+
 		-----------------------------------------------------------------------------------------
-				
+
 			--Begin Test case CommonRequestCheck.12.1.3
 			--Description: application sends SetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = RADIO (DISSALLOWED)
 				function Test:SetInterior_LeftRADIO_DISSALLOWED()
@@ -23786,7 +23233,7 @@ end
 								radioEnable = true,
 								state = "ACQUIRING"
 							}
-						}				
+						}
 					})
 					local cid2 = self.mobileSession:SendRPC("SetInteriorVehicleData",
 					{
@@ -23811,8 +23258,8 @@ end
 								radioEnable = true,
 								state = "ACQUIRING"
 							}
-						}				
-					})					
+						}
+					})
 					local cid3 = self.mobileSession:SendRPC("SetInteriorVehicleData",
 					{
 						moduleData = {
@@ -23835,8 +23282,8 @@ end
 								radioEnable = true,
 								state = "ACQUIRING"
 							}
-						}				
-					})					
+						}
+					})
 					local cid4 = self.mobileSession:SendRPC("SetInteriorVehicleData",
 					{
 						moduleData = {
@@ -23857,7 +23304,7 @@ end
 								state = "ACQUIRING"
 							}
 						}
-						})					
+						})
 					local cid5 = self.mobileSession:SendRPC("SetInteriorVehicleData",
 					{
 						moduleData = {
@@ -23879,8 +23326,8 @@ end
 								hdChannel = 1,
 								state = "ACQUIRING"
 							}
-						}				
-					})					
+						}
+					})
 					local cid6 = self.mobileSession:SendRPC("SetInteriorVehicleData",
 					{
 						moduleData = {
@@ -23899,7 +23346,7 @@ end
 								state = "ACQUIRING"
 							}
 						}
-						})					
+						})
 					local cid7 = self.mobileSession:SendRPC("SetInteriorVehicleData",
 					{
 						moduleData = {
@@ -23919,7 +23366,7 @@ end
 								hdChannel = 1,
 								state = "ACQUIRING"
 							}
-						}				
+						}
 					})
 					local cid8 = self.mobileSession:SendRPC("SetInteriorVehicleData",
 					{
@@ -23949,7 +23396,7 @@ end
 									REG = "Murica"
 								}
 							}
-						}				
+						}
 					})
 					local cid9 = self.mobileSession:SendRPC("SetInteriorVehicleData",
 					{
@@ -23977,7 +23424,7 @@ end
 									REG = "Murica"
 								}
 							}
-						}				
+						}
 					})
 					local cid10 = self.mobileSession:SendRPC("SetInteriorVehicleData",
 					{
@@ -24005,13 +23452,13 @@ end
 									REG = "Murica"
 								}
 							}
-						}				
-					})					
-					
-					
+						}
+					})
+
+
 					--hmi side: RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -24025,8 +23472,8 @@ end
 									}
 					})
 					:Times(0)
-							
-					
+
+
 					--RSDL must respond with "resultCode: DISALLOWED, success: false, info: "The RPC is disallowed by vehicle settings" to this application
 					EXPECT_RESPONSE(cid1, { success = false, resultCode = "DISALLOWED", info = "The RPC is disallowed by vehicle settings" })
 					EXPECT_RESPONSE(cid2, { success = false, resultCode = "DISALLOWED", info = "The RPC is disallowed by vehicle settings" })
@@ -24040,9 +23487,9 @@ end
 					EXPECT_RESPONSE(cid10, { success = false, resultCode = "DISALLOWED", info = "The RPC is disallowed by vehicle settings" })
 				end
 			--End Test case CommonRequestCheck.12.1.3
-			
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.12.1.4
 			--Description: application sends SetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE (DISSALLOWED)
 				function Test:SetInterior_LeftCLIMATE_DISSALLOWED()
@@ -24052,7 +23499,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -24073,14 +23520,14 @@ end
 								autoModeEnable = true,
 								temperatureUnit = "CELSIUS"
 							}
-						}						
+						}
 					})
 					local cid2 = self.mobileSession:SendRPC("SetInteriorVehicleData",
 					{
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -24100,14 +23547,14 @@ end
 								autoModeEnable = true,
 								temperatureUnit = "CELSIUS"
 							}
-						}						
+						}
 					})
 					local cid3 = self.mobileSession:SendRPC("SetInteriorVehicleData",
 					{
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -24126,14 +23573,14 @@ end
 								autoModeEnable = true,
 								temperatureUnit = "CELSIUS"
 							}
-						}						
+						}
 					})
 					local cid4 = self.mobileSession:SendRPC("SetInteriorVehicleData",
 					{
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -24151,14 +23598,14 @@ end
 								autoModeEnable = true,
 								temperatureUnit = "CELSIUS"
 							}
-						}						
+						}
 					})
 					local cid5 = self.mobileSession:SendRPC("SetInteriorVehicleData",
 					{
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -24175,14 +23622,14 @@ end
 								autoModeEnable = true,
 								temperatureUnit = "CELSIUS"
 							}
-						}						
+						}
 					})
 					local cid6 = self.mobileSession:SendRPC("SetInteriorVehicleData",
 					{
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -24198,14 +23645,14 @@ end
 								autoModeEnable = true,
 								temperatureUnit = "CELSIUS"
 							}
-						}						
-					})					
+						}
+					})
 					local cid7 = self.mobileSession:SendRPC("SetInteriorVehicleData",
 					{
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -24220,12 +23667,12 @@ end
 								autoModeEnable = true,
 								temperatureUnit = "CELSIUS"
 							}
-						}						
+						}
 					})
-					
+
 					--hmi side: RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "CLIMATE",
 									zone =
@@ -24239,7 +23686,7 @@ end
 									}
 					})
 					:Times(0)
-					
+
 					--RSDL must respond with "resultCode: DISALLOWED, success: false, info: "The RPC is disallowed by vehicle settings" to this application
 					EXPECT_RESPONSE(cid1, { success = false, resultCode = "DISALLOWED", info = "The RPC is disallowed by vehicle settings" })
 					EXPECT_RESPONSE(cid2, { success = false, resultCode = "DISALLOWED", info = "The RPC is disallowed by vehicle settings" })
@@ -24250,7 +23697,7 @@ end
 					EXPECT_RESPONSE(cid7, { success = false, resultCode = "DISALLOWED", info = "The RPC is disallowed by vehicle settings" })
 				end
 			--End Test case CommonRequestCheck.12.1.4
-		
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.12.1.5
@@ -24290,7 +23737,7 @@ end
 								radioEnable = true,
 								state = "ACQUIRING"
 							}
-						}				
+						}
 					})
 					local cid2 = self.mobileSession:SendRPC("SetInteriorVehicleData",
 					{
@@ -24315,8 +23762,8 @@ end
 								radioEnable = true,
 								state = "ACQUIRING"
 							}
-						}				
-					})					
+						}
+					})
 					local cid3 = self.mobileSession:SendRPC("SetInteriorVehicleData",
 					{
 						moduleData = {
@@ -24339,8 +23786,8 @@ end
 								radioEnable = true,
 								state = "ACQUIRING"
 							}
-						}				
-					})					
+						}
+					})
 					local cid4 = self.mobileSession:SendRPC("SetInteriorVehicleData",
 					{
 						moduleData = {
@@ -24361,7 +23808,7 @@ end
 								state = "ACQUIRING"
 							}
 						}
-						})					
+						})
 					local cid5 = self.mobileSession:SendRPC("SetInteriorVehicleData",
 					{
 						moduleData = {
@@ -24383,8 +23830,8 @@ end
 								hdChannel = 1,
 								state = "ACQUIRING"
 							}
-						}				
-					})					
+						}
+					})
 					local cid6 = self.mobileSession:SendRPC("SetInteriorVehicleData",
 					{
 						moduleData = {
@@ -24403,7 +23850,7 @@ end
 								state = "ACQUIRING"
 							}
 						}
-						})					
+						})
 					local cid7 = self.mobileSession:SendRPC("SetInteriorVehicleData",
 					{
 						moduleData = {
@@ -24423,7 +23870,7 @@ end
 								hdChannel = 1,
 								state = "ACQUIRING"
 							}
-						}				
+						}
 					})
 					local cid8 = self.mobileSession:SendRPC("SetInteriorVehicleData",
 					{
@@ -24443,7 +23890,7 @@ end
 								hdChannel = 1,
 								band = "FM"
 							}
-						}				
+						}
 					})
 					local cid9 = self.mobileSession:SendRPC("SetInteriorVehicleData",
 					{
@@ -24471,7 +23918,7 @@ end
 									REG = "Murica"
 								}
 							}
-						}				
+						}
 					})
 					local cid10 = self.mobileSession:SendRPC("SetInteriorVehicleData",
 					{
@@ -24485,19 +23932,19 @@ end
 								row = 1,
 								rowspan = 2
 							},
-							
+
 							radioControlData = {
 								frequencyInteger = 99,
 								hdChannel = 1,
 								band = "FM"
 								}
 							}
-						})					
-					
-					
+						})
+
+
 					--hmi side: RSDL doesn't send RC.GetInteriorVehicleDataConsent request to HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -24511,8 +23958,8 @@ end
 									}
 					})
 					:Times(0)
-							
-					
+
+
 					--RSDL must respond with "resultCode: DISALLOWED, success: false, info: "The RPC is disallowed by vehicle settings" to this application
 					EXPECT_RESPONSE(cid1, { success = false, resultCode = "DISALLOWED", info = "The RPC is disallowed by vehicle settings" })
 					EXPECT_RESPONSE(cid2, { success = false, resultCode = "DISALLOWED", info = "The RPC is disallowed by vehicle settings" })
@@ -24526,10 +23973,10 @@ end
 					EXPECT_RESPONSE(cid10, { success = false, resultCode = "DISALLOWED", info = "The RPC is disallowed by vehicle settings" })
 				end
 			--End Test case CommonRequestCheck.12.1.5
-			
-		-----------------------------------------------------------------------------------------		
+
+		-----------------------------------------------------------------------------------------
 	--End Test case CommonRequestCheck.12.1
-		
+
 --=================================================END TEST CASES 12==========================================================--
 
 
@@ -24538,26 +23985,26 @@ end
 --=================================================BEGIN TEST CASES 13==========================================================--
 	--Begin Test suit CommonRequestCheck.13 for Req.#13
 
-	--Description: 13. In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies 
-						--and "equipment" section of policies database contains this RPC name with <params> in <moduleType> in "driver_allow" sub-section of <interiorZone> section 
-						--and the vehicle (HMI) responds with "allowed: true" for RSDL's RC.GetInteriorVehicleDataConsent 
-						--and RSDL has processed this (app's initial) RPC 
-						--and the same application sends a valid RPC with the different <interiorZone> and the same <moduleType> and params that exist in "driver_allow" sub-section 
+	--Description: 13. In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies
+						--and "equipment" section of policies database contains this RPC name with <params> in <moduleType> in "driver_allow" sub-section of <interiorZone> section
+						--and the vehicle (HMI) responds with "allowed: true" for RSDL's RC.GetInteriorVehicleDataConsent
+						--and RSDL has processed this (app's initial) RPC
+						--and the same application sends a valid RPC with the different <interiorZone> and the same <moduleType> and params that exist in "driver_allow" sub-section
 						--RSDL must send a new RC.GetInteriorVehicleDataConsent for this different <interiorZone> to the vehicle (HMI)
-	
+
 
 	--Begin Test case CommonRequestCheck.13.1
 	--Description: 	For ButtonPress
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-966
 				--TC: REVSDL-1564
 
-		--Verification criteria: 
-				--In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies 
+		--Verification criteria:
+				--In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies
 
 		-----------------------------------------------------------------------------------------
-				
+
 			--Begin Test case CommonRequestCheck.13.1.1
 			--Description: application sends ButtonPress as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO (first time, asking driver's permission)
 				function Test:ButtonPress_FrontRADIO()
@@ -24575,12 +24022,12 @@ end
 						},
 						moduleType = "RADIO",
 						buttonPressMode = "LONG",
-						buttonName = "VOLUME_UP"						
+						buttonName = "VOLUME_UP"
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -24593,13 +24040,13 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect Buttons.ButtonPress request
-							EXPECT_HMICALL("Buttons.ButtonPress", 
-											{ 
+							EXPECT_HMICALL("Buttons.ButtonPress",
+											{
 												zone =
 												{
 													colspan = 2,
@@ -24617,14 +24064,14 @@ end
 									--hmi side: sending Buttons.ButtonPress response
 									self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 								end)
-					end)								
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.13.1.1
-			
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.13.1.2
 			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = RADIO (the second, asking new permission and HMI auto REJECTED)
 				function Test:GetInterior_LeftRADIO()
@@ -24634,7 +24081,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -24644,12 +24091,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -24662,33 +24109,33 @@ end
 										level = 0
 									}
 					})
-					:Do(function(_,data)						
+					:Do(function(_,data)
 						--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL and HMI auto reject this request.
 						self.hmiConnection:Send('{"jsonrpc":"2.0","id":'..tostring(data.id)..',"error":{"code":4,"message":"Already consented!","data":{"method":"RC.GetInteriorVehicleDataConsent"}}}')
 
-					end)								
-					
+					end)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "USER_DISALLOWED" })
 				end
 			--End Test case CommonRequestCheck.13.1.2
-		
+
 		-----------------------------------------------------------------------------------------
 	--End Test case CommonRequestCheck.13.1
-	
-		
+
+
 	--Begin Test case CommonRequestCheck.13.2
 	--Description: 	For GetInteriorVehicleData
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-966
 				--TC: REVSDL-1564
 
-		--Verification criteria: 
-				--In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies 
+		--Verification criteria:
+				--In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies
 
 		-----------------------------------------------------------------------------------------
-				
+
 			--Begin Test case CommonRequestCheck.13.2.1
 			--Description: application sends GetInteriorVehicleData as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO (first time, asking driver's permission)
 				function Test:GetInterior_FrontRADIO()
@@ -24698,7 +24145,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -24708,12 +24155,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -24726,10 +24173,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect RC.GetInteriorVehicleData request
 							EXPECT_HMICALL("RC.GetInteriorVehicleData")
 							:Do(function(_,data)
@@ -24766,18 +24213,18 @@ end
 													radioEnable = true,
 													state = "ACQUIRING"
 												}
-											}	
+											}
 									})
-									
+
 							end)
-					end)								
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.13.2.1
-			
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.13.2.2
 			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = RADIO (the second, asking new permission and HMI auto REJECTED)
 				function Test:GetInterior_LeftRADIO()
@@ -24787,7 +24234,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -24797,12 +24244,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -24815,33 +24262,33 @@ end
 										level = 0
 									}
 					})
-					:Do(function(_,data)						
+					:Do(function(_,data)
 						--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL and HMI auto reject this request.
 						self.hmiConnection:Send('{"jsonrpc":"2.0","id":'..tostring(data.id)..',"error":{"code":4,"message":"Already consented!","data":{"method":"RC.GetInteriorVehicleDataConsent"}}}')
 
-					end)								
-					
+					end)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "USER_DISALLOWED" })
 				end
 			--End Test case CommonRequestCheck.13.2.2
-		
+
 		-----------------------------------------------------------------------------------------
 	--End Test case CommonRequestCheck.13.2
-		
-		
+
+
 	--Begin Test case CommonRequestCheck.13.3
 	--Description: 	For GetInteriorVehicleData
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-966
 				--TC: REVSDL-1564
 
-		--Verification criteria: 
-				--In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies 
+		--Verification criteria:
+				--In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies
 
 		-----------------------------------------------------------------------------------------
-				
+
 			--Begin Test case CommonRequestCheck.13.3.1
 			--Description: application sends SetInteriorVehicleData as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO (first time, asking driver's permission)
 				function Test:SetInterior_FrontRADIO()
@@ -24879,12 +24326,12 @@ end
 								radioEnable = true,
 								state = "ACQUIRING"
 							}
-						}				
+						}
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -24897,10 +24344,10 @@ end
 										level = 0
 									}
 								})
-						:Do(function(_,data)						
+						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
-							
+
 							--hmi side: expect RC.SetInteriorVehicleData request
 							EXPECT_HMICALL("RC.SetInteriorVehicleData")
 							:Do(function(_,data)
@@ -24937,18 +24384,18 @@ end
 													radioEnable = true,
 													state = "ACQUIRING"
 												}
-											}	
+											}
 									})
-									
+
 								end)
-					end)								
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.13.3.1
-			
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.13.3.3
 			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = RADIO (the second, asking new permission and HMI auto REJECTED)
 				function Test:GetInterior_LeftRADIO()
@@ -24958,7 +24405,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 1,
@@ -24968,12 +24415,12 @@ end
 								level = 0,
 							}
 						},
-						subscribe = true							
+						subscribe = true
 					})
-					
+
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent", 
-								{ 
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
 									appID = self.applications["Test Application"],
 									moduleType = "RADIO",
 									zone =
@@ -24986,24 +24433,24 @@ end
 										level = 0
 									}
 					})
-					:Do(function(_,data)						
+					:Do(function(_,data)
 						--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL and HMI auto reject this request.
 						self.hmiConnection:Send('{"jsonrpc":"2.0","id":'..tostring(data.id)..',"error":{"code":4,"message":"Already consented!","data":{"method":"RC.GetInteriorVehicleDataConsent"}}}')
 
-					end)								
-					
+					end)
+
 					--RSDL must respond with "resultCode: USER_DISALLOWED, success: false
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "USER_DISALLOWED" })
 				end
 			--End Test case CommonRequestCheck.13.3.3
-		
+
 		-----------------------------------------------------------------------------------------
 	--End Test case CommonRequestCheck.13.3
-		
+
 --=================================================END TEST CASES 13==========================================================--
 
 
-	
-	
-	
-return Test	
+
+
+
+return Test

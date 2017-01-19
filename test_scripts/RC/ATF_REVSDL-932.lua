@@ -5,6 +5,9 @@ revsdl = require("user_modules/revsdl")
 
 revsdl.AddUnknownFunctionIDs()
 revsdl.SubscribeToRcInterface()
+config.ValidateSchema = false
+
+config.application1.registerAppInterfaceParams.appHMIType = { "REMOTE_CONTROL" }
 
 Test = require('connecttest')
 require('cardinalities')
@@ -27,7 +30,7 @@ local module = require('testbase')
 --Create ModuleType for maxsize=1000. Using to perform test moduleType OverUpperBound case.
 -------strModuleType<String>: "RADIO" or "CLIMATE"
 -------iMaxsize<Integer>	: the length or array
-local function CreateModuleTypes(strModuleType, iMaxsize)	
+local function CreateModuleTypes(strModuleType, iMaxsize)
 	local items = {}
 	for i=1, iMaxsize do
 		table.insert(items, i, strModuleType)
@@ -47,19 +50,19 @@ end
 ---------------------------------------------------------------------------------------------
 	--Begin Precondition.1. Need to be uncomment for checking Driver's device case
 	--[[Description: Activation App by sending SDL.ActivateApp
-	
+
 		function Test:WaitActivation()
-		
+
 			--mobile side: Expect OnHMIStatus notification
 			EXPECT_NOTIFICATION("OnHMIStatus")
 
 			--hmi side: sending SDL.ActivateApp request
-			local rid = self.hmiConnection:SendRequest("SDL.ActivateApp", 
+			local rid = self.hmiConnection:SendRequest("SDL.ActivateApp",
 														{ appID = self.applications["Test Application"] })
-														
+
 			--hmi side: send request RC.OnSetDriversDevice
-			self.hmiConnection:SendNotification("RC.OnSetDriversDevice", 
-			{device = {name = "127.0.0.1", id = 1, isSDLAllowed = true}})															
+			self.hmiConnection:SendNotification("RC.OnSetDriversDevice",
+			{device = {name = "127.0.0.1", id = 1, isSDLAllowed = true}})
 
 			--hmi side: Waiting for SDL.ActivateApp response
 			EXPECT_HMIRESPONSE(rid)
@@ -68,7 +71,7 @@ end
 	--End Precondition.1
 
 	-----------------------------------------------------------------------------------------
-	
+
 
 
 ---------------------------------------------------------------------------------------------
@@ -77,44 +80,44 @@ end
 ---------------------------------------------------------------------------------------------
 	--Begin Test suit CommonRequestCheck
 
-	--Description: TC's checks processing 
+	--Description: TC's checks processing
 		-- mandatory param is missing
 		-- param has an out-of-bounds value
 		-- invalid json
 		-- string param with invalid characters
 		-- param of wrong type
-	
 
-	
+
+
 --=================================================BEGIN TEST CASES 1==========================================================--
 	--Begin Test suit CommonRequestCheck.1 for ButtonPress
 
-	--Description: Validation App's RPC for ButtonPress request	
-	
+	--Description: Validation App's RPC for ButtonPress request
+
 	--Begin Test case CommonRequestCheck.1
 	--Description: 	--mandatory param is missing
 					--[REVSDL-932]: 2. Mandatory params missing
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-932
 				--REVSDL-937
-				--https://adc.luxoft.com/jira/secure/attachment/115807/115807_Req_1_2_of_REVSDL-932.png				
+				--https://adc.luxoft.com/jira/secure/attachment/115807/115807_Req_1_2_of_REVSDL-932.png
 
-		--Verification criteria: 
+		--Verification criteria:
 				--In case app sends RPC with one or more mandatory-by-mobile_API parameters missing, RSDL must respond with "resultCode: INVALID_DATA, success: false" to this mobile app
-	
+
 			--Begin Test case CommonRequestCheck.1.1
 			--Description: ButtonPress with all parameters missing
 				function Test:ButtonPress_AllParamsMissing()
 					local cid = self.mobileSession:SendRPC("ButtonPress",
-					{						
-					})		
-					
+					{
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.1.1
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.1.2
 			--Description: ButtonPress with Colspan parameter missing
@@ -132,13 +135,13 @@ end
 						moduleType = "CLIMATE",
 						buttonPressMode = "LONG",
 						buttonName = "AC_MAX"
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.1.2
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.1.3
 			--Description: ButtonPress with row parameter missing
@@ -156,13 +159,13 @@ end
 						moduleType = "CLIMATE",
 						buttonPressMode = "LONG",
 						buttonName = "AC_MAX"
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.1.3
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.1.4
 			--Description: ButtonPress with rowspan parameter missing
@@ -180,13 +183,13 @@ end
 						moduleType = "RADIO",
 						buttonPressMode = "LONG",
 						buttonName = "AC_MAX"
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.1.4
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.1.5
 			--Description: ButtonPress with col parameter missing
@@ -204,13 +207,13 @@ end
 						moduleType = "RADIO",
 						buttonPressMode = "SHORT",
 						buttonName = "AC_MAX"
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.1.5
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.1.6
 			--Description: ButtonPress with levelspan parameter missing
@@ -228,14 +231,14 @@ end
 						moduleType = "CLIMATE",
 						buttonPressMode = "SHORT",
 						buttonName = "AC_MAX"
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.1.6
-			
-		-----------------------------------------------------------------------------------------			
-			
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.1.7
 			--Description: ButtonPress with level parameter missing
 				function Test:ButtonPress_levelMissing()
@@ -252,13 +255,13 @@ end
 						moduleType = "CLIMATE",
 						buttonPressMode = "LONG",
 						buttonName = "AC_MAX"
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.1.7
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.1.8
 			--Description: ButtonPress with moduleType parameter missing
@@ -276,13 +279,13 @@ end
 						},
 						buttonPressMode = "LONG",
 						buttonName = "AC_MAX"
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.1.8
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.1.9
 			--Description: ButtonPress with buttonPressMode parameter missing
@@ -300,13 +303,13 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonName = "AC_MAX"
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.1.9
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.1.10
 			--Description: ButtonPress with buttonName parameter missing
@@ -324,12 +327,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "LONG",
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.1.10
-			
+
 			--Begin Test case CommonRequestCheck.1.11
 			--Description: ButtonPress with zone parameter missing
 				function Test:ButtonPress_ZoneMissing()
@@ -338,12 +341,12 @@ end
 						moduleType = "CLIMATE",
 						buttonPressMode = "LONG",
 						buttonName = "AC_MAX"
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.1.11
-			
+
 			--Begin Test case CommonRequestCheck.1.12
 			--Description: ButtonPress with rowspan and buttonPressMode parameters missing
 				function Test:ButtonPress_RowspanAndButtonPressModeMissing()
@@ -359,28 +362,28 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonName = "AC_MAX"
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.1.12
-			
-	--End Test case CommonRequestCheck.1	
-	
-		-----------------------------------------------------------------------------------------	
-	
+
+	--End Test case CommonRequestCheck.1
+
+		-----------------------------------------------------------------------------------------
+
 	--Begin Test case CommonRequestCheck.2
 	--Description: 	--param has an out-of-bounds value
 					--[REVSDL-932]: 3 Parameters out of bounds
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-932
 				--REVSDL-938
 				--https://adc.luxoft.com/jira/secure/attachment/115809/115809_Req_1_3_of_REVSDL-932.png
 
-		--Verification criteria: 
+		--Verification criteria:
 				--In case app sends RPC with one or more mandatory or non-mandatory by-mobile_API parameters out of bounds, RSDL must respond with "resultCode: INVALID_DATA, success: false" to this mobile app
-	
+
 			--Begin Test case CommonRequestCheck.2.1
 			--Description: ButtonPress with all parameters out of bounds
 				function Test:ButtonPress_AllParametersOutLowerBound()
@@ -398,13 +401,13 @@ end
 						moduleType = "CLIMATE",
 						buttonPressMode = "LONG",
 						buttonName = "AC_MAX"
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.1
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.2
 			--Description: ButtonPress with Colspan parameter out of bounds
@@ -423,13 +426,13 @@ end
 						moduleType = "CLIMATE",
 						buttonPressMode = "LONG",
 						buttonName = "AC_MAX"
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.2
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.3
 			--Description: ButtonPress with row parameter out of bounds
@@ -448,13 +451,13 @@ end
 						moduleType = "CLIMATE",
 						buttonPressMode = "LONG",
 						buttonName = "AC_MAX"
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.3
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.4
 			--Description: ButtonPress with rowspan parameter out of bounds
@@ -473,13 +476,13 @@ end
 						moduleType = "CLIMATE",
 						buttonPressMode = "LONG",
 						buttonName = "AC_MAX"
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.4
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.5
 			--Description: ButtonPress with col parameter out of bounds
@@ -498,13 +501,13 @@ end
 						moduleType = "CLIMATE",
 						buttonPressMode = "LONG",
 						buttonName = "AC_MAX"
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.5
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.6
 			--Description: ButtonPress with levelspan parameter out of bounds
@@ -523,14 +526,14 @@ end
 						moduleType = "CLIMATE",
 						buttonPressMode = "LONG",
 						buttonName = "AC_MAX"
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.6
-			
-		-----------------------------------------------------------------------------------------			
-			
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.2.7
 			--Description: ButtonPress with level parameter out of bounds
 				function Test:ButtonPress_LevelOutLowerBound()
@@ -548,14 +551,14 @@ end
 						moduleType = "CLIMATE",
 						buttonPressMode = "LONG",
 						buttonName = "AC_MAX"
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.7
-			
-		-----------------------------------------------------------------------------------------	
-	
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.2.8
 			--Description: ButtonPress with all parameters out of bounds
 				function Test:ButtonPress_AllParametersOutUpperBound()
@@ -573,13 +576,13 @@ end
 						moduleType = "CLIMATE",
 						buttonPressMode = "LONG",
 						buttonName = "AC_MAX"
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.8
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.9
 			--Description: ButtonPress with Colspan parameter out of bounds
@@ -598,13 +601,13 @@ end
 						moduleType = "CLIMATE",
 						buttonPressMode = "SHORT",
 						buttonName = "AC_MAX"
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.9
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.10
 			--Description: ButtonPress with row parameter out of bounds
@@ -623,13 +626,13 @@ end
 						moduleType = "CLIMATE",
 						buttonPressMode = "LONG",
 						buttonName = "AC_MAX"
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.10
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.11
 			--Description: ButtonPress with rowspan parameter out of bounds
@@ -648,13 +651,13 @@ end
 						moduleType = "CLIMATE",
 						buttonPressMode = "LONG",
 						buttonName = "AC_MAX"
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.11
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.12
 			--Description: ButtonPress with col parameter out of bounds
@@ -673,13 +676,13 @@ end
 						moduleType = "CLIMATE",
 						buttonPressMode = "LONG",
 						buttonName = "AC_MAX"
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.12
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.13
 			--Description: ButtonPress with levelspan parameter out of bounds
@@ -698,14 +701,14 @@ end
 						moduleType = "CLIMATE",
 						buttonPressMode = "LONG",
 						buttonName = "AC_MAX"
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.13
-			
-		-----------------------------------------------------------------------------------------			
-			
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.2.14
 			--Description: ButtonPress with level parameter out of bounds
 				function Test:ButtonPress_LevelOutUpperBound()
@@ -723,40 +726,40 @@ end
 						moduleType = "CLIMATE",
 						buttonPressMode = "LONG",
 						buttonName = "AC_MAX"
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.14
-			
-	--End Test case CommonRequestCheck.2	
-	
-		-----------------------------------------------------------------------------------------	
-	
+
+	--End Test case CommonRequestCheck.2
+
+		-----------------------------------------------------------------------------------------
+
 	--Begin Test case CommonRequestCheck.3
 	--Description: 	--invalid json
 					--[REVSDL-932]: 4. Wrong json
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-932
 				--REVSDL-939
 				--https://adc.luxoft.com/jira/secure/attachment/115813/115813_Req_1_4_REVSDL-932.png
 
-		--Verification criteria: 
+		--Verification criteria:
 				--In case app sends RPC in wrong JSON, RSDL must respond with "resultCode: INVALID_DATA, success: false" to this mobile app
-	
+
 			--Begin Test case CommonRequestCheck.3.1
 			--Description: Request with invalid JSON syntax (INVALID_DATA)
 				function Test:ButtonPress_InvalidJson()
 				  self.mobileSession.correlationId = self.mobileSession.correlationId + 1
 
-				  local msg = 
+				  local msg =
 				  {
 					serviceType      = 7,
 					frameInfo        = 0,
 					rpcType          = 0,
 					rpcFunctionId    = 100015,
-					rpcCorrelationId = self.mobileSession.correlationId,			
+					rpcCorrelationId = self.mobileSession.correlationId,
 					payload          = '{"zone":{"colspan":1,"row":1,"rowspan":1,"col":1,"levelspan":1,"level":1},"moduleType":"CLIMATE","buttonPressMode":"LONG","buttonName" "AC_MAX"}'
 				  }
 				  self.mobileSession:Send(msg)
@@ -765,39 +768,39 @@ end
 			--End Test case CommonRequestCheck.3.1
 
 	--End Test case CommonRequestCheck.3
-	
-		-----------------------------------------------------------------------------------------	
-	
+
+		-----------------------------------------------------------------------------------------
+
 	--Begin Test case CommonRequestCheck.4
 	--Description: 	--invalid json
 					--[REVSDL-932]: 5. String with invalid characters
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-932
 				--REVSDL-940
 				--https://adc.luxoft.com/jira/secure/attachment/115818/115818_Req_1_5_of_REVSDL-932.png
 
-		--Verification criteria: 
+		--Verification criteria:
 				--In case app sends RPC with invalid characters in param of string type, RSDL must respond with "resultCode: INVALID_DATA, success: false" to this mobile app
-	
+
 		--SKIPPED because "Note: currently none of the listed RPCs has a string param." cloned to REVSDL-1005 [REVSDL-932]: 6. Parameter of wrong type
 
 	--End Test case CommonRequestCheck.4
-	
+
 		-----------------------------------------------------------------------------------------
 
 	--Begin Test case CommonRequestCheck.5
 	--Description: 	--param of wrong type
 					--[REVSDL-932]: 6. Parameter of wrong type
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-932
 				--REVSDL-941
-				--https://adc.luxoft.com/jira/secure/attachment/115819/115819_Req_1_6_of_REVSDL-932.png			
+				--https://adc.luxoft.com/jira/secure/attachment/115819/115819_Req_1_6_of_REVSDL-932.png
 
-		--Verification criteria: 
+		--Verification criteria:
 				--In case app sends RPC with param of wrong type, RSDL must respond with "resultCode: INVALID_DATA, success: false" to this mobile app
-	
+
 			--Begin Test case CommonRequestCheck.5.1
 			--Description: ButtonPress with all parameters of wrong type
 				function Test:ButtonPress_AllParamsWrongType()
@@ -814,14 +817,14 @@ end
 						},
 						moduleType = 111,
 						buttonPressMode = 111,
-						buttonName = 111						
-					})		
-					
+						buttonName = 111
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.1
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.2
 			--Description: ButtonPress with Colspan parameter of wrong type
@@ -840,13 +843,13 @@ end
 						moduleType = "CLIMATE",
 						buttonPressMode = "LONG",
 						buttonName = "AC_MAX"
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.2
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.3
 			--Description: ButtonPress with row parameter of wrong type
@@ -865,13 +868,13 @@ end
 						moduleType = "CLIMATE",
 						buttonPressMode = "LONG",
 						buttonName = "AC_MAX"
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.3
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.4
 			--Description: ButtonPress with rowspan parameter of wrong type
@@ -890,13 +893,13 @@ end
 						moduleType = "CLIMATE",
 						buttonPressMode = "LONG",
 						buttonName = "AC_MAX"
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.4
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.5
 			--Description: ButtonPress with col parameter of wrong type
@@ -915,13 +918,13 @@ end
 						moduleType = "CLIMATE",
 						buttonPressMode = "LONG",
 						buttonName = "AC_MAX"
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.5
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.6
 			--Description: ButtonPress with levelspan parameter of wrong type
@@ -940,14 +943,14 @@ end
 						moduleType = "CLIMATE",
 						buttonPressMode = "LONG",
 						buttonName = "AC_MAX"
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.6
-			
-		-----------------------------------------------------------------------------------------			
-			
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.5.7
 			--Description: ButtonPress with level parameter of wrong type
 				function Test:ButtonPress_levelWrongType()
@@ -965,13 +968,13 @@ end
 						moduleType = "CLIMATE",
 						buttonPressMode = "LONG",
 						buttonName = "AC_MAX"
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.7
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.8
 			--Description: ButtonPress with moduleType parameter of wrong type
@@ -990,13 +993,13 @@ end
 						moduleType = 111,
 						buttonPressMode = "LONG",
 						buttonName = "AC_MAX"
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.8
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.9
 			--Description: ButtonPress with buttonPressMode parameter of wrong type
@@ -1015,13 +1018,13 @@ end
 						moduleType = "CLIMATE",
 						buttonPressMode = 111,
 						buttonName = "AC_MAX"
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.9
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.10
 			--Description: ButtonPress with buttonName parameter of wrong type
@@ -1040,12 +1043,12 @@ end
 						moduleType = "CLIMATE",
 						buttonPressMode = "LONG",
 						buttonName = 111
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.10
-			
+
 			--Begin Test case CommonRequestCheck.5.11
 			--Description: ButtonPress with zone elements parameter of wrong type
 				function Test:ButtonPress_ZoneElementsWrongType()
@@ -1063,12 +1066,12 @@ end
 						moduleType = "CLIMATE",
 						buttonPressMode = "LONG",
 						buttonName = "AC_MAX"
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.11
-			
+
 			--Begin Test case CommonRequestCheck.5.12
 			--Description: ButtonPress with rowspan and buttonPressMode parameters of wrong type
 				function Test:ButtonPress_RowspanAndButtonPressModeWrongType()
@@ -1086,12 +1089,12 @@ end
 						moduleType = "CLIMATE",
 						buttonPressMode = true,
 						buttonName = "AC_MAX"
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.12
-			
+
 			--Begin Test case CommonRequestCheck.5.13
 			--Description: ButtonPress with zone parameter of wrong type
 				function Test:ButtonPress_ZoneWrongType()
@@ -1101,28 +1104,28 @@ end
 						moduleType = "CLIMATE",
 						buttonPressMode = "LONG",
 						buttonName = "AC_MAX"
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
-			--End Test case CommonRequestCheck.5.13		
-			
-	--End Test case CommonRequestCheck.5	
-	
+			--End Test case CommonRequestCheck.5.13
+
+	--End Test case CommonRequestCheck.5
+
 		-----------------------------------------------------------------------------------------
 
 	--Begin Test case CommonRequestCheck.6
 	--Description: 	--RSDL cuts off the fake param (non-existent per Mobile_API) from app's RPC.
 					--[REVSDL-932]: 7. Fake params
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-932
 				--REVSDL-997
 				--https://adc.luxoft.com/jira/secure/attachment/116227/116227_Req_1_2_7_of_REVSDL-932.png
 
-		--Verification criteria: 
+		--Verification criteria:
 				--In case app sends RPC with fake param (non-existent per Mobile_API), RSDL must cut this param off from the RPC and then validate this RPC and process as assigned.
-	
+
 			--Begin Test case CommonRequestCheck.6.1
 			--Description: app sends RPC with fake param inside zone
 				function Test:ButtonPress_FakeParamsInsideZone()
@@ -1141,12 +1144,12 @@ end
 						},
 						moduleType = "CLIMATE",
 						buttonPressMode = "LONG",
-						buttonName = "AC_MAX"						
+						buttonName = "AC_MAX"
 					})
-					
+
 				--hmi side: expect Buttons.ButtonPress request
-				EXPECT_HMICALL("Buttons.ButtonPress", 
-								{ 
+				EXPECT_HMICALL("Buttons.ButtonPress",
+								{
 									zone =
 									{
 										colspan = 2,
@@ -1163,12 +1166,12 @@ end
 					:Do(function(_,data)
 						--hmi side: sending Buttons.ButtonPress response
 						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-					end)					
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
 			--End Test case CommonRequestCheck.6.1
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.6.2
@@ -1189,12 +1192,12 @@ end
 						moduleType = "CLIMATE",
 						buttonPressMode = "LONG",
 						fake3 = false,
-						buttonName = "AC_MAX"						
+						buttonName = "AC_MAX"
 					})
-					
+
 				--hmi side: expect Buttons.ButtonPress request
-				EXPECT_HMICALL("Buttons.ButtonPress", 
-								{ 
+				EXPECT_HMICALL("Buttons.ButtonPress",
+								{
 									zone =
 									{
 										colspan = 2,
@@ -1211,26 +1214,26 @@ end
 					:Do(function(_,data)
 						--hmi side: sending Buttons.ButtonPress response
 						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-					end)					
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 					:ValidIf (function(_,data)
 							if data.payload.fake1 then
 								print(" SDL resend fake parameter to mobile app ")
 								return false
-							else 
+							else
 								return true
 							end
-					end)						
-					
+					end)
+
 				end
 			--End Test case CommonRequestCheck.6.2
 	--End Test case CommonRequestCheck.6
-	
-		-----------------------------------------------------------------------------------------	
+
+		-----------------------------------------------------------------------------------------
 	--End Test case CommonRequestCheck.1
-	
---=================================================END TEST CASES 1==========================================================--		
+
+--=================================================END TEST CASES 1==========================================================--
 
 
 
@@ -1242,25 +1245,25 @@ end
 --=================================================BEGIN TEST CASES 2==========================================================--
 	--Begin Test suit CommonRequestCheck.2 for GetInteriorVehicleDataCapabilities
 
-	--Description: Validation App's RPC for GetInteriorVehicleDataCapabilities request	
+	--Description: Validation App's RPC for GetInteriorVehicleDataCapabilities request
 
-	--Description: TC's checks processing 
+	--Description: TC's checks processing
 		-- mandatory param is missing
 		-- param has an out-of-bounds value
 		-- invalid json
 		-- string param with invalid characters
-		-- param of wrong type	
+		-- param of wrong type
 
 	--Begin Test case CommonRequestCheck.1
 	--Description: 	--mandatory param is missing
 					--[REVSDL-932]: 2. Mandatory params missing
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-932
 				--REVSDL-937
-				--https://adc.luxoft.com/jira/secure/attachment/115807/115807_Req_1_2_of_REVSDL-932.png				
+				--https://adc.luxoft.com/jira/secure/attachment/115807/115807_Req_1_2_of_REVSDL-932.png
 
-		--Verification criteria: 
+		--Verification criteria:
 				--In case app sends RPC with one or more mandatory-by-mobile_API parameters missing, RSDL must respond with "resultCode: INVALID_DATA, success: false" to this mobile app
 				--RELATE TO QUESTION: REVSDL-1130: per current API, "GetInteriorVehicleDataCapabilities" should not be tested against "omitted mandatory parameters" requirement.
 
@@ -1278,13 +1281,13 @@ end
 							levelspan = 1
 						},
 						moduleTypes = {"RADIO", "CLIMATE"}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.1.1
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.1.2
 			--Description: GetInteriorVehicleDataCapabilities with Colspan parameter missing
@@ -1300,13 +1303,13 @@ end
 							level = 1
 						},
 						moduleTypes = {"RADIO", "CLIMATE"}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.1.2
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.1.3
 			--Description: GetInteriorVehicleDataCapabilities with row parameter missing
@@ -1322,13 +1325,13 @@ end
 							level = 1
 						},
 						moduleTypes = {"RADIO", "CLIMATE"}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.1.3
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.1.4
 			--Description: GetInteriorVehicleDataCapabilities with rowspan parameter missing
@@ -1344,13 +1347,13 @@ end
 							level = 1
 						},
 						moduleTypes = {"RADIO", "CLIMATE"}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.1.4
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.1.5
 			--Description: GetInteriorVehicleDataCapabilities with col parameter missing
@@ -1366,13 +1369,13 @@ end
 							level = 1
 						},
 						moduleTypes = {"RADIO", "CLIMATE"}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.1.5
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.1.6
 			--Description: GetInteriorVehicleDataCapabilities with levelspan parameter missing
@@ -1388,28 +1391,28 @@ end
 							level = 1
 						},
 						moduleTypes = {"RADIO", "CLIMATE"}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
-			--End Test case CommonRequestCheck.1.6				
-	
-	--End Test case CommonRequestCheck.1	
+			--End Test case CommonRequestCheck.1.6
 
-		-----------------------------------------------------------------------------------------	
-	
+	--End Test case CommonRequestCheck.1
+
+		-----------------------------------------------------------------------------------------
+
 	--Begin Test case CommonRequestCheck.2
 	--Description: 	--param has an out-of-bounds value
 					--[REVSDL-932]: 3 Parameters out of bounds
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-932
 				--REVSDL-938
 				--https://adc.luxoft.com/jira/secure/attachment/115809/115809_Req_1_3_of_REVSDL-932.png
 
-		--Verification criteria: 
+		--Verification criteria:
 				--In case app sends RPC with one or more mandatory or non-mandatory by-mobile_API parameters out of bounds, RSDL must respond with "resultCode: INVALID_DATA, success: false" to this mobile app
-	
+
 			--Begin Test case CommonRequestCheck.2.1
 			--Description: GetInteriorVehicleDataCapabilities with all parameters out of bounds
 				function Test:GetInteriorVehicleDataCapabilities_AllParametersOutLowerBound()
@@ -1424,14 +1427,14 @@ end
 							levelspan = -1,
 							level = -1
 						},
-						moduleTypes = {}	
-					})		
-					
+						moduleTypes = {}
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.1
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.2
 			--Description: GetInteriorVehicleDataCapabilities with Colspan parameter out of bounds
@@ -1448,13 +1451,13 @@ end
 							level = 1
 						},
 						moduleTypes = {"RADIO", "CLIMATE"}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.2
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.3
 			--Description: GetInteriorVehicleDataCapabilities with row parameter out of bounds
@@ -1471,13 +1474,13 @@ end
 							level = 1
 						},
 						moduleTypes = {"RADIO", "CLIMATE"}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.3
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.4
 			--Description: GetInteriorVehicleDataCapabilities with rowspan parameter out of bounds
@@ -1494,13 +1497,13 @@ end
 							level = 1
 						},
 						moduleTypes = {"RADIO", "CLIMATE"}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.4
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.5
 			--Description: GetInteriorVehicleDataCapabilities with col parameter out of bounds
@@ -1517,13 +1520,13 @@ end
 							level = 1
 						},
 						moduleTypes = {"RADIO"}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.5
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.6
 			--Description: GetInteriorVehicleDataCapabilities with levelspan parameter out of bounds
@@ -1540,14 +1543,14 @@ end
 							level = 1
 						},
 						moduleTypes = {"CLIMATE"}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.6
-			
-		-----------------------------------------------------------------------------------------			
-			
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.2.7
 			--Description: GetInteriorVehicleDataCapabilities with level parameter out of bounds
 				function Test:GetInteriorVehicleDataCapabilities_LevelOutLowerBound()
@@ -1563,12 +1566,12 @@ end
 							level = -1
 						},
 						moduleTypes = {"RADIO", "CLIMATE"}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.7
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.8
@@ -1586,14 +1589,14 @@ end
 							level = 1
 						},
 						moduleTypes = {}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
-			--End Test case CommonRequestCheck.2.8	
+			--End Test case CommonRequestCheck.2.8
 
-		-----------------------------------------------------------------------------------------			
-	
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.2.9
 			--Description: GetInteriorVehicleDataCapabilities with all parameters out of bounds
 				function Test:GetInteriorVehicleDataCapabilities_AllParametersOutUpperBound()
@@ -1609,13 +1612,13 @@ end
 							level = 101
 						},
 						moduleTypes = CreateModuleTypes("RADIO", 1001)
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.9
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.10
 			--Description: GetInteriorVehicleDataCapabilities with Colspan parameter out of bounds
@@ -1632,13 +1635,13 @@ end
 							level = 1
 						},
 						moduleTypes = {"CLIMATE"}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.10
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.11
 			--Description: GetInteriorVehicleDataCapabilities with row parameter out of bounds
@@ -1655,13 +1658,13 @@ end
 							level = 1
 						},
 						moduleTypes = {"RADIO", "CLIMATE"}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.11
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.12
 			--Description: GetInteriorVehicleDataCapabilities with rowspan parameter out of bounds
@@ -1678,13 +1681,13 @@ end
 							level = 1
 						},
 						moduleTypes = {"RADIO", "CLIMATE"}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.12
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.13
 			--Description: GetInteriorVehicleDataCapabilities with col parameter out of bounds
@@ -1701,13 +1704,13 @@ end
 							level = 1
 						},
 						moduleTypes = {"RADIO", "CLIMATE"}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.13
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.14
 			--Description: GetInteriorVehicleDataCapabilities with levelspan parameter out of bounds
@@ -1724,14 +1727,14 @@ end
 							level = 1
 						},
 						moduleTypes = {"RADIO", "CLIMATE"}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.14
-			
-		-----------------------------------------------------------------------------------------			
-			
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.2.15
 			--Description: GetInteriorVehicleDataCapabilities with level parameter out of bounds
 				function Test:GetInteriorVehicleDataCapabilities_LevelOutUpperBound()
@@ -1747,12 +1750,12 @@ end
 							level = 101
 						},
 						moduleTypes = {"RADIO", "CLIMATE"}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.15
-			
+
 			--Begin Test case CommonRequestCheck.2.16
 			--Description: GetInteriorVehicleDataCapabilities with moduleType parameter out of bounds
 				function Test:GetInteriorVehicleDataCapabilities_ModuleTypeOutUpperBound()
@@ -1768,40 +1771,40 @@ end
 							level = 1
 						},
 						moduleTypes = CreateModuleTypes("RADIO", 1001)
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.16
-			
-	--End Test case CommonRequestCheck.2	
-	
-		-----------------------------------------------------------------------------------------	
-	
+
+	--End Test case CommonRequestCheck.2
+
+		-----------------------------------------------------------------------------------------
+
 	--Begin Test case CommonRequestCheck.3
 	--Description: 	--invalid json
 					--[REVSDL-932]: 4. Wrong json
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-932
 				--REVSDL-939
 				--https://adc.luxoft.com/jira/secure/attachment/115813/115813_Req_1_4_REVSDL-932.png
 
-		--Verification criteria: 
+		--Verification criteria:
 				--In case app sends RPC in wrong JSON, RSDL must respond with "resultCode: INVALID_DATA, success: false" to this mobile app
-	
+
 			--Begin Test case CommonRequestCheck.3.1
 			--Description: Request with invalid JSON syntax (INVALID_DATA)
 				function Test:GetInteriorVehicleDataCapabilities_InvalidJson()
 				  self.mobileSession.correlationId = self.mobileSession.correlationId + 1
 
-				  local msg = 
+				  local msg =
 				  {
 					serviceType      = 7,
 					frameInfo        = 0,
 					rpcType          = 0,
 					rpcFunctionId    = 100016,
-					rpcCorrelationId = self.mobileSession.correlationId,			
+					rpcCorrelationId = self.mobileSession.correlationId,
 					payload          = '{"zone":{"colspan":1,"row":1,"rowspan":1,"col":1,"levelspan":1,"level":1},"moduleType":{"CLIMATE" "RADIO"}}'
 				  }
 				  self.mobileSession:Send(msg)
@@ -1810,39 +1813,39 @@ end
 			--End Test case CommonRequestCheck.3.1
 
 	--End Test case CommonRequestCheck.3
-	
-		-----------------------------------------------------------------------------------------	
-	
+
+		-----------------------------------------------------------------------------------------
+
 	--Begin Test case CommonRequestCheck.4
 	--Description: 	--invalid json
 					--[REVSDL-932]: 5. String with invalid characters
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-932
 				--REVSDL-940
 				--https://adc.luxoft.com/jira/secure/attachment/115818/115818_Req_1_5_of_REVSDL-932.png
 
-		--Verification criteria: 
+		--Verification criteria:
 				--In case app sends RPC with invalid characters in param of string type, RSDL must respond with "resultCode: INVALID_DATA, success: false" to this mobile app
-	
+
 		--SKIPPED because "Note: currently none of the listed RPCs has a string param." cloned to REVSDL-1005 [REVSDL-932]: 6. Parameter of wrong type
 
 	--End Test case CommonRequestCheck.4
-	
+
 		-----------------------------------------------------------------------------------------
 
 	--Begin Test case CommonRequestCheck.5
 	--Description: 	--param of wrong type
 					--[REVSDL-932]: 6. Parameter of wrong type
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-932
 				--REVSDL-941
-				--https://adc.luxoft.com/jira/secure/attachment/115819/115819_Req_1_6_of_REVSDL-932.png			
+				--https://adc.luxoft.com/jira/secure/attachment/115819/115819_Req_1_6_of_REVSDL-932.png
 
-		--Verification criteria: 
+		--Verification criteria:
 				--In case app sends RPC with param of wrong type, RSDL must respond with "resultCode: INVALID_DATA, success: false" to this mobile app
-	
+
 			--Begin Test case CommonRequestCheck.5.1
 			--Description: GetInteriorVehicleDataCapabilities with all parameters of wrong type
 				function Test:GetInteriorVehicleDataCapabilities_AllParamsWrongType()
@@ -1857,14 +1860,14 @@ end
 							levelspan = "1",
 							level = "1"
 						},
-						moduleTypes = {111, 111}					
-					})		
-					
+						moduleTypes = {111, 111}
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.1
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.2
 			--Description: GetInteriorVehicleDataCapabilities with Colspan parameter of wrong type
@@ -1881,13 +1884,13 @@ end
 							level = 1
 						},
 						moduleTypes = {"RADIO", "CLIMATE"}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.2
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.3
 			--Description: GetInteriorVehicleDataCapabilities with row parameter of wrong type
@@ -1904,13 +1907,13 @@ end
 							level = 1
 						},
 						moduleTypes = {"RADIO", "CLIMATE"}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.3
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.4
 			--Description: GetInteriorVehicleDataCapabilities with rowspan parameter of wrong type
@@ -1927,13 +1930,13 @@ end
 							level = 1
 						},
 						moduleTypes = {"RADIO", "CLIMATE"}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.4
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.5
 			--Description: GetInteriorVehicleDataCapabilities with col parameter of wrong type
@@ -1950,13 +1953,13 @@ end
 							level = 1
 						},
 						moduleTypes = {"RADIO", "CLIMATE"}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.5
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.6
 			--Description: GetInteriorVehicleDataCapabilities with levelspan parameter of wrong type
@@ -1973,14 +1976,14 @@ end
 							level = 1
 						},
 						moduleTypes = {"RADIO", "CLIMATE"}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.6
-			
-		-----------------------------------------------------------------------------------------			
-			
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.5.7
 			--Description: GetInteriorVehicleDataCapabilities with level parameter of wrong type
 				function Test:GetInteriorVehicleDataCapabilities_levelWrongType()
@@ -1996,13 +1999,13 @@ end
 							level = "1"
 						},
 						moduleTypes = {"RADIO", "CLIMATE"}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.7
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.8
 			--Description: GetInteriorVehicleDataCapabilities with moduleType parameter of wrong type
@@ -2019,15 +2022,15 @@ end
 							level = 1
 						},
 						moduleTypes = 111
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.8
-			
+
 		-----------------------------------------------------------------------------------------
-			
-			
+
+
 			--Begin Test case CommonRequestCheck.5.9
 			--Description: GetInteriorVehicleDataCapabilities with zone parameter of wrong type
 				function Test:GetInteriorVehicleDataCapabilities_ZoneWrongType()
@@ -2043,12 +2046,12 @@ end
 							level = "abc"
 						},
 						moduleTypes = {"RADIO", "CLIMATE"}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.9
-			
+
 			--Begin Test case CommonRequestCheck.5.10
 			--Description: GetInteriorVehicleDataCapabilities with rowspan and ModuleType parameters of wrong type
 				function Test:GetInteriorVehicleDataCapabilities_RowspanAndModuleTypeWrongType()
@@ -2064,12 +2067,12 @@ end
 							level = 1
 						},
 						moduleTypes = {111, "abc"}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.10
-			
+
 			--Begin Test case CommonRequestCheck.5.11
 			--Description: GetInteriorVehicleDataCapabilities with moduleType with elements parameter of wrong type
 				function Test:GetInteriorVehicleDataCapabilities_ModuleTypeElementsWrongType()
@@ -2085,30 +2088,30 @@ end
 							level = 1
 						},
 						moduleTypes = {111}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.11
-			
-		-----------------------------------------------------------------------------------------			
-			
-	--End Test case CommonRequestCheck.5	
-	
+
+		-----------------------------------------------------------------------------------------
+
+	--End Test case CommonRequestCheck.5
+
 		-----------------------------------------------------------------------------------------
 
 	--Begin Test case CommonRequestCheck.6
 	--Description: 	--RSDL cuts off the fake param (non-existent per Mobile_API) from app's RPC.
 					--[REVSDL-932]: 7. Fake params
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-932
 				--REVSDL-997
 				--https://adc.luxoft.com/jira/secure/attachment/116227/116227_Req_1_2_7_of_REVSDL-932.png
 
-		--Verification criteria: 
+		--Verification criteria:
 				--In case app sends RPC with fake param (non-existent per Mobile_API), RSDL must cut this param off from the RPC and then validate this RPC and process as assigned.
-	
+
 			--Begin Test case CommonRequestCheck.6.1
 			--Description: app sends RPC with fake param inside zone
 				function Test:GetInteriorVehicleDataCapabilities_FakeParamsInsideZone()
@@ -2127,10 +2130,10 @@ end
 						},
 						moduleTypes = {"RADIO"}
 					})
-					
+
 				--hmi side: expect RC.GetInteriorVehicleDataCapabilities request
-				EXPECT_HMICALL("RC.GetInteriorVehicleDataCapabilities", 
-								{ 
+				EXPECT_HMICALL("RC.GetInteriorVehicleDataCapabilities",
+								{
 									zone =
 									{
 										colspan = 2,
@@ -2140,21 +2143,21 @@ end
 										levelspan = 1,
 										level = 0
 									},
-									moduleType = "RADIO"
+									moduleTypes = {"RADIO"}
 								})
 					:ValidIf (function(_,data)
 										if data.params.zone.fake1 or data.params.zone.fake2 then
 											print(" --SDL sends fake parameter to HMI ")
 											for key,value in pairs(data.params.zone) do print(key,value) end
 											return false
-										else 
+										else
 											return true
 										end
-									end)					
+									end)
 									:Timeout(2000)
 				end
 			--End Test case CommonRequestCheck.6.1
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.6.2
@@ -2173,12 +2176,12 @@ end
 						},
 						fake1 = "RADIO",
 						moduleTypes = {"CLIMATE"},
-						fake2 = false					
+						fake2 = false
 					})
-					
+
 				--hmi side: expect RC.GetInteriorVehicleDataCapabilities request
-				EXPECT_HMICALL("RC.GetInteriorVehicleDataCapabilities", 
-								{ 
+				EXPECT_HMICALL("RC.GetInteriorVehicleDataCapabilities",
+								{
 									zone =
 									{
 										colspan = 2,
@@ -2188,25 +2191,25 @@ end
 										levelspan = 1,
 										level = 0
 									},
-									moduleType = "CLIMATE"
+									moduleTypes = {"CLIMATE"}
 								})
 					:ValidIf (function(_,data)
 										if data.params.fake1 or data.params.fake2 then
 											print(" --SDL sends fake parameter to HMI ")
 											for key,value in pairs(data.params) do print(key,value) end
 											return false
-										else 
+										else
 											return true
 										end
-									end)					
+									end)
 									:Timeout(2000)
 				end
 			--End Test case CommonRequestCheck.6.2
 	--End Test case CommonRequestCheck.6
-	
-		-----------------------------------------------------------------------------------------	
 
---=================================================END TEST CASES 2==========================================================--	
+		-----------------------------------------------------------------------------------------
+
+--=================================================END TEST CASES 2==========================================================--
 
 
 
@@ -2216,44 +2219,44 @@ end
 --=================================================BEGIN TEST CASES 3==========================================================--
 	--Begin Test suit CommonRequestCheck.3 for GetInteriorVehicleData
 
-	--Description: Validation App's RPC for GetInteriorVehicleData request	
+	--Description: Validation App's RPC for GetInteriorVehicleData request
 
 	--Begin Test suit CommonRequestCheck
 
-	--Description: TC's checks processing 
+	--Description: TC's checks processing
 		-- mandatory param is missing
 		-- param has an out-of-bounds value
 		-- invalid json
 		-- string param with invalid characters
 		-- param of wrong type
-	
+
 
 	--Begin Test case CommonRequestCheck.1
 	--Description: 	--mandatory param is missing
 					--[REVSDL-932]: 2. Mandatory params missing
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-932
 				--REVSDL-937
-				--https://adc.luxoft.com/jira/secure/attachment/115807/115807_Req_1_2_of_REVSDL-932.png				
+				--https://adc.luxoft.com/jira/secure/attachment/115807/115807_Req_1_2_of_REVSDL-932.png
 
-		--Verification criteria: 
+		--Verification criteria:
 				--In case app sends RPC with one or more mandatory-by-mobile_API parameters missing, RSDL must respond with "resultCode: INVALID_DATA, success: false" to this mobile app
-	
+
 	--RELATE TO QUESTION: REVSDL-1130: per current API, "GetInteriorVehicleDataCapabilities" should not be tested against "omitted mandatory parameters" requirement.
-	
+
 			--Begin Test case CommonRequestCheck.1.1
 			--Description: GetInteriorVehicleData with all parameters missing
 				function Test:GetInteriorVehicleData_AllParamsMissing()
 					local cid = self.mobileSession:SendRPC("GetInteriorVehicleData",
-					{						
-					})		
-					
+					{
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.1.1
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.1.2
 			--Description: GetInteriorVehicleData with Colspan parameter missing
@@ -2263,7 +2266,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								row = 1,
 								rowspan = 1,
@@ -2273,13 +2276,13 @@ end
 							}
 						},
 						subscribe = true
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.1.2
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.1.3
 			--Description: GetInteriorVehicleData with row parameter missing
@@ -2289,7 +2292,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								clospan = 1,
 								rowspan = 1,
@@ -2299,13 +2302,13 @@ end
 							}
 						},
 						subscribe = true
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.1.3
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.1.4
 			--Description: GetInteriorVehicleData with rowspan parameter missing
@@ -2315,7 +2318,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								clospan = 1,
 								row = 1,
@@ -2325,13 +2328,13 @@ end
 							}
 						},
 						subscribe = true
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.1.4
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.1.5
 			--Description: GetInteriorVehicleData with col parameter missing
@@ -2341,7 +2344,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								clospan = 1,
 								row = 1,
@@ -2351,13 +2354,13 @@ end
 							}
 						},
 						subscribe = true
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.1.5
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.1.6
 			--Description: GetInteriorVehicleData with levelspan parameter missing
@@ -2367,7 +2370,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								clospan = 1,
 								row = 1,
@@ -2377,14 +2380,14 @@ end
 							}
 						},
 						subscribe = true
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.1.6
-			
-		-----------------------------------------------------------------------------------------			
-			
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.1.7
 			--Description: GetInteriorVehicleData with level parameter missing
 				function Test:GetInteriorVehicleData_levelMissing()
@@ -2393,7 +2396,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								clospan = 1,
 								row = 1,
@@ -2403,13 +2406,13 @@ end
 							}
 						},
 						subscribe = true
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.1.7
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.1.8
 			--Description: GetInteriorVehicleData with moduleType parameter missing
@@ -2418,7 +2421,7 @@ end
 					{
 						moduleDescription =
 						{
-							moduleZone = 
+							moduleZone =
 							{
 								clospan = 1,
 								row = 1,
@@ -2429,13 +2432,13 @@ end
 							}
 						},
 						subscribe = true
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.1.8
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.1.9
 			--Description: GetInteriorVehicleData with moduleZone parameter missing
@@ -2447,13 +2450,13 @@ end
 							moduleType = "CLIMATE"
 						},
 						subscribe = true
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
-			--End Test case CommonRequestCheck.1.9	
-	
-		-----------------------------------------------------------------------------------------			
+			--End Test case CommonRequestCheck.1.9
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.1.10
 			--Description: GetInteriorVehicleData with moduleDescription parameter missing
@@ -2461,13 +2464,13 @@ end
 					local cid = self.mobileSession:SendRPC("GetInteriorVehicleData",
 					{
 						subscribe = true
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
-			--End Test case CommonRequestCheck.1.10	
+			--End Test case CommonRequestCheck.1.10
 
-		-----------------------------------------------------------------------------------------			
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.1.11
 			--Description: GetInteriorVehicleData with subscribe parameter missing
@@ -2477,7 +2480,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -2487,8 +2490,8 @@ end
 								level = 0
 							}
 						}
-					})		
-					
+					})
+
 				--hmi side: expect RC.GetInteriorVehicleData request
 				EXPECT_HMICALL("RC.GetInteriorVehicleData")
 					:Do(function(_,data)
@@ -2526,29 +2529,29 @@ end
 													}
 												}
 												})
-					end)					
-					
+					end)
+
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
-					
+
 				end
 			--End Test case CommonRequestCheck.1.11
-	
-	--End Test case CommonRequestCheck.1	
-	
-		-----------------------------------------------------------------------------------------	
-	
+
+	--End Test case CommonRequestCheck.1
+
+		-----------------------------------------------------------------------------------------
+
 	--Begin Test case CommonRequestCheck.2
 	--Description: 	--param has an out-of-bounds value
 					--[REVSDL-932]: 3 Parameters out of bounds
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-932
 				--REVSDL-938
 				--https://adc.luxoft.com/jira/secure/attachment/115809/115809_Req_1_3_of_REVSDL-932.png
 
-		--Verification criteria: 
+		--Verification criteria:
 				--In case app sends RPC with one or more mandatory or non-mandatory by-mobile_API parameters out of bounds, RSDL must respond with "resultCode: INVALID_DATA, success: false" to this mobile app
-	
+
 			--Begin Test case CommonRequestCheck.2.1
 			--Description: GetInteriorVehicleData with all parameters out of bounds
 				function Test:GetInteriorVehicleData_AllParametersOutLowerBound()
@@ -2557,7 +2560,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								clospan = -1,
 								row = -1,
@@ -2568,13 +2571,13 @@ end
 							}
 						},
 						subscribe = true
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.1
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.2
 			--Description: GetInteriorVehicleData with Colspan parameter out of bounds
@@ -2584,7 +2587,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								clospan = -1,
 								row = 1,
@@ -2595,13 +2598,13 @@ end
 							}
 						},
 						subscribe = true
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.2
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.3
 			--Description: GetInteriorVehicleData with row parameter out of bounds
@@ -2611,7 +2614,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								clospan = 1,
 								row = -1,
@@ -2622,13 +2625,13 @@ end
 							}
 						},
 						subscribe = true
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.3
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.4
 			--Description: GetInteriorVehicleData with rowspan parameter out of bounds
@@ -2638,7 +2641,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								clospan = 1,
 								row = 1,
@@ -2649,13 +2652,13 @@ end
 							}
 						},
 						subscribe = true
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.4
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.5
 			--Description: GetInteriorVehicleData with col parameter out of bounds
@@ -2665,7 +2668,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								clospan = 1,
 								row = 1,
@@ -2676,13 +2679,13 @@ end
 							}
 						},
 						subscribe = true
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.5
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.6
 			--Description: GetInteriorVehicleData with levelspan parameter out of bounds
@@ -2692,7 +2695,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								clospan = 1,
 								row = 1,
@@ -2703,14 +2706,14 @@ end
 							}
 						},
 						subscribe = true
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.6
-			
-		-----------------------------------------------------------------------------------------			
-			
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.2.7
 			--Description: GetInteriorVehicleData with level parameter out of bounds
 				function Test:GetInteriorVehicleData_LevelOutLowerBound()
@@ -2719,7 +2722,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								clospan = 1,
 								row = 1,
@@ -2730,14 +2733,14 @@ end
 							}
 						},
 						subscribe = true
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.7
-			
-		-----------------------------------------------------------------------------------------	
-	
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.2.8
 			--Description: GetInteriorVehicleData with all parameters out of bounds
 				function Test:GetInteriorVehicleData_AllParametersOutUpperBound()
@@ -2746,7 +2749,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								clospan = 101,
 								row = 101,
@@ -2757,13 +2760,13 @@ end
 							}
 						},
 						subscribe = true
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.8
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.9
 			--Description: GetInteriorVehicleData with Colspan parameter out of bounds
@@ -2773,7 +2776,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								clospan = 101,
 								row = 1,
@@ -2784,13 +2787,13 @@ end
 							}
 						},
 						subscribe = true
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.9
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.10
 			--Description: GetInteriorVehicleData with row parameter out of bounds
@@ -2800,7 +2803,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								clospan = 1,
 								row = 101,
@@ -2811,13 +2814,13 @@ end
 							}
 						},
 						subscribe = true
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.10
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.11
 			--Description: GetInteriorVehicleData with rowspan parameter out of bounds
@@ -2827,7 +2830,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								clospan = 1,
 								row = 1,
@@ -2838,13 +2841,13 @@ end
 							}
 						},
 						subscribe = true
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.11
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.12
 			--Description: GetInteriorVehicleData with col parameter out of bounds
@@ -2854,7 +2857,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								clospan = 1,
 								row = 1,
@@ -2865,13 +2868,13 @@ end
 							}
 						},
 						subscribe = true
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.12
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.13
 			--Description: GetInteriorVehicleData with levelspan parameter out of bounds
@@ -2881,7 +2884,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								clospan = 1,
 								row = 1,
@@ -2892,14 +2895,14 @@ end
 							}
 						},
 						subscribe = true
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.13
-			
-		-----------------------------------------------------------------------------------------			
-			
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.2.14
 			--Description: GetInteriorVehicleData with level parameter out of bounds
 				function Test:GetInteriorVehicleData_LevelOutUpperBound()
@@ -2908,7 +2911,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								clospan = 1,
 								row = 1,
@@ -2919,40 +2922,40 @@ end
 							}
 						},
 						subscribe = true
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.14
-			
-	--End Test case CommonRequestCheck.2	
-	
-		-----------------------------------------------------------------------------------------	
-	
+
+	--End Test case CommonRequestCheck.2
+
+		-----------------------------------------------------------------------------------------
+
 	--Begin Test case CommonRequestCheck.3
 	--Description: 	--invalid json
 					--[REVSDL-932]: 4. Wrong json
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-932
 				--REVSDL-939
 				--https://adc.luxoft.com/jira/secure/attachment/115813/115813_Req_1_4_REVSDL-932.png
 
-		--Verification criteria: 
+		--Verification criteria:
 				--In case app sends RPC in wrong JSON, RSDL must respond with "resultCode: INVALID_DATA, success: false" to this mobile app
-	
+
 			--Begin Test case CommonRequestCheck.3.1
 			--Description: Request with invalid JSON syntax (INVALID_DATA)
 				function Test:GetInteriorVehicleData_InvalidJson()
 				  self.mobileSession.correlationId = self.mobileSession.correlationId + 1
 
-				  local msg = 
+				  local msg =
 				  {
 					serviceType      = 7,
 					frameInfo        = 0,
 					rpcType          = 0,
 					rpcFunctionId    = 100017,
-					rpcCorrelationId = self.mobileSession.correlationId,			
+					rpcCorrelationId = self.mobileSession.correlationId,
 					payload          = '{"moduleDescription":{"moduleType":"CLIMATE","moduleZone":{"col":1,"colspan":1,"level":1,"levelspan":1,"row":1,"rowspan":1}},"subscribe" false}'
 				  }
 				  self.mobileSession:Send(msg)
@@ -2961,39 +2964,39 @@ end
 			--End Test case CommonRequestCheck.3.1
 
 	--End Test case CommonRequestCheck.3
-	
-		-----------------------------------------------------------------------------------------	
-	
+
+		-----------------------------------------------------------------------------------------
+
 	--Begin Test case CommonRequestCheck.4
 	--Description: 	--invalid json
 					--[REVSDL-932]: 5. String with invalid characters
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-932
 				--REVSDL-940
 				--https://adc.luxoft.com/jira/secure/attachment/115818/115818_Req_1_5_of_REVSDL-932.png
 
-		--Verification criteria: 
+		--Verification criteria:
 				--In case app sends RPC with invalid characters in param of string type, RSDL must respond with "resultCode: INVALID_DATA, success: false" to this mobile app
-	
+
 		--SKIPPED because "Note: currently none of the listed RPCs has a string param." cloned to REVSDL-1005 [REVSDL-932]: 6. Parameter of wrong type
 
 	--End Test case CommonRequestCheck.4
-	
+
 		-----------------------------------------------------------------------------------------
 
 	--Begin Test case CommonRequestCheck.5
 	--Description: 	--param of wrong type
 					--[REVSDL-932]: 6. Parameter of wrong type
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-932
 				--REVSDL-941
-				--https://adc.luxoft.com/jira/secure/attachment/115819/115819_Req_1_6_of_REVSDL-932.png			
+				--https://adc.luxoft.com/jira/secure/attachment/115819/115819_Req_1_6_of_REVSDL-932.png
 
-		--Verification criteria: 
+		--Verification criteria:
 				--In case app sends RPC with param of wrong type, RSDL must respond with "resultCode: INVALID_DATA, success: false" to this mobile app
-	
+
 			--Begin Test case CommonRequestCheck.5.1
 			--Description: GetInteriorVehicleData with all parameters of wrong type
 				function Test:GetInteriorVehicleData_AllParamsWrongType()
@@ -3002,7 +3005,7 @@ end
 						moduleDescription =
 						{
 							moduleType = 1234567,
-							moduleZone = 
+							moduleZone =
 							{
 								clospan = "1",
 								row = "1",
@@ -3012,14 +3015,14 @@ end
 								level = "1"
 							}
 						},
-						subscribe = "true"					
-					})		
-					
+						subscribe = "true"
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.1
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.2
 			--Description: GetInteriorVehicleData with Colspan parameter of wrong type
@@ -3029,7 +3032,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								clospan = "1",
 								row = 1,
@@ -3040,13 +3043,13 @@ end
 							}
 						},
 						subscribe = true
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.2
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.3
 			--Description: GetInteriorVehicleData with row parameter of wrong type
@@ -3056,7 +3059,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								clospan = 1,
 								row = true,
@@ -3067,13 +3070,13 @@ end
 							}
 						},
 						subscribe = true
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.3
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.4
 			--Description: GetInteriorVehicleData with rowspan parameter of wrong type
@@ -3083,7 +3086,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								clospan = 1,
 								row = 1,
@@ -3094,13 +3097,13 @@ end
 							}
 						},
 						subscribe = true
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.4
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.5
 			--Description: GetInteriorVehicleData with col parameter of wrong type
@@ -3110,7 +3113,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								clospan = 1,
 								row = 1,
@@ -3121,13 +3124,13 @@ end
 							}
 						},
 						subscribe = true
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.5
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.6
 			--Description: GetInteriorVehicleData with levelspan parameter of wrong type
@@ -3137,7 +3140,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								clospan = 1,
 								row = 1,
@@ -3148,14 +3151,14 @@ end
 							}
 						},
 						subscribe = true
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.6
-			
-		-----------------------------------------------------------------------------------------			
-			
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.5.7
 			--Description: GetInteriorVehicleData with level parameter of wrong type
 				function Test:GetInteriorVehicleData_levelWrongType()
@@ -3164,7 +3167,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								clospan = 1,
 								row = 1,
@@ -3175,13 +3178,13 @@ end
 							}
 						},
 						subscribe = true
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.7
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.8
 			--Description: GetInteriorVehicleData with moduleType parameter of wrong type
@@ -3191,7 +3194,7 @@ end
 						moduleDescription =
 						{
 							moduleType = true,
-							moduleZone = 
+							moduleZone =
 							{
 								clospan = 1,
 								row = 1,
@@ -3202,13 +3205,13 @@ end
 							}
 						},
 						subscribe = true
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.8
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.9
 			--Description: GetInteriorVehicleData with subscribe parameter of wrong type
@@ -3218,7 +3221,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								clospan = 1,
 								row = 1,
@@ -3229,14 +3232,14 @@ end
 							}
 						},
 						subscribe = "true"
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.9
 
-		-----------------------------------------------------------------------------------------	
-			
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.5.10
 			--Description: GetInteriorVehicleData with ModuleZone parameter of wrong type
 				function Test:GetInteriorVehicleData_ModuleZoneWrongType()
@@ -3248,13 +3251,13 @@ end
 							moduleZone = "abc"
 						},
 						subscribe = true
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.10
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.11
 			--Description: GetInteriorVehicleData with ModuleDescription parameter of wrong type
@@ -3263,28 +3266,28 @@ end
 					{
 						moduleDescription = "abc",
 						subscribe = true
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
-			--End Test case CommonRequestCheck.5.11			
-			
-	--End Test case CommonRequestCheck.5	
-	
+			--End Test case CommonRequestCheck.5.11
+
+	--End Test case CommonRequestCheck.5
+
 		-----------------------------------------------------------------------------------------
 
 	--Begin Test case CommonRequestCheck.6
 	--Description: 	--RSDL cuts off the fake param (non-existent per Mobile_API) from app's RPC.
 					--[REVSDL-932]: 7. Fake params
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-932
 				--REVSDL-997
 				--https://adc.luxoft.com/jira/secure/attachment/116227/116227_Req_1_2_7_of_REVSDL-932.png
 
-		--Verification criteria: 
+		--Verification criteria:
 				--In case app sends RPC with fake param (non-existent per Mobile_API), RSDL must cut this param off from the RPC and then validate this RPC and process as assigned.
-	
+
 			--Begin Test case CommonRequestCheck.6.1
 			--Description: app sends RPC with fake param inside moduleZone
 				function Test:GetInteriorVehicleData_FakeParamsInsideModuleZone()
@@ -3293,7 +3296,7 @@ end
 						moduleDescription =
 						{
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								fake1 = 1,
 								colspan = 2,
@@ -3306,9 +3309,9 @@ end
 								fake3 = "abc  xyz  "
 							}
 						},
-						subscribe = true						
+						subscribe = true
 					})
-					
+
 				--hmi side: expect RC.GetInteriorVehicleData request
 				EXPECT_HMICALL("RC.GetInteriorVehicleData")
 				:ValidIf (function(_,data)
@@ -3316,15 +3319,15 @@ end
 							print(" --SDL sends fake parameter to HMI ")
 							for key,value in pairs(data.params) do print(key,value) end
 							return false
-						else 
+						else
 							return true
 						end
-					end)					
+					end)
 					:Timeout(3000)
-								
+
 				end
 			--End Test case CommonRequestCheck.6.1
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.6.2
@@ -3336,7 +3339,7 @@ end
 						{
 							fake1 = 123,
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -3350,7 +3353,7 @@ end
 						fake3 = "  abc  xyz   ",
 						subscribe = true
 					})
-					
+
 				--hmi side: expect RC.GetInteriorVehicleData request
 				EXPECT_HMICALL("RC.GetInteriorVehicleData")
 				:ValidIf (function(_,data)
@@ -3358,19 +3361,19 @@ end
 							print(" --SDL sends fake parameter to HMI ")
 							for key,value in pairs(data.params) do print(key,value) end
 							return false
-						else 
+						else
 							return true
 						end
-					end)					
+					end)
 					:Timeout(3000)
 				end
 			--End Test case CommonRequestCheck.6.2
-			
-	--End Test case CommonRequestCheck.6
-	
-		-----------------------------------------------------------------------------------------	
 
---=================================================END TEST CASES 3==========================================================--	
+	--End Test case CommonRequestCheck.6
+
+		-----------------------------------------------------------------------------------------
+
+--=================================================END TEST CASES 3==========================================================--
 
 
 
@@ -3382,42 +3385,42 @@ end
 --=================================================BEGIN TEST CASES 4==========================================================--
 	--Begin Test suit CommonRequestCheck.4 for SetInteriorVehicleData
 
-	--Description: Validation App's RPC for SetInteriorVehicleData request	
+	--Description: Validation App's RPC for SetInteriorVehicleData request
 
 	--Begin Test suit CommonRequestCheck
 
-	--Description: TC's checks processing 
+	--Description: TC's checks processing
 		-- mandatory param is missing
 		-- param has an out-of-bounds value
 		-- invalid json
 		-- string param with invalid characters
 		-- param of wrong type
-	
+
 
 	--Begin Test case CommonRequestCheck.1
 	--Description: 	--mandatory param is missing
 					--[REVSDL-932]: 2. Mandatory params missing
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-932
 				--REVSDL-937
-				--https://adc.luxoft.com/jira/secure/attachment/115807/115807_Req_1_2_of_REVSDL-932.png				
+				--https://adc.luxoft.com/jira/secure/attachment/115807/115807_Req_1_2_of_REVSDL-932.png
 
-		--Verification criteria: 
+		--Verification criteria:
 				--In case app sends RPC with one or more mandatory-by-mobile_API parameters missing, RSDL must respond with "resultCode: INVALID_DATA, success: false" to this mobile app
-	
+
 			--Begin Test case CommonRequestCheck.1.1
 			--Description: SetInteriorVehicleData with all parameters missing
 				function Test:SetInteriorVehicleData_AllParamsMissing()
 					local cid = self.mobileSession:SendRPC("SetInteriorVehicleData",
-					{						
-					})		
-					
+					{
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.1.1
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.1.2
 			--Description: SetInteriorVehicleData with Colspan parameter missing
@@ -3426,7 +3429,7 @@ end
 					{
 						moduleData =
 						{
-							radioControlData = 
+							radioControlData =
 							{
 								radioEnable = true,
 								frequencyInteger = 105,
@@ -3447,10 +3450,10 @@ end
 									TA = false,
 									REG = "don't mention min,max length"
 								},
-								signalChangeThreshold = 10								
+								signalChangeThreshold = 10
 							},
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								row = 0,
 								rowspan = 2,
@@ -3459,13 +3462,13 @@ end
 								level = 0
 							}
 						}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.1.2
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.1.3
 			--Description: SetInteriorVehicleData with row parameter missing
@@ -3474,7 +3477,7 @@ end
 					{
 						moduleData =
 						{
-							radioControlData = 
+							radioControlData =
 							{
 								radioEnable = true,
 								frequencyInteger = 105,
@@ -3495,10 +3498,10 @@ end
 									TA = false,
 									REG = "don't mention min,max length"
 								},
-								signalChangeThreshold = 10								
+								signalChangeThreshold = 10
 							},
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								rowspan = 2,
@@ -3507,13 +3510,13 @@ end
 								level = 0
 							}
 						}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.1.3
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.1.4
 			--Description: SetInteriorVehicleData with rowspan parameter missing
@@ -3522,7 +3525,7 @@ end
 					{
 						moduleData =
 						{
-							radioControlData = 
+							radioControlData =
 							{
 								radioEnable = true,
 								frequencyInteger = 105,
@@ -3543,10 +3546,10 @@ end
 									TA = false,
 									REG = "don't mention min,max length"
 								},
-								signalChangeThreshold = 10								
+								signalChangeThreshold = 10
 							},
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -3555,13 +3558,13 @@ end
 								level = 0
 							}
 						}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.1.4
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.1.5
 			--Description: SetInteriorVehicleData with col parameter missing
@@ -3570,7 +3573,7 @@ end
 					{
 						moduleData =
 						{
-							radioControlData = 
+							radioControlData =
 							{
 								radioEnable = true,
 								frequencyInteger = 105,
@@ -3591,10 +3594,10 @@ end
 									TA = false,
 									REG = "don't mention min,max length"
 								},
-								signalChangeThreshold = 10								
+								signalChangeThreshold = 10
 							},
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -3603,13 +3606,13 @@ end
 								level = 0
 							}
 						}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.1.5
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.1.6
 			--Description: SetInteriorVehicleData with levelspan parameter missing
@@ -3618,7 +3621,7 @@ end
 					{
 						moduleData =
 						{
-							radioControlData = 
+							radioControlData =
 							{
 								radioEnable = true,
 								frequencyInteger = 105,
@@ -3639,10 +3642,10 @@ end
 									TA = false,
 									REG = "don't mention min,max length"
 								},
-								signalChangeThreshold = 10								
+								signalChangeThreshold = 10
 							},
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -3651,14 +3654,14 @@ end
 								level = 0
 							}
 						}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.1.6
-			
-		-----------------------------------------------------------------------------------------			
-			
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.1.7
 			--Description: SetInteriorVehicleData with level parameter missing
 				function Test:SetInteriorVehicleData_levelMissing()
@@ -3666,7 +3669,7 @@ end
 					{
 						moduleData =
 						{
-							radioControlData = 
+							radioControlData =
 							{
 								radioEnable = true,
 								frequencyInteger = 105,
@@ -3687,10 +3690,10 @@ end
 									TA = false,
 									REG = "don't mention min,max length"
 								},
-								signalChangeThreshold = 10								
+								signalChangeThreshold = 10
 							},
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -3699,13 +3702,13 @@ end
 								levelspan = 1
 							}
 						}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.1.7
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.1.8
 			--Description: SetInteriorVehicleData with moduleType parameter missing for RADIO request
@@ -3714,7 +3717,7 @@ end
 					{
 						moduleData =
 						{
-							radioControlData = 
+							radioControlData =
 							{
 								radioEnable = true,
 								frequencyInteger = 105,
@@ -3735,9 +3738,9 @@ end
 									TA = false,
 									REG = "don't mention min,max length"
 								},
-								signalChangeThreshold = 10								
+								signalChangeThreshold = 10
 							},
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -3747,14 +3750,14 @@ end
 								level = 0
 							}
 						}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.1.8
-			
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.1.9
 			--Description: SetInteriorVehicleData with moduleType parameter missing for CLIMATE request
 				function Test:SetInteriorVehicleData_CLIMATE_ModuleTypeMissing()
@@ -3762,7 +3765,7 @@ end
 					{
 						moduleData =
 						{
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -3784,14 +3787,14 @@ end
 								temperatureUnit = "CELSIUS"
 							}
 						}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.1.9
-			
-		-----------------------------------------------------------------------------------------		
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.1.10
 			--Description: SetInteriorVehicleData with moduleType parameter missing for both RADIO and CLIMATE
 				function Test:SetInteriorVehicleData_BOTH_ModuleTypeMissing()
@@ -3799,7 +3802,7 @@ end
 					{
 						moduleData =
 						{
-							radioControlData = 
+							radioControlData =
 							{
 								radioEnable = true,
 								frequencyInteger = 105,
@@ -3820,9 +3823,9 @@ end
 									TA = false,
 									REG = "don't mention min,max length"
 								},
-								signalChangeThreshold = 10								
+								signalChangeThreshold = 10
 							},
-							moduleZone = 
+							moduleZone =
 							{
 								clospan = 1,
 								row = 1,
@@ -3843,14 +3846,14 @@ end
 								autoModeEnable = false
 							}
 						}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.1.10
-			
-		-----------------------------------------------------------------------------------------		
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.1.11
 			--Description: SetInteriorVehicleData with radioControlData parameter missing
 				function Test:SetInteriorVehicleData_RadioControlDataMissing()
@@ -3859,7 +3862,7 @@ end
 						moduleData =
 						{
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								clospan = 1,
 								row = 1,
@@ -3869,13 +3872,13 @@ end
 								level = 1
 							}
 						}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.1.11
-			
-		-----------------------------------------------------------------------------------------	
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.1.12
 			--Description: SetInteriorVehicleData with radioEnable parameter missing
@@ -3884,7 +3887,7 @@ end
 					{
 						moduleData =
 						{
-							radioControlData = 
+							radioControlData =
 							{
 								frequencyInteger = 105,
 								frequencyFraction = 3,
@@ -3904,10 +3907,10 @@ end
 									TA = false,
 									REG = "don't mention min,max length"
 								},
-								signalChangeThreshold = 10								
+								signalChangeThreshold = 10
 							},
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -3917,8 +3920,8 @@ end
 								level = 0
 							}
 						}
-					})		
-					
+					})
+
 				--hmi side: expect RC.SetInteriorVehicleData request
 				EXPECT_HMICALL("RC.SetInteriorVehicleData")
 					:Do(function(_,data)
@@ -3926,7 +3929,7 @@ end
 						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {
 														moduleData =
 														{
-															radioControlData = 
+															radioControlData =
 															{
 																frequencyInteger = 105,
 																frequencyFraction = 3,
@@ -3946,10 +3949,10 @@ end
 																	TA = false,
 																	REG = ""
 																},
-																signalChangeThreshold = 10								
+																signalChangeThreshold = 10
 															},
 															moduleType = "RADIO",
-															moduleZone = 
+															moduleZone =
 															{
 																colspan = 2,
 																row = 0,
@@ -3958,16 +3961,16 @@ end
 																levelspan = 1,
 																level = 0
 															}
-														}	
+														}
 						})
-					end)					
-				
+					end)
+
 				--mobile side: expect SUCCESS response
-				EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})	
+				EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})
 				end
 			--End Test case CommonRequestCheck.1.12
-			
-		-----------------------------------------------------------------------------------------		
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.1.13
 			--Description: SetInteriorVehicleData with frequencyInteger parameter missing
@@ -3976,7 +3979,7 @@ end
 					{
 						moduleData =
 						{
-							radioControlData = 
+							radioControlData =
 							{
 								radioEnable = true,
 								frequencyFraction = 3,
@@ -3996,10 +3999,10 @@ end
 									TA = false,
 									REG = "don't mention min,max length"
 								},
-								signalChangeThreshold = 10								
+								signalChangeThreshold = 10
 							},
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -4009,8 +4012,8 @@ end
 								level = 0
 							}
 						}
-					})		
-					
+					})
+
 				--hmi side: expect RC.SetInteriorVehicleData request
 				EXPECT_HMICALL("RC.SetInteriorVehicleData")
 					:Do(function(_,data)
@@ -4018,7 +4021,7 @@ end
 						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {
 														moduleData =
 														{
-															radioControlData = 
+															radioControlData =
 															{
 																radioEnable = true,
 																frequencyFraction = 3,
@@ -4038,10 +4041,10 @@ end
 																	TA = false,
 																	REG = ""
 																},
-																signalChangeThreshold = 10								
+																signalChangeThreshold = 10
 															},
 															moduleType = "RADIO",
-															moduleZone = 
+															moduleZone =
 															{
 																colspan = 2,
 																row = 0,
@@ -4050,17 +4053,17 @@ end
 																levelspan = 1,
 																level = 0
 															}
-														}	
+														}
 						})
-					end)					
-				
+					end)
+
 				--mobile side: expect SUCCESS response
-				EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})	
+				EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})
 				end
 			--End Test case CommonRequestCheck.1.13
-			
-		-----------------------------------------------------------------------------------------			
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.1.14
 			--Description: SetInteriorVehicleData with frequencyFraction parameter missing
 				function Test:SetInteriorVehicleData_FrequencyFractionMissing()
@@ -4068,7 +4071,7 @@ end
 					{
 						moduleData =
 						{
-							radioControlData = 
+							radioControlData =
 							{
 								radioEnable = true,
 								frequencyInteger = 105,
@@ -4088,10 +4091,10 @@ end
 									TA = false,
 									REG = "don't mention min,max length"
 								},
-								signalChangeThreshold = 10								
+								signalChangeThreshold = 10
 							},
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -4101,8 +4104,8 @@ end
 								level = 0
 							}
 						}
-					})		
-					
+					})
+
 				--hmi side: expect RC.SetInteriorVehicleData request
 				EXPECT_HMICALL("RC.SetInteriorVehicleData")
 					:Do(function(_,data)
@@ -4110,7 +4113,7 @@ end
 						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {
 														moduleData =
 														{
-															radioControlData = 
+															radioControlData =
 															{
 																radioEnable = true,
 																frequencyInteger = 105,
@@ -4130,10 +4133,10 @@ end
 																	TA = false,
 																	REG = ""
 																},
-																signalChangeThreshold = 10								
+																signalChangeThreshold = 10
 															},
 															moduleType = "RADIO",
-															moduleZone = 
+															moduleZone =
 															{
 																colspan = 2,
 																row = 0,
@@ -4142,16 +4145,16 @@ end
 																levelspan = 1,
 																level = 0
 															}
-														}	
+														}
 						})
-					end)					
-				
+					end)
+
 				--mobile side: expect SUCCESS response
-				EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})	
+				EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})
 				end
 			--End Test case CommonRequestCheck.1.14
-			
-		-----------------------------------------------------------------------------------------	
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.1.15
 			--Description: SetInteriorVehicleData with band parameter missing
@@ -4160,7 +4163,7 @@ end
 					{
 						moduleData =
 						{
-							radioControlData = 
+							radioControlData =
 							{
 								radioEnable = true,
 								frequencyInteger = 105,
@@ -4180,10 +4183,10 @@ end
 									TA = false,
 									REG = "don't mention min,max length"
 								},
-								signalChangeThreshold = 10								
+								signalChangeThreshold = 10
 							},
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -4193,8 +4196,8 @@ end
 								level = 0
 							}
 						}
-					})		
-					
+					})
+
 				--hmi side: expect RC.SetInteriorVehicleData request
 				EXPECT_HMICALL("RC.SetInteriorVehicleData")
 					:Do(function(_,data)
@@ -4202,7 +4205,7 @@ end
 						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {
 														moduleData =
 														{
-															radioControlData = 
+															radioControlData =
 															{
 																radioEnable = true,
 																frequencyInteger = 105,
@@ -4222,10 +4225,10 @@ end
 																	TA = false,
 																	REG = ""
 																},
-																signalChangeThreshold = 10								
+																signalChangeThreshold = 10
 															},
 															moduleType = "RADIO",
-															moduleZone = 
+															moduleZone =
 															{
 																colspan = 2,
 																row = 0,
@@ -4234,15 +4237,15 @@ end
 																levelspan = 1,
 																level = 0
 															}
-														}	
+														}
 						})
-					end)					
-				
+					end)
+
 				--mobile side: expect SUCCESS response
-				EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})	
+				EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})
 				end
 			--End Test case CommonRequestCheck.1.15
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.1.16
@@ -4252,7 +4255,7 @@ end
 					{
 						moduleData =
 						{
-							radioControlData = 
+							radioControlData =
 							{
 								radioEnable = true,
 								frequencyInteger = 105,
@@ -4272,10 +4275,10 @@ end
 									TA = false,
 									REG = "don't mention min,max length"
 								},
-								signalChangeThreshold = 10								
+								signalChangeThreshold = 10
 							},
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -4285,8 +4288,8 @@ end
 								level = 0
 							}
 						}
-					})		
-					
+					})
+
 				--hmi side: expect RC.SetInteriorVehicleData request
 				EXPECT_HMICALL("RC.SetInteriorVehicleData")
 					:Do(function(_,data)
@@ -4294,7 +4297,7 @@ end
 						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {
 														moduleData =
 														{
-															radioControlData = 
+															radioControlData =
 															{
 																radioEnable = true,
 																frequencyInteger = 105,
@@ -4314,10 +4317,10 @@ end
 																	TA = false,
 																	REG = ""
 																},
-																signalChangeThreshold = 10								
+																signalChangeThreshold = 10
 															},
 															moduleType = "RADIO",
-															moduleZone = 
+															moduleZone =
 															{
 																colspan = 2,
 																row = 0,
@@ -4326,16 +4329,16 @@ end
 																levelspan = 1,
 																level = 0
 															}
-														}	
+														}
 						})
-					end)					
-				
+					end)
+
 				--mobile side: expect SUCCESS response
-				EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})	
+				EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})
 				end
 			--End Test case CommonRequestCheck.1.16
-			
-		-----------------------------------------------------------------------------------------		
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.1.17
 			--Description: SetInteriorVehicleData with state parameter missing
@@ -4344,7 +4347,7 @@ end
 					{
 						moduleData =
 						{
-							radioControlData = 
+							radioControlData =
 							{
 								radioEnable = true,
 								frequencyInteger = 105,
@@ -4364,10 +4367,10 @@ end
 									TA = false,
 									REG = "don't mention min,max length"
 								},
-								signalChangeThreshold = 10								
+								signalChangeThreshold = 10
 							},
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -4377,8 +4380,8 @@ end
 								level = 0
 							}
 						}
-					})		
-					
+					})
+
 				--hmi side: expect RC.SetInteriorVehicleData request
 				EXPECT_HMICALL("RC.SetInteriorVehicleData")
 					:Do(function(_,data)
@@ -4386,7 +4389,7 @@ end
 						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {
 														moduleData =
 														{
-															radioControlData = 
+															radioControlData =
 															{
 																radioEnable = true,
 																frequencyInteger = 105,
@@ -4406,10 +4409,10 @@ end
 																	TA = false,
 																	REG = ""
 																},
-																signalChangeThreshold = 10								
+																signalChangeThreshold = 10
 															},
 															moduleType = "RADIO",
-															moduleZone = 
+															moduleZone =
 															{
 																colspan = 2,
 																row = 0,
@@ -4418,15 +4421,15 @@ end
 																levelspan = 1,
 																level = 0
 															}
-														}	
+														}
 						})
-					end)					
-				
+					end)
+
 				--mobile side: expect SUCCESS response
-				EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})	
+				EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})
 				end
 			--End Test case CommonRequestCheck.1.17
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.1.18
@@ -4436,7 +4439,7 @@ end
 					{
 						moduleData =
 						{
-							radioControlData = 
+							radioControlData =
 							{
 								radioEnable = true,
 								frequencyInteger = 105,
@@ -4456,10 +4459,10 @@ end
 									TA = false,
 									REG = "don't mention min,max length"
 								},
-								signalChangeThreshold = 10								
+								signalChangeThreshold = 10
 							},
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -4469,8 +4472,8 @@ end
 								level = 0
 							}
 						}
-					})		
-					
+					})
+
 				--hmi side: expect RC.SetInteriorVehicleData request
 				EXPECT_HMICALL("RC.SetInteriorVehicleData")
 					:Do(function(_,data)
@@ -4478,7 +4481,7 @@ end
 						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {
 														moduleData =
 														{
-															radioControlData = 
+															radioControlData =
 															{
 																radioEnable = true,
 																frequencyInteger = 105,
@@ -4498,10 +4501,10 @@ end
 																	TA = false,
 																	REG = ""
 																},
-																signalChangeThreshold = 10								
+																signalChangeThreshold = 10
 															},
 															moduleType = "RADIO",
-															moduleZone = 
+															moduleZone =
 															{
 																colspan = 2,
 																row = 0,
@@ -4510,17 +4513,17 @@ end
 																levelspan = 1,
 																level = 0
 															}
-														}	
+														}
 						})
-					end)					
-				
+					end)
+
 				--mobile side: expect SUCCESS response
-				EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})	
+				EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})
 				end
 			--End Test case CommonRequestCheck.1.18
-			
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.1.19
 			--Description: SetInteriorVehicleData with signalStrength parameter missing
 				function Test:SetInteriorVehicleData_SignalStrengthMissing()
@@ -4528,7 +4531,7 @@ end
 					{
 						moduleData =
 						{
-							radioControlData = 
+							radioControlData =
 							{
 								radioEnable = true,
 								frequencyInteger = 105,
@@ -4548,10 +4551,10 @@ end
 									TA = false,
 									REG = "don't mention min,max length"
 								},
-								signalChangeThreshold = 10								
+								signalChangeThreshold = 10
 							},
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -4561,8 +4564,8 @@ end
 								level = 0
 							}
 						}
-					})		
-					
+					})
+
 				--hmi side: expect RC.SetInteriorVehicleData request
 				EXPECT_HMICALL("RC.SetInteriorVehicleData")
 					:Do(function(_,data)
@@ -4570,7 +4573,7 @@ end
 						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {
 														moduleData =
 														{
-															radioControlData = 
+															radioControlData =
 															{
 																radioEnable = true,
 																frequencyInteger = 105,
@@ -4590,10 +4593,10 @@ end
 																	TA = false,
 																	REG = ""
 																},
-																signalChangeThreshold = 10								
+																signalChangeThreshold = 10
 															},
 															moduleType = "RADIO",
-															moduleZone = 
+															moduleZone =
 															{
 																colspan = 2,
 																row = 0,
@@ -4602,17 +4605,17 @@ end
 																levelspan = 1,
 																level = 0
 															}
-														}	
+														}
 						})
-					end)					
-				
+					end)
+
 				--mobile side: expect SUCCESS response
-				EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})	
+				EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})
 				end
 			--End Test case CommonRequestCheck.1.19
-			
-		-----------------------------------------------------------------------------------------		
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.1.20
 			--Description: SetInteriorVehicleData with rdsData parameter missing
 				function Test:SetInteriorVehicleData_RdsDataMissing()
@@ -4620,7 +4623,7 @@ end
 					{
 						moduleData =
 						{
-							radioControlData = 
+							radioControlData =
 							{
 								radioEnable = true,
 								frequencyInteger = 105,
@@ -4630,10 +4633,10 @@ end
 								state = "ACQUIRED",
 								availableHDs = 1,
 								signalStrength = 50,
-								signalChangeThreshold = 10								
+								signalChangeThreshold = 10
 							},
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -4643,8 +4646,8 @@ end
 								level = 0
 							}
 						}
-					})		
-					
+					})
+
 				--hmi side: expect RC.SetInteriorVehicleData request
 				EXPECT_HMICALL("RC.SetInteriorVehicleData")
 					:Do(function(_,data)
@@ -4652,7 +4655,7 @@ end
 						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {
 														moduleData =
 														{
-															radioControlData = 
+															radioControlData =
 															{
 																radioEnable = true,
 																frequencyInteger = 105,
@@ -4662,10 +4665,10 @@ end
 																state = "ACQUIRED",
 																availableHDs = 1,
 																signalStrength = 50,
-																signalChangeThreshold = 10								
+																signalChangeThreshold = 10
 															},
 															moduleType = "RADIO",
-															moduleZone = 
+															moduleZone =
 															{
 																colspan = 2,
 																row = 0,
@@ -4674,16 +4677,16 @@ end
 																levelspan = 1,
 																level = 0
 															}
-														}	
+														}
 						})
-					end)					
-				
+					end)
+
 				--mobile side: expect SUCCESS response
-				EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})	
+				EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})
 				end
 			--End Test case CommonRequestCheck.1.20
-			
-		-----------------------------------------------------------------------------------------		
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.1.21
 			--Description: SetInteriorVehicleData with PS parameter missing
@@ -4692,7 +4695,7 @@ end
 					{
 						moduleData =
 						{
-							radioControlData = 
+							radioControlData =
 							{
 								radioEnable = true,
 								frequencyInteger = 105,
@@ -4712,10 +4715,10 @@ end
 									TA = false,
 									REG = "don't mention min,max length"
 								},
-								signalChangeThreshold = 10								
+								signalChangeThreshold = 10
 							},
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -4725,14 +4728,14 @@ end
 								level = 0
 							}
 						}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.1.21
-			
-		-----------------------------------------------------------------------------------------	
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.1.22
 			--Description: SetInteriorVehicleData with RT parameter missing
 				function Test:SetInteriorVehicleData_RTMissing()
@@ -4740,7 +4743,7 @@ end
 					{
 						moduleData =
 						{
-							radioControlData = 
+							radioControlData =
 							{
 								radioEnable = true,
 								frequencyInteger = 105,
@@ -4760,10 +4763,10 @@ end
 									TA = false,
 									REG = "don't mention min,max length"
 								},
-								signalChangeThreshold = 10								
+								signalChangeThreshold = 10
 							},
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -4773,14 +4776,14 @@ end
 								level = 0
 							}
 						}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.1.22
-			
-		-----------------------------------------------------------------------------------------			
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.1.23
 			--Description: SetInteriorVehicleData with CT parameter missing
 				function Test:SetInteriorVehicleData_CTMissing()
@@ -4788,7 +4791,7 @@ end
 					{
 						moduleData =
 						{
-							radioControlData = 
+							radioControlData =
 							{
 								radioEnable = true,
 								frequencyInteger = 105,
@@ -4808,10 +4811,10 @@ end
 									TA = false,
 									REG = "don't mention min,max length"
 								},
-								signalChangeThreshold = 10								
+								signalChangeThreshold = 10
 							},
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -4821,14 +4824,14 @@ end
 								level = 0
 							}
 						}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.1.23
-			
-		-----------------------------------------------------------------------------------------			
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.1.24
 			--Description: SetInteriorVehicleData with PI parameter missing
 				function Test:SetInteriorVehicleData_PIMissing()
@@ -4836,7 +4839,7 @@ end
 					{
 						moduleData =
 						{
-							radioControlData = 
+							radioControlData =
 							{
 								radioEnable = true,
 								frequencyInteger = 105,
@@ -4856,10 +4859,10 @@ end
 									TA = false,
 									REG = "don't mention min,max length"
 								},
-								signalChangeThreshold = 10								
+								signalChangeThreshold = 10
 							},
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -4869,14 +4872,14 @@ end
 								level = 0
 							}
 						}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.1.24
-			
-		-----------------------------------------------------------------------------------------			
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.1.25
 			--Description: SetInteriorVehicleData with PTY parameter missing
 				function Test:SetInteriorVehicleData_PTYMissing()
@@ -4884,7 +4887,7 @@ end
 					{
 						moduleData =
 						{
-							radioControlData = 
+							radioControlData =
 							{
 								radioEnable = true,
 								frequencyInteger = 105,
@@ -4904,10 +4907,10 @@ end
 									TA = false,
 									REG = "don't mention min,max length"
 								},
-								signalChangeThreshold = 10								
+								signalChangeThreshold = 10
 							},
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -4917,14 +4920,14 @@ end
 								level = 0
 							}
 						}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.1.25
-			
-		-----------------------------------------------------------------------------------------			
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.1.26
 			--Description: SetInteriorVehicleData with TP parameter missing
 				function Test:SetInteriorVehicleData_TPMissing()
@@ -4932,7 +4935,7 @@ end
 					{
 						moduleData =
 						{
-							radioControlData = 
+							radioControlData =
 							{
 								radioEnable = true,
 								frequencyInteger = 105,
@@ -4952,10 +4955,10 @@ end
 									TA = false,
 									REG = "don't mention min,max length"
 								},
-								signalChangeThreshold = 10								
+								signalChangeThreshold = 10
 							},
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -4965,14 +4968,14 @@ end
 								level = 0
 							}
 						}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.1.26
-			
-		-----------------------------------------------------------------------------------------			
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.1.27
 			--Description: SetInteriorVehicleData with TA parameter missing
 				function Test:SetInteriorVehicleData_TAMissing()
@@ -4980,7 +4983,7 @@ end
 					{
 						moduleData =
 						{
-							radioControlData = 
+							radioControlData =
 							{
 								radioEnable = true,
 								frequencyInteger = 105,
@@ -5000,10 +5003,10 @@ end
 									TP = true,
 									REG = "don't mention min,max length"
 								},
-								signalChangeThreshold = 10								
+								signalChangeThreshold = 10
 							},
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -5013,14 +5016,14 @@ end
 								level = 0
 							}
 						}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.1.27
-			
-		-----------------------------------------------------------------------------------------			
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.1.28
 			--Description: SetInteriorVehicleData with REG parameter missing
 				function Test:SetInteriorVehicleData_REGMissing()
@@ -5028,7 +5031,7 @@ end
 					{
 						moduleData =
 						{
-							radioControlData = 
+							radioControlData =
 							{
 								radioEnable = true,
 								frequencyInteger = 105,
@@ -5048,10 +5051,10 @@ end
 									TP = true,
 									TA = false
 								},
-								signalChangeThreshold = 10								
+								signalChangeThreshold = 10
 							},
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -5061,12 +5064,12 @@ end
 								level = 0
 							}
 						}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.1.28
-			
+
 		-----------------------------------------------------------------------------------------
 
 
@@ -5077,7 +5080,7 @@ end
 					{
 						moduleData =
 						{
-							radioControlData = 
+							radioControlData =
 							{
 								radioEnable = true,
 								frequencyInteger = 105,
@@ -5100,7 +5103,7 @@ end
 								}
 							},
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -5110,8 +5113,8 @@ end
 								level = 0
 							}
 						}
-					})		
-					
+					})
+
 				--hmi side: expect RC.SetInteriorVehicleData request
 				EXPECT_HMICALL("RC.SetInteriorVehicleData")
 					:Do(function(_,data)
@@ -5119,7 +5122,7 @@ end
 						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {
 														moduleData =
 														{
-															radioControlData = 
+															radioControlData =
 															{
 																radioEnable = true,
 																frequencyInteger = 105,
@@ -5139,10 +5142,10 @@ end
 																	TP = true,
 																	TA = false,
 																	REG = ""
-																}							
+																}
 															},
 															moduleType = "RADIO",
-															moduleZone = 
+															moduleZone =
 															{
 																colspan = 2,
 																row = 0,
@@ -5151,17 +5154,17 @@ end
 																levelspan = 1,
 																level = 0
 															}
-														}	
+														}
 						})
-					end)					
-				
+					end)
+
 				--mobile side: expect SUCCESS response
-				EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})	
+				EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})
 				end
 			--End Test case CommonRequestCheck.1.29
-			
-		-----------------------------------------------------------------------------------------	
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.1.30
 			--Description: SetInteriorVehicleData with moduleZone parameter missing
 				function Test:SetInteriorVehicleData_ModuleZoneMissing()
@@ -5169,7 +5172,7 @@ end
 					{
 						moduleData =
 						{
-							radioControlData = 
+							radioControlData =
 							{
 								radioEnable = true,
 								frequencyInteger = 105,
@@ -5190,17 +5193,17 @@ end
 									TA = false,
 									REG = "don't mention min,max length"
 								},
-								signalChangeThreshold = 10								
+								signalChangeThreshold = 10
 							},
 							moduleType = "RADIO"
 						}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.1.30
-			
-		-----------------------------------------------------------------------------------------	
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.1.31
 			--Description: SetInteriorVehicleData with climateControlData parameter missing (INVALID_DATA)
@@ -5210,7 +5213,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -5221,12 +5224,12 @@ end
 							}
 						}
 					})
-				
+
 				--mobile side: expect INVALID_DATA response
 				EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA"})
 				end
 			--End Test case CommonRequestCheck.1.31
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.1.32
@@ -5237,7 +5240,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -5258,8 +5261,8 @@ end
 								temperatureUnit = "CELSIUS"
 							}
 						}
-					})		
-					
+					})
+
 				--hmi side: expect RC.SetInteriorVehicleData request
 				EXPECT_HMICALL("RC.SetInteriorVehicleData")
 					:Do(function(_,data)
@@ -5268,7 +5271,7 @@ end
 														moduleData =
 														{
 															moduleType = "CLIMATE",
-															moduleZone = 
+															moduleZone =
 															{
 																colspan = 2,
 																row = 0,
@@ -5288,16 +5291,16 @@ end
 																autoModeEnable = true,
 																temperatureUnit = "CELSIUS"
 															}
-														}		
+														}
 						})
-					end)					
-				
+					end)
+
 				--mobile side: expect SUCCESS response
 				EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})
 				end
 			--End Test case CommonRequestCheck.1.32
-			
-		-----------------------------------------------------------------------------------------		
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.1.33
 			--Description: SetInteriorVehicleData with circulateAirEnable parameter missing
@@ -5307,7 +5310,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -5328,8 +5331,8 @@ end
 								temperatureUnit = "CELSIUS"
 							}
 						}
-					})		
-					
+					})
+
 				--hmi side: expect RC.SetInteriorVehicleData request
 				EXPECT_HMICALL("RC.SetInteriorVehicleData")
 					:Do(function(_,data)
@@ -5338,7 +5341,7 @@ end
 														moduleData =
 														{
 															moduleType = "CLIMATE",
-															moduleZone = 
+															moduleZone =
 															{
 																colspan = 2,
 																row = 0,
@@ -5358,15 +5361,15 @@ end
 																autoModeEnable = true,
 																temperatureUnit = "CELSIUS"
 															}
-														}		
+														}
 						})
-					end)					
-				
+					end)
+
 				--mobile side: expect SUCCESS response
 				EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})
 				end
 			--End Test case CommonRequestCheck.1.33
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.1.34
@@ -5377,7 +5380,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -5398,8 +5401,8 @@ end
 								temperatureUnit = "CELSIUS"
 							}
 						}
-					})		
-					
+					})
+
 				--hmi side: expect RC.SetInteriorVehicleData request
 				EXPECT_HMICALL("RC.SetInteriorVehicleData")
 					:Do(function(_,data)
@@ -5408,7 +5411,7 @@ end
 														moduleData =
 														{
 															moduleType = "CLIMATE",
-															moduleZone = 
+															moduleZone =
 															{
 																colspan = 2,
 																row = 0,
@@ -5428,15 +5431,15 @@ end
 																autoModeEnable = true,
 																temperatureUnit = "CELSIUS"
 															}
-														}		
+														}
 						})
-					end)					
-				
+					end)
+
 				--mobile side: expect SUCCESS response
 				EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})
 				end
 			--End Test case CommonRequestCheck.1.34
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.1.35
@@ -5447,7 +5450,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -5468,8 +5471,8 @@ end
 								temperatureUnit = "CELSIUS"
 							}
 						}
-					})		
-					
+					})
+
 				--hmi side: expect RC.SetInteriorVehicleData request
 				EXPECT_HMICALL("RC.SetInteriorVehicleData")
 					:Do(function(_,data)
@@ -5478,7 +5481,7 @@ end
 														moduleData =
 														{
 															moduleType = "CLIMATE",
-															moduleZone = 
+															moduleZone =
 															{
 																colspan = 2,
 																row = 0,
@@ -5498,15 +5501,15 @@ end
 																autoModeEnable = true,
 																temperatureUnit = "CELSIUS"
 															}
-														}		
+														}
 						})
-					end)					
-				
+					end)
+
 				--mobile side: expect SUCCESS response
 				EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})
 				end
 			--End Test case CommonRequestCheck.1.35
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.1.36
@@ -5517,7 +5520,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -5538,8 +5541,8 @@ end
 								temperatureUnit = "CELSIUS"
 							}
 						}
-					})		
-					
+					})
+
 				--hmi side: expect RC.SetInteriorVehicleData request
 				EXPECT_HMICALL("RC.SetInteriorVehicleData")
 					:Do(function(_,data)
@@ -5548,7 +5551,7 @@ end
 														moduleData =
 														{
 															moduleType = "CLIMATE",
-															moduleZone = 
+															moduleZone =
 															{
 																colspan = 2,
 																row = 0,
@@ -5568,17 +5571,17 @@ end
 																autoModeEnable = true,
 																temperatureUnit = "CELSIUS"
 															}
-														}		
+														}
 						})
-					end)					
-				
+					end)
+
 				--mobile side: expect SUCCESS response
 				EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})
 				end
 			--End Test case CommonRequestCheck.1.36
-			
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.1.37
 			--Description: SetInteriorVehicleData with acEnable parameter missing
 				function Test:SetInteriorVehicleData_AcEnableMissing()
@@ -5587,7 +5590,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -5608,8 +5611,8 @@ end
 								temperatureUnit = "CELSIUS"
 							}
 						}
-					})		
-					
+					})
+
 				--hmi side: expect RC.SetInteriorVehicleData request
 				EXPECT_HMICALL("RC.SetInteriorVehicleData")
 					:Do(function(_,data)
@@ -5618,7 +5621,7 @@ end
 														moduleData =
 														{
 															moduleType = "CLIMATE",
-															moduleZone = 
+															moduleZone =
 															{
 																colspan = 2,
 																row = 0,
@@ -5638,15 +5641,15 @@ end
 																autoModeEnable = true,
 																temperatureUnit = "CELSIUS"
 															}
-														}		
+														}
 						})
-					end)					
-				
+					end)
+
 				--mobile side: expect SUCCESS response
 				EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})
 				end
 			--End Test case CommonRequestCheck.1.37
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.1.38
@@ -5657,7 +5660,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -5678,8 +5681,8 @@ end
 								temperatureUnit = "CELSIUS"
 							}
 						}
-					})		
-					
+					})
+
 				--hmi side: expect RC.SetInteriorVehicleData request
 				EXPECT_HMICALL("RC.SetInteriorVehicleData")
 					:Do(function(_,data)
@@ -5688,7 +5691,7 @@ end
 														moduleData =
 														{
 															moduleType = "CLIMATE",
-															moduleZone = 
+															moduleZone =
 															{
 																colspan = 2,
 																row = 0,
@@ -5708,15 +5711,15 @@ end
 																autoModeEnable = true,
 																temperatureUnit = "CELSIUS"
 															}
-														}		
+														}
 						})
-					end)					
-				
+					end)
+
 				--mobile side: expect SUCCESS response
 				EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})
 				end
 			--End Test case CommonRequestCheck.1.38
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.1.39
@@ -5727,7 +5730,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -5748,8 +5751,8 @@ end
 								temperatureUnit = "CELSIUS"
 							}
 						}
-					})		
-					
+					})
+
 				--hmi side: expect RC.SetInteriorVehicleData request
 				EXPECT_HMICALL("RC.SetInteriorVehicleData")
 					:Do(function(_,data)
@@ -5758,7 +5761,7 @@ end
 														moduleData =
 														{
 															moduleType = "CLIMATE",
-															moduleZone = 
+															moduleZone =
 															{
 																colspan = 2,
 																row = 0,
@@ -5778,10 +5781,10 @@ end
 																desiredTemp = 24,
 																temperatureUnit = "CELSIUS"
 															}
-														}		
+														}
 						})
-					end)					
-				
+					end)
+
 				--mobile side: expect SUCCESS response
 				EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})
 				end
@@ -5797,7 +5800,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -5818,8 +5821,8 @@ end
 								autoModeEnable = true
 							}
 						}
-					})		
-					
+					})
+
 				--hmi side: expect RC.SetInteriorVehicleData request
 				EXPECT_HMICALL("RC.SetInteriorVehicleData")
 					:Do(function(_,data)
@@ -5828,7 +5831,7 @@ end
 														moduleData =
 														{
 															moduleType = "CLIMATE",
-															moduleZone = 
+															moduleZone =
 															{
 																colspan = 2,
 																row = 0,
@@ -5848,31 +5851,31 @@ end
 																desiredTemp = 24,
 																autoModeEnable = true
 															}
-														}		
+														}
 						})
-					end)					
-				
+					end)
+
 				--mobile side: expect SUCCESS response
 				EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})
 				end
 			--End Test case CommonRequestCheck.1.40
-			
-	--End Test case CommonRequestCheck.1	
-	
-		-----------------------------------------------------------------------------------------	
-	
+
+	--End Test case CommonRequestCheck.1
+
+		-----------------------------------------------------------------------------------------
+
 	--Begin Test case CommonRequestCheck.2
 	--Description: 	--param has an out-of-bounds value
 					--[REVSDL-932]: 3 Parameters out of bounds
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-932
 				--REVSDL-938
 				--https://adc.luxoft.com/jira/secure/attachment/115809/115809_Req_1_3_of_REVSDL-932.png
 
-		--Verification criteria: 
+		--Verification criteria:
 				--In case app sends RPC with one or more mandatory or non-mandatory by-mobile_API parameters out of bounds, RSDL must respond with "resultCode: INVALID_DATA, success: false" to this mobile app
-	
+
 			--Begin Test case CommonRequestCheck.2.1
 			--Description: SetInteriorVehicleData with all parameters out of bounds
 				function Test:SetInteriorVehicleData_AllParamsOutLowerBound()
@@ -5881,7 +5884,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = -1,
 								row = -1,
@@ -5903,13 +5906,13 @@ end
 								temperatureUnit = "CELSIUS"
 							}
 						}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.1
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.2
 			--Description: SetInteriorVehicleData with Colspan parameter out of bounds
@@ -5919,7 +5922,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = -1,
 								row = 0,
@@ -5941,13 +5944,13 @@ end
 								temperatureUnit = "CELSIUS"
 							}
 						}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.2
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.3
 			--Description: SetInteriorVehicleData with row parameter out of bounds
@@ -5957,7 +5960,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = -1,
@@ -5979,13 +5982,13 @@ end
 								temperatureUnit = "CELSIUS"
 							}
 						}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.3
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.4
 			--Description: SetInteriorVehicleData with rowspan parameter out of bounds
@@ -5995,7 +5998,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -6017,13 +6020,13 @@ end
 								temperatureUnit = "CELSIUS"
 							}
 						}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.4
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.5
 			--Description: SetInteriorVehicleData with col parameter out of bounds
@@ -6033,7 +6036,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -6055,13 +6058,13 @@ end
 								temperatureUnit = "CELSIUS"
 							}
 						}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.5
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.6
 			--Description: SetInteriorVehicleData with levelspan parameter out of bounds
@@ -6071,7 +6074,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -6093,14 +6096,14 @@ end
 								temperatureUnit = "CELSIUS"
 							}
 						}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.6
-			
-		-----------------------------------------------------------------------------------------			
-			
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.2.7
 			--Description: SetInteriorVehicleData with level parameter out of bounds
 				function Test:SetInteriorVehicleData_levelOutLowerBound()
@@ -6109,7 +6112,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -6131,13 +6134,13 @@ end
 								temperatureUnit = "CELSIUS"
 							}
 						}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.7
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.8
 			--Description: SetInteriorVehicleData with frequencyInteger parameter out of bounds
@@ -6146,7 +6149,7 @@ end
 					{
 						moduleData =
 						{
-							radioControlData = 
+							radioControlData =
 							{
 								radioEnable = true,
 								frequencyInteger = -1,
@@ -6167,10 +6170,10 @@ end
 									TA = false,
 									REG = "don't mention min,max length"
 								},
-								signalChangeThreshold = 10								
+								signalChangeThreshold = 10
 							},
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -6180,14 +6183,14 @@ end
 								level = 0
 							}
 						}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.8
-			
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.2.9
 			--Description: SetInteriorVehicleData with frequencyFraction parameter out of bounds
 				function Test:SetInteriorVehicleData_FrequencyFractionOutLowerBound()
@@ -6195,7 +6198,7 @@ end
 					{
 						moduleData =
 						{
-							radioControlData = 
+							radioControlData =
 							{
 								radioEnable = true,
 								frequencyInteger = 105,
@@ -6216,10 +6219,10 @@ end
 									TA = false,
 									REG = "don't mention min,max length"
 								},
-								signalChangeThreshold = 10								
+								signalChangeThreshold = 10
 							},
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -6229,14 +6232,14 @@ end
 								level = 0
 							}
 						}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.9
-			
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.2.10
 			--Description: SetInteriorVehicleData with hdChannel parameter out of bounds
 				function Test:SetInteriorVehicleData_HdChannelOutLowerBound()
@@ -6244,7 +6247,7 @@ end
 					{
 						moduleData =
 						{
-							radioControlData = 
+							radioControlData =
 							{
 								radioEnable = true,
 								frequencyInteger = 105,
@@ -6265,10 +6268,10 @@ end
 									TA = false,
 									REG = "don't mention min,max length"
 								},
-								signalChangeThreshold = 10								
+								signalChangeThreshold = 10
 							},
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -6278,13 +6281,13 @@ end
 								level = 0
 							}
 						}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.10
-			
-		-----------------------------------------------------------------------------------------		
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.11
 			--Description: SetInteriorVehicleData with availableHDs parameter out of bounds
@@ -6293,7 +6296,7 @@ end
 					{
 						moduleData =
 						{
-							radioControlData = 
+							radioControlData =
 							{
 								radioEnable = true,
 								frequencyInteger = 105,
@@ -6314,10 +6317,10 @@ end
 									TA = false,
 									REG = "don't mention min,max length"
 								},
-								signalChangeThreshold = 10								
+								signalChangeThreshold = 10
 							},
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -6327,13 +6330,13 @@ end
 								level = 0
 							}
 						}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.11
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.12
 			--Description: SetInteriorVehicleData with signalStrength parameter out of bounds
@@ -6342,7 +6345,7 @@ end
 					{
 						moduleData =
 						{
-							radioControlData = 
+							radioControlData =
 							{
 								radioEnable = true,
 								frequencyInteger = 105,
@@ -6363,10 +6366,10 @@ end
 									TA = false,
 									REG = "don't mention min,max length"
 								},
-								signalChangeThreshold = 10								
+								signalChangeThreshold = 10
 							},
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -6376,13 +6379,13 @@ end
 								level = 0
 							}
 						}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.12
-			
-		-----------------------------------------------------------------------------------------	
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.13
 			--Description: SetInteriorVehicleData with signalChangeThreshold parameter out of bounds
@@ -6391,7 +6394,7 @@ end
 					{
 						moduleData =
 						{
-							radioControlData = 
+							radioControlData =
 							{
 								radioEnable = true,
 								frequencyInteger = 105,
@@ -6415,7 +6418,7 @@ end
 								signalChangeThreshold = -1
 							},
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -6425,12 +6428,12 @@ end
 								level = 0
 							}
 						}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.13
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.14
@@ -6441,7 +6444,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -6463,13 +6466,13 @@ end
 								temperatureUnit = "CELSIUS"
 							}
 						}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.14
-			
-		-----------------------------------------------------------------------------------------		
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.15
 			--Description: SetInteriorVehicleData with currentTemp parameter out of bounds
@@ -6479,7 +6482,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -6501,13 +6504,13 @@ end
 								temperatureUnit = "CELSIUS"
 							}
 						}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.15
-			
-		-----------------------------------------------------------------------------------------		
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.16
 			--Description: SetInteriorVehicleData with desiredTemp parameter out of bounds
@@ -6517,7 +6520,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -6539,14 +6542,14 @@ end
 								temperatureUnit = "CELSIUS"
 							}
 						}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.16
-			
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.2.17
 			--Description: SetInteriorVehicleData with all parameters out of bounds
 				function Test:SetInteriorVehicleData_AllParamsOutUpperBound()
@@ -6555,7 +6558,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 101,
 								row = 101,
@@ -6577,13 +6580,13 @@ end
 								temperatureUnit = "CELSIUS"
 							}
 						}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.17
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.18
 			--Description: SetInteriorVehicleData with Colspan parameter out of bounds
@@ -6592,7 +6595,7 @@ end
 					{
 						moduleData =
 						{
-							radioControlData = 
+							radioControlData =
 							{
 								radioEnable = true,
 								frequencyInteger = 105,
@@ -6613,10 +6616,10 @@ end
 									TA = false,
 									REG = "don't mention min,max length"
 								},
-								signalChangeThreshold = 10								
+								signalChangeThreshold = 10
 							},
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 101,
 								row = 0,
@@ -6626,13 +6629,13 @@ end
 								level = 0
 							}
 						}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.18
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.19
 			--Description: SetInteriorVehicleData with row parameter out of bounds
@@ -6641,7 +6644,7 @@ end
 					{
 						moduleData =
 						{
-							radioControlData = 
+							radioControlData =
 							{
 								radioEnable = true,
 								frequencyInteger = 105,
@@ -6662,10 +6665,10 @@ end
 									TA = false,
 									REG = "don't mention min,max length"
 								},
-								signalChangeThreshold = 10								
+								signalChangeThreshold = 10
 							},
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 101,
@@ -6675,13 +6678,13 @@ end
 								level = 0
 							}
 						}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.19
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.20
 			--Description: SetInteriorVehicleData with rowspan parameter out of bounds
@@ -6690,7 +6693,7 @@ end
 					{
 						moduleData =
 						{
-							radioControlData = 
+							radioControlData =
 							{
 								radioEnable = true,
 								frequencyInteger = 105,
@@ -6711,10 +6714,10 @@ end
 									TA = false,
 									REG = "don't mention min,max length"
 								},
-								signalChangeThreshold = 10								
+								signalChangeThreshold = 10
 							},
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -6724,13 +6727,13 @@ end
 								level = 0
 							}
 						}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.20
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.21
 			--Description: SetInteriorVehicleData with col parameter out of bounds
@@ -6739,7 +6742,7 @@ end
 					{
 						moduleData =
 						{
-							radioControlData = 
+							radioControlData =
 							{
 								radioEnable = true,
 								frequencyInteger = 105,
@@ -6760,10 +6763,10 @@ end
 									TA = false,
 									REG = "don't mention min,max length"
 								},
-								signalChangeThreshold = 10								
+								signalChangeThreshold = 10
 							},
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -6773,13 +6776,13 @@ end
 								level = 0
 							}
 						}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.21
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.22
 			--Description: SetInteriorVehicleData with levelspan parameter out of bounds
@@ -6788,7 +6791,7 @@ end
 					{
 						moduleData =
 						{
-							radioControlData = 
+							radioControlData =
 							{
 								radioEnable = true,
 								frequencyInteger = 105,
@@ -6809,10 +6812,10 @@ end
 									TA = false,
 									REG = "don't mention min,max length"
 								},
-								signalChangeThreshold = 10								
+								signalChangeThreshold = 10
 							},
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -6822,14 +6825,14 @@ end
 								level = 0
 							}
 						}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.22
-			
-		-----------------------------------------------------------------------------------------			
-			
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.2.23
 			--Description: SetInteriorVehicleData with level parameter out of bounds
 				function Test:SetInteriorVehicleData_levelOutUpperBound()
@@ -6837,7 +6840,7 @@ end
 					{
 						moduleData =
 						{
-							radioControlData = 
+							radioControlData =
 							{
 								radioEnable = true,
 								frequencyInteger = 105,
@@ -6858,10 +6861,10 @@ end
 									TA = false,
 									REG = "don't mention min,max length"
 								},
-								signalChangeThreshold = 10								
+								signalChangeThreshold = 10
 							},
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -6871,13 +6874,13 @@ end
 								level = 101
 							}
 						}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.23
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.24
 			--Description: SetInteriorVehicleData with frequencyInteger parameter out of bounds
@@ -6886,7 +6889,7 @@ end
 					{
 						moduleData =
 						{
-							radioControlData = 
+							radioControlData =
 							{
 								radioEnable = true,
 								frequencyInteger = 1711,
@@ -6907,10 +6910,10 @@ end
 									TA = false,
 									REG = "don't mention min,max length"
 								},
-								signalChangeThreshold = 10								
+								signalChangeThreshold = 10
 							},
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -6920,14 +6923,14 @@ end
 								level = 0
 							}
 						}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.24
-			
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.2.25
 			--Description: SetInteriorVehicleData with frequencyFraction parameter out of bounds
 				function Test:SetInteriorVehicleData_FrequencyFractionOutUpperBound()
@@ -6935,7 +6938,7 @@ end
 					{
 						moduleData =
 						{
-							radioControlData = 
+							radioControlData =
 							{
 								radioEnable = true,
 								frequencyInteger = 105,
@@ -6956,10 +6959,10 @@ end
 									TA = false,
 									REG = "don't mention min,max length"
 								},
-								signalChangeThreshold = 10								
+								signalChangeThreshold = 10
 							},
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -6969,14 +6972,14 @@ end
 								level = 0
 							}
 						}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.25
-			
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.2.26
 			--Description: SetInteriorVehicleData with hdChannel parameter out of bounds
 				function Test:SetInteriorVehicleData_HdChannelOutUpperBound()
@@ -6984,7 +6987,7 @@ end
 					{
 						moduleData =
 						{
-							radioControlData = 
+							radioControlData =
 							{
 								radioEnable = true,
 								frequencyInteger = 105,
@@ -7005,10 +7008,10 @@ end
 									TA = false,
 									REG = "don't mention min,max length"
 								},
-								signalChangeThreshold = 10								
+								signalChangeThreshold = 10
 							},
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -7018,13 +7021,13 @@ end
 								level = 0
 							}
 						}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.26
-			
-		-----------------------------------------------------------------------------------------		
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.27
 			--Description: SetInteriorVehicleData with availableHDs parameter out of bounds
@@ -7033,7 +7036,7 @@ end
 					{
 						moduleData =
 						{
-							radioControlData = 
+							radioControlData =
 							{
 								radioEnable = true,
 								frequencyInteger = 105,
@@ -7054,10 +7057,10 @@ end
 									TA = false,
 									REG = "don't mention min,max length"
 								},
-								signalChangeThreshold = 10								
+								signalChangeThreshold = 10
 							},
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -7067,13 +7070,13 @@ end
 								level = 0
 							}
 						}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.27
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.28
 			--Description: SetInteriorVehicleData with signalStrength parameter out of bounds
@@ -7082,7 +7085,7 @@ end
 					{
 						moduleData =
 						{
-							radioControlData = 
+							radioControlData =
 							{
 								radioEnable = true,
 								frequencyInteger = 105,
@@ -7103,10 +7106,10 @@ end
 									TA = false,
 									REG = "don't mention min,max length"
 								},
-								signalChangeThreshold = 10								
+								signalChangeThreshold = 10
 							},
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -7116,13 +7119,13 @@ end
 								level = 0
 							}
 						}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.28
-			
-		-----------------------------------------------------------------------------------------	
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.29
 			--Description: SetInteriorVehicleData with signalChangeThreshold parameter out of bounds
@@ -7131,7 +7134,7 @@ end
 					{
 						moduleData =
 						{
-							radioControlData = 
+							radioControlData =
 							{
 								radioEnable = true,
 								frequencyInteger = 105,
@@ -7152,10 +7155,10 @@ end
 									TA = false,
 									REG = "don't mention min,max length"
 								},
-								signalChangeThreshold = 101								
+								signalChangeThreshold = 101
 							},
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -7165,12 +7168,12 @@ end
 								level = 0
 							}
 						}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.29
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.30
@@ -7181,7 +7184,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -7203,13 +7206,13 @@ end
 								temperatureUnit = "CELSIUS"
 							}
 						}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.30
-			
-		-----------------------------------------------------------------------------------------		
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.31
 			--Description: SetInteriorVehicleData with currentTemp parameter out of bounds
@@ -7219,7 +7222,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -7241,13 +7244,13 @@ end
 								temperatureUnit = "CELSIUS"
 							}
 						}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.31
-			
-		-----------------------------------------------------------------------------------------		
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.32
 			--Description: SetInteriorVehicleData with desiredTemp parameter out of bounds
@@ -7257,7 +7260,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -7279,13 +7282,13 @@ end
 								temperatureUnit = "CELSIUS"
 							}
 						}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.32
-			
-		-----------------------------------------------------------------------------------------		
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.33
 			--Description: SetInteriorVehicleData with CT parameter out of bounds
@@ -7294,7 +7297,7 @@ end
 					{
 						moduleData =
 						{
-							radioControlData = 
+							radioControlData =
 							{
 								radioEnable = true,
 								frequencyInteger = 105,
@@ -7315,10 +7318,10 @@ end
 									TA = false,
 									REG = "don't mention min,max length"
 								},
-								signalChangeThreshold = 10								
+								signalChangeThreshold = 10
 							},
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								clospan = 1,
 								row = 1,
@@ -7328,13 +7331,13 @@ end
 								level = 1
 							}
 						}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.33
-			
-		-----------------------------------------------------------------------------------------		
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.34
 			--Description: SetInteriorVehicleData with PTY parameter out of bounds
@@ -7343,7 +7346,7 @@ end
 					{
 						moduleData =
 						{
-							radioControlData = 
+							radioControlData =
 							{
 								radioEnable = true,
 								frequencyInteger = 105,
@@ -7364,10 +7367,10 @@ end
 									TA = false,
 									REG = "don't mention min,max length"
 								},
-								signalChangeThreshold = 10								
+								signalChangeThreshold = 10
 							},
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								clospan = 1,
 								row = 1,
@@ -7377,13 +7380,13 @@ end
 								level = 1
 							}
 						}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
-			--End Test case CommonRequestCheck.2.34		
+			--End Test case CommonRequestCheck.2.34
 
-		-----------------------------------------------------------------------------------------		
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.35
 			--Description: SetInteriorVehicleData with PS parameter out of bounds
@@ -7392,7 +7395,7 @@ end
 					{
 						moduleData =
 						{
-							radioControlData = 
+							radioControlData =
 							{
 								radioEnable = true,
 								frequencyInteger = 105,
@@ -7413,10 +7416,10 @@ end
 									TA = false,
 									REG = "don't mention min,max length"
 								},
-								signalChangeThreshold = 10								
+								signalChangeThreshold = 10
 							},
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								clospan = 1,
 								row = 1,
@@ -7426,13 +7429,13 @@ end
 								level = 1
 							}
 						}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.35
 
-		-----------------------------------------------------------------------------------------		
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.36
 			--Description: SetInteriorVehicleData with PI parameter out of bounds
@@ -7441,7 +7444,7 @@ end
 					{
 						moduleData =
 						{
-							radioControlData = 
+							radioControlData =
 							{
 								radioEnable = true,
 								frequencyInteger = 105,
@@ -7462,10 +7465,10 @@ end
 									TA = false,
 									REG = "don't mention min,max length"
 								},
-								signalChangeThreshold = 10								
+								signalChangeThreshold = 10
 							},
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								clospan = 1,
 								row = 1,
@@ -7475,13 +7478,13 @@ end
 								level = 1
 							}
 						}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.36
 
-		-----------------------------------------------------------------------------------------		
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.37
 			--Description: SetInteriorVehicleData with RT parameter out of bounds
@@ -7490,7 +7493,7 @@ end
 					{
 									moduleData =
 									{
-										radioControlData = 
+										radioControlData =
 										{
 											radioEnable = true,
 											frequencyInteger = 105,
@@ -7511,10 +7514,10 @@ end
 												TA = false,
 												REG = "don't mention min,max length"
 											},
-											signalChangeThreshold = 10								
+											signalChangeThreshold = 10
 										},
 										moduleType = "RADIO",
-										moduleZone = 
+										moduleZone =
 										{
 											colspan = 2,
 											row = 0,
@@ -7524,13 +7527,13 @@ end
 											level = 0
 										}
 									}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.37
 
-		-----------------------------------------------------------------------------------------		
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.2.38
 			--Description: SetInteriorVehicleData with CT parameter out of bounds
@@ -7539,7 +7542,7 @@ end
 					{
 												moduleData =
 									{
-										radioControlData = 
+										radioControlData =
 										{
 											radioEnable = true,
 											frequencyInteger = 105,
@@ -7560,10 +7563,10 @@ end
 												TA = false,
 												REG = "don't mention min,max length"
 											},
-											signalChangeThreshold = 10								
+											signalChangeThreshold = 10
 										},
 										moduleType = "RADIO",
-										moduleZone = 
+										moduleZone =
 										{
 											colspan = 2,
 											row = 0,
@@ -7573,40 +7576,40 @@ end
 											level = 0
 										}
 									}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.2.38
-			
-	--End Test case CommonRequestCheck.2	
-	
-		-----------------------------------------------------------------------------------------	
-	
+
+	--End Test case CommonRequestCheck.2
+
+		-----------------------------------------------------------------------------------------
+
 	--Begin Test case CommonRequestCheck.3
 	--Description: 	--invalid json
 					--[REVSDL-932]: 4. Wrong json
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-932
 				--REVSDL-939
 				--https://adc.luxoft.com/jira/secure/attachment/115813/115813_Req_1_4_REVSDL-932.png
 
-		--Verification criteria: 
+		--Verification criteria:
 				--In case app sends RPC in wrong JSON, RSDL must respond with "resultCode: INVALID_DATA, success: false" to this mobile app
-	
+
 			--Begin Test case CommonRequestCheck.3.1
 			--Description: Request with invalid JSON syntax (INVALID_DATA)
 				function Test:SetInteriorVehicleData_InvalidJson()
 				  self.mobileSession.correlationId = self.mobileSession.correlationId + 1
 
-				  local msg = 
+				  local msg =
 				  {
 					serviceType      = 7,
 					frameInfo        = 0,
 					rpcType          = 0,
 					rpcFunctionId    = 100018,
-					rpcCorrelationId = self.mobileSession.correlationId,			
+					rpcCorrelationId = self.mobileSession.correlationId,
 					payload          = '{"moduleData":{"radioControlData":{"radioEnable":true,"frequencyInteger":105,"frequencyFraction":3,"band":"AM","hdChannel":1,"state":"ACQUIRED","availableHDs":1,"signalStrength":50,"rdsData":{"PS":"12345678","RT":"Radio text minlength = 0, maxlength = 64","CT":"2015-09-29T18:46:19-07009","PI":"PIdent","PTY":0,"TP":true,"TA":false,"REG":"donot mention min,max length"},"signalChangeThreshold":10},"moduleType":"RADIO","moduleZone":{"colspan":2,"row":0,"rowspan":2,"col":0,"levelspan":1,"level"0}}}'
 				  }
 				  self.mobileSession:Send(msg)
@@ -7615,39 +7618,39 @@ end
 			--End Test case CommonRequestCheck.3.1
 
 	--End Test case CommonRequestCheck.3
-	
-		-----------------------------------------------------------------------------------------	
-	
+
+		-----------------------------------------------------------------------------------------
+
 	--Begin Test case CommonRequestCheck.4
 	--Description: 	--invalid json
 					--[REVSDL-932]: 5. String with invalid characters
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-932
 				--REVSDL-940
 				--https://adc.luxoft.com/jira/secure/attachment/115818/115818_Req_1_5_of_REVSDL-932.png
 
-		--Verification criteria: 
+		--Verification criteria:
 				--In case app sends RPC with invalid characters in param of string type, RSDL must respond with "resultCode: INVALID_DATA, success: false" to this mobile app
-	
+
 		--SKIPPED because "Note: currently none of the listed RPCs has a string param." cloned to REVSDL-1005 [REVSDL-932]: 6. Parameter of wrong type
 
 	--End Test case CommonRequestCheck.4
-	
+
 		-----------------------------------------------------------------------------------------
 
 	--Begin Test case CommonRequestCheck.5
 	--Description: 	--param of wrong type
 					--[REVSDL-932]: 6. Parameter of wrong type
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-932
 				--REVSDL-941
-				--https://adc.luxoft.com/jira/secure/attachment/115819/115819_Req_1_6_of_REVSDL-932.png			
+				--https://adc.luxoft.com/jira/secure/attachment/115819/115819_Req_1_6_of_REVSDL-932.png
 
-		--Verification criteria: 
+		--Verification criteria:
 				--In case app sends RPC with param of wrong type, RSDL must respond with "resultCode: INVALID_DATA, success: false" to this mobile app
-	
+
 			--Begin Test case CommonRequestCheck.5.1
 			--Description: SetInteriorVehicleData with all parameters of wrong type
 				function Test:SetInteriorVehicleData_AllParamsWrongType()
@@ -7655,7 +7658,7 @@ end
 					{
 									moduleData =
 									{
-										radioControlData = 
+										radioControlData =
 										{
 											radioEnable = "true",
 											frequencyInteger = "105",
@@ -7679,7 +7682,7 @@ end
 											signalChangeThreshold = "10"
 										},
 										moduleType = true,
-										moduleZone = 
+										moduleZone =
 										{
 											colspan = "2",
 											row = "0",
@@ -7688,14 +7691,14 @@ end
 											levelspan = "1",
 											level = "0"
 										}
-									}				
-					})		
-					
+									}
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.1
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.2
 			--Description: SetInteriorVehicleData with radioEnable parameter of wrong type
@@ -7704,7 +7707,7 @@ end
 					{
 									moduleData =
 									{
-										radioControlData = 
+										radioControlData =
 										{
 											radioEnable = 123,
 											frequencyInteger = 105,
@@ -7725,10 +7728,10 @@ end
 												TA = false,
 												REG = "don't mention min,max length"
 											},
-											signalChangeThreshold = 10								
+											signalChangeThreshold = 10
 										},
 										moduleType = "RADIO",
-										moduleZone = 
+										moduleZone =
 										{
 											colspan = 2,
 											row = 0,
@@ -7738,13 +7741,13 @@ end
 											level = 0
 										}
 									}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.2
-			
-		-----------------------------------------------------------------------------------------			
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.3
 			--Description: SetInteriorVehicleData with frequencyInteger parameter of wrong type
@@ -7753,7 +7756,7 @@ end
 					{
 									moduleData =
 									{
-										radioControlData = 
+										radioControlData =
 										{
 											radioEnable = true,
 											frequencyInteger = "105",
@@ -7774,10 +7777,10 @@ end
 												TA = false,
 												REG = "don't mention min,max length"
 											},
-											signalChangeThreshold = 10								
+											signalChangeThreshold = 10
 										},
 										moduleType = "RADIO",
-										moduleZone = 
+										moduleZone =
 										{
 											colspan = 2,
 											row = 0,
@@ -7787,13 +7790,13 @@ end
 											level = 0
 										}
 									}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.3
-			
-		-----------------------------------------------------------------------------------------		
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.4
 			--Description: SetInteriorVehicleData with frequencyFraction parameter of wrong type
@@ -7802,7 +7805,7 @@ end
 					{
 									moduleData =
 									{
-										radioControlData = 
+										radioControlData =
 										{
 											radioEnable = true,
 											frequencyInteger = 105,
@@ -7823,10 +7826,10 @@ end
 												TA = false,
 												REG = "don't mention min,max length"
 											},
-											signalChangeThreshold = 10								
+											signalChangeThreshold = 10
 										},
 										moduleType = "RADIO",
-										moduleZone = 
+										moduleZone =
 										{
 											colspan = 2,
 											row = 0,
@@ -7836,14 +7839,14 @@ end
 											level = 0
 										}
 									}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.4
-			
-		-----------------------------------------------------------------------------------------			
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.5.5
 			--Description: SetInteriorVehicleData with band parameter of wrong type
 				function Test:SetInteriorVehicleData_BandWrongType()
@@ -7851,7 +7854,7 @@ end
 					{
 									moduleData =
 									{
-										radioControlData = 
+										radioControlData =
 										{
 											radioEnable = true,
 											frequencyInteger = 105,
@@ -7872,10 +7875,10 @@ end
 												TA = false,
 												REG = "don't mention min,max length"
 											},
-											signalChangeThreshold = 10								
+											signalChangeThreshold = 10
 										},
 										moduleType = "RADIO",
-										moduleZone = 
+										moduleZone =
 										{
 											colspan = 2,
 											row = 0,
@@ -7885,13 +7888,13 @@ end
 											level = 0
 										}
 									}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.5
-			
-		-----------------------------------------------------------------------------------------		
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.6
 			--Description: SetInteriorVehicleData with hdChannel parameter of wrong type
@@ -7900,7 +7903,7 @@ end
 					{
 									moduleData =
 									{
-										radioControlData = 
+										radioControlData =
 										{
 											radioEnable = true,
 											frequencyInteger = 105,
@@ -7921,10 +7924,10 @@ end
 												TA = false,
 												REG = "don't mention min,max length"
 											},
-											signalChangeThreshold = 10								
+											signalChangeThreshold = 10
 										},
 										moduleType = "RADIO",
-										moduleZone = 
+										moduleZone =
 										{
 											colspan = 2,
 											row = 0,
@@ -7934,12 +7937,12 @@ end
 											level = 0
 										}
 									}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.6
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.7
@@ -7949,7 +7952,7 @@ end
 					{
 									moduleData =
 									{
-										radioControlData = 
+										radioControlData =
 										{
 											radioEnable = true,
 											frequencyInteger = 105,
@@ -7970,10 +7973,10 @@ end
 												TA = false,
 												REG = "don't mention min,max length"
 											},
-											signalChangeThreshold = 10								
+											signalChangeThreshold = 10
 										},
 										moduleType = "RADIO",
-										moduleZone = 
+										moduleZone =
 										{
 											colspan = 2,
 											row = 0,
@@ -7983,14 +7986,14 @@ end
 											level = 0
 										}
 									}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.7
-			
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.5.8
 			--Description: SetInteriorVehicleData with availableHDs parameter of wrong type
 				function Test:SetInteriorVehicleData_AvailableHDsWrongType()
@@ -7998,7 +8001,7 @@ end
 					{
 									moduleData =
 									{
-										radioControlData = 
+										radioControlData =
 										{
 											radioEnable = true,
 											frequencyInteger = 105,
@@ -8019,10 +8022,10 @@ end
 												TA = false,
 												REG = "don't mention min,max length"
 											},
-											signalChangeThreshold = 10								
+											signalChangeThreshold = 10
 										},
 										moduleType = "RADIO",
-										moduleZone = 
+										moduleZone =
 										{
 											colspan = 2,
 											row = 0,
@@ -8032,12 +8035,12 @@ end
 											level = 0
 										}
 									}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.8
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.9
@@ -8047,7 +8050,7 @@ end
 					{
 									moduleData =
 									{
-										radioControlData = 
+										radioControlData =
 										{
 											radioEnable = true,
 											frequencyInteger = 105,
@@ -8068,10 +8071,10 @@ end
 												TA = false,
 												REG = "don't mention min,max length"
 											},
-											signalChangeThreshold = 10								
+											signalChangeThreshold = 10
 										},
 										moduleType = "RADIO",
-										moduleZone = 
+										moduleZone =
 										{
 											colspan = 2,
 											row = 0,
@@ -8081,12 +8084,12 @@ end
 											level = 0
 										}
 									}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.9
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.10
@@ -8096,7 +8099,7 @@ end
 					{
 									moduleData =
 									{
-										radioControlData = 
+										radioControlData =
 										{
 											radioEnable = true,
 											frequencyInteger = 105,
@@ -8117,10 +8120,10 @@ end
 												TA = false,
 												REG = "don't mention min,max length"
 											},
-											signalChangeThreshold = 10								
+											signalChangeThreshold = 10
 										},
 										moduleType = "RADIO",
-										moduleZone = 
+										moduleZone =
 										{
 											colspan = 2,
 											row = 0,
@@ -8130,12 +8133,12 @@ end
 											level = 0
 										}
 									}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.10
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.11
@@ -8145,7 +8148,7 @@ end
 					{
 									moduleData =
 									{
-										radioControlData = 
+										radioControlData =
 										{
 											radioEnable = true,
 											frequencyInteger = 105,
@@ -8166,10 +8169,10 @@ end
 												TA = false,
 												REG = "don't mention min,max length"
 											},
-											signalChangeThreshold = 10								
+											signalChangeThreshold = 10
 										},
 										moduleType = "RADIO",
-										moduleZone = 
+										moduleZone =
 										{
 											colspan = 2,
 											row = 0,
@@ -8179,12 +8182,12 @@ end
 											level = 0
 										}
 									}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.11
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.12
@@ -8194,7 +8197,7 @@ end
 					{
 									moduleData =
 									{
-										radioControlData = 
+										radioControlData =
 										{
 											radioEnable = true,
 											frequencyInteger = 105,
@@ -8215,10 +8218,10 @@ end
 												TA = false,
 												REG = "don't mention min,max length"
 											},
-											signalChangeThreshold = 10								
+											signalChangeThreshold = 10
 										},
 										moduleType = "RADIO",
-										moduleZone = 
+										moduleZone =
 										{
 											colspan = 2,
 											row = 0,
@@ -8228,12 +8231,12 @@ end
 											level = 0
 										}
 									}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.12
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.13
@@ -8243,7 +8246,7 @@ end
 					{
 									moduleData =
 									{
-										radioControlData = 
+										radioControlData =
 										{
 											radioEnable = true,
 											frequencyInteger = 105,
@@ -8264,10 +8267,10 @@ end
 												TA = false,
 												REG = "don't mention min,max length"
 											},
-											signalChangeThreshold = 10								
+											signalChangeThreshold = 10
 										},
 										moduleType = "RADIO",
-										moduleZone = 
+										moduleZone =
 										{
 											colspan = 2,
 											row = 0,
@@ -8277,14 +8280,14 @@ end
 											level = 0
 										}
 									}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.13
-			
+
 		-----------------------------------------------------------------------------------------
-		
+
 			--Begin Test case CommonRequestCheck.5.14
 			--Description: SetInteriorVehicleData with PTY parameter of wrong type
 				function Test:SetInteriorVehicleData_PTYWrongType()
@@ -8292,7 +8295,7 @@ end
 					{
 									moduleData =
 									{
-										radioControlData = 
+										radioControlData =
 										{
 											radioEnable = true,
 											frequencyInteger = 105,
@@ -8313,10 +8316,10 @@ end
 												TA = false,
 												REG = "don't mention min,max length"
 											},
-											signalChangeThreshold = 10								
+											signalChangeThreshold = 10
 										},
 										moduleType = "RADIO",
-										moduleZone = 
+										moduleZone =
 										{
 											colspan = 2,
 											row = 0,
@@ -8326,14 +8329,14 @@ end
 											level = 0
 										}
 									}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.14
-			
-		-----------------------------------------------------------------------------------------		
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.5.15
 			--Description: SetInteriorVehicleData with TP parameter of wrong type
 				function Test:SetInteriorVehicleData_TPWrongType()
@@ -8341,7 +8344,7 @@ end
 					{
 									moduleData =
 									{
-										radioControlData = 
+										radioControlData =
 										{
 											radioEnable = true,
 											frequencyInteger = 105,
@@ -8362,10 +8365,10 @@ end
 												TA = false,
 												REG = "don't mention min,max length"
 											},
-											signalChangeThreshold = 10								
+											signalChangeThreshold = 10
 										},
 										moduleType = "RADIO",
-										moduleZone = 
+										moduleZone =
 										{
 											colspan = 2,
 											row = 0,
@@ -8375,14 +8378,14 @@ end
 											level = 0
 										}
 									}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.15
-			
-		-----------------------------------------------------------------------------------------			
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.5.16
 			--Description: SetInteriorVehicleData with TA parameter of wrong type
 				function Test:SetInteriorVehicleData_TAWrongType()
@@ -8390,7 +8393,7 @@ end
 					{
 									moduleData =
 									{
-										radioControlData = 
+										radioControlData =
 										{
 											radioEnable = true,
 											frequencyInteger = 105,
@@ -8411,10 +8414,10 @@ end
 												TA = "false",
 												REG = "don't mention min,max length"
 											},
-											signalChangeThreshold = 10								
+											signalChangeThreshold = 10
 										},
 										moduleType = "RADIO",
-										moduleZone = 
+										moduleZone =
 										{
 											colspan = 2,
 											row = 0,
@@ -8424,12 +8427,12 @@ end
 											level = 0
 										}
 									}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.16
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.17
@@ -8439,7 +8442,7 @@ end
 					{
 									moduleData =
 									{
-										radioControlData = 
+										radioControlData =
 										{
 											radioEnable = true,
 											frequencyInteger = 105,
@@ -8460,10 +8463,10 @@ end
 												TA = false,
 												REG = 123
 											},
-											signalChangeThreshold = 10								
+											signalChangeThreshold = 10
 										},
 										moduleType = "RADIO",
-										moduleZone = 
+										moduleZone =
 										{
 											colspan = 2,
 											row = 0,
@@ -8473,14 +8476,14 @@ end
 											level = 0
 										}
 									}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.17
-			
-		-----------------------------------------------------------------------------------------		
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.5.18
 			--Description: SetInteriorVehicleData with signalChangeThreshold parameter of wrong type
 				function Test:SetInteriorVehicleData_SignalChangeThresholdWrongType()
@@ -8488,7 +8491,7 @@ end
 					{
 									moduleData =
 									{
-										radioControlData = 
+										radioControlData =
 										{
 											radioEnable = true,
 											frequencyInteger = 105,
@@ -8509,10 +8512,10 @@ end
 												TA = false,
 												REG = "don't mention min,max length"
 											},
-											signalChangeThreshold = "10"								
+											signalChangeThreshold = "10"
 										},
 										moduleType = "RADIO",
-										moduleZone = 
+										moduleZone =
 										{
 											colspan = 2,
 											row = 0,
@@ -8522,14 +8525,14 @@ end
 											level = 0
 										}
 									}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.18
-			
-		-----------------------------------------------------------------------------------------		
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.5.19
 			--Description: SetInteriorVehicleData with moduleType parameter of wrong type
 				function Test:SetInteriorVehicleData_ModuleTypeWrongType()
@@ -8537,7 +8540,7 @@ end
 					{
 									moduleData =
 									{
-										radioControlData = 
+										radioControlData =
 										{
 											radioEnable = true,
 											frequencyInteger = 105,
@@ -8558,10 +8561,10 @@ end
 												TA = false,
 												REG = "don't mention min,max length"
 											},
-											signalChangeThreshold = 10								
+											signalChangeThreshold = 10
 										},
 										moduleType = true,
-										moduleZone = 
+										moduleZone =
 										{
 											colspan = 2,
 											row = 0,
@@ -8571,14 +8574,14 @@ end
 											level = 0
 										}
 									}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.19
-			
-		-----------------------------------------------------------------------------------------		
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.5.20
 			--Description: SetInteriorVehicleData with clospan parameter of wrong type
 				function Test:SetInteriorVehicleData_ClospanWrongType()
@@ -8586,7 +8589,7 @@ end
 					{
 									moduleData =
 									{
-										radioControlData = 
+										radioControlData =
 										{
 											radioEnable = true,
 											frequencyInteger = 105,
@@ -8607,10 +8610,10 @@ end
 												TA = false,
 												REG = "don't mention min,max length"
 											},
-											signalChangeThreshold = 10								
+											signalChangeThreshold = 10
 										},
 										moduleType = "RADIO",
-										moduleZone = 
+										moduleZone =
 										{
 											colspan = "2",
 											row = 0,
@@ -8620,14 +8623,14 @@ end
 											level = 0
 										}
 									}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.20
-			
-		-----------------------------------------------------------------------------------------			
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.5.21
 			--Description: SetInteriorVehicleData with row parameter of wrong type
 				function Test:SetInteriorVehicleData_RowWrongType()
@@ -8635,7 +8638,7 @@ end
 					{
 									moduleData =
 									{
-										radioControlData = 
+										radioControlData =
 										{
 											radioEnable = true,
 											frequencyInteger = 105,
@@ -8656,10 +8659,10 @@ end
 												TA = false,
 												REG = "don't mention min,max length"
 											},
-											signalChangeThreshold = 10								
+											signalChangeThreshold = 10
 										},
 										moduleType = "RADIO",
-										moduleZone = 
+										moduleZone =
 										{
 											colspan = 2,
 											row = "0",
@@ -8669,14 +8672,14 @@ end
 											level = 0
 										}
 									}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.21
-			
-		-----------------------------------------------------------------------------------------		
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.5.22
 			--Description: SetInteriorVehicleData with rowspan parameter of wrong type
 				function Test:SetInteriorVehicleData_RowspanWrongType()
@@ -8684,7 +8687,7 @@ end
 					{
 									moduleData =
 									{
-										radioControlData = 
+										radioControlData =
 										{
 											radioEnable = true,
 											frequencyInteger = 105,
@@ -8705,10 +8708,10 @@ end
 												TA = false,
 												REG = "don't mention min,max length"
 											},
-											signalChangeThreshold = 10								
+											signalChangeThreshold = 10
 										},
 										moduleType = "RADIO",
-										moduleZone = 
+										moduleZone =
 										{
 											colspan = 2,
 											row = 0,
@@ -8718,14 +8721,14 @@ end
 											level = 0
 										}
 									}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.22
-			
-		-----------------------------------------------------------------------------------------			
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.5.23
 			--Description: SetInteriorVehicleData with col parameter of wrong type
 				function Test:SetInteriorVehicleData_ColWrongType()
@@ -8733,7 +8736,7 @@ end
 					{
 									moduleData =
 									{
-										radioControlData = 
+										radioControlData =
 										{
 											radioEnable = true,
 											frequencyInteger = 105,
@@ -8754,10 +8757,10 @@ end
 												TA = false,
 												REG = "don't mention min,max length"
 											},
-											signalChangeThreshold = 10								
+											signalChangeThreshold = 10
 										},
 										moduleType = "RADIO",
-										moduleZone = 
+										moduleZone =
 										{
 											colspan = 2,
 											row = 0,
@@ -8767,13 +8770,13 @@ end
 											level = 0
 										}
 									}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.23
-			
-		-----------------------------------------------------------------------------------------		
+
+		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.24
 			--Description: SetInteriorVehicleData with levelspan parameter of wrong type
@@ -8782,7 +8785,7 @@ end
 					{
 									moduleData =
 									{
-										radioControlData = 
+										radioControlData =
 										{
 											radioEnable = true,
 											frequencyInteger = 105,
@@ -8803,10 +8806,10 @@ end
 												TA = false,
 												REG = "don't mention min,max length"
 											},
-											signalChangeThreshold = 10								
+											signalChangeThreshold = 10
 										},
 										moduleType = "RADIO",
-										moduleZone = 
+										moduleZone =
 										{
 											colspan = 2,
 											row = 0,
@@ -8816,12 +8819,12 @@ end
 											level = 0
 										}
 									}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.24
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.25
@@ -8831,7 +8834,7 @@ end
 					{
 									moduleData =
 									{
-										radioControlData = 
+										radioControlData =
 										{
 											radioEnable = true,
 											frequencyInteger = 105,
@@ -8852,10 +8855,10 @@ end
 												TA = false,
 												REG = "don't mention min,max length"
 											},
-											signalChangeThreshold = 10								
+											signalChangeThreshold = 10
 										},
 										moduleType = "RADIO",
-										moduleZone = 
+										moduleZone =
 										{
 											colspan = 2,
 											row = 0,
@@ -8865,12 +8868,12 @@ end
 											level = "0"
 										}
 									}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.25
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.26
@@ -8881,7 +8884,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -8902,13 +8905,13 @@ end
 								autoModeEnable = true,
 								temperatureUnit = "CELSIUS"
 							}
-						}					
-						})		
-					
+						}
+						})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.26
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.27
@@ -8919,7 +8922,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -8940,13 +8943,13 @@ end
 								autoModeEnable = true,
 								temperatureUnit = "CELSIUS"
 							}
-						}					
-						})		
-					
+						}
+						})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.27
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.28
@@ -8957,7 +8960,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -8979,12 +8982,12 @@ end
 								temperatureUnit = "CELSIUS"
 							}
 						}
-						})		
-					
+						})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.28
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.29
@@ -8995,7 +8998,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -9017,12 +9020,12 @@ end
 								temperatureUnit = "CELSIUS"
 							}
 						}
-						})		
-					
+						})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.29
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.30
@@ -9033,7 +9036,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -9055,12 +9058,12 @@ end
 								temperatureUnit = "CELSIUS"
 							}
 						}
-						})		
-					
+						})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.30
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.31
@@ -9071,7 +9074,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -9093,14 +9096,14 @@ end
 								temperatureUnit = "CELSIUS"
 							}
 						}
-						})		
-					
+						})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.31
-			
-		-----------------------------------------------------------------------------------------		
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.5.32
 			--Description: SetInteriorVehicleData with desiredTemp parameter of wrong type
 				function Test:SetInteriorVehicleData_DesiredTempWrongType()
@@ -9109,7 +9112,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -9131,12 +9134,12 @@ end
 								temperatureUnit = "CELSIUS"
 							}
 						}
-						})		
-					
+						})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.32
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.5.33
@@ -9147,7 +9150,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -9169,14 +9172,14 @@ end
 								temperatureUnit = "CELSIUS"
 							}
 						}
-						})		
-					
+						})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.33
 
 		-----------------------------------------------------------------------------------------
-			
+
 			--Begin Test case CommonRequestCheck.5.34
 			--Description: SetInteriorVehicleData with TemperatureUnit parameter of wrong type
 				function Test:SetInteriorVehicleData_TemperatureUnitWrongType()
@@ -9185,7 +9188,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -9207,22 +9210,22 @@ end
 								temperatureUnit = 123
 							}
 						}
-						})		
-					
+						})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
-			--End Test case CommonRequestCheck.5.34		
+			--End Test case CommonRequestCheck.5.34
 
-		-----------------------------------------------------------------------------------------			
-			
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.5.35
 			--Description: SetInteriorVehicleData with moduleData parameter of wrong type
 				function Test:SetInteriorVehicleData_ModuleDataWrongType()
 					local cid = self.mobileSession:SendRPC("SetInteriorVehicleData",
 					{
 						moduleData = "abc"
-						})		
-					
+						})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.35
@@ -9237,7 +9240,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -9248,8 +9251,8 @@ end
 							},
 							climateControlData = "  a b c  "
 						}
-						})		
-					
+						})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.36
@@ -9265,7 +9268,7 @@ end
 						{
 							radioControlData = true,
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -9275,11 +9278,11 @@ end
 								level = 0
 							}
 						}
-						})		
-					
+						})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
-			--End Test case CommonRequestCheck.5.37		
+			--End Test case CommonRequestCheck.5.37
 
 		-----------------------------------------------------------------------------------------
 
@@ -9290,7 +9293,7 @@ end
 					{
 						moduleData =
 						{
-							radioControlData = 
+							radioControlData =
 							{
 								radioEnable = true,
 								frequencyInteger = 105,
@@ -9311,19 +9314,19 @@ end
 									TA = false,
 									REG = "don't mention min,max length"
 								},
-								signalChangeThreshold = 10								
+								signalChangeThreshold = 10
 							},
 							moduleType = "RADIO",
 							moduleZone = true
 						}
-						})		
-					
+						})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
 			--End Test case CommonRequestCheck.5.37
-			
-		-----------------------------------------------------------------------------------------			
-		
+
+		-----------------------------------------------------------------------------------------
+
 			--Begin Test case CommonRequestCheck.5.38
 			--Description: SetInteriorVehicleData with rdsData parameter of wrong type
 				function Test:SetInteriorVehicleData_RdsDataWrongType()
@@ -9331,7 +9334,7 @@ end
 					{
 									moduleData =
 									{
-										radioControlData = 
+										radioControlData =
 										{
 											radioEnable = true,
 											frequencyInteger = 105,
@@ -9342,10 +9345,10 @@ end
 											availableHDs = 1,
 											signalStrength = 50,
 											rdsData = true,
-											signalChangeThreshold = 10								
+											signalChangeThreshold = 10
 										},
 										moduleType = "RADIO",
-										moduleZone = 
+										moduleZone =
 										{
 											colspan = 2,
 											row = 0,
@@ -9355,28 +9358,28 @@ end
 											level = 0
 										}
 									}
-					})		
-					
+					})
+
 					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 				end
-			--End Test case CommonRequestCheck.5.38			
-			
-	--End Test case CommonRequestCheck.5	
-	
+			--End Test case CommonRequestCheck.5.38
+
+	--End Test case CommonRequestCheck.5
+
 		-----------------------------------------------------------------------------------------
 
 	--Begin Test case CommonRequestCheck.6
 	--Description: 	--RSDL cuts off the fake param (non-existent per Mobile_API) from app's RPC.
 					--[REVSDL-932]: 7. Fake params
 
-		--Requirement/Diagrams id in jira: 
+		--Requirement/Diagrams id in jira:
 				--REVSDL-932
 				--REVSDL-997
 				--https://adc.luxoft.com/jira/secure/attachment/116227/116227_Req_1_2_7_of_REVSDL-932.png
 
-		--Verification criteria: 
+		--Verification criteria:
 				--In case app sends RPC with fake param (non-existent per Mobile_API), RSDL must cut this param off from the RPC and then validate this RPC and process as assigned.
-	
+
 			--Begin Test case CommonRequestCheck.6.1
 			--Description: app sends RPC with fake param inside radioControlData
 				function Test:SetInteriorVehicleData_FakeParamsInsideRadioControlData()
@@ -9384,7 +9387,7 @@ end
 					{
 						moduleData =
 						{
-							radioControlData = 
+							radioControlData =
 							{
 								fake1 = true,
 								radioEnable = true,
@@ -9408,10 +9411,10 @@ end
 									REG = ""
 								},
 								fake3 = "123",
-								signalChangeThreshold = 10								
+								signalChangeThreshold = 10
 							},
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -9420,9 +9423,9 @@ end
 								levelspan = 1,
 								level = 0
 							}
-						}						
+						}
 					})
-					
+
 				--hmi side: expect RC.SetInteriorVehicleData request
 				EXPECT_HMICALL("RC.SetInteriorVehicleData")
 				:ValidIf (function(_,data)
@@ -9430,15 +9433,15 @@ end
 							print(" --SDL sends fake parameter to HMI ")
 							for key,value in pairs(data.params.moduleData.radioControlData) do print(key,value) end
 							return false
-						else 
+						else
 							return true
 						end
-					end)					
+					end)
 					:Timeout(3000)
-				
+
 				end
 			--End Test case CommonRequestCheck.6.1
-			
+
 		-----------------------------------------------------------------------------------------
 
 			--Begin Test case CommonRequestCheck.6.2
@@ -9449,7 +9452,7 @@ end
 					{
 						moduleData =
 						{
-							radioControlData = 
+							radioControlData =
 							{
 								radioEnable = true,
 								frequencyInteger = 105,
@@ -9473,10 +9476,10 @@ end
 									fake3 = 123,
 									REG = ""
 								},
-								signalChangeThreshold = 10								
+								signalChangeThreshold = 10
 							},
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -9485,9 +9488,9 @@ end
 								levelspan = 1,
 								level = 0
 							}
-						}						
+						}
 					})
-					
+
 				--hmi side: expect RC.SetInteriorVehicleData request
 				EXPECT_HMICALL("RC.SetInteriorVehicleData")
 				:ValidIf (function(_,data)
@@ -9495,12 +9498,12 @@ end
 							print(" --SDL sends fake parameter to HMI ")
 							for key,value in pairs(data.params.moduleData.radioControlData) do print(key,value) end
 							return false
-						else 
+						else
 							return true
 						end
-					end)					
+					end)
 					:Timeout(3000)
-					
+
 				end
 			--End Test case CommonRequestCheck.6.2
 
@@ -9513,7 +9516,7 @@ end
 					{
 						moduleData =
 						{
-							radioControlData = 
+							radioControlData =
 							{
 								radioEnable = true,
 								frequencyInteger = 105,
@@ -9534,10 +9537,10 @@ end
 									TA = false,
 									REG = ""
 								},
-								signalChangeThreshold = 10								
+								signalChangeThreshold = 10
 							},
 							moduleType = "RADIO",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								fake1 = "  fake parameters  ",
@@ -9549,9 +9552,9 @@ end
 								fake3 = 123,
 								level = 0
 							}
-						}						
+						}
 					})
-					
+
 				--hmi side: expect RC.SetInteriorVehicleData request
 				EXPECT_HMICALL("RC.SetInteriorVehicleData")
 				:ValidIf (function(_,data)
@@ -9559,12 +9562,12 @@ end
 							print(" --SDL sends fake parameter to HMI ")
 							for key,value in pairs(data.params.moduleData.moduleZone) do print(key,value) end
 							return false
-						else 
+						else
 							return true
 						end
-					end)					
+					end)
 					:Timeout(3000)
-					
+
 				end
 			--End Test case CommonRequestCheck.6.3
 
@@ -9578,7 +9581,7 @@ end
 						moduleData =
 						{
 							moduleType = "CLIMATE",
-							moduleZone = 
+							moduleZone =
 							{
 								colspan = 2,
 								row = 0,
@@ -9602,9 +9605,9 @@ end
 								fake3 = "  fake parameter  ",
 								temperatureUnit = "CELSIUS"
 							}
-						}						
+						}
 					})
-					
+
 				--hmi side: expect RC.SetInteriorVehicleData request
 				EXPECT_HMICALL("RC.SetInteriorVehicleData")
 				:ValidIf (function(_,data)
@@ -9612,19 +9615,19 @@ end
 							print(" --SDL sends fake parameter to HMI ")
 							for key,value in pairs(data.params.moduleData.climateControlData) do print(key,value) end
 							return false
-						else 
+						else
 							return true
 						end
-					end)					
-					:Timeout(3000)				
-				
+					end)
+					:Timeout(3000)
+
 				end
-			--End Test case CommonRequestCheck.6.4			
-			
-	--End Test case CommonRequestCheck.6	
+			--End Test case CommonRequestCheck.6.4
 
---=================================================END TEST CASES 4==========================================================--	
+	--End Test case CommonRequestCheck.6
 
-	
-	
-return Test	
+--=================================================END TEST CASES 4==========================================================--
+
+
+
+return Test
