@@ -188,4 +188,3 @@ local mobile_session = require('mobile_session')
 
         end
       --End Test case CommonRequestCheck.1.1.4
-return Test

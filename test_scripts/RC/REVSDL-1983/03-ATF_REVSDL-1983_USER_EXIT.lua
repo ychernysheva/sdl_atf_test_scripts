@@ -156,5 +156,3 @@ local module = require('testbase')
 
         end
       --End Test case CommonRequestCheck.3.1.5
-
-return Test

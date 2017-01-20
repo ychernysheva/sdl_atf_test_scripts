@@ -212,4 +212,3 @@ local arrayGroups_nonPrimaryRC = {
             end)
           end
       --End Test case CommonRequestCheck.3.1.2
-return Test
