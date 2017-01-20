@@ -185,22 +185,16 @@ end
 --! @parameters: NO
 --]]
 function testCasesForRAI.get_data_steeringWheelLocation()
-  local value = nil
   local path_to_file = config.pathToSDL .. 'hmi_capabilities.json'
   local file  = io.open(path_to_file, "r")
-  local json_data = file:read("*all") -- may be abbreviated to "*a";
+  local json_data = file:read("*all")
   
   file:close()
 
-  local json = require("modules/json")
-         
+  local json = require("modules/json")         
   local data = json.decode(json_data)
 
-  if( data.UI.hmiCapabilities.steeringWheelLocation ~= nil ) then
-    value = data.UI.hmiCapabilities.steeringWheelLocation
-  end
-
-  return value
+  return data.UI.hmiCapabilities.steeringWheelLocation
 end
 
 --[[@write_data_steeringWheelLocation: write value to steeringWheelLocation
@@ -211,18 +205,13 @@ end
 function testCasesForRAI.write_data_steeringWheelLocation(value)
   local path_to_file = config.pathToSDL .. 'hmi_capabilities.json'
   local file  = io.open(path_to_file, "r")
-  local json_data = file:read("*all") -- may be abbreviated to "*a";
-  
-  file:close()
+  local json_data = file:read("*all")
 
+  file:close()
   local json = require("modules/json")
          
   local data = json.decode(json_data)
-
-  if( data.UI.hmiCapabilities.steeringWheelLocation ~= nil ) then
-    data.UI.hmiCapabilities.steeringWheelLocation = value
-  end
-
+  data.UI.hmiCapabilities.steeringWheelLocation = value
   data = json.encode(data)
   
   file = io.open(path_to_file, "w")
