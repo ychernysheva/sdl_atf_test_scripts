@@ -27,7 +27,6 @@
 --
 -- Expected result:
 -- SDL sends PerformAudioPassThru (WARNINGS, success:true, info: <message>)to mobile app
-
 ---------------------------------------------------------------------------------------------
 
 --[[ General configuration parameters ]]
@@ -42,7 +41,6 @@ local testCasesForPolicyTable = require('user_modules/shared_testcases/testCases
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFiles()
-commonSteps:DeletePolicyTable()
 config.defaultProtocolVersion = 2
 
 testCasesForPolicyTable:precondition_updatePolicy_AllowFunctionInHmiLeves({"BACKGROUND", "FULL", "LIMITED"},"PerformAudioPassThru")
