@@ -77,7 +77,7 @@ function Test:TestStep_PerformAudioPassThru_AllParameters_Lower_SUCCESS()
       audioType = "PCM",
       muteAudio = true,
       audioPassThruIcon =
-      { value = "",
+      { value = "1",
         imageType = "STATIC"
       }
     })
@@ -110,7 +110,7 @@ function Test:TestStep_PerformAudioPassThru_AllParameters_Lower_SUCCESS()
       audioPassThruIcon = 
       { 
         imageType = "STATIC", 
-        value = ""
+        value = "1"
       }
     })
   :Do(function(_,data)
