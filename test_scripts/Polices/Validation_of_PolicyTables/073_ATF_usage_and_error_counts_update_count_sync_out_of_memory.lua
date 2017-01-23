@@ -24,6 +24,8 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 --[[ Required Shared libraries ]]
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require ('user_modules/shared_testcases/commonSteps')
+local commonTestCases = require ('user_modules/shared_testcases/commonTestCases')
+
 require('user_modules/AppTypes')
 
 --[[ Local Variables ]]
@@ -215,7 +217,7 @@ function Test:InitHMI_OnReady2()
 end
 function Test:HMIsendOnSystemError2()
   for _ = 1, 4 do
-    os.execute("sleep 2")
+    commonTestCases:DelayedExp(2000)
     self:onSystemError("SYNC_OUT_OF_MEMMORY")
   end
 end
