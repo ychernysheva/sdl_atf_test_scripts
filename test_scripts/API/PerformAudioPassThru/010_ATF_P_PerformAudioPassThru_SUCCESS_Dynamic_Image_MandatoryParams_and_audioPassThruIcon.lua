@@ -24,7 +24,6 @@
 --
 -- Expected result:
 -- SDL sends UI.PerformAudioPassThru (audioPassThruIcon (imageType = "DYNAMIC"), mandatory params) to HMI
--- SDL sends TTS.Speak to HMI
 ---------------------------------------------------------------------------------------------
 
 --[[ General configuration parameters ]]
