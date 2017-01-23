@@ -2,41 +2,45 @@
 -- Requirements summary:
 -- [PerformAudioPassThru] SDL must transfer request to HMI in case "audioPassThruIcon" param was omited in request from mobile app
 -- [HMI API] UI.PerformAudioPassThru request/response
+-- [HMI API] TTS.Speak request/response
 -- [Mobile API] PerformAudioPassThru request/response
 -- [HMI_API] [MOBILE_API] The "audioPassThruIcon" param at "ImageFieldName" struct
---
+-- 
 -- Description:
 -- In case mobile app sends PerformAudioPassThru_request to SDL 
 -- without <audioPassThruIcon> parameter
 -- and with another related to request valid params
 -- SDL must transfer UI.PerformAudioPassThru (other params)_request + Speak_request (depends on parameters provided by the app) to HMI
 -- 
---1. Used preconditions
---1.1. Request is sent without audioPassThruIcon, all other params used in PerformAudioPassThru_request are present and within bounds but 
---2. Performed steps
--- Send PerformAudioPassThru (without audioPassThruIcon, other params) from mobile to SDL and check:
---2.1 SDL sends UI.PerformAudioPassThru (without audioPassThruIcon, other params) to HMI
---2.2 SDL sends TTS.Speak to HMI
---2.3 HMI sends UI.PerformAudioPassThru (WARNINGS) to SDL
---2.4 HMI sends TTS.Speak (SUCCESS) to SDL
+-- 1. Used preconditions
+-- 1.1. PerformAudioPassThru RPC is allowed by policy
+-- 1.2. Request is sent without audioPassThruIcon, all other params used in PerformAudioPassThru_request are present and within bounds
+--
+-- 2. Performed steps
+-- Send PerformAudioPassThru (without audioPassThruIcon, all other params) from mobile to SDL and check:
+--
 -- Expected result:
--- SDL sends PerformAudioPassThru (WARNINGS, success:true) to mobile app
-
+-- SDL sends UI.PerformAudioPassThru (without audioPassThruIcon, other params) to HMI
+-- SDL sends TTS.Speak to HMI
 ---------------------------------------------------------------------------------------------
 
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 
 --[[ Required Shared libraries ]]
-local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
+local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
+local commonPostconditions = require('user_modules/shared_testcases/commonPreconditions')
 local testCasesForPerformAudioPassThru = require('user_modules/shared_testcases/testCasesForPerformAudioPassThru')
+local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
 local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFiles()
-commonSteps:DeletePolicyTable ()
+commonSteps:DeletePolicyTable()
 config.defaultProtocolVersion = 2
+
+testCasesForPolicyTable:precondition_updatePolicy_AllowFunctionInHmiLeves({"BACKGROUND", "FULL", "LIMITED"},"PerformAudioPassThru")
 
 --[[ General Settings for configuration ]]
 Test = require('connecttest')
@@ -53,8 +57,7 @@ function Test:Precondition_Check_audioPassThruIcon_Existence()
 end
 
 function Test:Precondition_ActivateApp()
-  testCasesForPerformAudioPassThru:ActivateAppDiffPolicyFlag
-  (self, config.application1.registerAppInterfaceParams.appName, config.deviceMAC)
+  testCasesForPerformAudioPassThru:ActivateAppDiffPolicyFlag (self, config.application1.registerAppInterfaceParams.appName, config.deviceMAC)
 end
 
 --[[ Test ]]
@@ -63,14 +66,7 @@ commonFunctions:newTestCasesGroup("Test")
 function Test:TestStep_ValidRequest_Without_audioPassThruIcon_all_other_params_present()
   local CorIdPerformAudioPassThruAppParVD= self.mobileSession:SendRPC("PerformAudioPassThru",
     {
-      initialPrompt =
-      {
-        {
-          text = "Makeyourchoice",
-          type = "TEXT",
-        },
-
-      },
+      initialPrompt = {{text = "Makeyourchoice",type = "TEXT"}},
       audioPassThruDisplayText1 = "DisplayText1",
       audioPassThruDisplayText2 = "DisplayText2",
       samplingRate = "16KHZ",
@@ -80,32 +76,25 @@ function Test:TestStep_ValidRequest_Without_audioPassThruIcon_all_other_params_p
       muteAudio = true
     })
 
-  -- hmi expects TTS.Speak request
   EXPECT_HMICALL("TTS.Speak",
     {
       speakType = "AUDIO_PASS_THRU",
-      ttsChunks = { { text = "Makeyourchoice", type = "TEXT" } },
-      appID = self.applications[applicationName]
+      ttsChunks = {{text = "Makeyourchoice", type = "TEXT"}},
+      appID = self.applications[config.application1.registerAppInterfaceParams.appName]
     })
   :Do(function(_,data)
-      -- send notification to start TTS.Speak
       self.hmiConnection:SendNotification("TTS.Started",{ })
 
-      -- HMI sends TTS.Speak SUCCESS
       local function ttsSpeakResponse()
         self.hmiConnection:SendResponse (data.id, data.method, "SUCCESS", {})
-
-        -- HMI sends TTS.Stop
         self.hmiConnection:SendNotification("TTS.Stopped")
       end
-
       RUN_AFTER(ttsSpeakResponse, 1000)
     end)
 
-  -- hmi expects UI.PerformAudioPassThru request
   EXPECT_HMICALL("UI.PerformAudioPassThru",
     {
-      appID = self.applications[applicationName],
+      appID = self.applications[config.application1.registerAppInterfaceParams.appName],
       audioPassThruDisplayTexts = {
         {fieldName = "audioPassThruDisplayText1", fieldText = "DisplayText1"},
         {fieldName = "audioPassThruDisplayText2", fieldText = "DisplayText2"},
@@ -115,40 +104,41 @@ function Test:TestStep_ValidRequest_Without_audioPassThruIcon_all_other_params_p
     })
   :Do(function(_,data)
   	if data.params.audioPassThruIcon ~= nil then 
-  		print (" \27[36m Unexpected parameter received \27[0m")
+  		print (" \27[36m Unexpected parameter audioPassThruIcon received \27[0m")
   		return false 
   	end
-      local function UIPerformAoudioResponce()
+      local function UIPerformAudioResponse()
         self.hmiConnection:SendResponse(data.id, "UI.PerformAudioPassThru", "WARNINGS", {})
       end
-
-      RUN_AFTER(UIPerformAoudioResponce, 1500)
+      RUN_AFTER(UIPerformAudioResponse, 1500)
   end)
 
   if
   self.appHMITypes["NAVIGATION"] == true or
   self.appHMITypes["COMMUNICATION"] == true or
   self.isMediaApplication == true then
-    --mobile side: expect OnHMIStatus notification
+
     EXPECT_NOTIFICATION("OnHMIStatus",
       {hmiLevel = "FULL", audioStreamingState = "ATTENUATED", systemContext = "MAIN"},
       {hmiLevel = "FULL", audioStreamingState = "AUDIBLE", systemContext = "MAIN"})
     :Times(2)
   else
-    EXPECT_NOTIFICATION("OnHMIStatus")
-    :Times(0)
+    EXPECT_NOTIFICATION("OnHMIStatus"):Times(0)
   end
 
-  self.mobileSession:ExpectResponse(CorIdPerformAudioPassThruAppParVD, { success = true, resultCode = "WARNINGS",
-    })
+  self.mobileSession:ExpectResponse(CorIdPerformAudioPassThruAppParVD, {success = true, resultCode = "WARNINGS"})
 
   commonTestCases:DelayedExp(1500)
 
 end
 
-
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
+
+function Test.Postcondition_Restore_preloaded_pt_File()
+  commonPostconditions:RestoreFile("sdl_preloaded_pt.json")
+end
+
 function Test.Postcondition_Stop_SDL()
   StopSDL()
 end
