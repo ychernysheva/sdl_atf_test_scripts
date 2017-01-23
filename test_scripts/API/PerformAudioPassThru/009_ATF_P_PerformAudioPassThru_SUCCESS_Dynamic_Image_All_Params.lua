@@ -39,7 +39,6 @@ local testCasesForPolicyTable = require('user_modules/shared_testcases/testCases
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFiles()
-commonSteps:DeletePolicyTable ()
 config.defaultProtocolVersion = 2
 
 testCasesForPolicyTable:precondition_updatePolicy_AllowFunctionInHmiLeves({"BACKGROUND", "FULL", "LIMITED"},"PerformAudioPassThru")
