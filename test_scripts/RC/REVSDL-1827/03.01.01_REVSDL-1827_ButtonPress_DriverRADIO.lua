@@ -1,0 +1,139 @@
+local commonSteps = require("user_modules/shared_testcases/commonSteps")
+commonSteps:DeleteLogsFileAndPolicyTable()
+
+revsdl = require("user_modules/revsdl")
+
+revsdl.AddUnknownFunctionIDs()
+revsdl.SubscribeToRcInterface()
+config.ValidateSchema = false
+config.application1.registerAppInterfaceParams.appHMIType = { "REMOTE_CONTROL" }
+
+Test = require('connecttest')
+require('cardinalities')
+local events = require('events')
+local mobile_session = require('mobile_session')
+local mobile  = require('mobile_connection')
+local tcp = require('tcp_connection')
+local file_connection  = require('file_connection')
+local config = require('config')
+local module = require('testbase')
+
+
+
+--======================================REVSDL-1827========================================--
+---------------------------------------------------------------------------------------------
+--------------REVSDL-1827: Policies: "equipment" permissions must be checked-----------------
+-------------------------- against location provided from HMI--------------------------------
+---------------------------------------------------------------------------------------------
+--=========================================================================================--
+
+
+
+--=================================================BEGIN TEST CASES 3==========================================================--
+	--Begin Test suit CommonRequestCheck.3 for Req.#3
+
+	--Description: 3. In case an RC application from <deviceID> device sends a valid rc-RPC with <app-provided interiorZone>, <moduleType> and <params> allowed by app's assigned policies
+							-- and RSDL has received RC.OnDeviceLocationChanged(<deviceID>, <HMI-provided interiorZone>) from HMI
+							-- and "equipment" section of policies database contains this RPC name with <params> in <moduleType> in "driver_allow" sub-section of <HMI-provided interiorZone> section
+							-- and driver's permission has not yet been obtained for this app&<interiorZone>&<moduleType>
+							-- RSDL must send the RC.GetInteriorVehicleDataConsent for getting driver's allowance to the vehicle (HMI).
+
+
+	--Begin Test case CommonRequestCheck.3.1
+	--Description: 	For ButtonPress
+
+		--Requirement/Diagrams id in jira:
+				--REVSDL-1827
+
+		--Verification criteria:
+				--RSDL must send the RC.GetInteriorVehicleDataConsent for getting driver's allowance to the vehicle (HMI)
+
+		-----------------------------------------------------------------------------------------
+		-------------------------FOR FRONT PASSENGER ZONE----------------------------------------
+
+			--Begin Precondition.1. HMI sends notification RC.OnDeviceLocationChanged(<deviceID>) to RSDL (zone:Front Passenger)
+			--Description: HMI sends notification RC.OnDeviceLocationChanged(<deviceID>) to RSDL
+
+				function Test:ChangedLocation_Front()
+					--hmi side: HMI sends notification RC.OnDeviceLocationChanged(<deviceID>) to RSDL
+					self.hmiConnection:SendNotification("RC.OnDeviceLocationChanged",
+						{device = {name = "127.0.0.1", id = 1, isSDLAllowed = true},
+							deviceLocation =
+								{
+									colspan = 2,
+									row = 0,
+									rowspan = 2,
+									col = 1,
+									levelspan = 1,
+									level = 0
+								}
+						})
+				end
+			--End Precondition.1
+
+		-----------------------------------------------------------------------------------------
+
+			--Begin Test case CommonRequestCheck.3.1.1
+			--Description: application sends ButtonPress as Driver zone and ModuleType = RADIO
+				function Test:ButtonPress_DriverRADIO_CASE3()
+					--mobile side: In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies
+					local cid = self.mobileSession:SendRPC("ButtonPress",
+					{
+						zone =
+						{
+							colspan = 2,
+							row = 0,
+							rowspan = 2,
+							col = 0,
+							levelspan = 1,
+							level = 0
+						},
+						moduleType = "RADIO",
+						buttonPressMode = "LONG",
+						buttonName = "VOLUME_UP"
+					})
+
+					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
+									appID = self.applications["Test Application"],
+									moduleType = "RADIO",
+									zone =
+									{
+										colspan = 2,
+										row = 0,
+										rowspan = 2,
+										col = 1,
+										levelspan = 1,
+										level = 0
+									}
+								})
+						:Do(function(_,data)
+							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
+							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
+
+							--hmi side: expect Buttons.ButtonPress request
+							EXPECT_HMICALL("Buttons.ButtonPress",
+											{
+												zone =
+												{
+													colspan = 2,
+													row = 0,
+													rowspan = 2,
+													col = 0,
+													levelspan = 1,
+													level = 0
+												},
+												moduleType = "RADIO",
+												buttonPressMode = "LONG",
+												buttonName = "VOLUME_UP"
+											})
+								:Do(function(_,data)
+									--hmi side: sending Buttons.ButtonPress response
+									self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+								end)
+					end)
+
+					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
+				end
+			--End Test case CommonRequestCheck.3.1.1
