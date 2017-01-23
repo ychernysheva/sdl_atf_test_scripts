@@ -2,6 +2,7 @@
 -- Requirements summary:
 -- [PerformAudioPassThru] SDL must transfer request to HMI in case "audioPassThruIcon" param was omited in request from mobile app
 -- [HMI API] UI.PerformAudioPassThru request/response
+-- [HMI API] TTS.Speak request/response
 -- [Mobile API] PerformAudioPassThru request/response
 -- [HMI_API] [MOBILE_API] The "audioPassThruIcon" param at "ImageFieldName" struct
 --
@@ -11,31 +12,33 @@
 -- and with another related to request valid params
 -- SDL must transfer UI.PerformAudioPassThru (other params)_request + Speak_request (depends on parameters provided by the app) to HMI
 -- 
---1. Used preconditions
---1.1. Request is sent without audioPassThruIcon and with all mandatory parameters within bounds (samplingRate, maxDuration, bitsPerSample, audioType)
---2. Performed steps
+-- 1. Used preconditions
+-- 1.1. PerformAudioPassThru RPC is allowed by policy
+-- 1.2. Request is sent without audioPassThruIcon and with all mandatory parameters within bounds (samplingRate, maxDuration, bitsPerSample, audioType)
+--
+-- 2. Performed steps
 -- Send PerformAudioPassThru (without audioPassThruIcon, mandatory params) from mobile to SDL and check:
---2.1 SDL sends UI.PerformAudioPassThru (without audioPassThruIcon, mandatory params) to HMI
---2.2 SDL sends TTS.Speak to HMI
---2.3 HMI sends UI.PerformAudioPassThru (WARNINGS) to SDL
---2.4 HMI sends TTS.Speak (SUCCESS) to SDL
+-- 
+--
 -- Expected result:
--- SDL sends PerformAudioPassThru (WARNINGS, success:true) to mobile app
-
+-- SDL sends UI.PerformAudioPassThru (without audioPassThruIcon, mandatory params) to HMI
 ---------------------------------------------------------------------------------------------
 
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 
 --[[ Required Shared libraries ]]
-local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
+local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
+local commonPostconditions = require('user_modules/shared_testcases/commonPreconditions')
 local testCasesForPerformAudioPassThru = require('user_modules/shared_testcases/testCasesForPerformAudioPassThru')
+local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFiles()
-commonSteps:DeletePolicyTable ()
 config.defaultProtocolVersion = 2
+
+testCasesForPolicyTable:precondition_updatePolicy_AllowFunctionInHmiLeves({"BACKGROUND", "FULL", "LIMITED"},"PerformAudioPassThru")
 
 --[[ General Settings for configuration ]]
 Test = require('connecttest')
@@ -52,8 +55,7 @@ function Test:Precondition_Check_audioPassThruIcon_Existence()
 end
 
 function Test:Precondition_ActivateApp()
-  testCasesForPerformAudioPassThru:ActivateAppDiffPolicyFlag
-  (self, config.application1.registerAppInterfaceParams.appName, config.deviceMAC)
+  testCasesForPerformAudioPassThru:ActivateAppDiffPolicyFlag(self, config.application1.registerAppInterfaceParams.appName, config.deviceMAC)
 end
 
 --[[ Test ]]
@@ -68,10 +70,9 @@ function Test:TestStep_ValidRequest_Without_audioPassThruIcon_Mandatory_Params_P
       audioType = "PCM"
     })
 
-  -- hmi expects UI.PerformAudioPassThru request
   EXPECT_HMICALL("UI.PerformAudioPassThru",
     {
-      appID = self.applications[applicationName],
+      appID = self.applications[config.application1.registerAppInterfaceParams.appName],
       maxDuration = 2000,
       muteAudio = true
     })
@@ -82,14 +83,20 @@ function Test:TestStep_ValidRequest_Without_audioPassThruIcon_Mandatory_Params_P
   	end
         self.hmiConnection:SendResponse(data.id, "UI.PerformAudioPassThru", "WARNINGS", {})
     end)
-  self.mobileSession:ExpectResponse(CorIdPerfAudioPassThruOnlyMandatory, { success = true, resultCode = "WARNINGS",
-    })
+
+  EXPECT_HMICALL("TTS.Speak"):Times(0)
+
+  self.mobileSession:ExpectResponse(CorIdPerfAudioPassThruOnlyMandatory, {success = true, resultCode = "WARNINGS"})
 end
 
 
 --[[ Postconditions ]]
-
 commonFunctions:newTestCasesGroup("Postconditions")
+
+function Test.Postcondition_Restore_preloaded_pt_File()
+  commonPostconditions:RestoreFile("sdl_preloaded_pt.json")
+end
+
 function Test.Postcondition_Stop_SDL()
   StopSDL()
 end
