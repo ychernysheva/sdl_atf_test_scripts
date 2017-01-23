@@ -26,7 +26,6 @@
 -- Expected result:
 -- SDL sends UI.PerformAudioPassThru (audioPassThruIcon, other params) to HMI
 -- SDL sends TTS.Speak to HMI
-
 ---------------------------------------------------------------------------------------------
 
 --[[ General configuration parameters ]]
@@ -42,7 +41,6 @@ local testCasesForPolicyTable = require('user_modules/shared_testcases/testCases
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFiles()
-commonSteps:DeletePolicyTable()
 config.defaultProtocolVersion = 2
 
 testCasesForPolicyTable:precondition_updatePolicy_AllowFunctionInHmiLeves({"BACKGROUND", "FULL", "LIMITED"},"PerformAudioPassThru")
