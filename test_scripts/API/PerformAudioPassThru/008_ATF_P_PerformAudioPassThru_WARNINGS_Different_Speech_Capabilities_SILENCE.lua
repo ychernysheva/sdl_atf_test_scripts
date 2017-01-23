@@ -27,7 +27,6 @@
 --
 -- Expected result:
 -- SDL sends PerformAudioPassThru (WARNINGS, success:true, info: <message>)to mobile app
-
 ---------------------------------------------------------------------------------------------
 
 --[[ General configuration parameters ]]
