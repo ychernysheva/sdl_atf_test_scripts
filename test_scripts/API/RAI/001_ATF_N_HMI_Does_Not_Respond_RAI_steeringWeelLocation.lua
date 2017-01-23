@@ -37,7 +37,6 @@ local value_steering_wheel_location = testCasesForRAI.get_data_steeringWheelLoca
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFiles()
 commonSteps:DeletePolicyTable()
-testCasesForRAI:Connecttest_onlywith_StartSDL_InitHMIOnReady("connecttest_initHMI.lua")
 --TODO(istoimenova): shall be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
 config.defaultProtocolVersion = 2
 
@@ -45,6 +44,7 @@ config.defaultProtocolVersion = 2
 Test = require('user_modules/connecttest_initHMI')
 require('user_modules/AppTypes')
 
+--[[ Preconditions ]]
 function Test:Precondition_InitHMI_OnReady()
 	testCasesForRAI:InitHMI_onReady_without_UI_GetCapabilities(self)
 	local event = events.Event()
@@ -64,7 +64,7 @@ function Test:Precondition_StartSession()
 	self.mobileSession:StartService(7)
 end
 
---[[ Postconditions ]]
+--[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 function Test:TestStep_RAI_steeringWheelLocation()
 	local CorIdRegister = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
