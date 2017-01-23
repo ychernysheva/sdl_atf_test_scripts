@@ -37,7 +37,6 @@ local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFiles()
-commonSteps:DeletePolicyTable()
 config.defaultProtocolVersion = 2
 
 testCasesForPolicyTable:precondition_updatePolicy_AllowFunctionInHmiLeves({"BACKGROUND", "FULL", "LIMITED"},"PerformAudioPassThru")
@@ -103,20 +102,26 @@ function Test:TestStep_ValidRequest_Without_audioPassThruIcon_all_other_params_p
       muteAudio = true
     })
   :Do(function(_,data)
-  	if data.params.audioPassThruIcon ~= nil then 
-  		print (" \27[36m Unexpected parameter audioPassThruIcon received \27[0m")
-  		return false 
-  	end
+
       local function UIPerformAudioResponse()
         self.hmiConnection:SendResponse(data.id, "UI.PerformAudioPassThru", "WARNINGS", {})
       end
       RUN_AFTER(UIPerformAudioResponse, 1500)
+      
   end)
-
+  :ValidIf(function(_,data)
+    if data.params.audioPassThruIcon ~= nil then 
+      print (" \27[36m Unexpected parameter audioPassThruIcon received \27[0m")
+      return false 
+      else 
+      print("No audioPassThruIcon send as expected")
+        return true 
+    end
+  end)
   if
-  self.appHMITypes["NAVIGATION"] == true or
-  self.appHMITypes["COMMUNICATION"] == true or
-  self.isMediaApplication == true then
+  (self.appHMITypes["NAVIGATION"] == true) or
+  (self.appHMITypes["COMMUNICATION"] == true) or
+  (self.isMediaApplication == true) then
 
     EXPECT_NOTIFICATION("OnHMIStatus",
       {hmiLevel = "FULL", audioStreamingState = "ATTENUATED", systemContext = "MAIN"},
@@ -129,7 +134,6 @@ function Test:TestStep_ValidRequest_Without_audioPassThruIcon_all_other_params_p
   self.mobileSession:ExpectResponse(CorIdPerformAudioPassThruAppParVD, {success = true, resultCode = "WARNINGS"})
 
   commonTestCases:DelayedExp(1500)
-
 end
 
 --[[ Postconditions ]]
