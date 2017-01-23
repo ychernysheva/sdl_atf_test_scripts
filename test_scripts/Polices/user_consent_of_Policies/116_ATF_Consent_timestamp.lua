@@ -27,7 +27,25 @@ local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local testCasesForPolicyTableSnapshot = require('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
 
+--[[ Local Variables ]]
+local TimeToCheckSeconds = nil
+
+--[[ Local Functions ]]
+local function split(s, delimiter)
+  local result = {};
+  for match in (s..delimiter):gmatch("(.-)"..delimiter) do
+    table.insert(result, match);
+  end
+  return result;
+end
+
+local function clock_to_sec(c)
+  local t = split(c, ":")
+  return t[1] * 60 * 60 + t[2] * 60 + t[3]
+end
+
 --[[ General Precondition before ATF start ]]
+commonFunctions:SDLForceStop()
 commonSteps:DeleteLogsFileAndPolicyTable()
 
 --[[ General Settings for configuration ]]
@@ -39,6 +57,8 @@ require('user_modules/AppTypes')
 commonFunctions:newTestCasesGroup("Preconditions")
 function Test:Precondition_trigger_getting_device_consent()
   testCasesForPolicyTable:trigger_getting_device_consent(self, config.application1.registerAppInterfaceParams.appName, config.deviceMAC)
+  local CurrentTimeSeconds = assert( io.popen( "date +%H:%M:%S" , 'r'))
+  TimeToCheckSeconds = CurrentTimeSeconds:read( '*l' )
 end
 
 function Test:Precondition_PoliciesManager_changes_UP_TO_DATE()
@@ -75,13 +95,12 @@ function Test:TimeStamp_in_userConsentRecords_table()
 
     -- Get current time
     if Time then
-      local CurrentTimeCommand = assert( io.popen( "date +%H:%M" , 'r'))
-      local TimeForPermissionConsentValue = CurrentTimeCommand:read( '*l' )
-      local CurrentTimeSeconds = assert( io.popen( "date +%H:%M:%S" , 'r'))
-      local TimeToCheckSeconds = CurrentTimeSeconds:read( '*l' )
+      print("Snapshot: " .. tostring(Time))
+      print("Current: " .. tostring(TimeToCheckSeconds))
+      local diff = math.abs(clock_to_sec(TimeToCheckSeconds) - clock_to_sec(Time))
+      print("Diff: " .. diff .. " s")
 
-      --TODO(istoimenova): Should be taken in account difference of ~2sec. In case time SDL: 12:21:59 and local time 12:22:01 will return error
-      if( string.sub(Time,1,string.len(TimeForPermissionConsentValue)) ~= TimeForPermissionConsentValue ) then
+      if diff > 1 then
         ErrorMessage = ErrorMessage .. "Time in user_consent_records is not equal to time of device consent. Time from user_consent_records is " .. tostring(Time) .. ", time to check is " .. tostring(TimeToCheckSeconds) .. " +- 1 second. \n"
         errorFlag = true
       end
