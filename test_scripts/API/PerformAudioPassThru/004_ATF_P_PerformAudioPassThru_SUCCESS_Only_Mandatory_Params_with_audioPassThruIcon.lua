@@ -23,7 +23,6 @@
 --
 -- Expected result:
 -- SDL sends UI.PerformAudioPassThru (audioPassThruIcon, other params) to HMI
--- SDL sends TTS.Speak to HMI
 ---------------------------------------------------------------------------------------------
 
 --[[ General configuration parameters ]]
@@ -92,7 +91,9 @@ function Test:TestStep_PerformAudioPassThru_MandatoryParameters_audioPassThruIco
   :Do(function(_,data)
       self.hmiConnection:SendResponse(data.id, "UI.PerformAudioPassThru", "SUCCESS", {})
     end)
-
+  
+  EXPECT_HMICALL("TTS.Speak"):Times(0)
+  
   self.mobileSession:ExpectResponse(CorIdPerfAudioPassThruOnlyMandatoryVD, {success = true, resultCode = "SUCCESS"})
 end
 
