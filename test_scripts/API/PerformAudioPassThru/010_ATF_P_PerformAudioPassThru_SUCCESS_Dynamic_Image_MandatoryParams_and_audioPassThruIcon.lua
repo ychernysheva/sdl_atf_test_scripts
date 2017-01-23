@@ -99,7 +99,9 @@ function Test:TestStep_PerformAudioPassThru_MandatoryParameters_audioPassThruIco
         return false 
       end
     end)
-
+  
+  EXPECT_HMICALL("TTS.Speak"):Times(0)
+  
   self.mobileSession:ExpectResponse(CorIdPerfAudioPassThruOnlyMandatoryDYNAMIC, {success = true, resultCode = "SUCCESS"})
 end
 
