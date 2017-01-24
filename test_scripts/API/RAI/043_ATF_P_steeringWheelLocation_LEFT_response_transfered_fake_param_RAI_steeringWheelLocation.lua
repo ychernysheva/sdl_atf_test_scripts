@@ -73,7 +73,7 @@ commonPreconditions:BackupFile("hmi_capabilities.json")
 testCasesForRAI.write_data_steeringWheelLocation("RIGHT")
 commonSteps:DeleteLogsFiles()
 commonSteps:DeletePolicyTable()
-testCasesForRAI:Connecttest_onlywith_StartSDL_InitHMIOnReady("connecttest_initHMI.lua")
+
 --TODO(istoimenova): shall be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
 config.defaultProtocolVersion = 2
 
@@ -85,7 +85,7 @@ require('user_modules/AppTypes')
 commonFunctions:newTestCasesGroup("Preconditions")
 
 function Test:Precondition_InitHMI_OnReady()
-	testCasesForRAI:InitHMI_onReady_without_UI_GetCapabilities(self)
+	testCasesForRAI.InitHMI_onReady_without_UI_GetCapabilities(self)
 	local event = events.Event()
 	event.level = 2
 	event.matches = function(_, data) return data.method == "UI.GetCapabilities" end
