@@ -22,8 +22,8 @@
 -- Send PerformAudioPassThru (audioPassThruIcon, other params) from mobile to SDL and check:
 --
 -- Expected result:
--- 2.1 SDL sends UI.PerformAudioPassThru (audioPassThruIcon (imageType = "DYNAMIC"), other params) to HMI
--- 2.2 SDL sends TTS.Speak to HMI
+-- SDL sends UI.PerformAudioPassThru (audioPassThruIcon (imageType = "DYNAMIC"), other params) to HMI
+-- SDL sends TTS.Speak to HMI
 ---------------------------------------------------------------------------------------------
 
 --[[ General configuration parameters ]]
@@ -36,6 +36,7 @@ local commonPostconditions = require('user_modules/shared_testcases/commonPrecon
 local testCasesForPerformAudioPassThru = require('user_modules/shared_testcases/testCasesForPerformAudioPassThru')
 local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
+local storagePath = config.pathToSDL .."storage/"
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFiles()
@@ -54,7 +55,7 @@ commonFunctions:newTestCasesGroup("Preconditions")
 commonSteps:PutFile("Precondition_PutFile_With_Icon", "icon.png")
 
 function Test:Precondition_Check_audioPassThruIcon_Existence()
-  testCasesForPerformAudioPassThru:Check_audioPassThruIcon_Existence(self)
+  testCasesForPerformAudioPassThru.Check_audioPassThruIcon_Existence(self, "icon.png")
 end
 
 function Test:Precondition_ActivateApp()
@@ -85,11 +86,11 @@ function Test:TestStep_PerformAudioPassThru_AllParameters_DYNAMIC_ImageType_SUCC
   EXPECT_HMICALL("TTS.Speak",
     {
       speakType = "AUDIO_PASS_THRU",
-      ttsChunks = {{ text = "Makeyourchoice", type = "TEXT" }},
+      ttsChunks = {{ text = "Makeyourchoice", type = "TEXT"}},
       appID = self.applications[config.application1.registerAppInterfaceParams.appName]
     })
   :Do(function(_,data)
-      self.hmiConnection:SendNotification("TTS.Started",{ })
+      self.hmiConnection:SendNotification("TTS.Started",{})
       local function ttsSpeakResponse()
         self.hmiConnection:SendResponse (data.id, data.method, "SUCCESS", {})
         self.hmiConnection:SendNotification("TTS.Stopped")
@@ -122,14 +123,14 @@ function Test:TestStep_PerformAudioPassThru_AllParameters_DYNAMIC_ImageType_SUCC
 					return true
 				end
 			else
-				print("\27[31m The audioPassThruIcon is nil \27[0m")
+				print("\27[31m The audioPassThruIcon is not received \27[0m")
 				return false 
 			end
 		end)
   if
-  self.appHMITypes["NAVIGATION"] == true or
-  self.appHMITypes["COMMUNICATION"] == true or
-  self.isMediaApplication == true then
+  (self.appHMITypes["NAVIGATION"]) == true or
+  (self.appHMITypes["COMMUNICATION"]) == true or
+  (self.isMediaApplication == true) then
 
     EXPECT_NOTIFICATION("OnHMIStatus",
       {hmiLevel = "FULL", audioStreamingState = "ATTENUATED", systemContext = "MAIN"},
@@ -140,6 +141,8 @@ function Test:TestStep_PerformAudioPassThru_AllParameters_DYNAMIC_ImageType_SUCC
   end
 
   self.mobileSession:ExpectResponse(CorIdPerformAudioPassThruAppParALLDynamic, { success = true, resultCode = "SUCCESS"})
+  EXPECT_NOTIFICATION("OnHashChange"):Times(0)
+  
   commonTestCases:DelayedExp(1500)
 end
 
