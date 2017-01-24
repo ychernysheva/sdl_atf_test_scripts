@@ -6,7 +6,6 @@ policies_happy_paths_EXTERNAL_PROPRIETARY
 ./test_scripts/Polices/Policy_Table_Update/025_ATF_P_TC_PTU_validation_failure.lua APPLINK-30390
 ./test_scripts/Polices/Policy_Table_Update/053_P_ATF_Register_NewApp_not_exist_inLocalPT_FinishPTU.lua APPLINK-30390
 ./test_scripts/Polices/Policy_Table_Update/054_P_ATF_Register_NewApp_not_exist_inLocalPT_start_PTU_for_NewApp.lua APPLINK-30390
-./test_scripts/Polices/Validation_of_PolicyTables/ATF_P_Count_Of_Rejections_Sync_Out_Of_Memory.lua	APPLINK-30833, no sense to keep on CI, could be tested manually
 ./test_scripts/Polices/Validation_of_PolicyTables/248_ATF_pt_snapshot_path_is_incorrect.lua ATF can not handle situation with stopped SDL at the moment
 ./test_scripts/Polices/Policy_Table_Update/038_ATF_P_TC_PTU_Omit_Of_Consumer_Friendly_Messages.lua locally_PASS
 ./test_scripts/Polices/Policy_Table_Update/027_ATF_P_TC_HMILvl_on_PTU_affected_in_FULL_or_LIMITED.lua	locally_PASS
