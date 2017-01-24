@@ -871,7 +871,7 @@ function testCasesForPolicyTable:Precondition_updatePolicy_By_overwriting_preloa
               commonPreconditions:BackupFile(pt_fileName)
 
               --Copy new policy table to /sdl/bin folder
-              os.execute(" cp -f " .. PTName .. " " .. config.pathToSDL .. pt_fileName)
+              os.execute(" cp -f " .. PTName .. " " .. commonPreconditions:GetPathToSDL() .. pt_fileName)
 
               --Delete policy table
               commonSteps:DeletePolicyTable()
