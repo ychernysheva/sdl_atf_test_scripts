@@ -39,7 +39,6 @@ local testCasesForPolicyTable = require('user_modules/shared_testcases/testCases
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFiles()
-commonSteps:DeletePolicyTable()
 config.defaultProtocolVersion = 2
 
 testCasesForPolicyTable:precondition_updatePolicy_AllowFunctionInHmiLeves({"BACKGROUND", "FULL", "LIMITED"},"PerformAudioPassThru")
@@ -54,8 +53,9 @@ commonFunctions:newTestCasesGroup("Preconditions")
 
 commonSteps:PutFile("Precondition_PutFile_With_Icon", "icon.png")
 
+
 function Test:Precondition_Check_audioPassThruIcon_Existence()
-  testCasesForPerformAudioPassThru:Check_audioPassThruIcon_Existence(self)
+  testCasesForPerformAudioPassThru.Check_audioPassThruIcon_Existence(self, "icon.png")
 end
 
 function Test:Precondition_ActivateApp()
@@ -136,6 +136,7 @@ function Test:TestStep_PerformAudioPassThru_AllParameters_SUCCESS()
   end
 
   self.mobileSession:ExpectResponse(CorIdPerformAudioPassThruAppParVD, {success = true, resultCode = "SUCCESS"})
+  EXPECT_NOTIFICATION("OnHashChange"):Times(0)
   commonTestCases:DelayedExp(1500)
 end
 
