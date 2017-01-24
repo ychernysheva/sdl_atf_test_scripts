@@ -54,7 +54,8 @@ commonFunctions:newTestCasesGroup("Preconditions")
 commonSteps:PutFile("Precondition_PutFile_With_Icon","1")
 
 function Test:Precondition_Check_audioPassThruIcon_Existence()
-  testCasesForPerformAudioPassThru:Check_audioPassThruIcon_Existence(self, "1")
+  local icon = "1"
+  testCasesForPerformAudioPassThru.Check_audioPassThruIcon_Existence(self, icon)
 end
 
 function Test:Precondition_ActivateApp()
