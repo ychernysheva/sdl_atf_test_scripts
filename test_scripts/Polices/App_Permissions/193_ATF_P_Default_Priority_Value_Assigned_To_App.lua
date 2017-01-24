@@ -34,7 +34,7 @@ commonPreconditions:Connecttest_without_ExitBySDLDisconnect_WithoutOpenConnectio
 
 --[[ Local Functions ]]
 local function SetPriorityToPre_DataConsentNORMAL()
-  local pathToFile = config.pathToSDL .. 'sdl_preloaded_pt.json'
+  local pathToFile = commonPreconditions:GetPathToSDL() .. 'sdl_preloaded_pt.json'
   local file = io.open(pathToFile, "r")
   local json_data = file:read("*all") -- may be abbreviated to "*a";
   file:close()
@@ -43,7 +43,7 @@ local function SetPriorityToPre_DataConsentNORMAL()
 
   -- json library restriction to decode-encode element which defined as "null"
   if data.policy_table.functional_groupings["DataConsent-2"] then
-    data.policy_table.functional_groupings["DataConsent-2"] = {rpcs = null}
+    data.policy_table.functional_groupings["DataConsent-2"] = {rpcs = json.null}
   end
   -- set "NORMAL" priority to pre_DataConsent section to get OnAppPermissionChanged after consenting device (for default priority = NONE)
   data.policy_table.app_policies.pre_DataConsent["priority"] = "NORMAL"
@@ -55,6 +55,7 @@ local function SetPriorityToPre_DataConsentNORMAL()
 end
 
 --[[ General Precondition before ATF start ]]
+commonFunctions:SDLForceStop()
 commonSteps:DeleteLogsFiles()
 commonSteps:DeletePolicyTable()
 commonPreconditions:BackupFile("sdl_preloaded_pt.json")
@@ -84,8 +85,8 @@ function Test:TestStep_Register_App_And_Check_Priority()
 
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered",{ priority = "NORMAL" } )
   :Do(function(_,data)
-    self.HMIapp = data.params.application.appID
-  end)
+      self.HMIapp = data.params.application.appID
+    end)
   EXPECT_RESPONSE(CorIdRAI, { success = true, resultCode = "SUCCESS"})
 end
 

@@ -18,73 +18,68 @@
 
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
-
---[[ Required Shared libraries ]]
-local commonSteps = require('user_modules/shared_testcases/commonSteps')
-local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
-local testCasesForPolicyTableSnapshot = require('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
-local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
-local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
-
---[[ General Precondition before ATF start ]]
-commonSteps:DeleteLogsFileAndPolicyTable()
-testCasesForPolicyTable.Delete_Policy_table_snapshot()
-commonPreconditions:Connecttest_without_ExitBySDLDisconnect_WithoutOpenConnectionRegisterApp("connecttest_ConnectMobile.lua")
---TODO: Should be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
 config.defaultProtocolVersion = 2
 
+--[[ Required Shared libraries ]]
+local mobile_session = require("mobile_session")
+local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
+local commonSteps = require("user_modules/shared_testcases/commonSteps")
+local commonTestCases = require("user_modules/shared_testcases/commonTestCases")
+local testCasesForPolicyTableSnapshot = require('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
+local json = require("modules/json")
+
+--[[ General Precondition before ATF start ]]
+commonFunctions:SDLForceStop()
+commonSteps:DeleteLogsFileAndPolicyTable()
+
 --[[ General Settings for configuration ]]
-Test = require('user_modules/connecttest_ConnectMobile')
-require('cardinalities')
-require('user_modules/AppTypes')
-local mobile_session = require('mobile_session')
+Test = require("user_modules/connecttest_resumption")
+require("user_modules/AppTypes")
 
---[[ Preconditions ]]
-commonFunctions:newTestCasesGroup("Preconditions")
-
-function Test:Precondition_Connect_device()
+function Test:ConnectMobile()
   self:connectMobile()
 end
 
-function Test:Precondition_StartSession()
+function Test:StartSession()
   self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
   self.mobileSession:StartService(7)
 end
 
---[[ Test ]]
-commonFunctions:newTestCasesGroup("Test")
+function Test:RAI()
+  commonTestCases:DelayedExp(5000)
+  local corId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application1.registerAppInterfaceParams.appName } })
+  :Do(
+    function(_, d1)
+      self.applications[config.application1.registerAppInterfaceParams.appID] = d1.params.application.appID
+      EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", { status = "UPDATE_NEEDED" }, { status = "UPDATING" } )
+      :Times(2)
+      local exp = self.mobileSession:ExpectNotification("OnSystemRequest")
+      exp:Do(
+        function(_, d2)
+          if d2.payload.requestType == "HTTP" then
+            exp:Unpin()
+            event_dispatcher:RemoveEvent(self.mobileConnection, exp.event)
+            if d2.binaryData then
+              local timeout_preloaded = testCasesForPolicyTableSnapshot:get_data_from_Preloaded_PT("module_config.timeout_after_x_seconds")
+              local ptu_table = json.decode(d2.binaryData)
+              local timeout_pts = ptu_table.policy_table.module_config.timeout_after_x_seconds
+              print("Timeout expected: " .. timeout_preloaded .. "s")
+              print("Timeout actual: " .. timeout_preloaded .. "s")
+              if ( timeout_pts ~= timeout_preloaded ) then
+                self:FailTestCase("timeout in PTS should be "..tostring(timeout_preloaded).."s, real: "..tostring(timeout_pts).."s")
+              end
+            end
+          else
+            exp:Pin()
+          end
+        end)
+    end)
 
-function Test:TestStep_PTS_Timeout_wait_response_PTU()
-  local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
-
-  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", {application = { appName = config.application1.registerAppInterfaceParams.appName } })
-  EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "HTTP"})
-
-  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",
-    { status = "UPDATE_NEEDED" }, {status = "UPDATING"}):Times(2)
-  :Do(function(_,data)
-    if(data.params.status == "UPDATE_NEEDED") then
-      local function check()
-        local timeout_pts = testCasesForPolicyTableSnapshot:get_data_from_PTS("module_config.timeout_after_x_seconds")
-        local timeout_preloaded = testCasesForPolicyTableSnapshot:get_data_from_Preloaded_PT("module_config.timeout_after_x_seconds")
-
-        if ( timeout_pts ~= timeout_preloaded ) then
-          self:FailTestCase("timeout in PTS should be "..tostring(timeout_preloaded).."s, real: "..tostring(timeout_pts).."s")
-        end
-      end
-
-      RUN_AFTER(check, 600)
-    end
-  end)
-
-  self.mobileSession:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS" })
-  self.mobileSession:ExpectNotification("OnHMIStatus", {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
+  self.mobileSession:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
 end
 
---[[ Postconditions ]]
-commonFunctions:newTestCasesGroup("Postconditions")
-
-function Test.Postcondition_Stop_SDL()
+function Test.Postconditions_StopSDL()
   StopSDL()
 end
 

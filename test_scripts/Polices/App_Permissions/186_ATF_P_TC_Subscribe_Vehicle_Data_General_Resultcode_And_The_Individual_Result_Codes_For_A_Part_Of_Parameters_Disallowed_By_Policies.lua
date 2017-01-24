@@ -70,6 +70,7 @@ end
 UpdatePolicy()
 
 --[[ General Precondition before ATF start ]]
+commonFunctions:SDLForceStop()
 commonSteps:DeleteLogsFileAndPolicyTable()
 
 --[[ General Settings for configuration ]]

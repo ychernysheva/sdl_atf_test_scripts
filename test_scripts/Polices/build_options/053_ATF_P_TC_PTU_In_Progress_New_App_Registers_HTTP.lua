@@ -1,5 +1,3 @@
--- UNREADY:
---function Test:TestStep_CheckThatAppID_SecondApp_Present_In_DataBase
 ---------------------------------------------------------------------------------------------
 -- Requirements summary:
 --[PolicyTableUpdate] New application has registered and doesn't yet exist in Local PT
@@ -27,46 +25,20 @@
 
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
+config.defaultProtocolVersion = 2
 
 --[[ Required Shared libraries ]]
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
+local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 local mobile_session = require('mobile_session')
 
-
---[[ Local Functions ]]
-local registerAppInterfaceParams =
-{
-  syncMsgVersion =
-  {
-    majorVersion = 3,
-    minorVersion = 0
-  },
-  appName = "Media Application",
-  isMediaApplication = true,
-  languageDesired = 'EN-US',
-  hmiDisplayLanguageDesired = 'EN-US',
-  appHMIType = {"NAVIGATION"},
-  appID = "MyTestApp",
-  deviceInfo =
-  {
-    os = "Android",
-    carrier = "Megafon",
-    firmwareRev = "Name: Linux, Version: 3.4.0-perf",
-    osVersion = "4.4.2",
-    maxNumberRFCOMMPorts = 1
-  }
-}
-
 --[[ General Precondition before ATF start ]]
+commonFunctions:SDLForceStop()
 commonSteps:DeleteLogsFileAndPolicyTable()
-
---ToDo: shall be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
-config.defaultProtocolVersion = 2
 
 --[[ General Settings for configuration ]]
 Test = require('connecttest')
-require('cardinalities')
 require('user_modules/AppTypes')
 
 --[[ Test ]]
@@ -77,25 +49,20 @@ function Test:TestStep_OpenNewSession()
 end
 
 function Test:TestStep_RAI_NewSession()
-  local corId = self.mobileSession2:SendRPC("RegisterAppInterface", registerAppInterfaceParams)
-  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = "Media Application" }})
+  local corId = self.mobileSession2:SendRPC("RegisterAppInterface", config.application2.registerAppInterfaceParams)
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application2.registerAppInterfaceParams.appName }})
   self.mobileSession2:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
   self.mobileSession2:ExpectNotification("OnPermissionsChange")
 end
 
+function Test.Wait()
+  commonTestCases:DelayedExp(5000)
+end
+
 function Test:TestStep_CheckThatAppID_SecondApp_Present_In_DataBase()
-  local PolicyDBPath = nil
-  if commonSteps:file_exists(tostring(config.pathToSDL) .. "/storage/policy.sqlite") == true then
-    PolicyDBPath = tostring(config.pathToSDL) .. "/storage/policy.sqlite"
-  end
-  if commonSteps:file_exists(tostring(config.pathToSDL) .. "/storage/policy.sqlite") == false then
-    commonFunctions:userPrint(31, "policy.sqlite file is not found")
-    self:FailTestCase("PolicyTable is not avaliable" .. tostring(PolicyDBPath))
-  end
-  os.execute(" sleep 2 ")
-  local AppId_2 = "sqlite3 " .. tostring(PolicyDBPath) .. "\"SELECT id FROM application WHERE id = '"..tostring(registerAppInterfaceParams.appID).."'\""
-  local bHandle = assert( io.popen(AppId_2, 'r'))
-  local AppIdValue_2 = bHandle:read( '*l' )
+  local db_file = config.pathToSDL .. "/storage/policy.sqlite"
+  local sql = "SELECT id FROM application WHERE id = '" .. config.application2.registerAppInterfaceParams.appID .. "'"
+  local AppIdValue_2 = commonFunctions:get_data_policy_sql(db_file, sql)
   if AppIdValue_2 == nil then
     self:FailTestCase("Value in DB is unexpected value " .. tostring(AppIdValue_2))
   end
