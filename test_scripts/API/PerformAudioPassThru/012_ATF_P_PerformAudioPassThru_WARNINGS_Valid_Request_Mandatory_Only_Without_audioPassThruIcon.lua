@@ -2,7 +2,6 @@
 -- Requirements summary:
 -- [PerformAudioPassThru] SDL must transfer request to HMI in case "audioPassThruIcon" param was omited in request from mobile app
 -- [HMI API] UI.PerformAudioPassThru request/response
--- [HMI API] TTS.Speak request/response
 -- [Mobile API] PerformAudioPassThru request/response
 -- [HMI_API] [MOBILE_API] The "audioPassThruIcon" param at "ImageFieldName" struct
 --
@@ -51,7 +50,7 @@ commonFunctions:newTestCasesGroup("Preconditions")
 commonSteps:PutFile("Precondition_PutFile_With_Icon", "icon.png")
 
 function Test:Precondition_Check_audioPassThruIcon_Existence()
-  testCasesForPerformAudioPassThru:Check_audioPassThruIcon_Existence(self)
+  testCasesForPerformAudioPassThru.Check_audioPassThruIcon_Existence(self, "icon.png")
 end
 
 function Test:Precondition_ActivateApp()
@@ -77,16 +76,21 @@ function Test:TestStep_ValidRequest_Without_audioPassThruIcon_Mandatory_Params_P
       muteAudio = true
     })
   :Do(function(_,data)
-  	if data.params.audioPassThruIcon ~= nil then 
-  		print (" \27[36m Unexpected parameter received \27[0m")
-  		return false 
-  	end
-        self.hmiConnection:SendResponse(data.id, "UI.PerformAudioPassThru", "WARNINGS", {})
-    end)
+  self.hmiConnection:SendResponse(data.id, "UI.PerformAudioPassThru", "WARNINGS", {})
+  end)
+    :ValidIf(function(_,data1)
+    if data1.params.audioPassThruIcon ~= nil then 
+      print (" \27[36m Unexpected parameter audioPassThruIcon received \27[0m")
+      return false 
+      else 
+      print("No audioPassThruIcon sent as expected")
+        return true 
+    end
+  end)
 
   EXPECT_HMICALL("TTS.Speak"):Times(0)
-
   self.mobileSession:ExpectResponse(CorIdPerfAudioPassThruOnlyMandatory, {success = true, resultCode = "WARNINGS"})
+  EXPECT_NOTIFICATION("OnHashChange"):Times(0)
 end
 
 
