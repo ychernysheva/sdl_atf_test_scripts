@@ -238,7 +238,6 @@ function testCasesForRAI.InitHMI_onReady_without_UI_IsReady_GetCapabilities(self
 
   ExpectRequest("VR.IsReady", true, { available = true })
   ExpectRequest("TTS.IsReady", true, { available = true })
-  ExpectRequest("UI.IsReady", true, { available = true })
   ExpectRequest("Navigation.IsReady", true, { available = true })
   ExpectRequest("VehicleInfo.IsReady", true, { available = true })
 
