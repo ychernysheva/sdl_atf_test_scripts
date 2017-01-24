@@ -10,7 +10,8 @@
 -- In case mobile app sends PerformAudioPassThru_request to SDL 
 -- without <audioPassThruIcon> parameter
 -- and with another related to request valid params
--- SDL must transfer UI.PerformAudioPassThru (other params)_request + Speak_request (depends on parameters provided by the app) to HMI
+-- SDL must transfer UI.PerformAudioPassThru (other params)_request 
+-- + Speak_request (depends on parameters provided by the app) to HMI
 -- 
 -- 1. Used preconditions
 -- 1.1. PerformAudioPassThru RPC is allowed by policy
@@ -51,11 +52,11 @@ commonFunctions:newTestCasesGroup("Preconditions")
 commonSteps:PutFile("Precondition_PutFile_With_Icon", "icon.png")
 
 function Test:Precondition_Check_audioPassThruIcon_Existence()
-  testCasesForPerformAudioPassThru:Check_audioPassThruIcon_Existence(self)
+  testCasesForPerformAudioPassThru.Check_audioPassThruIcon_Existence(self, "icon.png")
 end
 
 function Test:Precondition_ActivateApp()
-  testCasesForPerformAudioPassThru:ActivateAppDiffPolicyFlag (self, config.application1.registerAppInterfaceParams.appName, config.deviceMAC)
+  testCasesForPerformAudioPassThru:ActivateAppDiffPolicyFlag(self, config.application1.registerAppInterfaceParams.appName, config.deviceMAC)
 end
 
 --[[ Test ]]
@@ -113,7 +114,7 @@ function Test:TestStep_ValidRequest_Without_audioPassThruIcon_all_other_params_p
       print (" \27[36m Unexpected parameter audioPassThruIcon received \27[0m")
       return false 
       else 
-      print("No audioPassThruIcon send as expected")
+      print("No audioPassThruIcon sent as expected")
         return true 
     end
   end)
@@ -131,7 +132,7 @@ function Test:TestStep_ValidRequest_Without_audioPassThruIcon_all_other_params_p
   end
 
   self.mobileSession:ExpectResponse(CorIdPerformAudioPassThruAppParVD, {success = true, resultCode = "WARNINGS"})
-
+  EXPECT_NOTIFICATION("OnHashChange"):Times(0)
   commonTestCases:DelayedExp(1500)
 end
 
