@@ -93,9 +93,8 @@ function Test:TestStep_PerformAudioPassThru_PRE_RECORDED_WARNINGS()
           }}
       })
     :Do(function(_,data)
-        --local info = "Unsupported phoneme type sent in a prompt"
         self.hmiConnection:SendResponse(data.id, "TTS.Speak", "WARNINGS", {info = "Unsupported phoneme type sent in a prompt"})
-      end)
+     end)
 
     EXPECT_HMICALL("UI.PerformAudioPassThru",
       {
