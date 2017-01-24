@@ -56,11 +56,12 @@ commonFunctions:newTestCasesGroup("Preconditions")
 commonSteps:PutFile("Precondition_PutFile_With_Icon", string.rep("a", 251).. ".png")
 
 function Test:Precondition_Check_audioPassThruIcon_Existence()
-  testCasesForPerformAudioPassThru:Check_audioPassThruIcon_Existence(self)
+  local icon = string.rep("a", 251).. ".png"
+  testCasesForPerformAudioPassThru.Check_audioPassThruIcon_Existence(self, icon)
 end
 
 function Test:Precondition_ActivateApp()
-  testCasesForPerformAudioPassThru:ActivateAppDiffPolicyFlag (self, config.application1.registerAppInterfaceParams.appName, config.deviceMAC)
+  testCasesForPerformAudioPassThru:ActivateAppDiffPolicyFlag(self, config.application1.registerAppInterfaceParams.appName, config.deviceMAC)
 end
 
 --[[ Test ]]
@@ -78,7 +79,8 @@ function Test:TestStep_PerformAudioPassThru_AllParameters_Upper_SUCCESS()
       audioType = "PCM",
       muteAudio = true,
       audioPassThruIcon =
-      { value = string.rep ("a", 251).. ".png",
+      { 
+        value = string.rep ("a", 251).. ".png",
         imageType = "STATIC"
       }
     })
@@ -135,8 +137,9 @@ function Test:TestStep_PerformAudioPassThru_AllParameters_Upper_SUCCESS()
     EXPECT_NOTIFICATION("OnHMIStatus"):Times(0)
   end
 
-  self.mobileSession:ExpectResponse(CorIdPerformAudioPassThruAppUpperParVD, { success = true, resultCode = "SUCCESS",
-    })
+  self.mobileSession:ExpectResponse(CorIdPerformAudioPassThruAppUpperParVD, {success = true, resultCode = "SUCCESS"})
+  EXPECT_NOTIFICATION("OnHashChange"):Times(0)
+
   commonTestCases:DelayedExp(1500)
 end
 
