@@ -1,17 +1,16 @@
 ---------------------------------------------------------------------------------------------
 -- Requirements summary:
 -- [PerformAudioPassThru] requested "ttsChunks" is NOT supported
+-- [Mobile API] PerformAudioPassThru request/response
 -- [HMI API] UI.PerformAudioPassThru request/response
 -- [HMI API] TTS.Speak request/response
--- [Mobile API] PerformAudioPassThru request/response
 -- [HMI_API] [MOBILE_API] The "audioPassThruIcon" param at "ImageFieldName" struct
 --
 -- Description:
--- In case mobile app requests "ttsChunks" with type is different from "TEXT" 
+-- In case mobile app requests "ttsChunks" with type different from "TEXT" 
 -- (SAPI_PHONEMES, LHPLUS_PHONEMES, PRE_RECORDED or SILENCE), 
 -- SDL must: transfer this "ttsChunks" to HMI and respond with 
 -- "WARNINGS, success:true" + info: <message_from_HMI> to mobile app
--- IN CASE HMI respond with UNSUPPORTED_RESOURCE (Note: TTS interface is supported)
 --
 -- 1. Used preconditions
 -- 1.1. PerformAudioPassThru RPC is allowed by policy
@@ -20,12 +19,12 @@
 --
 -- 2. Performed steps
 -- Send PerformAudioPassThru (audioPassThruIcon, other params, ttsChunksType = "PRE_RECORDED") from mobile to SDL and check:
--- 2.1 SDL sends UI.PerformAudioPassThru (audioPassThruIcon, other params) to HMI
--- 2.2 SDL sends TTS.Speak (ttsChunksType = "PRE_RECORDED")to HMI
--- 2.3 HMI sends UI.PerformAudioPassThru (SUCCESS) to SDL
--- 2.4 HMI sends TTS.Speak (WARNINGS, <message>) to SDL
+-- 2.1 HMI sends UI.PerformAudioPassThru (SUCCESS) to SDL
+-- 2.2 HMI sends TTS.Speak (WARNINGS, <message>) to SDL
 --
 -- Expected result:
+-- SDL sends UI.PerformAudioPassThru (audioPassThruIcon, other params) to HMI
+-- SDL sends TTS.Speak (ttsChunksType = "PRE_RECORDED")to HMI
 -- SDL sends PerformAudioPassThru (WARNINGS, success:true, info: <message>)to mobile app
 ---------------------------------------------------------------------------------------------
 
@@ -56,7 +55,7 @@ commonFunctions:newTestCasesGroup("Preconditions")
 commonSteps:PutFile("Precondition_PutFile_With_Icon","icon.png")
 
 function Test:Precondition_Check_audioPassThruIcon_Existence()
-  testCasesForPerformAudioPassThru:Check_audioPassThruIcon_Existence(self)
+  testCasesForPerformAudioPassThru.Check_audioPassThruIcon_Existence(self, "icon.png")
 end
 
 function Test:Precondition_ActivateApp()
@@ -69,7 +68,7 @@ commonFunctions:newTestCasesGroup("Test")
 function Test:TestStep_PerformAudioPassThru_PRE_RECORDED_WARNINGS()
     local CorIdPerformAudioPassThruSpeechCap = self.mobileSession:SendRPC("PerformAudioPassThru",
       {
-        initialPrompt = {{text = "PRERECORDED",type = "PRE_RECORDED"}},
+        initialPrompt = {{text = "PRE_RECORDED",type = "PRE_RECORDED"}},
         audioPassThruDisplayText1 = "DisplayText1",
         audioPassThruDisplayText2 = "DisplayText2",
         samplingRate = "8KHZ",
@@ -89,8 +88,8 @@ function Test:TestStep_PerformAudioPassThru_PRE_RECORDED_WARNINGS()
         speakType = "AUDIO_PASS_THRU",
         ttsChunks =
           {{
-              text = PRERECORDED,
-              type = PRE_RECORDED
+              text = "PRE_RECORDED",
+              type = "PRE_RECORDED"
           }}
       })
     :Do(function(_,data)
@@ -117,7 +116,7 @@ function Test:TestStep_PerformAudioPassThru_PRE_RECORDED_WARNINGS()
     end)
 
     self.mobileSession:ExpectResponse(CorIdPerformAudioPassThruSpeechCap, {success = true, resultCode = "WARNINGS"})
-  
+    EXPECT_NOTIFICATION("OnHashChange"):Times(0)
   end
 
 --[[ Postconditions ]]
