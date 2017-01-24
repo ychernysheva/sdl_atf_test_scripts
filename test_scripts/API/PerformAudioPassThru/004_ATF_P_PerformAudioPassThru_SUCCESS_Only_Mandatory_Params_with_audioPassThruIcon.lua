@@ -2,7 +2,6 @@
 -- Requirements summary:
 -- [PerformAudioPassThru] SDL must transfer request to HMI in case of valid "audioPassThruIcon" param
 -- [HMI API] UI.PerformAudioPassThru request/response
--- [HMI API] TTS.Speak request/response
 -- [Mobile API] PerformAudioPassThru request/response
 -- [HMI_API] [MOBILE_API] The "audioPassThruIcon" param at "ImageFieldName" struct
 --
@@ -13,12 +12,13 @@
 -- as well as another related to request valid mandatory params
 -- SDL must transfer UI.PerformAudioPassThru (<audioPassThruIcon>, other params)_request + Speak_request (depends on parameters provided by the app) to HMI
 --
---1. Used preconditions
+-- 1. Used preconditions
 -- 1.1. PerformAudioPassThru RPC is allowed by policy
 -- 1.2. Only mandatory parameters are present and within bounds (samplingRate, maxDuration, bitsPerSample, audioType)
 -- as well as AudioPassThruIcon
 -- 1.3. AudioPassThruIcon exists at apps sub-directory of AppStorageFolder (value from ini file)
---2. Performed steps
+--
+-- 2. Performed steps
 -- Send PerformAudioPassThru (audioPassThruIcon, mandatory params) from mobile to SDL and check:
 --
 -- Expected result:
@@ -37,7 +37,6 @@ local testCasesForPolicyTable = require('user_modules/shared_testcases/testCases
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFiles()
-commonSteps:DeletePolicyTable ()
 config.defaultProtocolVersion = 2
 
 testCasesForPolicyTable:precondition_updatePolicy_AllowFunctionInHmiLeves({"BACKGROUND", "FULL", "LIMITED"},"PerformAudioPassThru")
@@ -53,7 +52,7 @@ commonFunctions:newTestCasesGroup("Preconditions")
 commonSteps:PutFile("Precondition_PutFile_With_Icon","icon.png")
 
 function Test:Precondition_Check_audioPassThruIcon_Existence()
-  testCasesForPerformAudioPassThru:Check_audioPassThruIcon_Existence(self)
+  testCasesForPerformAudioPassThru.Check_audioPassThruIcon_Existence(self, "icon.png")
 end
 
 function Test:Precondition_ActivateApp()
@@ -93,8 +92,8 @@ function Test:TestStep_PerformAudioPassThru_MandatoryParameters_audioPassThruIco
     end)
   
   EXPECT_HMICALL("TTS.Speak"):Times(0)
-  
   self.mobileSession:ExpectResponse(CorIdPerfAudioPassThruOnlyMandatoryVD, {success = true, resultCode = "SUCCESS"})
+  EXPECT_NOTIFICATION("OnHashChange"):Times(0)
 end
 
 --[[ Postconditions ]]
