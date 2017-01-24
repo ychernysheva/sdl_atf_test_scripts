@@ -20,7 +20,6 @@
 --
 -- 2. Performed steps
 -- Send PerformAudioPassThru (audioPassThruIcon, other params in lower) from mobile to SDL and check:
--- 2.1 SDL sends UI.PerformAudioPassThru (audioPassThruIcon, other params) to HMI
 --
 -- Expected result:
 -- SDL sends UI.PerformAudioPassThru (audioPassThruIcon, other params) to HMI
@@ -31,7 +30,7 @@
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 
 --[[ Required Shared libraries ]]
-local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
+local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonPostconditions = require('user_modules/shared_testcases/commonPreconditions')
 local testCasesForPerformAudioPassThru = require('user_modules/shared_testcases/testCasesForPerformAudioPassThru')
@@ -55,7 +54,7 @@ commonFunctions:newTestCasesGroup("Preconditions")
 commonSteps:PutFile("Precondition_PutFile_With_Icon","1")
 
 function Test:Precondition_Check_audioPassThruIcon_Existence()
-  testCasesForPerformAudioPassThru:Check_audioPassThruIcon_Existence(self)
+  testCasesForPerformAudioPassThru:Check_audioPassThruIcon_Existence(self, "1")
 end
 
 function Test:Precondition_ActivateApp()
@@ -77,7 +76,8 @@ function Test:TestStep_PerformAudioPassThru_AllParameters_Lower_SUCCESS()
       audioType = "PCM",
       muteAudio = true,
       audioPassThruIcon =
-      { value = "1",
+      { 
+        value = "1",
         imageType = "STATIC"
       }
     })
@@ -135,6 +135,8 @@ function Test:TestStep_PerformAudioPassThru_AllParameters_Lower_SUCCESS()
   end
 
   self.mobileSession:ExpectResponse(CorIdPerformAudioPassThruAppLowerPar, { success = true, resultCode = "SUCCESS"})
+  EXPECT_NOTIFICATION("OnHashChange"):Times(0)
+  
   commonTestCases:DelayedExp(1500)
 end
 
