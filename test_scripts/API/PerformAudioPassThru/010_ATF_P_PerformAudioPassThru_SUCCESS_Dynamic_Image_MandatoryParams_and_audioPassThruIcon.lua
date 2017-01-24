@@ -4,7 +4,6 @@
 -- [HMI API] UI.PerformAudioPassThru request/response
 -- [Mobile API] PerformAudioPassThru request/response
 -- [HMI_API] [MOBILE_API] The "audioPassThruIcon" param at "ImageFieldName" struct
--- [HMI API] TTS.Speak request/response
 --
 -- Description:
 -- In case mobile app sends PerformAudioPassThru_request to SDL with:
@@ -13,11 +12,11 @@
 -- as well as another related to request valid mandatory params
 -- SDL must transfer UI.PerformAudioPassThru (<audioPassThruIcon>, other params)_request + Speak_request (depends on parameters provided by the app) to HMI
 --
---1. Used preconditions
+-- 1. Used preconditions
 -- 1.1. PerformAudioPassThru RPC is allowed by policy
 -- 1.2. Only mandatory parameters are present and within bounds (samplingRate, maxDuration, bitsPerSample, audioType), 
 -- audioPassThruIcon is sent with imageType = "DYNAMIC"
--- 2. AudioPassThruIcon exists at apps sub-directory of AppStorageFolder (value from ini file)
+-- 1.3. AudioPassThruIcon exists at apps sub-directory of AppStorageFolder (value from ini file)
 --
 -- 2. Performed steps
 -- Send PerformAudioPassThru (audioPassThruIcon, mandatory params) from mobile to SDL and check:
@@ -35,6 +34,7 @@ local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonPostconditions = require('user_modules/shared_testcases/commonPreconditions')
 local testCasesForPerformAudioPassThru = require('user_modules/shared_testcases/testCasesForPerformAudioPassThru')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
+local storagePath = config.pathToSDL .."storage/"
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFiles()
@@ -53,7 +53,7 @@ commonFunctions:newTestCasesGroup("Preconditions")
 commonSteps:PutFile("Precondition_PutFile_With_Icon","icon.png")
 
 function Test:Precondition_Check_audioPassThruIcon_Existence()
-  testCasesForPerformAudioPassThru:Check_audioPassThruIcon_Existence(self)
+  testCasesForPerformAudioPassThru.Check_audioPassThruIcon_Existence(self, "icon.png")
 end
 
 function Test:Precondition_ActivateApp()
@@ -95,14 +95,14 @@ function Test:TestStep_PerformAudioPassThru_MandatoryParameters_audioPassThruIco
           return true
         end
       else
-        print("\27[31m The audioPassThruIcon is nil \27[0m")
+        print("\27[31m The audioPassThruIcon is not received \27[0m")
         return false 
       end
     end)
   
   EXPECT_HMICALL("TTS.Speak"):Times(0)
-  
   self.mobileSession:ExpectResponse(CorIdPerfAudioPassThruOnlyMandatoryDYNAMIC, {success = true, resultCode = "SUCCESS"})
+  EXPECT_NOTIFICATION("OnHashChange"):Times(0)
 end
 
 --[[ Postconditions ]]
