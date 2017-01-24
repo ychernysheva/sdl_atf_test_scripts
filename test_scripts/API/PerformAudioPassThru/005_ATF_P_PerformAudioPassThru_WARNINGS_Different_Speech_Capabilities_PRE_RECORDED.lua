@@ -95,7 +95,6 @@ function Test:TestStep_PerformAudioPassThru_PRE_RECORDED_WARNINGS()
     :Do(function(_,data)
         --local info = "Unsupported phoneme type sent in a prompt"
         self.hmiConnection:SendResponse(data.id, "TTS.Speak", "WARNINGS", {info = "Unsupported phoneme type sent in a prompt"})
-   --function module.mt.__index:SendResponse(id, methodName, code, params)
       end)
 
     EXPECT_HMICALL("UI.PerformAudioPassThru",
@@ -131,5 +130,4 @@ end
 function Test.Postcondition_Stop_SDL()
   StopSDL()
 end
-
 return Test
