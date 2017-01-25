@@ -93,7 +93,7 @@ function Test:TestStep_PerformAudioPassThru_PRE_RECORDED_WARNINGS()
           }}
       })
     :Do(function(_,data)
-        self.hmiConnection:SendResponse(data.id, "TTS.Speak", "WARNINGS", {info = "Unsupported phoneme type sent in a prompt"})
+        self.hmiConnection:SendResponse(data.id, "TTS.Speak", "UNSUPPORTED_RESOURCE", {info = "Unsupported phoneme type sent in a prompt"})
      end)
 
     EXPECT_HMICALL("UI.PerformAudioPassThru",
@@ -117,7 +117,7 @@ function Test:TestStep_PerformAudioPassThru_PRE_RECORDED_WARNINGS()
 
     self.mobileSession:ExpectResponse(CorIdPerformAudioPassThruSpeechCap, {success = true, resultCode = "WARNINGS", info = "Unsupported phoneme type sent in a prompt"})
     EXPECT_NOTIFICATION("OnHashChange"):Times(0)
-  end
+end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
