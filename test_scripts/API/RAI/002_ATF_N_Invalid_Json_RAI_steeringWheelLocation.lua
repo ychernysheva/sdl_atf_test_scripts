@@ -53,7 +53,8 @@ function Test:Precondition_InitHMI_OnReady()
 
 	EXPECT_HMICALL("UI.GetCapabilities")
 	:Do(function(_,data) 
-		self.hmiConnection:Send('{"id":' .. tostring(data.id) .. ',"jsonrpc";"2.0","result":{"available":true,"method":"UI.GetCapabilities", "code":0}}')
+		-- send with wrong json format, using ("jsonrpc";"2.0") instead of ("jsonrpc":"2.0")
+		self.hmiConnection:Send('{"id":' .. tostring(data.id) .. ',"jsonrpc";"2.0","result":{ "displayCapabilities":{"displayType":"GEN2_8_DMA"}, hmiZoneCapabilities = "FRONT", "audioPassThruCapabilities":{"samplingRate":"44KHZ","audioType":"PCM","bitsPerSample":"8_BIT"}, method":"UI.GetCapabilities", "code":0}}')
 	end)
 end
 
