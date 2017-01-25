@@ -17,14 +17,14 @@
 -- 1. Used preconditions
 -- Update value of "steeringWeelLocation" parameter from "HMI_capabilities.json" to RIGHT
 -- In InitHMI_OnReady HMI replies with parameters: 
--- steeringWeelLocation = LEFT to UI.GetCapabilities
+-- steeringWeelLocation = CENTER to UI.GetCapabilities
 -- fake parameter from VR.GetCapabilities: vrCapabilities
 --
 -- 2. Performed steps
 -- Register new applications with conditions for result WARNINGS
 --
 -- Expected result:
--- SDL->mobile: RegisterAppInterface_response steeringWeelLocation is provided equal to LEFT
+-- SDL->mobile: RegisterAppInterface_response steeringWeelLocation is provided equal to CENTER
 ---------------------------------------------------------------------------------------------
 
 --[[ General configuration parameters ]]
@@ -35,7 +35,6 @@ local commonFunctions = require ('user_modules/shared_testcases/commonFunctions'
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 local testCasesForRAI = require('user_modules/shared_testcases/testCasesForRAI')
-local events = require("events")
 local mobile_session = require('mobile_session')
 
 --[[ Local functions ]]
@@ -64,9 +63,9 @@ local function update_sdl_preloaded_pt_json()
 		steal_focus = false,
 		priority = "NONE",
 		default_hmi = "NONE",
-		groups = {"Base-4"}
+		groups = {"Base-4"},
+    AppHMIType = {"NAVIGATION"}
 	}
-	data.policy_table.app_policies["0000001"].AppHMIType = {"NAVIGATION"}
 				
 	data = json.encode(data)
 	file = io.open(pathToFile, "w")
@@ -125,11 +124,8 @@ commonFunctions:newTestCasesGroup("Preconditions")
 
 function Test:Precondition_InitHMI_OnReady()
 	testCasesForRAI.InitHMI_onReady_without_UI_GetCapabilities(self)
-	local event = events.Event()
-	event.level = 2
-	event.matches = function(_, data) return data.method == "UI.GetCapabilities" end
-
-	EXPECT_HMIEVENT(event, "UI.GetCapabilities")
+	
+	EXPECT_HMICALL("UI.GetCapabilities")
 	:Do(function(_,data)
 		self.hmiConnection:SendResponse(data.id, "UI.GetCapabilities", "SUCCESS", {
       vrCapabilities = { "TEXT" }, --fake parameter
@@ -137,7 +133,7 @@ function Test:Precondition_InitHMI_OnReady()
       {
 				navigation = false,
 				phoneCall = true,
-				steeringWheelLocation = "LEFT"
+				steeringWheelLocation = "CENTER"
     	},
       displayCapabilities =
       {
@@ -248,7 +244,7 @@ function Test:TestStep_RAI_steeringWheelLocation()
 	local CorIdRegister = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
 		
 	EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application1.registerAppInterfaceParams.appName }})
-	EXPECT_RESPONSE(CorIdRegister, { success = true, resultCode = "WARNINGS", hmiCapabilities = { steeringWheelLocation = "LEFT" } })
+	EXPECT_RESPONSE(CorIdRegister, { success = true, resultCode = "WARNINGS", hmiCapabilities = { steeringWheelLocation = "CENTER" } })
 	EXPECT_NOTIFICATION("OnHMIStatus", { systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE"})
 end
 
