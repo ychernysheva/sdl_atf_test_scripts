@@ -79,6 +79,7 @@ function Test:TestStep_PerformAudioPassThru_MandatoryParameters_audioPassThruIco
 
   EXPECT_HMICALL("UI.PerformAudioPassThru",
     {
+      audioPassThruIcon = { imageType = "DYNAMIC" },		
       appID = self.applications[config.application1.registerAppInterfaceParams.appName],
       maxDuration = 500500,
       muteAudio = true
