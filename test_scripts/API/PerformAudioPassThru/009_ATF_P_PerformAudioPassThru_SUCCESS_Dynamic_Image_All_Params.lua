@@ -100,7 +100,7 @@ function Test:TestStep_PerformAudioPassThru_AllParameters_DYNAMIC_ImageType_SUCC
 
   EXPECT_HMICALL("UI.PerformAudioPassThru",
     {
-      audioPassThruIcon = { imageType = "DYNAMIC" }),
+      audioPassThruIcon = { imageType = "DYNAMIC" },
       appID = self.applications[config.application1.registerAppInterfaceParams.appName],
       audioPassThruDisplayTexts = {
         {fieldName = "audioPassThruDisplayText1", fieldText = "DisplayText1"},
