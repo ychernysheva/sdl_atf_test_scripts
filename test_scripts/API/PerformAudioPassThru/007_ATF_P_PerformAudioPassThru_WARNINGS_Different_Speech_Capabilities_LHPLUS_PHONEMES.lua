@@ -21,7 +21,7 @@
 -- 2. Performed steps
 -- Send PerformAudioPassThru (audioPassThruIcon, other params, ttsChunksType = "LHPLUS_PHONEMES") from mobile to SDL and check:
 -- 2.1 HMI sends UI.PerformAudioPassThru (UNSUPPORTED_RESOURCE) to SDL
--- 2.2 HMI sends TTS.Speak (UNSUPPORTED_RESOURCE, <message>) to SDL
+-- 2.2 HMI sends TTS.Speak (SUCCESS, <message>) to SDL
 --
 -- Expected result:
 -- SDL sends UI.PerformAudioPassThru (audioPassThruIcon, other params) to HMI
