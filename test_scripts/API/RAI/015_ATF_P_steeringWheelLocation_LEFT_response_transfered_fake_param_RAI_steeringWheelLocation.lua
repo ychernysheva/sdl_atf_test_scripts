@@ -33,7 +33,6 @@ local commonFunctions = require ('user_modules/shared_testcases/commonFunctions'
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 local testCasesForRAI = require('user_modules/shared_testcases/testCasesForRAI')
-local events = require("events")
 local mobile_session = require('mobile_session')
 
 --[[ Local functions ]]
@@ -86,11 +85,8 @@ commonFunctions:newTestCasesGroup("Preconditions")
 
 function Test:Precondition_InitHMI_OnReady()
 	testCasesForRAI.InitHMI_onReady_without_UI_GetCapabilities(self)
-	local event = events.Event()
-	event.level = 2
-	event.matches = function(_, data) return data.method == "UI.GetCapabilities" end
-
-	EXPECT_HMIEVENT(event, "UI.GetCapabilities")
+	
+	EXPECT_HMICALL("UI.GetCapabilities")
 	:Do(function(_,data)
 		self.hmiConnection:SendResponse(data.id, "UI.GetCapabilities", "SUCCESS", {
 			vrCapabilities = { "TEXT" }, --fake parameter
@@ -98,7 +94,7 @@ function Test:Precondition_InitHMI_OnReady()
       {
 				navigation = false,
 				phoneCall = true,
-				steeringWheelLocation = "RIGHT"
+				steeringWheelLocation = "LEFT"
     	},
       displayCapabilities =
       {
