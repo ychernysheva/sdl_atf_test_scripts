@@ -22,6 +22,7 @@
 --
 -- Expected result:
 -- SDL sends UI.PerformAudioPassThru (without audioPassThruIcon, other params) to HMI
+-- SDL sends TTS.Speak to HMI
 ---------------------------------------------------------------------------------------------
 
 --[[ General configuration parameters ]]
