@@ -32,7 +32,6 @@ local commonFunctions = require ('user_modules/shared_testcases/commonFunctions'
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 local testCasesForRAI = require('user_modules/shared_testcases/testCasesForRAI')
-local events = require("events")
 local mobile_session = require('mobile_session')
 
 --[[ Local variables ]]
@@ -64,9 +63,9 @@ local function update_sdl_preloaded_pt_json()
 		steal_focus = false,
 		priority = "NONE",
 		default_hmi = "NONE",
-		groups = {"Base-4"}
+		groups = {"Base-4"},
+		AppHMIType = {"NAVIGATION"}
 	}
-	data.policy_table.app_policies["0000001"].AppHMIType = {"NAVIGATION"}
 				
 	data = json.encode(data)
 	file = io.open(pathToFile, "w")
@@ -93,11 +92,8 @@ commonFunctions:newTestCasesGroup("Preconditions")
 
 function Test:Precondition_InitHMI_OnReady()
 	testCasesForRAI.InitHMI_onReady_without_UI_GetCapabilities(self)
-	local event = events.Event()
-	event.level = 2
-	event.matches = function(_, data) return data.method == "UI.GetCapabilities" end
 
-	EXPECT_HMIEVENT(event, "UI.GetCapabilities")
+	EXPECT_HMICALL("UI.GetCapabilities")
 	-- HMI does not reply to UI.GetCapabilities
 end
 
@@ -126,7 +122,6 @@ commonFunctions:newTestCasesGroup("Postconditions")
 
 function Test.Postcondition_Restore_config_files()
 	commonPreconditions:RestoreFile("hmi_capabilities.json")
-	commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 end
 
 function Test.Postcondition_Stop()
