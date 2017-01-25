@@ -1,5 +1,6 @@
 ---------------------------------------------------------------------------------------------
 -- Requirements summary:
+-- [PerformAudioPassThru] SDL must transfer request to HMI in case of valid "audioPassThruIcon" param
 -- [PerformAudioPassThru] requested "ttsChunks" is NOT supported
 -- [Mobile API] PerformAudioPassThru request/response
 -- [HMI API] UI.PerformAudioPassThru request/response
