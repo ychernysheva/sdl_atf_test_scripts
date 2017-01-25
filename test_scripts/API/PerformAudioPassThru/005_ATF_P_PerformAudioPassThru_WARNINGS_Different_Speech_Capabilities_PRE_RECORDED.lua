@@ -1,5 +1,6 @@
 ---------------------------------------------------------------------------------------------
 -- Requirements summary:
+-- [PerformAudioPassThru] SDL must transfer request to HMI in case of valid "audioPassThruIcon" param
 -- [PerformAudioPassThru] requested "ttsChunks" is NOT supported
 -- [Mobile API] PerformAudioPassThru request/response
 -- [HMI API] UI.PerformAudioPassThru request/response
@@ -20,7 +21,7 @@
 -- 2. Performed steps
 -- Send PerformAudioPassThru (audioPassThruIcon, other params, ttsChunksType = "PRE_RECORDED") from mobile to SDL and check:
 -- 2.1 HMI sends UI.PerformAudioPassThru (SUCCESS) to SDL
--- 2.2 HMI sends TTS.Speak (WARNINGS, <message>) to SDL
+-- 2.2 HMI sends TTS.Speak (UNSUPPORTED_RESOURCE, <message>) to SDL
 --
 -- Expected result:
 -- SDL sends UI.PerformAudioPassThru (audioPassThruIcon, other params) to HMI
@@ -93,7 +94,7 @@ function Test:TestStep_PerformAudioPassThru_PRE_RECORDED_WARNINGS()
           }}
       })
     :Do(function(_,data)
-        self.hmiConnection:SendResponse(data.id, "TTS.Speak", "WARNINGS", {info = "Unsupported phoneme type sent in a prompt"})
+        self.hmiConnection:SendResponse(data.id, "TTS.Speak", "UNSUPPORTED_RESOURCE", {info = "Unsupported phoneme type sent in a prompt"})
      end)
 
     EXPECT_HMICALL("UI.PerformAudioPassThru",
@@ -117,7 +118,7 @@ function Test:TestStep_PerformAudioPassThru_PRE_RECORDED_WARNINGS()
 
     self.mobileSession:ExpectResponse(CorIdPerformAudioPassThruSpeechCap, {success = true, resultCode = "WARNINGS", info = "Unsupported phoneme type sent in a prompt"})
     EXPECT_NOTIFICATION("OnHashChange"):Times(0)
-  end
+end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
