@@ -16,7 +16,7 @@
 -- 1. Used preconditions
 -- Update value of "steeringWeelLocation" parameter from "HMI_capabilities.json" to RIGHT
 -- In InitHMI_OnReady HMI replies with parameters: 
--- steeringWeelLocation = LEFT to UI.GetCapabilities
+-- steeringWeelLocation = CENTER to UI.GetCapabilities
 -- fake parameter from VR.GetCapabilities: vrCapabilities
 --
 -- 2. Performed steps
@@ -24,7 +24,7 @@
 --
 -- Expected result:
 -- SDL->mobile: RegisterAppInterface_response(WRONG_LANGUAGE, success: true) 
--- steeringWeelLocation is provided equal to LEFT
+-- steeringWeelLocation is provided equal to CENTER
 ---------------------------------------------------------------------------------------------
 
 --[[ General configuration parameters ]]
@@ -96,7 +96,7 @@ function Test:Precondition_InitHMI_OnReady()
       {
 				navigation = false,
 				phoneCall = true,
-				steeringWheelLocation = "LEFT"
+				steeringWheelLocation = "CENTER"
     	},
       displayCapabilities =
       {
@@ -208,7 +208,7 @@ function Test:TestStep_RAI_WRONG_LANGUAGE_steeringWheelLocation()
 	local CorIdRegister = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
 	
 	EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application1.registerAppInterfaceParams.appName }})
-	EXPECT_RESPONSE(CorIdRegister, { success = true, resultCode = "WRONG_LANGUAGE", hmiCapabilities = { steeringWheelLocation = "LEFT" } })
+	EXPECT_RESPONSE(CorIdRegister, { success = true, resultCode = "WRONG_LANGUAGE", hmiCapabilities = { steeringWheelLocation = "CENTER" } })
 	EXPECT_NOTIFICATION("OnHMIStatus", {systemContext="MAIN", hmiLevel="NONE", audioStreamingState="NOT_AUDIBLE"} )
 end
 
