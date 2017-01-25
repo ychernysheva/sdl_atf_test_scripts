@@ -32,7 +32,6 @@ local commonFunctions = require ('user_modules/shared_testcases/commonFunctions'
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 local testCasesForRAI = require('user_modules/shared_testcases/testCasesForRAI')
-local events = require("events")
 local mobile_session = require('mobile_session')
 
 --[[ Local functions ]]
@@ -84,11 +83,8 @@ commonFunctions:newTestCasesGroup("Preconditions")
 
 function Test:Precondition_InitHMI_OnReady()
 	testCasesForRAI.InitHMI_onReady_without_UI_GetCapabilities(self)
-	local event = events.Event()
-	event.level = 2
-	event.matches = function(_, data) return data.method == "UI.GetCapabilities" end
-
-	EXPECT_HMIEVENT(event, "UI.GetCapabilities")
+	
+	EXPECT_HMICALL("UI.GetCapabilities")
 	:Do(function(_,data)
 		self.hmiConnection:SendResponse(data.id, "UI.GetCapabilities", "SUCCESS", {
 			hmiCapabilities = 
@@ -200,7 +196,11 @@ function Test:Precondition_StartSession()
 end
 
 commonSteps:RegisterAppInterface("Precondition_for_checking_RESUME_FAILED_RegisterApp")
-commonSteps:ActivationApp(nil, "Precondition_for_checking_RESUME_FAILED_ActivateApp")	
+
+function Test:Precondition_for_checking_RESUME_FAILED_ActivateApp()
+  commonSteps:ActivateAppInSpecificLevel(self, self.applications[config.application1.registerAppInterfaceParams.appName])
+  EXPECT_NOTIFICATION("OnHMIStatus", {systemContext = "MAIN", hmiLevel = "FULL"})
+end
 
 function Test:Precondition_for_checking_RESUME_FAILED_AddResumptionData_AddCommand()
 					
