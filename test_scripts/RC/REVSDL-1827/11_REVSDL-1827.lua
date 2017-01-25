@@ -13,6 +13,8 @@ require('cardinalities')
 local events = require('events')
 local mobile_session = require('mobile_session')
 
+
+local arrayGroups_nonPrimaryRCNotification = revsdl.arrayGroups_nonPrimaryRCNotification()
 --======================================REVSDL-1827========================================--
 ---------------------------------------------------------------------------------------------
 --------------REVSDL-1827: Policies: "equipment" permissions must be checked-----------------
