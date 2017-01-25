@@ -29,7 +29,6 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local testCasesForRAI = require('user_modules/shared_testcases/testCasesForRAI')
-local events = require("events")
 local mobile_session = require('mobile_session')
 
 --[[ Local variables ]]
@@ -51,11 +50,8 @@ commonFunctions:newTestCasesGroup("Preconditions")
 
 function Test:Precondition_InitHMI_OnReady()
 	testCasesForRAI.InitHMI_onReady_without_UI_GetCapabilities(self)
-	local event = events.Event()
-	event.level = 2
-	event.matches = function(_, data) return data.method == "UI.GetCapabilities" end
 
-	EXPECT_HMIEVENT(event, "UI.GetCapabilities")
+	EXPECT_HMICALL("UI.GetCapabilities")
 	--HMI doesn't reply to UI.GetCapabilities
 end
 
@@ -84,7 +80,7 @@ function Test:TestStep_RAI_FirstApp_steeringWheelLocation()
 	local CorIdRegister = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
 		
 	EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName=config.application1.registerAppInterfaceParams.appName }})
-	EXPECT_RESPONSE(CorIdRegister, { success=true, resultCode = "SUCCESS", steeringWheelLocation = value_steering_wheel_location })
+	EXPECT_RESPONSE(CorIdRegister, { success=true, resultCode = "SUCCESS", hmiCapabilities = { steeringWheelLocation = value_steering_wheel_location }})
 	EXPECT_NOTIFICATION("OnHMIStatus", { systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE"})
 end
 
@@ -92,7 +88,7 @@ function Test:TestStep_RAI_SecondApp_steeringWheelLocation()
 	local CorIdRegister = self.mobileSession1:SendRPC("RegisterAppInterface", config.application2.registerAppInterfaceParams)
 		
 	EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application2.registerAppInterfaceParams.appName }})
-	self.mobileSession1:ExpectResponse(CorIdRegister, { success=true, resultCode = "SUCCESS", steeringWheelLocation = value_steering_wheel_location })
+	self.mobileSession1:ExpectResponse(CorIdRegister, { success=true, resultCode = "SUCCESS", hmiCapabilities = { steeringWheelLocation = value_steering_wheel_location }})
 	self.mobileSession1:ExpectNotification("OnHMIStatus", { systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE"})
 end
 
