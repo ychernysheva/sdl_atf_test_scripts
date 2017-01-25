@@ -200,7 +200,10 @@ function Test:Precondition_StartSession()
 end
 
 commonSteps:RegisterAppInterface("Precondition_for_checking_RESUME_FAILED_RegisterApp")
-commonSteps:ActivationApp(nil, "Precondition_for_checking_RESUME_FAILED_ActivateApp") 
+function Test:Precondition_for_checking_RESUME_FAILED_ActivateApp()
+  commonSteps:ActivateAppInSpecificLevel(self, self.applications[config.application1.registerAppInterfaceParams.appName])
+  EXPECT_NOTIFICATION("OnHMIStatus", {systemContext = "MAIN", hmiLevel = "FULL"})
+end
 
 function Test:Precondition_for_checking_RESUME_FAILED_AddResumptionData_AddCommand()
           
