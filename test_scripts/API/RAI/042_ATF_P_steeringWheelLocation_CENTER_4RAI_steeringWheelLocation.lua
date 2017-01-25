@@ -31,7 +31,6 @@ local commonFunctions = require ('user_modules/shared_testcases/commonFunctions'
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 local testCasesForRAI = require('user_modules/shared_testcases/testCasesForRAI')
-local events = require("events")
 local mobile_session = require('mobile_session')
 
 --[[ Local functions ]]
@@ -84,18 +83,15 @@ commonFunctions:newTestCasesGroup("Preconditions")
 
 function Test:Precondition_InitHMI_OnReady()
 	testCasesForRAI.InitHMI_onReady_without_UI_GetCapabilities(self)
-	local event = events.Event()
-	event.level = 2
-	event.matches = function(_, data) return data.method == "UI.GetCapabilities" end
 
-	EXPECT_HMIEVENT(event, "UI.GetCapabilities")
+	EXPECT_HMICALL("UI.GetCapabilities")
 	:Do(function(_,data)
 		self.hmiConnection:SendResponse(data.id, "UI.GetCapabilities", "SUCCESS", {
 			hmiCapabilities = 
       {
 				navigation = false,
 				phoneCall = true,
-				steeringWheelLocation = "RIGHT"
+				steeringWheelLocation = "CENTER"
     	},
       displayCapabilities =
       {
@@ -221,7 +217,7 @@ function Test:TestStep_RAI_FirstApp_steeringWheelLocation()
 	local CorIdRegister = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
 		
 	EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application1.registerAppInterfaceParams.appName }})
-	EXPECT_RESPONSE(CorIdRegister, { success=true, resultCode = "SUCCESS", steeringWheelLocation = "CENTER" })
+	EXPECT_RESPONSE(CorIdRegister, { success=true, resultCode = "SUCCESS", hmiCapabilities = { steeringWheelLocation = "CENTER" }})
 	EXPECT_NOTIFICATION("OnHMIStatus", { systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE"})
 end
 
@@ -229,7 +225,7 @@ function Test:TestStep_RAI_SecondApp_steeringWheelLocation()
 	local CorIdRegister = self.mobileSession1:SendRPC("RegisterAppInterface", config.application2.registerAppInterfaceParams)
 		
 	EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application2.registerAppInterfaceParams.appName }})
-	self.mobileSession1:ExpectResponse(CorIdRegister, { success=true, resultCode = "SUCCESS", steeringWheelLocation = "CENTER" })
+	self.mobileSession1:ExpectResponse(CorIdRegister, { success=true, resultCode = "SUCCESS", hmiCapabilities = { steeringWheelLocation = "CENTER" }})
 	self.mobileSession1:ExpectNotification("OnHMIStatus", { systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE"})
 end
 
@@ -237,7 +233,7 @@ function Test:TestStep_RAI_ThirdApp_steeringWheelLocation()
 	local CorIdRegister = self.mobileSession2:SendRPC("RegisterAppInterface", config.application3.registerAppInterfaceParams)
 		
 	EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application3.registerAppInterfaceParams.appName }})
-	self.mobileSession2:ExpectResponse(CorIdRegister, { success=true, resultCode = "SUCCESS", steeringWheelLocation = "CENTER" })
+	self.mobileSession2:ExpectResponse(CorIdRegister, { success=true, resultCode = "SUCCESS", hmiCapabilities = { steeringWheelLocation = "CENTER" }})
 	self.mobileSession2:ExpectNotification("OnHMIStatus", { systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE"})
 end
 
