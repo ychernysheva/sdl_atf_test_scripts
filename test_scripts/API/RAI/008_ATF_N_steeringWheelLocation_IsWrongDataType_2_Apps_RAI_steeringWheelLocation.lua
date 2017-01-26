@@ -47,7 +47,7 @@ local function text_field(name, characterSet, width, rows)
     { name = name, characterSet = characterSet or "TYPE2SET", width = width or 500, rows = rows or 1 }
 end
 
---[[@text_field - sets parameters of structure imageFields
+--[[@image_field - sets parameters of structure imageFields
 --! @ used in UI.GetCapabilities
 --! @parameters: name, width
 --]]  
@@ -207,7 +207,7 @@ function Test:TestStep_RAI_FirstApp_steeringWheelLocation()
 	local CorIdRegister = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
 		
 	EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application1.registerAppInterfaceParams.appName }})
-	EXPECT_RESPONSE(CorIdRegister, { success=true, resultCode = "SUCCESS", steeringWheelLocation = value_steering_wheel_location })
+	EXPECT_RESPONSE(CorIdRegister, { success=true, resultCode = "SUCCESS", hmiCapabilities = { steeringWheelLocation = value_steering_wheel_location }})
 	EXPECT_NOTIFICATION("OnHMIStatus", { systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE"})
 end
 
