@@ -84,7 +84,7 @@ local function text_field(name, characterSet, width, rows)
     { name = name, characterSet = characterSet or "TYPE2SET", width = width or 500, rows = rows or 1 }
 end
 
---[[@text_field - sets parameters of structure imageFields
+--[[@image_field - sets parameters of structure imageFields
 --! @ used in UI.GetCapabilities
 --! @parameters: name, width
 --]]  
