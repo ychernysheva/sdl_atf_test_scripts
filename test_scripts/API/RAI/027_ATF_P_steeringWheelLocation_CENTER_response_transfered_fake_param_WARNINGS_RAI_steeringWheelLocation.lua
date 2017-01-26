@@ -40,7 +40,7 @@ local mobile_session = require('mobile_session')
 --[[ Local functions ]]
 
 --[[@update_sdl_preloaded_pt_json - update preloaded_pt
---! @ in case REAI to return response(WARNINGS, success:true)
+--! @ in case RAI to return response(WARNINGS, success:true)
 --! @parameters: NO
 --]]
 local function update_sdl_preloaded_pt_json()
@@ -82,7 +82,7 @@ local function text_field(name, characterSet, width, rows)
     { name = name, characterSet = characterSet or "TYPE2SET", width = width or 500, rows = rows or 1 }
 end
 
---[[@text_field - sets parameters of structure imageFields
+--[[@image_field - sets parameters of structure imageFields
 --! @ used in UI.GetCapabilities
 --! @parameters: name, width
 --]]  
