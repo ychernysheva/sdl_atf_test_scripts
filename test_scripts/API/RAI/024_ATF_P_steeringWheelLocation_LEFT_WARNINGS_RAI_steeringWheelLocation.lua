@@ -60,9 +60,9 @@ local function update_sdl_preloaded_pt_json()
 		steal_focus = false,
 		priority = "NONE",
 		default_hmi = "NONE",
-		groups = {"Base-4"}
+		groups = {"Base-4"},
+		AppHMIType = {"NAVIGATION"}
 	}
-	data.policy_table.app_policies["0000001"].AppHMIType = {"NAVIGATION"}
 				
 	data = json.encode(data)
 	file = io.open(pathToFile, "w")
@@ -79,7 +79,7 @@ local function text_field(name, characterSet, width, rows)
     { name = name, characterSet = characterSet or "TYPE2SET", width = width or 500, rows = rows or 1 }
 end
 
---[[@text_field - sets parameters of structure imageFields
+--[[@image_field - sets parameters of structure imageFields
 --! @ used in UI.GetCapabilities
 --! @parameters: name, width
 --]]  
