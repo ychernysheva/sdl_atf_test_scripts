@@ -81,10 +81,6 @@ end
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
 
-function Test.Postcondition_Restore_hmi_capabilities()
-	commonPreconditions:RestoreFile("hmi_capabilities.json")
-end
-
 function Test.Postcondition_Stop()
   StopSDL()
 end
