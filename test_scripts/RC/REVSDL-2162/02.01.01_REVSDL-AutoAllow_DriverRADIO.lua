@@ -57,113 +57,113 @@ end
 
 
 --=================================================BEGIN TEST CASES 2.1==========================================================--
-	--Begin Test suit CommonRequestCheck.2 for Req.#2 (WITH DEFINED ZONE)
+  --Begin Test suit CommonRequestCheck.2 for Req.#2 (WITH DEFINED ZONE)
 
-	--Description: 2. In case 	a. remote-control passenger's app sends GetInteriorVehicleDataCapabilities request
-									-- > with or without defined zone
-									-- > with one moduleType in the array
-									-- and
-								-- b. RSDL has received app's device location from the vehicle (via OnDeviceLocationChanged)
-									-- RSDL must
-									-- check "equipment" permissions against the zone from OnDeviceLocationChanged.
-									-- Information:
-									-- per requirements from REVSDL-966:
-									-- -> if GetInteriorVehicleDataCapabilities is in "auto_allow", RSDL will transfer it to the vehicle
-									-- -> if GetInteriorVehicleDataCapabilities is in "driver_allow", RSDL will trigger a permission prompt (if accepted - then transfer app's request to the vehicle; if denied - then return "user_disallowed" to the app)
+  --Description: 2. In case   a. remote-control passenger's app sends GetInteriorVehicleDataCapabilities request
+                  -- > with or without defined zone
+                  -- > with one moduleType in the array
+                  -- and
+                -- b. RSDL has received app's device location from the vehicle (via OnDeviceLocationChanged)
+                  -- RSDL must
+                  -- check "equipment" permissions against the zone from OnDeviceLocationChanged.
+                  -- Information:
+                  -- per requirements from REVSDL-966:
+                  -- -> if GetInteriorVehicleDataCapabilities is in "auto_allow", RSDL will transfer it to the vehicle
+                  -- -> if GetInteriorVehicleDataCapabilities is in "driver_allow", RSDL will trigger a permission prompt (if accepted - then transfer app's request to the vehicle; if denied - then return "user_disallowed" to the app)
 
-	--Begin Test case CommonRequestCheck.2.1
-	--Description: 	RSDL has received app's device location from the vehicle (via OnDeviceLocationChanged)  in auto_allow
+  --Begin Test case CommonRequestCheck.2.1
+  --Description:  RSDL has received app's device location from the vehicle (via OnDeviceLocationChanged)  in auto_allow
 
-		--Requirement/Diagrams id in jira:
-				--REVSDL-2162
+    --Requirement/Diagrams id in jira:
+        --REVSDL-2162
 
-		--Verification criteria:
-				-- RSDL has received app's device location from the vehicle (via OnDeviceLocationChanged) in auto_allow
+    --Verification criteria:
+        -- RSDL has received app's device location from the vehicle (via OnDeviceLocationChanged) in auto_allow
 
-		-----------------------------------------------------------------------------------------
-		------------------------------FOR DRIVER ZONE--------------------------------------------
+    -----------------------------------------------------------------------------------------
+    ------------------------------FOR DRIVER ZONE--------------------------------------------
 
-			--Begin Precondition.1. HMI sends notification RC.OnDeviceLocationChanged(<deviceID>) to RSDL (zone:Driver)
-			--Description: HMI sends notification RC.OnDeviceLocationChanged(<deviceID>) to RSDL
+      --Begin Precondition.1. HMI sends notification RC.OnDeviceLocationChanged(<deviceID>) to RSDL (zone:Driver)
+      --Description: HMI sends notification RC.OnDeviceLocationChanged(<deviceID>) to RSDL
 
-				function Test:ChangedLocation_Driver()
-					--hmi side: HMI sends notification RC.OnDeviceLocationChanged(<deviceID>) to RSDL
-					self.hmiConnection:SendNotification("RC.OnDeviceLocationChanged",
-						{device = {name = "127.0.0.1", id = 1, isSDLAllowed = true},
-							deviceLocation =
-								{
-									colspan = 2,
-									row = 0,
-									rowspan = 2,
-									col = 0,
-									levelspan = 1,
-									level = 0
-								}
-						})
-				end
-			--End Precondition.1
+        function Test:ChangedLocation_Driver()
+          --hmi side: HMI sends notification RC.OnDeviceLocationChanged(<deviceID>) to RSDL
+          self.hmiConnection:SendNotification("RC.OnDeviceLocationChanged",
+            {device = {name = "127.0.0.1", id = 1, isSDLAllowed = true},
+              deviceLocation =
+                {
+                  colspan = 2,
+                  row = 0,
+                  rowspan = 2,
+                  col = 0,
+                  levelspan = 1,
+                  level = 0
+                }
+            })
+        end
+      --End Precondition.1
 
-		-----------------------------------------------------------------------------------------
+    -----------------------------------------------------------------------------------------
 
-			--Begin Test case CommonRequestCheck.2.1.1
-			--Description: application sends GetInteriorVehicleDataCapabilities as Driver and ModuleType = RADIO (app's requested zone is not exited)
-				function Test:AutoAllow_DriverRADIO()
-					local cid = self.mobileSession:SendRPC("GetInteriorVehicleDataCapabilities",
-					{
-						zone =
-						{
-							colspan = 2,
-							row = 2,
-							rowspan = 2,
-							col = 2,
-							levelspan = 1,
-							level = 0
-						},
-						moduleTypes = {"RADIO"}
-					})
+      --Begin Test case CommonRequestCheck.2.1.1
+      --Description: application sends GetInteriorVehicleDataCapabilities as Driver and ModuleType = RADIO (app's requested zone is not exited)
+        function Test:AutoAllow_DriverRADIO()
+          local cid = self.mobileSession:SendRPC("GetInteriorVehicleDataCapabilities",
+          {
+            zone =
+            {
+              colspan = 2,
+              row = 2,
+              rowspan = 2,
+              col = 2,
+              levelspan = 1,
+              level = 0
+            },
+            moduleTypes = {"RADIO"}
+          })
 
-					--hmi side: expect RC.GetInteriorVehicleDataCapabilities request
-					EXPECT_HMICALL("RC.GetInteriorVehicleDataCapabilities")
-					-- :Do(function(_,data)
-					-- 	--hmi side: sending RC.GetInteriorVehicleDataCapabilities response
-					-- 	self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {
-					-- 									interiorVehicleDataCapabilities = {
-					-- 										{
-					-- 											moduleZone = {
-					-- 												colspan = 2,
-					-- 												row = 2,
-					-- 												rowspan = 2,
-					-- 												col = 2,
-					-- 												levelspan = 1,
-					-- 												level = 0
-					-- 											},
-					-- 											moduleType = "RADIO"
-					-- 										}
-					-- 									}
-					-- 	})
-					-- end)
+          --hmi side: expect RC.GetInteriorVehicleDataCapabilities request
+          EXPECT_HMICALL("RC.GetInteriorVehicleDataCapabilities")
+          :Do(function(_,data)
+            --hmi side: sending RC.GetInteriorVehicleDataCapabilities response
+            self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {
+                            interiorVehicleDataCapabilities = {
+                              {
+                                moduleZone = {
+                                  colspan = 2,
+                                  row = 2,
+                                  rowspan = 2,
+                                  col = 2,
+                                  levelspan = 1,
+                                  level = 0
+                                },
+                                moduleType = "RADIO"
+                              }
+                            }
+            })
+          end)
 
-					-- --mobile side: expect SUCCESS response
-					-- EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS", interiorVehicleDataCapabilities = {
-					-- 																			{
-					-- 																				moduleZone = {
-					-- 																					col = 2,
-					-- 																					row = 2,
-					-- 																					level = 0,
-					-- 																					colspan = 2,
-					-- 																					rowspan = 2,
-					-- 																					levelspan = 1
-					-- 																				},
-					-- 																				moduleType = "RADIO"
-					-- 																			}
-					-- 																		}
-					-- })
-				end
-			--End Test case CommonRequestCheck.2.1.1
+          --mobile side: expect SUCCESS response
+          EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS", interiorVehicleDataCapabilities = {
+                                                {
+                                                  moduleZone = {
+                                                    col = 2,
+                                                    row = 2,
+                                                    level = 0,
+                                                    colspan = 2,
+                                                    rowspan = 2,
+                                                    levelspan = 1
+                                                  },
+                                                  moduleType = "RADIO"
+                                                }
+                                              }
+          })
+        end
+      --End Test case CommonRequestCheck.2.1.1
 
 
-		-----------------------------------------------------------------------------------------
-	--End Test case CommonRequestCheck.2.2
+    -----------------------------------------------------------------------------------------
+  --End Test case CommonRequestCheck.2.2
 
 function Test:PostconditionsRestoreFile()
   commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
