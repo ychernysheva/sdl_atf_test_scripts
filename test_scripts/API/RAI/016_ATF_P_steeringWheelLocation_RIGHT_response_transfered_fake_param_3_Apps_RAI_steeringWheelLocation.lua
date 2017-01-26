@@ -47,7 +47,7 @@ local function text_field(name, characterSet, width, rows)
     { name = name, characterSet = characterSet or "TYPE2SET", width = width or 500, rows = rows or 1 }
 end
 
---[[@text_field - sets parameters of structure imageFields
+--[[@image_field - sets parameters of structure imageFields
 --! @ used in UI.GetCapabilities
 --! @parameters: name, width
 --]]  
@@ -215,7 +215,7 @@ function Test:TestStep_RAI_FirstApp_steeringWheelLocation()
 	local CorIdRegister = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
 		
 	EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application1.registerAppInterfaceParams.appName }})
-	EXPECT_RESPONSE(CorIdRegister, { success=true, resultCode = "SUCCESS", steeringWheelLocation = "RIGHT" })
+	EXPECT_RESPONSE(CorIdRegister, { success=true, resultCode = "SUCCESS", hmiCapabilities = { steeringWheelLocation = "RIGHT" }})
 	EXPECT_NOTIFICATION("OnHMIStatus", { systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE"})
 end
 
@@ -223,7 +223,7 @@ function Test:TestStep_RAI_SecondApp_steeringWheelLocation()
 	local CorIdRegister = self.mobileSession1:SendRPC("RegisterAppInterface", config.application2.registerAppInterfaceParams)
 		
 	EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application2.registerAppInterfaceParams.appName }})
-	self.mobileSession1:ExpectResponse(CorIdRegister, { success=true, resultCode = "SUCCESS", steeringWheelLocation = "RIGHT" })
+	self.mobileSession1:ExpectResponse(CorIdRegister, { success=true, resultCode = "SUCCESS", hmiCapabilities = { steeringWheelLocation = "RIGHT" }})
 	self.mobileSession1:ExpectNotification("OnHMIStatus", { systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE"})
 end
 
@@ -231,7 +231,7 @@ function Test:TestStep_RAI_ThirdApp_steeringWheelLocation()
 	local CorIdRegister = self.mobileSession2:SendRPC("RegisterAppInterface", config.application3.registerAppInterfaceParams)
 		
 	EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application3.registerAppInterfaceParams.appName }})
-	self.mobileSession2:ExpectResponse(CorIdRegister, { success=true, resultCode = "SUCCESS", hmiCapabilities = { steeringWheelLocation = "RIGHT" } })
+	self.mobileSession2:ExpectResponse(CorIdRegister, { success=true, resultCode = "SUCCESS", hmiCapabilities = { steeringWheelLocation = "RIGHT" }})
 	self.mobileSession2:ExpectNotification("OnHMIStatus", { systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE"})
 end
 --[[ Postconditions ]]
