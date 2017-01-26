@@ -121,7 +121,7 @@ end
 commonFunctions:newTestCasesGroup("Postconditions")
 
 function Test.Postcondition_Restore_config_files()
-	commonPreconditions:RestoreFile("hmi_capabilities.json")
+	commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 end
 
 function Test.Postcondition_Stop()
