@@ -1,5 +1,8 @@
 local commonSteps = require("user_modules/shared_testcases/commonSteps")
 commonSteps:DeleteLogsFileAndPolicyTable()
+local commonPreconditions = require("user_modules/shared_testcases/commonPreconditions")
+commonPreconditions:BackupFile("sdl_preloaded_pt.json")
+commonPreconditions:ReplaceFile("sdl_preloaded_pt.json", "./test_scripts/RC/TestData/REVSDL-2162/sdl_preloaded_pt.json")
 
 revsdl = require("user_modules/revsdl")
 
@@ -1465,3 +1468,7 @@ local mobile_session = require('mobile_session')
 
 
 --=================================================END TEST CASES 3==========================================================--
+
+function Test:PostconditionsRestoreFile()
+  commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
+end
