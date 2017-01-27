@@ -85,32 +85,7 @@ end
 
 
 --NonPrimaryNotification Group
-local arrayGroups_nonPrimaryRCNotification = {
-								permissionItem = {
-									  {
-										 hmiPermissions = {
-											allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" },
-											userDisallowed = {}
-										 },
-										 parameterPermissions = {
-											allowed = {},
-											userDisallowed = {}
-										 },
-										 rpcName = "OnHMIStatus"
-									  },
-									  {
-										 hmiPermissions = {
-											allowed = { "BACKGROUND", "FULL", "LIMITED", "NONE" },
-											userDisallowed = {}
-										 },
-										 parameterPermissions = {
-											allowed = {},
-											userDisallowed = {}
-										 },
-										 rpcName = "OnPermissionsChange"
-									  }
-									 }
-						}
+local arrayGroups_nonPrimaryRCNotification = revsdl.arrayGroups_nonPrimaryRCNotification()
 --groups_PrimaryRC Group
 local arrayGroups_PrimaryRC = {
 							permissionItem = {
