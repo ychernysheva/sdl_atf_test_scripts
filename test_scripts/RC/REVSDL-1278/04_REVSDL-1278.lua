@@ -13,33 +13,44 @@ require('cardinalities')
 local events = require('events')
 local mobile_session = require('mobile_session')
 
---======================================REVSDL-994=========================================--
+--List of resultscode
+local RESULTS_CODE = {"SUCCESS", "WARNINGS", "RESUME_FAILED", "WRONG_LANGUAGE"}
+
+
+--======================================REVSDL-1278=========================================--
 ---------------------------------------------------------------------------------------------
-------------REVSDL-1064: "USER_EXIT" of rc-application from vehicle HMI----------------------
+------------REVSDL-1278: HMILevel change for rc-apps from passenger's device ----------------
+---------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------
 --=========================================================================================--
 
---=================================================BEGIN TEST CASES 1==========================================================--
-  --Begin Test suit CommonRequestCheck.1 for Req.#1
+--=================================================BEGIN TEST CASES 4==========================================================--
+  --Begin Test suit CommonRequestCheck.4 for Req.#4
 
-  --Description: 1. In case a remote-control application from passenger's device is in LIMITED HMILevel and RSDL receives BC.OnExitApplication("USER_EXIT") from HMI for this app, RSDL must notify this app via OnHMIStatus(HMILevel: NONE, params)
+  --Description: . --An application with AppHMILevel "NONE" or "BACKGROUND"
 
 
-  --Begin Test case CommonRequestCheck.1
-  --Description:  Passenger's device with HMILevel LIMITED, when RSDL receives BC.OnExitApplication("USER_EXIT"), changing it to NONE
+  --Begin Test case CommonRequestCheck.4.1
+  --Description:  --An application with AppHMIType "REMOTE_CONTROL"
+            --An application with AppHMIType "REMOTE_CONTROL"
+            --From passenger's device
+            --Of LIMITED HMILevel sends an RPC
+            --And this RPC is allowed by app's assigned policies
+            --And this RPC is from "auto_allow" section (see REVSDL-966 for details),
+            --RSDL must not change the HMILevel of this app.
 
     --Requirement/Diagrams id in jira:
-        --REVSDL-994
-        --TC: REVSDL-1335
+        --REVSDL-1278
+        --TC: REVSDL-1329
 
     --Verification criteria:
-        --In case a remote-control application from passenger's device is in LIMITED HMILevel and RSDL receives BC.OnExitApplication("USER_EXIT") from HMI for this app, RSDL must notify this app via OnHMIStatus(HMILevel: NONE, params)
+        --1. Leave passenger's rc-app in LIMITED
 
     -----------------------------------------------------------------------------------------
 
-      --Begin Test case CommonRequestCheck.1.1
+      --Begin Test case CommonRequestCheck.4.1.1
       --Description: application sends ButtonPress as Front Passenger (col=1, row=0, level=0) and ModuleType = RADIO (NONE to LIMITED)
-        function Test:TC1_PassengerLIMITED()
+        function Test:TC4_NONEToLIMITED()
           --mobile side: In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies
           local cid = self.mobileSession:SendRPC("ButtonPress",
           {
@@ -103,35 +114,58 @@ local mobile_session = require('mobile_session')
 
           self.mobileSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
         end
-      --End Test case CommonRequestCheck.1.1
+      --End Test case CommonRequestCheck.4.1.1
 
     -----------------------------------------------------------------------------------------
 
-      --Begin Test case CommonRequestCheck.1.2
-      --Description:
-              --1. HMI sends to RSDL: BasicCommunication.OnExitApplication(USER_EXIT, appID)
-              --2. RSDL returns to App_1: OnHMIStatus(NONE) notification.
-        function Test:TC1_USEREXIT_LIMITEDToNONE()
+      --Begin Test case CommonRequestCheck.4.1.2
+      --Description: From App_1 mobile application, send an RPC which is allowed by App_1's assigned policies and this RPC is from "auto_allow" section. (zone=Driver)
+        function Test:TC4_StillLIMITED()
+          local cid = self.mobileSession:SendRPC("ButtonPress",
+          {
+            zone =
+            {
+              colspan = 2,
+              row = 0,
+              rowspan = 2,
+              col = 0,
+              levelspan = 1,
+              level = 0
+            },
+            moduleType = "RADIO",
+            buttonPressMode = "LONG",
+            buttonName = "VOLUME_UP"
+          })
 
-          --hmi side: HMI send BC.OnExitApplication to Rsdl.
-          self.hmiConnection:SendNotification("BasicCommunication.OnExitApplication", {appID = self.applications["Test Application"], reason = "USER_EXIT"})
+        --hmi side: expect Buttons.ButtonPress request
+        EXPECT_HMICALL("Buttons.ButtonPress",
+                {
+                  zone =
+                  {
+                    colspan = 2,
+                    row = 0,
+                    rowspan = 2,
+                    col = 0,
+                    levelspan = 1,
+                    level = 0
+                  },
+                  moduleType = "RADIO",
+                  buttonPressMode = "LONG",
+                  buttonName = "VOLUME_UP"
+                })
+          :Do(function(_,data)
+            --hmi side: sending Buttons.ButtonPress response
+            self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+          end)
 
-          --mobile side: Check that OnHMIStatus(NONE, deviceRank:Driver) sent by RSDL and received by App1
-          self.mobileSession:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE" })
-          :Timeout(5000)
+          --Mobile side: RSDL doesn't sends OnHMIStatus (BACKGROUND,params)
+          self.mobileSession:ExpectNotification("OnHMIStatus")
+          :Times(0)
 
+          EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
         end
-      -- End Test case CommonRequestCheck.1.2
+      --End Test case CommonRequestCheck.4.1.2
 
     -----------------------------------------------------------------------------------------
-  --End Test case CommonRequestCheck.1
-
---=================================================END TEST CASES 1==========================================================--
-
-
-
-
-
-
-
-return Test
+  --End Test case CommonRequestCheck.4.1
+--=================================================END TEST CASES 4==========================================================--
