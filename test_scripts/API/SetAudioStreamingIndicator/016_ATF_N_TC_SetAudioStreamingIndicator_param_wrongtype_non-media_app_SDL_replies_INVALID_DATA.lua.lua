@@ -1,33 +1,34 @@
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
--- [SetAudioStreamingIndicator] Conditions for SDL must respond IGNORED to media app
+-- [SetAudioStreamingIndicator] SDL must transfer request from mobile app to HMI in case no any failures
+-- [GeneralResultCodes] INVALID_DATA wrong type
 -- [MOBILE_API] SetAudioStreamingIndicator
 -- [HMI_API] [MOBILE_API] AudioStreamingIndicator enum
 -- [PolicyTable] SetAudioStreamingIndicator RPC
 --
 -- Description:
--- In case media app is already set to <AudioStreamingIndicator> and the same media app sends
--- SetAudioStreamingIndicator_request with the same <AudioStreamingIndicator>
--- SDL must: respond with IGNORED, success:false to mobile app
--- SDL must NOT: transfer this SetAudioStreamingIndicator_request to HMI
+-- In case media app sends the invalid SetAudioStreamingIndicator_request to SDL
+-- and this request is allowed by Policies
+-- SDL must NOT transfer SetAudioStreamingIndicator_request to HMI
+-- SDL must respond with result code INVALID_DATA
 --
 -- 1. Used preconditions
 -- Allow SetAudioStreamingIndicator RPC by policy
--- Register and activate media application
--- Send SetAudioStreamingIndicator(audioStreamingIndicator = "PAUSE")
+-- Register and activate non-media application
 --
 -- 2. Performed steps
--- Send again SetAudioStreamingIndicator(audioStreamingIndicator = "PAUSE")
+-- Send SetAudioStreamingIndicator(audioStreamingIndicator = 123),
+-- audioStreamingIndicator has wrong type: integer
 --
 -- Expected result:
--- SDL->mobile: SetAudioStreamingIndicator_response(IGNORED, success:false)
+-- SDL->mobile: SetAudioStreamingIndicator_response(INVALID_DATA, success:false)
 -- SDL must NOT transfer this SetAudioStreamingIndicator_request to HMI
 ---------------------------------------------------------------------------------------------
 
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
-config.application1.registerAppInterfaceParams.appHMIType = {"MEDIA"}
-config.application1.registerAppInterfaceParams.isMediaApplication = true
+config.application1.registerAppInterfaceParams.appHMIType = {"DEFAULT", "TESTING"}
+config.application1.registerAppInterfaceParams.isMediaApplication = false
 
 --[[ Required Shared libraries ]]
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
@@ -51,27 +52,14 @@ function Test:Precondition_ActivateApp()
   EXPECT_NOTIFICATION("OnHMIStatus", {systemContext = "MAIN", hmiLevel = "FULL"})
 end
 
-function Test:Precondition_SetAudioStreamingIndicator_SUCCESS_PAUSE()
-  local corr_id = self.mobileSession:SendRPC("SetAudioStreamingIndicator", { audioStreamingIndicator = "PAUSE" })
-
-  EXPECT_HMICALL("UI.SetAudioStreamingIndicator", { audioStreamingIndicator = "PAUSE" })
-  :Do(function(_,data) self.hmiConnection:SendResponse (data.id, data.method, "SUCCESS") end)
-
-  EXPECT_RESPONSE(corr_id, { success = true, resultCode = "SUCCESS"})
-end
-
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
-function Test:TestStep_SetAudioStreamingIndicator_IGNORED_PAUSE()
-  local corr_id = self.mobileSession:SendRPC("SetAudioStreamingIndicator",
-  {
-    audioStreamingIndicator = "PAUSE",
-    cmdID = 123
-  })
+function Test:TestStep_SetAudioStreamingIndicator_INVALID_DATA_audioStreamingIndicator_interger()
+  local corr_id = self.mobileSession:SendRPC("SetAudioStreamingIndicator", { audioStreamingIndicator = 123 })
   EXPECT_HMICALL("UI.SetAudioStreamingIndicator",{}):Times(0)
 
-  EXPECT_RESPONSE(corr_id, { success = false, resultCode = "IGNORED"})
+  EXPECT_RESPONSE(corr_id, { success = false, resultCode = "INVALID_DATA"})
 end
 
 --[[ Postconditions ]]
