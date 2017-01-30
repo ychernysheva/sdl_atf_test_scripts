@@ -1,27 +1,30 @@
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
--- [SetAudioStreamingIndicator] Conditions for SDL must respond IGNORED to media app
+-- [SetAudioStreamingIndicator] SDL must transfer request from mobile app to HMI in case no any failures
 -- [MOBILE_API] SetAudioStreamingIndicator
 -- [HMI_API] [MOBILE_API] AudioStreamingIndicator enum
+-- [HMI_API] SetAudioStreamingIndicator
 -- [PolicyTable] SetAudioStreamingIndicator RPC
 --
 -- Description:
--- In case media app is already set to <AudioStreamingIndicator> and the same media app sends
--- SetAudioStreamingIndicator_request with the same <AudioStreamingIndicator>
--- SDL must: respond with IGNORED, success:false to mobile app
--- SDL must NOT: transfer this SetAudioStreamingIndicator_request to HMI
+-- In case media app sends the valid SetAudioStreamingIndicator_request to SDL
+-- and this request is allowed by Policies
+-- SDL must:
+-- transfer SetAudioStreamingIndicator_request to HMI
+-- respond with <resultCode> received from HMI to mobile app (please see table 'Expected resultCodes from HMI' below)
 --
 -- 1. Used preconditions
 -- Allow SetAudioStreamingIndicator RPC by policy
 -- Register and activate media application
--- Send SetAudioStreamingIndicator(audioStreamingIndicator = "PLAY")
 --
 -- 2. Performed steps
--- Send again SetAudioStreamingIndicator(audioStreamingIndicator = "PLAY")
+-- Send SetAudioStreamingIndicator(audioStreamingIndicator = "PLAY_PAUSE", fake parameter)
+-- HMI->SDL: UI.SetAudioStreamingIndicator(resultcode: "SUCCESS")
 --
 -- Expected result:
--- SDL->mobile: SetAudioStreamingIndicator_response(IGNORED, success:false)
--- SDL must NOT transfer this SetAudioStreamingIndicator_request to HMI
+-- SDL->HMI: UI.SetAudioStreamingIndicator(audioStreamingIndicator = "PLAY_PAUSE")
+-- fake parameter is ignored
+-- SDL->mobile: SetAudioStreamingIndicator_response("SUCCESS", success:true)
 ---------------------------------------------------------------------------------------------
 
 --[[ General configuration parameters ]]
@@ -51,27 +54,29 @@ function Test:Precondition_ActivateApp()
   EXPECT_NOTIFICATION("OnHMIStatus", {systemContext = "MAIN", hmiLevel = "FULL"})
 end
 
-function Test:Precondition_SetAudioStreamingIndicator_SUCCESS_PLAY()
-  local corr_id = self.mobileSession:SendRPC("SetAudioStreamingIndicator", { audioStreamingIndicator = "PLAY" })
-
-  EXPECT_HMICALL("UI.SetAudioStreamingIndicator", { audioStreamingIndicator = "PLAY" })
-  :Do(function(_,data) self.hmiConnection:SendResponse (data.id, data.method, "SUCCESS") end)
-
-  EXPECT_RESPONSE(corr_id, { success = true, resultCode = "SUCCESS"})
-end
-
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
-function Test:TestStep_SetAudioStreamingIndicator_IGNORED_PLAY()
+function Test:TestStep_SetAudioStreamingIndicator_SUCCESS_audioStreamingIndicator_PLAY_PAUSE_fakeparam()
   local corr_id = self.mobileSession:SendRPC("SetAudioStreamingIndicator",
-  {
-    audioStreamingIndicator = "PLAY",
-    menuTitle = "fake parameter"
-  })
-  EXPECT_HMICALL("UI.SetAudioStreamingIndicator",{}):Times(0)
+		{
+			audioStreamingIndicator = "PLAY_PAUSE",
+			appName = "fake parameter"
+		})
 
-  EXPECT_RESPONSE(corr_id, { success = false, resultCode = "IGNORED"})
+  EXPECT_HMICALL("UI.SetAudioStreamingIndicator", { audioStreamingIndicator = "PLAY_PAUSE" })
+  :Do(function(_,data) self.hmiConnection:SendResponse (data.id, data.method, "SUCCESS") end)
+	:ValidIf(function(_,data) 
+    if(data.params.appName ~= nil) then
+			commonFunctions:printError("ERROR: SDL transfers fake parameter appName")
+			return false
+    else
+      return true
+		end
+  end)
+
+  EXPECT_RESPONSE(corr_id, { success = true, resultCode = "SUCCESS"})
+  EXPECT_NOTIFICATION("OnHashChange",{}):Times(0)
 end
 
 --[[ Postconditions ]]
