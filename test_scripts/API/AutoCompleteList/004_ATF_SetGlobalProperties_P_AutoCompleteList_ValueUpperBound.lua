@@ -1,15 +1,17 @@
 ----------------------------------------------------------------------------------------
 -- Requirement summary:
--- [SetGlobalProperties] Conditions for SDL SDL respond <success = true, resultCode = "SUCCESS"> to mobile app
+-- [SetGlobalProperties] SDL must transfer request to HMI in case of "autoCompleteList" param have value is UpperBound
 --
 -- Description:
--- SDL must: tranfer SetGlobalProperties_request with <autoCompleteList> param param to HMI
--- respond with <resultCode_received_from _HMI> to mobile app
+-- Case when SDL tranfer SetGlobalProperties_request with <autoCompleteList> param to HMI
+-- respond with  <success = true, resultCode = "SUCCESS"> to mobile app
 --
 -- Performed steps:
 -- 1. Register Application.
--- 2. Mobile send RPC SetGlobalProperties with <autoCompleteList>  array is upper bound.
--- 3. SDL respond <success = true, resultCode = "SUCCESS"> to mobile app
+-- 2. Mobile send RPC SetGlobalProperties with <autoCompleteList>  string in array is upper bound.
+--
+-- Expected result:
+-- SDL respond <success = true, resultCode = "SUCCESS"> to mobile app
 ----------------------------------------------------------------------------------------
 ---[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
@@ -29,7 +31,7 @@ require('user_modules/AppTypes')
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
-function Test:TestStep_AutoCompleteList_Array_Is_UpperBound()
+function Test:TestStep_AutoCompleteList_String_in_Array_Is_UpperBound()
 --mobile side: sending SetGlobalProperties request
 local cid = self.mobileSession:SendRPC("SetGlobalProperties",
     {
@@ -43,26 +45,7 @@ local cid = self.mobileSession:SendRPC("SetGlobalProperties",
         },
         language = "EN-US",
         autoCompleteText = "Text_1, Text_2",
-        autoCompleteList ={"TestList_100","TestList_100","TestList_100","TestList_100","TestList_100",
-			  "TestList_100","TestList_100","TestList_100","TestList_100","TestList_100",
-			  "TestList_100","TestList_100","TestList_100","TestList_100","TestList_100",
-			  "TestList_100","TestList_100","TestList_100","TestList_100","TestList_100",
-			  "TestList_100","TestList_100","TestList_100","TestList_100","TestList_100",
-			  "TestList_100","TestList_100","TestList_100","TestList_100","TestList_100",
-			  "TestList_100","TestList_100","TestList_100","TestList_100","TestList_100",
-			  "TestList_100","TestList_100","TestList_100","TestList_100","TestList_100",
-			  "TestList_100","TestList_100","TestList_100","TestList_100","TestList_100",
-			  "TestList_100","TestList_100","TestList_100","TestList_100","TestList_100",
-			  "TestList_100","TestList_100","TestList_100","TestList_100","TestList_100",
-			  "TestList_100","TestList_100","TestList_100","TestList_100","TestList_100",
-			  "TestList_100","TestList_100","TestList_100","TestList_100","TestList_100",
-			  "TestList_100","TestList_100","TestList_100","TestList_100","TestList_100",
-			  "TestList_100","TestList_100","TestList_100","TestList_100","TestList_100",
-			  "TestList_100","TestList_100","TestList_100","TestList_100","TestList_100",
-			  "TestList_100","TestList_100","TestList_100","TestList_100","TestList_100",
-			  "TestList_100","TestList_100","TestList_100","TestList_100","TestList_100",
-			  "TestList_100","TestList_100","TestList_100","TestList_100","TestList_100",
-                          "TestList_100","TestList_100","TestList_100","TestList_100","TestList_100"}
+        autoCompleteList = {"upperbound", "upperboundupperboundupperboundupperboundupperbound"}
       }
     })
   --hmi side: expect UI.SetGlobalProperties request
@@ -77,26 +60,7 @@ local cid = self.mobileSession:SendRPC("SetGlobalProperties",
           "a"
         },
         language = "EN-US",
-        autoCompleteList ={"TestList_100","TestList_100","TestList_100","TestList_100","TestList_100",
-			  "TestList_100","TestList_100","TestList_100","TestList_100","TestList_100",
-			  "TestList_100","TestList_100","TestList_100","TestList_100","TestList_100",
-			  "TestList_100","TestList_100","TestList_100","TestList_100","TestList_100",
-			  "TestList_100","TestList_100","TestList_100","TestList_100","TestList_100",
-			  "TestList_100","TestList_100","TestList_100","TestList_100","TestList_100",
-			  "TestList_100","TestList_100","TestList_100","TestList_100","TestList_100",
-			  "TestList_100","TestList_100","TestList_100","TestList_100","TestList_100",
-			  "TestList_100","TestList_100","TestList_100","TestList_100","TestList_100",
-			  "TestList_100","TestList_100","TestList_100","TestList_100","TestList_100",
-			  "TestList_100","TestList_100","TestList_100","TestList_100","TestList_100",
-			  "TestList_100","TestList_100","TestList_100","TestList_100","TestList_100",
-			  "TestList_100","TestList_100","TestList_100","TestList_100","TestList_100",
-			  "TestList_100","TestList_100","TestList_100","TestList_100","TestList_100",
-			  "TestList_100","TestList_100","TestList_100","TestList_100","TestList_100",
-			  "TestList_100","TestList_100","TestList_100","TestList_100","TestList_100",
-			  "TestList_100","TestList_100","TestList_100","TestList_100","TestList_100",
-			  "TestList_100","TestList_100","TestList_100","TestList_100","TestList_100",
-			  "TestList_100","TestList_100","TestList_100","TestList_100","TestList_100",
-                          "TestList_100","TestList_100","TestList_100","TestList_100","TestList_100"}
+        autoCompleteList = {"upperbound", "upperboundupperboundupperboundupperboundupperbound"}
       }
     })
   :Do(function(_,data)
@@ -114,5 +78,3 @@ commonFunctions:newTestCasesGroup("Postconditions")
 function Test.Postcondition_SDLStop()
   StopSDL()
 end
-
-
