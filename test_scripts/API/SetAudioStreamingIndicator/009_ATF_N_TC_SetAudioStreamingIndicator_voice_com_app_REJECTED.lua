@@ -12,7 +12,7 @@
 -- 1. Used preconditions
 -- Allow SetAudioStreamingIndicator RPC by policy
 -- Register and activate first voice-com application, isMediaApplication = false
--- Register and activate second voice-com application, isMediaApplication = false
+-- Register and activate second voice-com application, isMediaApplication = true
 --
 -- 2. Performed steps
 -- Send SetAudioStreamingIndicator(audioStreamingIndicator = "PLAY")
