@@ -17,7 +17,7 @@
 -- Send SetAudioStreamingIndicator(audioStreamingIndicator = "PLAY_PAUSE")
 --
 -- 2. Performed steps
--- Send again SetAudioStreamingIndicator(audioStreamingIndicator = "PLAY_PAUSE")
+-- Send again SetAudioStreamingIndicator(audioStreamingIndicator = "PLAY_PAUSE", appName = "fake parameter")
 --
 -- Expected result:
 -- SDL->mobile: SetAudioStreamingIndicator_response(IGNORED, success:false)
