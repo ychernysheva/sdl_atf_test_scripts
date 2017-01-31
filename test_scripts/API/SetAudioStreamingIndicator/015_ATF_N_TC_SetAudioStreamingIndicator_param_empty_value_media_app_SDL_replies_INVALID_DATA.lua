@@ -17,8 +17,8 @@
 -- Register and activate media application
 --
 -- 2. Performed steps
--- Send SetAudioStreamingIndicator(audioStreamingIndicator = nil),
--- audioStreamingIndicator has empty
+-- Send SetAudioStreamingIndicator(audioStreamingIndicator = ""),
+-- audioStreamingIndicator is empty
 --
 -- Expected result:
 -- SDL->mobile: SetAudioStreamingIndicator_response(INVALID_DATA, success:false)
@@ -56,7 +56,7 @@ end
 commonFunctions:newTestCasesGroup("Test")
 
 function Test:TestStep_SetAudioStreamingIndicator_INVALID_DATA_audioStreamingIndicator_empty()
-  local corr_id = self.mobileSession:SendRPC("SetAudioStreamingIndicator", { audioStreamingIndicator = nil })
+  local corr_id = self.mobileSession:SendRPC("SetAudioStreamingIndicator", { audioStreamingIndicator = "" })
   EXPECT_HMICALL("UI.SetAudioStreamingIndicator",{}):Times(0)
 
   EXPECT_RESPONSE(corr_id, { success = false, resultCode = "INVALID_DATA"})
