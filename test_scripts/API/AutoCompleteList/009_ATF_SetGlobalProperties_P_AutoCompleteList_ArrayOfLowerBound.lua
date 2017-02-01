@@ -1,15 +1,17 @@
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
--- [SetGlobalProperties] Conditions for SDL SDL respond <success = true, resultCode = "SUCCESS"> to mobile app
+-- [SetGlobalProperties] Conditions for SDL  must transfer request in case of valid "autoCompleteList" param 
 --
 -- Description:
 -- SDL must: tranfer SetGlobalProperties_request with <autoCompleteList> param param to HMI
--- respond with <resultCode_received_from _HMI> to mobile app
+-- respond with <SUCCESS> to mobile app
 --
 -- Performed steps:
 -- 1. Register Application.
--- 2. Mobile send RPC SetGlobalProperties with <autoCompleteList> string in array is lower bound.
--- 3. SDL respond <success = true, resultCode = "SUCCESS"> to mobile app
+-- 2. Mobile send RPC SetGlobalProperties with <autoCompleteList> array is lower bound.
+--
+-- Expected result:
+-- SDL respond <success = true, resultCode = "SUCCESS"> to mobile app
 ---------------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
@@ -64,7 +66,7 @@ function Test:AutoCompleteList_Array_Is_LowerBound()
     })
   :Do(function(_,data)
       self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-    end)
+  end)
   --mobile side: expect SetGlobalProperties response
     EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
  --mobile side: expecting OnHashChange notification
