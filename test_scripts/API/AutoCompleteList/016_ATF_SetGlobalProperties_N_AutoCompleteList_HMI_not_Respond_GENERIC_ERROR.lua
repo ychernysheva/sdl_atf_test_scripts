@@ -1,16 +1,18 @@
 --------------------------------------------------------------------------------------------
 -- Requirement summary:
--- [SetGlobalProperties] Conditions for SDL SDL respond <success = false, resultCode = "GENERIC_ERROR"> to mobile app
+-- [SetGlobalProperties] Conditions for SDL respond <success = false, resultCode = "GENERIC_ERROR"> to mobile app
 --
 -- Description:
--- SDL must: tranfer SetGlobalProperties_request with <autoCompleteList> param param to HMI
--- respond with <resultCode_received_from _HMI> to mobile app
+-- Case when SDL tranfer SetGlobalProperties_request with <autoCompleteList> param to HMI, HMI doesn't respond,
+-- SDL respond with <GENERIC_ERROR> to mobile app
 --
 -- Performed steps:
 -- 1. Register Application.
 -- 2. Mobile send RPC SetGlobalProperties with <autoCompleteList> 
 -- 3. HMI does NOT respond during <DefaultTimeout>
--- 4. SDL respond <success = false, resultCode = "GENERIC_ERROR"> to mobile app
+--
+-- Expected result:
+-- SDL respond <success = false, resultCode = "GENERIC_ERROR"> to mobile app
 ---------------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
@@ -48,8 +50,23 @@ function  Test:SetGlobalProperties_WithNotResponse_from_HMI()
         autoCompleteList = {"List_1, List_2", "List_1, List_2"}
       }
     })
---hmi side: Default timeout, SDL recieved GENERIC_ERROR
-EXPECT_RESPONSE(cid, {success = false, resultCode = "GENERIC_ERROR"})
+  --hmi side: Default timeout, SDL recieved GENERIC_ERROR
+    EXPECT_HMICALL ("UI.SetGlobalProperties", 
+       {
+         keyboardProperties =
+         {
+           keyboardLayout = "QWERTY",
+           keypressMode = "SINGLE_KEYPRESS",
+           limitedCharacterList =
+             {
+              "a"
+             },
+             language = "EN-US",
+             autoCompleteList = {"List_1, List_2", "List_1, List_2"}
+           }
+        })
+    :Times(0)
+   EXPECT_RESPONSE(cid, {success = false, resultCode = "GENERIC_ERROR"})
 end
 
 --[[ Postconditions ]]
