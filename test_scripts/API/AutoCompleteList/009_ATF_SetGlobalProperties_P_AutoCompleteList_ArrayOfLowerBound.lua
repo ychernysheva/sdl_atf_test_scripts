@@ -29,7 +29,6 @@ Test = require('connecttest')
 require('cardinalities')
 require('user_modules/AppTypes')
 
-
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 function Test:AutoCompleteList_Array_Is_LowerBound()
