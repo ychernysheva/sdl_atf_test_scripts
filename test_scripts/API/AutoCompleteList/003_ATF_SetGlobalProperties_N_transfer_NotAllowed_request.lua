@@ -1,15 +1,17 @@
 -----------------------------------------------------------------------------------------------------------------------
 -- Requirement summary:
--- [SetGlobalProperties] Conditions for SDL SDL respond <success = false, resultCode = "DISALLOWED"> to mobile app
+-- [SetGlobalProperties] Conditions SDL respond <success = false, resultCode = "DISALLOWED"> to mobile app, SetGlobalProperties disallowed.
 --
 -- Description:
--- SDL doesn’t transfer not allowed "SetGlobalProperties"_request with valid ""autoCompleteList" param to HMI
--- respond with <resultCode_received_from _HMI> to mobile app
+-- Case when SDL doesn’t transfer not allowed "SetGlobalProperties" request with valid "autoCompleteList" param to HMI
+-- respond with result code "DISALLOWED" to mobile app.
 --
 -- Performed steps:
 -- 1. Register Application.
 -- 2. Mobile send RPC SetGlobalProperties with <autoCompleteList>.
--- 3. SDL respond <success = true, resultCode = "DISALLOWED"> to mobile app
+-- 
+-- Expected result:
+-- SDL respond <success = false, resultCode = "DISALLOWED"> to mobile app
 -----------------------------------------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
@@ -29,7 +31,7 @@ require('cardinalities')
 local mobile_session = require('mobile_session')
 require('user_modules/AppTypes')
 
---[[ Local Functions ]]
+--[[ Local Variables ]]
 local registerAppInterfaceParams =
   {
     syncMsgVersion =
@@ -53,6 +55,7 @@ local registerAppInterfaceParams =
     }
   }
 
+--[[ Local Functions ]]
 local function UpdatePreloadedJson_DisallowSetGlobalPropertiesRPC()
   local pathToFile = config.pathToSDL .. 'sdl_preloaded_pt.json'
   local file = io.open(pathToFile, "r")
@@ -88,33 +91,33 @@ function Test.Precondition_Backup_preloadedPT()
   commonPreconditions:BackupFile("sdl_preloaded_pt.json")
 end
 
-function Test.DisallowSetGlobalProperties()
+function Test.Precondition_DisallowSetGlobalProperties()
   UpdatePreloadedJson_DisallowSetGlobalPropertiesRPC()
 end
 
---[[Test]]
-commonFunctions:newTestCasesGroup("Test")
-function Test:TestStep_StartSDL_With_DISALLOWED_SetGlobalProperties()
+function Test:Precondition_StartSDL_With_DISALLOWED_SetGlobalProperties()
   StartSDL(config.pathToSDL, config.ExitOnCrash, self)
 end
 
-function Test:TestStep_initHMI()
+function Test:Precondition_initHMI()
   self:initHMI()
 end
 
-function Test:TestStep_initHMI_onReady()
+function Test:Precondition_initHMI_onReady()
   self:initHMI_onReady()
 end
 
-function Test:TestStep_ConnectMobile()
+function Test:Precondition_ConnectMobile()
   self:connectMobile()
 end
 
-function Test:TestStep_CreateSession()
+function Test:Precondition_CreateSession()
   self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
   self.mobileSession:StartService(7)
 end
 
+--[[Test]]
+commonFunctions:newTestCasesGroup("Test")
 function Test:TestStep_RegisterApplication()
  local corId = self.mobileSession:SendRPC("RegisterAppInterface", registerAppInterfaceParams)
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = "Media Application" }})
