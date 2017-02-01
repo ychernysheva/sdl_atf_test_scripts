@@ -1,15 +1,16 @@
 --------------------------------------------------------------------------------------------
 -- Requirement summary:
--- [SetGlobalProperties] Conditions for SDL SDL respond <success = false, resultCode = "INVALID_DATA"> to mobile app
+-- [SetGlobalProperties] Conditions for SDL respond <success = false, resultCode = "INVALID_DATA"> to mobile app.
 --
 -- Description:
--- SDL must: tranfer SetGlobalProperties_request with <autoCompleteList> param param to HMI
--- respond with <resultCode_received_from _HMI> to mobile app
+-- Case when SDL respond with <INVALID_DATA> to mobile app if <autoCompleteList> param have value with tabulation.
 --
 -- Performed steps:
 -- 1. Register Application.
 -- 2. Mobile send RPC SetGlobalProperties with <autoCompleteList> is array of string with tabulation.
--- 3. SDL respond <success = false, resultCode = "INVALID_DATA"> to mobile app
+--
+-- Expected result:
+-- SDL respond <success = false, resultCode = "INVALID_DATA"> to mobile app
 ----------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
@@ -55,5 +56,3 @@ commonFunctions:newTestCasesGroup("Postconditions")
 function Test.Postcondition_SDLStop()
   StopSDL()
 end
-
-
