@@ -1,17 +1,18 @@
 --------------------------------------------------------------------------------------------
 -- Requirement summary:
--- [SetGlobalProperties] Conditions for SDL SDL respond <success = false, resultCode = "GENERIC_ERROR"> to mobile app
+-- [SetGlobalProperties]  SDL respond <success = false, resultCode = "GENERIC_ERROR"> to mobile app.
 --
 -- Description:
--- SDL must: tranfer SetGlobalProperties_request with <autoCompleteList> param param to HMI
--- respond with <resultCode_received_from _HMI> to mobile app
+-- Case when SDL tranfer SetGlobalProperties_request with <autoCompleteList> param to HMI
+-- respond with <"GENERIC_ERROR"> to mobile app if HMI answered with invalid value of valid param.
 --
 -- Performed steps:
 -- 1. Register Application.
 -- 2. Mobile send RPC SetGlobalProperties with <autoCompleteList> 
 -- 3. HMI send responce on SDL with invalid value of valid param and other valid params with valid values.
--- 4. SDL respond <success = false, resultCode = "GENERIC_ERROR"> to mobile app
-
+-- 
+-- Expected result:
+-- SDL respond <success = false, resultCode = "GENERIC_ERROR"> to mobile app
 ---------------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
@@ -96,4 +97,3 @@ commonFunctions:newTestCasesGroup("Postconditions")
 function Test.Postcondition_SDLStop()
   StopSDL()
 end
-
