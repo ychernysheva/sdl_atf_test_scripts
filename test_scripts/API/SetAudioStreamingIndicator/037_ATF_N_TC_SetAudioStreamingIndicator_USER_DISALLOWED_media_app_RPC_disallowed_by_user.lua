@@ -60,7 +60,7 @@ local function create_ptu_SetAudioStreamingIndicator_group()
     data.policy_table.functional_groupings["DataConsent-2"].rpcs = { json.null }
   end
 
-  data.policy_table.functional_groupings["Base-4"].rpcs.SetAudioStreamingIndicator = json.null
+  data.policy_table.functional_groupings["Base-4"].rpcs.SetAudioStreamingIndicator = nil
   data.policy_table.functional_groupings["Testing_group"] = {
     user_consent_prompt = "Purpose_of_Test",
     rpcs = {
@@ -236,7 +236,7 @@ end
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
-function Test:TestStep_SetAudioStreamingIndicator_GENERIC_ERROR_audioStreamingIndicator_PAUSE_HMI_replies_empty_value()
+function Test:TestStep_SetAudioStreamingIndicator_USER_Disallowed_RPC_disallowed_by_user()
   local corr_id = self.mobileSession:SendRPC("SetAudioStreamingIndicator", { audioStreamingIndicator = "PAUSE" })
 
   EXPECT_HMICALL("UI.SetAudioStreamingIndicator", {}):Times(0)
