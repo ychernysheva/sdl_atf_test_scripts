@@ -88,7 +88,7 @@ for ind = 1, #params_invalid_data do
         audioPassThruIcon =
         {
           value = params_invalid_data[ind].param_value,
-          imageType = "STATIC"
+          imageType = "DYNAMIC"
         }
       })
 
