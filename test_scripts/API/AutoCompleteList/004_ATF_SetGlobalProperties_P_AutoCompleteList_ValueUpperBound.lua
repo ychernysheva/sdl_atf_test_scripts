@@ -1,6 +1,6 @@
 ----------------------------------------------------------------------------------------
 -- Requirement summary:
--- [SetGlobalProperties] SDL must transfer request to HMI in case of "autoCompleteList" param have value is UpperBound
+-- [SetGlobalProperties] Conditions for SDL must transfer request to HMI in case of "autoCompleteList" param have value is UpperBound
 --
 -- Description:
 -- Case when SDL tranfer SetGlobalProperties_request with <autoCompleteList> param to HMI
