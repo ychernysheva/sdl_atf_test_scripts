@@ -78,4 +78,3 @@ commonFunctions:newTestCasesGroup("Postconditions")
 function Test.Postcondition_SDLStop()
   StopSDL()
 end
-
