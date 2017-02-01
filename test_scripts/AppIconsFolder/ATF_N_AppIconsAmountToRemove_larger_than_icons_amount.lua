@@ -39,12 +39,8 @@ local file
 local fileContent
 local status = true
 local fileContentUpdated
-local SDLini = config.pathToSDL .. tostring("smartDeviceLink.ini")
+local SDLini = config.pathToSDL .. ("smartDeviceLink.ini")
 local RAIParameters = config.application1.registerAppInterfaceParams
-local applicationFileToCheck = config.pathToSDL .. tostring("Icons/" .. RAIParameters.appID)
-local firstOldFileToCheck = config.pathToSDL .. tostring("Icons/icon1.png")
-local secondOldFileToCheck = config.pathToSDL .. tostring("Icons/icon2.png")
-local thirdOldFileToCheck = config.pathToSDL .. tostring("Icons/icon3.png")
 
 --[[ Local functions ]]
 local function registerApplication(self)
@@ -79,37 +75,11 @@ local function checkFileExistence(name, messages)
   end
 end
 
---Check path to SDL in case last symbol is not'/' add '/'
-local function checkSDLPathValue()
-  local findResult = string.find (config.pathToSDL, '.$')
-  if string.sub(config.pathToSDL,findResult) ~= "/" then
-    config.pathToSDL = config.pathToSDL..tostring("/")
-  end
-end
-
 -- Generate path to application folder
 local function pathToAppFolderFunction(appID)
-  checkSDLPathValue()
+  commonSteps:CheckSDLPath()
   local path = config.pathToSDL .. tostring("storage/") .. tostring(appID) .. "_" .. tostring(config.deviceMAC) .. "/"
   return path
-end
-
--- Check directory existence
-local function checkDirectoryExistence(DirectoryPath)
-  local returnValue
-  local command = assert( io.popen(  "[ -d " .. tostring(DirectoryPath) .. " ] && echo \"Exist\" || echo \"NotExist\"" , 'r'))
-  os.execute("sleep 0.5")
-  local commandResult = tostring(command:read( '*l' ))
-    if commandResult == "NotExist" then
-      returnValue = false
-    elseif
-      commandResult == "Exist" then
-      returnValue =  true
-    else
-      commonFunctions:userPrint(31," Unexpected result in checkDirectoryExistence function, commandResult = " .. tostring(commandResult))
-      returnValue = false
-    end
-    return returnValue
 end
 
 -- Get folder size
@@ -135,29 +105,29 @@ end
 local function makeAppIconsFolderFull(AppIconsFolder)
   local sizeToFull
   local sizeAppIconsFolderInBytes = dSize(config.pathToSDL .. tostring(AppIconsFolder))
-  sizeToFull = 1048576 - sizeAppIconsFolderInBytes
+  local appIconsFolderMaxSize = 1048576
+  local oneIconSize = 326360
+  sizeToFull = appIconsFolderMaxSize - sizeAppIconsFolderInBytes
   local i =1
-  while sizeToFull > 326360 do
-    os.execute("sleep " .. tonumber(10))
+  while sizeToFull > oneIconSize do
+    os.execute("sleep 10")
     local copyFileToAppIconsFolder = assert( os.execute( "cp files/icon.png " .. tostring(config.pathToSDL) .. tostring(AppIconsFolder) .. "/icon" .. tostring(i) ..".png"))
     i = i + 1
     if copyFileToAppIconsFolder ~= true then
       commonFunctions:userPrint(31, " Files are not copied to " .. tostring(AppIconsFolder))
     end
-    sizeAppIconsFolderInBytes = dSize(config.pathToSDL .. tostring(AppIconsFolder))
-    sizeToFull = 1048576 - sizeAppIconsFolderInBytes
-    if i > 50 then
-      commonFunctions:userPrint(31, " Loop is breaking due to a lot of iterations ")
-      break
+     sizeAppIconsFolderInBytes = dSize(config.pathToSDL .. tostring(AppIconsFolder))
+     sizeToFull = appIconsFolderMaxSize - sizeAppIconsFolderInBytes
+      if i > 10 then
+        commonFunctions:userPrint(31, " Loop is breaking due to a lot of iterations ")
+        break
     end
   end
 end
 
 local function checkFunction()
+  local applicationFileToCheck = config.pathToSDL .. tostring("Icons/" .. RAIParameters.appID)
   local applicationFileExistsResult = checkFileExistence(applicationFileToCheck)
-  local firstFileExistsResult = checkFileExistence(firstOldFileToCheck)
-  local secondFileExistsResult = checkFileExistence(secondOldFileToCheck)
-  local thirdFileExistsResult = checkFileExistence(thirdOldFileToCheck)
   local aHandle = assert( io.popen( "ls " .. config.pathToSDL .. "Icons/" , 'r'))
   local listOfFilesInStorageFolder = aHandle:read( '*a' )
   commonFunctions:userPrint(32, "Content of storage folder: " ..tostring("\n" ..listOfFilesInStorageFolder))
@@ -166,12 +136,13 @@ local function checkFunction()
     commonFunctions:userPrint(31, tostring(RAIParameters.appID) .. " icon is absent")
     status = false
   end
-  if 
-    firstFileExistsResult ~= false or
-    secondFileExistsResult ~= false or
-    thirdFileExistsResult ~= false then
-    commonFunctions:userPrint(31,"Oldest icons are not deleted from AppIconsFolder")
-    status = false
+  
+  for i=1, 3, 1 do
+    local oldFileToCheck = config.pathToSDL .. tostring(AppIconsFolder).. "/icon" .. tostring(i) ..".png"
+    if oldFileToCheck~=false then
+      commonFunctions:userPrint(31,"Oldest icon" .. tostring(i).. ".png is not deleted from AppIconsFolder")
+      status = false
+    end
   end
     return status
 end
@@ -185,66 +156,20 @@ function Test.Precondition_stopSDL()
 end 
 
 function Test.Precondition_configureAppIconsFolder()
-  checkSDLPathValue()
-  local appIconsFolderValueToReplace = "Icons"
-  local stringToReplace = "AppIconsFolder = " .. tostring(appIconsFolderValueToReplace) .. "\n"
-  file = assert(io.open(SDLini, "r"))
-  if file then
-    fileContent = file:read("*all")
-    local matchResult = string.match(fileContent, "AppIconsFolder%s-=%s-.-%s-\n")
-    if matchResult ~= nil then
-      fileContentUpdated  =  string.gsub(fileContent, matchResult, stringToReplace)
-      file = assert(io.open(SDLini, "w"))
-      file:write(fileContentUpdated)
-    else
-      commonFunctions:userPrint(31, "'AppIconsFolder = value' is not found. Expected string finding and replacing value with " .. tostring(appIconsFolderValueToReplace))
-    end
-    file:close()
-  end
+  commonFunctions:SetValuesInIniFile("AppIconsFolder%s-=%s-.-%s-\n", "AppIconsFolder", 'Icons')
 end
  
 function Test.Precondition_configureAppIconsFolderMaxSize()
-  checkSDLPathValue()
-  local appIconsFolderMaxSizeValueToReplace = "1048576"
-  local stringToReplace = "AppIconsFolderMaxSize = " .. tostring(appIconsFolderMaxSizeValueToReplace) .. "\n"
-  file = assert(io.open(SDLini, "r"))
-  if file then
-    fileContent = file:read("*all")
-    local matchResult = string.match(fileContent, "AppIconsFolderMaxSize%s-=%s-.-%s-\n")
-    if matchResult ~= nil then
-      fileContentUpdated  =  string.gsub(fileContent, matchResult, stringToReplace)
-      file = assert(io.open(SDLini, "w"))
-      file:write(fileContentUpdated)
-    else
-      commonFunctions:userPrint(31, "'AppIconsFolderMaxSize = value' is not found. Expected string finding and replacing value with " .. tostring(appIconsFolderMaxSizeValueToReplace))
-    end
-    file:close()
-  end
+  commonFunctions:SetValuesInIniFile("AppIconsFolderMaxSize%s-=%s-.-%s-\n", "AppIconsFolderMaxSize", 1048576)
 end
 
 function Test.Precondition_configureAppIconsAmountToRemove()
-  checkSDLPathValue()
-  local appIconsAmountToRemoveValueToReplace = "100"
-  local stringToReplace = "AppIconsAmountToRemove = " .. tostring(appIconsAmountToRemoveValueToReplace) .. "\n"
-  file = assert(io.open(SDLini, "r"))
-  if file then
-    fileContent = file:read("*all")
-    local matchResult = string.match(fileContent, "AppIconsAmountToRemove%s-=%s-.-%s-\n")
-    if matchResult ~= nil then
-      fileContentUpdated  =  string.gsub(fileContent, matchResult, stringToReplace)
-      file = assert(io.open(SDLini, "w"))
-      file:write(fileContentUpdated)
-    else
-      commonFunctions:userPrint(31, "'AppIconsAmountToRemove = value' is not found. Expected string finding and replacing value with " .. tostring(appIconsAmountToRemoveValueToReplace))
-    end
-    file:close()
-  end
+  commonFunctions:SetValuesInIniFile("AppIconsAmountToRemove%s-=%s-.-%s-\n", "AppIconsAmountToRemove", 100)
 end
  
 function Test.Precondition_removeAppIconsFolder()
-  checkSDLPathValue()
   local addedFolderInScript = "Icons"
-  local existsResult = checkDirectoryExistence( tostring(config.pathToSDL .. addedFolderInScript))
+    local existsResult = commonSteps:Directory_exist(tostring(config.pathToSDL .. addedFolderInScript))
   if existsResult == true then
     local rmAppIconsFolder  = assert( os.execute( "rm -rf " .. tostring(config.pathToSDL .. addedFolderInScript)))
     if rmAppIconsFolder ~= true then
