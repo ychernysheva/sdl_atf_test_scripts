@@ -1,15 +1,17 @@
 -----------------------------------------------------------------------------------------
 -- Requirement summary:
--- [SetGlobalProperties] Conditions for SDL SDL respond <success = false, resultCode = "INVALID_DATA"> to mobile app
+-- [SetGlobalProperties] Conditions for SDL respond <success = false, resultCode = "INVALID_DATA"> to mobile app.
 --
 -- Description:
--- SDL must: tranfer SetGlobalProperties_request with <autoCompleteList> param param to HMI
--- respond with <resultCode_received_from _HMI> to mobile app
+-- Case when SDL should respond with result code <success = false, resultCode = "INVALID_DATA"> 
+-- on request with <autoCompleteList> param which have string in array is out lower bound, to mobile app.
 --
 -- Performed steps:
 -- 1. Register Application.
 -- 2. Mobile send RPC SetGlobalProperties with <autoCompleteList> string in array is out lower bound.
--- 3. SDL respond <success = false, resultCode = "INVALID_DATA"> to mobile app
+--
+-- Expected result:
+-- SDL respond <success = false, resultCode = "INVALID_DATA"> to mobile app
 ----------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
@@ -29,7 +31,6 @@ require('user_modules/AppTypes')
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
-
 function Test:AutoCompleteList_String_In_Array_IsOut_LowerBound()
   --mobile side: sending SetGlobalProperties request
  local cid = self.mobileSession:SendRPC("SetGlobalProperties",
@@ -44,7 +45,7 @@ function Test:AutoCompleteList_String_In_Array_IsOut_LowerBound()
         },
         language = "EN-US",
         autoCompleteText = "Text_1, Text_2",
-        autoCompleteList = {"upperbound", ""}
+        autoCompleteList = {"valueAutoCompleteList", " "}
       }
     })
   --mobile side: expect SetGlobalProperties response
@@ -56,5 +57,3 @@ commonFunctions:newTestCasesGroup("Postconditions")
 function Test.Postcondition_SDLStop()
   StopSDL()
 end
-
-
