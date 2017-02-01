@@ -1,14 +1,14 @@
 --------------------------------------------------------------------------------------------
 -- Requirement summary:
--- [SetGlobalProperties] Conditions for SDL SDL respond <success = false, resultCode = "INVALID_DATA"> to mobile app
+-- [SetGlobalProperties] Conditions for SDL respond <success = false, resultCode = "INVALID_DATA"> to mobile app
 --
 -- Description:
--- SDL must: tranfer SetGlobalProperties_request with <autoCompleteList> param param to HMI
--- respond with <resultCode_received_from _HMI> to mobile app
+-- Case when SDL respond with <INVALID_DATA> to mobile app, when mobile 
+-- send SetGlobalProperties_request with element in array is wrong type in <autoCompleteList> param.
 --
 -- Performed steps:
 -- 1. Register Application.
--- 2. Mobile send RPC SetGlobalProperties with <autoCompleteList> element in array is  wrong type
+-- 2. Mobile send RPC SetGlobalProperties with <autoCompleteList> element in array is wrong type
 -- 3. SDL respond <success = false, resultCode = "INVALID_DATA"> to mobile app
 ----------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
@@ -55,5 +55,3 @@ commonFunctions:newTestCasesGroup("Postconditions")
 function Test.Postcondition_SDLStop()
   StopSDL()
 end
-
-
