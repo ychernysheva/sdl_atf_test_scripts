@@ -80,7 +80,7 @@ for i = 1, #hmi_result_code do
 	  EXPECT_NOTIFICATION("OnHashChange",{}):Times(0)
 	end
 
-	function Test:Postcondition_SetAudioStreamingIndicator_SUCCESS_audioStreamingIndicator_PLAY()
+	function Test:TestStep_SetAudioStreamingIndicator_SUCCESS_audioStreamingIndicator_PLAY()
 	  local corr_id = self.mobileSession:SendRPC("SetAudioStreamingIndicator", { audioStreamingIndicator = "PLAY" })
 
 	  EXPECT_HMICALL("UI.SetAudioStreamingIndicator", { audioStreamingIndicator = "PLAY" })
