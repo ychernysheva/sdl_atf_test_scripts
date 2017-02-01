@@ -66,6 +66,14 @@ function Test:TestStep_SetAudioStreamingIndicator_SUCCESS_audioStreamingIndicato
   end)
 
   EXPECT_RESPONSE(corr_id, { success = true, resultCode = "SUCCESS"})
+  :ValidIf (function(_,data)
+    if data.payload.availabe then
+      commonFunctions:printError("SDL resends fake parameter available to mobile app!")
+      return false
+    else
+      return true
+    end
+  end)
   EXPECT_NOTIFICATION("OnHashChange",{}):Times(0)
 end
 
