@@ -108,17 +108,14 @@ function Test:Precondition_trigger_getting_device_consent()
   testCasesForPolicyTable:trigger_getting_device_consent(self, config.application1.registerAppInterfaceParams.appName, config.deviceMAC)
 end
 
-function Test:Precondition_SetAudioStreamingIndicator_SUCCESS_audioStreamingIndicator_PLAY_PAUSE()
+function Test:Precondition_SetAudioStreamingIndicator_DISALLOWED_audioStreamingIndicator_PLAY_PAUSE()
   local corr_id = self.mobileSession:SendRPC("SetAudioStreamingIndicator", { audioStreamingIndicator = "PLAY_PAUSE" })
 
-  EXPECT_HMICALL("UI.SetAudioStreamingIndicator", { audioStreamingIndicator = "PLAY_PAUSE" })
-  :Do(function(_,data) self.hmiConnection:SendResponse (data.id, data.method, "SUCCESS") end)
-
-  EXPECT_RESPONSE(corr_id, { success = true, resultCode = "SUCCESS"})
-  EXPECT_NOTIFICATION("OnHashChange",{}):Times(0)
+  EXPECT_HMICALL("UI.SetAudioStreamingIndicator", {}):Times(0)
+  EXPECT_RESPONSE(corr_id, { success = false, resultCode = "DISALLOWED"})
 end
 
-function Test:Precondition_PTU_appPermissionsConsentNeeded_true()
+function Test:Precondition_PTU_appPermissionsConsentNeeded_false()
   local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
   EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
   :Do(function(_,_)
