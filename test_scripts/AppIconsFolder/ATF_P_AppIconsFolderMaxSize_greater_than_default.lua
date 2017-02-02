@@ -33,9 +33,6 @@ local commonSteps = require('user_modules/shared_testcases/commonSteps')
 require('user_modules/AppTypes')
 
 --[[ Local variables ]]
-local pathToAppFolder
-local file
-local status = true
 local RAIParameters = config.application1.registerAppInterfaceParams
 
 --[[ Local variables ]]
@@ -55,6 +52,7 @@ local function registerApplication(self)
 end
 
 local function checkFilePresent(name, messages)
+  local file
   file=io.open(name,"r")
   if file ~= nil then
     io.close(file)
@@ -119,6 +117,7 @@ local function makeAppIconsFolderFull(AppIconsFolder)
 end
 
  local function checkFunction()
+  local status = true
   local aHandle = assert( io.popen( "ls " .. config.pathToSDL .. "Icons/" , 'r'))
   local ListOfFilesInStorageFolder = aHandle:read( '*a' )
   commonFunctions:userPrint(32, "Content of storage folder: " ..tostring("\n" ..ListOfFilesInStorageFolder))
@@ -195,6 +194,7 @@ end
 commonFunctions:newTestCasesGroup("Test")
 
 function Test:Check_SDL_uses_AppIconsFolderMaxSize_and_deletes_oldest_icon()
+  local pathToAppFolder
   self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
   self.mobileSession.version = 4
   self.mobileSession:StartService(7)
