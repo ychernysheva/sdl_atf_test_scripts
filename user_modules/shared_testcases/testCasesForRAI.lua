@@ -1,7 +1,9 @@
 local testCasesForRAI = {}
 
 require('atf.util')
+local commonPreconditions = require ('user_modules/shared_testcases/commonPreconditions')
 local events = require("events")
+local path_config = commonPreconditions:GetPathToSDL()
 
 --[[@InitHMI_onReady_without_UI_GetCapabilities: replace original InitHMIOnReady from connecttest 
 --! without expect UI.GetCapabilites
@@ -260,7 +262,7 @@ end
 --! @parameters: NO
 --]]
 function testCasesForRAI.get_data_steeringWheelLocation()
-  local path_to_file = config.pathToSDL .. 'hmi_capabilities.json'
+  local path_to_file = path_config .. 'hmi_capabilities.json'
   local file  = io.open(path_to_file, "r")
   local json_data = file:read("*all")
   
@@ -278,7 +280,7 @@ end
 --! @value - new value for steeringWheelLocation
 --]]
 function testCasesForRAI.write_data_steeringWheelLocation(steeringWheelLocation, navigation, phoneCall)
-  local path_to_file = config.pathToSDL .. 'hmi_capabilities.json'
+  local path_to_file = path_config .. 'hmi_capabilities.json'
   local file  = io.open(path_to_file, "r")
   local json_data = file:read("*all")
 
