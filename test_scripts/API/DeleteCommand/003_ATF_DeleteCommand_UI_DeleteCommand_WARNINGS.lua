@@ -35,7 +35,7 @@ local ServerAddress = commonFunctions:read_parameter_from_smart_device_link_ini(
 commonFunctions:SDLForceStop()
 commonSteps:DeleteLogsFiles()
 commonSteps:DeletePolicyTable()
-testCasesForPolicyTable:precondition_updatePolicy_AllowFunctionInHmiLeves({"BACKGROUND", "FULL", "LIMITED"},"AddCommand")
+testCasesForPolicyTable:precondition_updatePolicy_AllowFunctionInHmiLeves({"BACKGROUND", "FULL", "LIMITED"},"AddCommand", "DeleteCommand")
 
 --[[ General Settings for configuration ]]
 Test = require('connecttest')
