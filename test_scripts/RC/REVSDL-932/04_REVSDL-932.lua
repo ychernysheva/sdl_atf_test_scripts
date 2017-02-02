@@ -12,6 +12,7 @@ revsdl.SubscribeToRcInterface()
 config.ValidateSchema = false
 
 config.application1.registerAppInterfaceParams.appHMIType = { "REMOTE_CONTROL" }
+config.application1.registerAppInterfaceParams.appID = "8675311"
 
 Test = require('connecttest')
 require('cardinalities')
