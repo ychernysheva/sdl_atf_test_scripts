@@ -42,22 +42,22 @@ testCasesForPolicyTable:precondition_updatePolicy_AllowFunctionInHmiLeves({"NONE
 ! @parameters: NO
 ]]
 local function create_ptu_SetAudioStreamingIndicator_group()
-  os.execute(" cp " .. config.pathToSDL .. "sdl_preloaded_pt.json" .. " " .. "files/SetAudioStreamingIndicator_group1.json" )
-  local pathToFile = config.pathToSDL .. 'sdl_preloaded_pt.json'
+  local config_path = commonPreconditions:GetPathToSDL()
+  os.execute(" cp " .. config_path .. "sdl_preloaded_pt.json" .. " " .. "files/SetAudioStreamingIndicator_group1.json" )
+  local pathToFile = config_path .. 'sdl_preloaded_pt.json'
+
   local file = io.open(pathToFile, "r")
   local json_data = file:read("*all")
   file:close()
 
   local data = json.decode(json_data)
   if(data.policy_table.functional_groupings["DataConsent-2"]) then
-    data.policy_table.functional_groupings["DataConsent-2"].rpcs = {json.null}
+    data.policy_table.functional_groupings["DataConsent-2"].rpcs = json.null
   end
 
   data.policy_table.module_config.preloaded_pt = nil
   data.policy_table.module_config.preloaded_date = nil
-  --TODO(istoimenova): Update when problem with saving in file: "0000001": null using json.null.
-  -- data.policy_table.app_policies[config.application1.registerAppInterfaceParams.appID] = json.null
-  data.policy_table.app_policies[config.application1.registerAppInterfaceParams.appID] = null
+  data.policy_table.app_policies[config.application1.registerAppInterfaceParams.appID] = json.null
 
   data = json.encode(data)
   file = io.open("files/SetAudioStreamingIndicator_group1.json", "w")
@@ -81,6 +81,16 @@ function Test:Precondition_ActivateApp()
   EXPECT_NOTIFICATION("OnHMIStatus", {systemContext = "MAIN", hmiLevel = "FULL"})
 end
 
+function Test:Precondition_SetAudioStreamingIndicator_SUCCESS_audioStreamingIndicator_PLAY_PAUSE()
+  local corr_id = self.mobileSession:SendRPC("SetAudioStreamingIndicator", { audioStreamingIndicator = "PLAY_PAUSE" })
+
+  EXPECT_HMICALL("UI.SetAudioStreamingIndicator", { audioStreamingIndicator = "PLAY_PAUSE" })
+  :Do(function(_,data) self.hmiConnection:SendResponse (data.id, data.method, "SUCCESS") end)
+
+  EXPECT_RESPONSE(corr_id, { success = true, resultCode = "SUCCESS"})
+  EXPECT_NOTIFICATION("OnHashChange",{}):Times(0)
+end
+
 function Test:Precondition_PolicyTableUpdate_Proprietary()
   local SystemFilesPath = commonFunctions:read_parameter_from_smart_device_link_ini("SystemFilesPath")
 
@@ -93,7 +103,7 @@ function Test:Precondition_PolicyTableUpdate_Proprietary()
     { requestType = "PROPRIETARY", fileName = "PolicyTableUpdate"})
     EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "PROPRIETARY"})
     :Do(function()
-      local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", {requestType = "PROPRIETARY", fileName = "PolicyTableUpdate", appID = config.application1.registerAppInterfaceParams.appID},
+      local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", {requestType = "PROPRIETARY", fileName = "PolicyTableUpdate"},
         "files/SetAudioStreamingIndicator_group1.json")
       EXPECT_HMICALL("BasicCommunication.SystemRequest",{ requestType = "PROPRIETARY", fileName = SystemFilesPath.."/PolicyTableUpdate" })
       :Do(function(_,_data1)
@@ -126,7 +136,7 @@ end
 commonFunctions:newTestCasesGroup("Postconditions")
 
 function Test.Postcondition_Restore_preloaded_file()
-  os.execute( " rm -f SetAudioStreamingIndicator_group1.json" )
+  os.execute( " rm -f files/SetAudioStreamingIndicator_group1.json" )
   commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 end
 
