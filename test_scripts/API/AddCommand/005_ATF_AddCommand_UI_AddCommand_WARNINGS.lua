@@ -4,12 +4,12 @@
 --
 -- Description:
 -- test is intended to check that SDL sends WARNINGS (success:true) to mobile app in case HMI respond WARNINGS to at least one HMI-portions
--- in this test case when UI.AddCommand gets WARNINGS is checked
--- 1. Used preconditions: App is activated and registered SUCCESSFULLY
+-- in this particular test it is checked case when SDL sends WARNINGS (success:true) to mobile app in case HMI respond WARNINGS to UI.AddCommand and VR.AddCommand gets ANY successfull result code
+-- 1. Used preconditions: App is registered and activated SUCCESSFULLY
 -- 2. Performed steps: 
 -- MOB -> SDL: sends AddCommand
--- SDL -> HMI: resends VR.AddCommand 
--- HMI -> SDL: VR.AddCommand (SUCCESS), UI.AddCommand (WARNINGS)
+-- SDL -> HMI: resends VR.AddCommand and UI.AddCommand
+-- HMI -> SDL: UI.AddCommand (SUCCESS), VR.AddCommand (cyclically checked cases fo result codes SUCCESS, WARNINGS, WRONG_LANGUAGE, RETRY, SAVED)
 --
 -- Expected result:
 -- SDL -> MOB: AddCommand (result code: WARNINGS, success: true)
@@ -23,6 +23,8 @@ config.defaultProtocolVersion = 2
 --[[ Required Shared libraries ]]
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require ('user_modules/shared_testcases/commonSteps')
+local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
+local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 
 --[[ Local Variables ]]
 local storagePath = config.SDLStoragePath..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
@@ -30,6 +32,9 @@ local ServerAddress = commonFunctions:read_parameter_from_smart_device_link_ini(
 
 --[[ General Precondition before ATF start ]]
 commonFunctions:SDLForceStop()
+commonSteps:DeleteLogsFiles()
+commonSteps:DeletePolicyTable()
+testCasesForPolicyTable:precondition_updatePolicy_AllowFunctionInHmiLeves({"BACKGROUND", "FULL", "LIMITED"},"AddCommand")
 
 --[[ General Settings for configuration ]]
 Test = require('connecttest')
@@ -62,67 +67,73 @@ commonSteps:PutFile("Precondition_PutFile", "icon.png")
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
-function Test:TestStep_AddCommand_UI_warnings()
-  local cid = self.mobileSession:SendRPC("AddCommand",
-  {
-    cmdID = 11,
-    menuParams =  
-    { 
-      parentID = 0,
-      position = 0,
-      menuName ="Commandpositive"
-    }, 
-    vrCommands = 
-    { 
-      "VRCommandonepositive",
-      "VRCommandonepositivedouble"
-    }, 
-    cmdIcon =   
-    { 
-      value ="icon.png",
-      imageType ="DYNAMIC"
-    }
-  })
-  EXPECT_HMICALL("UI.AddCommand", 
-  { 
-    cmdID = 11,
-    cmdIcon = 
+local resultCodes = {"SUCCESS", "WARNINGS", "WRONG_LANGUAGE", "RETRY", "SAVED"}
+  for i=1,#resultCodes do
+    Test["TestStep_AddCommand_UI_AddCmd_WARNINGS_and_VR_AddCmd_"..resultCodes[i]] = function(self)
+    local cid = self.mobileSession:SendRPC("AddCommand",
     {
-      value = storagePath .."icon.png", 
-      imageType = "DYNAMIC"
-    },
-    menuParams = 
-    { 
-      parentID = 0, 
-      position = 0,
-      menuName ="Commandpositive"
-    }
-  })
-  :Do(function(_,data)
-    self.hmiConnection:SendResponse(data.id, "UI.AddCommand", "WARNINGS", {})
-  end)
-  
-  EXPECT_HMICALL("VR.AddCommand", 
-  { 
-    cmdID = 11,
-    vrCommands = 
+      cmdID = 11,
+      menuParams =
+      {
+        parentID = 0,
+        position = 0,
+        menuName ="Commandpositive"
+      },
+      vrCommands =
+      { 
+        "VRCommandonepositive",
+        "VRCommandonepositivedouble"
+      },
+      cmdIcon =
+      { 
+        value ="icon.png",
+        imageType ="DYNAMIC"
+      }
+    })
+    EXPECT_HMICALL("UI.AddCommand",
     {
-      "VRCommandonepositive", 
-      "VRCommandonepositivedouble"
-    },
-    type = "Command"
-  })
-  :Do(function(_,data)
-    grammarIDValue = data.params.grammarID
-    self.hmiConnection:SendResponse(data.id, "VR.AddCommand", "SUCCESS", {})
-  end)
-  
-  EXPECT_RESPONSE(cid, { success = true, resultCode = "WARNINGS" })
-  EXPECT_NOTIFICATION("OnHashChange")
+      cmdID = 11,
+      cmdIcon =
+      {
+        value = storagePath .."icon.png",
+        imageType = "DYNAMIC"
+      },
+      menuParams =
+      {
+        parentID = 0,
+        position = 0,
+        menuName ="Commandpositive"
+      }
+    })
+    :Do(function(_,data)
+      self.hmiConnection:SendResponse(data.id, "UI.AddCommand", "WARNINGS", {})
+    end)
+    
+    EXPECT_HMICALL("VR.AddCommand", 
+    {
+      cmdID = 11,
+      vrCommands =
+      {
+        "VRCommandonepositive",
+        "VRCommandonepositivedouble"
+      },
+      type = "Command"
+    })
+    :Do(function(_,data)
+      self.hmiConnection:SendResponse(data.id, "VR.AddCommand", resultCodes[i], {})
+    end)
+    
+    EXPECT_RESPONSE(cid, { success = true, resultCode = "WARNINGS" })
+    EXPECT_NOTIFICATION("OnHashChange")
+  end
 end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
+
+function Test.Postcondition_Restore_preloaded_file()
+  commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
+end
 
 function Test.Postcondition_SDLStop()
   StopSDL()
