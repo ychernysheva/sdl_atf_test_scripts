@@ -5,7 +5,7 @@
 -- [MOBILE_API] [HMI_API] The 'steeringWheelLocation' enum
 -- [MOBILE_API] The 'steeringWheelLocation' param
 -- [HMI_API] The 'steeringWheelLocation' parameter
--- [RegisterAppInterface] WARNINGS appHMIType(s) partially coincide or not coincide with current 
+-- [RegisterAppInterface] WARNINGS appHMIType(s) partially coincide or not coincide with current
 -- non-empty data stored in PolicyTable
 --
 -- Description:
@@ -41,13 +41,13 @@ local mobile_session = require('mobile_session')
 --! @parameters: NO
 --]]
 local function update_sdl_preloaded_pt_json()
-	local pathToFile = config.pathToSDL .. 'sdl_preloaded_pt.json'
+	local pathToFile = commonPreconditions:GetPathToSDL() .. 'sdl_preloaded_pt.json'
 	local file = io.open(pathToFile, "r")
 	local json_data = file:read("*all") -- may be abbreviated to "*a";
 	file:close()
-				
+
 	local json = require("modules/json")
-	
+
 	local data = json.decode(json_data)
 	for k in pairs(data.policy_table.functional_groupings) do
 		if (data.policy_table.functional_groupings[k].rpcs == nil) then
@@ -63,7 +63,7 @@ local function update_sdl_preloaded_pt_json()
 		groups = {"Base-4"},
 		AppHMIType = {"NAVIGATION"}
 	}
-				
+
 	data = json.encode(data)
 	file = io.open(pathToFile, "w")
 	file:write(data)
@@ -75,14 +75,14 @@ end
 --! @parameters: name, characterSet, width, rows
 --]]
 local function text_field(name, characterSet, width, rows)
-    return 
+    return
     { name = name, characterSet = characterSet or "TYPE2SET", width = width or 500, rows = rows or 1 }
 end
 
 --[[@image_field - sets parameters of structure imageFields
 --! @ used in UI.GetCapabilities
 --! @parameters: name, width
---]]  
+--]]
 local function image_field(name, width)
   return
     { name = name,
@@ -110,7 +110,7 @@ commonSteps:DeletePolicyTable()
 
 --TODO(istoimenova): shall be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
 config.defaultProtocolVersion = 2
-config.application1.registerAppInterfaceParams.appHMIType = {"MEDIA"}	
+config.application1.registerAppInterfaceParams.appHMIType = {"MEDIA"}
 
 --[[ General Settings for configuration ]]
 Test = require('user_modules/connecttest_initHMI')
@@ -121,16 +121,16 @@ commonFunctions:newTestCasesGroup("Preconditions")
 
 function Test:Precondition_InitHMI_OnReady()
 	testCasesForRAI.InitHMI_onReady_without_UI_GetCapabilities(self)
-	
+
 	EXPECT_HMICALL("UI.GetCapabilities")
 	:Do(function(_,data)
 		self.hmiConnection:SendResponse(data.id, "UI.GetCapabilities", "SUCCESS", {
-			hmiCapabilities = 
+			hmiCapabilities =
       {
 				navigation = false,
 				phoneCall = true,
 				steeringWheelLocation = "LEFT"
-    	},
+      },
       displayCapabilities =
       {
         displayType = "GEN2_8_DMA",
@@ -238,7 +238,7 @@ commonFunctions:newTestCasesGroup("Test")
 
 function Test:TestStep_RAI_steeringWheelLocation()
 	local CorIdRegister = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
-		
+
 	EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application1.registerAppInterfaceParams.appName }})
 	EXPECT_RESPONSE(CorIdRegister, { success = true, resultCode = "WARNINGS", hmiCapabilities = { steeringWheelLocation = "LEFT" } })
 	EXPECT_NOTIFICATION("OnHMIStatus", { systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE"})
