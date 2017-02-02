@@ -1,19 +1,19 @@
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
---		[GENIVI] Conditions for SDL to create and use 'AppIconsFolder' storage 
+--    [GENIVI] Conditions for SDL to create and use 'AppIconsFolder' storage 
 --    [AppIconsFolder]: SDL must check whether folder defined at "AppIconsFolder" param exists and has read-write permissions
---	
+--  
 -- Description:
--- 		SDL checks and finds icon related to app if such icons exist
+--    SDL checks and finds icon related to app if such icons exist
 -- 1. Used preconditions:
--- 		  Delete files and policy table from previous ignition cycle if any
+--      Delete files and policy table from previous ignition cycle if any
 --      Set  SDL "storage" as AppiconsFolder in .ini file
 --      Start SDL and HMI
 -- 2. Performed steps:
 --      Register app
 --      Send SetAppIcon with appid as icon name
 -- Expected result:
--- 	    SDL correctly finds app related icons
+--      SDL correctly finds app related icons
 ---------------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
@@ -33,12 +33,9 @@ require('user_modules/AppTypes')
 --[[ Local variables ]]
 local pathToAppFolder
 local file
-local fileContent
-local fileContentUpdated
-local SDLini = config.pathToSDL .. tostring("smartDeviceLink.ini")
 local RAIParameters = config.application1.registerAppInterfaceParams
 
---Register application
+--[[ Local functions ]]
 local function registerApplication(self)
   local corIdRAI = self.mobileSession:SendRPC("RegisterAppInterface", RAIParameters)
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered",
@@ -54,9 +51,8 @@ local function registerApplication(self)
   self.mobileSession:ExpectResponse(corIdRAI, { success = true, resultCode = "SUCCESS" })
 end
 
--- Check file existence 
-local function checkFileExistence(name, messages)
-  file=io.open(name,"r")
+local function checkFilePresent(name, messages)
+  file = io.open(name,"r")
   if file ~= nil then
     io.close(file)
     if messages == true then
@@ -71,17 +67,9 @@ local function checkFileExistence(name, messages)
   end
 end
 
---Check path to SDL in case last symbol is not'/' add '/'
-local function checkSDLPathValue()
-  local findResult = string.find (config.pathToSDL, '.$')
-  if string.sub(config.pathToSDL,findResult) ~= "/" then
-    config.pathToSDL = config.pathToSDL..tostring("/")
-  end
-end
-
 -- Generate path to application folder
 local function pathToAppFolderFunction(appID)
-  checkSDLPathValue()
+  commonSteps:CheckSDLPath()
   local path = config.pathToSDL .. tostring("storage/") .. tostring(appID) .. "_" .. tostring(config.deviceMAC) .. "/"
   return path
 end
@@ -91,42 +79,39 @@ commonSteps:DeleteLogsFileAndPolicyTable()
 commonFunctions:newTestCasesGroup("Preconditions")
 
  function Test.Precondition_stopSDL()
- 	StopSDL()
- end	
+  StopSDL()
+ end  
 
-function Test.Precondition_configureAppIconsFolderInIni()
-  checkSDLPathValue()
-  local stringToReplace = "AppIconsFolder = storage\n"
-  file = assert(io.open(SDLini, "r"))
-  if file then
-    fileContent = file:read("*all")
-    local matchResult = string.match(fileContent, "AppIconsFolder%s-=%s-.-%s-\n")
-    if matchResult ~= nil then
-      fileContentUpdated  =  string.gsub(fileContent, matchResult, stringToReplace)
-      file = assert(io.open(SDLini, "w"))
-      file:write(fileContentUpdated)
-    else
-      commonFunctions:userPrint(31, "Finding of 'AppIconsFolder = value' is failed. Expect string finding and replacing of value to storage")
-    end
-    file:close()
-  end
+function Test.Precondition_configureAppIconsFolder()
+  commonFunctions:SetValuesInIniFile("AppIconsFolder%s-=%s-.-%s-\n", "AppIconsFolder", 'storage')
 end
 
  function Test.Precondition_startSDL()
- 	StartSDL(config.pathToSDL, config.ExitOnCrash)
+  StartSDL(config.pathToSDL, config.ExitOnCrash)
  end
 
  function Test:Precondition_initHMI()
- 	self:initHMI()
+  self:initHMI()
  end
 
  function Test:Precondition_initHMIonReady()
- 	self:initHMI_onReady()
+  self:initHMI_onReady()
  end
 
  function Test:Precondition_connectMobile()
- 	self:connectMobile()
+  self:connectMobile()
  end
+
+function Test.Precondition_removeAppIconsFolder()
+  local addedFolderInScript = "storage"
+  local existsResult = commonSteps:Directory_exist(tostring(config.pathToSDL .. addedFolderInScript))
+  if existsResult == true then
+    local rmAppIconsFolder  = assert( os.execute( "rm -rf " .. tostring(config.pathToSDL .. addedFolderInScript)))
+    if rmAppIconsFolder ~= true then
+      commonFunctions:userPrint(31, tostring(addedFolderInScript) .. " folder is not deleted")
+    end
+  end
+end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
@@ -169,7 +154,7 @@ local SDLStoragePath = config.pathToSDL .. "storage/"
          EXPECT_RESPONSE(cidSetAppIcon, { resultCode = "SUCCESS", success = true })
          :ValidIf(function()
             local FileToCheck = SDLStoragePath .. tostring(RAIParams.appID)
-            local fileExistsResult = checkFileExistence(FileToCheck, true)
+            local fileExistsResult = checkFilePresent(FileToCheck, true)
             return fileExistsResult
           end)
          end)
