@@ -46,8 +46,7 @@ local json = require('json')
 local function create_ptu_SetAudioStreamingIndicator_group()
   commonPreconditions:BackupFile("sdl_preloaded_pt.json")
   local config_path = commonPreconditions:GetPathToSDL()
-
-  os.execute(" cp " .. config_path .. "sdl_preloaded_pt.json" .. " " .. "SetAudioStreamingIndicator_group1.json" )
+  
   local pathToFile = config_path .. 'sdl_preloaded_pt.json'
   local file = io.open(pathToFile, "r")
   local json_data = file:read("*all")
@@ -85,9 +84,8 @@ local function create_ptu_SetAudioStreamingIndicator_group()
     groups = {"Base-4", "Testing_group"}
   }
 
-  data = json.encode(data)
   file = io.open("SetAudioStreamingIndicator_group1.json", "w")
-  file:write(data)
+  file:write(json.encode(data))
   file:close()
 end
 
