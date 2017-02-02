@@ -33,13 +33,10 @@ require('user_modules/AppTypes')
 --[[ Local variables ]]
 local pathToAppFolder
 local file
-local fileContent
 local status = true
-local fileContentUpdated
-local SDLini = config.pathToSDL .. ("smartDeviceLink.ini")
 local RAIParameters = config.application1.registerAppInterfaceParams
 
---Register application
+--[[ Local functions ]]
 local function registerApplication(self)
   local corIdRAI = self.mobileSession:SendRPC("RegisterAppInterface", RAIParameters)
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered",
@@ -55,7 +52,6 @@ local function registerApplication(self)
   self.mobileSession:ExpectResponse(corIdRAI, { success = true, resultCode = "SUCCESS" })
 end
 
--- Check file existence 
 local function checkFileExistence(name, messages)
   file=io.open(name,"r")
   if file ~= nil then
@@ -80,16 +76,16 @@ local function pathToAppFolderFunction(appID)
 end
 
 local function checkFunction()
-   local applicationFileToCheck = config.pathToSDL .. tostring("Icons/" .. RAIParameters.appID)
-    local applicationFileExistsResult = checkFileExistence(applicationFileToCheck)
-    local aHandle = assert( io.popen( "ls " .. config.pathToSDL .. "Icons/" , 'r'))
-    local listOfFilesInStorageFolder = aHandle:read( '*a' )
-    commonFunctions:userPrint(33, "Content of storage folder: " ..tostring("\n" .. listOfFilesInStorageFolder))
-    if applicationFileExistsResult ~= false then
-      commonFunctions:userPrint(31, tostring(RAIParameters.appID) .. " icon is added to AppIconsFolder although the size of file is larger than AppIconsFolderMaxSize")
-      status = false
-    end
-    return status
+  local applicationFileToCheck = config.pathToSDL .. tostring("Icons/" .. RAIParameters.appID)
+  local applicationFileExistsResult = checkFileExistence(applicationFileToCheck)
+  local aHandle = assert( io.popen( "ls " .. config.pathToSDL .. "Icons/" , 'r'))
+  local listOfFilesInStorageFolder = aHandle:read( '*a' )
+  commonFunctions:userPrint(33, "Content of storage folder: " ..tostring("\n" .. listOfFilesInStorageFolder))
+  if applicationFileExistsResult ~= false then
+    commonFunctions:userPrint(31, tostring(RAIParameters.appID) .. " icon is added to AppIconsFolder although the size of file is larger than AppIconsFolderMaxSize")
+    status = false
+  end
+  return status
 end
 
 --[[ Preconditions ]]
@@ -134,7 +130,6 @@ function Test.Precondition_StartSDL()
  function Test:Precondition_ConnectMobile()
   self:connectMobile()
  end
-
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
