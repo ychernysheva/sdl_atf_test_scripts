@@ -7,11 +7,12 @@
 --
 -- Description:
 -- In case that the request comes with
--- wrong type (empty) parameter(including parameters of the structures)
+-- wrong type parameter(including parameters of the structures)
 -- SDL must respond with resultCode "INVALID_DATA" and success:"false"
 --
 -- 1. Used preconditions
--- 1.1. Request is sent with audioPassThruIcon image structure with invalid ImageType parameter
+-- 1.1. Request is sent with audioPassThruIcon image structure with 
+-- invalid ImageType parameter (empty, integer, with additional symbol before and after parameter name)
 -- and valid value parameter, all other params used in PerformAudioPassThru_request
 -- are present and within bounds
 --
@@ -36,8 +37,10 @@ local testCasesForPolicyTable = require('user_modules/shared_testcases/testCases
 --[[ Local variables ]]
 local params_invalid_data =
 {  
-  {param_value = "", comment = "ImageType_is_empty"}, -- audioPassThruIcon with empty ImageType parameter
-  {param_value = 123, comment = "ImageType_wrong_type"}, --audioPassThruIcon contains wrong type (not predefined in enum STATIC/DYNAMIC) in ImageType parameter
+  {param_value = "", comment = "ImageType_wrong_type_empty"}, -- audioPassThruIcon with empty ImageType parameter
+  {param_value = 123, comment = "ImageType_wrong_type_integer"}, --audioPassThruIcon contains wrong type (not predefined in enum STATIC/DYNAMIC) in ImageType parameter
+  {param_value = "aSTATIC", comment = "ImageType_wrong_type_symbol_before"}, -- audioPassThruIcon with wrong ImageType parameter (added symbol before STATIC)
+  {param_value = "DYNAMIC1", comment = "ImageType_wrong_type_symbol_after"}, -- audioPassThruIcon with wrong ImageType parameter (added symbol after DYNAMIC)
 }
 
 --[[ General Precondition before ATF start ]]
