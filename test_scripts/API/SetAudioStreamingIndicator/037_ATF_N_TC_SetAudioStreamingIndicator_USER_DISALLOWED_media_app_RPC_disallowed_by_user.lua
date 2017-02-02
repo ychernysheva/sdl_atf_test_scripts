@@ -68,7 +68,7 @@ local function create_ptu_SetAudioStreamingIndicator_group()
   }
   
   file = io.open(config_path .. 'sdl_preloaded_pt.json', "w")
-  file:write(json.encode(commonFunctions:cloneTable(data)))
+  file:write(json.encode(data))
   file:close()
 
   data.policy_table.module_config.preloaded_pt = nil
