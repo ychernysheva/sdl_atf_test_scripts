@@ -38,8 +38,8 @@ local json = require('json')
 
 --[[ Local Functions ]]
 
---[[@create_ptu_SetAudioStreamingIndicator_group: update preloaded_pt and creates PTU files
-! preloaded_pt.json: add Testing_group with RPC SetAudioStreamingIndicator and user consent
+--[[@create_ptu_SetAudioStreamingIndicator_group: update sdl_preloaded_pt and creates PTU files
+! sdl_preloaded_pt.json: add Testing_group with RPC SetAudioStreamingIndicator and user consent
 ! SetAudioStreamingIndicator_group1.json: Assign groups "Base-4", "Testing_group" to application
 ! @parameters: NO
 ]]
@@ -66,10 +66,9 @@ local function create_ptu_SetAudioStreamingIndicator_group()
       }
     }
   }
-  local data_preloaded = commonFunctions:cloneTable(data)
-
+  
   file = io.open(config_path .. 'sdl_preloaded_pt.json', "w")
-  file:write(json.encode(data_preloaded))
+  file:write(json.encode(commonFunctions:cloneTable(data)))
   file:close()
 
   data.policy_table.module_config.preloaded_pt = nil
