@@ -1,4 +1,8 @@
-local commonSteps = require("user_modules/shared_testcases/commonSteps")
+local commonPreconditions = require("user_modules/shared_testcases/commonPreconditions")
+commonPreconditions:BackupFile("sdl_preloaded_pt.json")
+commonPreconditions:ReplaceFile("sdl_preloaded_pt.json", "./test_scripts/RC/TestData/sdl_preloaded_pt.json")
+
+	local commonSteps = require("user_modules/shared_testcases/commonSteps")
 commonSteps:DeleteLogsFileAndPolicyTable()
 
 revsdl = require("user_modules/revsdl")
@@ -3065,3 +3069,7 @@ local arrayGroups_nonPrimaryRC = revsdl.arrayGroups_nonPrimaryRC()
 
 
 --=================================================END TEST CASES 9==========================================================--
+
+function Test:PostconditionsRestoreFile()
+  commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
+end
