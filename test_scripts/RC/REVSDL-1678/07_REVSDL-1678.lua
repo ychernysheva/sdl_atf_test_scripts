@@ -2719,7 +2719,6 @@ local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
 
 --=================================================END TEST CASES 7==========================================================--
 
-return Test
 function Test:PostconditionsRestoreFile()
   commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 end

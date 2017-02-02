@@ -334,7 +334,6 @@ end
 
 --=================================================END TEST CASES 4==========================================================--
 
-return Test
 function Test:PostconditionsRestoreFile()
   commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 end
