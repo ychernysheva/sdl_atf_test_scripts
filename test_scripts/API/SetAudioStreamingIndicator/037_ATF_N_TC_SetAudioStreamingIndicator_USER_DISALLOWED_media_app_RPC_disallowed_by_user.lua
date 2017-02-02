@@ -48,7 +48,7 @@ local function create_ptu_SetAudioStreamingIndicator_group()
   local config_path = commonPreconditions:GetPathToSDL()
 
   os.execute(" cp " .. config_path .. "sdl_preloaded_pt.json" .. " " .. "SetAudioStreamingIndicator_group1.json" )
-  local pathToFile = config.pathToSDL .. 'sdl_preloaded_pt.json'
+  local pathToFile = config_path .. 'sdl_preloaded_pt.json'
   local file = io.open(pathToFile, "r")
   local json_data = file:read("*all")
   file:close()
@@ -116,10 +116,12 @@ function Test:Precondition_SetAudioStreamingIndicator_DISALLOWED_audioStreamingI
 end
 
 function Test:Precondition_PTU_appPermissionsConsentNeeded_false()
+  local SystemFilesPath = commonFunctions:read_parameter_from_smart_device_link_ini("SystemFilesPath")
   local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
+  
   EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
   :Do(function(_,_)
-    self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest", { requestType = "PROPRIETARY", fileName = "filename"})
+    self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest", { requestType = "PROPRIETARY", fileName = "PolicyTableUpdate"})
 
     EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY" })
     :Do(function(_,_)
@@ -127,7 +129,7 @@ function Test:Precondition_PTU_appPermissionsConsentNeeded_false()
 
       EXPECT_HMICALL("BasicCommunication.SystemRequest")
       :Do(function(_,data)
-        self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate", { policyfile = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate"})
+        self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate", { policyfile = SystemFilesPath.."/PolicyTableUpdate"})
 
         local function to_run()
           self.hmiConnection:SendResponse(data.id,"BasicCommunication.SystemRequest", "SUCCESS", {})
