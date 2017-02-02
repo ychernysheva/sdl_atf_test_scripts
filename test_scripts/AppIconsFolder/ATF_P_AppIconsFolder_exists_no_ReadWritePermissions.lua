@@ -1,7 +1,7 @@
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
---		[GENIVI] Conditions for SDL to create and use 'AppIconsFolder' storage 
---	  [AppIconsFolder]: Folder defined at "AppIconsFolder" param has NO read-write permissions
+--    [GENIVI] Conditions for SDL to create and use 'AppIconsFolder' storage 
+--    [AppIconsFolder]: Folder defined at "AppIconsFolder" param has NO read-write permissions
 -- Description:
 --    SDL behavior when on startup AppIconsFolder exists but has no permissions
 -- 1. Used preconditions:
@@ -13,7 +13,7 @@
 --      Register app
 --      Send SetAppIcon 
 -- Expected result:
--- 	  SDL must not use the 'store-app's-icon' mechanism
+--    SDL must not use the 'store-app's-icon' mechanism
 ---------------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
@@ -33,13 +33,10 @@ require('user_modules/AppTypes')
 --[[ Local variables ]]
 local pathToAppFolder
 local file
-local fileContent
 local status = true
-local fileContentUpdated
-local SDLini = config.pathToSDL .. tostring("smartDeviceLink.ini")
 local RAIParameters = config.application1.registerAppInterfaceParams
 
---Register application
+--[[ Local functions ]]
 local function registerApplication(self)
   local corIdRAI = self.mobileSession:SendRPC("RegisterAppInterface", RAIParameters)
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered",
@@ -55,7 +52,6 @@ local function registerApplication(self)
   self.mobileSession:ExpectResponse(corIdRAI, { success = true, resultCode = "SUCCESS" })
 end
 
--- Check file existence 
 local function checkFileExistence(name, messages)
   file=io.open(name,"r")
   if file ~= nil then
@@ -72,23 +68,14 @@ local function checkFileExistence(name, messages)
   end
 end
 
---Check path to SDL in case last symbol is not'/' add '/'
-local function checkSDLPathValue()
-  local findResult = string.find (config.pathToSDL, '.$')
-  if string.sub(config.pathToSDL,findResult) ~= "/" then
-    config.pathToSDL = config.pathToSDL..tostring("/")
-  end
-end
-
 -- Generate path to application folder
 local function pathToAppFolderFunction(appID)
-  checkSDLPathValue()
+  commonSteps:CheckSDLPath()
   local path = config.pathToSDL .. tostring("storage/") .. tostring(appID) .. "_" .. tostring(config.deviceMAC) .. "/"
   return path
 end
 
--- Check directory existence
-local function checkDirectoryExistence(DirectoryPath)
+local function checkFolderExists(DirectoryPath)
   local returnValue
   local command = assert( io.popen(  "[ -d " .. tostring(DirectoryPath) .. " ] && echo \"Exist\" || echo \"NotExist\"" , 'r'))
   os.execute("sleep 0.5")
@@ -103,7 +90,7 @@ local function checkDirectoryExistence(DirectoryPath)
       returnValue = false
     end
     return returnValue
-end
+end 
 
 --[[ Preconditions ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
@@ -114,28 +101,12 @@ function Test.Precondition_stopSDL()
 end 
 
 function Test.Precondition_configureAppIconsFolderInIni()
-  checkSDLPathValue()
-  local appIconsFolderValueToReplace = "FolderWithoutPermissions"
-  local stringToReplace = "AppIconsFolder = " .. tostring(appIconsFolderValueToReplace) .. "\n"
-  file = assert(io.open(SDLini, "r"))
-  if file then
-    fileContent = file:read("*all")
-    local matchResult = string.match(fileContent, "AppIconsFolder%s-=%s-.-%s-\n")
-    if matchResult ~= nil then
-      fileContentUpdated  =  string.gsub(fileContent, matchResult, stringToReplace)
-      file = assert(io.open(SDLini, "w"))
-      file:write(fileContentUpdated)
-    else
-      commonFunctions:userPrint(31, "'AppIconsFolder = value' is not found. Expected string finding and replacing value with " .. tostring(appIconsFolderValueToReplace))
-    end
-    file:close()
-  end
+  commonFunctions:SetValuesInIniFile("AppIconsFolder%s-=%s-.-%s-\n", "AppIconsFolder", 'FolderWithoutPermissions')
 end 
 
 function Test.Precondition_removeAppIconsFolder()
-  checkSDLPathValue()
   local addedFolderInScript = "FolderWithoutPermissions"
-  local existsResult = checkDirectoryExistence( tostring(config.pathToSDL .. addedFolderInScript))
+  local existsResult = checkFolderExists(tostring(config.pathToSDL .. addedFolderInScript))
   if existsResult == true then
     local rmAppIconsFolder  = assert( os.execute( "rm -rf " .. tostring(config.pathToSDL .. addedFolderInScript)))
     if rmAppIconsFolder ~= true then
@@ -207,7 +178,7 @@ end
 commonFunctions:newTestCasesGroup("Test")
 
 function Test.Check_SDL_works_correctly_if_IconsFolder_has_no_permissions()
-  local dirExistResult = checkDirectoryExistence(config.pathToSDL .. "FolderWithoutPermissions")
+  local dirExistResult = checkFolderExists(config.pathToSDL .. "FolderWithoutPermissions")
   if dirExistResult == true then
     local applicationFileToCheck = config.pathToSDL .. tostring("FolderWithoutPermissions/" .. RAIParameters.appID)
     local applicationFileExistsResult = checkFileExistence(applicationFileToCheck)
