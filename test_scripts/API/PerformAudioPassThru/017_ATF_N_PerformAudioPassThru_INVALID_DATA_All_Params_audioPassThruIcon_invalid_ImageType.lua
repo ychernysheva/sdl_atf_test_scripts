@@ -71,7 +71,7 @@ end
 commonFunctions:newTestCasesGroup("Test")
 
 for ind = 1, #params_invalid_data do
-  Test["TestStep"..ind.."_"..params_invalid_data[ind].comment.."_all_params_STATIC"] = function(self)
+  Test["TestStep"..ind.."_"..params_invalid_data[ind].comment.."_all_params"] = function(self)
     local CorIdPerformAudioPassThruAppParVD= self.mobileSession:SendRPC("PerformAudioPassThru",
       {
         initialPrompt = {{text = "Makeyourchoice",type = "TEXT"}},
