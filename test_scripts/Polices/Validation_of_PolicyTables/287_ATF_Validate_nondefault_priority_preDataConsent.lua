@@ -1,21 +1,21 @@
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
---    [Policies] "pre_DataConsent" policies assigned to the application and "priority" value
+-- [Policies] "pre_DataConsent" policies assigned to the application and "priority" value
 --
 -- Description:
---     Providing to HMI app`s non-default priority value of "pre_DataConsent" if "pre_DataConsent" policies assigned to the application
---     1. Used preconditions:
--- 			SDL and HMI are running
---      Overwrite preloaded PT with non-default(NORMAL) priopity of "pre_DataConsent"
---			Close default connection
---			Connect device
+-- Providing to HMI app`s non-default priority value of "pre_DataConsent" if "pre_DataConsent" policies assigned to the application
+-- 1. Used preconditions:
+-- SDL and HMI are running
+-- Overwrite preloaded PT with non-default(NORMAL) priopity of "pre_DataConsent"
+-- Close default connection
+-- Connect device
 --
---     2. Performed steps
---			Register app-> "pre_DataConsent" policies are assigned to the application
---		  Activate app
+-- 2. Performed steps
+-- Register app-> "pre_DataConsent" policies are assigned to the application
+-- Activate app
 --
 -- Expected result:
---     PoliciesManager must provide to HMI the app`s priority value(NORMAL) taken from "priority" field in "pre_DataConsent" section of PolicyTable
+-- PoliciesManager must not provide to HMI the app`s priority value
 ---------------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
@@ -51,18 +51,18 @@ function Test:Precondition_Connect_device()
   commonTestCases:DelayedExp(2000)
   self:connectMobile()
   EXPECT_HMICALL("BasicCommunication.UpdateDeviceList",
-  {
-    deviceList = {
-      {
-        id = config.deviceMAC,
-        name = "127.0.0.1",
-        transportType = "WIFI"
+    {
+      deviceList = {
+        {
+          id = config.deviceMAC,
+          name = "127.0.0.1",
+          transportType = "WIFI"
+        }
       }
     }
-  }
-  ):Do(function(_,data)
-  self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-  end)
+    ):Do(function(_,data)
+      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+    end)
 end
 
 --[[ Test ]]
@@ -73,25 +73,26 @@ function Test:TestStep1_Priority_NORMAL_OnAppRegistered()
   self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
   self.mobileSession:StartService(7)
   :Do(function()
-    local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
-    EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", {priority ="NORMAL"})
-    :Do(function(_,data)
-      self.HMIAppID = data.params.application.appID
+      local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
+      EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", {priority = nil })
+      :Do(function(_,data)
+          self.HMIAppID = data.params.application.appID
+        end)
+      self.mobileSession:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS" })
+      self.mobileSession:ExpectNotification("OnHMIStatus", {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
     end)
-    self.mobileSession:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS" })
-    self.mobileSession:ExpectNotification("OnHMIStatus", {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
-  end)
 end
 
 function Test:TestStep2_Priority_NORMAL_ActivateApp()
   local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.applications["Test Application"]})
-  EXPECT_HMIRESPONSE(RequestId, {result = { code = 0, method ="SDL.ActivateApp", priority ="NORMAL"}})
+  EXPECT_HMIRESPONSE(RequestId, {result = { code = 0, method ="SDL.ActivateApp", priority = nil }})
   :Do(function(_,data)
-    if data.result.priority ~= "NORMAL" then
-      commonFunctions:userPrint(31, "Error: wrong behavior of SDL - priority should be NORMAL")
-    end
-    EXPECT_NOTIFICATION("OnHMIStatus", {}):Times(0)
-  end)
+      if data.result.priority ~= nil then
+        commonFunctions:userPrint(31, "Error: wrong behavior of SDL - priority should be NORMAL")
+      end
+      EXPECT_NOTIFICATION("OnHMIStatus", {}):Times(0)
+      EXPECT_HMICALL("BasicCommunication.ActivateApp"):Times(0)
+    end)
 end
 
 function Test:Precondition_Check_priority_pre_DataConsent()

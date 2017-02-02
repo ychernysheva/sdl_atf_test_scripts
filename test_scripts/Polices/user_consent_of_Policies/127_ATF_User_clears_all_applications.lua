@@ -50,10 +50,6 @@ local events = require('events')
 local ServerAddress = commonFunctions:read_parameter_from_smart_device_link_ini("ServerAddress")
 local deviceMAC2 = "54286cb92365be544aa7008b92854b9648072cf8d8b17b372fd0786bef69d7a2"
 local mobileHost = "1.0.0.1"
-local Connections = {
-  {connection = Test.mobileConnection2, session = Test.mobileSession2},
-  {connection = Test.mobileConnection1, session = Test.mobileSession1},
-}
 
 -- Creation dummy connection
 os.execute("ifconfig lo:1 1.0.0.1")
@@ -123,16 +119,13 @@ end
 commonFunctions:newTestCasesGroup("Test")
 
 function Test:TestStep_Check_two_devices_visible_on_device2_connect()
-  --connection = Test.mobileConnection2, session = Test.mobileSession2
   local tcpConnection = tcp.Connection(mobileHost, config.mobilePort)
   local fileConnection = file_connection.FileConnection("mobile.out", tcpConnection)
-
-  Connections[1].connection = mobile.MobileConnection(fileConnection)
-  Connections[1].session = mobile_session.MobileSession(self, Connections[1].connection)
-  event_dispatcher:AddConnection(Connections[1].connection)
-  Connections[1].session :ExpectEvent(events.connectedEvent, "Connection started")
-  Connections[1].connection:Connect()
-
+  local connection = mobile.MobileConnection(fileConnection)
+  event_dispatcher:AddConnection(connection)
+  connection:Connect()
+  local session = mobile_session.MobileSession(self, connection)
+  session:ExpectEvent(events.connectedEvent, "Connection started")
 
   EXPECT_HMICALL("BasicCommunication.UpdateDeviceList",
     {

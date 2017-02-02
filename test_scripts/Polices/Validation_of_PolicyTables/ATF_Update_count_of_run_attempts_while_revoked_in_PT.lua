@@ -23,6 +23,7 @@
 ---------------------------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
+config.defaultProtocolVersion = 2
 
 --[[ Required Shared libraries ]]
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
@@ -32,6 +33,7 @@ local testCasesForPolicyTable = require('user_modules/shared_testcases/testCases
 --[[ Local Variables ]]
 local HMIAppID
 local appID = "0000001"
+local countOfActivationTries = 3
 
 --[[ General Precondition before ATF start ]]
 commonFunctions:SDLForceStop()
@@ -108,7 +110,7 @@ function Test:Precondition_trigger_user_request_update_from_HMI()
 end
 
 function Test:Precondition_PTU_revoke_app()
-  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATING"}, {status = "UP_TO_DATE"}):Times(2)
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate"):Times(Between(2,3))
   :Do(function(_,data)
       if(data.params.status == "UP_TO_DATE") then
         EXPECT_HMINOTIFICATION("SDL.OnAppPermissionChanged")
@@ -145,33 +147,32 @@ function Test:Precondition_PTU_revoke_app()
             end)
         end)
     end)
-
-  EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "NONE", systemContext = "MAIN", audioStreamingState = "NOT_AUDIBLE" })
 end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
-function Test:TestStep1_Activate_app_isAppPermissionRevoked_true()
-  local RequestIdActivateAppAgain = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.applications[config.application1.registerAppInterfaceParams.appName] })
-  EXPECT_HMIRESPONSE(RequestIdActivateAppAgain, { result = { isAppRevoked = true}})
+
+for i = 1, countOfActivationTries do
+  Test["TestStep_Activate_app_isAppPermissionRevoked_true_" .. i] = function(self)
+    local RequestIdActivateAppAgain = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.applications[config.application1.registerAppInterfaceParams.appName] })
+    EXPECT_HMIRESPONSE(RequestIdActivateAppAgain, { result = { isAppRevoked = true}})
+    os.execute("sleep 3")
+  end
 end
 
-function Test.Wait()
-  os.execute("sleep 3")
-end
-
-function Test:TestStep2_Check_count_of_run_attempts_while_revoked_incremented_in_PT()
+function Test:TestStep_Check_count_of_run_attempts_while_revoked_incremented_in_PT()
   local query = "select count_of_run_attempts_while_revoked from app_level where application_id = '" .. appID .. "'"
   local CountOfAttemptsWhileRevoked = commonFunctions:get_data_policy_sql(config.pathToSDL.."/storage/policy.sqlite", query)[1]
-  if CountOfAttemptsWhileRevoked == '1' then
+  if CountOfAttemptsWhileRevoked == tostring(countOfActivationTries) then
     return true
   else
-    self:FailTestCase("Wrong count_of_run_attempts_while_revoked. Expected: " .. 1 .. ", Actual: " .. CountOfAttemptsWhileRevoked)
+    self:FailTestCase("Wrong count_of_run_attempts_while_revoked. Expected: " .. countOfActivationTries .. ", Actual: " .. CountOfAttemptsWhileRevoked)
   end
 end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
+
 testCasesForPolicyTable:Restore_preloaded_pt()
 
 function Test.Postcondition_StopSDL()

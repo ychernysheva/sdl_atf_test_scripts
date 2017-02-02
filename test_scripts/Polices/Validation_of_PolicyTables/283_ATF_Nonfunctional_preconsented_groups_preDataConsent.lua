@@ -1,23 +1,22 @@
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
---    [Policies] "pre_DataConsent" policies and "preconsented_groups" validation
+-- [Policies] "pre_DataConsent" policies and "preconsented_groups" validation
 --
 -- Description:
---     Validation of "preconsented_groups" sub-section in "pre_DataConsent" if "pre_DataConsent" policies assigned to the application.
---     Checking incorrect "preconsented_groups" value - not <functional grouping> under section "functional_groupings"
---     1. Used preconditions:
---      SDL and HMI are running
---      Connect device
+-- Validation of "preconsented_groups" sub-section in "pre_DataConsent" if "pre_DataConsent" policies assigned to the application.
+-- Checking incorrect "preconsented_groups" value - not <functional grouping> under section "functional_groupings"
+-- 1. Used preconditions:
+-- SDL and HMI are running
+-- Connect device
 --
---     2. Performed steps
---      Add session("pre_DataConsent" policies are assigned to the application)-> PTU is triggered
+-- 2. Performed steps
+-- Add session("pre_DataConsent" policies are assigned to the application)-> PTU is triggered
 --
 -- Expected result:
---     PoliciesManager must validate "preconsented_groups" sub-section in "pre_DataConsent" and treat it as invalid -> PTU invalid
+-- PoliciesManager must validate "preconsented_groups" sub-section in "pre_DataConsent" and treat it as invalid -> PTU invalid
 ---------------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
---[ToDo: should be removed when fixed: "ATF does not stop HB timers by closing session and connection"
 config.defaultProtocolVersion = 2
 
 --[[ Required Shared libraries ]]
@@ -93,31 +92,30 @@ end
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
-function Test:TestStep_Validate_wrong_preconsented_groups_Preloaded()
-  --TODO(istoimenova): Should be checked when ATF problem is fixed with SDL crash
-  EXPECT_HMINOTIFICATION("BasicCommunication.OnSDLClose")
-  local result = testCasesForPolicySDLErrorsStops:CheckSDLShutdown(self)
-  if (result == false) then
-    self:FailTestCase("Error: SDL doesn't stop.")
-  end
+function Test:TestStep_StartSDL()
+  StartSDL(config.pathToSDL, config.ExitOnCrash, self)
+end
+
+function Test.TestStep_Validate_wrong_preconsented_groups_Preloaded()
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnSDLClose"):Times(0)
 end
 
 function Test:TestStep_CheckSDLLogError()
   local result = testCasesForPolicySDLErrorsStops.ReadSpecificMessage("Policy table is not initialized.")
-  if (result == false) then
-    self:FailTestCase("Error: message 'Policy table is not initialized.' is not observed in smartDeviceLink.log.")
+  if (result == true) then
+    self:FailTestCase("Error: message 'Policy table is not initialized.' is observed in smartDeviceLink.log.")
   end
 end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
 
-function Test.Postcondition_Restore_preloaded()
-  Restore_preloaded()
-end
-
 function Test.Postcondition_SDLStop()
   StopSDL()
+end
+
+function Test.Postcondition_Restore_preloaded()
+  Restore_preloaded()
 end
 
 return Test

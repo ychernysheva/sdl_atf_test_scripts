@@ -38,6 +38,7 @@ local function updatePTU(ptu)
   if ptu.policy_table.consumer_friendly_messages.messages then
     ptu.policy_table.consumer_friendly_messages.messages = nil
   end
+  ptu.policy_table.module_config.preloaded_pt = nil
   ptu.policy_table.device_data = nil
   ptu.policy_table.module_meta = nil
   ptu.policy_table.usage_and_error_counts = nil
@@ -128,7 +129,7 @@ function Test:Pecondition_RegisterNewApp()
   self.mobileSession2:ExpectResponse(correlationId, { success = true })
 end
 
---[[ Test ]]
+-- [[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
 for _, v in pairs({ "Alert", "EndAudioPassThru", "Show" }) do

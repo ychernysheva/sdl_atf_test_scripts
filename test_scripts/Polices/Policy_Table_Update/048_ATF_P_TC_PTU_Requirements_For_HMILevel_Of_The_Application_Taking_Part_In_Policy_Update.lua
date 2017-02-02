@@ -20,6 +20,7 @@
 ---------------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
+config.defaultProtocolVersion = 2
 
 --[[ Required Shared libraries ]]
 local mobileSession = require("mobile_session")
@@ -186,7 +187,7 @@ for time = 1, 10 do
             received_onsystemrequest = received_onsystemrequest + 1
             print("OnSystemRequset received for App_4: hmilevel: FULL")
           end)
-    end)
+      end)
 
     local function check_result()
       if (received_onsystemrequest > 1) then

@@ -32,7 +32,7 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local mobile_session = require('mobile_session')
-
+local commonTestCases = require("user_modules/shared_testcases/commonTestCases")
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
@@ -76,13 +76,15 @@ end
 --[[ Test ]]
 commonFunctions:newTestCasesGroup ("Test")
 function Test:TestStep_PoliciesManager_changes_UP_TO_DATE()
+  commonTestCases:DelayedExp(3000)
   assert(commonFunctions:File_exists("files/ptu.json"))
   local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest",
     { requestType = "HTTP", fileName = "PolicyTableUpdate" },"files/ptu.json")
 
   EXPECT_RESPONSE(CorIdSystemRequest, { success = true, resultCode = "SUCCESS"})
+
   EXPECT_HMICALL("BasicCommunication.SystemRequest"):Times(0)
-  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", { status = "UP_TO_DATE" }, { status = "UPDATE_NEEDED" }):Times(AtLeast(1))
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", { status = "UP_TO_DATE" }, { status = "UPDATE_NEEDED" }, { status = "UPDATING" }):Times(3)
 end
 
 function Test:TestStep_CheckThatAppID_SecondApp_StillPresent_In_DataBase()

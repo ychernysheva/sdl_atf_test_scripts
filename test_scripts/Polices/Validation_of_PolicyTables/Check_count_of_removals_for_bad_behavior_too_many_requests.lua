@@ -116,7 +116,13 @@ function Test:Send_TOO_MANY_REQUESTS()
   --mobile side: expect notification
   EXPECT_NOTIFICATION("OnAppInterfaceUnregistered", {reason = "TOO_MANY_REQUESTS"})
 end
+
+function Test.Stop_SDL()
+  StopSDL()
+end
+
 function Test:Check_TOO_MANY_REQUESTS_in_DB()
+  os.execute("sleep 3")
   local db_path = config.pathToSDL.."storage/policy.sqlite"
   local sql_query = "SELECT count_of_removals_for_bad_behavior FROM app_level WHERE application_id = '" .. config.application1.registerAppInterfaceParams.appID .. "'"
   local exp_result = {"1"}
@@ -125,9 +131,6 @@ function Test:Check_TOO_MANY_REQUESTS_in_DB()
   end
 end
 
-function Test.Postcondition_Stop_SDL()
-  StopSDL()
-end
 function Test.RestoreIniFile()
   Preconditions:RestoreFile("smartDeviceLink.ini")
 end

@@ -340,28 +340,35 @@ function Test:updatePolicyInDifferentSessions(PTName, appName, mobileSession)
     StartSDL(config.pathToSDL, config.ExitOnCrash, self)
   end
 
-  function Test:Precondition_InitHMIandMobileApp()
+  function Test:Precondition_InitHMI()
     self:initHMI()
+  end
+
+  function Test:Precondition_InitHMI_onReady()
     self:initHMI_onReady()
+  end
+
+  function Test:Precondition_ConnectMobile()
     self:connectMobile()
+  end
+
+  function Test:Precondition_StartMobileSession()
     self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
+    self.mobileSession:StartService(7)
   end
 
   --[[ Test ]]
   commonFunctions:newTestCasesGroup("Test")
 
   function Test:RegisterApp()
-    self.mobileSession:StartService(7)
-    :Do(function (_,_)
-        local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
+    local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
 
-        EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
-        :Do(function(_,data)
-            HMIAppId = data.params.application.appID
-          end)
-        EXPECT_RESPONSE(correlationId, { success = true })
-        EXPECT_NOTIFICATION("OnPermissionsChange")
+    EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
+    :Do(function(_,data)
+        HMIAppId = data.params.application.appID
       end)
+    EXPECT_RESPONSE(correlationId, { success = true })
+    EXPECT_NOTIFICATION("OnPermissionsChange")
   end
 
   function Test:ActivateAppInFULL()
@@ -370,8 +377,6 @@ function Test:updatePolicyInDifferentSessions(PTName, appName, mobileSession)
   end
 
   function Test:UpdatePolicy_ExpectOnAppPermissionChangedWithAppID()
-    EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
-
     -- ToDo (aderiabin): This function must be replaced by call
     -- testCasesForPolicyTable:updatePolicyInDifferentSessions(Test, ptuAppRegistered,
     -- config.application1.registerAppInterfaceParams.appName,
@@ -383,6 +388,7 @@ function Test:updatePolicyInDifferentSessions(PTName, appName, mobileSession)
   end
 
   function Test:CheckPTUinLocalPT()
+    os.execute("sleep 5")
     -- TestData:store("Store PT snapshot before its testing", realPathToSnapshot, CORRECT_LINUX_PATH_TO_POLICY_SNAPSHOT_FILE)
     -- if (not self:checkPtsFile()) or (not self:checkSdl()) then
     -- self:FailTestCase()

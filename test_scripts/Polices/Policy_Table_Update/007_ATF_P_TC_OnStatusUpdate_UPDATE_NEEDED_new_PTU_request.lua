@@ -59,7 +59,8 @@ end
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 function Test:TestStep_OnStatusUpdate_UPDATE_NEEDED_new_PTU_request()
-  testCasesForPolicyTable:trigger_user_request_update_from_HMI(self)
+  self.hmiConnection:SendNotification("SDL.OnPolicyUpdate", {} )
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"}):Times(0)
 end
 
 --[[ Postconditions ]]

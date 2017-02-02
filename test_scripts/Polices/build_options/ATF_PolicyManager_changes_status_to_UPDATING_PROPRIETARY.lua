@@ -20,70 +20,79 @@
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 
 --[[ Required Shared libraries ]]
+local mobile_session = require("mobile_session")
 local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
 local commonSteps = require("user_modules/shared_testcases/commonSteps")
-local testCasesForPolicyTable = require("user_modules/shared_testcases/testCasesForPolicyTable")
 
 --[[ Local Variables ]]
 local r_actual = { }
+local r_expected = { "SDL.OnStatusUpdate(UPDATE_NEEDED)", "BC.PolicyUpdate", "SDL.OnStatusUpdate(UPDATING)"}
 
 --[[ Local Functions ]]
-local function get_id_by_val(t, v)
-  for i = 1, #t do
-    if (t[i] == v) then return i end
+local function is_table_equal(t1, t2)
+  local ty1 = type(t1)
+  local ty2 = type(t2)
+  if ty1 ~= ty2 then return false end
+  if ty1 ~= 'table' and ty2 ~= 'table' then return t1 == t2 end
+  for k1, v1 in pairs(t1) do
+    local v2 = t2[k1]
+    if v2 == nil or not is_table_equal(v1, v2) then return false end
   end
-  return nil
+  for k2, v2 in pairs(t2) do
+    local v1 = t1[k2]
+    if v1 == nil or not is_table_equal(v1, v2) then return false end
+  end
+  return true
 end
 
 --[[ General Precondition before ATF start ]]
 commonFunctions:SDLForceStop()
 commonSteps:DeleteLogsFileAndPolicyTable()
-testCasesForPolicyTable.Delete_Policy_table_snapshot()
 
 --[[ General Settings for configuration ]]
-Test = require("connecttest")
+Test = require("user_modules/connecttest_resumption")
 require("user_modules/AppTypes")
 
--- [[ Notifications ]]
-EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
-:Do(function()
-    table.insert(r_actual, "BC.PolicyUpdate")
-  end)
-:Times(AnyNumber())
-:Pin()
+--[[ Preconditions ]]
+commonFunctions:newTestCasesGroup("Preconditions")
 
-EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",{ status = "UPDATING" })
-:Do(function(_, d)
-    table.insert(r_actual, "SDL.OnStatusUpdate: " .. d.params.status)
-  end)
-:Times(AnyNumber())
-:Pin()
+function Test:ConnectMobile()
+  self:connectMobile()
+end
+
+function Test:StartSession()
+  self.mobileSession1 = mobile_session.MobileSession(self, self.mobileConnection)
+  self.mobileSession1:StartService(7)
+end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
-function Test:TestStep_CheckMessagesSequence()
-  local RequestId_GetUrls = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
-  table.insert(r_actual, "SDL.GetURLS: request")
-  EXPECT_HMIRESPONSE(RequestId_GetUrls)
-  :Do(function()
-      table.insert(r_actual, "SDL.GetURLS: response")
-      EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY" })
-      :Do(function()
-          table.insert(r_actual, "OnSystemRequest")
+
+function Test:RAI()
+  self.mobileSession1:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application1.registerAppInterfaceParams.appName } })
+  :Do(
+    function(_, d1)
+      self.applications[config.application1.registerAppInterfaceParams.appID] = d1.params.application.appID
+      EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", { status = "UPDATE_NEEDED" }, { status = "UPDATING" })
+      :Do(
+        function(_, d2)
+          table.insert(r_actual, "SDL.OnStatusUpdate(" .. d2.params.status .. ")")
         end)
-      self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest", { requestType = "PROPRIETARY", fileName = "PolicyTableUpdate"})
-      table.insert(r_actual, "BC.OnSystemRequest")
+      :Times(2)
+      EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
+      :Do(
+        function()
+          table.insert(r_actual, "BC.PolicyUpdate")
+        end)
     end)
 end
 
 function Test:ValidateResult()
-  commonFunctions:printTable(r_actual)
-  local onSystemRequestId = get_id_by_val(r_actual, "OnSystemRequest")
-  local onStatusUpdate = get_id_by_val(r_actual, "SDL.OnStatusUpdate: UPDATING")
-  print("Id of 'OnSystemRequest': " .. onSystemRequestId)
-  print("Id of 'SDL.OnStatusUpdate: UPDATING': " .. onStatusUpdate)
-  if onStatusUpdate < onSystemRequestId then
-    self:FailTestCase("Unexpected 'SDL.OnStatusUpdate: UPDATING' before 'OnSystemRequest'")
+  if not is_table_equal(r_expected, r_actual) then
+    local msg = table.concat({"\nExpected sequence:\n", commonFunctions:convertTableToString(r_expected, 1),
+        "\nActual:\n", commonFunctions:convertTableToString(r_actual, 1)})
+    self:FailTestCase(msg)
   end
 end
 

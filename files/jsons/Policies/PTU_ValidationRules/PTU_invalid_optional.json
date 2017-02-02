@@ -2581,7 +2581,6 @@
           ]
         }
       },
-      "preloaded_pt": true,
       "timeout_after_x_seconds": 60,
       "notifications_per_minute_by_priority": {
         "NORMAL": 4,

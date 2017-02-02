@@ -78,7 +78,7 @@ function Test:RegisterApp2()
   local correlationId = self.mobileSession1:SendRPC("RegisterAppInterface", config.application2.registerAppInterfaceParams)
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
   :Do(function(_,data)
-      self.HMIAppID2 = data.params.application.appID
+      self.applications[config.application2.registerAppInterfaceParams.appName] = data.params.application.appID
     end)
   self.mobileSession1:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS" })
   self.mobileSession1:ExpectNotification("OnHMIStatus", {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
@@ -89,6 +89,7 @@ function Test:ActivateApp2_isSDLAllowed_true()
   EXPECT_HMIRESPONSE(RequestId,
     {result = { code = 0, isAppPermissionsRevoked = false, isAppRevoked = false, isPermissionsConsentNeeded = false, isSDLAllowed = true, method ="SDL.ActivateApp", priority ="NONE"}})
   :Do(function(_,data)
+
       --Device is consented already, so no consent is needed:
       if data.result.isSDLAllowed ~= true then
         commonFunctions:userPrint(31, "Error: wrong behavior of SDL - device already consented")

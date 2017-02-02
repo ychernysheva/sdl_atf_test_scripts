@@ -2262,7 +2262,7 @@
                 "groups": ["DataConsent-2"]
             },
             "pre_DataConsent": {
-		"memory_kb":2000,
+		"memory_kb":200,
                 "keep_context": false,
                 "steal_focus": false,
                 "priority": "NORMAL",

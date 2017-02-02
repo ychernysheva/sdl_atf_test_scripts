@@ -65,10 +65,6 @@ local function Get_RPCs()
       end
     end
   end
-
-  -- for i = 1, #RPC_BaseBeforeDataConsent do
-  --   print("allowed_rps = "..RPC_BaseBeforeDataConsent[i])
-  -- end
 end
 Get_RPCs()
 
@@ -120,8 +116,8 @@ function Test:Register_App_And_Check_Order_Of_Request_Response_Notiofications()
           isSDLAllowed = false
     } } })
   :Do(function(_,data)
-      if(order_communication ~= 1) then
-        commonFunctions:printError("BasicCommunication.OnAppRegistered is not received 1 in message order. Real: received number: "..order_communication)
+      if(order_communication ~= 1 and order_communication ~= 2) then
+        commonFunctions:printError("BasicCommunication.OnAppRegistered is not received 1 or 2 in message order. Real: received number: "..order_communication)
         is_test_fail = true
       end
       order_communication = order_communication + 1
@@ -130,8 +126,8 @@ function Test:Register_App_And_Check_Order_Of_Request_Response_Notiofications()
 
   EXPECT_RESPONSE(CorIdRAI, { success = true, resultCode = "SUCCESS"})
   :Do(function(_,_)
-      if(order_communication ~= 2) then
-        commonFunctions:printError("RAI response is not received 2 in message order. Real: received number: "..order_communication)
+      if(order_communication ~= 2 and order_communication ~= 1) then
+        commonFunctions:printError("RAI response is not received 1 or 2 in message order. Real: received number: "..order_communication)
         is_test_fail = true
       end
       order_communication = order_communication + 1
@@ -194,7 +190,7 @@ function Test:Register_App_And_Check_Order_Of_Request_Response_Notiofications()
       if(is_test_fail == true) then
         self:FailTestCase("Test is FAILED. See prints.")
       end
-  end)
+    end)
 end
 
 --[[ Postconditions ]]
