@@ -5,7 +5,7 @@
 -- [MOBILE_API] [HMI_API] The 'steeringWheelLocation' enum
 -- [MOBILE_API] The 'steeringWheelLocation' param
 -- [HMI_API] The 'steeringWheelLocation' parameter
--- [RegisterAppInterface] WARNINGS appHMIType(s) partially coincide or not coincide with current 
+-- [RegisterAppInterface] WARNINGS appHMIType(s) partially coincide or not coincide with current
 -- non-empty data stored in PolicyTable
 --
 -- Description:
@@ -20,7 +20,7 @@
 -- Register new applications with conditions for result WARNINGS
 --
 -- Expected result:
--- SDL->mobile: RegisterAppInterface_response(WARNINGS, success: true) 
+-- SDL->mobile: RegisterAppInterface_response(WARNINGS, success: true)
 -- steeringWeelLocation is equal to "HMI_capabilities.json"
 ---------------------------------------------------------------------------------------------
 
@@ -44,13 +44,13 @@ local value_steering_wheel_location = testCasesForRAI.get_data_steeringWheelLoca
 --! @parameters: NO
 --]]
 local function update_sdl_preloaded_pt_json()
-	local pathToFile = config.pathToSDL .. 'sdl_preloaded_pt.json'
+	local pathToFile = commonPreconditions:GetPathToSDL() .. 'sdl_preloaded_pt.json'
 	local file = io.open(pathToFile, "r")
 	local json_data = file:read("*all") -- may be abbreviated to "*a";
 	file:close()
-				
+
 	local json = require("modules/json")
-	
+
 	local data = json.decode(json_data)
 	for k in pairs(data.policy_table.functional_groupings) do
 		if (data.policy_table.functional_groupings[k].rpcs == nil) then
@@ -66,7 +66,7 @@ local function update_sdl_preloaded_pt_json()
 		groups = {"Base-4"},
 		AppHMIType = {"NAVIGATION"}
 	}
-				
+
 	data = json.encode(data)
 	file = io.open(pathToFile, "w")
 	file:write(data)
@@ -81,7 +81,7 @@ commonSteps:DeletePolicyTable()
 
 --TODO(istoimenova): shall be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
 config.defaultProtocolVersion = 2
-config.application1.registerAppInterfaceParams.appHMIType = {"MEDIA"}	
+config.application1.registerAppInterfaceParams.appHMIType = {"MEDIA"}
 
 --[[ General Settings for configuration ]]
 Test = require('user_modules/connecttest_initHMI')
@@ -111,7 +111,7 @@ commonFunctions:newTestCasesGroup("Test")
 
 function Test:TestStep_RAI_steeringWheelLocation()
 	local CorIdRegister = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
-		
+
 	EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application1.registerAppInterfaceParams.appName }})
 	EXPECT_RESPONSE(CorIdRegister, { success = true, resultCode = "WARNINGS", hmiCapabilities = { steeringWheelLocation = value_steering_wheel_location } })
 	EXPECT_NOTIFICATION("OnHMIStatus", { systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE"})

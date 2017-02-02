@@ -86,7 +86,7 @@ commonFunctions:newTestCasesGroup("Preconditions")
 
 function Test:Precondition_InitHMI_OnReady()
 	testCasesForRAI.InitHMI_onReady_without_UI_GetCapabilities(self)
-	
+
   EXPECT_HMICALL("UI.GetCapabilities")
 	:Do(function(_,data)
 		self.hmiConnection:SendResponse(data.id, "UI.GetCapabilities", "SUCCESS", {
@@ -218,7 +218,7 @@ function Test:Precondition_IGNITION_OFF()
 end
 
 function Test.Precondition_StartSDL_Second_Ign_Cycle()
-  StartSDL(config.pathToSDL, config.ExitOnCrash)
+  StartSDL(commonPreconditions:GetPathToSDL(), config.ExitOnCrash)
 end
 
 function Test:Precondition_InitHMI_Second_Ign_Cycle()
@@ -227,7 +227,7 @@ end
 
 function Test:Precondition_InitHMI_OnReady_Second_Ign_Cycle()
   testCasesForRAI.InitHMI_onReady_without_UI_GetCapabilities(self)
-  
+
   EXPECT_HMICALL("UI.GetCapabilities")
   -- Do not send UI.GetCapabilites
 end
