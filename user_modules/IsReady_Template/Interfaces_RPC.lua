@@ -133,6 +133,7 @@ interfaces.RAI = {
                                   hmiCapabilities = { 
                                                         navigation = false,
                                                         phoneCall  = false,
+                                                        steeringWheelLocation = false
                                                       }
                                 }
 
