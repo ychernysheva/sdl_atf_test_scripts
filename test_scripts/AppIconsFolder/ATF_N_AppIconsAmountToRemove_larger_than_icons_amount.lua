@@ -15,7 +15,7 @@
 --      Send SetAppIcon   
 -- Expected result:
 --    SDL must:
---      remove all icons from AppIconsFolder folder;
+--      remove all old icons from AppIconsFolder folder;
 --      write the new icon to AppIconsFolder folder
 ---------------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
@@ -36,10 +36,7 @@ require('user_modules/AppTypes')
 --[[ Local variables ]]
 local pathToAppFolder
 local file
-local fileContent
 local status = true
-local fileContentUpdated
-local SDLini = config.pathToSDL .. ("smartDeviceLink.ini")
 local RAIParameters = config.application1.registerAppInterfaceParams
 
 --[[ Local functions ]]
@@ -58,7 +55,6 @@ local function registerApplication(self)
   self.mobileSession:ExpectResponse(corIdRAI, { success = true, resultCode = "SUCCESS" })
 end
 
--- Check file existence 
 local function checkFileExistence(name, messages)
   file=io.open(name,"r")
   if file ~= nil then
@@ -82,8 +78,7 @@ local function pathToAppFolderFunction(appID)
   return path
 end
 
--- Get folder size
-local function dSize(PathToFolder)
+local function folderSize(PathToFolder)
   local sizeFolderInBytes
   local aHandle = assert( io.popen( "du -sh " ..  tostring(PathToFolder), 'r'))
   local buff = aHandle:read( '*l' )
@@ -101,10 +96,9 @@ local function dSize(PathToFolder)
   return sizeFolderInBytes
 end
 
--- Make AppIconsFolder full
 local function makeAppIconsFolderFull(AppIconsFolder)
   local sizeToFull
-  local sizeAppIconsFolderInBytes = dSize(config.pathToSDL .. tostring(AppIconsFolder))
+  local sizeAppIconsFolderInBytes = folderSize(config.pathToSDL .. tostring(AppIconsFolder))
   local appIconsFolderMaxSize = 1048576
   local oneIconSize = 326360
   sizeToFull = appIconsFolderMaxSize - sizeAppIconsFolderInBytes
@@ -116,7 +110,7 @@ local function makeAppIconsFolderFull(AppIconsFolder)
     if copyFileToAppIconsFolder ~= true then
       commonFunctions:userPrint(31, " Files are not copied to " .. tostring(AppIconsFolder))
     end
-     sizeAppIconsFolderInBytes = dSize(config.pathToSDL .. tostring(AppIconsFolder))
+     sizeAppIconsFolderInBytes = folderSize(config.pathToSDL .. tostring(AppIconsFolder))
      sizeToFull = appIconsFolderMaxSize - sizeAppIconsFolderInBytes
       if i > 10 then
         commonFunctions:userPrint(31, " Loop is breaking due to a lot of iterations ")
@@ -126,20 +120,20 @@ local function makeAppIconsFolderFull(AppIconsFolder)
 end
 
 local function checkFunction()
-  local applicationFileToCheck = config.pathToSDL .. tostring("Icons/" .. RAIParameters.appID)
-  local applicationFileExistsResult = checkFileExistence(applicationFileToCheck)
   local aHandle = assert( io.popen( "ls " .. config.pathToSDL .. "Icons/" , 'r'))
   local listOfFilesInStorageFolder = aHandle:read( '*a' )
   commonFunctions:userPrint(32, "Content of storage folder: " ..tostring("\n" ..listOfFilesInStorageFolder))
-
+  local iconsFolder = config.pathToSDL .. tostring("Icons/")
+  local applicationFileToCheck = iconsFolder .. RAIParameters.appID
+  local applicationFileExistsResult = checkFileExistence(applicationFileToCheck)
   if applicationFileExistsResult ~= true then
     commonFunctions:userPrint(31, tostring(RAIParameters.appID) .. " icon is absent")
     status = false
   end
-  
   for i=1, 3, 1 do
-    local oldFileToCheck = config.pathToSDL .. tostring(AppIconsFolder).. "/icon" .. tostring(i) ..".png"
-    if oldFileToCheck~=false then
+   local oldFileToCheck = iconsFolder.. "icon" .. tostring(i) ..".png"
+    local oldFileToCheckExistsResult = checkFileExistence(oldFileToCheck)
+    if oldFileToCheckExistsResult~=false then
       commonFunctions:userPrint(31,"Oldest icon" .. tostring(i).. ".png is not deleted from AppIconsFolder")
       status = false
     end
