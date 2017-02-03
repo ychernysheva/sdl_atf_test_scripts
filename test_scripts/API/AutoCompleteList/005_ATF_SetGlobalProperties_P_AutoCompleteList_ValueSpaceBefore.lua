@@ -1,6 +1,6 @@
 ----------------------------------------------------------------------------------------
 -- Requirement summary:
--- [SetGlobalProperties] Conditions for SDL to transfer request with valid "autoCompleteList" param
+-- [SetGlobalProperties] SDL to transfer request with valid "autoCompleteList" param
 --
 -- Description:
 -- Case when mobile send SetGlobalProperties request, SDL tranfer SetGlobalProperties_request with <autoCompleteList> param to HMI and
