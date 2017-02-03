@@ -3,7 +3,7 @@
 -- [SetGlobalProperties] Conditions for SDL respond <success = false, resultCode = "INVALID_DATA"> to mobile app
 --
 -- Description:
--- Case when SDL recieved incorrect JSON file with correct value of <autoCompleteList> send respond 
+-- Case when mobile send request with incorrect JSON file with correct value of <autoCompleteList>, SDL send respond 
 -- with result_code = "INVALID_DATA" to mobile.
 -- 
 -- Performed steps:
