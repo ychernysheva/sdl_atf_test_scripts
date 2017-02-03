@@ -110,6 +110,10 @@ function Test:Postcondition_SetAudioStreamingIndicator_SUCCESS_correct_json()
   EXPECT_NOTIFICATION("OnHashChange",{}):Times(0)
 end
 
+function Test.Postcondition_Restore_preloaded_file()
+  commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
+end
+
 function Test.Postcondition_Stop()
   StopSDL()
 end
