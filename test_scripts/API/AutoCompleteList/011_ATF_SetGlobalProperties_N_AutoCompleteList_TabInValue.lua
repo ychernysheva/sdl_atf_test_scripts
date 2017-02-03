@@ -3,7 +3,8 @@
 -- [SetGlobalProperties] Conditions for SDL respond <success = false, resultCode = "INVALID_DATA"> to mobile app.
 --
 -- Description:
--- Case when SDL respond with <INVALID_DATA> to mobile app if <autoCompleteList> param have value with tabulation.
+--  Case when mobile send SetGlobalProperties request, SDL respond with <INVALID_DATA> to mobile app,
+--  if <autoCompleteList> param have value with tabulation.
 --
 -- Performed steps:
 -- 1. Register Application.
