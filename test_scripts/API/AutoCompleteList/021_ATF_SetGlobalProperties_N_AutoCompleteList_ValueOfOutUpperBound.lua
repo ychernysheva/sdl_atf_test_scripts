@@ -1,5 +1,5 @@
 -- Requirement summary:
--- [SetGlobalProperties] Conditions for SDL respond <success = false, resultCode = "INVALID_DATA"> to mobile app
+-- [SetGlobalProperties] SDL must respond <success = false, resultCode = "INVALID_DATA"> to mobile app
 --
 -- Description:
 -- Case when mobile send SetGlobalProperties request, with <autoCompleteList> param have value is out of upper bound, 
@@ -30,9 +30,8 @@ require('user_modules/AppTypes')
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
-function Test:AutoCompleteList_String_in_Array_IsOut_UpperBound()
- --mobile side: sending SetGlobalProperties request
- local cid = self.mobileSession:SendRPC("SetGlobalProperties",
+ function Test:AutoCompleteList_String_in_Array_IsOut_UpperBound()
+  local cid = self.mobileSession:SendRPC("SetGlobalProperties",
     {
       keyboardProperties =
       {
@@ -47,9 +46,7 @@ function Test:AutoCompleteList_String_in_Array_IsOut_UpperBound()
         autoCompleteList = {"upperbound", "upperboundupperboundupperboundupperboundupperboundf"}
       }
     })
-  --mobile side: expect SetGlobalProperties response
   EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
-  
 end
 
 --[[ Postconditions ]]
