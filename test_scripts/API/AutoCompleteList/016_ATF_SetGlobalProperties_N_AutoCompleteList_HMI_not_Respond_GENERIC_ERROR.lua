@@ -1,6 +1,6 @@
 --------------------------------------------------------------------------------------------
 -- Requirement summary:
--- [SetGlobalProperties] Conditions for SDL respond <success = false, resultCode = "GENERIC_ERROR"> to mobile app
+-- [SetGlobalProperties] SDL respond <success = false, resultCode = "GENERIC_ERROR"> to mobile app
 --
 -- Description:
 -- Case when mobile send SetGlobalProperties request, SDL tranfer SetGlobalProperties request with <autoCompleteList> param to HMI, 
@@ -32,9 +32,7 @@ require('user_modules/AppTypes')
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
-
 function  Test:SetGlobalProperties_WithNotResponse_from_HMI()
-  --mobile side send SetGlobalProperties request
   local cid = self.mobileSession:SendRPC("SetGlobalProperties",
      {
       keyboardProperties =
@@ -50,8 +48,7 @@ function  Test:SetGlobalProperties_WithNotResponse_from_HMI()
         autoCompleteList = {"List_1, List_2", "List_1, List_2"}
       }
     })
-  --hmi side: Default timeout, SDL recieved GENERIC_ERROR
-    EXPECT_HMICALL ("UI.SetGlobalProperties", 
+   EXPECT_HMICALL ("UI.SetGlobalProperties", 
        {
          keyboardProperties =
          {
