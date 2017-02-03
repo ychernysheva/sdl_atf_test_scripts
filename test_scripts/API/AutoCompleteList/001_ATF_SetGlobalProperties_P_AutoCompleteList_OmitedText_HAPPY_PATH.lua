@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
--- [SetGlobalProperties] Conditions for SDL to omit "autoCompleteText" param at request to HMI
+-- [SetGlobalProperties] SDL omit "autoCompleteText" param at request to HMI
 --
 -- Description:
 -- Case when mobile send SetGlobalProperties request, SDL must tranfer SetGlobalProperties_request with <autoCompleteList> param and without (omited) <autoCompleteText> 
