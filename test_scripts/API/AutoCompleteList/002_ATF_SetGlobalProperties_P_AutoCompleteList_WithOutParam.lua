@@ -32,7 +32,6 @@ require('user_modules/AppTypes')
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 function Test:SetGlobalProperties_Without_autoCompleteList()
---mobile side: sending SetGlobalProperties request
 local cid = self.mobileSession:SendRPC("SetGlobalProperties",
     {
       keyboardProperties =
@@ -47,7 +46,6 @@ local cid = self.mobileSession:SendRPC("SetGlobalProperties",
         autoCompleteText = "Text_1, Text_2",
       }
     })
-  --hmi side: expect UI.SetGlobalProperties request
   EXPECT_HMICALL("UI.SetGlobalProperties", 
   {
        keyboardProperties =
@@ -70,9 +68,7 @@ local cid = self.mobileSession:SendRPC("SetGlobalProperties",
       return false
   end
   end)
-  --mobile side: expect SetGlobalProperties response
   EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
- --mobile side: expecting OnHashChange notification
    EXPECT_NOTIFICATION("OnHashChange") 
    :Times(1)
 end
