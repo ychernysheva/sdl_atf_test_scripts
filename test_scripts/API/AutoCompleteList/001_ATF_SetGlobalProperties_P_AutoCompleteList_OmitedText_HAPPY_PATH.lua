@@ -9,7 +9,7 @@
 -- Performed steps:
 -- 1. Register Application.
 -- 2. Mobile send RPC SetGlobalProperties with <autoCompleteList> and <autoCompleteText>
--- 3. HMI respond without <AutoCompliteText>
+-- 3. HMI respond without <AutoCompleteText>
 --
 -- Expected result:
 -- SDL transfered RPC on HMI without autoCompleteText param and responce with <SUCCESS> to mobile app
