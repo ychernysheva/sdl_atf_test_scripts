@@ -5,7 +5,7 @@
 -- Case when mobile send SetGlobalProperties request with <autoCompleteList> parm which have invalid type,
 -- SDL respond <success = false, resultCode = "INVALID_DATA"> to mobile app,
 --
--- Perform steps:
+-- Performed steps:
 -- 1. Register Application.
 -- 2. Mobile send RPC SetGlobalProperties with <autoCompleteList> invalid type.
 --
