@@ -7,9 +7,11 @@ local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local applicationName = config.application1.registerAppInterfaceParams.appName
 local SDLConfig = require ('user_modules/shared_testcases/SmartDeviceLinkConfigurations')
-local PathToAppFolder = config.pathToSDL .. SDLConfig:GetValue("AppStorageFolder") .. "/" .. tostring(config.application1.registerAppInterfaceParams.appID .. "_" .. tostring(config.deviceMAC) .. "/")
-local storagePath = config.pathToSDL .."storage/"
+local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
+local config_path_sdl = commonPreconditions:GetPathToSDL()
+local PathToAppFolder = config_path_sdl .. SDLConfig:GetValue("AppStorageFolder") .. "/" .. tostring(config.application1.registerAppInterfaceParams.appID .. "_" .. tostring(config.deviceMAC) .. "/")
+local storagePath = config_path_sdl .."storage/"
 
 local testCasesForPerformAudioPassThru = {}
 
@@ -133,6 +135,8 @@ function testCasesForPerformAudioPassThru:PerformAudioPassThru_AllParameters_SUC
   end
 
   self.mobileSession:ExpectResponse(CorIdPerformAudioPassThruAppParVD, {success = true, resultCode = "SUCCESS"})
+  EXPECT_NOTIFICATION("OnHashChange"):Times(0)
+
   commonTestCases:DelayedExp(1500)
 end
 
@@ -151,7 +155,8 @@ function testCasesForPerformAudioPassThru:PerformAudioPassThru_AllParameters_Upp
       audioType = "PCM",
       muteAudio = true,
       audioPassThruIcon =
-      { value = string.rep ("a", 251).. ".png",
+      { 
+        value = string.rep ("a", 251).. ".png",
         imageType = "STATIC"
       }
     })
@@ -208,8 +213,11 @@ function testCasesForPerformAudioPassThru:PerformAudioPassThru_AllParameters_Upp
     EXPECT_NOTIFICATION("OnHMIStatus"):Times(0)
   end
 
-  self.mobileSession:ExpectResponse(CorIdPerformAudioPassThruAppUpperParVD, { success = true, resultCode = "SUCCESS"})
+  self.mobileSession:ExpectResponse(CorIdPerformAudioPassThruAppUpperParVD, {success = true, resultCode = "SUCCESS"})
+  EXPECT_NOTIFICATION("OnHashChange"):Times(0)
+
   commonTestCases:DelayedExp(1500)
+
 end
 
 --[[@Check_PerformAudioPassThru_AllParameters_Lower_SUCCESS: check that result code SUCCESS is returned when all RPC parameters are sent and within lower bound
@@ -227,7 +235,7 @@ function testCasesForPerformAudioPassThru:PerformAudioPassThru_AllParameters_Low
       audioType = "PCM",
       muteAudio = true,
       audioPassThruIcon =
-      { value = "",
+      { value = "1",
         imageType = "STATIC"
       }
     })
@@ -260,7 +268,7 @@ function testCasesForPerformAudioPassThru:PerformAudioPassThru_AllParameters_Low
       audioPassThruIcon = 
       { 
         imageType = "STATIC", 
-        value = ""
+        value = "1"
       }
     })
   :Do(function(_,data)
@@ -284,7 +292,9 @@ function testCasesForPerformAudioPassThru:PerformAudioPassThru_AllParameters_Low
     EXPECT_NOTIFICATION("OnHMIStatus"):Times(0)
   end
 
-  self.mobileSession:ExpectResponse(CorIdPerformAudioPassThruAppLowerPar, { success = true, resultCode = "SUCCESS"})
+  self.mobileSession:ExpectResponse(CorIdPerformAudioPassThruAppLowerPar, {success = true, resultCode = "SUCCESS"})
+  EXPECT_NOTIFICATION("OnHashChange"):Times(0)
+
   commonTestCases:DelayedExp(1500)
 end
 
@@ -321,8 +331,8 @@ function testCasesForPerformAudioPassThru:PerformAudioPassThru_MandatoryParamete
     end)
 
   EXPECT_HMICALL("TTS.Speak"):Times(0)
-
   self.mobileSession:ExpectResponse(CorIdPerfAudioPassThruOnlyMandatoryVD, {success = true, resultCode = "SUCCESS"})
+	EXPECT_NOTIFICATION("OnHashChange"):Times(0)
 end
 
 --[[@Check_PerformAudioPassThru_Diff_Speech_Capabilities: check that result code WARNINGS is returned when RPC parameters are sent and within bounds but ttsChunksType is not TEXT
@@ -338,20 +348,17 @@ function testCasesForPerformAudioPassThru:PerformAudioPassThru_Diff_Speech_Capab
   local ttsChunksType = {}
 	
 	for i = 1, #ttsChunksType_array do
-	    -- print (ttsChunksType_array[i].type)
 	    if(ttsChunksType_array[i].type == ttsChunksType_value) then
-	      --print("IN"..i)
 	      ttsChunksType = ttsChunksType_array[i]
 	    end
 	  end
   
-  --print(ttsChunksType.type, ttsChunksType.text)
-
-  if ( (ttsChunksType.type == "PRE_RECORDED") or
-    (ttsChunksType.type == "SAPI_PHONEMES") or
-    (ttsChunksType.type == "LHPLUS_PHONEMES") or
-    (ttsChunksType.type == "SILENCE")
-  )
+  if ( 
+        (ttsChunksType.type == "PRE_RECORDED") or
+        (ttsChunksType.type == "SAPI_PHONEMES") or
+        (ttsChunksType.type == "LHPLUS_PHONEMES") or
+        (ttsChunksType.type == "SILENCE")
+     )
   then
     local CorIdPerformAudioPassThruSpeechCap = self.mobileSession:SendRPC("PerformAudioPassThru",
       {
@@ -376,7 +383,6 @@ function testCasesForPerformAudioPassThru:PerformAudioPassThru_Diff_Speech_Capab
 
       })
 
-    --hmi side: expect for TTS.Speak
     EXPECT_HMICALL("TTS.Speak",
       {
         ttsChunks =
@@ -395,7 +401,6 @@ function testCasesForPerformAudioPassThru:PerformAudioPassThru_Diff_Speech_Capab
 
       end)
 
-    --hmi side: expect for UI.PerformAudioPassThru
     EXPECT_HMICALL("UI.PerformAudioPassThru",
       {
         appID = self.applications[applicationName],
@@ -405,7 +410,7 @@ function testCasesForPerformAudioPassThru:PerformAudioPassThru_Diff_Speech_Capab
         },
         maxDuration = 2000,
         muteAudio = true,
-        audioPassThruIcon = { imageType = "STATIC", value = "icon.png"}
+        audioPassThruIcon = {imageType = "STATIC", value = "icon.png"}
       })
     :Do(function(_,data)
         self.hmiConnection:SendResponse(data.id, "UI.PerformAudioPassThru", "SUCCESS", {})
@@ -415,6 +420,7 @@ function testCasesForPerformAudioPassThru:PerformAudioPassThru_Diff_Speech_Capab
   else 
   	print ("Unexpected TTS.Chunks type")
   end
+  EXPECT_NOTIFICATION("OnHashChange"):Times(0)
 end
 
 --[[@Check_PerformAudioPassThru_DYNAMIC_image_SUCCESS_all: check that result code SUCCESS is returned when all RPC parameters are sent and within bounds and image type = DYNAMIC
@@ -441,11 +447,11 @@ function testCasesForPerformAudioPassThru:PerformAudioPassThru_DYNAMIC_image_SUC
   EXPECT_HMICALL("TTS.Speak",
     {
       speakType = "AUDIO_PASS_THRU",
-      ttsChunks = {{ text = "Makeyourchoice", type = "TEXT" }},
+      ttsChunks = {{ text = "Makeyourchoice", type = "TEXT"}},
       appID = self.applications[config.application1.registerAppInterfaceParams.appName]
     })
   :Do(function(_,data)
-      self.hmiConnection:SendNotification("TTS.Started",{ })
+      self.hmiConnection:SendNotification("TTS.Started",{})
       local function ttsSpeakResponse()
         self.hmiConnection:SendResponse (data.id, data.method, "SUCCESS", {})
         self.hmiConnection:SendNotification("TTS.Stopped")
@@ -483,9 +489,9 @@ function testCasesForPerformAudioPassThru:PerformAudioPassThru_DYNAMIC_image_SUC
 			end
 		end)
   if
-  self.appHMITypes["NAVIGATION"] == true or
-  self.appHMITypes["COMMUNICATION"] == true or
-  self.isMediaApplication == true then
+  (self.appHMITypes["NAVIGATION"]) == true or
+  (self.appHMITypes["COMMUNICATION"]) == true or
+  (self.isMediaApplication) == true then
 
     EXPECT_NOTIFICATION("OnHMIStatus",
       {hmiLevel = "FULL", audioStreamingState = "ATTENUATED", systemContext = "MAIN"},
@@ -496,6 +502,8 @@ function testCasesForPerformAudioPassThru:PerformAudioPassThru_DYNAMIC_image_SUC
   end
 
   self.mobileSession:ExpectResponse(CorIdPerformAudioPassThruAppParALLDynamic, { success = true, resultCode = "SUCCESS"})
+  EXPECT_NOTIFICATION("OnHashChange"):Times(0)
+
   commonTestCases:DelayedExp(1500)
 end
 
@@ -540,8 +548,8 @@ function testCasesForPerformAudioPassThru:PerformAudioPassThru_DYNAMIC_image_Man
     end)
 
   EXPECT_HMICALL("TTS.Speak"):Times(0)
-  
   self.mobileSession:ExpectResponse(CorIdPerfAudioPassThruOnlyMandatoryDYNAMIC, {success = true, resultCode = "SUCCESS"})
+	EXPECT_NOTIFICATION("OnHashChange"):Times(0)
 end
 
 return testCasesForPerformAudioPassThru
