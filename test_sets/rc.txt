@@ -145,4 +145,3 @@
 ./test_scripts/RC/REVSDL-2162/02.03_REVSDL-2162.lua
 ./test_scripts/RC/REVSDL-2162/04_REVSDL-2162.lua
 ./test_scripts/RC/REVSDL-2162/05_REVSDL-2162.lua
-
