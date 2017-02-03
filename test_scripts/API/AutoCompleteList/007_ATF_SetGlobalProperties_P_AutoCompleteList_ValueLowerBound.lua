@@ -1,6 +1,6 @@
 ----------------------------------------------------------------------------------------
 -- Requirement summary:
--- [SetGlobalProperties] SDL to transfer request in case of valid "autoCompleteList" param 
+-- [SetGlobalProperties] SDL must transfer request in case of valid "autoCompleteList" param 
 --
 -- Description:
 -- Case when mobile send SetGlobalProperties request, SDL tranfer SetGlobalProperties_request with <autoCompleteList> value in array is lower bound param to HMI,
