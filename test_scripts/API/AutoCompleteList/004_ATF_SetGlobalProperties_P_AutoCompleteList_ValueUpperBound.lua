@@ -9,6 +9,7 @@
 -- Performed steps:
 -- 1. Register Application.
 -- 2. Mobile send RPC SetGlobalProperties with <autoCompleteList>  string in array is upper bound.
+-- 3. HMI respond <SUCCESS>
 --
 -- Expected result:
 -- SDL respond <success = true, resultCode = "SUCCESS"> to mobile app
