@@ -1,6 +1,6 @@
 ----------------------------------------------------------------------------------------
 -- Requirement summary:
--- [SetGlobalProperties] Conditions for SDL must transfer request to HMI in case of "autoCompleteList" param have value is UpperBound
+-- [SetGlobalProperties] SDL must transfer request to HMI in case of "autoCompleteList" param have value is UpperBound
 --
 -- Description:
 -- Case when SDL tranfer SetGlobalProperties_request with <autoCompleteList> param to HMI
@@ -9,7 +9,6 @@
 -- Performed steps:
 -- 1. Register Application.
 -- 2. Mobile send RPC SetGlobalProperties with <autoCompleteList>  string in array is upper bound.
--- 3. HMI respond.
 --
 -- Expected result:
 -- SDL respond <success = true, resultCode = "SUCCESS"> to mobile app
@@ -33,7 +32,6 @@ require('user_modules/AppTypes')
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 function Test:TestStep_AutoCompleteList_String_in_Array_Is_UpperBound()
---mobile side: sending SetGlobalProperties request
 local cid = self.mobileSession:SendRPC("SetGlobalProperties",
     {
       keyboardProperties =
@@ -49,8 +47,7 @@ local cid = self.mobileSession:SendRPC("SetGlobalProperties",
         autoCompleteList = {"upperbound", "upperboundupperboundupperboundupperboundupperbound"}
       }
     })
-  --hmi side: expect UI.SetGlobalProperties request
-  EXPECT_HMICALL("UI.SetGlobalProperties", 
+   EXPECT_HMICALL("UI.SetGlobalProperties", 
      {
       keyboardProperties =
       {
@@ -67,9 +64,7 @@ local cid = self.mobileSession:SendRPC("SetGlobalProperties",
   :Do(function(_,data)
       self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
     end)
-  --mobile side: expect SetGlobalProperties response
   EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
- --mobile side: expecting OnHashChange notification
    EXPECT_NOTIFICATION("OnHashChange") 
    :Times(1)
 end
