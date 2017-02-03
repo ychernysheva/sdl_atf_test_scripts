@@ -3,12 +3,12 @@
 -- [SetGlobalProperties] Conditions for SDL respond <success = false, resultCode = "INVALID_DATA"> to mobile app.
 --
 -- Description:
--- Case when SDL should respond with result code <success = false, resultCode = "INVALID_DATA"> 
--- on request with <autoCompleteList> param with string in array have only white spaces, to mobile app.
+-- Case when mobile send SetGlobalProperties request, SDL respond with <INVALID_DATA> to mobile app,
+--  if <autoCompleteList> param have value in array with white spaces only.
 --
 -- Performed steps:
 -- 1. Register Application.
--- 2. Mobile send RPC SetGlobalProperties with <autoCompleteList> string in array with white spaces only.
+-- 2. Mobile send RPC SetGlobalProperties with <autoCompleteList> value in array with white spaces only.
 --
 -- Expected result:
 -- SDL respond <success = false, resultCode = "INVALID_DATA"> to mobile app
