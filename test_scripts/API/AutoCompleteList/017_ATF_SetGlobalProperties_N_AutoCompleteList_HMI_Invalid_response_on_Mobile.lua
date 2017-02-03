@@ -3,8 +3,8 @@
 -- [SetGlobalProperties] Conditions for SDL respond <success = false, resultCode = "GENERIC_ERROR"> to mobile app
 --
 -- Description:
--- Case when SDL tranfer SetGlobalProperties_request with <autoCompleteList> param param to HMI and
--- respond with <resultCode = GENERIC_ERROR> to mobile app
+-- Case when mobile send SetGlobalProperties request, SDL tranfer SetGlobalProperties request with <autoCompleteList> param to HMI,
+-- HMI send invalid respond, and SDL respond with <resultCode = GENERIC_ERROR> to mobile app.
 --
 -- Performed steps:
 -- 1. Register Application.
