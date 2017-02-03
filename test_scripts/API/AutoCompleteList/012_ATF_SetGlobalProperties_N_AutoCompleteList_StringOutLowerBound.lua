@@ -3,9 +3,9 @@
 -- [SetGlobalProperties] Conditions for SDL respond <success = false, resultCode = "INVALID_DATA"> to mobile app.
 --
 -- Description:
--- Case when SDL should respond with result code <success = false, resultCode = "INVALID_DATA"> 
--- on request with <autoCompleteList> param which have string in array is out lower bound, to mobile app.
---
+--  Case when mobile send SetGlobalProperties request, SDL respond with <INVALID_DATA> to mobile app,
+--  if <autoCompleteList> param have string in array is out lower bound.
+
 -- Performed steps:
 -- 1. Register Application.
 -- 2. Mobile send RPC SetGlobalProperties with <autoCompleteList> string in array is out lower bound.
