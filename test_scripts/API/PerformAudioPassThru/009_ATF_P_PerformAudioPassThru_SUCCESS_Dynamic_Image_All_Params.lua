@@ -36,7 +36,7 @@ local commonPostconditions = require('user_modules/shared_testcases/commonPrecon
 local testCasesForPerformAudioPassThru = require('user_modules/shared_testcases/testCasesForPerformAudioPassThru')
 local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
-local storagePath = config.pathToSDL .."storage/"
+local storagePath = commonPostconditions:GetPathToSDL() .."storage/"
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFiles()
