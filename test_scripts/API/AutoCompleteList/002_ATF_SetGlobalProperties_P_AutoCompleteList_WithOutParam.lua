@@ -9,7 +9,8 @@
 -- Performed steps:
 -- 1. Register Application.
 -- 2. Mobile send RPC SetGlobalProperties without <autoCompleteList> param
--- 
+-- 3. HMI respond. 
+--
 -- Expected result:
 -- SDL respond <success = true, resultCode = "SUCCESS"> to mobile app
 --------------------------------------------------------------------------------------------------------------
