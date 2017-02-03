@@ -8,7 +8,7 @@ local commonPreconditions = require('user_modules/shared_testcases/commonPrecond
 local json = require('json4lua/json/json')
 
 local NewTestSuiteNumber = 0 -- use as subfix of test case "NewTestSuite" to make different test case name.
-local path_config = commonPreconditions.GetPathToSDL()
+local path_config = commonPreconditions:GetPathToSDL()
 ---------------------------------------------------------------------------------------------
 ------------------------------------------ Functions ----------------------------------------
 ---------------------------------------------------------------------------------------------
