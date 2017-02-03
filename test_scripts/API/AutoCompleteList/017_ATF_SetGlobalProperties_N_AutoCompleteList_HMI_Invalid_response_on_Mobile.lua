@@ -1,6 +1,6 @@
 --------------------------------------------------------------------------------------------
 -- Requirement summary:
--- [SetGlobalProperties] Conditions for SDL respond <success = false, resultCode = "GENERIC_ERROR"> to mobile app
+-- [SetGlobalProperties] SDL respond <success = false, resultCode = "GENERIC_ERROR"> to mobile app
 --
 -- Description:
 -- Case when mobile send SetGlobalProperties request, SDL tranfer SetGlobalProperties request with <autoCompleteList> param to HMI,
@@ -33,7 +33,6 @@ require('user_modules/AppTypes')
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 function Test:TestStep_AutoCompleteList_InvalidResponse_from_HMI()
-  --mobile side: sending SetGlobalProperties request
  local cid = self.mobileSession:SendRPC("SetGlobalProperties",
     {
       keyboardProperties =
@@ -49,7 +48,6 @@ function Test:TestStep_AutoCompleteList_InvalidResponse_from_HMI()
         autoCompleteList = {"List_1, List_2", "List_1, List_2"}
       }
     })
-  --hmi side: expect UI.SetGlobalProperties request
   EXPECT_HMICALL("UI.SetGlobalProperties", 
     {
       keyboardProperties =
@@ -67,7 +65,6 @@ function Test:TestStep_AutoCompleteList_InvalidResponse_from_HMI()
   :Do(function(_,data)
        self.hmiConnection:Send('"id":'..data.id..',"jsonrpc":"2.0","result":{"code":0,"method""UI.SetGlobalProperties"}}')
     end)
-  --mobile side: expect SetGlobalProperties response
   EXPECT_RESPONSE(cid, {success = false, resultCode = "GENERIC_ERROR", info = "Invalid message received from system"})
 end
 
