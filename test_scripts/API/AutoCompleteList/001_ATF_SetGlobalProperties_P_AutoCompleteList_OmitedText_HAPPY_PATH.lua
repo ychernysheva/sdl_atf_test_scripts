@@ -3,16 +3,16 @@
 -- [SetGlobalProperties] Conditions for SDL to omit "autoCompleteText" param at request to HMI
 --
 -- Description:
--- Case when SDL must tranfer SetGlobalProperties_request with <autoCompleteList> param and without (omited) <autoCompleteText> param to HMI
--- respond with <resultCode_received_from _HMI> to mobile app
+-- Case when  SDL must tranfer SetGlobalProperties_request with <autoCompleteList> param and without (omited) <autoCompleteText> 
+-- param to HMI, and respond with <SUCCESS> to mobile app
 --
 -- Performed steps:
 -- 1. Register Application.
 -- 2. Mobile send RPC SetGlobalProperties with <autoCompleteList> and <autoCompleteText>
--- 3. SDL respond without <autoCompleteText>  with <SUCCESS> to mobile app
+-- 3. HMI respond without <AutoCompliteText>
 --
 -- Expected result:
--- SDL trasfered RPC on mobile without autoCompleteText param.
+-- SDL transfered RPC on HMI without autoCompleteText param and responce with <SUCCESS> to mobile app
 ----------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
