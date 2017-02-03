@@ -3,7 +3,7 @@
 -- [SetGlobalProperties] Conditions for SDL respond <success = false, resultCode = "INVALID_DATA"> to mobile app
 --
 -- Description:
--- Case when SDL respond with <INVALID_DATA> to mobile app if <autoCompleteList> have new line symbol in value.
+--  Case when mobile send SetGlobalProperties request, SDL respond with <INVALID_DATA> to mobile app if <autoCompleteList> have new line symbol in value.
 --
 -- Performed steps:
 -- 1. Register Application.
