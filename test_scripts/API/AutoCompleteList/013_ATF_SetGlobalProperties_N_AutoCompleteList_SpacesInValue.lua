@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------------------
 -- Requirement summary:
--- [SetGlobalProperties] Conditions for SDL respond <success = false, resultCode = "INVALID_DATA"> to mobile app.
+-- [SetGlobalProperties] SDL respond <success = false, resultCode = "INVALID_DATA"> to mobile app.
 --
 -- Description:
 -- Case when mobile send SetGlobalProperties request, SDL respond with <INVALID_DATA> to mobile app,
@@ -31,26 +31,24 @@ require('user_modules/AppTypes')
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
-function Test:AutoCompleteList_Array_with_Only_WhiteSpaces()
---mobile side: sending SetGlobalProperties request
-local cid = self.mobileSession:SendRPC("SetGlobalProperties",
-  {
-   keyboardProperties =
+ function Test:AutoCompleteList_Array_with_Only_WhiteSpaces()
+   local cid = self.mobileSession:SendRPC("SetGlobalProperties",
    {
-    keyboardLayout = "qwerty",
-    keypressMode = "single_keypress",
-    limitedCharacterList =
+    keyboardProperties =
     {
-     "a"
-     },
-      language = "EN-US",
-      autoCompleteText = "Text_1, Text_2",
-      autoCompleteList = {"   "}
-    }
-   })
-   --mobile side: expect SetGlobalProperties response
+     keyboardLayout = "qwerty",
+     keypressMode = "single_keypress",
+     limitedCharacterList =
+     {
+      "a"
+      },
+       language = "EN-US",
+       autoCompleteText = "Text_1, Text_2",
+       autoCompleteList = {"   "}
+     }
+    })
   EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
-end
+ end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
