@@ -13,7 +13,7 @@
 -- 1. Used preconditions
 -- Assign to non-media application BASE-4 functional group.
 -- Remove from BASE-4 RPC SetAudioStreamingIndicator
--- Register media application
+-- Register non-media application
 --
 -- 2. Performed steps
 -- Send SetAudioStreamingIndicator(audioStreamingIndicator = "PAUSE")
