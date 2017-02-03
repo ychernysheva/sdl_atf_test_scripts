@@ -37,27 +37,26 @@ local json = require('json')
 
 --[[ Local Functions ]]
 
---[[@create_ptu_SetAudioStreamingIndicator_group: update preloaded_pt and creates 2 PTU files
-! preloaded_pt.json: add Testing_group with RPC SetAudioStreamingIndicator and user consent
+--[[@create_ptu_SetAudioStreamingIndicator_group: update sdl_preloaded_pt and creates PTU files
+! sdl_preloaded_pt.json: add Testing_group with RPC SetAudioStreamingIndicator and user consent
 ! SetAudioStreamingIndicator_group1.json: Assign groups "Base-4", "Testing_group" to application
-! SetAudioStreamingIndicator_group1.json: Assign only group "Base-4" to application
 ! @parameters: NO
 ]]
 local function create_ptu_SetAudioStreamingIndicator_group()
   commonPreconditions:BackupFile("sdl_preloaded_pt.json")
-  os.execute(" cp " .. config.pathToSDL .. "sdl_preloaded_pt.json" .. " " .. "SetAudioStreamingIndicator_group1.json" )
-  os.execute(" cp " .. config.pathToSDL .. "sdl_preloaded_pt.json" .. " " .. "SetAudioStreamingIndicator_group2.json" )
-  local pathToFile = config.pathToSDL .. 'sdl_preloaded_pt.json'
+  local config_path = commonPreconditions:GetPathToSDL()
+  
+  local pathToFile = config_path .. 'sdl_preloaded_pt.json'
   local file = io.open(pathToFile, "r")
   local json_data = file:read("*all")
   file:close()
 
   local data = json.decode(json_data)
   if(data.policy_table.functional_groupings["DataConsent-2"]) then
-    data.policy_table.functional_groupings["DataConsent-2"].rpcs = { json.null }
+    data.policy_table.functional_groupings["DataConsent-2"].rpcs = json.null
   end
-  
-  data.policy_table.functional_groupings["Base-4"].rpcs.SetAudioStreamingIndicator = json.null
+
+  data.policy_table.functional_groupings["Base-4"].rpcs.SetAudioStreamingIndicator = nil
   data.policy_table.functional_groupings["Testing_group"] = {
     user_consent_prompt = "Purpose_of_Test",
     rpcs = {
@@ -66,16 +65,13 @@ local function create_ptu_SetAudioStreamingIndicator_group()
       }
     }
   }
-  local data_preloaded = data
-
-  data_preloaded = json.encode(data_preloaded)
-  file = io.open(config.pathToSDL .. 'sdl_preloaded_pt.json', "w")
-  file:write(data_preloaded)
+  
+  file = io.open(config_path .. 'sdl_preloaded_pt.json', "w")
+  file:write(json.encode(data))
   file:close()
 
   data.policy_table.module_config.preloaded_pt = nil
   data.policy_table.module_config.preloaded_date = nil
-  local data1 = data
   data.policy_table.app_policies[config.application1.registerAppInterfaceParams.appID] =
   {
     keep_context = false,
@@ -85,23 +81,8 @@ local function create_ptu_SetAudioStreamingIndicator_group()
     groups = {"Base-4", "Testing_group"}
   }
 
-  data = json.encode(data)
   file = io.open("SetAudioStreamingIndicator_group1.json", "w")
-  file:write(data)
-  file:close()
-
-  data1.policy_table.app_policies[config.application1.registerAppInterfaceParams.appID] =
-  {
-    keep_context = false,
-    steal_focus = false,
-    priority = "NONE",
-    default_hmi = "NONE",
-    groups = {"Base-4"}
-  }
-
-  data1 = json.encode(data1)
-  file = io.open("SetAudioStreamingIndicator_group2.json", "w")
-  file:write(data1)
+  file:write(json.encode(data))
   file:close()
 end
 
@@ -121,25 +102,36 @@ function Test:Precondition_trigger_getting_device_consent()
   testCasesForPolicyTable:trigger_getting_device_consent(self, config.application1.registerAppInterfaceParams.appName, config.deviceMAC)
 end
 
-function Test:Precondition_PTU_appPermissionsConsentNeeded_true()
+function Test:Precondition_SetAudioStreamingIndicator_DISALLOWED_audioStreamingIndicator_PLAY_PAUSE()
+  local corr_id = self.mobileSession:SendRPC("SetAudioStreamingIndicator", { audioStreamingIndicator = "PLAY_PAUSE" })
+
+  EXPECT_HMICALL("UI.SetAudioStreamingIndicator", {}):Times(0)
+  EXPECT_RESPONSE(corr_id, { success = false, resultCode = "DISALLOWED"})
+end
+
+function Test:Precondition_PTU_appPermissionsConsentNeeded_false()
+  local SystemFilesPath = commonFunctions:read_parameter_from_smart_device_link_ini("SystemFilesPath")
   local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
+  
   EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
   :Do(function(_,_)
-    self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest", { requestType = "PROPRIETARY", fileName = "filename"})
+    self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest", { requestType = "PROPRIETARY", fileName = "PolicyTableUpdate"})
 
     EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY" })
     :Do(function(_,_)
-      self.mobileSession:SendRPC("SystemRequest", { fileName = "PolicyTableUpdate", requestType = "PROPRIETARY"}, "SetAudioStreamingIndicator_group1.json")
+      local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", { fileName = "PolicyTableUpdate", requestType = "PROPRIETARY"}, "SetAudioStreamingIndicator_group1.json")
 
       EXPECT_HMICALL("BasicCommunication.SystemRequest")
       :Do(function(_,data)
-        self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate", { policyfile = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate"})
+        self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate", { policyfile = SystemFilesPath.."/PolicyTableUpdate"})
 
         local function to_run()
           self.hmiConnection:SendResponse(data.id,"BasicCommunication.SystemRequest", "SUCCESS", {})
         end
         RUN_AFTER(to_run, 500)
       end)
+
+      EXPECT_RESPONSE(CorIdSystemRequest, { success = true, resultCode = "SUCCESS"})
 
       EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATING"}, {status = "UP_TO_DATE"}):Times(2)
       :Do(function(_,data)
@@ -156,7 +148,7 @@ function Test:Precondition_PTU_appPermissionsConsentNeeded_true()
                   groups[i] = {
                     name = data1.result.allowedFunctions[i].name,
                     id = data1.result.allowedFunctions[i].id,
-                    allowed = true}
+                    allowed = false}
                 end
               end
               self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent", { appID = self.applications[config.application1.registerAppInterfaceParams.appName], consentedFunctions = groups, source = "GUI"})
@@ -169,58 +161,10 @@ function Test:Precondition_PTU_appPermissionsConsentNeeded_true()
   end)
 end
 
-function Test:Precondition_trigger_user_request_update_from_HMI()
-  testCasesForPolicyTable:trigger_user_request_update_from_HMI(self)
-end
-
-function Test:Precondition_SetAppTo_NONE()
-  self.hmiConnection:SendNotification("BasicCommunication.OnExitApplication", { appID = self.applications[config.application1.registerAppInterfaceParams.appName], reason = "USER_EXIT" })
-  EXPECT_NOTIFICATION("OnHMIStatus", { hmiLevel = "NONE" })
-end
-
-function Test:Precondition_PTU_revoke_app_group()
-  local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
-  EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
-  :Do(function()
-    self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest", { requestType = "PROPRIETARY", fileName = "filename"})
-
-    EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY" })
-    :Do(function()
-      local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", { fileName = "PolicyTableUpdate", requestType = "PROPRIETARY"}, "SetAudioStreamingIndicator_group2.json")
-
-      EXPECT_HMICALL("BasicCommunication.SystemRequest")
-      :Do(function(_,data)
-        self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate", { policyfile = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate"})
-
-        local function to_run()
-          self.hmiConnection:SendResponse(data.id,"BasicCommunication.SystemRequest", "SUCCESS", {})
-        end
-        RUN_AFTER(to_run, 500)
-        self.mobileSession:ExpectResponse(CorIdSystemRequest, {success = true, resultCode = "SUCCESS"})
-      end)
-
-      EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATING"}, {status = "UP_TO_DATE"}):Times(2)
-      :Do(function(_,data)
-        if(data.params.status == "UP_TO_DATE") then EXPECT_HMINOTIFICATION("SDL.OnAppPermissionChanged") :Times(0) end
-      end)
-    end)
-  end)
-end
-
-function Test:Precondition_Activate_app_isAppPermissionRevoked_true()
-  local RequestIdActivateAppAgain = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.applications[config.application1.registerAppInterfaceParams.appName] })
-  EXPECT_HMIRESPONSE(RequestIdActivateAppAgain, { result = {
-    code = 0,
-    method = "SDL.ActivateApp", isAppRevoked = false, isAppPermissionsRevoked = true,
-    appRevokedPermissions = { {name = "Purpose_of_Test"} }}})
-
-  EXPECT_NOTIFICATION("OnHMIStatus", { hmiLevel = "FULL" })
-end
-
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
-function Test:TestStep_SetAudioStreamingIndicator_GENERIC_ERROR_audioStreamingIndicator_PAUSE_HMI_replies_empty_value()
+function Test:TestStep_SetAudioStreamingIndicator_USER_Disallowed_RPC_disallowed_by_user()
   local corr_id = self.mobileSession:SendRPC("SetAudioStreamingIndicator", { audioStreamingIndicator = "PAUSE" })
 
   EXPECT_HMICALL("UI.SetAudioStreamingIndicator", {}):Times(0)
@@ -232,7 +176,6 @@ commonFunctions:newTestCasesGroup("Postconditions")
 
 function Test.Postcondition_Restore_preloaded_file()
   os.execute( " rm -f SetAudioStreamingIndicator_group1.json" )
-  os.execute( " rm -f SetAudioStreamingIndicator_group2.json" )
   commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 end
 
