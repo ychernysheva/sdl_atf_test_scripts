@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------------------------------------------------
 -- Requirement summary:
--- [SetGlobalProperties] Conditions SDL respond <success = false, resultCode = "DISALLOWED"> to mobile app, SetGlobalProperties disallowed.
+-- [SetGlobalProperties] SDL respond <success = false, resultCode = "DISALLOWED"> to mobile app, SetGlobalProperties disallowed.
 --
 -- Description:
 -- Case when SDL doesn’t transfer not allowed "SetGlobalProperties" request with valid "autoCompleteList" param to HMI
