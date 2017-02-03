@@ -2,8 +2,8 @@
 -- [SetGlobalProperties] Conditions for SDL respond <success = false, resultCode = "INVALID_DATA"> to mobile app
 --
 -- Description:
--- Case when SDL respond <success = false, resultCode = "INVALID_DATA"> to mobile app, request with 
--- <autoCompleteList> have value is out of upper bound
+-- Case when mobile send SetGlobalProperties request, with <autoCompleteList> param have value is out of upper bound, 
+-- SDL respond <success = false, resultCode = "INVALID_DATA"> to mobile app.
 --
 -- Performed steps:
 -- 1. Register Application.
