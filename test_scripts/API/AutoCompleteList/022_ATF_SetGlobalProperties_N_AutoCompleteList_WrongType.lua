@@ -1,5 +1,5 @@
 -- Requirement summary:
--- [SetGlobalProperties] Conditions for SDL respond <success = false, resultCode = "INVALID_DATA"> to mobile app
+-- [SetGlobalProperties] SDL must respond <success = false, resultCode = "INVALID_DATA"> to mobile app.
 --
 -- Description:
 -- Case when mobile send SetGlobalProperties request with <autoCompleteList> parm which have invalid type,
@@ -31,8 +31,7 @@ require('user_modules/AppTypes')
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 function Test:AutoCompleteList_INVALID_TYPE()
- --mobile side: sending SetGlobalProperties request
- local cid = self.mobileSession:SendRPC("SetGlobalProperties",
+  local cid = self.mobileSession:SendRPC("SetGlobalProperties",
     {
       keyboardProperties =
       {
@@ -47,8 +46,7 @@ function Test:AutoCompleteList_INVALID_TYPE()
         autoCompleteList = 777
       }
     })
-  --mobile side: expect SetGlobalProperties response
-  EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
+ EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 end
 
 --[[ Postconditions ]]
