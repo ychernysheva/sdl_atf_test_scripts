@@ -4,9 +4,11 @@
   --2. commonFunctions:createString(500) --example
 ---------------------------------------------------------------------------------------------
 local commonFunctions = {}
+local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 local json = require('json4lua/json/json')
 
 local NewTestSuiteNumber = 0 -- use as subfix of test case "NewTestSuite" to make different test case name.
+local path_config = commonPreconditions:GetPathToSDL()
 ---------------------------------------------------------------------------------------------
 ------------------------------------------ Functions ----------------------------------------
 ---------------------------------------------------------------------------------------------
@@ -710,7 +712,7 @@ end
 ---------------------------------------------------------------------------------------------
 -- !!! Do not update fucntion without necessity. In case of updating check all scripts where function is used.
 function commonFunctions:SetValuesInIniFile(FindExpression, parameterName, ValueToUpdate )
-  local SDLini = config.pathToSDL .. "smartDeviceLink.ini"
+  local SDLini = path_config .. "smartDeviceLink.ini"
 
   f = assert(io.open(SDLini, "r"))
     if f then
@@ -793,7 +795,7 @@ end
 --15. Function gets parameter from smartDeviceLink.ini file
 ---------------------------------------------------------------------------------------------
 function commonFunctions:read_parameter_from_smart_device_link_ini(param_name)
-  local path_to_ini_file = concatenation_path(config.pathToSDL, "smartDeviceLink.ini")
+  local path_to_ini_file = concatenation_path(path_config, "smartDeviceLink.ini")
   assert(commonFunctions:File_exists(path_to_ini_file))
   local param_value  = nil
   for line in io.lines(path_to_ini_file) do
@@ -817,7 +819,7 @@ end
 --16. Function sets parameter to smartDeviceLink.ini file
 ---------------------------------------------------------------------------------------------
 function commonFunctions:write_parameter_to_smart_device_link_ini(param_name, param_value)
-  local path_to_ini_file = concatenation_path(config.pathToSDL, "smartDeviceLink.ini")
+  local path_to_ini_file = concatenation_path(path_config, "smartDeviceLink.ini")
   assert(commonFunctions:File_exists(path_to_ini_file))
   local new_file_content = ""
   local is_find_string = false
@@ -1148,7 +1150,7 @@ end
 --! @brief Triggers PTU HTTP flow sequence by odometer
 --! @param self contains Test
 function commonFunctions:trigger_ptu_by_odometer(self)
-  local path_to_policy_db = concatenation_path(config.pathToSDL, "storage/policy.sqlite")
+  local path_to_policy_db = concatenation_path(path_config, "storage/policy.sqlite")
   local exchange_after_x_kilometers = commonFunctions:get_data_policy_sql(path_to_policy_db,
     "SELECT exchange_after_x_kilometers FROM module_config")
   local pt_exchange_at_odometer_x = commonFunctions:get_data_policy_sql(path_to_policy_db,
