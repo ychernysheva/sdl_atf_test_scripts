@@ -3,13 +3,13 @@
 -- [SetGlobalProperties] Conditions for SDL respond <success = false, resultCode = "GENERIC_ERROR"> to mobile app
 --
 -- Description:
--- Case when SDL tranfer SetGlobalProperties_request with <autoCompleteList> param to HMI, HMI doesn't respond,
--- SDL respond with <GENERIC_ERROR> to mobile app
+-- Case when mobile send SetGlobalProperties request, SDL tranfer SetGlobalProperties request with <autoCompleteList> param to HMI, 
+-- HMI doesn't respond during default timeout, SDL respond with <GENERIC_ERROR> to mobile app
 --
 -- Performed steps:
 -- 1. Register Application.
 -- 2. Mobile send RPC SetGlobalProperties with <autoCompleteList> 
--- 3. HMI does NOT respond during <DefaultTimeout>
+-- 3. HMI doesn't respond during <DefaultTimeout>
 --
 -- Expected result:
 -- SDL respond <success = false, resultCode = "GENERIC_ERROR"> to mobile app
