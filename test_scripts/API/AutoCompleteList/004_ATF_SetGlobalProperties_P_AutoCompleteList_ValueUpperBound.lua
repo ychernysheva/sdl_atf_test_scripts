@@ -4,11 +4,12 @@
 --
 -- Description:
 -- Case when SDL tranfer SetGlobalProperties_request with <autoCompleteList> param to HMI
--- respond with  <success = true, resultCode = "SUCCESS"> to mobile app
+-- respond with <success = true, resultCode = "SUCCESS"> to mobile app
 --
 -- Performed steps:
 -- 1. Register Application.
 -- 2. Mobile send RPC SetGlobalProperties with <autoCompleteList>  string in array is upper bound.
+-- 3. HMI respond.
 --
 -- Expected result:
 -- SDL respond <success = true, resultCode = "SUCCESS"> to mobile app
