@@ -1,7 +1,7 @@
 ----------------------------------------------------------------------------------------
 -- Requirement summary:
--- [SetGlobalProperties] SDL must transfer request to HMI in case of "autoCompleteList" param have value is UpperBound
---
+-- [SetGlobalProperties] SDL must transfer request to HMI in case of valid "autoCompleteList" param"
+-- 
 -- Description:
 -- Case when SDL tranfer SetGlobalProperties_request with <autoCompleteList> param to HMI
 -- respond with <success = true, resultCode = "SUCCESS"> to mobile app
