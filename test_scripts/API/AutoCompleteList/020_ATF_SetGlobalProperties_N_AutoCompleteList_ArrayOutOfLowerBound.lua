@@ -3,8 +3,8 @@
 -- [SetGlobalProperties] Conditions for SDL respond <success = false, resultCode = "INVALID_DATA"> to mobile app
 --
 -- Description:
--- Case when SDL respond with <INVALID_DATA> to mobile app, 
--- request from mobile received with <autoCompleteList> size of array is out of lower bound
+-- Case when mobile send SetGlobalProperties request, SDL respond with <INVALID_DATA> to mobile app, 
+-- if <autoCompleteList> have value is out of lower bound size of array.
 --
 -- Performed steps:
 -- 1. Register Application.
