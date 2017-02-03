@@ -3,7 +3,7 @@
 -- [SetGlobalProperties] Conditions for SDL must transfer request to HMI in case AutoCompleteList omited in request from mobile App
 --
 -- Description:
--- Case when SDL tranfer SetGlobalProperties_request without <autoCompleteList> param to HMI
+-- Case when SDL tranfer SetGlobalProperties_request without <autoCompleteList> param to HMI and
 -- respond with <success = true, resultCode = "SUCCESS"> to mobile app
 --
 -- Performed steps:
@@ -12,7 +12,6 @@
 -- 
 -- Expected result:
 -- SDL respond <success = true, resultCode = "SUCCESS"> to mobile app
---
 --------------------------------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
