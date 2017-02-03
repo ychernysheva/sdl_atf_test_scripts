@@ -1,15 +1,16 @@
 ----------------------------------------------------------------------------------------
 -- Requirement summary:
--- [SetGlobalProperties] Conditions for SDL  must transfer request in caes of valid "autoCompleteList" param
+-- [SetGlobalProperties] Conditions for SDL to transfer request with valid "autoCompleteList" param
 --
 -- Description:
--- Case when SDL tranfer SetGlobalProperties_request with <autoCompleteList> param param to HMI
+-- Case when mobile send SetGlobalProperties request, SDL tranfer SetGlobalProperties_request with <autoCompleteList> param to HMI and
 -- respond with <SUCCESS> to mobile app
 --
 -- Performed steps:
 -- 1. Register Application.
 -- 2. Mobile send RPC SetGlobalProperties with <autoCompleteList> with spaces before values.
--- 
+-- 3. HMI respond <SUCCESS>.
+--
 -- Expected result:
 -- SDL respond <success = true, resultCode = "SUCCESS"> to mobile app
 ----------------------------------------------------------------------------------------
