@@ -1,6 +1,6 @@
 --------------------------------------------------------------------------------------------------------------
 -- Requirement summary:
--- [SetGlobalProperties] SDL must transfer request to HMI in case AutoCompleteList omited in request from mobile App
+-- [SetGlobalProperties] SDL must transfer request to HMI in case "autoCompleteList" param omited in request from mobile app
 --
 -- Description:
 -- Case when SDL tranfer SetGlobalProperties_request without <autoCompleteList> param to HMI and
