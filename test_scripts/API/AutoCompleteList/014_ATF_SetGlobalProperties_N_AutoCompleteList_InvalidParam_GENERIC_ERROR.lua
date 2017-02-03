@@ -1,6 +1,6 @@
 --------------------------------------------------------------------------------------------
 -- Requirement summary:
--- [SetGlobalProperties]  Conditions for SDL to respond <success = false, resultCode = "GENERIC_ERROR"> to mobile app.
+-- [SetGlobalProperties] SDL must respond <success = false, resultCode = "GENERIC_ERROR"> to mobile app.
 --
 -- Description:
 -- Case when SDL transfer SetGlobalProperties_request with <autoCompleteList> param to HMI, HMI respond
@@ -33,7 +33,6 @@ require('user_modules/AppTypes')
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 function  Test:SetGlobalProperties_WithInvalidParam_from_HMI()
---mobile side send SetGlobalProperties request
  local cid = self.mobileSession:SendRPC("SetGlobalProperties",
      {
       keyboardProperties =
@@ -49,9 +48,8 @@ function  Test:SetGlobalProperties_WithInvalidParam_from_HMI()
         autoCompleteList = {"List_1, List_2", "List_1, List_2"}
       }
     })
- --hmi side: expect UI.SetGlobalProperties request
-	EXPECT_HMICALL ("UI.SetGlobalProperties", 
-          {
+    EXPECT_HMICALL ("UI.SetGlobalProperties", 
+        {
            keyboardProperties =
           {
            keyboardLayout = "QWERTY",
@@ -64,7 +62,6 @@ function  Test:SetGlobalProperties_WithInvalidParam_from_HMI()
              autoCompleteList = {"List_1, List_2", "List_1, List_2"}
           }
       })
--- hmi side: send responce with invalid value of param
  :Do(function(_,data)
       self.hmiConnection:SendResponse(data.id, data.metod, "SUCCESS", 
        {
@@ -81,7 +78,6 @@ function  Test:SetGlobalProperties_WithInvalidParam_from_HMI()
        }
     })
     end)
- --mobile side: expect response
   :Do(function(_,data)
       if (data.params.autoCompleteList == nil) then
         EXPECT_RESPONSE(cid, {success = false, resultCode = "GENERIC_ERROR"})
