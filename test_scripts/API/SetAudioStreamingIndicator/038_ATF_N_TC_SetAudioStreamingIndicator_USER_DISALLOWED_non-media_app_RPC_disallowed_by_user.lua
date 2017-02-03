@@ -13,7 +13,7 @@
 -- 1. Used preconditions
 -- SDL is built with External Proprietary flag.
 -- Include in Testing_group(user_consent group) RPC SetAudioStreamingIndicator
--- Register and activate media application
+-- Register and activate non-media application
 -- Perform successfull PTU for External Proprietary flow
 -- Disallow by user SetAudioStreamingIndicator
 --
