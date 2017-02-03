@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------------------
 -- Requirement summary:
--- [SetGlobalProperties] Conditions for SDL respond <success = false, resultCode = "INVALID_DATA"> to mobile app
+-- [SetGlobalProperties] SDL respond <success = false, resultCode = "INVALID_DATA"> to mobile app
 --
 -- Description:
 -- Case when mobile send request with incorrect JSON file with correct value of <autoCompleteList>, SDL send respond 
@@ -32,7 +32,6 @@ require('user_modules/AppTypes')
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 function Test:AutoCompleteList_IncorrectJSON()
---mobile side: send request
   local msg =
   {
     serviceType = 7,
