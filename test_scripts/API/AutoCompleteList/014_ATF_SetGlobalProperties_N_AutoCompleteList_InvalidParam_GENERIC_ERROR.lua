@@ -1,10 +1,10 @@
 --------------------------------------------------------------------------------------------
 -- Requirement summary:
--- [SetGlobalProperties]  SDL respond <success = false, resultCode = "GENERIC_ERROR"> to mobile app.
+-- [SetGlobalProperties]  Conditions for SDL to respond <success = false, resultCode = "GENERIC_ERROR"> to mobile app.
 --
 -- Description:
--- Case when SDL tranfer SetGlobalProperties_request with <autoCompleteList> param to HMI
--- respond with <"GENERIC_ERROR"> to mobile app if HMI answered with invalid value of valid param.
+-- Case when SDL transfer SetGlobalProperties_request with <autoCompleteList> param to HMI, HMI respond
+-- with invalid value of valid param, SDL respond with <"GENERIC_ERROR"> to mobile app.
 --
 -- Performed steps:
 -- 1. Register Application.
