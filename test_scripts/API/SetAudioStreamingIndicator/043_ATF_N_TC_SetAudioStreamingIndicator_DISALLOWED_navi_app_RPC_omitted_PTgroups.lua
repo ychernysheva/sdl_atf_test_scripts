@@ -13,7 +13,7 @@
 -- 1. Used preconditions
 -- Assign to navi application BASE-4 functional group.
 -- Remove from BASE-4 RPC SetAudioStreamingIndicator
--- Register and activate navi application
+-- Register navi application
 --
 -- 2. Performed steps
 -- Send SetAudioStreamingIndicator(audioStreamingIndicator = "PAUSE")
