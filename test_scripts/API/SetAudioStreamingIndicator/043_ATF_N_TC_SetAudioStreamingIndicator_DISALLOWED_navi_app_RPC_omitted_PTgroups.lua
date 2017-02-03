@@ -40,20 +40,21 @@ local json = require('json')
 ]]
 local function SetAudioStreamingIndicator_omit_Base4()
   commonPreconditions:BackupFile("sdl_preloaded_pt.json")
-
-  local pathToFile = config.pathToSDL .. 'sdl_preloaded_pt.json'
+  
+  local config_path = commonPreconditions:GetPathToSDL()
+  local pathToFile = config_path .. 'sdl_preloaded_pt.json'
   local file = io.open(pathToFile, "r")
   local json_data = file:read("*all")
   file:close()
 
   local data_preloaded = json.decode(json_data)
-  if(data.policy_table.functional_groupings["DataConsent-2"]) then
-    data.policy_table.functional_groupings["DataConsent-2"].rpcs = { json.null }
+  if(data_preloaded.policy_table.functional_groupings["DataConsent-2"]) then
+    data_preloaded.policy_table.functional_groupings["DataConsent-2"].rpcs = json.null
   end
+  data_preloaded.policy_table.functional_groupings["Base-4"].rpcs.SetAudioStreamingIndicator = nil
 
-  data_preloaded.policy_table.functional_groupings["Base-4"].rpcs.SetAudioStreamingIndicator = json.null
   data_preloaded = json.encode(data_preloaded)
-  file = io.open(config.pathToSDL .. 'sdl_preloaded_pt.json', "w")
+  file = io.open(config_path .. 'sdl_preloaded_pt.json', "w")
   file:write(data_preloaded)
   file:close()
 end
@@ -66,14 +67,6 @@ commonSteps:DeletePolicyTable()
 --[[ General Settings for configuration ]]
 Test = require('connecttest')
 require('user_modules/AppTypes')
-
---[[ Preconditions ]]
-commonFunctions:newTestCasesGroup("Preconditions")
-
-function Test:Precondition_ActivateApp()
-  commonSteps:ActivateAppInSpecificLevel(self, self.applications[config.application1.registerAppInterfaceParams.appName])
-  EXPECT_NOTIFICATION("OnHMIStatus", {systemContext = "MAIN", hmiLevel = "FULL"})
-end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
