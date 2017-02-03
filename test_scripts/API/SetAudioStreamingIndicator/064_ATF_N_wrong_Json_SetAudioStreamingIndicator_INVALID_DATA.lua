@@ -28,8 +28,38 @@ config.application1.registerAppInterfaceParams.isMediaApplication = true
 --[[ Required Shared libraries ]]
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
+local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
+local json = require('json')
+
+--[[ Local Functions ]]
+
+--[[@SetAudioStreamingIndicator_omit_Base4: update preloaded_pt.json
+! SetAudioStreamingIndicator is not included in Base-4 functional group
+! @parameters: NO
+]]
+local function SetAudioStreamingIndicator_omit_Base4()
+  commonPreconditions:BackupFile("sdl_preloaded_pt.json")
+  
+  local config_path = commonPreconditions:GetPathToSDL()
+  local pathToFile = config_path .. 'sdl_preloaded_pt.json'
+  local file = io.open(pathToFile, "r")
+  local json_data = file:read("*all")
+  file:close()
+
+  local data_preloaded = json.decode(json_data)
+  if(data_preloaded.policy_table.functional_groupings["DataConsent-2"]) then
+    data_preloaded.policy_table.functional_groupings["DataConsent-2"].rpcs = json.null
+  end
+  data_preloaded.policy_table.functional_groupings["Base-4"].rpcs.SetAudioStreamingIndicator = nil
+
+  data_preloaded = json.encode(data_preloaded)
+  file = io.open(config_path .. 'sdl_preloaded_pt.json', "w")
+  file:write(data_preloaded)
+  file:close()
+end
 
 --[[ General Precondition before ATF start ]]
+SetAudioStreamingIndicator_omit_Base4()
 commonSteps:DeleteLogsFiles()
 commonSteps:DeletePolicyTable()
 
