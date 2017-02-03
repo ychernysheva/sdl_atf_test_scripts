@@ -33,8 +33,7 @@ require('user_modules/AppTypes')
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 function Test:AutoCompleteList_SpaceBefore()
- --mobile side: sending SetGlobalProperties request
-local cid = self.mobileSession:SendRPC("SetGlobalProperties",
+ local cid = self.mobileSession:SendRPC("SetGlobalProperties",
     {
       keyboardProperties =
       {
@@ -49,8 +48,7 @@ local cid = self.mobileSession:SendRPC("SetGlobalProperties",
         autoCompleteList = {" SpaceBefore"}
       }
     })
-  --hmi side: expect UI.SetGlobalProperties request
-  EXPECT_HMICALL("UI.SetGlobalProperties", 
+ EXPECT_HMICALL("UI.SetGlobalProperties", 
     {
       keyboardProperties =
       {
@@ -67,9 +65,7 @@ local cid = self.mobileSession:SendRPC("SetGlobalProperties",
   :Do(function(_,data)
       self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
    end)
-  --mobile side: expect SetGlobalProperties response
   EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
- --mobile side: expecting OnHashChange notification
    EXPECT_NOTIFICATION("OnHashChange") 
    :Times(1)
 end
