@@ -1,6 +1,6 @@
 --------------------------------------------------------------------------------------------
 -- Requirement summary:
--- [SetGlobalProperties] Conditions for SDL respond <success = false, resultCode = "INVALID_DATA"> to mobile app
+-- [SetGlobalProperties] SDL respond <success = false, resultCode = "INVALID_DATA"> to mobile app
 --
 -- Description:
 --  Case when mobile send SetGlobalProperties request, SDL respond with <INVALID_DATA> to mobile app if <autoCompleteList> have new line symbol in value.
@@ -31,8 +31,7 @@ require('user_modules/AppTypes')
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 function Test:AutoCompleteList_String_with_NewLine()
- --mobile side: sending SetGlobalProperties request
-local cid = self.mobileSession:SendRPC("SetGlobalProperties",
+ local cid = self.mobileSession:SendRPC("SetGlobalProperties",
     {
       keyboardProperties =
       {
@@ -47,8 +46,7 @@ local cid = self.mobileSession:SendRPC("SetGlobalProperties",
         autoCompleteList = {"Test2\nText3"}
      }
     })
-    --mobile side: expect SetGlobalProperties response
-    EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
+  EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 end
 
 --[[ Postconditions ]]
