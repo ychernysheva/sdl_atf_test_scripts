@@ -33,8 +33,7 @@ require('user_modules/AppTypes')
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 function Test:Check_SDL_omit_AutoCompleteText()
-  --mobile side: sending SetGlobalProperties request
-  local cid = self.mobileSession:SendRPC("SetGlobalProperties",
+ local cid = self.mobileSession:SendRPC("SetGlobalProperties",
     {
       keyboardProperties =
       {
@@ -49,7 +48,6 @@ function Test:Check_SDL_omit_AutoCompleteText()
         autoCompleteList = {"List_1, List_2", "List_1, List_2"}
       }
     })
-  --hmi side: expect UI.SetGlobalProperties request
   EXPECT_HMICALL("UI.SetGlobalProperties", 
     {
       keyboardProperties =
@@ -67,7 +65,6 @@ function Test:Check_SDL_omit_AutoCompleteText()
   :Do(function(_,data)
       self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
    end)
- --mobile side: expect SetGlobalProperties response
   EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 end
 
