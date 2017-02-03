@@ -1,6 +1,6 @@
 ----------------------------------------------------------------------------------------
 -- Requirement summary:
--- [SetGlobalProperties] Conditions for SDL to transfer request in case of valid "autoCompleteList" param 
+-- [SetGlobalProperties] SDL to transfer request in case of valid "autoCompleteList" param 
 --
 -- Description:
 -- Case when mobile send SetGlobalProperties request, SDL tranfer SetGlobalProperties_request with <autoCompleteList> value in array is lower bound param to HMI,
@@ -33,7 +33,6 @@ require('user_modules/AppTypes')
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 function Test:TestStep_AutoCompleteList_Array_Is_LowerBound()
-  --mobile side: sending SetGlobalProperties request
   local cid = self.mobileSession:SendRPC("SetGlobalProperties",
     {
       keyboardProperties =
@@ -49,7 +48,6 @@ function Test:TestStep_AutoCompleteList_Array_Is_LowerBound()
         autoCompleteList = {"T"}
       }
     })
-  --hmi side: expect UI.SetGlobalProperties request
   EXPECT_HMICALL("UI.SetGlobalProperties", 
      {
       keyboardProperties =
@@ -67,10 +65,8 @@ function Test:TestStep_AutoCompleteList_Array_Is_LowerBound()
   :Do(function(_,data)
       self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
     end)
-  --mobile side: expect SetGlobalProperties response
-  EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
- --mobile side: expecting OnHashChange notification
-   EXPECT_NOTIFICATION("OnHashChange") 
+ EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
+  EXPECT_NOTIFICATION("OnHashChange") 
    :Times(1)
 end
 
