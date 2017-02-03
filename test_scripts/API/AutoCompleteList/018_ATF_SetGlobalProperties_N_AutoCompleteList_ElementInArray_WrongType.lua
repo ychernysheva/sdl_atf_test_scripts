@@ -1,6 +1,6 @@
 --------------------------------------------------------------------------------------------
 -- Requirement summary:
--- [SetGlobalProperties] Conditions for SDL respond <success = false, resultCode = "INVALID_DATA"> to mobile app
+-- [SetGlobalProperties] SDL respond <success = false, resultCode = "INVALID_DATA"> to mobile app
 --
 -- Description:
 -- Case when mobile send SetGlobalProperties request, with element in array is wrong type in <autoCompleteList> param,
@@ -32,8 +32,7 @@ require('user_modules/AppTypes')
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 function Test:AutoCompleteList_Element_in_Array_wrongType()
---mobile side: sending SetGlobalProperties request
-local cid = self.mobileSession:SendRPC("SetGlobalProperties",
+ local cid = self.mobileSession:SendRPC("SetGlobalProperties",
     {
       keyboardProperties =
       {
@@ -48,7 +47,6 @@ local cid = self.mobileSession:SendRPC("SetGlobalProperties",
         autoCompleteList = {"String", 5}
       }
     })
-  --mobile side: expect SetGlobalProperties response
   EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 end
 
