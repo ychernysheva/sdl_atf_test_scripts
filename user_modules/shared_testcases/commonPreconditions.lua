@@ -115,7 +115,7 @@ end
 
 -- replace origin of file with new one
 function Preconditions:ReplaceFile(originalFile, newFile)
-  os.execute(" mv " .. config.pathToSDL .. originalFile, newFile)
+  os.execute(" mv " .. newFile .. " " .. config.pathToSDL .. originalFile)
 end
 
 --------------------------------------------------------------------------------------------------------

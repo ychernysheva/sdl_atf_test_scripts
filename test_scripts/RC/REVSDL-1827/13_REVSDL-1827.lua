@@ -1052,8 +1052,8 @@ local mobile_session = require('mobile_session')
 		-----------------------------------------------------------------------------------------
 		-----------------------FOR BACK LEFT PASSENGER ZONE----------------------------------------
 
-			Begin Precondition.1. HMI sends notification RC.OnDeviceLocationChanged(<deviceID>) to RSDL (zone:BACK LEFT Passenger)
-			Description: HMI sends notification RC.OnDeviceLocationChanged(<deviceID>) to RSDL
+			-- Begin Precondition.1. HMI sends notification RC.OnDeviceLocationChanged(<deviceID>) to RSDL (zone:BACK LEFT Passenger)
+			-- Description: HMI sends notification RC.OnDeviceLocationChanged(<deviceID>) to RSDL
 
 				function Test:ChangedLocation_Left()
 					--hmi side: HMI sends notification RC.OnDeviceLocationChanged(<deviceID>) to RSDL
