@@ -22,7 +22,7 @@
 --
 -- 2. Performed steps
 -- Send PerformAudioPassThru (audioPassThruIcon, other params)
--- HMI sends UI.PerformAudioPassThru (WARNINGS) to SDL
+-- HMI sends UI.PerformAudioPassThru (WARNINGS, info) to SDL
 -- HMI sends TTS.Speak (SUCCESS)
 --
 -- Expected result:
@@ -128,7 +128,7 @@ function Test:TestStep_All_Params_Missing_audioPassThruIcon_STATIC()
     })
   :Do(function(_,data)
       local function UIPerformAudioResponse()
-        self.hmiConnection:SendError(data.id, "UI.PerformAudioPassThru", "WARNINGS",{info = "Reference image(s) not found) to mobile app"})
+        self.hmiConnection:SendResponse(data.id, "UI.PerformAudioPassThru", "WARNINGS",{info = "Reference image(s) not found"})
       end
       RUN_AFTER(UIPerformAudioResponse, 1500)
   end)
@@ -146,7 +146,7 @@ function Test:TestStep_All_Params_Missing_audioPassThruIcon_STATIC()
     EXPECT_NOTIFICATION("OnHMIStatus"):Times(0)
   end
 
-  self.mobileSession:ExpectResponse(CorIdPerformAudioPassThruAppParVD, {success = true, resultCode = "WARNINGS", info = "Reference image(s) not found) to mobile app"})
+  self.mobileSession:ExpectResponse(CorIdPerformAudioPassThruAppParVD, {success = true, resultCode = "WARNINGS", info = "Reference image(s) not found"})
   EXPECT_NOTIFICATION("OnHashChange"):Times(0)
   commonTestCases:DelayedExp(1500)
 end
