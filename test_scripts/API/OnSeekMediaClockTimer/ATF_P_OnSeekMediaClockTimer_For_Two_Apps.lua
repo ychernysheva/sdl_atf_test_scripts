@@ -31,6 +31,7 @@ config.defaultProtocolVersion = 2
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local mobile_session = require('mobile_session')
+local HMIApp2ID
 
 --[[ Local Functions ]]
 local function ReplacePreloadedFile()
@@ -84,7 +85,7 @@ function Test:Preconditions_Register_Second_App()
       local correlationId = self.mobileSession1:SendRPC("RegisterAppInterface", config.application2.registerAppInterfaceParams)
       EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
       :Do(function(_,data)
-          HMIAppID = data.params.application.appID
+          HMIApp2ID = data.params.application.appID
         end)
       self.mobileSession1:ExpectResponse(correlationId, { success = true })
       end)
@@ -98,7 +99,7 @@ function Test:TestStep_OnSeekMediaClockTimer_For_First_App()
 end
 
 function Test:TestStep_OnSeekMediaClockTimer_For_Second_App()
- self.hmiConnection:SendNotification("UI.OnSeekMediaClockTimer",{seekTime =  {hours = 5, minutes = 5, seconds = 5}, appID = self.applications["Test Application2"]})
+ self.hmiConnection:SendNotification("UI.OnSeekMediaClockTimer",{seekTime =  {hours = 5, minutes = 5, seconds = 5}, appID = HMIApp2ID})
  EXPECT_NOTIFICATION("OnSeekMediaClockTimer", {seekTime = {hours = 5, minutes = 5, seconds = 5}})
 end
 
