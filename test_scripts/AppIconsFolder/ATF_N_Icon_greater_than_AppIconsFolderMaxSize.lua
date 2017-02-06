@@ -19,9 +19,7 @@
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 
 --[[ General Settings for configuration ]]
-local preconditions = require('user_modules/shared_testcases/commonPreconditions')
-preconditions:Connecttest_without_ExitBySDLDisconnect_WithoutOpenConnectionRegisterApp("connecttestIcons.lua")
-Test = require('user_modules/connecttestIcons')
+Test = require('user_modules/connecttest_resumption')
 require('cardinalities')
 local mobile_session = require('mobile_session')
 
@@ -31,10 +29,17 @@ local commonSteps = require('user_modules/shared_testcases/commonSteps')
 require('user_modules/AppTypes')
 
 --[[ Local variables ]]
-local pathToAppFolder
-local file
-local status = true
 local RAIParameters = config.application1.registerAppInterfaceParams
+local ExistingIconFolder = {"storage/IconsFolder", "IconFolder", "Icons"}
+
+--[[ General Precondition before ATF start ]]
+commonSteps:DeleteLogsFileAndPolicyTable()
+
+for i=1,#ExistingIconFolder do
+    assert(os.execute( "rm -rf " .. tostring(config.pathToSDL .. ExistingIconFolder[i])))
+end
+commonFunctions:SetValuesInIniFile("AppIconsFolder%s-=%s-.-%s-\n", "AppIconsFolder", 'Icons')
+commonFunctions:SetValuesInIniFile("AppIconsFolderMaxSize%s-=%s-.-%s-\n", "AppIconsFolderMaxSize", 1048576)
 
 --[[ Local functions ]]
 local function registerApplication(self)
@@ -52,22 +57,6 @@ local function registerApplication(self)
   self.mobileSession:ExpectResponse(corIdRAI, { success = true, resultCode = "SUCCESS" })
 end
 
-local function checkFileExistence(name, messages)
-  file=io.open(name,"r")
-  if file ~= nil then
-    io.close(file)
-    if messages == true then
-      commonFunctions:userPrint(32, "File " .. tostring(name) .. " exists")
-    end
-    return true
-  else
-    if messages == true then
-      commonFunctions:userPrint(31, "File " .. tostring(name) .. " does not exist")
-    end
-    return false
-  end
-end
-
 -- Generate path to application folder
 local function pathToAppFolderFunction(appID)
   commonSteps:CheckSDLPath()
@@ -76,8 +65,9 @@ local function pathToAppFolderFunction(appID)
 end
 
 local function checkFunction()
+  local status = true
   local applicationFileToCheck = config.pathToSDL .. tostring("Icons/" .. RAIParameters.appID)
-  local applicationFileExistsResult = checkFileExistence(applicationFileToCheck)
+  local applicationFileExistsResult = commonSteps:file_exists(applicationFileToCheck)
   local aHandle = assert( io.popen( "ls " .. config.pathToSDL .. "Icons/" , 'r'))
   local listOfFilesInStorageFolder = aHandle:read( '*a' )
   commonFunctions:userPrint(33, "Content of storage folder: " ..tostring("\n" .. listOfFilesInStorageFolder))
@@ -89,43 +79,7 @@ local function checkFunction()
 end
 
 --[[ Preconditions ]]
-commonSteps:DeleteLogsFileAndPolicyTable()
 commonFunctions:newTestCasesGroup("Preconditions")
-
-function Test.Precondition_StopSDL()
-  StopSDL()
- end
-  
-function Test.Precondition_configureAppIconsFolder()
-  commonFunctions:SetValuesInIniFile("AppIconsFolder%s-=%s-.-%s-\n", "AppIconsFolder", 'Icons')
-end
- 
-function Test.Precondition_configureAppIconsFolderMaxSize()
-  commonFunctions:SetValuesInIniFile("AppIconsFolderMaxSize%s-=%s-.-%s-\n", "AppIconsFolderMaxSize", 1048576)
-end
-
-function Test.Precondition_removeAppIconsFolder()
-  local addedFolderInScript = "Icons"
-  local existsResult = commonSteps:Directory_exist(tostring(config.pathToSDL .. addedFolderInScript))
-  if existsResult == true then
-    local rmAppIconsFolder  = assert( os.execute( "rm -rf " .. tostring(config.pathToSDL .. addedFolderInScript)))
-    if rmAppIconsFolder ~= true then
-      commonFunctions:userPrint(31, tostring(addedFolderInScript) .. " folder is not deleted")
-    end
-  end
-end
-
-function Test.Precondition_StartSDL()
-   StartSDL(config.pathToSDL, config.ExitOnCrash)
- end
-
- function Test:Precondition_InitHMI()
-  self:initHMI()
- end
-
- function Test:Precondition_InitHMIonReady()
-  self:initHMI_onReady()
- end
 
  function Test:Precondition_ConnectMobile()
   self:connectMobile()
@@ -135,6 +89,7 @@ function Test.Precondition_StartSDL()
 commonFunctions:newTestCasesGroup("Test")
 
 function Test:Check_Icon_greater_than_AppIconsFolderMaxSize_is_not_stored()
+  local pathToAppFolder
   self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
   self.mobileSession.version = 4
   self.mobileSession:StartService(7)
