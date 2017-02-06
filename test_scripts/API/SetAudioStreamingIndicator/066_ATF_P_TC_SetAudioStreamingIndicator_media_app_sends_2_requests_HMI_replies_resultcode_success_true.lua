@@ -80,12 +80,12 @@ for i = 1, #hmi_result_code do
 	end
 
 	Test["TestStep_SetAudioStreamingIndicator_"..hmi_result_code[i].result_code.."_audioStreamingIndicator_" .. IndicatorValue] = function(self)
-	  local corr_id_first_req = self.mobileSession:SendRPC("SetAudioStreamingIndicator", { audioStreamingIndicator = "IndicatorValue" })
+	  local corr_id_first_req = self.mobileSession:SendRPC("SetAudioStreamingIndicator", { audioStreamingIndicator = IndicatorValue })
 	  local corr_id_second_req
 
-	  EXPECT_HMICALL("UI.SetAudioStreamingIndicator", { audioStreamingIndicator = "IndicatorValue" })
+	  EXPECT_HMICALL("UI.SetAudioStreamingIndicator", { audioStreamingIndicator = IndicatorValue })
 	  :Do(function(_,data) 
-	  	corr_id_second_req = self.mobileSession:SendRPC("SetAudioStreamingIndicator", { audioStreamingIndicator = "IndicatorValue" })
+	  	corr_id_second_req = self.mobileSession:SendRPC("SetAudioStreamingIndicator", { audioStreamingIndicator = IndicatorValue })
 	  	
 	  	local function send_HMI_response()
 	  	  self.hmiConnection:SendResponse(data.id, data.method, hmi_result_code[i].result_code) 
