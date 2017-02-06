@@ -30,14 +30,10 @@ require('user_modules/AppTypes')
 
 --[[ Local variables ]]
 local RAIParameters = config.application1.registerAppInterfaceParams
-local ExistingIconFolder = {"storage/IconsFolder", "IconFolder", "Icons"}
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
-
-for i=1,#ExistingIconFolder do
-    assert(os.execute( "rm -rf " .. tostring(config.pathToSDL .. ExistingIconFolder[i])))
-end
+assert(os.execute( "rm -rf " .. tostring(config.pathToSDL .. "Icons")))
 commonFunctions:SetValuesInIniFile("AppIconsFolder%s-=%s-.-%s-\n", "AppIconsFolder", 'Icons')
 commonFunctions:SetValuesInIniFile("AppIconsFolderMaxSize%s-=%s-.-%s-\n", "AppIconsFolderMaxSize", 1048576)
 
