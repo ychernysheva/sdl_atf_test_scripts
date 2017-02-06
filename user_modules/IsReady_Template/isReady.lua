@@ -257,7 +257,7 @@ end
 	end
 
 	commonPreconditions:BackupFile("sdl_preloaded_pt.json")
-	f = assert(io.open(config.pathToSDL.. "/sdl_preloaded_pt.json", "r"))
+	f = assert(io.open(commonPreconditions:GetPathToSDL().. "/sdl_preloaded_pt.json", "r"))
 	fileContent = f:read("*all")
 
     DefaultContant = fileContent:match('"default".?:.?.?%{.-%}')
@@ -272,7 +272,7 @@ end
 	fileContent  =  string.gsub(fileContent, '".?default.?".?:.?.?%{.-%}', DefaultContant)
 
 
-	f = assert(io.open(config.pathToSDL.. "/sdl_preloaded_pt.json", "w+"))
+	f = assert(io.open(commonPreconditions:GetPathToSDL().. "/sdl_preloaded_pt.json", "w+"))
 	
 	f:write(fileContent)
 	f:close()
@@ -1360,7 +1360,7 @@ end
 			--Start SDL
 			Test["Precondition_StartSDL_" ..tostring(TestCaseName) ] = function(self)
 
-				StartSDL(config.pathToSDL, config.ExitOnCrash)
+				StartSDL(commonPreconditions:GetPathToSDL(), config.ExitOnCrash)
 			end
 			
 			--InitHMI
@@ -1406,7 +1406,7 @@ end
 			--Start SDL
 			Test["Precondition_StartSDL_" ..tostring(TestCaseName) ] = function(self)
 
-				StartSDL(config.pathToSDL, config.ExitOnCrash)
+				StartSDL(commonPreconditions:GetPathToSDL(), config.ExitOnCrash)
 			end
 			
 			--InitHMI
