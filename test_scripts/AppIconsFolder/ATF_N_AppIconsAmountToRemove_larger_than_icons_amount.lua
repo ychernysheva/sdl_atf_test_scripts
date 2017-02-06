@@ -34,15 +34,10 @@ require('user_modules/AppTypes')
 
 --[[ Local variables ]]
 local RAIParameters = config.application1.registerAppInterfaceParams
-local ExistingIconFolder = {"storage/IconsFolder", "IconFolder", "Icons"}
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
-
-for i=1,#ExistingIconFolder do
-    assert(os.execute( "rm -rf " .. tostring(config.pathToSDL .. ExistingIconFolder[i])))
-end
-
+assert(os.execute( "rm -rf " .. tostring(config.pathToSDL .. "Icons")))
 commonFunctions:SetValuesInIniFile("AppIconsFolder%s-=%s-.-%s-\n", "AppIconsFolder", 'Icons')
 commonFunctions:SetValuesInIniFile("AppIconsFolderMaxSize%s-=%s-.-%s-\n", "AppIconsFolderMaxSize", 1048576)
 commonFunctions:SetValuesInIniFile("AppIconsAmountToRemove%s-=%s-.-%s-\n", "AppIconsAmountToRemove", 100)
@@ -70,22 +65,10 @@ local function pathToAppFolderFunction(appID)
   return path
 end
 
-local function folderSize(PathToFolder)
-  local sizeFolderInBytes
-  local aHandle = assert(io.popen( "du -sh " ..  tostring(PathToFolder), 'r'))
-  local buff = aHandle:read( '*l' )
-  local sizeFolder, measurementUnits = buff:match("([^%a]+)(%a)")
-  if measurementUnits == "K" then
-    sizeFolder  =  string.gsub(sizeFolder, ",", ".")
-    sizeFolder = tonumber(sizeFolder)
-    sizeFolderInBytes = sizeFolder * 1024
-  elseif
-    measurementUnits == "M" then
-    sizeFolder  =  string.gsub(sizeFolder, ",", ".")
-    sizeFolder = tonumber(sizeFolder)
-    sizeFolderInBytes = sizeFolder * 1048576
-  end
-  return sizeFolderInBytes
+ local function folderSize(PathToFolder) 
+  local aHandle = assert(io.popen( "du -s -B1 " ..  tostring(PathToFolder), 'r'))
+  local buff = aHandle:read( '*l' ) 
+  return buff:match("%d+")
 end
 
 local function makeAppIconsFolderFull(AppIconsFolder)
