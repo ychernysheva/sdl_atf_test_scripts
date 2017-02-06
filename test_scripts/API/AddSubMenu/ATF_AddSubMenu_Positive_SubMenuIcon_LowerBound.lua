@@ -82,9 +82,9 @@ function Test:AddSubMenu_SubMenuIconLowerBound()
     }
   })
   :Do(function(_,data)
-  self.hmiConnection:SendError(data.id, data.method, "WARNINGS", "Image doesn't exists in the system")
+  self.hmiConnection:SendError(data.id, data.method, "WARNINGS", "Reference image(s) not found")
   end)
-  EXPECT_RESPONSE(cid, { success = true, resultCode = "WARNINGS", info = "Image doesn't exists in the system" })
+  EXPECT_RESPONSE(cid, { success = true, resultCode = "WARNINGS", info = "Reference image(s) not found" })
   EXPECT_NOTIFICATION("OnHashChange")
 end
 
