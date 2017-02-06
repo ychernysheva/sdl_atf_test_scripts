@@ -20,31 +20,31 @@
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 -- ToDo (vvvakulenko): remove after issue "ATF does not stop HB timers by closing session and connection" is resolved
 config.defaultProtocolVersion = 2
- 
+
 --[[ Required Shared libraries ]]
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require ('user_modules/shared_testcases/commonSteps')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
 local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 config.SDLStoragePath = commonPreconditions:GetPathToSDL() .. "storage/"
- 
+
 --[[ Local Variables ]]
 local storagePath = config.SDLStoragePath..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
 local ServerAddress = commonFunctions:read_parameter_from_smart_device_link_ini("ServerAddress")
- 
+
 --[[ General Precondition before ATF start ]]
 commonFunctions:SDLForceStop()
 commonSteps:DeleteLogsFiles()
 commonSteps:DeletePolicyTable()
 testCasesForPolicyTable:precondition_updatePolicy_AllowFunctionInHmiLeves({"BACKGROUND", "FULL", "LIMITED"},"Alert")
- 
+
 --[[ General Settings for configuration ]]
 Test = require('connecttest')
 require('user_modules/AppTypes')
- 
+
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
- 
+
 function Test:Precondition_ActivationApp()
   local request_id = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.applications[config.application1.registerAppInterfaceParams.appName]})
   EXPECT_HMIRESPONSE(request_id)
@@ -63,12 +63,12 @@ function Test:Precondition_ActivationApp()
   end)
   EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"})
 end
- 
+
 commonSteps:PutFile("Precondition_PutFile", "icon.png")
- 
+
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
- 
+
 local resultCodes = {"SUCCESS", "WARNINGS", "WRONG_LANGUAGE", "RETRY", "SAVED"}
 for i=1,#resultCodes do
   Test["TestStep_Alert_UI_Alert_WARNINGS_TTS_Speak_"..resultCodes[i]] = function(self)
@@ -90,7 +90,7 @@ for i=1,#resultCodes do
           systemAction = "DEFAULT_ACTION",
       }}
     })
-   
+
     EXPECT_HMICALL("UI.Alert",
     {alertStrings =
       {
@@ -127,7 +127,7 @@ for i=1,#resultCodes do
       end
       RUN_AFTER(alertResponse, 1500)
     end)
-   
+
     EXPECT_HMICALL("TTS.Speak",
     {ttsChunks =
         {{
@@ -147,16 +147,16 @@ for i=1,#resultCodes do
     EXPECT_RESPONSE(cor_id, { success = true, resultCode = "WARNINGS" })
   end
 end
- 
+
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
- 
+
 function Test.Postcondition_Restore_preloaded_file()
   commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 end
- 
+
 function Test.Postcondition_SDLStop()
   StopSDL()
 end
- 
+
 return Test
