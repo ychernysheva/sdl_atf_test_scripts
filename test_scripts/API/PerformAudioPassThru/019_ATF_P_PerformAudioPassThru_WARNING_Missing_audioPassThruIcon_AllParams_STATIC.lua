@@ -64,10 +64,10 @@ function Test:Precondition_Check_that_audioPassThruIcon_is_NonExistent()
    if(result ~= true) then
     print("The audioPassThruIcon: icon.png doesn't exist at application's sandbox")
   else
-    print("The audioPassThruIcon: icon.png exists at application's sandbox")    
+    print("The audioPassThruIcon: icon.png exists at application's sandbox") 
     self:FailTestCase ("The audioPassThruIcon: icon.png exists at application's sandbox")
   end
-end  
+end
 
 function Test:Precondition_ActivateApp()
   testCasesForPerformAudioPassThru:ActivateAppDiffPolicyFlag
@@ -119,17 +119,18 @@ function Test:TestStep_All_Params_Missing_audioPassThruIcon_STATIC()
         {fieldName = "audioPassThruDisplayText2", fieldText = "DisplayText2"},
       },
       maxDuration = 2000,
-      muteAudio = true
+      muteAudio = true,
+      audioPassThruIcon =
+      { 
+        value = "icon.png",
+        imageType = "STATIC"
+      }  
     })
   :Do(function(_,data)
-  	if data.params.audioPassThruIcon ~= nil then 
-  		print (" \27[36m Unexpected parameter received \27[0m")
-  		return false 
-  	end
-      local function UIPerformAoudioResponce()
-        self.hmiConnection:SendResponse(data.id, "UI.PerformAudioPassThru", "WARNINGS", {})
+      local function UIPerformAudioResponse()
+        self.hmiConnection:SendError(data.id, "UI.PerformAudioPassThru", "WARNINGS",{info = "Reference image(s) not found) to mobile app"})
       end
-      RUN_AFTER(UIPerformAoudioResponce, 1500)
+      RUN_AFTER(UIPerformAudioResponse, 1500)
   end)
 
   if
