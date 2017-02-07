@@ -2,7 +2,6 @@
 -- Requirements summary:
 -- [PerformAudioPassThru] "audioPassThruIcon" does NOT exist at 'AppStorageFolder'
 -- [HMI API] UI.PerformAudioPassThru request/response
--- [HMI API] TTS.Speak request/response
 -- [Mobile API] PerformAudioPassThru request/response
 -- [HMI_API] [MOBILE_API] The "audioPassThruIcon" param at "ImageFieldName" struct
 --
