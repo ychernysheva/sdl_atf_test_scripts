@@ -31,10 +31,11 @@ require('user_modules/AppTypes')
 
 --[[ Local variables ]]
 local RAIParameters = config.application1.registerAppInterfaceParams
+local appWithPermissions = commonPreconditions:GetPathToSDL() .. "storage"
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
-assert(os.execute( "rm -rf " .. commonPreconditions:GetPathToSDL() .. "storage"))
+assert(os.execute( "rm -rf " .. appWithPermissions))
 commonFunctions:SetValuesInIniFile("AppIconsFolder%s-=%s-.-%s-\n", "AppIconsFolder", 'storage')
 
 --[[ Local functions ]]
@@ -54,21 +55,25 @@ local function registerApplication(self)
 end
 
 local function pathToAppFolderFunction(appID)
-  return commonPreconditions:GetPathToSDL() .. "storage/" .. appID .. "_" .. config.deviceMAC .. "/"
+  return appWithPermissions .. "/" .. appID .. "_" .. config.deviceMAC .. "/"
 end
 
-local function checkFolderCreated(FolderPath)
-  local returnValue = true
-  local command = assert( io.popen(  "[ -d " .. FolderPath .. " ] && echo \"Exist\" || echo \"NotExist\"" , 'r'))
-  os.execute("sleep 1")
-  local commandResult = command:read( '*l' )
-    if commandResult == "NotExist" then
-      returnValue = false
-    elseif commandResult == "Exist" then
-     returnValue = true
+local function checkFunction()
+  local status = true
+  local dirExistResult = commonFunctions:Directory_exist(appWithPermissions)
+  if dirExistResult == true then
+    local applicationFileToCheck = appWithPermissions .. "/" .. RAIParameters.appID
+    local applicationFileExistsResult = commonSteps:file_exists(applicationFileToCheck)
+    if applicationFileExistsResult == false then
+      commonFunctions:userPrint(31, RAIParameters.appID .. " icon is not written to folder")
+       status = false
     end
-    return returnValue
-end 
+    else 
+      commonFunctions:userPrint(31, "storage folder does not exist in SDL bin folder" )
+      status = false
+    end
+    return status
+end
 
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
@@ -77,60 +82,45 @@ function Test:Precondition_connectMobile()
   self:connectMobile()
 end
 
-function Test:Precondition_RegisterAppWithIcon()
-  local pathToAppFolder = pathToAppFolderFunction(RAIParameters.appID)
-  self.mobileSession= mobile_session.MobileSession(self, self.mobileConnection)
-  self.mobileSession.version = 4
+--[[ Test ]]
+commonFunctions:newTestCasesGroup("Test")
+
+function Test:Check_SDL_finds_icons_saved_in_AppIconsFolder()
+  self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
   self.mobileSession:StartService(7)
   :Do(function()
     registerApplication(self)
     EXPECT_NOTIFICATION("OnHMIStatus", { systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE"})
-     :Do(function()
+    :Do(function()
      local cidPutFile = self.mobileSession:SendRPC("PutFile",
-       {
-         syncFileName = "icon.png",
-         fileType = "GRAPHIC_PNG",
-         persistentFile = false,
-         systemFile = false
-       }, "files/icon.png")
+      {
+        syncFileName = "iconFirstApp.png",
+        fileType = "GRAPHIC_PNG",
+        persistentFile = false,
+        systemFile = false
+      }, "files/icon.png")
      EXPECT_RESPONSE(cidPutFile, { success = true, resultCode = "SUCCESS" })
      :Do(function()
-       local cidSetAppIcon = self.mobileSession:SendRPC("SetAppIcon",{ syncFileName = "icon.png" })
-        EXPECT_HMICALL("UI.SetAppIcon",
-         {
-           syncFileName =
-            {
-              imageType = "DYNAMIC",
-              value = pathToAppFolder .. "icon.png"
-            }
-         })
-         :Do(function(_,data)
-           self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-          end)
-         EXPECT_RESPONSE(cidSetAppIcon, { resultCode = "SUCCESS", success = true })
-         end)
-       end)
+     local cidSetAppIcon = self.mobileSession:SendRPC("SetAppIcon",{ syncFileName = "iconFirstApp.png" })
+     local pathToAppFolder = pathToAppFolderFunction(RAIParameters.appID)
+     EXPECT_HMICALL("UI.SetAppIcon",
+      {
+        syncFileName =
+          {
+            imageType = "DYNAMIC",
+            value = pathToAppFolder .. "iconFirstApp.png"
+          }
+       })
+    :Do(function(_,data)
+      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
     end)
-end
-
---[[ Test ]]
-commonFunctions:newTestCasesGroup("Test")
-
-function Test.Check_SDL_finds_icons_saved_in_AppIconsFolder()
-  local status = true
-  local dirExistResult = checkFolderCreated(commonPreconditions:GetPathToSDL() .. "storage")
-  if dirExistResult == true then
-    local applicationFileToCheck = commonPreconditions:GetPathToSDL() .. "storage/" .. RAIParameters.appID
-    local applicationFileExistsResult = commonSteps:file_exists(applicationFileToCheck)
-    if applicationFileExistsResult == false then
-      commonFunctions:userPrint(31, RAIParameters.appID .. " icon is not written to folder")
-      status = false
-    end
-    else 
-      commonFunctions:userPrint(31, "storage folder does not exist in SDL bin folder" )
-      status = false
-    end
-    return status
+    EXPECT_RESPONSE(cidSetAppIcon, { resultCode = "SUCCESS", success = true })
+    :ValidIf(function()
+      return checkFunction()
+    end)
+    end)
+    end)
+  end)
 end
 
 --[[ Postconditions ]]
@@ -140,5 +130,5 @@ function Test.Postcondition_stopSDL()
 end
 
 function Test.Postcondition_deleteCreatedIconsFolder()
-  assert(os.execute( "rm -rf " .. commonPreconditions:GetPathToSDL() .. "storage"))
+  assert(os.execute( "rm -rf " .. appWithPermissions))
 end
