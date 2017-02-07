@@ -92,10 +92,10 @@ for i = 1, #hmi_result_code do
 	  	end
 	  	
 	  	RUN_AFTER(send_HMI_response, 1500)
+		EXPECT_RESPONSE(corr_id_second_req, { success = false, resultCode = "IGNORED"})
 	  end)
 
 	  EXPECT_RESPONSE(corr_id_first_req, { success = true, resultCode = hmi_result_code[i].result_code})
-	  EXPECT_RESPONSE(corr_id_second_req, { success = false, resultCode = "IGNORED"})
 	  EXPECT_NOTIFICATION("OnHashChange",{}):Times(0)
 	end
 end
