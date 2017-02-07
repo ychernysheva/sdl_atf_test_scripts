@@ -70,6 +70,7 @@ commonSteps:PutFile("Precondition_PutFile", "icon.png")
 commonFunctions:newTestCasesGroup("Test")
 
 local resultCodes = {"SUCCESS", "WARNINGS", "WRONG_LANGUAGE", "RETRY", "SAVED"}
+
 for i=1,#resultCodes do
   Test["TestStep_Alert_UI_Alert_WARNINGS_TTS_Speak_"..resultCodes[i]] = function(self)
     local cor_id = self.mobileSession:SendRPC("Alert",
@@ -114,8 +115,8 @@ for i=1,#resultCodes do
     })
     :ValidIf(function(_,data)
       local value_Icon = storagePath .. "icon.png"
-      if (string.match(data.params.cmdIcon.value, "%S*" .. "("..string.sub(storagePath, 2).."icon.png)" .. "$") == nil ) then
-        print("\27[31m value of menuIcon is WRONG. Expected: ~".. value_Icon .. "; Real: " .. data.params.cmdIcon.value .. "\27[0m")
+      if (string.match(data.params.softButtons[1].image.value, "%S*" .. "("..string.sub(storagePath, 2).."icon.png)" .. "$") == nil ) then
+        print("\27[31m value of menuIcon is WRONG. Expected: ~".. value_Icon .. "; Real: " .. data.params.softButtons[1].image.value .. "\27[0m")
         return false
       else
         return true
@@ -144,6 +145,7 @@ for i=1,#resultCodes do
       end
       RUN_AFTER(ttsSpeakResponse, 1000)
     end)
+    
     EXPECT_RESPONSE(cor_id, { success = true, resultCode = "WARNINGS" })
   end
 end
