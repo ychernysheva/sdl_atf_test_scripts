@@ -314,12 +314,12 @@ function StopStartSDL_HMI_MOBILE_VR_TTS(self)
 	      },
 	      hmiZoneCapabilities = "FRONT",
 	      softButtonCapabilities =
-	      {
+	      {{
 	        shortPressAvailable = true,
 	        longPressAvailable = true,
 	        upDownAvailable = true,
 	        imageSupported = true
-	      }
+	      }}
 	    })
 
 	  	ExpectRequest("VR.IsReady", true, { available = false })
