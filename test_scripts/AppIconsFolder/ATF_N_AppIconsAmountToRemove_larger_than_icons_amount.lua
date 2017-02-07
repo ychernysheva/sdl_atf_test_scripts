@@ -66,7 +66,7 @@ end
  local function folderSize(PathToFolder) 
   local aHandle = assert(io.popen( "du -s -B1 " ..  tostring(PathToFolder), 'r'))
   local buff = aHandle:read( '*l' ) 
-  return buff:match("%d+")
+  return buff:match("^%d+")
 end
 
 local function makeAppIconsFolderFull(AppIconsFolder)
