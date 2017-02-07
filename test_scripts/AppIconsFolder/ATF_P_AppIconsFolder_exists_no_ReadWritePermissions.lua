@@ -59,9 +59,9 @@ end
 
 local function checkFolderCreated(FolderPath)
   local returnValue = true
-  local command = assert( io.popen(  "[ -d " .. tostring(FolderPath) .. " ] && echo \"Exist\" || echo \"NotExist\"" , 'r'))
+  local command = assert( io.popen(  "[ -d " .. FolderPath .. " ] && echo \"Exist\" || echo \"NotExist\"" , 'r'))
   os.execute("sleep 0.5")
-  local commandResult = tostring(command:read( '*l' ))
+  local commandResult = command:read( '*l' )
     if commandResult == "NotExist" then
       returnValue = false
     elseif commandResult == "Exist" then
