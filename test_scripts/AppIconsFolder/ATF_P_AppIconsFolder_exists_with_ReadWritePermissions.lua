@@ -7,7 +7,7 @@
 --    SDL checks and finds icon related to app if such icons exist
 -- 1. Used preconditions:
 --      Delete files and policy table from previous ignition cycle if any
---      Set  SDL "storage" as AppiconsFolder in .ini file
+--      Set  SDL "IconsFolder" as AppiconsFolder in .ini file
 --      Start SDL and HMI
 -- 2. Performed steps:
 --      Register app
@@ -31,12 +31,12 @@ require('user_modules/AppTypes')
 
 --[[ Local variables ]]
 local RAIParameters = config.application1.registerAppInterfaceParams
-local appWithPermissions = commonPreconditions:GetPathToSDL() .. "storage"
+local appWithPermissions = commonPreconditions:GetPathToSDL() .. "IconsFolder"
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
 assert(os.execute( "rm -rf " .. appWithPermissions))
-commonFunctions:SetValuesInIniFile("AppIconsFolder%s-=%s-.-%s-\n", "AppIconsFolder", 'storage')
+commonFunctions:SetValuesInIniFile("AppIconsFolder%s-=%s-.-%s-\n", "AppIconsFolder", 'IconsFolder')
 
 --[[ Local functions ]]
 local function registerApplication(self)
@@ -69,7 +69,7 @@ local function checkFunction()
        status = false
     end
     else 
-      commonFunctions:userPrint(31, "storage folder does not exist in SDL bin folder" )
+      commonFunctions:userPrint(31, "IconsFolder folder does not exist in SDL bin folder" )
       status = false
     end
     return status
@@ -132,3 +132,7 @@ end
 function Test.Postcondition_deleteCreatedIconsFolder()
   assert(os.execute( "rm -rf " .. appWithPermissions))
 end
+
+function Test.Postcondition_restoreDefaultValueInIni()
+  commonFunctions:SetValuesInIniFile("AppIconsFolder%s-=%s-.-%s-\n", "AppIconsFolder", 'storage')
+end 
