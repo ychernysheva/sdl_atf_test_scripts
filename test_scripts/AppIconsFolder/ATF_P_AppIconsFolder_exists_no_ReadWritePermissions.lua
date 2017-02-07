@@ -19,22 +19,23 @@
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 
 --[[ General Settings for configuration ]]
-local preconditions = require('user_modules/shared_testcases/commonPreconditions')
-preconditions:Connecttest_without_ExitBySDLDisconnect_WithoutOpenConnectionRegisterApp("connecttestIcons.lua")
-Test = require('user_modules/connecttestIcons')
+Test = require('user_modules/connecttest_resumption')
 require('cardinalities')
 local mobile_session = require('mobile_session')
 
 --[[ Required Shared Libraries ]]
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
+local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 require('user_modules/AppTypes')
 
 --[[ Local variables ]]
-local pathToAppFolder
-local file
-local status = true
 local RAIParameters = config.application1.registerAppInterfaceParams
+
+--[[ General Precondition before ATF start ]]
+commonSteps:DeleteLogsFileAndPolicyTable()
+assert(os.execute( "rm -rf " .. commonPreconditions:GetPathToSDL() .. "FolderWithoutPermissions"))
+commonFunctions:SetValuesInIniFile("AppIconsFolder%s-=%s-.-%s-\n", "AppIconsFolder", 'FolderWithoutPermissions')
 
 --[[ Local functions ]]
 local function registerApplication(self)
@@ -52,87 +53,32 @@ local function registerApplication(self)
   self.mobileSession:ExpectResponse(corIdRAI, { success = true, resultCode = "SUCCESS" })
 end
 
-local function checkFileExistence(name, messages)
-  file=io.open(name,"r")
-  if file ~= nil then
-    io.close(file)
-    if messages == true then
-      commonFunctions:userPrint(32, "File " .. tostring(name) .. " exists")
-    end
-    return true
-  else
-    if messages == true then
-      commonFunctions:userPrint(31, "File " .. tostring(name) .. " does not exist")
-    end
-    return false
-  end
-end
-
--- Generate path to application folder
 local function pathToAppFolderFunction(appID)
-  commonSteps:CheckSDLPath()
-  local path = config.pathToSDL .. tostring("storage/") .. tostring(appID) .. "_" .. tostring(config.deviceMAC) .. "/"
-  return path
+  return commonPreconditions:GetPathToSDL() .. "storage/" .. appID .. "_" .. config.deviceMAC .. "/"
 end
 
-local function checkFolderExists(DirectoryPath)
-  local returnValue
-  local command = assert( io.popen(  "[ -d " .. tostring(DirectoryPath) .. " ] && echo \"Exist\" || echo \"NotExist\"" , 'r'))
+local function checkFolderCreated(FolderPath)
+  local returnValue = true
+  local command = assert( io.popen(  "[ -d " .. tostring(FolderPath) .. " ] && echo \"Exist\" || echo \"NotExist\"" , 'r'))
   os.execute("sleep 0.5")
   local commandResult = tostring(command:read( '*l' ))
     if commandResult == "NotExist" then
       returnValue = false
-    elseif
-      commandResult == "Exist" then
-      returnValue =  true
-    else
-      commonFunctions:userPrint(31," Unexpected result in checkDirectoryExistence function, commandResult = " .. tostring(commandResult))
-      returnValue = false
+    elseif commandResult == "Exist" then
+     returnValue = true
     end
     return returnValue
 end 
 
 --[[ Preconditions ]]
-commonSteps:DeleteLogsFileAndPolicyTable()
 commonFunctions:newTestCasesGroup("Preconditions")
-
-function Test.Precondition_stopSDL()
-  StopSDL()
-end 
-
-function Test.Precondition_configureAppIconsFolderInIni()
-  commonFunctions:SetValuesInIniFile("AppIconsFolder%s-=%s-.-%s-\n", "AppIconsFolder", 'FolderWithoutPermissions')
-end 
-
-function Test.Precondition_removeAppIconsFolder()
-  local addedFolderInScript = "FolderWithoutPermissions"
-  local existsResult = checkFolderExists(tostring(config.pathToSDL .. addedFolderInScript))
-  if existsResult == true then
-    local rmAppIconsFolder  = assert( os.execute( "rm -rf " .. tostring(config.pathToSDL .. addedFolderInScript)))
-    if rmAppIconsFolder ~= true then
-      commonFunctions:userPrint(31, tostring(addedFolderInScript) .. " folder is not deleted")
-    end
-  end
-end
-
-function Test.Precondition_startSDL()
-  StartSDL(config.pathToSDL, config.ExitOnCrash)
-end
-
-function Test:Precondition_initHMI()
-  self:initHMI()
-end
-
-function Test:Precondition_initHMIonReady()
-  self:initHMI_onReady()
-end
 
 function Test:Precondition_connectMobile()
   self:connectMobile()
 end 
 
 function Test.Precondition_setNoPermissionsForIconsFolder()
-  local changePermissions  = assert(os.execute( "chmod 000 " .. tostring(config.pathToSDL .. "FolderWithoutPermissions" )))
+  local changePermissions  = assert(os.execute( "chmod 000 " .. commonPreconditions:GetPathToSDL() .. "FolderWithoutPermissions" ))
   if changePermissions ~= true then
     commonFunctions:userPrint(31, "Permissions for FolderWithoutPermissions are not changed")
   end
@@ -156,7 +102,7 @@ function Test:Precondition_registerAppAndSendSetAppIcon()
      EXPECT_RESPONSE(cidPutFile, { success = true, resultCode = "SUCCESS" })
      :Do(function()
      local cidSetAppIcon = self.mobileSession:SendRPC("SetAppIcon",{ syncFileName = "iconFirstApp.png" })
-     pathToAppFolder = pathToAppFolderFunction(RAIParameters.appID)
+     local pathToAppFolder = pathToAppFolderFunction(RAIParameters.appID)
      EXPECT_HMICALL("UI.SetAppIcon",
       {
         syncFileName =
@@ -178,16 +124,17 @@ end
 commonFunctions:newTestCasesGroup("Test")
 
 function Test.Check_SDL_works_correctly_if_IconsFolder_has_no_permissions()
-  local dirExistResult = checkFolderExists(config.pathToSDL .. "FolderWithoutPermissions")
+  local status = true
+  local dirExistResult = checkFolderCreated(commonPreconditions:GetPathToSDL() .. "FolderWithoutPermissions")
   if dirExistResult == true then
-    local applicationFileToCheck = config.pathToSDL .. tostring("FolderWithoutPermissions/" .. RAIParameters.appID)
-    local applicationFileExistsResult = checkFileExistence(applicationFileToCheck)
+    local applicationFileToCheck = commonPreconditions:GetPathToSDL() .. "FolderWithoutPermissions/" .. RAIParameters.appID
+    local applicationFileExistsResult = commonSteps:file_exists(applicationFileToCheck)
     if applicationFileExistsResult ~= false then
-      commonFunctions:userPrint(31, tostring(RAIParameters.appID) .. " icon is written to folder without permissions")
+      commonFunctions:userPrint(31, RAIParameters.appID .. " icon is written to folder without permissions")
       status = false
     end
     else 
-      commonFunctions:userPrint(31, "FolderWithoutPermissions folder does not exist in SDL bin folder " )
+      commonFunctions:userPrint(31, "FolderWithoutPermissions folder does not exist in SDL bin folder" )
       status = false
     end
     return status
@@ -195,17 +142,14 @@ end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
-function Test.Postcondition_Remove_folder_without_permissions()
-  local RmAppIconsFolder  = assert( os.execute( "rm -rf " .. tostring(config.pathToSDL .. "FolderWithoutPermissions" )))
-  if RmAppIconsFolder ~= true then
-    commonFunctions:userPrint(31, "FolderWithoutPermissions folder is not deleted")
-  end
-end
-
-function Test.Postcondition_removeSpecConnecttest()
-  os.execute(" rm -f  ./user_modules/connecttestIcons.lua")
-end 
-
 function Test.Postcondition_stopSDL()
   StopSDL()
 end
+
+function Test.Postcondition_deleteCreatedIconsFolder()
+  assert(os.execute( "rm -rf " .. commonPreconditions:GetPathToSDL() .. "FolderWithoutPermissions"))
+end  
+
+function Test.Postcondition_restoreDefaultValuesInIni()
+  commonFunctions:SetValuesInIniFile("AppIconsFolder%s-=%s-.-%s-\n", "AppIconsFolder", 'storage')
+end 
