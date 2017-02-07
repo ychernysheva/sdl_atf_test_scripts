@@ -23,19 +23,25 @@
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 
 --[[ General Settings for configuration ]]
-local preconditions = require('user_modules/shared_testcases/commonPreconditions')
-preconditions:Connecttest_without_ExitBySDLDisconnect_WithoutOpenConnectionRegisterApp("connecttestIcons.lua")
-Test = require('user_modules/connecttestIcons')
+Test = require('user_modules/connecttest_resumption')
 require('cardinalities')
 local mobile_session = require('mobile_session')
 
 --[[ Required Shared Libraries ]]
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
+local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 require('user_modules/AppTypes')
 
 --[[ Local variables ]]
 local RAIParameters = config.application1.registerAppInterfaceParams
+
+--[[ General Precondition before ATF start ]]
+commonSteps:DeleteLogsFileAndPolicyTable()
+assert(os.execute( "rm -rf " .. commonPreconditions:GetPathToSDL() .. "Icons"))
+commonFunctions:SetValuesInIniFile("AppIconsFolder%s-=%s-.-%s-\n", "AppIconsFolder", 'Icons')
+commonFunctions:SetValuesInIniFile("AppIconsFolderMaxSize%s-=%s-.-%s-\n", "AppIconsFolderMaxSize", 524288)
+commonFunctions:SetValuesInIniFile("AppIconsAmountToRemove%s-=%s-.-%s-\n", "AppIconsAmountToRemove", 1)
 
 --[[ Local functions ]]
 local function registerApplication(self)
@@ -53,65 +59,32 @@ local function registerApplication(self)
   self.mobileSession:ExpectResponse(corIdRAI, { success = true, resultCode = "SUCCESS" })
 end
 
-local function checkFilePersists(name, messages)
-  local file
-  file=io.open(name,"r")
-  if file ~= nil then
-    io.close(file)
-    if messages == true then
-      commonFunctions:userPrint(32, "File " .. tostring(name) .. " exists")
-    end
-    return true
-  else
-    if messages == true then
-      commonFunctions:userPrint(31, "File " .. tostring(name) .. " does not exist")
-    end
-    return false
-  end
-end
-
--- Generate path to application folder
 local function pathToAppFolderFunction(appID)
-  commonSteps:CheckSDLPath()
-  local path = config.pathToSDL .. tostring("storage/") .. tostring(appID) .. "_" .. tostring(config.deviceMAC) .. "/"
-  return path
+  return commonPreconditions:GetPathToSDL() .. "storage/" .. appID .. "_" .. config.deviceMAC .. "/"
 end
 
-local function folderSize(PathToFolder)
-  local sizeFolderInBytes
-  local aHandle = assert( io.popen( "du -sh " ..  tostring(PathToFolder), 'r'))
-  local buff = aHandle:read( '*l' )
-  local sizeFolder, measurementUnits = buff:match("([^%a]+)(%a)")
-  if measurementUnits == "K" then
-    sizeFolder  =  string.gsub(sizeFolder, ",", ".")
-    sizeFolder = tonumber(sizeFolder)
-    sizeFolderInBytes = sizeFolder * 1024
-  elseif
-    measurementUnits == "M" then
-    sizeFolder  =  string.gsub(sizeFolder, ",", ".")
-    sizeFolder = tonumber(sizeFolder)
-    sizeFolderInBytes = sizeFolder * 524288
-  end
-  return sizeFolderInBytes
-end  
+ local function folderSize(PathToFolder) 
+  local aHandle = assert(io.popen( "du -s -B1 " .. PathToFolder, 'r'))
+  local buff = aHandle:read( '*l' ) 
+    return buff:match("^%d+")
+end 
 
 local function makeAppIconsFolderFull(AppIconsFolder)
-  local sizeToFull
   local folderSizeInBytes = 524288
   local oneIconSizeInBytes = -326360 
-  local currentsSizeIconsFolderInBytes = folderSize(config.pathToSDL .. tostring(AppIconsFolder))
-  sizeToFull = folderSizeInBytes - currentsSizeIconsFolderInBytes
+  local currentsSizeIconsFolderInBytes = folderSize(commonPreconditions:GetPathToSDL() .. AppIconsFolder)
+  local sizeToFull = folderSizeInBytes - currentsSizeIconsFolderInBytes
   local i =1
   while sizeToFull > oneIconSizeInBytes do
-    os.execute("sleep " .. tonumber(10))
-    local copyFileToAppIconsFolder = assert( os.execute( "cp files/icon.png " .. tostring(config.pathToSDL) .. tostring(AppIconsFolder) .. "/icon" .. tostring(i) ..".png"))
+    os.execute("sleep 1")
+    local copyFileToAppIconsFolder = assert( os.execute( "cp files/icon.png " .. commonPreconditions:GetPathToSDL() .. AppIconsFolder .. "/icon" .. i ..".png"))
     i = i + 1
     if copyFileToAppIconsFolder ~= true then
-      commonFunctions:userPrint(31, " Files are not copied to " .. tostring(AppIconsFolder))
+      commonFunctions:userPrint(31, " Files are not copied to " .. AppIconsFolder)
     end
-    currentsSizeIconsFolderInBytes = folderSize(config.pathToSDL .. tostring(AppIconsFolder))
+    currentsSizeIconsFolderInBytes = folderSize(commonPreconditions:GetPathToSDL() .. AppIconsFolder)
     sizeToFull = folderSizeInBytes - currentsSizeIconsFolderInBytes
-    if i > 50 then
+    if i > 10 then
       commonFunctions:userPrint(31, " Loop is breaking due to a lot of iterations ")
       break
     end
@@ -120,19 +93,19 @@ end
 
 local function checkFunction()
   local status = true
-  local aHandle = assert( io.popen( "ls " .. config.pathToSDL .. "Icons/" , 'r'))
+  local aHandle = assert( io.popen( "ls " .. commonPreconditions:GetPathToSDL() .. "Icons/" , 'r'))
   local listOfFilesInStorageFolder = aHandle:read( '*a' )
-  commonFunctions:userPrint(33, "Content of storage folder: " ..tostring("\n" ..listOfFilesInStorageFolder) )
-  local iconsFolder = config.pathToSDL .. tostring("Icons/")
+  commonFunctions:userPrint(33, "Content of storage folder: " .."\n" ..listOfFilesInStorageFolder)
+  local iconsFolder = commonPreconditions:GetPathToSDL() .. "Icons/"
   local applicationFileToCheck = iconsFolder .. RAIParameters.appID
-  local applicationFileExistsResult = checkFilePersists(applicationFileToCheck)
+  local applicationFileExistsResult = commonSteps:file_exists(applicationFileToCheck)
   if applicationFileExistsResult ~= true then
-    commonFunctions:userPrint(31, tostring(RAIParameters.appID) .. " icon is absent")
+    commonFunctions:userPrint(31, RAIParameters.appID .. " icon is absent")
     status = false
   end
     for i=1, 1, 1 do
-      local oldFileToCheck = iconsFolder.. "icon" .. tostring(i) ..".png"
-      local oldFileExistResult = checkFilePersists(oldFileToCheck)
+      local oldFileToCheck = iconsFolder.. "icon" .. i ..".png"
+      local oldFileExistResult = commonSteps:file_exists(oldFileToCheck)
       if oldFileExistResult ~= false then
         commonFunctions:userPrint(31,"Oldest icon1.png is not deleted from AppIconsFolder.More space is occupied than default(1Mb) folder size")
         status = false
@@ -142,47 +115,7 @@ local function checkFunction()
 end
 
 --[[ Preconditions ]]
-commonSteps:DeleteLogsFileAndPolicyTable()
 commonFunctions:newTestCasesGroup("Preconditions")
-
-function Test.Precondition_stopSDL()
-  StopSDL()
-end 
-
-function Test.Precondition_configureAppIconsFolder()
-  commonFunctions:SetValuesInIniFile("AppIconsFolder%s-=%s-.-%s-\n", "AppIconsFolder", 'Icons')
-end
-
-function Test.Precondition_configureAppIconsFolderMaxSize()
-  commonFunctions:SetValuesInIniFile("AppIconsFolderMaxSize%s-=%s-.-%s-\n", "AppIconsFolderMaxSize", 524288)
-end
-
-function Test.Precondition_configureAppIconsAmountToRemove()
-  commonFunctions:SetValuesInIniFile("AppIconsAmountToRemove%s-=%s-.-%s-\n", "AppIconsAmountToRemove", 1)
-end
- 
-function Test.Precondition_removeAppIconsFolder()
-  local addedFolderInScript = "Icons"
-  local existsResult = commonSteps:Directory_exist( tostring(config.pathToSDL .. addedFolderInScript))
-  if existsResult == true then
-    local rmAppIconsFolder  = assert( os.execute( "rm -rf " .. tostring(config.pathToSDL .. addedFolderInScript)))
-    if rmAppIconsFolder ~= true then
-      commonFunctions:userPrint(31, tostring(addedFolderInScript) .. " folder is not deleted")
-    end
-  end
-end
-
-function Test.Precondition_startSDL()
-  StartSDL(config.pathToSDL, config.ExitOnCrash)
-end
-
-function Test:Precondition_initHMI()
-  self:initHMI()
-end
-
-function Test:Precondition_initHMIonReady()
-  self:initHMI_onReady()
-end
 
 function Test:Precondition_connectMobile()
   self:connectMobile()
@@ -196,7 +129,6 @@ end
 commonFunctions:newTestCasesGroup("Test")
 
 function Test:Check_SDL_uses_default_folder_size_and_deletes_oldest_ison()
-  local pathToAppFolder
   self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
   self.mobileSession.version = 4
   self.mobileSession:StartService(7)
@@ -214,7 +146,7 @@ function Test:Check_SDL_uses_default_folder_size_and_deletes_oldest_ison()
      EXPECT_RESPONSE(cidPutFile, { success = true, resultCode = "SUCCESS" })
      :Do(function()
      local cidSetAppIcon = self.mobileSession:SendRPC("SetAppIcon",{ syncFileName = "iconFirstApp.png" })
-     pathToAppFolder = pathToAppFolderFunction(RAIParameters.appID)
+     local pathToAppFolder = pathToAppFolderFunction(RAIParameters.appID)
      EXPECT_HMICALL("UI.SetAppIcon",
       {
         syncFileName =
@@ -228,7 +160,7 @@ function Test:Check_SDL_uses_default_folder_size_and_deletes_oldest_ison()
     end)
     EXPECT_RESPONSE(cidSetAppIcon, { resultCode = "SUCCESS", success = true })
     :ValidIf(function()
-      checkFunction()
+      return checkFunction()
     end)
     end)
     end)
@@ -237,10 +169,16 @@ end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
-function Test.Postcondition_removeSpecConnecttest()
-  os.execute(" rm -f  ./user_modules/connecttestIcons.lua")
-end 
-
 function Test.Postcondition_stopSDL()
   StopSDL()
 end
+
+function Test.Postcondition_deleteCreatedIconsFolder()
+  assert(os.execute( "rm -rf " .. commonPreconditions:GetPathToSDL() .. "Icons"))
+end  
+
+function Test.Postcondition_restoreDefaultValuesInIni()
+  commonFunctions:SetValuesInIniFile("AppIconsFolder%s-=%s-.-%s-\n", "AppIconsFolder", 'storage')
+  commonFunctions:SetValuesInIniFile("AppIconsFolderMaxSize%s-=%s-.-%s-\n", "AppIconsFolderMaxSize", 104857600)
+  commonFunctions:SetValuesInIniFile("AppIconsAmountToRemove%s-=%s-.-%s-\n", "AppIconsAmountToRemove", 1)
+end 
