@@ -37,7 +37,6 @@ local RAIParameters = config.application1.registerAppInterfaceParams
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
-assert(os.execute( "rm -rf " .. tostring(config.pathToSDL .. "Icons")))
 commonFunctions:SetValuesInIniFile("AppIconsFolder%s-=%s-.-%s-\n", "AppIconsFolder", 'Icons')
 commonFunctions:SetValuesInIniFile("AppIconsFolderMaxSize%s-=%s-.-%s-\n", "AppIconsFolderMaxSize", 1048576)
 commonFunctions:SetValuesInIniFile("AppIconsAmountToRemove%s-=%s-.-%s-\n", "AppIconsAmountToRemove", 100)
@@ -60,7 +59,6 @@ end
 
 -- Generate path to application folder
 local function pathToAppFolderFunction(appID)
-  commonSteps:CheckSDLPath()
   local path = commonPreconditions:GetPathToSDL()  .. tostring("storage/") .. tostring(appID) .. "_" .. tostring(config.deviceMAC) .. "/"
   return path
 end
@@ -79,7 +77,7 @@ local function makeAppIconsFolderFull(AppIconsFolder)
   sizeToFull = appIconsFolderMaxSize - sizeAppIconsFolderInBytes
   local i =1
   while sizeToFull > oneIconSize do
-    os.execute("sleep 10")
+    os.execute("sleep 1")
     local copyFileToAppIconsFolder = assert( os.execute( "cp files/icon.png " .. tostring(commonPreconditions:GetPathToSDL()) .. tostring(AppIconsFolder) .. "/icon" .. tostring(i) ..".png"))
     i = i + 1
     if copyFileToAppIconsFolder ~= true then
@@ -132,7 +130,6 @@ end
 commonFunctions:newTestCasesGroup("Test")
 
 function Test:Check_old_icons_deleted_AmountToRemove_greater_than_icons_amount()
-  local pathToAppFolder
   self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
   self.mobileSession.version = 4
   self.mobileSession:StartService(7)
@@ -150,7 +147,7 @@ function Test:Check_old_icons_deleted_AmountToRemove_greater_than_icons_amount()
      EXPECT_RESPONSE(cidPutFile, { success = true, resultCode = "SUCCESS" })
      :Do(function()
      local cidSetAppIcon = self.mobileSession:SendRPC("SetAppIcon",{ syncFileName = "iconFirstApp.png" })
-     pathToAppFolder = pathToAppFolderFunction(RAIParameters.appID)
+     local pathToAppFolder = pathToAppFolderFunction(RAIParameters.appID)
      EXPECT_HMICALL("UI.SetAppIcon",
       {
         syncFileName =
@@ -164,7 +161,7 @@ function Test:Check_old_icons_deleted_AmountToRemove_greater_than_icons_amount()
     end)
     EXPECT_RESPONSE(cidSetAppIcon, { resultCode = "SUCCESS", success = true })
     :ValidIf(function()
-      checkFunction()
+     return checkFunction()
     end)
     end)
     end)
@@ -176,3 +173,13 @@ commonFunctions:newTestCasesGroup("Postconditions")
 function Test.Postcondition_stopSDL()
   StopSDL()
 end
+
+function Test.Postcondition_deleteCreatedIconsFolder()
+  assert(os.execute( "rm -rf " .. tostring(config.pathToSDL .. "Icons")))
+end  
+
+function Test.Postcondition_restoreDefaultValuesInIni()
+  commonFunctions:SetValuesInIniFile("AppIconsFolder%s-=%s-.-%s-\n", "AppIconsFolder", 'storage')
+  commonFunctions:SetValuesInIniFile("AppIconsFolderMaxSize%s-=%s-.-%s-\n", "AppIconsFolderMaxSize", 104857600)
+  commonFunctions:SetValuesInIniFile("AppIconsAmountToRemove%s-=%s-.-%s-\n", "AppIconsAmountToRemove", 1)
+end  
