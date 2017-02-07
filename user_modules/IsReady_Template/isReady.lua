@@ -839,12 +839,12 @@ end
 											        hmiZoneCapabilities = "FRONT",
 											        hmiDisplayLanguage  = "EN-US",
 											        softButtonCapabilities =
-											        {
+											        {{
 											          shortPressAvailable = true,
 											          longPressAvailable = true,
 											          upDownAvailable = true,
 											          imageSupported = true
-											        },
+											        }},
 											        hmiCapabilities = { 
 											        					navigation = false,
 											        					phoneCall  = false,
@@ -1200,12 +1200,12 @@ end
 											        hmiZoneCapabilities = "FRONT",
 											        hmiDisplayLanguage  = "EN-US",
 											        softButtonCapabilities =
-											        {
+											        {{
 											          shortPressAvailable = true,
 											          longPressAvailable = true,
 											          upDownAvailable = true,
 											          imageSupported = true
-											        },
+											        }},
 											        hmiCapabilities = { 
 											        					navigation = false,
 											        					phoneCall  = false,
