@@ -72,7 +72,7 @@ for i = 1, #invalid_data do
 
     EXPECT_HMICALL("UI.SetAudioStreamingIndicator", { audioStreamingIndicator = "PAUSE" })
     :Do(function(_,data)
-      self.hmiConnection:SendError(data.id, data.method, "SUCCESS", { audioStreamingIndicator = invalid_data[i].value })
+      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", { audioStreamingIndicator = invalid_data[i].value })
     end)
 
     EXPECT_RESPONSE(corr_id, { success = false, resultCode = "GENERIC_ERROR", info = "Invalid message received from vehicle" })

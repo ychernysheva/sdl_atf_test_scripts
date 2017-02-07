@@ -94,15 +94,15 @@ for i = 1, #hmi_result_code do
 	  	
 	  	local function send_HMI_response()
 	  	  -- ATF issue: "Genivi: SDL doesn't accept some error_codes from HMI when they are sending with type of protocol_message "error""
-	  		self.hmiConnection:SendError(data.id, data.method, hmi_result_code[i].result_code) 
+	  		self.hmiConnection:SendError(data.id, data.method, hmi_result_code[i].result_code, "error message") 
 	  	end
 	  	
 	  	RUN_AFTER(send_HMI_response, 1500)
+		
+		EXPECT_RESPONSE(corr_id_second_req, { success = false, resultCode = "IGNORED"})
 	  end)
 	  
-
-	  EXPECT_RESPONSE(corr_id, { success = false, resultCode = hmi_result_code[i].result_code})
-	  EXPECT_RESPONSE(corr_id_second_req, { success = false, resultCode = "IGNORED"})
+	  EXPECT_RESPONSE(corr_id, { success = false, resultCode = hmi_result_code[i].result_code, info = "error message" })	  
 	  EXPECT_NOTIFICATION("OnHashChange",{}):Times(0)
 	end
 end
