@@ -35,10 +35,11 @@ require('user_modules/AppTypes')
 
 --[[ Local variables ]]
 local RAIParameters = config.application1.registerAppInterfaceParams
+local testIconsFolder = commonPreconditions:GetPathToSDL() .. "Icons"
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
-assert(os.execute( "rm -rf " .. commonPreconditions:GetPathToSDL() .. "Icons"))
+assert(os.execute( "rm -rf " .. testIconsFolder))
 commonFunctions:SetValuesInIniFile("AppIconsFolder%s-=%s-.-%s-\n", "AppIconsFolder", 'Icons')
 commonFunctions:SetValuesInIniFile("AppIconsFolderMaxSize%s-=%s-.-%s-\n", "AppIconsFolderMaxSize", 524288)
 commonFunctions:SetValuesInIniFile("AppIconsAmountToRemove%s-=%s-.-%s-\n", "AppIconsAmountToRemove", 1)
@@ -74,7 +75,7 @@ local function makeAppIconsFolderFull(AppIconsFolder)
   local oneIconSizeInBytes = -326360 
   local currentsSizeIconsFolderInBytes = folderSize(commonPreconditions:GetPathToSDL() .. AppIconsFolder)
   local sizeToFull = folderSizeInBytes - currentsSizeIconsFolderInBytes
-  local i =1
+  local i = 1
   while sizeToFull > oneIconSizeInBytes do
     os.execute("sleep 1")
     local copyFileToAppIconsFolder = assert( os.execute( "cp files/icon.png " .. commonPreconditions:GetPathToSDL() .. AppIconsFolder .. "/icon" .. i ..".png"))
@@ -93,24 +94,21 @@ end
 
 local function checkFunction()
   local status = true
-  local aHandle = assert( io.popen( "ls " .. commonPreconditions:GetPathToSDL() .. "Icons/" , 'r'))
+  local aHandle = assert( io.popen( "ls " .. testIconsFolder .. "/" , 'r'))
   local listOfFilesInStorageFolder = aHandle:read( '*a' )
   commonFunctions:userPrint(33, "Content of storage folder: " .."\n" ..listOfFilesInStorageFolder)
-  local iconsFolder = commonPreconditions:GetPathToSDL() .. "Icons/"
+  local iconsFolder = testIconsFolder .. "/"
   local applicationFileToCheck = iconsFolder .. RAIParameters.appID
   local applicationFileExistsResult = commonSteps:file_exists(applicationFileToCheck)
   if applicationFileExistsResult ~= true then
     commonFunctions:userPrint(31, RAIParameters.appID .. " icon is absent")
     status = false
   end
-    for i=1, 1, 1 do
-      local oldFileToCheck = iconsFolder.. "icon" .. i ..".png"
-      local oldFileExistResult = commonSteps:file_exists(oldFileToCheck)
-      if oldFileExistResult ~= false then
-        commonFunctions:userPrint(31,"Oldest icon1.png is not deleted from AppIconsFolder.More space is occupied than default(1Mb) folder size")
-        status = false
-      end
-    end  
+  local oldFileExistResult = commonSteps:file_exists(iconsFolder.. "icon1.png")
+    if oldFileExistResult ~= false then
+      commonFunctions:userPrint(31,"Oldest icon1.png is not deleted from AppIconsFolder.More space is occupied than default(1Mb) folder size")
+      status = false
+    end
   return status
 end
 
@@ -130,7 +128,6 @@ commonFunctions:newTestCasesGroup("Test")
 
 function Test:Check_SDL_uses_default_folder_size_and_deletes_oldest_ison()
   self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
-  self.mobileSession.version = 4
   self.mobileSession:StartService(7)
   :Do(function()
     registerApplication(self)
@@ -174,11 +171,10 @@ function Test.Postcondition_stopSDL()
 end
 
 function Test.Postcondition_deleteCreatedIconsFolder()
-  assert(os.execute( "rm -rf " .. commonPreconditions:GetPathToSDL() .. "Icons"))
+  assert(os.execute( "rm -rf " .. testIconsFolder))
 end  
 
 function Test.Postcondition_restoreDefaultValuesInIni()
   commonFunctions:SetValuesInIniFile("AppIconsFolder%s-=%s-.-%s-\n", "AppIconsFolder", 'storage')
   commonFunctions:SetValuesInIniFile("AppIconsFolderMaxSize%s-=%s-.-%s-\n", "AppIconsFolderMaxSize", 104857600)
-  commonFunctions:SetValuesInIniFile("AppIconsAmountToRemove%s-=%s-.-%s-\n", "AppIconsAmountToRemove", 1)
 end 
