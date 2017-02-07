@@ -257,7 +257,7 @@ end
 	end
 
 	commonPreconditions:BackupFile("sdl_preloaded_pt.json")
-	f = assert(io.open(commonPreconditions:GetPathToSDL().. "/sdl_preloaded_pt.json", "r"))
+	f = assert(io.open(commonPreconditions:GetPathToSDL().. "sdl_preloaded_pt.json", "r"))
 	fileContent = f:read("*all")
 
     DefaultContant = fileContent:match('"default".?:.?.?%{.-%}')
@@ -272,7 +272,7 @@ end
 	fileContent  =  string.gsub(fileContent, '".?default.?".?:.?.?%{.-%}', DefaultContant)
 
 
-	f = assert(io.open(commonPreconditions:GetPathToSDL().. "/sdl_preloaded_pt.json", "w+"))
+	f = assert(io.open(commonPreconditions:GetPathToSDL().. "sdl_preloaded_pt.json", "w+"))
 	
 	f:write(fileContent)
 	f:close()
