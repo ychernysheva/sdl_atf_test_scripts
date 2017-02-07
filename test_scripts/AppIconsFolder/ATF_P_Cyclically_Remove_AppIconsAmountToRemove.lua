@@ -34,10 +34,11 @@ require('user_modules/AppTypes')
 
 --[[ Local variables ]]
 local RAIParameters = config.application1.registerAppInterfaceParams
+local testIconsFolder = commonPreconditions:GetPathToSDL() .. "Icons"
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
-assert(os.execute( "rm -rf " .. commonPreconditions:GetPathToSDL() .. "Icons"))
+assert(os.execute( "rm -rf " .. testIconsFolder))
 commonFunctions:SetValuesInIniFile("AppIconsFolder%s-=%s-.-%s-\n", "AppIconsFolder", 'Icons')
 commonFunctions:SetValuesInIniFile("AppIconsFolderMaxSize%s-=%s-.-%s-\n", "AppIconsFolderMaxSize", 1048576)
 commonFunctions:SetValuesInIniFile("AppIconsAmountToRemove%s-=%s-.-%s-\n", "AppIconsAmountToRemove", 1)
@@ -90,11 +91,11 @@ local function makeAppIconsFolderFull(AppIconsFolder)
 end
 
 local function checkFunction()
-  local aHandle = assert( io.popen( "ls " .. commonPreconditions:GetPathToSDL() .. "Icons/" , 'r'))
+  local aHandle = assert( io.popen( "ls " .. testIconsFolder .. "/" , 'r'))
   local ListOfFilesInStorageFolder = aHandle:read( '*a' )
   local status = true
   commonFunctions:userPrint(32, "Content of storage folder: " .."\n" ..ListOfFilesInStorageFolder)
-  local iconFolderPath =  commonPreconditions:GetPathToSDL() .. "Icons/"
+  local iconFolderPath =  testIconsFolder .. "/"
   local applicationFileToCheck = iconFolderPath .. RAIParameters.appID
   local applicationFileExistsResult = commonSteps:file_exists(applicationFileToCheck)
   if applicationFileExistsResult ~= true then
@@ -170,11 +171,10 @@ function Test.Postcondition_stopSDL()
 end
 
 function Test.Postcondition_deleteCreatedIconsFolder()
-  assert(os.execute( "rm -rf " .. commonPreconditions:GetPathToSDL() .. "Icons"))
+  assert(os.execute( "rm -rf " .. testIconsFolder))
 end  
 
 function Test.Postcondition_restoreDefaultValuesInIni()
   commonFunctions:SetValuesInIniFile("AppIconsFolder%s-=%s-.-%s-\n", "AppIconsFolder", 'storage')
   commonFunctions:SetValuesInIniFile("AppIconsFolderMaxSize%s-=%s-.-%s-\n", "AppIconsFolderMaxSize", 104857600)
-  commonFunctions:SetValuesInIniFile("AppIconsAmountToRemove%s-=%s-.-%s-\n", "AppIconsAmountToRemove", 1)
 end  
