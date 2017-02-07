@@ -27,16 +27,19 @@ local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 require('user_modules/AppTypes')
 
+--[[ Local variables ]]
+local testIconsFolder = commonPreconditions:GetPathToSDL() .. "Icons"
+
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
-assert(os.execute( "rm -rf " .. commonPreconditions:GetPathToSDL() .. "Icons"))
+assert(os.execute( "rm -rf " .. testIconsFolder))
 commonFunctions:SetValuesInIniFile("AppIconsFolder%s-=%s-.-%s-\n", "AppIconsFolder", 'Icons')
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
 function Test:Check_AppIconsFolder_is_created_on_startup()
-  local dirExistResult = commonSteps:Directory_exist(config.pathToSDL .. "Icons")
+  local dirExistResult = commonSteps:Directory_exist(testIconsFolder)
   if dirExistResult == true then
     commonFunctions:userPrint(32, "AppIconsFolder exists")
   else
@@ -51,7 +54,7 @@ function Test.Postcondition_stopSDL()
 end
 
 function Test.Postcondition_deleteCreatedIconsFolder()
-  assert(os.execute( "rm -rf " .. commonPreconditions:GetPathToSDL() .. "Icons"))
+  assert(os.execute( "rm -rf " .. testIconsFolder))
 end  
 
 function Test.Postcondition_restoreDefaultValuesInIni()
