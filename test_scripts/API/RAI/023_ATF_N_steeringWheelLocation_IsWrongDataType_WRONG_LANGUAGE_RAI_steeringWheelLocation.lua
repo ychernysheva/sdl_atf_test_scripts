@@ -178,12 +178,12 @@ function Test:Precondition_InitHMI_OnReady()
       },
       hmiZoneCapabilities = "FRONT",
       softButtonCapabilities =
-      {
+      {{
         shortPressAvailable = true,
         longPressAvailable = true,
         upDownAvailable = true,
         imageSupported = true
-      }
+      }}
     })
 	end)
 end
