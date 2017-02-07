@@ -31,10 +31,11 @@ require('user_modules/AppTypes')
 
 --[[ Local variables ]]
 local RAIParameters = config.application1.registerAppInterfaceParams
+local folderNoPermissions = commonPreconditions:GetPathToSDL() .. "FolderWithoutPermissions"
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
-assert(os.execute( "rm -rf " .. commonPreconditions:GetPathToSDL() .. "FolderWithoutPermissions"))
+assert(os.execute( "rm -rf " .. folderNoPermissions))
 commonFunctions:SetValuesInIniFile("AppIconsFolder%s-=%s-.-%s-\n", "AppIconsFolder", 'FolderWithoutPermissions')
 
 --[[ Local functions ]]
@@ -57,19 +58,6 @@ local function pathToAppFolderFunction(appID)
   return commonPreconditions:GetPathToSDL() .. "storage/" .. appID .. "_" .. config.deviceMAC .. "/"
 end
 
-local function checkFolderCreated(FolderPath)
-  local returnValue = true
-  local command = assert( io.popen(  "[ -d " .. FolderPath .. " ] && echo \"Exist\" || echo \"NotExist\"" , 'r'))
-  os.execute("sleep 0.5")
-  local commandResult = command:read( '*l' )
-    if commandResult == "NotExist" then
-      returnValue = false
-    elseif commandResult == "Exist" then
-     returnValue = true
-    end
-    return returnValue
-end 
-
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
 
@@ -78,7 +66,7 @@ function Test:Precondition_connectMobile()
 end 
 
 function Test.Precondition_setNoPermissionsForIconsFolder()
-  local changePermissions  = assert(os.execute( "chmod 000 " .. commonPreconditions:GetPathToSDL() .. "FolderWithoutPermissions" ))
+  local changePermissions  = assert(os.execute( "chmod 000 " .. folderNoPermissions))
   if changePermissions ~= true then
     commonFunctions:userPrint(31, "Permissions for FolderWithoutPermissions are not changed")
   end
@@ -123,11 +111,11 @@ end
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
-function Test.Check_SDL_works_correctly_if_IconsFolder_has_no_permissions()
+function Test:Check_SDL_works_correctly_if_IconsFolder_has_no_permissions()
   local status = true
-  local dirExistResult = checkFolderCreated(commonPreconditions:GetPathToSDL() .. "FolderWithoutPermissions")
+  local dirExistResult = commonFunctions:Directory_exist(folderNoPermissions)
   if dirExistResult == true then
-    local applicationFileToCheck = commonPreconditions:GetPathToSDL() .. "FolderWithoutPermissions/" .. RAIParameters.appID
+    local applicationFileToCheck = folderNoPermissions .. "/" .. RAIParameters.appID
     local applicationFileExistsResult = commonSteps:file_exists(applicationFileToCheck)
     if applicationFileExistsResult ~= false then
       commonFunctions:userPrint(31, RAIParameters.appID .. " icon is written to folder without permissions")
@@ -137,7 +125,7 @@ function Test.Check_SDL_works_correctly_if_IconsFolder_has_no_permissions()
       commonFunctions:userPrint(31, "FolderWithoutPermissions folder does not exist in SDL bin folder" )
       status = false
     end
-    return status
+    self:FailTestCase("SDL should not use the 'store-apps-icon' mechanism and store icon")
 end
 
 --[[ Postconditions ]]
@@ -147,7 +135,7 @@ function Test.Postcondition_stopSDL()
 end
 
 function Test.Postcondition_deleteCreatedIconsFolder()
-  assert(os.execute( "rm -rf " .. commonPreconditions:GetPathToSDL() .. "FolderWithoutPermissions"))
+  assert(os.execute( "rm -rf " .. folderNoPermissions))
 end  
 
 function Test.Postcondition_restoreDefaultValuesInIni()
