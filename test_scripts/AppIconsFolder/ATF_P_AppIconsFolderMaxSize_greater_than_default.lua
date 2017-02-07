@@ -89,7 +89,7 @@ local function makeAppIconsFolderFull(AppIconsFolder)
   end
 end
 
- local function checkFunction()
+local function checkFunction()
   local status = true
   local aHandle = assert( io.popen( "ls " .. commonPreconditions:GetPathToSDL() .. "Icons/" , 'r'))
   local ListOfFilesInStorageFolder = aHandle:read( '*a' )
@@ -101,13 +101,10 @@ end
     commonFunctions:userPrint(31, RAIParameters.appID .. " icon is absent")
     status = false
   end
-  for i=1, 1, 1 do
-    local oldFileToCheck = iconsFolder.. "icon" .. i ..".png"
-    local oldFileExistResult = commonSteps:file_exists(oldFileToCheck)
-     if oldFileExistResult ~= false then
-      commonFunctions:userPrint(31,"Oldest icon1.png is not deleted from AppIconsFolder. More space is occupied than AppIconsFolderMaxSize")
-      status = false
-    end
+  local oldFileExistResult = commonSteps:file_exists(iconsFolder.. "icon1.png")
+  if oldFileExistResult ~= false then
+    commonFunctions:userPrint(31,"Oldest icon1.png is not deleted from AppIconsFolder. More space is occupied than AppIconsFolderMaxSize")
+    status = false
   end
   return status
 end
