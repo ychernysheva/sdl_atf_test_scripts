@@ -23,11 +23,9 @@
 -- 2. Performed steps
 -- Send PerformAudioPassThru (audioPassThruIcon, mandatory params)
 -- HMI sends UI.PerformAudioPassThru (WARNINGS, info) to SDL
--- HMI sends TTS.Speak (SUCCESS)
 --
 -- Expected result:
 -- SDL sends UI.PerformAudioPassThru to HMI
--- SDL sends TTS.Speak to HMI
 -- SDL sends PerformAudioPassThru (WARNINGS, success:true, info:Reference image(s) not found) to mobile app
 ---------------------------------------------------------------------------------------------
 
@@ -108,6 +106,7 @@ function Test:TestStep_Mandatory_Params_Missing_audioPassThruIcon_STATIC()
   EXPECT_HMICALL("TTS.Speak"):Times(0)
   self.mobileSession:ExpectResponse(CorIdPerformAudioPassThruAppParVD, {success = true, resultCode = "WARNINGS", info = "Reference image(s) not found"})
   EXPECT_NOTIFICATION("OnHashChange"):Times(0)
+
 end
 
 --[[ Postconditions ]]
