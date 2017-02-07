@@ -25,9 +25,9 @@
 -- HMI sends to SDL TTS.Speak (SUCCESS)
 --
 -- Expected result:
--- SDL sends to mobile UI.PerformAudioPassThru(resultcode: HMI_result_code, success:false)
 -- SDL sends UI.PerformAudioPassThru (audioPassThruIcon, other params) to HMI
 -- SDL sends TTS.Speak to HMI
+-- SDL sends to mobile UI.PerformAudioPassThru(resultcode: HMI_result_code, success:false)
 ---------------------------------------------------------------------------------------------
 
 --[[ General configuration parameters ]]
@@ -143,7 +143,7 @@ for i = 1, #hmi_result_code do
 
 	  	local function UIPerformAudioResponse()
 	  	-- ATF issue: "Genivi: SDL doesn't accept some error_codes from HMI when they are sending with type of protocol_message "error""
-	  	self.hmiConnection:SendError(data.id, data.method, hmi_result_code[i].result_code) 
+	  	self.hmiConnection:SendError(data.id, data.method, hmi_result_code[i].result_code, "error message") 
 	    end
 	    RUN_AFTER(UIPerformAudioResponse, 1500)
   end)
@@ -161,9 +161,10 @@ for i = 1, #hmi_result_code do
     EXPECT_NOTIFICATION("OnHMIStatus"):Times(0)
   end
 
-	  self.mobileSession:ExpectResponse(CorIdPerformAudioPassThru, {success = false, resultCode = hmi_result_code[i].result_code})
+  self.mobileSession:ExpectResponse(CorIdPerformAudioPassThru, {success = false, resultCode = hmi_result_code[i].result_code, "error message"})
 	  EXPECT_NOTIFICATION("OnHashChange",{}):Times(0)
-	end
+  end
+  
 end
 
 --[[ Postconditions ]]
