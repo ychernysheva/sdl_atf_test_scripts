@@ -26,6 +26,7 @@ local mobile_session = require('mobile_session')
 --[[ Required Shared Libraries ]]
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
+local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 require('user_modules/AppTypes')
 
 --[[ Local variables ]]
@@ -33,7 +34,7 @@ local RAIParameters = config.application1.registerAppInterfaceParams
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
-assert(os.execute( "rm -rf " .. tostring(config.pathToSDL .. "Icons")))
+assert(os.execute( "rm -rf " .. commonPreconditions:GetPathToSDL() .. "Icons"))
 commonFunctions:SetValuesInIniFile("AppIconsFolder%s-=%s-.-%s-\n", "AppIconsFolder", 'Icons')
 commonFunctions:SetValuesInIniFile("AppIconsFolderMaxSize%s-=%s-.-%s-\n", "AppIconsFolderMaxSize", 1048576)
 
@@ -55,20 +56,18 @@ end
 
 -- Generate path to application folder
 local function pathToAppFolderFunction(appID)
-  commonSteps:CheckSDLPath()
-  local path = config.pathToSDL .. tostring("storage/") .. tostring(appID) .. "_" .. tostring(config.deviceMAC) .. "/"
-  return path
+  return commonPreconditions:GetPathToSDL() .. "storage/" .. appID .. "_" .. config.deviceMAC .. "/"
 end
 
 local function checkFunction()
   local status = true
-  local applicationFileToCheck = config.pathToSDL .. tostring("Icons/" .. RAIParameters.appID)
+  local applicationFileToCheck = commonPreconditions:GetPathToSDL() .. "Icons/" .. RAIParameters.appID
   local applicationFileExistsResult = commonSteps:file_exists(applicationFileToCheck)
-  local aHandle = assert( io.popen( "ls " .. config.pathToSDL .. "Icons/" , 'r'))
+  local aHandle = assert( io.popen( "ls " .. commonPreconditions:GetPathToSDL() .. "Icons/" , 'r'))
   local listOfFilesInStorageFolder = aHandle:read( '*a' )
-  commonFunctions:userPrint(33, "Content of storage folder: " ..tostring("\n" .. listOfFilesInStorageFolder))
+  commonFunctions:userPrint(33, "Content of storage folder: " .."\n" .. listOfFilesInStorageFolder)
   if applicationFileExistsResult ~= false then
-    commonFunctions:userPrint(31, tostring(RAIParameters.appID) .. " icon is added to AppIconsFolder although the size of file is larger than AppIconsFolderMaxSize")
+    commonFunctions:userPrint(31, RAIParameters.appID .. " icon is added to AppIconsFolder although the size of file is larger than AppIconsFolderMaxSize")
     status = false
   end
   return status
@@ -85,7 +84,6 @@ commonFunctions:newTestCasesGroup("Preconditions")
 commonFunctions:newTestCasesGroup("Test")
 
 function Test:Check_Icon_greater_than_AppIconsFolderMaxSize_is_not_stored()
-  local pathToAppFolder
   self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
   self.mobileSession.version = 4
   self.mobileSession:StartService(7)
@@ -103,7 +101,7 @@ function Test:Check_Icon_greater_than_AppIconsFolderMaxSize_is_not_stored()
      EXPECT_RESPONSE(cidPutFile, { success = true, resultCode = "SUCCESS" })
      :Do(function()
      local cidSetAppIcon = self.mobileSession:SendRPC("SetAppIcon",{ syncFileName = "iconFirstApp.png" })
-     pathToAppFolder = pathToAppFolderFunction(RAIParameters.appID)
+     local pathToAppFolder = pathToAppFolderFunction(RAIParameters.appID)
      EXPECT_HMICALL("UI.SetAppIcon",
       {
         syncFileName =
@@ -117,7 +115,7 @@ function Test:Check_Icon_greater_than_AppIconsFolderMaxSize_is_not_stored()
     end)
     EXPECT_RESPONSE(cidSetAppIcon, { resultCode = "SUCCESS", success = true })
     :ValidIf(function()
-      checkFunction()
+      return checkFunction()
     end)
     end)
     end)
@@ -126,10 +124,15 @@ end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
-function Test.Postcondition_RemoveCreatedConnecttest()
-  os.execute(" rm -f  ./user_modules/connecttest_icons.lua")
-end 
-
 function Test.Postcondition_StopSDL()
   StopSDL()
 end
+
+function Test.Postcondition_deleteCreatedIconsFolder()
+  assert(os.execute( "rm -rf " .. commonPreconditions:GetPathToSDL() .. "Icons"))
+end  
+
+function Test.Postcondition_restoreDefaultValuesInIni()
+  commonFunctions:SetValuesInIniFile("AppIconsFolder%s-=%s-.-%s-\n", "AppIconsFolder", 'storage')
+  commonFunctions:SetValuesInIniFile("AppIconsFolderMaxSize%s-=%s-.-%s-\n", "AppIconsFolderMaxSize", 104857600)
+end 
