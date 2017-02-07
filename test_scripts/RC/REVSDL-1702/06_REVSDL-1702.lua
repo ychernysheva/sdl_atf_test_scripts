@@ -126,7 +126,7 @@ local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
           --hmi side: sending RC.SetInteriorVehicleData response
           ResponseId = data.id
           local function ValidationResponse()
-            self.hmiConnection:Send('{"id":'..tostring(ResponseId)..',"jsonrpc":"2.0","error":{"code":25,"message":"One of the provided IDs is not valid","data":{"method":"RC.SetInteriorVehicleData"}}}')
+            self.hmiConnection:Send('{"id":'..tostring(ResponseId)..',"jsonrpc":"2.0","error":{"code":26,"message":"One of the provided IDs is not valid","data":{"method":"RC.SetInteriorVehicleData"}}}')
           end
           RUN_AFTER(ValidationResponse, 3000)
         end)
@@ -201,7 +201,7 @@ local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
           --hmi side: sending RC.SetInteriorVehicleData response
           ResponseId = data.id
           local function ValidationResponse()
-            self.hmiConnection:Send('{"id":'..tostring(ResponseId)..',"jsonrpc":"2.0","error":{"code":25,"message":"One of the provided IDs is not valid","data":{"method":"RC.SetInteriorVehicleData"}}}')
+            self.hmiConnection:Send('{"id":'..tostring(ResponseId)..',"jsonrpc":"2.0","error":{"code":26,"message":"One of the provided IDs is not valid","data":{"method":"RC.SetInteriorVehicleData"}}}')
           end
           RUN_AFTER(ValidationResponse, 3000)
         end)
@@ -276,7 +276,7 @@ local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
           --hmi side: sending RC.SetInteriorVehicleData response
           ResponseId = data.id
           local function ValidationResponse()
-            self.hmiConnection:Send('{"id":'..tostring(ResponseId)..',"jsonrpc":"2.0","error":{"code":25,"message":"One of the provided IDs is not valid","data":{"method":"RC.SetInteriorVehicleData"}}}')
+            self.hmiConnection:Send('{"id":'..tostring(ResponseId)..',"jsonrpc":"2.0","error":{"code":26,"message":"One of the provided IDs is not valid","data":{"method":"RC.SetInteriorVehicleData"}}}')
           end
           RUN_AFTER(ValidationResponse, 3000)
         end)
@@ -351,7 +351,7 @@ local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
           --hmi side: sending RC.SetInteriorVehicleData response
           ResponseId = data.id
           local function ValidationResponse()
-            self.hmiConnection:Send('{"id":'..tostring(ResponseId)..',"jsonrpc":"2.0","error":{"code":25,"message":"One of the provided IDs is not valid","data":{"method":"RC.SetInteriorVehicleData"}}}')
+            self.hmiConnection:Send('{"id":'..tostring(ResponseId)..',"jsonrpc":"2.0","error":{"code":26,"message":"One of the provided IDs is not valid","data":{"method":"RC.SetInteriorVehicleData"}}}')
           end
           RUN_AFTER(ValidationResponse, 3000)
         end)
@@ -426,7 +426,7 @@ local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
           --hmi side: sending RC.SetInteriorVehicleData response
           ResponseId = data.id
           local function ValidationResponse()
-            self.hmiConnection:Send('{"id":'..tostring(ResponseId)..',"jsonrpc":"2.0","error":{"code":25,"message":"One of the provided IDs is not valid","data":{"method":"RC.SetInteriorVehicleData"}}}')
+            self.hmiConnection:Send('{"id":'..tostring(ResponseId)..',"jsonrpc":"2.0","error":{"code":26,"message":"One of the provided IDs is not valid","data":{"method":"RC.SetInteriorVehicleData"}}}')
           end
           RUN_AFTER(ValidationResponse, 3000)
         end)
@@ -501,7 +501,7 @@ local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
           --hmi side: sending RC.SetInteriorVehicleData response
           ResponseId = data.id
           local function ValidationResponse()
-            self.hmiConnection:Send('{"id":'..tostring(ResponseId)..',"jsonrpc":"2.0","error":{"code":25,"message":"One of the provided IDs is not valid","data":{"method":"RC.SetInteriorVehicleData"}}}')
+            self.hmiConnection:Send('{"id":'..tostring(ResponseId)..',"jsonrpc":"2.0","error":{"code":26,"message":"One of the provided IDs is not valid","data":{"method":"RC.SetInteriorVehicleData"}}}')
           end
           RUN_AFTER(ValidationResponse, 3000)
         end)
@@ -576,7 +576,7 @@ local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
           --hmi side: sending RC.SetInteriorVehicleData response
           ResponseId = data.id
           local function ValidationResponse()
-            self.hmiConnection:Send('{"id":'..tostring(ResponseId)..',"jsonrpc":"2.0","error":{"code":25,"message":"One of the provided IDs is not valid","data":{"method":"RC.SetInteriorVehicleData"}}}')
+            self.hmiConnection:Send('{"id":'..tostring(ResponseId)..',"jsonrpc":"2.0","error":{"code":26,"message":"One of the provided IDs is not valid","data":{"method":"RC.SetInteriorVehicleData"}}}')
           end
           RUN_AFTER(ValidationResponse, 3000)
         end)
@@ -651,7 +651,7 @@ local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
           --hmi side: sending RC.SetInteriorVehicleData response
           ResponseId = data.id
           local function ValidationResponse()
-            self.hmiConnection:Send('{"id":'..tostring(ResponseId)..',"jsonrpc":"2.0","error":{"code":25,"message":"One of the provided IDs is not valid","data":{"method":"RC.SetInteriorVehicleData"}}}')
+            self.hmiConnection:Send('{"id":'..tostring(ResponseId)..',"jsonrpc":"2.0","error":{"code":26,"message":"One of the provided IDs is not valid","data":{"method":"RC.SetInteriorVehicleData"}}}')
           end
           RUN_AFTER(ValidationResponse, 3000)
         end)
@@ -726,7 +726,7 @@ local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
           --hmi side: sending RC.SetInteriorVehicleData response
           ResponseId = data.id
           local function ValidationResponse()
-            self.hmiConnection:Send('{"id":'..tostring(ResponseId)..',"jsonrpc":"2.0","error":{"code":25,"message":"One of the provided IDs is not valid","data":{"method":"RC.SetInteriorVehicleData"}}}')
+            self.hmiConnection:Send('{"id":'..tostring(ResponseId)..',"jsonrpc":"2.0","error":{"code":26,"message":"One of the provided IDs is not valid","data":{"method":"RC.SetInteriorVehicleData"}}}')
           end
           RUN_AFTER(ValidationResponse, 3000)
         end)
@@ -849,7 +849,7 @@ local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
           --hmi side: sending RC.SetInteriorVehicleData response
           ResponseId = data.id
           local function ValidationResponse()
-            self.hmiConnection:Send('{"id":'..tostring(ResponseId)..',"jsonrpc":"2.0","error":{"code":25,"message":"One of the provided IDs is not valid","data":{"method":"RC.SetInteriorVehicleData"}}}')
+            self.hmiConnection:Send('{"id":'..tostring(ResponseId)..',"jsonrpc":"2.0","error":{"code":26,"message":"One of the provided IDs is not valid","data":{"method":"RC.SetInteriorVehicleData"}}}')
           end
           RUN_AFTER(ValidationResponse, 3000)
         end)
@@ -924,7 +924,7 @@ local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
           --hmi side: sending RC.SetInteriorVehicleData response
           ResponseId = data.id
           local function ValidationResponse()
-            self.hmiConnection:Send('{"id":'..tostring(ResponseId)..',"jsonrpc":"2.0","error":{"code":25,"message":"One of the provided IDs is not valid","data":{"method":"RC.SetInteriorVehicleData"}}}')
+            self.hmiConnection:Send('{"id":'..tostring(ResponseId)..',"jsonrpc":"2.0","error":{"code":26,"message":"One of the provided IDs is not valid","data":{"method":"RC.SetInteriorVehicleData"}}}')
           end
           RUN_AFTER(ValidationResponse, 3000)
         end)
@@ -999,7 +999,7 @@ local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
           --hmi side: sending RC.SetInteriorVehicleData response
           ResponseId = data.id
           local function ValidationResponse()
-            self.hmiConnection:Send('{"id":'..tostring(ResponseId)..',"jsonrpc":"2.0","error":{"code":25,"message":"One of the provided IDs is not valid","data":{"method":"RC.SetInteriorVehicleData"}}}')
+            self.hmiConnection:Send('{"id":'..tostring(ResponseId)..',"jsonrpc":"2.0","error":{"code":26,"message":"One of the provided IDs is not valid","data":{"method":"RC.SetInteriorVehicleData"}}}')
           end
           RUN_AFTER(ValidationResponse, 3000)
         end)
@@ -1074,7 +1074,7 @@ local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
           --hmi side: sending RC.SetInteriorVehicleData response
           ResponseId = data.id
           local function ValidationResponse()
-            self.hmiConnection:Send('{"id":'..tostring(ResponseId)..',"jsonrpc":"2.0","error":{"code":25,"message":"One of the provided IDs is not valid","data":{"method":"RC.SetInteriorVehicleData"}}}')
+            self.hmiConnection:Send('{"id":'..tostring(ResponseId)..',"jsonrpc":"2.0","error":{"code":26,"message":"One of the provided IDs is not valid","data":{"method":"RC.SetInteriorVehicleData"}}}')
           end
           RUN_AFTER(ValidationResponse, 3000)
         end)
@@ -1149,7 +1149,7 @@ local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
           --hmi side: sending RC.SetInteriorVehicleData response
           ResponseId = data.id
           local function ValidationResponse()
-            self.hmiConnection:Send('{"id":'..tostring(ResponseId)..',"jsonrpc":"2.0","error":{"code":25,"message":"One of the provided IDs is not valid","data":{"method":"RC.SetInteriorVehicleData"}}}')
+            self.hmiConnection:Send('{"id":'..tostring(ResponseId)..',"jsonrpc":"2.0","error":{"code":26,"message":"One of the provided IDs is not valid","data":{"method":"RC.SetInteriorVehicleData"}}}')
           end
           RUN_AFTER(ValidationResponse, 3000)
         end)
@@ -1224,7 +1224,7 @@ local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
           --hmi side: sending RC.SetInteriorVehicleData response
           ResponseId = data.id
           local function ValidationResponse()
-            self.hmiConnection:Send('{"id":'..tostring(ResponseId)..',"jsonrpc":"2.0","error":{"code":25,"message":"One of the provided IDs is not valid","data":{"method":"RC.SetInteriorVehicleData"}}}')
+            self.hmiConnection:Send('{"id":'..tostring(ResponseId)..',"jsonrpc":"2.0","error":{"code":26,"message":"One of the provided IDs is not valid","data":{"method":"RC.SetInteriorVehicleData"}}}')
           end
           RUN_AFTER(ValidationResponse, 3000)
         end)
@@ -1299,7 +1299,7 @@ local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
           --hmi side: sending RC.SetInteriorVehicleData response
           ResponseId = data.id
           local function ValidationResponse()
-            self.hmiConnection:Send('{"id":'..tostring(ResponseId)..',"jsonrpc":"2.0","error":{"code":25,"message":"One of the provided IDs is not valid","data":{"method":"RC.SetInteriorVehicleData"}}}')
+            self.hmiConnection:Send('{"id":'..tostring(ResponseId)..',"jsonrpc":"2.0","error":{"code":26,"message":"One of the provided IDs is not valid","data":{"method":"RC.SetInteriorVehicleData"}}}')
           end
           RUN_AFTER(ValidationResponse, 3000)
         end)
@@ -1374,7 +1374,7 @@ local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
           --hmi side: sending RC.SetInteriorVehicleData response
           ResponseId = data.id
           local function ValidationResponse()
-            self.hmiConnection:Send('{"id":'..tostring(ResponseId)..',"jsonrpc":"2.0","error":{"code":25,"message":"One of the provided IDs is not valid","data":{"method":"RC.SetInteriorVehicleData"}}}')
+            self.hmiConnection:Send('{"id":'..tostring(ResponseId)..',"jsonrpc":"2.0","error":{"code":26,"message":"One of the provided IDs is not valid","data":{"method":"RC.SetInteriorVehicleData"}}}')
           end
           RUN_AFTER(ValidationResponse, 3000)
         end)
@@ -1449,7 +1449,7 @@ local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
           --hmi side: sending RC.SetInteriorVehicleData response
           ResponseId = data.id
           local function ValidationResponse()
-            self.hmiConnection:Send('{"id":'..tostring(ResponseId)..',"jsonrpc":"2.0","error":{"code":25,"message":"One of the provided IDs is not valid","data":{"method":"RC.SetInteriorVehicleData"}}}')
+            self.hmiConnection:Send('{"id":'..tostring(ResponseId)..',"jsonrpc":"2.0","error":{"code":26,"message":"One of the provided IDs is not valid","data":{"method":"RC.SetInteriorVehicleData"}}}')
           end
           RUN_AFTER(ValidationResponse, 3000)
         end)
