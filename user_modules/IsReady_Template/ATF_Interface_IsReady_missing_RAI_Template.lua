@@ -3,7 +3,7 @@
 
 config.defaultProtocolVersion = 2
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
-config.SDLStoragePath = config.pathToSDL .. "storage/"
+
 ---------------------------------------------------------------------------------------------
 ---------------------------- Required Shared libraries --------------------------------------
 ---------------------------------------------------------------------------------------------
@@ -12,7 +12,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 	local commonSteps = require('user_modules/shared_testcases/commonSteps')
 	local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 	local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
-		
+	config.SDLStoragePath = commonPreconditions:GetPathToSDL() .. "storage/"
 	DefaultTimeout = 3
 	local iTimeout = 2000
 	local commonPreconditions = require ('/user_modules/shared_testcases/commonPreconditions')
@@ -194,7 +194,7 @@ config.SDLStoragePath = config.pathToSDL .. "storage/"
 			commonFunctions:newTestCasesGroup("Verify RAI: resultCode WARNINGS")
 			
 			local function update_sdl_preloaded_pt_json()
-				pathToFile = config.pathToSDL .. 'sdl_preloaded_pt.json'
+				pathToFile = commonPreconditions:GetPathToSDL() .. 'sdl_preloaded_pt.json'
 				local file = io.open(pathToFile, "r")
 				local json_data = file:read("*all") -- may be abbreviated to "*a";
 				file:close()
