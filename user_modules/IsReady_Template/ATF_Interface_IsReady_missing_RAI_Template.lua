@@ -12,10 +12,10 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 	local commonSteps = require('user_modules/shared_testcases/commonSteps')
 	local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 	local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
+	local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 	config.SDLStoragePath = commonPreconditions:GetPathToSDL() .. "storage/"
 	DefaultTimeout = 3
 	local iTimeout = 2000
-	local commonPreconditions = require ('/user_modules/shared_testcases/commonPreconditions')
 
 
 ---------------------------------------------------------------------------------------------
