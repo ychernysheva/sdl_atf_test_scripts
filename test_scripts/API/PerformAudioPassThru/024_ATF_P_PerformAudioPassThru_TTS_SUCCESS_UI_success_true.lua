@@ -43,12 +43,12 @@ local testCasesForPolicyTable = require('user_modules/shared_testcases/testCases
 --[[ Local variables ]]
 -- info parameter is not specified in scope of the CRQ, it is intended for any applicable future use.
 local hmi_result_code = {
-	{ result_code = "SUCCESS", info = "" },
-	{ result_code = "WARNINGS", info = "" },
-	{ result_code = "WRONG_LANGUAGE", info = "" },
-	{ result_code = "RETRY", info = "" },
-	{ result_code = "SAVED", info = "" },
-	{ result_code = "UNSUPPORTED_RESOURCE", info = "" },
+  { result_code = "SUCCESS", info = "" },
+  { result_code = "WARNINGS", info = "" },
+  { result_code = "WRONG_LANGUAGE", info = "" },
+  { result_code = "RETRY", info = "" },
+  { result_code = "SAVED", info = "" },
+  { result_code = "UNSUPPORTED_RESOURCE", info = "" },
 }
 
 --[[ General Precondition before ATF start ]]
@@ -79,78 +79,78 @@ end
 commonFunctions:newTestCasesGroup("Test")
 
 for i = 1, #hmi_result_code do
-	Test["TestStep_PerformAudioPassThru_TTS_SUCCESS_UI_"..hmi_result_code[i].result_code] = function(self)
-      local CorIdPerformAudioPassThru= self.mobileSession:SendRPC("PerformAudioPassThru",
-	    {
-	      initialPrompt = {{text = "Makeyourchoice",type = "TEXT"}},
-	      audioPassThruDisplayText1 = "DisplayText1",
-	      audioPassThruDisplayText2 = "DisplayText2",
-	      samplingRate = "16KHZ",
-	      maxDuration = 2000,
-	      bitsPerSample = "8_BIT",
-	      audioType = "PCM",
-	      muteAudio = true,
-	      audioPassThruIcon =
-		    { 
-		      value = "icon.png",
-		      imageType = "STATIC"
-		    }
-	    })
-      
-	  EXPECT_HMICALL("TTS.Speak",
-	    {
-	      speakType = "AUDIO_PASS_THRU",
-	      ttsChunks = {{text = "Makeyourchoice", type = "TEXT"}},
-	      appID = self.applications[config.application1.registerAppInterfaceParams.appName]
-	    })
-	  :Do(function(_,data)
-	      self.hmiConnection:SendNotification("TTS.Started",{})
-	      
-	      local function ttsSpeakResponse()
-	        self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-	        self.hmiConnection:SendNotification("TTS.Stopped")
-	      end
-	      RUN_AFTER(ttsSpeakResponse, 1000)
-	  end)
+  Test["TestStep_PerformAudioPassThru_TTS_SUCCESS_UI_"..hmi_result_code[i].result_code] = function(self)
+    local CorIdPerformAudioPassThru= self.mobileSession:SendRPC("PerformAudioPassThru",
+      {
+        initialPrompt = {{text = "Makeyourchoice",type = "TEXT"}},
+        audioPassThruDisplayText1 = "DisplayText1",
+        audioPassThruDisplayText2 = "DisplayText2",
+        samplingRate = "16KHZ",
+        maxDuration = 2000,
+        bitsPerSample = "8_BIT",
+        audioType = "PCM",
+        muteAudio = true,
+        audioPassThruIcon =
+        {
+          value = "icon.png",
+          imageType = "STATIC"
+        }
+      })
 
-	  EXPECT_HMICALL("UI.PerformAudioPassThru",
-	    {
-	      appID = self.applications[config.application1.registerAppInterfaceParams.appName],
-	      audioPassThruDisplayTexts = {
-	        {fieldName = "audioPassThruDisplayText1", fieldText = "DisplayText1"},
-	        {fieldName = "audioPassThruDisplayText2", fieldText = "DisplayText2"},
-	      },
-	      maxDuration = 2000,
-	      muteAudio = true,
-	      audioPassThruIcon = 
-	      { 
-	        imageType = "STATIC", 
-	        value = "icon.png"
-	      }
-	    })
-	  :Do(function(_,data)
+    EXPECT_HMICALL("TTS.Speak",
+      {
+        speakType = "AUDIO_PASS_THRU",
+        ttsChunks = {{text = "Makeyourchoice", type = "TEXT"}},
+        appID = self.applications[config.application1.registerAppInterfaceParams.appName]
+      })
+    :Do(function(_,data)
+        self.hmiConnection:SendNotification("TTS.Started",{})
 
-	  	local function UIPerformAudioResponse()
-	  	self.hmiConnection:SendResponse(data.id, data.method, hmi_result_code[i].result_code) 
-	    end
-	    RUN_AFTER(UIPerformAudioResponse, 1500)
-  	  end)
+        local function ttsSpeakResponse()
+          self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+          self.hmiConnection:SendNotification("TTS.Stopped")
+        end
+        RUN_AFTER(ttsSpeakResponse, 1000)
+    end)
 
-	  if
-		  (self.appHMITypes["NAVIGATION"] == true) or
-		  (self.appHMITypes["COMMUNICATION"] == true) or
-		  (self.isMediaApplication == true) then
+    EXPECT_HMICALL("UI.PerformAudioPassThru",
+      {
+        appID = self.applications[config.application1.registerAppInterfaceParams.appName],
+        audioPassThruDisplayTexts = {
+          {fieldName = "audioPassThruDisplayText1", fieldText = "DisplayText1"},
+          {fieldName = "audioPassThruDisplayText2", fieldText = "DisplayText2"},
+        },
+        maxDuration = 2000,
+        muteAudio = true,
+        audioPassThruIcon =
+        {
+          imageType = "STATIC",
+          value = "icon.png"
+        }
+      })
+    :Do(function(_,data)
 
-		  EXPECT_NOTIFICATION("OnHMIStatus",
-	      {hmiLevel = "FULL", audioStreamingState = "ATTENUATED", systemContext = "MAIN"},
-	      {hmiLevel = "FULL", audioStreamingState = "AUDIBLE", systemContext = "MAIN"})
-	    :Times(2)
-	  else
-	    EXPECT_NOTIFICATION("OnHMIStatus"):Times(0)
-	  end
+        local function UIPerformAudioResponse()
+          self.hmiConnection:SendResponse(data.id, data.method, hmi_result_code[i].result_code)
+        end
+        RUN_AFTER(UIPerformAudioResponse, 1500)
+    end)
 
-  self.mobileSession:ExpectResponse(CorIdPerformAudioPassThru, {success = true, resultCode = hmi_result_code[i].result_code})
-  EXPECT_NOTIFICATION("OnHashChange",{}):Times(0)
+    if
+    (self.appHMITypes["NAVIGATION"] == true) or
+    (self.appHMITypes["COMMUNICATION"] == true) or
+    (self.isMediaApplication == true) then
+
+      EXPECT_NOTIFICATION("OnHMIStatus",
+        {hmiLevel = "FULL", audioStreamingState = "ATTENUATED", systemContext = "MAIN"},
+        {hmiLevel = "FULL", audioStreamingState = "AUDIBLE", systemContext = "MAIN"})
+      :Times(2)
+    else
+      EXPECT_NOTIFICATION("OnHMIStatus"):Times(0)
+    end
+
+    self.mobileSession:ExpectResponse(CorIdPerformAudioPassThru, {success = true, resultCode = hmi_result_code[i].result_code})
+    EXPECT_NOTIFICATION("OnHashChange",{}):Times(0)
   end
 
 end
@@ -159,7 +159,7 @@ end
 commonFunctions:newTestCasesGroup("Postconditions")
 
 function Test.Postcondition_Restore_preloaded_pt_File()
-	commonPostconditions:RestoreFile("sdl_preloaded_pt.json")
+  commonPostconditions:RestoreFile("sdl_preloaded_pt.json")
 end
 
 function Test.Postcondition_Stop_SDL()
