@@ -1,14 +1,13 @@
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
--- SDL must send WARNINGS (success:true) to mobile app in case HMI respond WARNINGS at least to one component of RPC
--- [UI Interface] HMI does NOT respond to IsReady and mobile app sends RPC that must be splitted
+-- SDL must send WARNINGS (success:true) to mobile app in case HMI respond WARNINGS to at least one HMI-portions
 --
 -- Description:
 -- test is intended to check that SDL sends UNSUPPORTED_RESOURCE (success:true) to mobile app in case HMI respond: WARNINGS one HMI-portion and UNSUPPORTED_RESOURCE to another one
 -- in particular test it is checked case when TTS.SetGlobalProperties with WARNINGS and to UI.SetGlobalProperties with UNSUPPORTED_RESOURCE (success:true)
 --
 -- 1. Used preconditions:
--- HMI does not respont to UI.IaReady
+-- HMI does not respond to UI.IsReady
 -- App is registered and activated SUCCESSFULLY
 -- 2. Performed steps:
 -- MOB -> SDL: sends SetGlobalProperties
@@ -132,18 +131,16 @@ function Test:TestStep_SetGlobalProperties_WARNINGS_to_TTS_SGP_and_UNSUPPORTED_R
   })
   :ValidIf(function(_,data)
     local value_Icon = storagePath .. "action.png"
-    if (string.match(params.vrHelp[1].image.value, "%S*" .. "("..string.sub(storagePath, 2).."action.png)" .. "$") == nil ) then
-      print("\27[31m value of vrHelp.Image is WRONG. Expected: ~".. value_Icon .. "; Real: " .. params.vrHelp[1].image.value .. "\27[0m")
+    if (string.match(data.params.vrHelp[1].image.value, "%S*" .. "("..string.sub(storagePath, 2).."action.png)" .. "$") == nil ) then
+      print("\27[31m value of vrHelp.Image is WRONG. Expected: ~".. value_Icon .. "; Real: " .. data.params.vrHelp[1].image.value .. "\27[0m")
       return false
     else
       return true
     end
   end)
-  :Do(function(_,data) self.hmiConnection:SendResponse(data.id, "UI.SetGlobalProperties", "UNSUPPORTED_RESOURCE", {}) end)
+  :Do(function(_,data) self.hmiConnection:SendResponse(data.id, "UI.SetGlobalProperties", "UNSUPPORTED_RESOURCE", {info = "unsupported resource"}) end)
 
-  EXPECT_HMIRESPONSE(RequestId,{result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
-
-  EXPECT_RESPONSE(cid, { success = true, resultCode = "UNSUPPORTED_RESOURCE"})
+  EXPECT_RESPONSE(cid, { success = true, resultCode = "UNSUPPORTED_RESOURCE", info = "unsupported resource"})
   EXPECT_NOTIFICATION("OnHashChange")
 end
 
