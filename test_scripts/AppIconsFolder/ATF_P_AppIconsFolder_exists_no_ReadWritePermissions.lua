@@ -55,7 +55,7 @@ local function registerApplication(self)
 end
 
 local function pathToAppFolderFunction(appID)
-  return folderNoPermissions .. "/" .. appID .. "_" .. config.deviceMAC .. "/"
+  return commonPreconditions:GetPathToSDL() .. "storage/" .. appID .. "_" .. config.deviceMAC .. "/"
 end
 
 --[[ Preconditions ]]
@@ -65,10 +65,10 @@ function Test:Precondition_connectMobile()
   self:connectMobile()
 end 
 
-function Test.Precondition_setNoPermissionsForIconsFolder()
+function Test:Precondition_setNoPermissionsForIconsFolder()
   local changePermissions  = assert(os.execute( "chmod 000 " .. folderNoPermissions))
   if changePermissions ~= true then
-    commonFunctions:userPrint(31, "Permissions for FolderWithoutPermissions are not changed")
+    self:FailTestCase("Permissions for FolderWithoutPermissions are not changed")
   end
 end  
 
@@ -112,20 +112,16 @@ end
 commonFunctions:newTestCasesGroup("Test")
 
 function Test:Check_SDL_works_correctly_if_IconsFolder_has_no_permissions()
-  local status = true
   local dirExistResult = commonFunctions:Directory_exist(folderNoPermissions)
   if dirExistResult == true then
     local applicationFileToCheck = folderNoPermissions .. "/" .. RAIParameters.appID
     local applicationFileExistsResult = commonSteps:file_exists(applicationFileToCheck)
     if applicationFileExistsResult ~= false then
-      commonFunctions:userPrint(31, RAIParameters.appID .. " icon is written to folder without permissions")
-      status = false
+      self:FailTestCase(RAIParameters.appID .. " icon is written to folder without permissions")
     end
-    else 
-      commonFunctions:userPrint(31, "FolderWithoutPermissions folder does not exist in SDL bin folder" )
-      status = false
-    end
-    self:FailTestCase("SDL should not use the 'store-apps-icon' mechanism and store icon")
+  else 
+      self:FailTestCase("FolderWithoutPermissions folder does not exist in SDL bin folder")
+  end 
 end
 
 --[[ Postconditions ]]
