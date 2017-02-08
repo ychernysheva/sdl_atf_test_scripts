@@ -17,7 +17,7 @@ Test = require('connecttest')
 require('cardinalities')
 local events = require('events')
 local mobile_session = require('mobile_session')
-local mobile  = require('mobile_connection')d
+local mobile  = require('mobile_connection')
 local tcp = require('tcp_connection')
 local file_connection  = require('file_connection')
 
