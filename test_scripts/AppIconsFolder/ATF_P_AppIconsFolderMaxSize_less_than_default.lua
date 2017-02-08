@@ -71,8 +71,8 @@ end
 end 
 
 local function makeAppIconsFolderFull(AppIconsFolder)
-  local folderSizeInBytes = 524288
-  local oneIconSizeInBytes = -326360 
+  local folderSizeInBytes = 1048576
+  local oneIconSizeInBytes = 326360 
   local currentsSizeIconsFolderInBytes = folderSize(commonPreconditions:GetPathToSDL() .. AppIconsFolder)
   local sizeToFull = folderSizeInBytes - currentsSizeIconsFolderInBytes
   local i = 1
@@ -86,7 +86,7 @@ local function makeAppIconsFolderFull(AppIconsFolder)
     currentsSizeIconsFolderInBytes = folderSize(commonPreconditions:GetPathToSDL() .. AppIconsFolder)
     sizeToFull = folderSizeInBytes - currentsSizeIconsFolderInBytes
     if i > 10 then
-      commonFunctions:userPrint(31, " Loop is breaking due to a lot of iterations ")
+      commonFunctions:userPrint(31, "Loop is breaking due to a lot of iterations")
       break
     end
   end
@@ -106,7 +106,7 @@ local function checkFunction()
   end
   local oldFileExistResult = commonSteps:file_exists(iconsFolder.. "icon1.png")
     if oldFileExistResult ~= false then
-      commonFunctions:userPrint(31,"Oldest icon1.png is not deleted from AppIconsFolder.More space is occupied than default(1Mb) folder size")
+      commonFunctions:userPrint(31,"Oldest icon1.png is not deleted from AppIconsFolder. More space is occupied than default(1Mb) folder size")
       status = false
     end
   return status
@@ -173,8 +173,8 @@ end
 function Test.Postcondition_deleteCreatedIconsFolder()
   assert(os.execute( "rm -rf " .. testIconsFolder))
 end  
-
+          
 function Test.Postcondition_restoreDefaultValuesInIni()
   commonFunctions:SetValuesInIniFile("AppIconsFolder%s-=%s-.-%s-\n", "AppIconsFolder", 'storage')
-  commonFunctions:SetValuesInIniFile("AppIconsFolderMaxSize%s-=%s-.-%s-\n", "AppIconsFolderMaxSize", 104857600)
+  commonFunctions:SetValuesInIniFile("AppIconsFolderMaxSize%s-=%s-.-%s-\n", "AppIconsFolderMaxSize", 1048576)
 end 
