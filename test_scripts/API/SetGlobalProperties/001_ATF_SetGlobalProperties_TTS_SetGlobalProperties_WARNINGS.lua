@@ -13,7 +13,7 @@
 -- HMI -> SDL: TTS.SetGlobalProperties (WARNINGS), VR.SetGlobalProperties (cyclically checked cases fo result codes SUCCESS, WARNINGS, WRONG_LANGUAGE, RETRY, SAVED)
 --
 -- Expected result:
--- SDL -> HMI: resends UI.SetGlobalProperties
+-- SDL -> HMI: resends UI.SetGlobalProperties and TTS.SetGlobalProperties
 -- SDL -> MOB: SetGlobalProperties (resultcode: WARNINGS, success: true)
 ---------------------------------------------------------------------------------------------
 
