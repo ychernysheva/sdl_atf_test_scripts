@@ -134,7 +134,7 @@ function Test:TestStep_AddCommand_UI_warnings()
     vrCommands = { "VRCommandonepositive", "VRCommandonepositivedouble"},
     type = "Command"
   })
-  :Do(function(_,data) self.hmiConnection:SendResponse(data.id, "UI.SetGlobalProperties", "UNSUPPORTED_RESOURCE", {info = "unsupported resource"}) end)
+  :Do(function(_,data) self.hmiConnection:SendResponse(data.id, "UI.AddCommand", "UNSUPPORTED_RESOURCE", {info = "unsupported resource"}) end)
 
   EXPECT_RESPONSE(cid, { success = true, resultCode = "UNSUPPORTED_RESOURCE", info = "unsupported resource"})
   EXPECT_NOTIFICATION("OnHashChange")
