@@ -6227,6 +6227,6 @@ end
   --End Test case ResponseMissingCheck.1
 --=================================================END TEST CASES 1==========================================================--
 
--- function Test:PostconditionsRestoreFile()
---   commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
--- end
+function Test:PostconditionsRestoreFile()
+  commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
+end
