@@ -96,6 +96,7 @@ for i = 1, #hmi_result_code do
 		      imageType = "STATIC"
 		    }
 	    })
+      
 	  EXPECT_HMICALL("TTS.Speak",
 	    {
 	      speakType = "AUDIO_PASS_THRU",
@@ -133,20 +134,20 @@ for i = 1, #hmi_result_code do
 	  	self.hmiConnection:SendResponse(data.id, data.method, hmi_result_code[i].result_code) 
 	    end
 	    RUN_AFTER(UIPerformAudioResponse, 1500)
-  end)
+  	  end)
 
-  if
-	  (self.appHMITypes["NAVIGATION"] == true) or
-	  (self.appHMITypes["COMMUNICATION"] == true) or
-	  (self.isMediaApplication == true) then
+	  if
+		  (self.appHMITypes["NAVIGATION"] == true) or
+		  (self.appHMITypes["COMMUNICATION"] == true) or
+		  (self.isMediaApplication == true) then
 
-	  EXPECT_NOTIFICATION("OnHMIStatus",
-      {hmiLevel = "FULL", audioStreamingState = "ATTENUATED", systemContext = "MAIN"},
-      {hmiLevel = "FULL", audioStreamingState = "AUDIBLE", systemContext = "MAIN"})
-    :Times(2)
-  else
-    EXPECT_NOTIFICATION("OnHMIStatus"):Times(0)
-  end
+		  EXPECT_NOTIFICATION("OnHMIStatus",
+	      {hmiLevel = "FULL", audioStreamingState = "ATTENUATED", systemContext = "MAIN"},
+	      {hmiLevel = "FULL", audioStreamingState = "AUDIBLE", systemContext = "MAIN"})
+	    :Times(2)
+	  else
+	    EXPECT_NOTIFICATION("OnHMIStatus"):Times(0)
+	  end
 
   self.mobileSession:ExpectResponse(CorIdPerformAudioPassThru, {success = true, resultCode = hmi_result_code[i].result_code})
   EXPECT_NOTIFICATION("OnHashChange",{}):Times(0)
