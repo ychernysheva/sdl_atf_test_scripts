@@ -51,7 +51,7 @@ local function AddPermossionToPpreloadedFile()
   local json = require("modules/json")
   local data = json.decode(json_data)
   if data.policy_table.functional_groupings["DataConsent-2"] then
-    data.policy_table.functional_groupings["DataConsent-2"] = {rpcs = json.null}
+    data.policy_table.functional_groupings["DataConsent-2"].rpcs = json.null
   end
   -- set permissions on OnSeekMediaClockTimer for default app
   data.policy_table.functional_groupings["Base-4"].rpcs["OnSeekMediaClockTimer"] = {hmi_levels = {"BACKGROUND", "FULL", "LIMITED", "NONE"}}  
@@ -100,7 +100,7 @@ end
 
 function Test:TestStep_OnSeekMediaClockTimer_For_Second_App()
  self.hmiConnection:SendNotification("UI.OnSeekMediaClockTimer",{seekTime =  {hours = 5, minutes = 5, seconds = 5}, appID = HMIApp2ID})
- EXPECT_NOTIFICATION("OnSeekMediaClockTimer", {seekTime = {hours = 5, minutes = 5, seconds = 5}})
+ self.mobileSession1:ExpectNotification("OnSeekMediaClockTimer", {seekTime = {hours = 5, minutes = 5, seconds = 5}})
 end
 
 --[[ Postconditions ]]
