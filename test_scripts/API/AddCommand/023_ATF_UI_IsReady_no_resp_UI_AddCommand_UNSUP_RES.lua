@@ -28,7 +28,7 @@ local commonFunctions = require ('user_modules/shared_testcases/commonFunctions'
 local commonSteps = require ('user_modules/shared_testcases/commonSteps')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
 local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
-local testCasesForVR_IsReady = require('user_modules/IsReady_Template/testCasesForVR_IsReady')
+local testCasesForUI_IsReady = require('user_modules/IsReady_Template/testCasesForUI_IsReady')
 local mobile_session = require('mobile_session')
 config.SDLStoragePath = commonPreconditions:GetPathToSDL() .. "storage/"
 
@@ -43,11 +43,28 @@ commonSteps:DeletePolicyTable()
 testCasesForPolicyTable:precondition_updatePolicy_AllowFunctionInHmiLeves({"BACKGROUND", "FULL", "LIMITED"},"AddCommand")
 
 --[[ General Settings for configuration ]]
-Test = require('connecttest')
+Test = require('user_modules/connecttest_initHMI')
 require('user_modules/AppTypes')
 
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
+
+function Test:Precondition_InitHMI_OnReady()
+  testCasesForUI_IsReady.InitHMI_onReady_without_UI_IsReady(self, 1)
+  EXPECT_HMICALL("UI.IsReady")
+  -- Do not send HMI response of UI.IsReady
+end
+
+function Test:Precondition_connectMobile()
+  self:connectMobile()
+end
+
+function Test:Precondition_StartSession()
+  self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
+  self.mobileSession:StartService(7)
+end
+
+commonSteps:RegisterAppInterface("Precondition_RegisterAppInterface")
 
 function Test:Precondition_ActivationApp()
   local request_id = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.applications[config.application1.registerAppInterfaceParams.appName]})
