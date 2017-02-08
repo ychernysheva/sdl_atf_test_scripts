@@ -55,7 +55,7 @@ local function registerApplication(self)
 end
 
 local function pathToAppFolderFunction(appID)
-  return appWithPermissions .. "/" .. appID .. "_" .. config.deviceMAC .. "/"
+  return commonPreconditions:GetPathToSDL() .. "storage/" .. appID .. "_" .. config.deviceMAC .. "/"
 end
 
 local function checkFunction()
