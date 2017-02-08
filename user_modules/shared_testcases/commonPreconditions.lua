@@ -10,6 +10,28 @@ local pattern_exit_codes =
 	"exit_codes%.aborted"
 }
 
+local function update_connecttest(fileContent, FileName)
+	local is_found = false
+	for i = 1, #pattern_exit_codes do
+		local patternDisconnect = "print%(\"Disconnected%!%!%!\"%).-quit%("..pattern_exit_codes[i].."%)"
+
+		local DisconnectMessage = fileContent:match(patternDisconnect)
+		
+		if( DisconnectMessage ~= nil )then 
+			fileContent = string.gsub(fileContent, patternDisconnect, 'print("Disconnected!!!")')
+			is_found = true
+			break
+		end 
+	end
+
+	if(is_found == false) then
+		print(" \27[31m 'Disconnected!!!' message is not found in /user_modules/" .. tostring(FileName) .. " \27[0m ")
+	end	
+
+	return fileContent
+end
+
+
 function Preconditions:GetPathToSDL()
 	local pathToSDL = config.pathToSDL
   if pathToSDL:sub(-1) ~= '/' then
@@ -149,22 +171,7 @@ function Preconditions:Connecttest_without_ExitBySDLDisconnect_WithoutOpenConnec
 		fileContent  =  string.gsub(fileContent, patternStartSessionCall, "")
 	end
 
-	local is_found = false
-	for i = 1, #pattern_exit_codes do
-		local patternDisconnect = "print%(\"Disconnected%!%!%!\"%).-quit%("..pattern_exit_codes[i].."%)"
-
-		local DisconnectMessage = fileContent:match(patternDisconnect)
-		
-		if( DisconnectMessage ~= nil )then 
-			fileContent  =  string.gsub(fileContent, patternDisconnect, 'print("Disconnected!!!")')
-			is_found = true
-			break
-		end 
-	end
-
-	if(is_found == false) then
-		print(" \27[31m 'Disconnected!!!' message is not found in /user_modules/" .. tostring(FileName) .. " \27[0m ")
-	end	
+	fileContent = update_connecttest(fileContent, FileName)
 
 	f = assert(io.open('./user_modules/' .. tostring(FileName), "w+"))
 	f:write(fileContent)
@@ -192,22 +199,7 @@ function Preconditions:Connecttest_without_ExitBySDLDisconnect_OpenConnection(Fi
 		fileContent  =  string.gsub(fileContent, patternStartSessionCall, "")
 	end
 
-	local is_found = false
-	for i = 1, #pattern_exit_codes do
-		local patternDisconnect = "print%(\"Disconnected%!%!%!\"%).-quit%("..pattern_exit_codes[i].."%)"
-
-		local DisconnectMessage = fileContent:match(patternDisconnect)
-		
-		if( DisconnectMessage ~= nil )then 
-			fileContent  =  string.gsub(fileContent, patternDisconnect, 'print("Disconnected!!!")')
-			is_found = true
-			break
-		end 
-	end
-
-	if(is_found == false) then
-		print(" \27[31m 'Disconnected!!!' message is not found in /user_modules/" .. tostring(FileName) .. " \27[0m ")
-	end	
+	fileContent = update_connecttest(fileContent, FileName)
 
 	f = assert(io.open('./user_modules/' .. tostring(FileName), "w+"))
 	f:write(fileContent)
@@ -226,22 +218,7 @@ function Preconditions:Connecttest_without_ExitBySDLDisconnect(FileName)
 	local fileContent = f:read("*all")
 	f:close()
 
-	local is_found = false
-	for i = 1, #pattern_exit_codes do
-		local patternDisconnect = "print%(\"Disconnected%!%!%!\"%).-quit%("..pattern_exit_codes[i].."%)"
-
-		local DisconnectMessage = fileContent:match(patternDisconnect)
-		
-		if( DisconnectMessage ~= nil )then 
-			fileContent  =  string.gsub(fileContent, patternDisconnect, 'print("Disconnected!!!")')
-			is_found = true
-			break
-		end 
-	end
-
-	if(is_found == false) then
-		print(" \27[31m 'Disconnected!!!' message is not found in /user_modules/" .. tostring(FileName) .. " \27[0m ")
-	end	
+	fileContent = update_connecttest(fileContent, FileName)
 
 	f = assert(io.open('./user_modules/' .. tostring(FileName), "w+"))
 	f:write(fileContent)
