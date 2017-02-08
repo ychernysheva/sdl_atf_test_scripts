@@ -38,7 +38,7 @@ local testIconsFolder = commonPreconditions:GetPathToSDL() .. "IconsFolder"
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
-assert(os.execute( "rm -rf " .. commonPreconditions:GetPathToSDL() .. "IconsFolder"))
+assert(os.execute( "rm -rf " .. testIconsFolder))
 commonFunctions:SetValuesInIniFile("AppIconsFolder%s-=%s-.-%s-\n", "AppIconsFolder", 'IconsFolder')
 commonFunctions:SetValuesInIniFile("AppIconsFolderMaxSize%s-=%s-.-%s-\n", "AppIconsFolderMaxSize", 1048576)
 commonFunctions:SetValuesInIniFile("AppIconsAmountToRemove%s-=%s-.-%s-\n", "AppIconsAmountToRemove", 1)
@@ -61,7 +61,7 @@ end
 
 
 local function pathToAppFolderFunction(appID)
-  return config.pathToSDL .. "storage/" .. appID .. "_" .. config.deviceMAC .. "/"
+  return commonPreconditions:GetPathToSDL() .. "storage/" .. appID .. "_" .. config.deviceMAC .. "/"
 end
 
  local function folderSize(PathToFolder) 
@@ -73,17 +73,17 @@ end
 local function makeAppIconsFolderFull(AppIconsFolder)
   local iconFolderSizeInBytes = 1048576
   local oneIconSizeInBytes = 326360
-  local currentSizeIconsFolderInBytes = folderSize(config.pathToSDL .. AppIconsFolder)
+  local currentSizeIconsFolderInBytes = folderSize(commonPreconditions:GetPathToSDL() .. AppIconsFolder)
   local sizeToFull = iconFolderSizeInBytes - currentSizeIconsFolderInBytes
   local i = 1
   while sizeToFull > oneIconSizeInBytes do
     os.execute("sleep 1")
-    local copyFileToAppIconsFolder = assert( os.execute( "cp files/icon.png " .. config.pathToSDL .. AppIconsFolder .. "/icon" .. i ..".png"))
+    local copyFileToAppIconsFolder = assert( os.execute( "cp files/icon.png " .. commonPreconditions:GetPathToSDL() .. AppIconsFolder .. "/icon" .. i ..".png"))
     i = i + 1
     if copyFileToAppIconsFolder ~= true then
       commonFunctions:userPrint(31, " Files are not copied to " .. AppIconsFolder)
     end
-    currentSizeIconsFolderInBytes = folderSize(config.pathToSDL .. AppIconsFolder)
+    currentSizeIconsFolderInBytes = folderSize(commonPreconditions:GetPathToSDL() .. AppIconsFolder)
     sizeToFull = iconFolderSizeInBytes - currentSizeIconsFolderInBytes
     if i > 10 then
       commonFunctions:userPrint(31, " Loop is breaking due to a lot of iterations ")
@@ -94,10 +94,10 @@ end
 
 local function checkOldDeleted()
   local status = true
-  local aHandle = assert( io.popen( "ls " .. commonPreconditions:GetPathToSDL() .. "IconsFolder/", 'r'))
+  local aHandle = assert( io.popen( "ls " .. testIconsFolder .. "/", 'r'))
   local ListOfFilesInStorageFolder = aHandle:read( '*a' )
   commonFunctions:userPrint(33, "Content of storage folder: " .."\n" ..ListOfFilesInStorageFolder)
-  local iconFolderPath = commonPreconditions:GetPathToSDL() .. "IconsFolder/"
+  local iconFolderPath = testIconsFolder .. "/"
   local applicationFileToCheck = iconFolderPath .. RAIParameters.appID
   local applicationFileExistsResult = commonSteps:file_exists(applicationFileToCheck)
   if applicationFileExistsResult ~= true then
@@ -171,7 +171,7 @@ function Test.Postcondition_stopSDL()
 end
 
 function Test.Postcondition_deleteCreatedIconsFolder()
-  assert(os.execute( "rm -rf " .. commonPreconditions:GetPathToSDL() .. "IconsFolder"))
+  assert(os.execute( "rm -rf " .. testIconsFolder))
 end  
 
 function Test.Postcondition_restoreDefaultValuesInIni()
