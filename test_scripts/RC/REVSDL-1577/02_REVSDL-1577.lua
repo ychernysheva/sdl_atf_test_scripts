@@ -24,8 +24,10 @@ local file_connection  = require('file_connection')
 ---------------------------------------------------------------------------------------------
 --Declaration connected devices.
 --1. Device 2:
-local device2 = "172.30.192.146"
+local device2 = "192.168.100.199"
 local device2Port = 12345
+
+os.execute("ifconfig lo:1 192.168.100.199")
 ---------------------------------------------------------------------------------------------
 
 
@@ -50,7 +52,7 @@ function newConnectionDevice2(self, DeviceIP, Port)
   self.mobileSession21 = mobile_session.MobileSession(
     self,
     self.mobileConnection2,
-    config.application51.registerAppInterfaceParams
+    config.application1.registerAppInterfaceParams
   )
   event_dispatcher:AddConnection(self.mobileConnection2)
   self.mobileSession21:ExpectEvent(events.connectedEvent, "Connection started")
