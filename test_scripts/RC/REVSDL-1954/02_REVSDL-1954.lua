@@ -30,6 +30,8 @@ local module = require('testbase')
 local device2 = "192.168.100.199"
 local device2Port = 12345
 
+os.execute("ifconfig lo:1 192.168.100.199")
+
 ---------------------------------------------------------------------------------------------
 --ID for app that duplicates name
 local ID

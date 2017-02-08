@@ -33,6 +33,9 @@ local device3 = "10.42.0.1"
 local device3Port = 12345
 
 
+-- Cretion dummy connections fo script
+os.execute("ifconfig lo:1 192.168.100.199")
+os.execute("ifconfig lo:2 10.42.0.1")
 
 
 --======================================REVSDL-831========================================--
