@@ -5,14 +5,14 @@
 --
 -- Description:
 -- test is intended to check that SDL sends WARNINGS (success:true) to mobile app in case HMI respond WARNINGS to at least one HMI-portions
--- in this particular test it is checked case when VR.DeleteCommand gets UNSUPPORTED_RESOURCE and UI.DeleteCommand gets WARNINGS from HMI
+-- in this particular test it is checked case when UI.DeleteCommand gets UNSUPPORTED_RESOURCE and VR.DeleteCommand gets WARNINGS from HMI
 -- 1. Used preconditions:
 -- HMI does not respond to UI.IsReady
 -- App is registered and activated SUCCESSFULLY
 -- AddCommand was sent SUCCESSFULLY
 -- 2. Performed steps:
 -- MOB -> SDL: sends DeleteCommand
--- HMI -> SDL: VR.DeleteCommand (UNSUPPORTED_RESOURCE), UI.DeleteCommand (WARNINGS)
+-- HMI -> SDL: UI.DeleteCommand (UNSUPPORTED_RESOURCE), VR.DeleteCommand (WARNINGS)
 --
 -- Expected result:
 -- SDL -> HMI: resends VR.DeleteCommand and UI.DeleteCommand
