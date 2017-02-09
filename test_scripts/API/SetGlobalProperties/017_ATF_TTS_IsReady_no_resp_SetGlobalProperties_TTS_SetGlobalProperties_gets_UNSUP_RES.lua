@@ -86,7 +86,7 @@ function Test:Precondition_ActivationApp()
   EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"})
 end
 
-commonSteps:PutFile("Precondition_PutFile", "icon.png")
+commonSteps:PutFile("Precondition_PutFile", "action.png")
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
@@ -134,18 +134,9 @@ function Test:TestStep_SetGlobalProperties_WARNINGS_to_UI_SGP_and_UNSUPPORTED_RE
       return true
     end
   end)
-  :ValidIf(function(_,data)
-    local value_Icon = storagePath .. "action.png"
-    if (string.match(data.params.vrHelp[1].image.value, "%S*" .. "("..string.sub(storagePath, 2).."action.png)" .. "$") == nil ) then
-      print("\27[31m value of vrHelp.image is WRONG. Expected: ~".. value_Icon .. "; Real: " .. data.params.vrHelp[1].image.value .. "\27[0m")
-      return false
-    else
-      return true
-    end
-  end)
   :Do(function(_,data) self.hmiConnection:SendResponse(data.id, "UI.SetGlobalProperties", "WARNINGS", {}) end)
 
-  EXPECT_RESPONSE(cid, { success = true, resultCode = "UNSUPPORTED_RESOURCE", {info = "unsupported resource"}})
+  EXPECT_RESPONSE(cid, { success = true, resultCode = "UNSUPPORTED_RESOURCE", info = "unsupported resource"})
   EXPECT_NOTIFICATION("OnHashChange")
 end
 
