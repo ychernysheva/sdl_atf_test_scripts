@@ -1,7 +1,6 @@
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
 -- [GeneralResultCodes] GENERIC_ERROR watchdog timeout from HMI
--- SDL must return GENERIC_ERROR result to mobile app in case one of HMI components does not respond being supported and active
 -- [HMI API] UI.PerformAudioPassThru request/response
 -- [HMI API] TTS.Speak request/response
 -- [Mobile API] PerformAudioPassThru request/response
@@ -92,8 +91,7 @@ function Test:TestStep_PerformAudioPassThru_UI_SUCESS_TTS_timeout()
       ttsChunks = {{text = "Makeyourchoice", type = "TEXT"}},
       appID = self.applications[config.application1.registerAppInterfaceParams.appName]
     })
-  :Do(function() --No HMI response is sent
-    end)
+  --No HMI response is sent
 
   EXPECT_HMICALL("UI.PerformAudioPassThru",
     {
