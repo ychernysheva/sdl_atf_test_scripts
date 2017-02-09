@@ -42,46 +42,46 @@ local testCasesForPolicyTable = require('user_modules/shared_testcases/testCases
 --[[ Local variables ]]
 -- info parameter is not specified in scope of the CRQ, it is intended for any applicable future use.
 local hmi_result_code_ui = {
-	{ result_code = "UNSUPPORTED_REQUEST", info = "" },
-	{ result_code = "DISALLOWED", info = "" },
-	{ result_code = "USER_DISALLOWED", info = "" },
-	{ result_code = "REJECTED", info = "" },
-	{ result_code = "ABORTED", info = "" },
-	{ result_code = "IGNORED", info = "" },
-	{ result_code = "IN_USE", info = "" },
-	{ result_code = "VEHICLE_DATA_NOT_AVAILABLE", info = "" },
-	{ result_code = "TIMED_OUT", info = "" },
-	{ result_code = "INVALID_DATA", info = "" },
-	{ result_code = "CHAR_LIMIT_EXCEEDED", info = "" },
-	{ result_code = "INVALID_ID", info = "" },
-	{ result_code = "DUPLICATE_NAME", info = "" },
-	{ result_code = "APPLICATION_NOT_REGISTERED", info = "" },
-	{ result_code = "OUT_OF_MEMORY", info = "" },
-	{ result_code = "TOO_MANY_PENDING_REQUESTS", info = "" },
-	{ result_code = "GENERIC_ERROR", info = "" },
-	{ result_code = "TRUNCATED_DATA", info = "" }
-	}
+  { result_code = "UNSUPPORTED_REQUEST", info = "" },
+  { result_code = "DISALLOWED", info = "" },
+  { result_code = "USER_DISALLOWED", info = "" },
+  { result_code = "REJECTED", info = "" },
+  { result_code = "ABORTED", info = "" },
+  { result_code = "IGNORED", info = "" },
+  { result_code = "IN_USE", info = "" },
+  { result_code = "VEHICLE_DATA_NOT_AVAILABLE", info = "" },
+  { result_code = "TIMED_OUT", info = "" },
+  { result_code = "INVALID_DATA", info = "" },
+  { result_code = "CHAR_LIMIT_EXCEEDED", info = "" },
+  { result_code = "INVALID_ID", info = "" },
+  { result_code = "DUPLICATE_NAME", info = "" },
+  { result_code = "APPLICATION_NOT_REGISTERED", info = "" },
+  { result_code = "OUT_OF_MEMORY", info = "" },
+  { result_code = "TOO_MANY_PENDING_REQUESTS", info = "" },
+  { result_code = "GENERIC_ERROR", info = "" },
+  { result_code = "TRUNCATED_DATA", info = "" }
+}
 
 local hmi_result_code_tts = {
-	{ result_code = "TRUNCATED_DATA", info = "" },
-	{ result_code = "GENERIC_ERROR", info = "" },
-	{ result_code = "TOO_MANY_PENDING_REQUESTS", info = "" },
-	{ result_code = "OUT_OF_MEMORY", info = "" },
-	{ result_code = "APPLICATION_NOT_REGISTERED", info = "" },
-	{ result_code = "DUPLICATE_NAME", info = "" },
-	{ result_code = "INVALID_ID", info = "" },
-	{ result_code = "CHAR_LIMIT_EXCEEDED", info = "" },
-	{ result_code = "INVALID_DATA", info = "" },
-	{ result_code = "TIMED_OUT", info = "" },
-	{ result_code = "VEHICLE_DATA_NOT_AVAILABLE", info = "" },
-	{ result_code = "IN_USE", info = "" },
-	{ result_code = "IGNORED", info = "" },
-	{ result_code = "ABORTED", info = "" },
-	{ result_code = "USER_DISALLOWED", info = "" },
-	{ result_code = "REJECTED", info = "" },
-	{ result_code = "DISALLOWED", info = "" },
-	{ result_code = "UNSUPPORTED_REQUEST", info = "" }
-    }	
+  { result_code = "TRUNCATED_DATA", info = "" },
+  { result_code = "GENERIC_ERROR", info = "" },
+  { result_code = "TOO_MANY_PENDING_REQUESTS", info = "" },
+  { result_code = "OUT_OF_MEMORY", info = "" },
+  { result_code = "APPLICATION_NOT_REGISTERED", info = "" },
+  { result_code = "DUPLICATE_NAME", info = "" },
+  { result_code = "INVALID_ID", info = "" },
+  { result_code = "CHAR_LIMIT_EXCEEDED", info = "" },
+  { result_code = "INVALID_DATA", info = "" },
+  { result_code = "TIMED_OUT", info = "" },
+  { result_code = "VEHICLE_DATA_NOT_AVAILABLE", info = "" },
+  { result_code = "IN_USE", info = "" },
+  { result_code = "IGNORED", info = "" },
+  { result_code = "ABORTED", info = "" },
+  { result_code = "USER_DISALLOWED", info = "" },
+  { result_code = "REJECTED", info = "" },
+  { result_code = "DISALLOWED", info = "" },
+  { result_code = "UNSUPPORTED_REQUEST", info = "" }
+}
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFiles()
@@ -111,87 +111,88 @@ end
 commonFunctions:newTestCasesGroup("Test")
 
 for cnt_ui = 1, #hmi_result_code_ui do
-	for cnt_tts = 1, #hmi_result_code_tts do
-		Test["TestStep_PerformAudioPassThru_UI_"..hmi_result_code_ui[cnt_ui].result_code .."_TTS_" ..hmi_result_code_tts[cnt_tts].result_code] = function(self)
+  for cnt_tts = 1, #hmi_result_code_tts do
+    Test["TestStep_PerformAudioPassThru_UI_"..hmi_result_code_ui[cnt_ui].result_code .."_TTS_" ..hmi_result_code_tts[cnt_tts].result_code] = function(self)
       local CorIdPerformAudioPassThru= self.mobileSession:SendRPC("PerformAudioPassThru",
-	    {
-	      initialPrompt = {{text = "Makeyourchoice",type = "TEXT"}},
-	      audioPassThruDisplayText1 = "DisplayText1",
-	      audioPassThruDisplayText2 = "DisplayText2",
-	      samplingRate = "16KHZ",
-	      maxDuration = 2000,
-	      bitsPerSample = "8_BIT",
-	      audioType = "PCM",
-	      muteAudio = true,
-	      audioPassThruIcon =
-		    { 
-		      value = "icon.png",
-		      imageType = "STATIC"
-		    }
-	    })
-	  	EXPECT_HMICALL("TTS.Speak",
-	    {
-	      speakType = "AUDIO_PASS_THRU",
-	      ttsChunks = {{text = "Makeyourchoice", type = "TEXT"}},
-	      appID = self.applications[config.application1.registerAppInterfaceParams.appName]
-	    })
-	  	:Do(function(_,data)
-	      self.hmiConnection:SendNotification("TTS.Started",{})
-	      
-	      local function ttsSpeakResponse()
-	        self.hmiConnection:SendError(data.id, data.method, hmi_result_code_tts[cnt_tts].result_code, "")
-	        self.hmiConnection:SendNotification("TTS.Stopped")
-	      end
-	      RUN_AFTER(ttsSpeakResponse, 1000)
-	  	end)
+        {
+          initialPrompt = {{text = "Makeyourchoice",type = "TEXT"}},
+          audioPassThruDisplayText1 = "DisplayText1",
+          audioPassThruDisplayText2 = "DisplayText2",
+          samplingRate = "16KHZ",
+          maxDuration = 2000,
+          bitsPerSample = "8_BIT",
+          audioType = "PCM",
+          muteAudio = true,
+          audioPassThruIcon =
+          {
+            value = "icon.png",
+            imageType = "STATIC"
+          }
+        })
 
-	  EXPECT_HMICALL("UI.PerformAudioPassThru",
-	    {
-	      appID = self.applications[config.application1.registerAppInterfaceParams.appName],
-	      audioPassThruDisplayTexts = {
-	        {fieldName = "audioPassThruDisplayText1", fieldText = "DisplayText1"},
-	        {fieldName = "audioPassThruDisplayText2", fieldText = "DisplayText2"},
-	      },
-	      maxDuration = 2000,
-	      muteAudio = true,
-	      audioPassThruIcon = 
-	      { 
-	        imageType = "STATIC", 
-	        value = "icon.png"
-	      }
-	    })
-	  :Do(function(_,data)
+      EXPECT_HMICALL("TTS.Speak",
+        {
+          speakType = "AUDIO_PASS_THRU",
+          ttsChunks = {{text = "Makeyourchoice", type = "TEXT"}},
+          appID = self.applications[config.application1.registerAppInterfaceParams.appName]
+        })
+      :Do(function(_,data)
+          self.hmiConnection:SendNotification("TTS.Started",{})
 
-	  	local function UIPerformAudioResponse()
-				self.hmiConnection:SendError(data.id, "UI.PerformAudioPassThru", hmi_result_code_ui[cnt_ui].result_code, "") 
-	    end
-	    RUN_AFTER(UIPerformAudioResponse, 1500)
-  	end)
+          local function ttsSpeakResponse()
+            self.hmiConnection:SendError(data.id, data.method, hmi_result_code_tts[cnt_tts].result_code, "")
+            self.hmiConnection:SendNotification("TTS.Stopped")
+          end
+          RUN_AFTER(ttsSpeakResponse, 1000)
+      end)
 
-  if
-	  (self.appHMITypes["NAVIGATION"] == true) or
-	  (self.appHMITypes["COMMUNICATION"] == true) or
-	  (self.isMediaApplication == true) then
+      EXPECT_HMICALL("UI.PerformAudioPassThru",
+        {
+          appID = self.applications[config.application1.registerAppInterfaceParams.appName],
+          audioPassThruDisplayTexts = {
+            {fieldName = "audioPassThruDisplayText1", fieldText = "DisplayText1"},
+            {fieldName = "audioPassThruDisplayText2", fieldText = "DisplayText2"},
+          },
+          maxDuration = 2000,
+          muteAudio = true,
+          audioPassThruIcon =
+          {
+            imageType = "STATIC",
+            value = "icon.png"
+          }
+        })
+      :Do(function(_,data)
 
-	  EXPECT_NOTIFICATION("OnHMIStatus",
-      {hmiLevel = "FULL", audioStreamingState = "ATTENUATED", systemContext = "MAIN"},
-      {hmiLevel = "FULL", audioStreamingState = "AUDIBLE", systemContext = "MAIN"})
-    :Times(2)
-  else
-    EXPECT_NOTIFICATION("OnHMIStatus"):Times(0)
+          local function UIPerformAudioResponse()
+            self.hmiConnection:SendError(data.id, "UI.PerformAudioPassThru", hmi_result_code_ui[cnt_ui].result_code, "")
+          end
+          RUN_AFTER(UIPerformAudioResponse, 1500)
+      end)
+
+      if
+      (self.appHMITypes["NAVIGATION"] == true) or
+      (self.appHMITypes["COMMUNICATION"] == true) or
+      (self.isMediaApplication == true) then
+
+        EXPECT_NOTIFICATION("OnHMIStatus",
+          {hmiLevel = "FULL", audioStreamingState = "ATTENUATED", systemContext = "MAIN"},
+          {hmiLevel = "FULL", audioStreamingState = "AUDIBLE", systemContext = "MAIN"})
+        :Times(2)
+      else
+        EXPECT_NOTIFICATION("OnHMIStatus"):Times(0)
+      end
+
+      self.mobileSession:ExpectResponse(CorIdPerformAudioPassThru, {success = false, resultCode = hmi_result_code_ui[cnt_ui].result_code})
+      EXPECT_NOTIFICATION("OnHashChange",{}):Times(0)
+    end
   end
-
-  self.mobileSession:ExpectResponse(CorIdPerformAudioPassThru, {success = false, resultCode = hmi_result_code_ui[cnt_ui].result_code})
-	  EXPECT_NOTIFICATION("OnHashChange",{}):Times(0)
-  end
-	end
 end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
 
 function Test.Postcondition_Restore_preloaded_pt_File()
-	commonPostconditions:RestoreFile("sdl_preloaded_pt.json")
+  commonPostconditions:RestoreFile("sdl_preloaded_pt.json")
 end
 
 function Test.Postcondition_Stop_SDL()
