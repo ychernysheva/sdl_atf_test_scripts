@@ -175,7 +175,7 @@ function Test:TestStep_DeleteCommand_UI_DelCmd_UNSUPPORTED_RESOURCE()
   })
   :Do(function(_,data) self.hmiConnection:SendResponse(data.id, "VR.DeleteCommand", "WARNINGS", {}) end)
 
-  EXPECT_RESPONSE(cid, { success = true, resultCode = "UNSUPPORTED_RESOURCE", info = "unsupported resource"})
+  EXPECT_RESPONSE(cor_id_add_cmd, { success = true, resultCode = "UNSUPPORTED_RESOURCE", info = "unsupported resource"})
   EXPECT_NOTIFICATION("OnHashChange")
 end
 
