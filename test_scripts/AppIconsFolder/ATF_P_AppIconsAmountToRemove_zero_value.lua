@@ -65,7 +65,7 @@ local function pathToAppFolderFunction(appID)
 end
 
  local function folderSize(PathToFolder) 
-  local aHandle = assert(io.popen( "du -s -B1" .. PathToFolder, 'r'))
+  local aHandle = assert(io.popen( "du -s -B1 " .. PathToFolder, 'r'))
   local buff = aHandle:read( '*l' ) 
   return buff:match("^%d+")
 end
