@@ -1,8 +1,10 @@
 local commonSteps = require("user_modules/shared_testcases/commonSteps")
+commonSteps:CheckSDLPath()
 commonSteps:DeleteLogsFileAndPolicyTable()
+
 local commonPreconditions = require("user_modules/shared_testcases/commonPreconditions")
 commonPreconditions:BackupFile("sdl_preloaded_pt.json")
-commonPreconditions:ReplaceFile("sdl_preloaded_pt.json", "./test_scripts/RC/TestData/Requirement/sdl_preloaded_pt.json")
+commonPreconditions:ReplaceFile("sdl_preloaded_pt.json", "./files/jsons/RC/rc_2164_sdl_preloaded_pt.json")
 
 local revsdl = require("user_modules/revsdl")
 
@@ -14,7 +16,6 @@ config.application1.registerAppInterfaceParams.appID = "8675311"
 
 Test = require('connecttest')
 require('cardinalities')
-local events = require('events')
 
 --======================================Requirement========================================--
 ---------------------------------------------------------------------------------------------
