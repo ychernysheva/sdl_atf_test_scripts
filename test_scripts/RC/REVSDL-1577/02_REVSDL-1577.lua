@@ -2,10 +2,10 @@ local commonPreconditions = require("user_modules/shared_testcases/commonPrecond
 commonPreconditions:BackupFile("sdl_preloaded_pt.json")
 commonPreconditions:ReplaceFile("sdl_preloaded_pt.json", "./test_scripts/RC/TestData/sdl_preloaded_pt.json")
 
-	local commonSteps = require("user_modules/shared_testcases/commonSteps")
+local commonSteps = require("user_modules/shared_testcases/commonSteps")
 commonSteps:DeleteLogsFileAndPolicyTable()
 
-revsdl = require("user_modules/revsdl")
+local revsdl = require("user_modules/revsdl")
 
 revsdl.AddUnknownFunctionIDs()
 revsdl.SubscribeToRcInterface()
@@ -44,7 +44,7 @@ local arrayGroups_nonPrimaryRC = revsdl.arrayGroups_nonPrimaryRC()
 ---------------------------------------------------------------------------------------------
 
 --New connection device2
-function newConnectionDevice2(self, DeviceIP, Port)
+local function newConnectionDevice2(self, DeviceIP, Port)
 
   local tcpConnection = tcp.Connection(DeviceIP, Port)
   local fileConnection = file_connection.FileConnection("mobile2.out", tcpConnection)
@@ -68,15 +68,15 @@ end
 
 
 
---======================================REVSDL-1577========================================--
+--======================================Requirement========================================--
 ---------------------------------------------------------------------------------------------
---------------REVSDL-1577: A device previously set as "driver's" must be---------------------
+--------------Requirement: A device previously set as "driver's" must be---------------------
 ------------------------------ switchable to "passenger's"-----------------------------------
 ---------------------------------------------------------------------------------------------
 --=========================================================================================--
 
 --=================================================BEGIN TEST CASES 2==========================================================--
-  --Begin Test suit CommonRequestCheck.2 for Req.#2 (TCs: REVSDL-1618 - [REVSDL-1577][TC-06]: Switch from driver's to passenger's device and vice versa when receiving OnDeviceRankChanged().)
+  --Begin Test suit CommonRequestCheck.2 for Req.#2 (TCs: Requirement - [Requirement][TC-06]: Switch from driver's to passenger's device and vice versa when receiving OnDeviceRankChanged().)
 
   --Description: In case RSDL knows a device to be driver's and RC.OnDeviceRankChanged ("DRIVER", deviceID) for another device comes from HMI, RSDL must set the named device as driver's and set the previous one to passenger's.
 
@@ -86,8 +86,8 @@ end
 
 
     --Requirement/Diagrams id in jira:
-        --REVSDL-1577
-        --TC: REVSDL-1618
+        --Requirement
+        --TC: Requirement
 
     --Verification criteria:
         --In case RSDL knows a device to be driver's and RC.OnDeviceRankChanged ("DRIVER", deviceID) for another device comes from HMI, RSDL must set the named device as driver's and set the previous one to passenger's.
@@ -193,6 +193,6 @@ end
 
 --=================================================END TEST CASES 2==========================================================--
 
-function Test:PostconditionsRestoreFile()
+function Test.PostconditionsRestoreFile()
   commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 end

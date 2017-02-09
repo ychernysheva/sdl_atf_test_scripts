@@ -2,10 +2,10 @@ local commonPreconditions = require("user_modules/shared_testcases/commonPrecond
 commonPreconditions:BackupFile("sdl_preloaded_pt.json")
 commonPreconditions:ReplaceFile("sdl_preloaded_pt.json", "./test_scripts/RC/TestData/sdl_preloaded_pt.json")
 
-	local commonSteps = require("user_modules/shared_testcases/commonSteps")
+local commonSteps = require("user_modules/shared_testcases/commonSteps")
 commonSteps:DeleteLogsFileAndPolicyTable()
 
-revsdl = require("user_modules/revsdl")
+local revsdl = require("user_modules/revsdl")
 
 revsdl.AddUnknownFunctionIDs()
 revsdl.SubscribeToRcInterface()
@@ -15,17 +15,11 @@ config.application1.registerAppInterfaceParams.appID = "8675311"
 
 Test = require('connecttest')
 require('cardinalities')
-local events = require('events')
-local mobile_session = require('mobile_session')
-
---List permission of "OnPermissionsChange" for PrimaryDevice and NonPrimaryDevice
---groups_nonPrimaryRC Group
-local arrayGroups_nonPrimaryRC = revsdl.arrayGroups_nonPrimaryRC()
 
 
---======================================REVSDL-966=========================================--
+--======================================Requirement=========================================--
 ---------------------------------------------------------------------------------------------
------------REVSDL-966: "Allow", "Ask Driver" or "Disallow" permissions - depending-----------
+-----------Requirement: "Allow", "Ask Driver" or "Disallow" permissions - depending-----------
 ------------------on zone value in RPC and this zone permissions in Policies-----------------
 ---------------------------------------------------------------------------------------------
 --=========================================================================================--
@@ -42,8 +36,8 @@ local arrayGroups_nonPrimaryRC = revsdl.arrayGroups_nonPrimaryRC()
   --Description:  For ButtonPress
 
     --Requirement/Diagrams id in jira:
-        --REVSDL-966
-        --TC: REVSDL-1382
+        --Requirement
+        --TC: Requirement
 
     --Verification criteria:
         --In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies and "equipment" section of policies database contains this RPC name with <params> in <moduleType> in "driver_allow" sub-section of <interiorZone> section and the vehicle (HMI) responds with "allowed: true" for RSDL's RC.GetInteriorVehicleDataConsent - RSDL must send this (app's initial) RPC with these <params> to the vehicle (HMI).
@@ -190,8 +184,8 @@ local arrayGroups_nonPrimaryRC = revsdl.arrayGroups_nonPrimaryRC()
   --Description:  For GetInteriorVehicleData
 
     --Requirement/Diagrams id in jira:
-        --REVSDL-966
-        --TC: REVSDL-1382
+        --Requirement
+        --TC: Requirement
 
     --Verification criteria:
         --In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies and "equipment" section of policies database contains this RPC name with <params> in <moduleType> in "driver_allow" sub-section of <interiorZone> section and the vehicle (HMI) responds with "allowed: true" for RSDL's RC.GetInteriorVehicleDataConsent - RSDL must send this (app's initial) RPC with these <params> to the vehicle (HMI).
@@ -464,8 +458,8 @@ local arrayGroups_nonPrimaryRC = revsdl.arrayGroups_nonPrimaryRC()
   --Description:  For SetInteriorVehicleData
 
     --Requirement/Diagrams id in jira:
-        --REVSDL-966
-        --TC: REVSDL-1382
+        --Requirement
+        --TC: Requirement
 
     --Verification criteria:
         --In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies and "equipment" section of policies database contains this RPC name with <params> in <moduleType> in "driver_allow" sub-section of <interiorZone> section and the vehicle (HMI) responds with "allowed: true" for RSDL's RC.GetInteriorVehicleDataConsent - RSDL must send this (app's initial) RPC with these <params> to the vehicle (HMI).
@@ -738,6 +732,6 @@ local arrayGroups_nonPrimaryRC = revsdl.arrayGroups_nonPrimaryRC()
 
 --=================================================END TEST CASES 3==========================================================--
 
-function Test:PostconditionsRestoreFile()
+function Test.PostconditionsRestoreFile()
   commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 end

@@ -2,10 +2,10 @@ local commonPreconditions = require("user_modules/shared_testcases/commonPrecond
 commonPreconditions:BackupFile("sdl_preloaded_pt.json")
 commonPreconditions:ReplaceFile("sdl_preloaded_pt.json", "./test_scripts/RC/TestData/sdl_preloaded_pt.json")
 
-	local commonSteps = require("user_modules/shared_testcases/commonSteps")
+local commonSteps = require("user_modules/shared_testcases/commonSteps")
 commonSteps:DeleteLogsFileAndPolicyTable()
 
-revsdl = require("user_modules/revsdl")
+local revsdl = require("user_modules/revsdl")
 
 revsdl.AddUnknownFunctionIDs()
 revsdl.SubscribeToRcInterface()
@@ -21,8 +21,6 @@ local mobile  = require('mobile_connection')
 local tcp = require('tcp_connection')
 local file_connection  = require('file_connection')
 local config = require('config')
-local module = require('testbase')
-
 
 ---------------------------------------------------------------------------------------------
 --Declaration connected devices.
@@ -53,11 +51,11 @@ local arrayGroups_nonPrimaryRC = revsdl.arrayGroups_nonPrimaryRC()
 ---------------------------------------------------------------------------------------------
 
 --Using for timeout
-function sleep(iTimeout)
+local function sleep(iTimeout)
  os.execute("sleep "..tonumber(iTimeout))
 end
 --Using for delaying event when AppRegistration
-function DelayedExp()
+local function DelayedExp()
   local event = events.Event()
   event.matches = function(self, e) return self == e end
   EXPECT_EVENT(event, "Delayed event")
@@ -67,7 +65,7 @@ function DelayedExp()
 end
 
 --New connection device2
-function newConnectionDevice2(self, DeviceIP, Port)
+local function newConnectionDevice2(self, DeviceIP, Port)
 
   local tcpConnection = tcp.Connection(DeviceIP, Port)
   local fileConnection = file_connection.FileConnection("mobile2.out", tcpConnection)
@@ -83,7 +81,7 @@ function newConnectionDevice2(self, DeviceIP, Port)
 end
 
 --New connection device3
-function newConnectionDevice3(self, DeviceIP1, Port)
+local function newConnectionDevice3(self, DeviceIP1, Port)
 
   local tcpConnection = tcp.Connection(DeviceIP1, Port)
   local fileConnection = file_connection.FileConnection("mobile3.out", tcpConnection)
@@ -104,9 +102,9 @@ end
 
 
 
---======================================REVSDL-1954========================================--
+--======================================Requirement========================================--
 ---------------------------------------------------------------------------------------------
------------REVSDL-1954: Same-named applications with the same appIDs must be-----------------
+-----------Requirement: Same-named applications with the same appIDs must be-----------------
 --------------------------------allowed from different devices-------------------------------
 ---------------------------------------------------------------------------------------------
 --=========================================================================================--
@@ -126,7 +124,7 @@ end
 							--Device2: Passenger
 
 		--Requirement/Diagrams id in jira:
-				--REVSDL-1954
+				--Requirement
 
 		--Verification criteria:
 				-- RSDL must:
@@ -378,7 +376,7 @@ end
 							--Device2: Driver
 
 		--Requirement/Diagrams id in jira:
-				--REVSDL-1954
+				--Requirement
 
 		--Verification criteria:
 				-- RSDL must:
@@ -624,6 +622,6 @@ end
 
 --=================================================END TEST CASES 3==========================================================--
 
-function Test:PostconditionsRestoreFile()
+function Test.PostconditionsRestoreFile()
   commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 end

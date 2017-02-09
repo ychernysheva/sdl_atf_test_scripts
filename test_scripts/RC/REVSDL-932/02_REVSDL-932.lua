@@ -2,10 +2,10 @@ local commonPreconditions = require("user_modules/shared_testcases/commonPrecond
 commonPreconditions:BackupFile("sdl_preloaded_pt.json")
 commonPreconditions:ReplaceFile("sdl_preloaded_pt.json", "./test_scripts/RC/TestData/sdl_preloaded_pt.json")
 
-	local commonSteps = require("user_modules/shared_testcases/commonSteps")
+local commonSteps = require("user_modules/shared_testcases/commonSteps")
 commonSteps:DeleteLogsFileAndPolicyTable()
 
-revsdl = require("user_modules/revsdl")
+local revsdl = require("user_modules/revsdl")
 
 revsdl.AddUnknownFunctionIDs()
 revsdl.SubscribeToRcInterface()
@@ -16,8 +16,6 @@ config.application1.registerAppInterfaceParams.appID = "8675311"
 
 Test = require('connecttest')
 require('cardinalities')
-local events = require('events')
-local mobile_session = require('mobile_session')
 
 ---------------------------------------------------------------------------------------------
 -------------------------------------STARTING COMMON FUNCTIONS-------------------------------
@@ -71,7 +69,7 @@ end
 
 
 ---------------------------------------------------------------------------------------------
--------------------------REVSDL-932: App's RPCs validation rules-----------------------------
+-------------------------Requirement: App's RPCs validation rules-----------------------------
 ---Check: RSDL validate each and every RPC that app sends per "Remote-Control-Mobile-API"----
 ---------------------------------------------------------------------------------------------
   --Begin Test suit CommonRequestCheck
@@ -97,16 +95,16 @@ end
 
   --Begin Test case CommonRequestCheck.1
   --Description:  --mandatory param is missing
-          --[REVSDL-932]: 2. Mandatory params missing
+          --[Requirement]: 2. Mandatory params missing
 
     --Requirement/Diagrams id in jira:
-        --REVSDL-932
-        --REVSDL-937
-        --https://adc.luxoft.com/jira/secure/attachment/115807/115807_Req_1_2_of_REVSDL-932.png
+        --Requirement
+        --Requirement
+        --https://adc.luxoft.com/jira/secure/attachment/115807/115807_Req_1_2_of_Requirement.png
 
     --Verification criteria:
         --In case app sends RPC with one or more mandatory-by-mobile_API parameters missing, RSDL must respond with "resultCode: INVALID_DATA, success: false" to this mobile app
-        --RELATE TO QUESTION: REVSDL-1130: per current API, "GetInteriorVehicleDataCapabilities" should not be tested against "omitted mandatory parameters" requirement.
+        --RELATE TO QUESTION: Requirement: per current API, "GetInteriorVehicleDataCapabilities" should not be tested against "omitted mandatory parameters" requirement.
 
       --Begin Test case CommonRequestCheck.1.1
       --Description: GetInteriorVehicleDataCapabilities with level parameter missing
@@ -244,12 +242,12 @@ end
 
   --Begin Test case CommonRequestCheck.2
   --Description:  --param has an out-of-bounds value
-          --[REVSDL-932]: 3 Parameters out of bounds
+          --[Requirement]: 3 Parameters out of bounds
 
     --Requirement/Diagrams id in jira:
-        --REVSDL-932
-        --REVSDL-938
-        --https://adc.luxoft.com/jira/secure/attachment/115809/115809_Req_1_3_of_REVSDL-932.png
+        --Requirement
+        --Requirement
+        --https://adc.luxoft.com/jira/secure/attachment/115809/115809_Req_1_3_of_Requirement.png
 
     --Verification criteria:
         --In case app sends RPC with one or more mandatory or non-mandatory by-mobile_API parameters out of bounds, RSDL must respond with "resultCode: INVALID_DATA, success: false" to this mobile app
@@ -624,12 +622,12 @@ end
 
   --Begin Test case CommonRequestCheck.3
   --Description:  --invalid json
-          --[REVSDL-932]: 4. Wrong json
+          --[Requirement]: 4. Wrong json
 
     --Requirement/Diagrams id in jira:
-        --REVSDL-932
-        --REVSDL-939
-        --https://adc.luxoft.com/jira/secure/attachment/115813/115813_Req_1_4_REVSDL-932.png
+        --Requirement
+        --Requirement
+        --https://adc.luxoft.com/jira/secure/attachment/115813/115813_Req_1_4_Requirement.png
 
     --Verification criteria:
         --In case app sends RPC in wrong JSON, RSDL must respond with "resultCode: INVALID_DATA, success: false" to this mobile app
@@ -659,17 +657,17 @@ end
 
   --Begin Test case CommonRequestCheck.4
   --Description:  --invalid json
-          --[REVSDL-932]: 5. String with invalid characters
+          --[Requirement]: 5. String with invalid characters
 
     --Requirement/Diagrams id in jira:
-        --REVSDL-932
-        --REVSDL-940
-        --https://adc.luxoft.com/jira/secure/attachment/115818/115818_Req_1_5_of_REVSDL-932.png
+        --Requirement
+        --Requirement
+        --https://adc.luxoft.com/jira/secure/attachment/115818/115818_Req_1_5_of_Requirement.png
 
     --Verification criteria:
         --In case app sends RPC with invalid characters in param of string type, RSDL must respond with "resultCode: INVALID_DATA, success: false" to this mobile app
 
-    --SKIPPED because "Note: currently none of the listed RPCs has a string param." cloned to REVSDL-1005 [REVSDL-932]: 6. Parameter of wrong type
+    --SKIPPED because "Note: currently none of the listed RPCs has a string param." cloned to Requirement [Requirement]: 6. Parameter of wrong type
 
   --End Test case CommonRequestCheck.4
 
@@ -677,12 +675,12 @@ end
 
   --Begin Test case CommonRequestCheck.5
   --Description:  --param of wrong type
-          --[REVSDL-932]: 6. Parameter of wrong type
+          --[Requirement]: 6. Parameter of wrong type
 
     --Requirement/Diagrams id in jira:
-        --REVSDL-932
-        --REVSDL-941
-        --https://adc.luxoft.com/jira/secure/attachment/115819/115819_Req_1_6_of_REVSDL-932.png
+        --Requirement
+        --Requirement
+        --https://adc.luxoft.com/jira/secure/attachment/115819/115819_Req_1_6_of_Requirement.png
 
     --Verification criteria:
         --In case app sends RPC with param of wrong type, RSDL must respond with "resultCode: INVALID_DATA, success: false" to this mobile app
@@ -943,12 +941,12 @@ end
 
   --Begin Test case CommonRequestCheck.6
   --Description:  --RSDL cuts off the fake param (non-existent per Mobile_API) from app's RPC.
-          --[REVSDL-932]: 7. Fake params
+          --[Requirement]: 7. Fake params
 
     --Requirement/Diagrams id in jira:
-        --REVSDL-932
-        --REVSDL-997
-        --https://adc.luxoft.com/jira/secure/attachment/116227/116227_Req_1_2_7_of_REVSDL-932.png
+        --Requirement
+        --Requirement
+        --https://adc.luxoft.com/jira/secure/attachment/116227/116227_Req_1_2_7_of_Requirement.png
 
     --Verification criteria:
         --In case app sends RPC with fake param (non-existent per Mobile_API), RSDL must cut this param off from the RPC and then validate this RPC and process as assigned.
@@ -1052,6 +1050,6 @@ end
 
 --=================================================END TEST CASES 2==========================================================--
 
-function Test:PostconditionsRestoreFile()
+function Test.PostconditionsRestoreFile()
   commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 end

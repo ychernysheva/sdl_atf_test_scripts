@@ -2,10 +2,10 @@ local commonPreconditions = require("user_modules/shared_testcases/commonPrecond
 commonPreconditions:BackupFile("sdl_preloaded_pt.json")
 commonPreconditions:ReplaceFile("sdl_preloaded_pt.json", "./test_scripts/RC/TestData/sdl_preloaded_pt.json")
 
-	local commonSteps = require("user_modules/shared_testcases/commonSteps")
+local commonSteps = require("user_modules/shared_testcases/commonSteps")
 commonSteps:DeleteLogsFileAndPolicyTable()
 
-revsdl = require("user_modules/revsdl")
+local revsdl = require("user_modules/revsdl")
 
 revsdl.AddUnknownFunctionIDs()
 revsdl.SubscribeToRcInterface()
@@ -15,13 +15,10 @@ config.application1.registerAppInterfaceParams.appID = "8675311"
 
 Test = require('connecttest')
 require('cardinalities')
-local events = require('events')
-local mobile_session = require('mobile_session')
 
-
---======================================REVSDL-1983========================================--
+--======================================Requirement========================================--
 ---------------------------------------------------------------------------------------------
------------REVSDL-1983: Subscriptions: reset upon device location changed--------------------
+-----------Requirement: Subscriptions: reset upon device location changed--------------------
 ---------------------------------via RC.OnDeviceLocationChanged------------------------------
 ---------------------------------------------------------------------------------------------
 --=========================================================================================--
@@ -39,7 +36,7 @@ local mobile_session = require('mobile_session')
   --Description:  In case RC app from passenger's <deviceID> device is subscribed to InteriorVehicleData notifications from <module> in <location_1> and RSDL gets RC.OnDeviceLocationChanged ("<location_2>", <deviceID>) from HMI
 
     --Requirement/Diagrams id in jira:
-        --REVSDL-1983
+        --Requirement
 
     --Verification criteria:
         -- RSDL must:
@@ -194,6 +191,6 @@ local mobile_session = require('mobile_session')
         end
       --End Test case CommonRequestCheck.1.1.4
 
-function Test:PostconditionsRestoreFile()
+function Test.PostconditionsRestoreFile()
   commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 end

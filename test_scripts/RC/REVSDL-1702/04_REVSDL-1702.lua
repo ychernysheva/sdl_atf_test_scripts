@@ -2,10 +2,10 @@ local commonPreconditions = require("user_modules/shared_testcases/commonPrecond
 commonPreconditions:BackupFile("sdl_preloaded_pt.json")
 commonPreconditions:ReplaceFile("sdl_preloaded_pt.json", "./test_scripts/RC/TestData/sdl_preloaded_pt.json")
 
-	local commonSteps = require("user_modules/shared_testcases/commonSteps")
+local commonSteps = require("user_modules/shared_testcases/commonSteps")
 commonSteps:DeleteLogsFileAndPolicyTable()
 
-revsdl = require("user_modules/revsdl")
+local revsdl = require("user_modules/revsdl")
 
 revsdl.AddUnknownFunctionIDs()
 revsdl.SubscribeToRcInterface()
@@ -15,16 +15,14 @@ config.application1.registerAppInterfaceParams.appID = "8675311"
 
 Test = require('connecttest')
 require('cardinalities')
-local events = require('events')
-local mobile_session = require('mobile_session')
 
 --List permission of "OnPermissionsChange" for PrimaryDevice and NonPrimaryDevice
 --groups_PrimaryRC Group
 local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
 
---======================================REVSDL-1702========================================--
+--======================================Requirement========================================--
 ---------------------------------------------------------------------------------------------
---------------REVSDL-1702: SetInteriorVehicleData: conditions to return----------------------
+--------------Requirement: SetInteriorVehicleData: conditions to return----------------------
 ----------------------------------READ_ONLY resultCode---------------------------------------
 ---------------------------------------------------------------------------------------------
 --=========================================================================================--
@@ -41,7 +39,7 @@ local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
 					--RSDL cut the read-only parameters off and process this RPC as assigned.
 
 		--Requirement/Diagrams id in jira:
-				--REVSDL-1702
+				--Requirement
 				--https://adc.luxoft.com/jira/secure/attachment/127928/127928_model_SetInteriorVehicleData-READ_ONLY.png
 
 		--Verification criteria:
@@ -878,7 +876,7 @@ local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
 					--RSDL responds with "resultCode: READ_ONLY, success:false" to this application and do not process this RPC.
 
 		--Requirement/Diagrams id in jira:
-				--REVSDL-1702
+				--Requirement
 				--https://adc.luxoft.com/jira/secure/attachment/127928/127928_model_SetInteriorVehicleData-READ_ONLY.png
 
 		--Verification criteria:
@@ -1730,6 +1728,6 @@ local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
 
 --=================================================END TEST CASES 4==========================================================--
 
-function Test:PostconditionsRestoreFile()
+function Test.PostconditionsRestoreFile()
   commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 end

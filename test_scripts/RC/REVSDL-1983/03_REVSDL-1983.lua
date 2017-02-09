@@ -2,10 +2,10 @@ local commonPreconditions = require("user_modules/shared_testcases/commonPrecond
 commonPreconditions:BackupFile("sdl_preloaded_pt.json")
 commonPreconditions:ReplaceFile("sdl_preloaded_pt.json", "./test_scripts/RC/TestData/sdl_preloaded_pt.json")
 
-	local commonSteps = require("user_modules/shared_testcases/commonSteps")
+local commonSteps = require("user_modules/shared_testcases/commonSteps")
 commonSteps:DeleteLogsFileAndPolicyTable()
 
-revsdl = require("user_modules/revsdl")
+local revsdl = require("user_modules/revsdl")
 
 revsdl.AddUnknownFunctionIDs()
 revsdl.SubscribeToRcInterface()
@@ -15,23 +15,17 @@ config.application1.registerAppInterfaceParams.appID = "8675311"
 
 Test = require('connecttest')
 require('cardinalities')
-local events = require('events')
-local mobile_session = require('mobile_session')
-local mobile  = require('mobile_connection')
-local tcp = require('tcp_connection')
-local file_connection  = require('file_connection')
-local config = require('config')
-local module = require('testbase')
 
+local mobile_session = require('mobile_session')
 
 --List permission of "OnPermissionsChange" for PrimaryDevice and NonPrimaryDevice
 --groups_nonPrimaryRC Group
 local arrayGroups_nonPrimaryRC = revsdl.arrayGroups_nonPrimaryRC()
 
 --=================================================BEGIN TEST CASES 3==========================================================--
-	--Begin Test suit CommonRequestCheck.3 for REVSDL-2177 and REVSDL-1691
+	--Begin Test suit CommonRequestCheck.3 for Requirement and Requirement
 
-	--Description: 3. REVSDL-2177
+	--Description: 3. Requirement
 
 	--Begin Test case CommonRequestCheck.3.1
 	--Description: 	Subscriptions taking off - exited app
@@ -43,8 +37,8 @@ local arrayGroups_nonPrimaryRC = revsdl.arrayGroups_nonPrimaryRC()
 
 
 		--Requirement/Diagrams id in jira:
-				--REVSDL-2177
-				--REVSDL-1691
+				--Requirement
+				--Requirement
 
 		--Verification criteria:
 				-- Policies: Configure app-specific permission to not receive OnInteriorVehicleData notification in NONE level.
@@ -873,6 +867,6 @@ local arrayGroups_nonPrimaryRC = revsdl.arrayGroups_nonPrimaryRC()
 
 --=================================================END TEST CASES 3==========================================================--
 
-function Test:PostconditionsRestoreFile()
+function Test.PostconditionsRestoreFile()
   commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 end

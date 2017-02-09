@@ -2,10 +2,10 @@ local commonPreconditions = require("user_modules/shared_testcases/commonPrecond
 commonPreconditions:BackupFile("sdl_preloaded_pt.json")
 commonPreconditions:ReplaceFile("sdl_preloaded_pt.json", "./test_scripts/RC/TestData/sdl_preloaded_pt.json")
 
-	local commonSteps = require("user_modules/shared_testcases/commonSteps")
+local commonSteps = require("user_modules/shared_testcases/commonSteps")
 commonSteps:DeleteLogsFileAndPolicyTable()
 
-revsdl = require("user_modules/revsdl")
+local revsdl = require("user_modules/revsdl")
 
 revsdl.AddUnknownFunctionIDs()
 revsdl.SubscribeToRcInterface()
@@ -15,11 +15,9 @@ config.application1.registerAppInterfaceParams.appID = "8675311"
 
 Test = require('connecttest')
 require('cardinalities')
-local events = require('events')
-local mobile_session = require('mobile_session')
 
 ---------------------------------------------------------------------------------------------
------------------------REVSDL-1038: HMI's RPCs validation rules------------------------------
+-----------------------Requirement: HMI's RPCs validation rules------------------------------
 ---------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------
 
@@ -29,7 +27,7 @@ local mobile_session = require('mobile_session')
   --Description:  --Fake params
 
     --Requirement/Diagrams id in jira:
-        --REVSDL-1038
+        --Requirement
 
     --Verification criteria:
         --<19.>In case RSDL sends a request following the internal processes to HMI (example: permission request), and HMI responds with one or more fake params (that is, non-existent per HMI_API) to RSDL, RSDL must cut these fake params off and process the response
@@ -107,6 +105,6 @@ local mobile_session = require('mobile_session')
   --End Test case ResponseFakeParamsNotification.18
 --=================================================END TEST CASES 18==========================================================--
 
-function Test:PostconditionsRestoreFile()
+function Test.PostconditionsRestoreFile()
   commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 end

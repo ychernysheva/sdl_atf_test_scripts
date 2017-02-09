@@ -2,10 +2,10 @@ local commonPreconditions = require("user_modules/shared_testcases/commonPrecond
 commonPreconditions:BackupFile("sdl_preloaded_pt.json")
 commonPreconditions:ReplaceFile("sdl_preloaded_pt.json", "./test_scripts/RC/TestData/sdl_preloaded_pt.json")
 
-	local commonSteps = require("user_modules/shared_testcases/commonSteps")
+local commonSteps = require("user_modules/shared_testcases/commonSteps")
 commonSteps:DeleteLogsFileAndPolicyTable()
 
-revsdl = require("user_modules/revsdl")
+local revsdl = require("user_modules/revsdl")
 
 revsdl.AddUnknownFunctionIDs()
 revsdl.SubscribeToRcInterface()
@@ -15,11 +15,9 @@ config.application1.registerAppInterfaceParams.appID = "8675311"
 
 Test = require('connecttest')
 require('cardinalities')
-local events = require('events')
-local mobile_session = require('mobile_session')
 
 ---------------------------------------------------------------------------------------------
------------------------REVSDL-1038: HMI's RPCs validation rules------------------------------
+-----------------------Requirement: HMI's RPCs validation rules------------------------------
 ---------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------
 
@@ -29,7 +27,7 @@ local mobile_session = require('mobile_session')
   --Description:  --APP's, HMI's RPCs Validation: should we set Maxlength for "REG" param?
 
     --Requirement/Diagrams id in jira:
-        --REVSDL-1542 (Question)
+        --Requirement (Question)
         --minlength="0" maxlength=”255"
 
       --Begin Test case MaxlengthREG.20.1
@@ -691,6 +689,6 @@ local mobile_session = require('mobile_session')
   --End Test case MaxlengthREG.20
 --=================================================BEGIN TEST CASES 20==========================================================--
 
-function Test:PostconditionsRestoreFile()
+function Test.PostconditionsRestoreFile()
   commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 end

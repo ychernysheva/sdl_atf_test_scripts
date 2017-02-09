@@ -2,10 +2,10 @@ local commonPreconditions = require("user_modules/shared_testcases/commonPrecond
 commonPreconditions:BackupFile("sdl_preloaded_pt.json")
 commonPreconditions:ReplaceFile("sdl_preloaded_pt.json", "./test_scripts/RC/TestData/sdl_preloaded_pt.json")
 
-	local commonSteps = require("user_modules/shared_testcases/commonSteps")
+local commonSteps = require("user_modules/shared_testcases/commonSteps")
 commonSteps:DeleteLogsFileAndPolicyTable()
 
-revsdl = require("user_modules/revsdl")
+local revsdl = require("user_modules/revsdl")
 
 revsdl.AddUnknownFunctionIDs()
 revsdl.SubscribeToRcInterface()
@@ -15,7 +15,6 @@ config.application1.registerAppInterfaceParams.appID = "8675311"
 
 Test = require('connecttest')
 require('cardinalities')
-local events = require('events')
 local mobile_session = require('mobile_session')
 
 --List permission of "OnPermissionsChange" for PrimaryDevice and NonPrimaryDevice
@@ -25,9 +24,9 @@ local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
 local arrayGroups_nonPrimaryRC = revsdl.arrayGroups_nonPrimaryRC()
 
 
---======================================REVSDL-846=========================================--
+--======================================Requirement=========================================--
 ---------------------------------------------------------------------------------------------
--------------------------REVSDL-846: R-SDL must inform the app when the ---------------------
+-------------------------Requirement: R-SDL must inform the app when the ---------------------
 ---------------------"driver's"/"passenger's" state of the device is changed-----------------
 ---------------------------------------------------------------------------------------------
 --=========================================================================================--
@@ -36,18 +35,18 @@ local arrayGroups_nonPrimaryRC = revsdl.arrayGroups_nonPrimaryRC()
 --=================================================BEGIN TEST CASES 1==========================================================--
   --Begin Test suit CommonRequestCheck.1 for Req.#1
 
-  --Description: 1. In case the device is set as 'driver's' (see REVSDL-831), R-SDL must assign "groups_primaryRC" permissions from appropriate policies to each remote-control app from this device.
+  --Description: 1. In case the device is set as 'driver's' (see Requirement), R-SDL must assign "groups_primaryRC" permissions from appropriate policies to each remote-control app from this device.
 
 
   --Begin Test case CommonRequestCheck.1
-  --Description:  In case the device is set as 'driver's' (see REVSDL-831), R-SDL must assign "groups_primaryRC" permissions from appropriate policies to each remote-control app from this device.
+  --Description:  In case the device is set as 'driver's' (see Requirement), R-SDL must assign "groups_primaryRC" permissions from appropriate policies to each remote-control app from this device.
 
     --Requirement/Diagrams id in jira:
-        --REVSDL-846
-        --TC: REVSDL-970
+        --Requirement
+        --TC: Requirement
 
     --Verification criteria:
-        --In case the device is set as 'driver's' (see REVSDL-831), R-SDL must assign "groups_primaryRC" permissions from appropriate policies to each remote-control app from this device.
+        --In case the device is set as 'driver's' (see Requirement), R-SDL must assign "groups_primaryRC" permissions from appropriate policies to each remote-control app from this device.
 
     -----------------------------------------------------------------------------------------
 
@@ -217,6 +216,6 @@ local arrayGroups_nonPrimaryRC = revsdl.arrayGroups_nonPrimaryRC()
 
 --=================================================END TEST CASES 1==========================================================--
 
-function Test:PostconditionsRestoreFile()
+function Test.PostconditionsRestoreFile()
   commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 end

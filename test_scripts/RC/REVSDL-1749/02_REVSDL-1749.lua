@@ -2,10 +2,10 @@ local commonPreconditions = require("user_modules/shared_testcases/commonPrecond
 commonPreconditions:BackupFile("sdl_preloaded_pt.json")
 commonPreconditions:ReplaceFile("sdl_preloaded_pt.json", "./test_scripts/RC/TestData/sdl_preloaded_pt.json")
 
-	local commonSteps = require("user_modules/shared_testcases/commonSteps")
+local commonSteps = require("user_modules/shared_testcases/commonSteps")
 commonSteps:DeleteLogsFileAndPolicyTable()
 
-revsdl = require("user_modules/revsdl")
+local revsdl = require("user_modules/revsdl")
 
 revsdl.AddUnknownFunctionIDs()
 revsdl.SubscribeToRcInterface()
@@ -15,24 +15,14 @@ config.application1.registerAppInterfaceParams.appID = "8675311"
 
 Test = require('connecttest')
 require('cardinalities')
-local events = require('events')
-local mobile_session = require('mobile_session')
-local mobile  = require('mobile_connection')
-local tcp = require('tcp_connection')
-local file_connection  = require('file_connection')
-local config = require('config')
-local module = require('testbase')
-
 
 --List permission of "OnPermissionsChange" for PrimaryDevice and NonPrimaryDevice
 --groups_PrimaryRC Group
 local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
---groups_nonPrimaryRC Group
-local arrayGroups_nonPrimaryRC = revsdl.arrayGroups_nonPrimaryRC()
 
---======================================REVSDL-1749========================================--
+--======================================Requirement========================================--
 ---------------------------------------------------------------------------------------------
------------REVSDL-1749: Subscriptions: reset upon device rank change and RC disabling--------
+-----------Requirement: Subscriptions: reset upon device rank change and RC disabling--------
 ---------------------------------------------------------------------------------------------
 --=========================================================================================--
 
@@ -48,7 +38,7 @@ local arrayGroups_nonPrimaryRC = revsdl.arrayGroups_nonPrimaryRC()
 	--Description: 	In case RC app from passenger's <deviceID> device is subscribed to InteriorVehicleData notifications in <module+zone> and RSDL gets RC.OnDeviceRankChanged ("DRIVER", <deviceID>) from HMI
 
 		--Requirement/Diagrams id in jira:
-				--REVSDL-1749
+				--Requirement
 				--Diagram(See opt.#2): https://adc.luxoft.com/jira/secure/attachment/128872/128872_Model_subscriptions-taking-off.png
 
 		--Verification criteria:
@@ -1083,6 +1073,6 @@ local arrayGroups_nonPrimaryRC = revsdl.arrayGroups_nonPrimaryRC()
 --=================================================END TEST CASES 2==========================================================--
 
 
-function Test:PostconditionsRestoreFile()
+function Test.PostconditionsRestoreFile()
   commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 end

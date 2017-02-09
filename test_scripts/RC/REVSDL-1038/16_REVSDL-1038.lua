@@ -2,10 +2,10 @@ local commonPreconditions = require("user_modules/shared_testcases/commonPrecond
 commonPreconditions:BackupFile("sdl_preloaded_pt.json")
 commonPreconditions:ReplaceFile("sdl_preloaded_pt.json", "./test_scripts/RC/TestData/sdl_preloaded_pt.json")
 
-	local commonSteps = require("user_modules/shared_testcases/commonSteps")
+local commonSteps = require("user_modules/shared_testcases/commonSteps")
 commonSteps:DeleteLogsFileAndPolicyTable()
 
-revsdl = require("user_modules/revsdl")
+local revsdl = require("user_modules/revsdl")
 
 revsdl.AddUnknownFunctionIDs()
 revsdl.SubscribeToRcInterface()
@@ -15,51 +15,20 @@ config.application1.registerAppInterfaceParams.appID = "8675311"
 
 Test = require('connecttest')
 require('cardinalities')
-local events = require('events')
-local mobile_session = require('mobile_session')
 
 ---------------------------------------------------------------------------------------------
--------------------------------------------Preconditions-------------------------------------
----------------------------------------------------------------------------------------------
-  --Begin Precondition.1. Need to be uncomment for checking Driver's device case
-  --[[Description: Activation App by sending SDL.ActivateApp
-
-    function Test:WaitActivation()
-
-      --mobile side: Expect OnHMIStatus notification
-      EXPECT_NOTIFICATION("OnHMIStatus")
-
-      --hmi side: sending SDL.ActivateApp request
-      local rid = self.hmiConnection:SendRequest("SDL.ActivateApp",
-                            { appID = self.applications["Test Application"] })
-
-      --hmi side: send request RC.OnSetDriversDevice
-      self.hmiConnection:SendNotification("RC.OnSetDriversDevice",
-      {device = {name = "127.0.0.1", id = 1, isSDLAllowed = true}})
-
-      --hmi side: Waiting for SDL.ActivateApp response
-      EXPECT_HMIRESPONSE(rid)
-
-    end]]
-  --End Precondition.1
-
-  -----------------------------------------------------------------------------------------
-
-
-
----------------------------------------------------------------------------------------------
------------------------REVSDL-1038: HMI's RPCs validation rules------------------------------
+-----------------------Requirement: HMI's RPCs validation rules------------------------------
 ---------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------
 
---NOTE: UPDATED "OnSetDriversDevice" to "OnDeviceRankChanged" base on REVSDL-1577
+--NOTE: UPDATED "OnSetDriversDevice" to "OnDeviceRankChanged" base on Requirement
 --=================================================BEGIN TEST CASES 16==========================================================--
 
   --Begin Test case ResponseFakeParamsNotification.16
   --Description:  --Fake params
 
     --Requirement/Diagrams id in jira:
-        --REVSDL-1038
+        --Requirement
 
     --Verification criteria:
         --<17.>In case HMI sends a notification, expected by RSDL for internal processing, with one or more fake params (that is, non-existent per HMI_API) to RSDL, RSDL must cut these fake params off and process the notification
@@ -69,7 +38,7 @@ local mobile_session = require('mobile_session')
 
       --Begin Test case ResponseFakeParamsNotification.16.1
       --Description: send notification with fake params
-              --NOTE: UPDATED "OnSetDriversDevice" to "OnDeviceRankChanged" base on REVSDL-1577
+              --NOTE: UPDATED "OnSetDriversDevice" to "OnDeviceRankChanged" base on Requirement
         function Test:OnSetDriversDevice_FakeParamsInsideDevice()
 
           -- --hmi side: sending RC.OnSetDriversDevice notification
@@ -99,7 +68,7 @@ local mobile_session = require('mobile_session')
 
       --Begin Test case ResponseFakeParamsNotification.16.2
       --Description: send notification with fake params
-              --NOTE: UPDATED "OnSetDriversDevice" to "OnDeviceRankChanged" base on REVSDL-1577
+              --NOTE: UPDATED "OnSetDriversDevice" to "OnDeviceRankChanged" base on Requirement
         function Test:OnSetDriversDevice_FakeParamsOutsideDevice()
 
           -- --hmi side: sending RC.OnSetDriversDevice notification
@@ -142,6 +111,6 @@ local mobile_session = require('mobile_session')
   --End Test case ResponseFakeParamsNotification.16
 --=================================================END TEST CASES 16==========================================================--
 
-function Test:PostconditionsRestoreFile()
+function Test.PostconditionsRestoreFile()
   commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 end

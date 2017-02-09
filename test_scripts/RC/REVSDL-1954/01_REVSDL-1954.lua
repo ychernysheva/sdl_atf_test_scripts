@@ -2,10 +2,10 @@ local commonPreconditions = require("user_modules/shared_testcases/commonPrecond
 commonPreconditions:BackupFile("sdl_preloaded_pt.json")
 commonPreconditions:ReplaceFile("sdl_preloaded_pt.json", "./test_scripts/RC/TestData/sdl_preloaded_pt.json")
 
-	local commonSteps = require("user_modules/shared_testcases/commonSteps")
+local commonSteps = require("user_modules/shared_testcases/commonSteps")
 commonSteps:DeleteLogsFileAndPolicyTable()
 
-revsdl = require("user_modules/revsdl")
+local revsdl = require("user_modules/revsdl")
 
 revsdl.AddUnknownFunctionIDs()
 revsdl.SubscribeToRcInterface()
@@ -46,7 +46,7 @@ local arrayGroups_nonPrimaryRC = revsdl.arrayGroups_nonPrimaryRC()
 ---------------------------------------------------------------------------------------------
 
 --New connection device2
-function newConnectionDevice2(self, DeviceIP, Port)
+local function newConnectionDevice2(self, DeviceIP, Port)
 
   local tcpConnection = tcp.Connection(DeviceIP, Port)
   local fileConnection = file_connection.FileConnection("mobile2.out", tcpConnection)
@@ -67,9 +67,9 @@ end
 
 
 
---======================================REVSDL-1954========================================--
+--======================================Requirement========================================--
 ---------------------------------------------------------------------------------------------
------------REVSDL-1954: Same-named applications with the same appIDs must be-----------------
+-----------Requirement: Same-named applications with the same appIDs must be-----------------
 --------------------------------allowed from different devices-------------------------------
 ---------------------------------------------------------------------------------------------
 --=========================================================================================--
@@ -93,7 +93,7 @@ end
 							--Device2: Passenger
 
 		--Requirement/Diagrams id in jira:
-				--REVSDL-1954
+				--Requirement
 
 		--Verification criteria:
 				-- RSDL must:
@@ -345,7 +345,7 @@ end
 							--Device2: Driver
 
 		--Requirement/Diagrams id in jira:
-				--REVSDL-1954
+				--Requirement
 
 		--Verification criteria:
 				-- RSDL must:
@@ -592,6 +592,6 @@ end
 --=================================================END TEST CASES 1==========================================================--
 
 
-function Test:PostconditionsRestoreFile()
+function Test.PostconditionsRestoreFile()
   commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 end

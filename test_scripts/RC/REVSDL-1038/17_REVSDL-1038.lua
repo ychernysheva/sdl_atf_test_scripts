@@ -2,10 +2,10 @@ local commonPreconditions = require("user_modules/shared_testcases/commonPrecond
 commonPreconditions:BackupFile("sdl_preloaded_pt.json")
 commonPreconditions:ReplaceFile("sdl_preloaded_pt.json", "./test_scripts/RC/TestData/sdl_preloaded_pt.json")
 
-	local commonSteps = require("user_modules/shared_testcases/commonSteps")
+local commonSteps = require("user_modules/shared_testcases/commonSteps")
 commonSteps:DeleteLogsFileAndPolicyTable()
 
-revsdl = require("user_modules/revsdl")
+local revsdl = require("user_modules/revsdl")
 
 revsdl.AddUnknownFunctionIDs()
 revsdl.SubscribeToRcInterface()
@@ -15,48 +15,9 @@ config.application1.registerAppInterfaceParams.appID = "8675311"
 
 Test = require('connecttest')
 require('cardinalities')
-local events = require('events')
-local mobile_session = require('mobile_session')
 
 ---------------------------------------------------------------------------------------------
--------------------------------------STARTING COMMON FUNCTIONS-------------------------------
----------------------------------------------------------------------------------------------
-
-
---Creating an interiorVehicleDataCapability with specificed zone and moduleType
-local function interiorVehicleDataCapability(strModuleType, icol, icolspan, ilevel, ilevelspan, irow, irowspan)
-  return{
-      moduleZone = {
-        col = icol,
-        colspan = icolspan,
-        level = ilevel,
-        levelspan = ilevelspan,
-        row = irow,
-        rowspan=  irowspan
-      },
-      moduleType = strModuleType
-  }
-end
-
---Creating an interiorVehicleDataCapabilities array with maxsize = iMaxsize
-local function interiorVehicleDataCapabilities(strModuleType, icol, icolspan, ilevel, ilevelspan, irow, irowspan, iMaxsize)
-  local items = {}
-  if iItemCount == 1 then
-    table.insert(items, interiorVehicleDataCapability(strModuleType, icol, icolspan, ilevel, ilevelspan, irow, irowspan))
-  else
-    for i=1, iMaxsize do
-      table.insert(items, interiorVehicleDataCapability(strModuleType, icol, icolspan, ilevel, ilevelspan, irow, irowspan))
-    end
-  end
-  return items
-end
-
----------------------------------------------------------------------------------------------
-----------------------------------------END COMMON FUNCTIONS---------------------------------
----------------------------------------------------------------------------------------------
-
----------------------------------------------------------------------------------------------
------------------------REVSDL-1038: HMI's RPCs validation rules------------------------------
+-----------------------Requirement: HMI's RPCs validation rules------------------------------
 ---------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------
 
@@ -66,7 +27,7 @@ end
   --Description:  --Fake params
 
     --Requirement/Diagrams id in jira:
-        --REVSDL-1038
+        --Requirement
 
     --Verification criteria:
         --<18.>In case a mobile app sends a valid request to RSDL, RSDL transfers this request to HMI, and HMI responds with one or more fake params (that is, non-existent per HMI_API) to RSDL, RSDL must cut these fake params off and transfer the response to the mobile app
@@ -478,6 +439,6 @@ end
   --End Test case ResponseFakeParamsNotification.17
 --=================================================END TEST CASES 17==========================================================--
 
-function Test:PostconditionsRestoreFile()
+function Test.PostconditionsRestoreFile()
   commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 end

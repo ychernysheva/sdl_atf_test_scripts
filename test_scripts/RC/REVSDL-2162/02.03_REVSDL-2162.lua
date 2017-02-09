@@ -2,9 +2,9 @@ local commonSteps = require("user_modules/shared_testcases/commonSteps")
 commonSteps:DeleteLogsFileAndPolicyTable()
 local commonPreconditions = require("user_modules/shared_testcases/commonPreconditions")
 commonPreconditions:BackupFile("sdl_preloaded_pt.json")
-commonPreconditions:ReplaceFile("sdl_preloaded_pt.json", "./test_scripts/RC/TestData/REVSDL-2162/sdl_preloaded_pt.json")
+commonPreconditions:ReplaceFile("sdl_preloaded_pt.json", "./test_scripts/RC/TestData/Requirement/sdl_preloaded_pt.json")
 
-revsdl = require("user_modules/revsdl")
+local revsdl = require("user_modules/revsdl")
 
 revsdl.AddUnknownFunctionIDs()
 revsdl.SubscribeToRcInterface()
@@ -14,19 +14,15 @@ config.application1.registerAppInterfaceParams.appID = "8675311"
 
 Test = require('connecttest')
 require('cardinalities')
-local events = require('events')
-local mobile_session = require('mobile_session')
-
-
---======================================REVSDL-2162========================================--
+--======================================Requirement========================================--
 ---------------------------------------------------------------------------------------------
-----------REVSDL-2162: GetInteriorVehicleDataCapabilies - rules for policies checks----------
+----------Requirement: GetInteriorVehicleDataCapabilies - rules for policies checks----------
 ---------------------------------------------------------------------------------------------
 --=========================================================================================--
 
 
 
---===============PLEASE USE PT FILE: "sdl_preloaded_pt.json" UNDER: \TestData\REVSDL-2162\ FOR THIS SCRIPT=====================--
+--===============PLEASE USE PT FILE: "sdl_preloaded_pt.json" UNDER: \TestData\Requirement\ FOR THIS SCRIPT=====================--
 
 
 --=================================================BEGIN TEST CASES 3==========================================================--
@@ -44,7 +40,7 @@ local mobile_session = require('mobile_session')
 	--Description: 	check "equipment" permissions against the zone from app's request with OR without defined "zone" and more than one OR without "moduleType"
 
 		--Requirement/Diagrams id in jira:
-				--REVSDL-2162
+				--Requirement
 
 		--Verification criteria:
 				-- check "equipment" permissions against the zone from app's request.
@@ -293,7 +289,7 @@ local mobile_session = require('mobile_session')
 					-- and RSDL receives OnDeviceLocationChanged notification
 
 		--Requirement/Diagrams id in jira:
-				--REVSDL-2162
+				--Requirement
 
 		--Verification criteria:
 				-- check "equipment" permissions against the zone from app's request.
@@ -1470,6 +1466,6 @@ local mobile_session = require('mobile_session')
 
 --=================================================END TEST CASES 3==========================================================--
 
-function Test:PostconditionsRestoreFile()
+function Test.PostconditionsRestoreFile()
   commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 end

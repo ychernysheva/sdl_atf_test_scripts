@@ -2,10 +2,10 @@ local commonPreconditions = require("user_modules/shared_testcases/commonPrecond
 commonPreconditions:BackupFile("sdl_preloaded_pt.json")
 commonPreconditions:ReplaceFile("sdl_preloaded_pt.json", "./test_scripts/RC/TestData/sdl_preloaded_pt.json")
 
-	local commonSteps = require("user_modules/shared_testcases/commonSteps")
+local commonSteps = require("user_modules/shared_testcases/commonSteps")
 commonSteps:DeleteLogsFileAndPolicyTable()
 
-revsdl = require("user_modules/revsdl")
+local revsdl = require("user_modules/revsdl")
 
 revsdl.AddUnknownFunctionIDs()
 revsdl.SubscribeToRcInterface()
@@ -15,40 +15,15 @@ config.application1.registerAppInterfaceParams.appID = "8675311"
 
 Test = require('connecttest')
 require('cardinalities')
-local events = require('events')
-local mobile_session = require('mobile_session')
 
 --List permission of "OnPermissionsChange" for PrimaryDevice and NonPrimaryDevice
 --NonPrimaryNotification Group
 local arrayGroups_nonPrimaryRCNotification = revsdl.arrayGroups_nonPrimaryRCNotification()
 
----------------------------------------------------------------------------------------------
--------------------------------------STARTING COMMON FUNCTIONS-------------------------------
----------------------------------------------------------------------------------------------
 
---Using for timeout
-function sleep(iTimeout)
- os.execute("sleep "..tonumber(iTimeout))
-end
---Using for delaying event when AppRegistration
-function DelayedExp()
-  local event = events.Event()
-  event.matches = function(self, e) return self == e end
-  EXPECT_EVENT(event, "Delayed event")
-  RUN_AFTER(function()
-              RAISE_EVENT(event, event)
-            end, 2000)
-end
-
+--======================================Requirement========================================--
 ---------------------------------------------------------------------------------------------
-----------------------------------------END COMMON FUNCTIONS---------------------------------
----------------------------------------------------------------------------------------------
-
-
-
---======================================REVSDL-1749========================================--
----------------------------------------------------------------------------------------------
------------REVSDL-1749: Subscriptions: reset upon device rank change and RC disabling--------
+-----------Requirement: Subscriptions: reset upon device rank change and RC disabling--------
 ---------------------------------------------------------------------------------------------
 --=========================================================================================--
 
@@ -64,7 +39,7 @@ end
 	--Description: 	In case RC app from passenger's <deviceID> device is subscribed to InteriorVehicleData notifications in <module+zone> and RSDL gets RC.OnReverseAppsAllowing (allowed: false) from HMI
 
 		--Requirement/Diagrams id in jira:
-				--REVSDL-1749
+				--Requirement
 				--Diagram(See opt.#3): https://adc.luxoft.com/jira/secure/attachment/128872/128872_Model_subscriptions-taking-off.png
 
 		--Verification criteria:
@@ -1098,6 +1073,6 @@ end
 
 --=================================================END TEST CASES 3==========================================================--
 
-function Test:PostconditionsRestoreFile()
+function Test.PostconditionsRestoreFile()
   commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 end

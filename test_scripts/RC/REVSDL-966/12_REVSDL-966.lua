@@ -2,10 +2,10 @@ local commonPreconditions = require("user_modules/shared_testcases/commonPrecond
 commonPreconditions:BackupFile("sdl_preloaded_pt.json")
 commonPreconditions:ReplaceFile("sdl_preloaded_pt.json", "./test_scripts/RC/TestData/sdl_preloaded_pt.json")
 
-	local commonSteps = require("user_modules/shared_testcases/commonSteps")
+local commonSteps = require("user_modules/shared_testcases/commonSteps")
 commonSteps:DeleteLogsFileAndPolicyTable()
 
-revsdl = require("user_modules/revsdl")
+local revsdl = require("user_modules/revsdl")
 
 revsdl.AddUnknownFunctionIDs()
 revsdl.SubscribeToRcInterface()
@@ -15,12 +15,10 @@ config.application1.registerAppInterfaceParams.appID = "8675311"
 
 Test = require('connecttest')
 require('cardinalities')
-local events = require('events')
-local mobile_session = require('mobile_session')
 
---======================================REVSDL-966=========================================--
+--======================================Requirement=========================================--
 ---------------------------------------------------------------------------------------------
------------REVSDL-966: "Allow", "Ask Driver" or "Disallow" permissions - depending-----------
+-----------Requirement: "Allow", "Ask Driver" or "Disallow" permissions - depending-----------
 ------------------on zone value in RPC and this zone permissions in Policies-----------------
 ---------------------------------------------------------------------------------------------
 --=========================================================================================--
@@ -37,8 +35,8 @@ local mobile_session = require('mobile_session')
   --Description:  In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies and "equipment" section of policies database omits this RPC name with <params> in <moduleType> of both "auto_allow" and "driver_allow" sub-sections of <interiorZone> section - RSDL must respond with "resultCode: DISALLOWED, success: false, info: "The RPC is disallowed by vehicle settings" to this application (that is, without asking a driver for permission).
 
     --Requirement/Diagrams id in jira:
-        --REVSDL-966
-        --TC: REVSDL-1561
+        --Requirement
+        --TC: Requirement
 
     --Verification criteria:
         --In case RPC_1 is omitted in both "auto_allow" and "driver_allow" sections.
@@ -921,6 +919,6 @@ local mobile_session = require('mobile_session')
 
 --=================================================END TEST CASES 12==========================================================--
 
-function Test:PostconditionsRestoreFile()
+function Test.PostconditionsRestoreFile()
   commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 end

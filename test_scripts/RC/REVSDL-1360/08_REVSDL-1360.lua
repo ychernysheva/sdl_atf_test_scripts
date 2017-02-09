@@ -2,10 +2,10 @@ local commonPreconditions = require("user_modules/shared_testcases/commonPrecond
 commonPreconditions:BackupFile("sdl_preloaded_pt.json")
 commonPreconditions:ReplaceFile("sdl_preloaded_pt.json", "./test_scripts/RC/TestData/sdl_preloaded_pt.json")
 
-	local commonSteps = require("user_modules/shared_testcases/commonSteps")
+local commonSteps = require("user_modules/shared_testcases/commonSteps")
 commonSteps:DeleteLogsFileAndPolicyTable()
 
-revsdl = require("user_modules/revsdl")
+local revsdl = require("user_modules/revsdl")
 
 revsdl.AddUnknownFunctionIDs()
 revsdl.SubscribeToRcInterface()
@@ -15,19 +15,14 @@ config.application1.registerAppInterfaceParams.appID = "8675311"
 
 Test = require('connecttest')
 require('cardinalities')
-local events = require('events')
-local mobile_session = require('mobile_session')
-
 
 --groups_PrimaryRC Group
 local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
---groups_nonPrimaryRC Group
-local arrayGroups_nonPrimaryRC = revsdl.arrayGroups_nonPrimaryRC()
 
 
---======================================REVSDL-1360=========================================--
+--======================================Requirement=========================================--
 ---------------------------------------------------------------------------------------------
------------------REVSDL-1360: VehicleData subscriptions handling by RSDL --------------------
+-----------------Requirement: VehicleData subscriptions handling by RSDL --------------------
 ---------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------
 --=========================================================================================--
@@ -42,7 +37,7 @@ local arrayGroups_nonPrimaryRC = revsdl.arrayGroups_nonPrimaryRC()
   --Description:  DRIVER's Device: In case mobile application with REMOTE_CONTROL appHMIType subscribed to "<moduleZone_value>, <moduleType_value>" sends GetInteriorVehicleData with ("subscribe: true", <moduleZone_value>, <moduleType_value>), RSDL must keep this application subscribed for requested <moduleType_value> in requested <moduleZone_value>.
 
     --Requirement/Diagrams id in jira:
-        --REVSDL-1465
+        --Requirement
 
     --Verification criteria:
         --RSDL subscribes the RC-app to interiorVehicleData notifications right after getting "subscribe:true" from the app
@@ -724,7 +719,7 @@ local arrayGroups_nonPrimaryRC = revsdl.arrayGroups_nonPrimaryRC()
   --Description:  PASSENGER's Device: In case mobile application with REMOTE_CONTROL appHMIType subscribed to "<moduleZone_value>, <moduleType_value>" sends GetInteriorVehicleData with ("subscribe: true", <moduleZone_value>, <moduleType_value>), RSDL must keep this application subscribed for requested <moduleType_value> in requested <moduleZone_value>.
 
     --Requirement/Diagrams id in jira:
-        --REVSDL-1465
+        --Requirement
 
     --Verification criteria:
         --RSDL subscribes the RC-app to interiorVehicleData notifications right after getting "subscribe:true" from the app
@@ -990,9 +985,9 @@ local arrayGroups_nonPrimaryRC = revsdl.arrayGroups_nonPrimaryRC()
 
               --hmi side: expect RC.GetInteriorVehicleData request
               EXPECT_HMICALL("RC.GetInteriorVehicleData")
-              :Do(function(_,data)
+              :Do(function(_,data1)
                   --hmi side: sending RC.GetInteriorVehicleData response
-                  self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", { isSubscribed = true,
+                  self.hmiConnection:SendResponse(data1.id, data1.method, "SUCCESS", { isSubscribed = true,
                     moduleData =
                     {
                       moduleType = "CLIMATE",
@@ -1223,9 +1218,9 @@ local arrayGroups_nonPrimaryRC = revsdl.arrayGroups_nonPrimaryRC()
 
               --hmi side: expect RC.GetInteriorVehicleData request
               EXPECT_HMICALL("RC.GetInteriorVehicleData")
-                :Do(function(_,data)
+                :Do(function(_,data1)
                   --hmi side: sending RC.GetInteriorVehicleData response
-                  self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", { isSubscribed = true,
+                  self.hmiConnection:SendResponse(data1.id, data1.method, "SUCCESS", { isSubscribed = true,
                     moduleData = {
                       moduleType = "RADIO",
                       moduleZone = {
@@ -1356,9 +1351,9 @@ local arrayGroups_nonPrimaryRC = revsdl.arrayGroups_nonPrimaryRC()
 
               --hmi side: expect RC.GetInteriorVehicleData request
               EXPECT_HMICALL("RC.GetInteriorVehicleData")
-              :Do(function(_,data)
+              :Do(function(_,data1)
                   --hmi side: sending RC.GetInteriorVehicleData response
-                  self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", { isSubscribed = true,
+                  self.hmiConnection:SendResponse(data1.id, data1.method, "SUCCESS", { isSubscribed = true,
                     moduleData = {
                       moduleType = "RADIO",
                       moduleZone = {
@@ -1448,6 +1443,6 @@ local arrayGroups_nonPrimaryRC = revsdl.arrayGroups_nonPrimaryRC()
 
 --=================================================END TEST CASES 8==========================================================--
 
-function Test:PostconditionsRestoreFile()
+function Test.PostconditionsRestoreFile()
   commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 end

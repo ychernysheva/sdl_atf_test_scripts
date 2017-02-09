@@ -2,10 +2,10 @@ local commonPreconditions = require("user_modules/shared_testcases/commonPrecond
 commonPreconditions:BackupFile("sdl_preloaded_pt.json")
 commonPreconditions:ReplaceFile("sdl_preloaded_pt.json", "./test_scripts/RC/TestData/sdl_preloaded_pt.json")
 
-	local commonSteps = require("user_modules/shared_testcases/commonSteps")
+local commonSteps = require("user_modules/shared_testcases/commonSteps")
 commonSteps:DeleteLogsFileAndPolicyTable()
 
-revsdl = require("user_modules/revsdl")
+local revsdl = require("user_modules/revsdl")
 
 revsdl.AddUnknownFunctionIDs()
 revsdl.SubscribeToRcInterface()
@@ -36,7 +36,7 @@ os.execute("ifconfig lo:1 192.168.100.199")
 
 
 --New connection device2
-function newConnectionDevice2(self, DeviceIP, Port)
+local function newConnectionDevice2(self, DeviceIP, Port)
 
   local tcpConnection = tcp.Connection(DeviceIP, Port)
   local fileConnection = file_connection.FileConnection("mobile2.out", tcpConnection)
@@ -60,9 +60,9 @@ end
 
 
 
---======================================REVSDL-1827========================================--
+--======================================Requirement========================================--
 ---------------------------------------------------------------------------------------------
---------------REVSDL-1827: Policies: "equipment" permissions must be checked-----------------
+--------------Requirement: Policies: "equipment" permissions must be checked-----------------
 -------------------------- against location provided from HMI--------------------------------
 ---------------------------------------------------------------------------------------------
 --=========================================================================================--
@@ -80,8 +80,8 @@ end
 	--Description: 	RSDL must send the RC.GetInteriorVehicleDataConsent for getting driver's allowance to control this different <moduleType> to the vehicle (HMI).
 
 		--Requirement/Diagrams id in jira:
-				--REVSDL-1827
-				--REVSDL-1858
+				--Requirement
+				--Requirement
 
 		--Verification criteria:
 				--RSDL must send the RC.GetInteriorVehicleDataConsent for getting driver's allowance to control this different <moduleType> to the vehicle (HMI).
@@ -361,8 +361,8 @@ end
 	--Description: 	RSDL must send the RC.GetInteriorVehicleDataConsent for getting driver's allowance to control this different <moduleType> to the vehicle (HMI).
 
 		--Requirement/Diagrams id in jira:
-				--REVSDL-1827
-				--REVSDL-1858
+				--Requirement
+				--Requirement
 
 		--Verification criteria:
 				--RSDL must send the RC.GetInteriorVehicleDataConsent for getting driver's allowance to control this different <moduleType> to the vehicle (HMI).
@@ -605,6 +605,6 @@ end
 
 
 
-function Test:PostconditionsRestoreFile()
+function Test.PostconditionsRestoreFile()
   commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 end
