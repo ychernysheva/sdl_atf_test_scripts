@@ -2,10 +2,10 @@ local commonPreconditions = require("user_modules/shared_testcases/commonPrecond
 commonPreconditions:BackupFile("sdl_preloaded_pt.json")
 commonPreconditions:ReplaceFile("sdl_preloaded_pt.json", "./test_scripts/RC/TestData/sdl_preloaded_pt.json")
 
-	local commonSteps = require("user_modules/shared_testcases/commonSteps")
+local commonSteps = require("user_modules/shared_testcases/commonSteps")
 commonSteps:DeleteLogsFileAndPolicyTable()
 
-revsdl = require("user_modules/revsdl")
+local revsdl = require("user_modules/revsdl")
 
 revsdl.AddUnknownFunctionIDs()
 revsdl.SubscribeToRcInterface()
@@ -15,12 +15,11 @@ config.application1.registerAppInterfaceParams.appID = "8675311"
 
 Test = require('connecttest')
 require('cardinalities')
-local events = require('events')
 local mobile_session = require('mobile_session')
 
---======================================REVSDL-831========================================--
+--======================================Requirement========================================--
 ---------------------------------------------------------------------------------------------
-----------REVSDL-831: R-SDL must set first connected device as a "passenger's"---------------
+----------Requirement: R-SDL must set first connected device as a "passenger's"---------------
 ------------one and change this setting upon user's choice delivered from HMI----------------
 ---------------------------------------------------------------------------------------------
 --=========================================================================================--
@@ -30,12 +29,12 @@ local mobile_session = require('mobile_session')
 local arrayGroups_nonPrimaryRC =  revsdl.arrayGroups_nonPrimaryRC()
 
 --=================================================BEGIN TEST CASES 1==========================================================--
-  --Begin Test suit CommonRequestCheck.1 for Req.#1 (TCs: REVSDL-923 - [REVSDL-831]: TC_1. Any connected device should be treated as passenger's by RSDL.
+  --Begin Test suit CommonRequestCheck.1 for Req.#1 (TCs: Requirement - [Requirement]: TC_1. Any connected device should be treated as passenger's by RSDL.
 
   --Description: Rev-SDL must set any connected device independently on transport type as a "passenger's device".
 
     --Requirement/Diagrams id in jira:
-        --REVSDL-831
+        --Requirement
     --Verification criteria:
         --Rev-SDL must set any connected device independently on transport type as a "passenger's device".
 
@@ -170,8 +169,8 @@ local arrayGroups_nonPrimaryRC =  revsdl.arrayGroups_nonPrimaryRC()
 
     -----------------------------------------------------------------------------------------
   --End Test Case CommonRequestCheck.1
-  --Note: Almost TCs of TRS REVSDL-831 are replaced by CRQ RESDLD-1577.
+  --Note: Almost TCs of TRS Requirement are replaced by CRQ RESDLD-1577.
 
-function Test:PostconditionsRestoreFile()
+function Test.PostconditionsRestoreFile()
   commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 end

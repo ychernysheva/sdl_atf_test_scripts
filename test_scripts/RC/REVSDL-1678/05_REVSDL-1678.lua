@@ -2,10 +2,10 @@ local commonPreconditions = require("user_modules/shared_testcases/commonPrecond
 commonPreconditions:BackupFile("sdl_preloaded_pt.json")
 commonPreconditions:ReplaceFile("sdl_preloaded_pt.json", "./test_scripts/RC/TestData/sdl_preloaded_pt.json")
 
-	local commonSteps = require("user_modules/shared_testcases/commonSteps")
+local commonSteps = require("user_modules/shared_testcases/commonSteps")
 commonSteps:DeleteLogsFileAndPolicyTable()
 
-revsdl = require("user_modules/revsdl")
+local revsdl = require("user_modules/revsdl")
 
 revsdl.AddUnknownFunctionIDs()
 revsdl.SubscribeToRcInterface()
@@ -15,16 +15,14 @@ config.application1.registerAppInterfaceParams.appID = "8675311"
 
 Test = require('connecttest')
 require('cardinalities')
-local events = require('events')
-local mobile_session = require('mobile_session')
 
 --groups_PrimaryRC Group
 local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
 
 
---======================================REVSDL-1678========================================--
+--======================================Requirement========================================--
 ---------------------------------------------------------------------------------------------
------------------REVSDL-1678: GetInteriorVehicleData - new param in response and-------------
+-----------------Requirement: GetInteriorVehicleData - new param in response and-------------
 ---------------------------------RSDL's subscription behavior--------------------------------
 ---------------------------------------------------------------------------------------------
 --=========================================================================================--
@@ -43,7 +41,7 @@ local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
 	--Description: 	PASSENGER's Device: In case RC app is subscribed to "<moduleZone_value>, <moduleType_value>" and sends valid and allowed-by-policies GetInteriorVehicleData_request with "subscribe:false" parameter and RSDL gets GetInteriorVehicleData_response with "isSubscribed: false", "resultCode: SUCCESS" from HMI
 
 		--Requirement/Diagrams id in jira:
-				--REVSDL-1678
+				--Requirement
 				--Diagram(See opt.#5): https://adc.luxoft.com/jira/secure/attachment/128654/128654_model_GetInteriorVehicleData_subscription.png
 
 		--Verification criteria:
@@ -1399,7 +1397,7 @@ local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
 	--Description: 	DRIVER's Device: In case RC app is subscribed to "<moduleZone_value>, <moduleType_value>" and sends valid and allowed-by-policies GetInteriorVehicleData_request with "subscribe:false" parameter and RSDL gets GetInteriorVehicleData_response with "isSubscribed: false", "resultCode: SUCCESS" from HMI
 
 		--Requirement/Diagrams id in jira:
-				--REVSDL-1678
+				--Requirement
 
 		--Verification criteria:
 				--RSDL subscribes the RC-app to interiorVehicleData notifications right after getting "subscribe:false" from the app
@@ -2724,6 +2722,6 @@ local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
 
 --=================================================END TEST CASES 5==========================================================--
 
-function Test:PostconditionsRestoreFile()
+function Test.PostconditionsRestoreFile()
   commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 end

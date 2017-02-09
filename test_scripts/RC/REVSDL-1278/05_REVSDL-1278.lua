@@ -2,10 +2,10 @@ local commonPreconditions = require("user_modules/shared_testcases/commonPrecond
 commonPreconditions:BackupFile("sdl_preloaded_pt.json")
 commonPreconditions:ReplaceFile("sdl_preloaded_pt.json", "./test_scripts/RC/TestData/sdl_preloaded_pt.json")
 
-	local commonSteps = require("user_modules/shared_testcases/commonSteps")
+local commonSteps = require("user_modules/shared_testcases/commonSteps")
 commonSteps:DeleteLogsFileAndPolicyTable()
 
-revsdl = require("user_modules/revsdl")
+local revsdl = require("user_modules/revsdl")
 
 revsdl.AddUnknownFunctionIDs()
 revsdl.SubscribeToRcInterface()
@@ -15,16 +15,10 @@ config.application1.registerAppInterfaceParams.appID = "8675311"
 
 Test = require('connecttest')
 require('cardinalities')
-local events = require('events')
-local mobile_session = require('mobile_session')
 
---List of resultscode
-local RESULTS_CODE = {"SUCCESS", "WARNINGS", "RESUME_FAILED", "WRONG_LANGUAGE"}
-
-
---======================================REVSDL-1278=========================================--
+--======================================Requirement=========================================--
 ---------------------------------------------------------------------------------------------
-------------REVSDL-1278: HMILevel change for rc-apps from passenger's device ----------------
+------------Requirement: HMILevel change for rc-apps from passenger's device ----------------
 ---------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------
 --=========================================================================================--
@@ -41,13 +35,13 @@ local RESULTS_CODE = {"SUCCESS", "WARNINGS", "RESUME_FAILED", "WRONG_LANGUAGE"}
             --From passenger's device
             --Of LIMITED HMILevel sends an RPC
             --And this RPC is allowed by app's assigned policies
-            --And this RPC is from "driver_allow" section (see REVSDL-966 for details)
+            --And this RPC is from "driver_allow" section (see Requirement for details)
             --And the the permission prompt is either denied by the driver, timed out or unsuccessful
             --RSDL must not change the HMILevel of this app.
 
     --Requirement/Diagrams id in jira:
-        --REVSDL-1278
-        --TC: REVSDL-1330, REVSDL-1358
+        --Requirement
+        --TC: Requirement, Requirement
 
     --Verification criteria:
         --1. Leave passenger's rc-app in BACKGROUND/NONE - NONE case
@@ -111,9 +105,9 @@ local RESULTS_CODE = {"SUCCESS", "WARNINGS", "RESUME_FAILED", "WRONG_LANGUAGE"}
                         buttonName = "VOLUME_UP"
               })
               :Times(0)
-              :Do(function(_,data)
+              :Do(function(_,data1)
                 --hmi side: sending Buttons.ButtonPress response
-                self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+                self.hmiConnection:SendResponse(data1.id, data1.method, "SUCCESS", {})
               end)
 
           end)
@@ -186,9 +180,9 @@ local RESULTS_CODE = {"SUCCESS", "WARNINGS", "RESUME_FAILED", "WRONG_LANGUAGE"}
                           buttonName = "VOLUME_UP"
                 })
                 :Times(0)
-                :Do(function(_,data)
+                :Do(function(_,data1)
                   --hmi side: sending Buttons.ButtonPress response
-                  self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+                  self.hmiConnection:SendResponse(data1.id, data1.method, "SUCCESS", {})
                 end)
               end
 
@@ -263,9 +257,9 @@ local RESULTS_CODE = {"SUCCESS", "WARNINGS", "RESUME_FAILED", "WRONG_LANGUAGE"}
                         buttonName = "VOLUME_UP"
               })
               :Times(0)
-              :Do(function(_,data)
+              :Do(function(_,data1)
                 --hmi side: sending Buttons.ButtonPress response
-                self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+                self.hmiConnection:SendResponse(data1.id, data1.method, "SUCCESS", {})
               end)
 
           end)
@@ -386,9 +380,9 @@ local RESULTS_CODE = {"SUCCESS", "WARNINGS", "RESUME_FAILED", "WRONG_LANGUAGE"}
                         buttonName = "VOLUME_UP"
               })
               :Times(0)
-              :Do(function(_,data)
+              :Do(function(_,data1)
                 --hmi side: sending Buttons.ButtonPress response
-                self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+                self.hmiConnection:SendResponse(data1.id, data1.method, "SUCCESS", {})
               end)
 
           end)
@@ -461,9 +455,9 @@ local RESULTS_CODE = {"SUCCESS", "WARNINGS", "RESUME_FAILED", "WRONG_LANGUAGE"}
                           buttonName = "VOLUME_UP"
                 })
                 :Times(0)
-                :Do(function(_,data)
+                :Do(function(_,data1)
                   --hmi side: sending Buttons.ButtonPress response
-                  self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+                  self.hmiConnection:SendResponse(data1.id, data1.method, "SUCCESS", {})
                 end)
               end
 
@@ -538,9 +532,9 @@ local RESULTS_CODE = {"SUCCESS", "WARNINGS", "RESUME_FAILED", "WRONG_LANGUAGE"}
                         buttonName = "VOLUME_UP"
               })
               :Times(0)
-              :Do(function(_,data)
+              :Do(function(_,data1)
                 --hmi side: sending Buttons.ButtonPress response
-                self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+                self.hmiConnection:SendResponse(data1.id, data1.method, "SUCCESS", {})
               end)
 
           end)
@@ -558,6 +552,6 @@ local RESULTS_CODE = {"SUCCESS", "WARNINGS", "RESUME_FAILED", "WRONG_LANGUAGE"}
   --End Test case CommonRequestCheck.5.1
 --=================================================END TEST CASES 5==========================================================--
 
-function Test:PostconditionsRestoreFile()
+function Test.PostconditionsRestoreFile()
   commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 end

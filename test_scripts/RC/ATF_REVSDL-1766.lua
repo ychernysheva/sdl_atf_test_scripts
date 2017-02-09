@@ -2,10 +2,10 @@ local commonPreconditions = require("user_modules/shared_testcases/commonPrecond
 commonPreconditions:BackupFile("sdl_preloaded_pt.json")
 commonPreconditions:ReplaceFile("sdl_preloaded_pt.json", "./test_scripts/RC/TestData/sdl_preloaded_pt.json")
 
-	local commonSteps = require("user_modules/shared_testcases/commonSteps")
+local commonSteps = require("user_modules/shared_testcases/commonSteps")
 commonSteps:DeleteLogsFileAndPolicyTable()
 
-revsdl = require("user_modules/revsdl")
+local revsdl = require("user_modules/revsdl")
 
 revsdl.AddUnknownFunctionIDs()
 revsdl.SubscribeToRcInterface()
@@ -14,42 +14,10 @@ config.application1.registerAppInterfaceParams.appHMIType = { "REMOTE_CONTROL" }
 
 Test = require('connecttest')
 require('cardinalities')
-local events = require('events')
-local mobile_session = require('mobile_session')
-local mobile  = require('mobile_connection')
-local tcp = require('tcp_connection')
-local file_connection  = require('file_connection')
-local config = require('config')
-local module = require('testbase')
 
-
+--======================================Requirement========================================--
 ---------------------------------------------------------------------------------------------
--------------------------------------STARTING COMMON FUNCTIONS-------------------------------
----------------------------------------------------------------------------------------------
-
---Using for timeout
-function sleep(iTimeout)
- os.execute("sleep "..tonumber(iTimeout))
-end
---Using for delaying event when AppRegistration
-function DelayedExp()
-  local event = events.Event()
-  event.matches = function(self, e) return self == e end
-  EXPECT_EVENT(event, "Delayed event")
-  RUN_AFTER(function()
-              RAISE_EVENT(event, event)
-            end, 2000)
-end
-
----------------------------------------------------------------------------------------------
-----------------------------------------END COMMON FUNCTIONS---------------------------------
----------------------------------------------------------------------------------------------
-
-
-
---======================================REVSDL-1766========================================--
----------------------------------------------------------------------------------------------
----------------REVSDL-1766: HMI_API: appID must be added to all RC-related requests----------
+---------------Requirement: HMI_API: appID must be added to all RC-related requests----------
 ---------------------------------------------------------------------------------------------
 --=========================================================================================--
 
@@ -68,7 +36,7 @@ end
 	--Description: 	SDL must send internal integer appID of the related application with every request from RC interface sent to HMI.
 
 		--Requirement/Diagrams id in jira:
-				--REVSDL-1766
+				--Requirement
 
 		--Verification criteria:
 				--GetInteriorVehicleDataCapabilities:
@@ -147,7 +115,7 @@ end
 	--Description: 	SDL must send internal integer appID of the related application with every request from RC interface sent to HMI.
 
 		--Requirement/Diagrams id in jira:
-				--REVSDL-1766
+				--Requirement
 
 		--Verification criteria:
 				--SetInteriorVehicleData
@@ -275,7 +243,7 @@ end
 	--Description: 	SDL must send internal integer appID of the related application with every request from RC interface sent to HMI.
 
 		--Requirement/Diagrams id in jira:
-				--REVSDL-1766
+				--Requirement
 
 		--Verification criteria:
 				--GetInteriorVehicleData
@@ -374,7 +342,7 @@ end
 	--Description: 	SDL must send internal integer appID of the related application with every request from RC interface sent to HMI.
 
 		--Requirement/Diagrams id in jira:
-				--REVSDL-1766
+				--Requirement
 
 		--Verification criteria:
 				--ButtonPress
@@ -434,6 +402,6 @@ end
 
 --=================================================END TEST CASES 1==========================================================--
 
-function Test:PostconditionsRestoreFile()
+function Test.PostconditionsRestoreFile()
   commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 end

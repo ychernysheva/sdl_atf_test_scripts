@@ -2,10 +2,10 @@ local commonPreconditions = require("user_modules/shared_testcases/commonPrecond
 commonPreconditions:BackupFile("sdl_preloaded_pt.json")
 commonPreconditions:ReplaceFile("sdl_preloaded_pt.json", "./test_scripts/RC/TestData/sdl_preloaded_pt.json")
 
-	local commonSteps = require("user_modules/shared_testcases/commonSteps")
+local commonSteps = require("user_modules/shared_testcases/commonSteps")
 commonSteps:DeleteLogsFileAndPolicyTable()
 
-revsdl = require("user_modules/revsdl")
+local revsdl = require("user_modules/revsdl")
 
 revsdl.AddUnknownFunctionIDs()
 revsdl.SubscribeToRcInterface()
@@ -15,19 +15,16 @@ config.application1.registerAppInterfaceParams.appID = "8675311"
 
 Test = require('connecttest')
 require('cardinalities')
-local events = require('events')
 local mobile_session = require('mobile_session')
 
---======================================REVSDL-994========================================--
+--======================================Requirement========================================--
 ---------------------------------------------------------------------------------------------
-------------REVSDL-994: HMILevel change for rc-apps from driver's device---------------------
+------------Requirement: HMILevel change for rc-apps from driver's device---------------------
 ---------------------------------------------------------------------------------------------
 --=========================================================================================--
 
 --groups_PrimaryRC Group
 local arrayGroups_PrimaryRC =  revsdl.arrayGroups_PrimaryRC()
---groups_nonPrimaryRC Group
-local arrayGroups_nonPrimaryRC = revsdl.arrayGroups_nonPrimaryRC()
 
 --=================================================BEGIN TEST CASES 3==========================================================--
   --Begin Test suit CommonRequestCheck.3 for Req.#3
@@ -40,8 +37,8 @@ local arrayGroups_nonPrimaryRC = revsdl.arrayGroups_nonPrimaryRC()
           --2. App2: non-remoteControl -> (NONE)
 
     --Requirement/Diagrams id in jira:
-        --REVSDL-994
-        --TC: REVSDL-1073
+        --Requirement
+        --TC: Requirement
 
     --Verification criteria:
         --In case an application with AppHMIType "REMOTE_CONTROL" from driver's device is in HMILevel of LIMITED and the vehicle HMI User activates another non-remote-control application_2, RSDL must leave application_1 in LIMITED HMILevel.
@@ -225,6 +222,6 @@ local arrayGroups_nonPrimaryRC = revsdl.arrayGroups_nonPrimaryRC()
 
 --=================================================END TEST CASES 3==========================================================--
 
-function Test:PostconditionsRestoreFile()
+function Test.PostconditionsRestoreFile()
   commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 end

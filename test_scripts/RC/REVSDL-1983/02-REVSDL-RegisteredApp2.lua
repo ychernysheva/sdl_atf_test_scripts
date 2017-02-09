@@ -2,10 +2,10 @@ local commonPreconditions = require("user_modules/shared_testcases/commonPrecond
 commonPreconditions:BackupFile("sdl_preloaded_pt.json")
 commonPreconditions:ReplaceFile("sdl_preloaded_pt.json", "./test_scripts/RC/TestData/sdl_preloaded_pt.json")
 
-	local commonSteps = require("user_modules/shared_testcases/commonSteps")
+local commonSteps = require("user_modules/shared_testcases/commonSteps")
 commonSteps:DeleteLogsFileAndPolicyTable()
 
-revsdl = require("user_modules/revsdl")
+local revsdl = require("user_modules/revsdl")
 
 revsdl.AddUnknownFunctionIDs()
 revsdl.SubscribeToRcInterface()
@@ -15,14 +15,7 @@ config.application1.registerAppInterfaceParams.appID = "8675311"
 
 Test = require('connecttest')
 require('cardinalities')
-local events = require('events')
 local mobile_session = require('mobile_session')
-local mobile  = require('mobile_connection')
-local tcp = require('tcp_connection')
-local file_connection  = require('file_connection')
-local config = require('config')
-local module = require('testbase')
-
 
 --List permission of "OnPermissionsChange" for PrimaryDevice and NonPrimaryDevice
 --groups_nonPrimaryRC Group
@@ -130,9 +123,9 @@ local arrayGroups_nonPrimaryRC = {
                    }
             }
 
---======================================REVSDL-1983========================================--
+--======================================Requirement========================================--
 ---------------------------------------------------------------------------------------------
------------REVSDL-1983: Subscriptions: reset upon device location changed--------------------
+-----------Requirement: Subscriptions: reset upon device location changed--------------------
 ---------------------------------via RC.OnDeviceLocationChanged------------------------------
 ---------------------------------------------------------------------------------------------
 --=========================================================================================--
@@ -151,9 +144,9 @@ local arrayGroups_nonPrimaryRC = {
   -- --End Test case CommonRequestCheck.2.1.0
 
 
-  --Begin Test suit CommonRequestCheck.3 for REVSDL-2177 and REVSDL-1691
+  --Begin Test suit CommonRequestCheck.3 for Requirement and Requirement
 
-  --Description: 3. REVSDL-2177
+  --Description: 3. Requirement
       --Begin Test case Precondition.3.1.1
       --Description: Register new session for register new app
         function Test:TC3_Precondition1()
@@ -218,6 +211,6 @@ local arrayGroups_nonPrimaryRC = {
           end
       --End Test case CommonRequestCheck.3.1.2
 
-function Test:PostconditionsRestoreFile()
+function Test.PostconditionsRestoreFile()
   commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 end

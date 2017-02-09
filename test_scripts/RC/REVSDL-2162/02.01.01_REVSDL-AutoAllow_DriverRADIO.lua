@@ -2,9 +2,9 @@ local commonSteps = require("user_modules/shared_testcases/commonSteps")
 commonSteps:DeleteLogsFileAndPolicyTable()
 local commonPreconditions = require("user_modules/shared_testcases/commonPreconditions")
 commonPreconditions:BackupFile("sdl_preloaded_pt.json")
-commonPreconditions:ReplaceFile("sdl_preloaded_pt.json", "./test_scripts/RC/TestData/REVSDL-2162/sdl_preloaded_pt.json")
+commonPreconditions:ReplaceFile("sdl_preloaded_pt.json", "./test_scripts/RC/TestData/Requirement/sdl_preloaded_pt.json")
 
-revsdl = require("user_modules/revsdl")
+local revsdl = require("user_modules/revsdl")
 
 revsdl.AddUnknownFunctionIDs()
 revsdl.SubscribeToRcInterface()
@@ -15,42 +15,16 @@ config.application1.registerAppInterfaceParams.appID = "8675311"
 Test = require('connecttest')
 require('cardinalities')
 local events = require('events')
-local mobile_session = require('mobile_session')
 
-
+--======================================Requirement========================================--
 ---------------------------------------------------------------------------------------------
--------------------------------------STARTING COMMON FUNCTIONS-------------------------------
----------------------------------------------------------------------------------------------
-
---Using for timeout
-function sleep(iTimeout)
- os.execute("sleep "..tonumber(iTimeout))
-end
---Using for delaying event when AppRegistration
-function DelayedExp()
-  local event = events.Event()
-  event.matches = function(self, e) return self == e end
-  EXPECT_EVENT(event, "Delayed event")
-  RUN_AFTER(function()
-              RAISE_EVENT(event, event)
-            end, 2000)
-end
-
----------------------------------------------------------------------------------------------
-----------------------------------------END COMMON FUNCTIONS---------------------------------
----------------------------------------------------------------------------------------------
-
-
-
---======================================REVSDL-2162========================================--
----------------------------------------------------------------------------------------------
-----------REVSDL-2162: GetInteriorVehicleDataCapabilies - rules for policies checks----------
+----------Requirement: GetInteriorVehicleDataCapabilies - rules for policies checks----------
 ---------------------------------------------------------------------------------------------
 --=========================================================================================--
 
 
 
---===============PLEASE USE PT FILE: "sdl_preloaded_pt.json" UNDER: \TestData\REVSDL-2162\ FOR THIS SCRIPT=====================--
+--===============PLEASE USE PT FILE: "sdl_preloaded_pt.json" UNDER: \TestData\Requirement\ FOR THIS SCRIPT=====================--
 
 
 
@@ -68,7 +42,7 @@ end
                   -- RSDL must
                   -- check "equipment" permissions against the zone from OnDeviceLocationChanged.
                   -- Information:
-                  -- per requirements from REVSDL-966:
+                  -- per requirements from Requirement:
                   -- -> if GetInteriorVehicleDataCapabilities is in "auto_allow", RSDL will transfer it to the vehicle
                   -- -> if GetInteriorVehicleDataCapabilities is in "driver_allow", RSDL will trigger a permission prompt (if accepted - then transfer app's request to the vehicle; if denied - then return "user_disallowed" to the app)
 
@@ -76,7 +50,7 @@ end
   --Description:  RSDL has received app's device location from the vehicle (via OnDeviceLocationChanged)  in auto_allow
 
     --Requirement/Diagrams id in jira:
-        --REVSDL-2162
+        --Requirement
 
     --Verification criteria:
         -- RSDL has received app's device location from the vehicle (via OnDeviceLocationChanged) in auto_allow
@@ -166,6 +140,6 @@ end
     -----------------------------------------------------------------------------------------
   --End Test case CommonRequestCheck.2.2
 
-function Test:PostconditionsRestoreFile()
+function Test.PostconditionsRestoreFile()
   commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 end

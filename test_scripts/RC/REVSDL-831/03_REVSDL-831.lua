@@ -2,10 +2,10 @@ local commonPreconditions = require("user_modules/shared_testcases/commonPrecond
 commonPreconditions:BackupFile("sdl_preloaded_pt.json")
 commonPreconditions:ReplaceFile("sdl_preloaded_pt.json", "./test_scripts/RC/TestData/sdl_preloaded_pt.json")
 
-	local commonSteps = require("user_modules/shared_testcases/commonSteps")
+local commonSteps = require("user_modules/shared_testcases/commonSteps")
 commonSteps:DeleteLogsFileAndPolicyTable()
 
-revsdl = require("user_modules/revsdl")
+local revsdl = require("user_modules/revsdl")
 
 revsdl.AddUnknownFunctionIDs()
 revsdl.SubscribeToRcInterface()
@@ -21,8 +21,6 @@ local mobile  = require('mobile_connection')
 local tcp = require('tcp_connection')
 local file_connection  = require('file_connection')
 local config = require('config')
-local module = require('testbase')
-
 
 --Declaration connected devices.
 --1. Device 2:
@@ -38,9 +36,9 @@ os.execute("ifconfig lo:1 192.168.100.199")
 os.execute("ifconfig lo:2 10.42.0.1")
 
 
---======================================REVSDL-831========================================--
+--======================================Requirement========================================--
 ---------------------------------------------------------------------------------------------
-----------REVSDL-831: R-SDL must set first connected device as a "passenger's"---------------
+----------Requirement: R-SDL must set first connected device as a "passenger's"---------------
 ------------one and change this setting upon user's choice delivered from HMI----------------
 ---------------------------------------------------------------------------------------------
 --=========================================================================================--
@@ -106,7 +104,7 @@ local arrayGroups_nonPrimaryRC =  revsdl.arrayGroups_nonPrimaryRC()
 
 
     --Requirement/Diagrams id in jira:
-        --REVSDL-1213
+        --Requirement
 
     --Verification criteria:
         --In case RSDL knows a device to be driver's and RC.OnSetDriversDevice for another device comes from HMI, RSDL must set the named device as driver's and set the previous one to passenger's.
@@ -422,6 +420,6 @@ local arrayGroups_nonPrimaryRC =  revsdl.arrayGroups_nonPrimaryRC()
 
 --=================================================END TEST CASES 3==========================================================--
 
-function Test:PostconditionsRestoreFile()
+function Test.PostconditionsRestoreFile()
   commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 end

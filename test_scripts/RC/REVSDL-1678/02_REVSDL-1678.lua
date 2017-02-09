@@ -2,10 +2,10 @@ local commonPreconditions = require("user_modules/shared_testcases/commonPrecond
 commonPreconditions:BackupFile("sdl_preloaded_pt.json")
 commonPreconditions:ReplaceFile("sdl_preloaded_pt.json", "./test_scripts/RC/TestData/sdl_preloaded_pt.json")
 
-	local commonSteps = require("user_modules/shared_testcases/commonSteps")
+local commonSteps = require("user_modules/shared_testcases/commonSteps")
 commonSteps:DeleteLogsFileAndPolicyTable()
 
-revsdl = require("user_modules/revsdl")
+local revsdl = require("user_modules/revsdl")
 
 revsdl.AddUnknownFunctionIDs()
 revsdl.SubscribeToRcInterface()
@@ -15,40 +15,13 @@ config.application1.registerAppInterfaceParams.appID = "8675311"
 
 Test = require('connecttest')
 require('cardinalities')
-local events = require('events')
-local mobile_session = require('mobile_session')
-
 
 --groups_PrimaryRC Group
 local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
 
+--======================================Requirement========================================--
 ---------------------------------------------------------------------------------------------
--------------------------------------STARTING COMMON FUNCTIONS-------------------------------
----------------------------------------------------------------------------------------------
-
---Using for timeout
-function sleep(iTimeout)
- os.execute("sleep "..tonumber(iTimeout))
-end
---Using for delaying event when AppRegistration
-function DelayedExp()
-  local event = events.Event()
-  event.matches = function(self, e) return self == e end
-  EXPECT_EVENT(event, "Delayed event")
-  RUN_AFTER(function()
-              RAISE_EVENT(event, event)
-            end, 2000)
-end
-
----------------------------------------------------------------------------------------------
-----------------------------------------END COMMON FUNCTIONS---------------------------------
----------------------------------------------------------------------------------------------
-
-
-
---======================================REVSDL-1678========================================--
----------------------------------------------------------------------------------------------
------------------REVSDL-1678: GetInteriorVehicleData - new param in response and-------------
+-----------------Requirement: GetInteriorVehicleData - new param in response and-------------
 ---------------------------------RSDL's subscription behavior--------------------------------
 ---------------------------------------------------------------------------------------------
 --=========================================================================================--
@@ -66,7 +39,7 @@ end
 	--Description: 	PASSENGER's Device: In case RC app sends valid and allowed-by-policies GetInteriorVehicleData_request with "subscribe:true" parameter and RSDL gets GetInteriorVehicleData_response with "isSubscribed: false", "resultCode: SUCCESS" from HMI
 
 		--Requirement/Diagrams id in jira:
-				--REVSDL-1678
+				--Requirement
 				--Diagram(See opt.#2): https://adc.luxoft.com/jira/secure/attachment/128654/128654_model_GetInteriorVehicleData_subscription.png
 
 		--Verification criteria:
@@ -780,7 +753,7 @@ end
 	--Description: 	DRIVER's Device: In case RC app sends valid and allowed-by-policies GetInteriorVehicleData_request with "subscribe:true" parameter and RSDL gets GetInteriorVehicleData_response with "isSubscribed: false", "resultCode: SUCCESS" from HMI
 
 		--Requirement/Diagrams id in jira:
-				--REVSDL-1678
+				--Requirement
 				--Diagram(See opt.#2): https://adc.luxoft.com/jira/secure/attachment/128654/128654_model_GetInteriorVehicleData_subscription.png
 
 		--Verification criteria:
@@ -1466,6 +1439,6 @@ end
 
 --=================================================END TEST CASES 2==========================================================--
 
-function Test:PostconditionsRestoreFile()
+function Test.PostconditionsRestoreFile()
   commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 end

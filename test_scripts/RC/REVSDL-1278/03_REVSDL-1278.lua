@@ -2,10 +2,10 @@ local commonPreconditions = require("user_modules/shared_testcases/commonPrecond
 commonPreconditions:BackupFile("sdl_preloaded_pt.json")
 commonPreconditions:ReplaceFile("sdl_preloaded_pt.json", "./test_scripts/RC/TestData/sdl_preloaded_pt.json")
 
-	local commonSteps = require("user_modules/shared_testcases/commonSteps")
+local commonSteps = require("user_modules/shared_testcases/commonSteps")
 commonSteps:DeleteLogsFileAndPolicyTable()
 
-revsdl = require("user_modules/revsdl")
+local revsdl = require("user_modules/revsdl")
 
 revsdl.AddUnknownFunctionIDs()
 revsdl.SubscribeToRcInterface()
@@ -15,20 +15,10 @@ config.application1.registerAppInterfaceParams.appID = "8675311"
 
 Test = require('connecttest')
 require('cardinalities')
-local events = require('events')
-local mobile_session = require('mobile_session')
 
---List of resultscode
-local RESULTS_CODE = {"SUCCESS", "WARNINGS", "RESUME_FAILED", "WRONG_LANGUAGE"}
-
---List permission of "OnPermissionsChange" for PrimaryDevice and NonPrimaryDevice
---groups_nonPrimaryRC Group
-local arrayGroups_nonPrimaryRC = revsdl.arrayGroups_nonPrimaryRC()
-
-
---======================================REVSDL-1278=========================================--
+--======================================Requirement=========================================--
 ---------------------------------------------------------------------------------------------
-------------REVSDL-1278: HMILevel change for rc-apps from passenger's device ----------------
+------------Requirement: HMILevel change for rc-apps from passenger's device ----------------
 ---------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------
 --=========================================================================================--
@@ -45,13 +35,13 @@ local arrayGroups_nonPrimaryRC = revsdl.arrayGroups_nonPrimaryRC()
             --From passenger's device
             --Of NONE or BACKGROUND HMILevel sends an RPC
             --And this RPC is allowed by app's assigned policies
-            --And this RPC is from "driver_allow" section (see REVSDL-966 for details)
+            --And this RPC is from "driver_allow" section (see Requirement for details)
             --And the driver accepted the permission prompt
             --RSDL must notify this app via OnHMIStatus (LIMITED, params) about assigned LIMITED HMILevel.
 
     --Requirement/Diagrams id in jira:
-        --REVSDL-1278
-        --TC: REVSDL-1328, REVSDL-1359
+        --Requirement
+        --TC: Requirement, Requirement
 
     --Verification criteria:
         --1. Assign LIMITED for passenger's rc-app - from NONE
@@ -114,9 +104,9 @@ local arrayGroups_nonPrimaryRC = revsdl.arrayGroups_nonPrimaryRC()
                         buttonPressMode = "LONG",
                         buttonName = "VOLUME_UP"
                       })
-                :Do(function(_,data)
+                :Do(function(_,data1)
                   --hmi side: sending Buttons.ButtonPress response
-                  self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+                  self.hmiConnection:SendResponse(data1.id, data1.method, "SUCCESS", {})
                 end)
           end)
 
@@ -251,9 +241,9 @@ local arrayGroups_nonPrimaryRC = revsdl.arrayGroups_nonPrimaryRC()
                         buttonPressMode = "LONG",
                         buttonName = "VOLUME_UP"
                       })
-                :Do(function(_,data)
+                :Do(function(_,data1)
                   --hmi side: sending Buttons.ButtonPress response
-                  self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+                  self.hmiConnection:SendResponse(data1.id, data1.method, "SUCCESS", {})
                 end)
           end)
 
@@ -268,6 +258,6 @@ local arrayGroups_nonPrimaryRC = revsdl.arrayGroups_nonPrimaryRC()
   --End Test case CommonRequestCheck.3.1
 --=================================================END TEST CASES 3==========================================================--
 
-function Test:PostconditionsRestoreFile()
+function Test.PostconditionsRestoreFile()
   commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 end

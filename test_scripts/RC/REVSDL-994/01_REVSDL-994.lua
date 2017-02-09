@@ -2,10 +2,10 @@ local commonPreconditions = require("user_modules/shared_testcases/commonPrecond
 commonPreconditions:BackupFile("sdl_preloaded_pt.json")
 commonPreconditions:ReplaceFile("sdl_preloaded_pt.json", "./test_scripts/RC/TestData/sdl_preloaded_pt.json")
 
-	local commonSteps = require("user_modules/shared_testcases/commonSteps")
+local commonSteps = require("user_modules/shared_testcases/commonSteps")
 commonSteps:DeleteLogsFileAndPolicyTable()
 
-revsdl = require("user_modules/revsdl")
+local revsdl = require("user_modules/revsdl")
 
 revsdl.AddUnknownFunctionIDs()
 revsdl.SubscribeToRcInterface()
@@ -15,12 +15,11 @@ config.application1.registerAppInterfaceParams.appID = "8675311"
 
 Test = require('connecttest')
 require('cardinalities')
-local events = require('events')
 local mobile_session = require('mobile_session')
 
---======================================REVSDL-994========================================--
+--======================================Requirement========================================--
 ---------------------------------------------------------------------------------------------
-------------REVSDL-994: HMILevel change for rc-apps from driver's device---------------------
+------------Requirement: HMILevel change for rc-apps from driver's device---------------------
 ---------------------------------------------------------------------------------------------
 --=========================================================================================--
 
@@ -34,8 +33,8 @@ local arrayGroups_PrimaryRC =  revsdl.arrayGroups_PrimaryRC()
   --Description: 1. In case an application with AppHMIType "REMOTE_CONTROL" successfully registers from driver's device at SDL and this application is not present in HMILevel resumption list, RSDL must notify this app via OnHMIStatus (NONE, params) about assigned NONE HMILevel.
 
     --Requirement/Diagrams id in jira:
-        --REVSDL-994
-        --TC: REVSDL-1071
+        --Requirement
+        --TC: Requirement
 
     --Verification criteria:
         --RC-app from driver's device - assing NONE level - by sending RegisterAppInterface.
@@ -207,6 +206,6 @@ local arrayGroups_PrimaryRC =  revsdl.arrayGroups_PrimaryRC()
   --End Test Case CommonRequestCheck.1
 --===================================================END TEST CASES 1==========================================================--
 
-function Test:PostconditionsRestoreFile()
+function Test.PostconditionsRestoreFile()
   commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 end

@@ -2,10 +2,10 @@ local commonPreconditions = require("user_modules/shared_testcases/commonPrecond
 commonPreconditions:BackupFile("sdl_preloaded_pt.json")
 commonPreconditions:ReplaceFile("sdl_preloaded_pt.json", "./test_scripts/RC/TestData/sdl_preloaded_pt.json")
 
-	local commonSteps = require("user_modules/shared_testcases/commonSteps")
+local commonSteps = require("user_modules/shared_testcases/commonSteps")
 commonSteps:DeleteLogsFileAndPolicyTable()
 
-revsdl = require("user_modules/revsdl")
+local revsdl = require("user_modules/revsdl")
 
 revsdl.AddUnknownFunctionIDs()
 revsdl.SubscribeToRcInterface()
@@ -15,11 +15,9 @@ config.application1.registerAppInterfaceParams.appID = "8675311"
 
 Test = require('connecttest')
 require('cardinalities')
-local events = require('events')
-local mobile_session = require('mobile_session')
 
 ---------------------------------------------------------------------------------------------
------------------------REVSDL-1038: HMI's RPCs validation rules------------------------------
+-----------------------Requirement: HMI's RPCs validation rules------------------------------
 ---------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------
 
@@ -29,11 +27,11 @@ local mobile_session = require('mobile_session')
   --Description:  --8. driver_allow - erroneous resultCode
 
     --Requirement/Diagrams id in jira:
-        --REVSDL-966
-        --[REVSDL-966][TC-09]: 8. driver_allow - erroneous resultCode
+        --Requirement
+        --[Requirement][TC-09]: 8. driver_allow - erroneous resultCode
 
       --Begin Test case ResponseAnyErroneousResultCode
-      --Description: HMI responds with any erroneous resultCode for RC.GetInteriorVehicleDataConsent (This test to [REVSDL-966][TC-09]: 8. driver_allow - erroneous resultCode)
+      --Description: HMI responds with any erroneous resultCode for RC.GetInteriorVehicleDataConsent (This test to [Requirement][TC-09]: 8. driver_allow - erroneous resultCode)
         function Test:GetInteriorVehicleDataConsent_ResponseAnyErroneousResultCode()
           local cid = self.mobileSession:SendRPC("ButtonPress",
           {
@@ -80,6 +78,6 @@ local mobile_session = require('mobile_session')
   --End Test case ResponseFakeParamsNotification.19
 --=================================================BEGIN TEST CASES 19==========================================================--
 
-function Test:PostconditionsRestoreFile()
+function Test.PostconditionsRestoreFile()
   commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 end

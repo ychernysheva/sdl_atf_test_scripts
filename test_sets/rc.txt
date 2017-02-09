@@ -140,8 +140,8 @@
 ./test_scripts/RC/REVSDL-1983/03_REVSDL-1983.lua SDLOPEN-584_SDLOPEN-690
 ./test_scripts/RC/REVSDL-2162/01_REVSDL-2162.lua OriginalRC_Defect
 ./test_scripts/RC/REVSDL-2162/02.01.01_REVSDL-AutoAllow_DriverRADIO.lua
-./test_scripts/RC/REVSDL-2162/02.01_REVSDL-2162.lua OriginalRC_Defect
-./test_scripts/RC/REVSDL-2162/02.02_REVSDL-2162.lua OriginalRC_Defect
+./test_scripts/RC/REVSDL-2162/02.01_REVSDL-2162.lua
+./test_scripts/RC/REVSDL-2162/02.02_REVSDL-2162.lua
 ./test_scripts/RC/REVSDL-2162/02.03_REVSDL-2162.lua
 ./test_scripts/RC/REVSDL-2162/04_REVSDL-2162.lua OriginalRC_Defect
 ./test_scripts/RC/REVSDL-2162/05_REVSDL-2162.lua

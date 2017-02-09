@@ -2,10 +2,10 @@ local commonPreconditions = require("user_modules/shared_testcases/commonPrecond
 commonPreconditions:BackupFile("sdl_preloaded_pt.json")
 commonPreconditions:ReplaceFile("sdl_preloaded_pt.json", "./test_scripts/RC/TestData/sdl_preloaded_pt.json")
 
-	local commonSteps = require("user_modules/shared_testcases/commonSteps")
+local commonSteps = require("user_modules/shared_testcases/commonSteps")
 commonSteps:DeleteLogsFileAndPolicyTable()
 
-revsdl = require("user_modules/revsdl")
+local revsdl = require("user_modules/revsdl")
 
 revsdl.AddUnknownFunctionIDs()
 revsdl.SubscribeToRcInterface()
@@ -15,21 +15,14 @@ config.application1.registerAppInterfaceParams.appID = "8675311"
 
 Test = require('connecttest')
 require('cardinalities')
-local events = require('events')
-local mobile_session = require('mobile_session')
-
---List of resultscode
-local RESULTS_CODE = {"SUCCESS", "WARNINGS", "RESUME_FAILED", "WRONG_LANGUAGE"}
 
 --List permission of "OnPermissionsChange" for PrimaryDevice and NonPrimaryDevice
 --groups_PrimaryRC Group
 local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
---groups_nonPrimaryRC Group
-local arrayGroups_nonPrimaryRC = revsdl.arrayGroups_nonPrimaryRC()
 
---======================================REVSDL-1587========================================--
+--======================================Requirement========================================--
 ---------------------------------------------------------------------------------------------
---------------REVSDL-1587: Send OnHMIStatus("deviceRank") when the device status-------------
+--------------Requirement: Send OnHMIStatus("deviceRank") when the device status-------------
 ---------------------------changes between "driver's" and "passenger's"----------------------
 ---------------------------------------------------------------------------------------------
 --=========================================================================================--
@@ -48,8 +41,8 @@ local arrayGroups_nonPrimaryRC = revsdl.arrayGroups_nonPrimaryRC()
 
 
     --Requirement/Diagrams id in jira:
-        --REVSDL-1587
-        --https://adc.luxoft.com/jira/secure/attachment/121953/121953_Req_2_of_REVSDL-1587.png
+        --Requirement
+        --https://adc.luxoft.com/jira/secure/attachment/121953/121953_Req_2_of_Requirement.png
 
     --Verification criteria:
         --RSDL must send OnHMIStatus("deviceRank: DRIVER", params) notification to application(s) registered with REMOTE_CONTROL appHMIType from <deviceID> device
@@ -82,6 +75,6 @@ local arrayGroups_nonPrimaryRC = revsdl.arrayGroups_nonPrimaryRC()
 
 --=================================================END TEST CASES 2==========================================================--
 
-function Test:PostconditionsRestoreFile()
+function Test.PostconditionsRestoreFile()
   commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 end

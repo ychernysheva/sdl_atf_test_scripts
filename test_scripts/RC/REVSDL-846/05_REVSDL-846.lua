@@ -2,10 +2,10 @@ local commonPreconditions = require("user_modules/shared_testcases/commonPrecond
 commonPreconditions:BackupFile("sdl_preloaded_pt.json")
 commonPreconditions:ReplaceFile("sdl_preloaded_pt.json", "./test_scripts/RC/TestData/sdl_preloaded_pt.json")
 
-	local commonSteps = require("user_modules/shared_testcases/commonSteps")
+local commonSteps = require("user_modules/shared_testcases/commonSteps")
 commonSteps:DeleteLogsFileAndPolicyTable()
 
-revsdl = require("user_modules/revsdl")
+local revsdl = require("user_modules/revsdl")
 
 revsdl.AddUnknownFunctionIDs()
 revsdl.SubscribeToRcInterface()
@@ -84,9 +84,9 @@ end
 
 
 
---======================================REVSDL-846=========================================--
+--======================================Requirement=========================================--
 ---------------------------------------------------------------------------------------------
--------------------------REVSDL-846: R-SDL must inform the app when the ---------------------
+-------------------------Requirement: R-SDL must inform the app when the ---------------------
 ---------------------"driver's"/"passenger's" state of the device is changed-----------------
 ---------------------------------------------------------------------------------------------
 --=========================================================================================--
@@ -101,8 +101,8 @@ end
   --Description:  In case the device's "driver's"/"passenger's" state is either changed from one to another or initially set, Rev-SDL must notify each app registered from such device via OnPermissionsChange notification about changed policy permission.
 
     --Requirement/Diagrams id in jira:
-        --REVSDL-846
-        --TC: REVSDL-973 (SKIP STEP4 BECAUSE OF CONNECTING TWO DEVICES)
+        --Requirement
+        --TC: Requirement (SKIP STEP4 BECAUSE OF CONNECTING TWO DEVICES)
 
     --Verification criteria:
         --5. In case the device's "driver's"/"passenger's" state is either changed from one to another or initially set, Rev-SDL must notify each app registered from such device via OnPermissionsChange notification about changed policy permission.
@@ -395,7 +395,7 @@ end
 
 
     --Requirement/Diagrams id in jira:
-        --REVSDL-973
+        --Requirement
 
     --Verification criteria:
         --In case the device's "driver's"/"passenger's" state is either changed from one to another or initially set, Rev-SDL must notify each app registered from such device via OnPermissionsChange notification about changed policy permission.
@@ -747,6 +747,6 @@ end
   --End Test case CommonRequestCheck.5.2
 --=================================================END TEST CASES 5==========================================================--
 
-function Test:PostconditionsRestoreFile()
+function Test.PostconditionsRestoreFile()
   commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 end

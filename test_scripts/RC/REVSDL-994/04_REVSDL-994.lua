@@ -2,10 +2,10 @@ local commonPreconditions = require("user_modules/shared_testcases/commonPrecond
 commonPreconditions:BackupFile("sdl_preloaded_pt.json")
 commonPreconditions:ReplaceFile("sdl_preloaded_pt.json", "./test_scripts/RC/TestData/sdl_preloaded_pt.json")
 
-	local commonSteps = require("user_modules/shared_testcases/commonSteps")
+local commonSteps = require("user_modules/shared_testcases/commonSteps")
 commonSteps:DeleteLogsFileAndPolicyTable()
 
-revsdl = require("user_modules/revsdl")
+local revsdl = require("user_modules/revsdl")
 
 revsdl.AddUnknownFunctionIDs()
 revsdl.SubscribeToRcInterface()
@@ -15,12 +15,10 @@ config.application1.registerAppInterfaceParams.appID = "8675311"
 
 Test = require('connecttest')
 require('cardinalities')
-local events = require('events')
-local mobile_session = require('mobile_session')
 
---======================================REVSDL-994========================================--
+--======================================Requirement========================================--
 ---------------------------------------------------------------------------------------------
-------------REVSDL-994: HMILevel change for rc-apps from driver's device---------------------
+------------Requirement: HMILevel change for rc-apps from driver's device---------------------
 ---------------------------------------------------------------------------------------------
 --=========================================================================================--
 
@@ -37,8 +35,8 @@ local arrayGroups_PrimaryRC =  revsdl.arrayGroups_PrimaryRC()
   --Description:  --FULL to LIMITED with any reason
 
     --Requirement/Diagrams id in jira:
-        --REVSDL-994
-        --TC: REVSDL-1074
+        --Requirement
+        --TC: Requirement
 
     --Verification criteria:
         --In case an application with AppHMIType "REMOTE_CONTROL" from driver's device is in HMILevel of FULL and RSDL gets BC.OnAppDeactivated (<any reason>)
@@ -265,6 +263,6 @@ local arrayGroups_PrimaryRC =  revsdl.arrayGroups_PrimaryRC()
 
 --=================================================END TEST CASES 4==========================================================--
 
-function Test:PostconditionsRestoreFile()
+function Test.PostconditionsRestoreFile()
   commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 end

@@ -2,10 +2,10 @@ local commonPreconditions = require("user_modules/shared_testcases/commonPrecond
 commonPreconditions:BackupFile("sdl_preloaded_pt.json")
 commonPreconditions:ReplaceFile("sdl_preloaded_pt.json", "./test_scripts/RC/TestData/sdl_preloaded_pt.json")
 
-	local commonSteps = require("user_modules/shared_testcases/commonSteps")
+local commonSteps = require("user_modules/shared_testcases/commonSteps")
 commonSteps:DeleteLogsFileAndPolicyTable()
 
-revsdl = require("user_modules/revsdl")
+local revsdl = require("user_modules/revsdl")
 
 revsdl.AddUnknownFunctionIDs()
 revsdl.SubscribeToRcInterface()
@@ -15,14 +15,11 @@ config.application1.registerAppInterfaceParams.appID = "8675311"
 
 Test = require('connecttest')
 require('cardinalities')
-local events = require('events')
 local mobile_session = require('mobile_session')
 
-
-local arrayGroups_nonPrimaryRCNotification = revsdl.arrayGroups_nonPrimaryRCNotification()
---======================================REVSDL-1827========================================--
+--======================================Requirement========================================--
 ---------------------------------------------------------------------------------------------
---------------REVSDL-1827: Policies: "equipment" permissions must be checked-----------------
+--------------Requirement: Policies: "equipment" permissions must be checked-----------------
 -------------------------- against location provided from HMI--------------------------------
 ---------------------------------------------------------------------------------------------
 --=========================================================================================--
@@ -40,8 +37,8 @@ local arrayGroups_nonPrimaryRCNotification = revsdl.arrayGroups_nonPrimaryRCNoti
 	--Description: 	RSDL must send the RC.GetInteriorVehicleDataConsent for getting driver's allowance for this different application to the vehicle (HMI).
 
 		--Requirement/Diagrams id in jira:
-				--REVSDL-1827
-				--REVSDL-1863
+				--Requirement
+				--Requirement
 
 		--Verification criteria:
 				--RSDL must send the RC.GetInteriorVehicleDataConsent for getting driver's allowance for this different application to the vehicle (HMI).
@@ -294,6 +291,6 @@ local arrayGroups_nonPrimaryRCNotification = revsdl.arrayGroups_nonPrimaryRCNoti
 
 --=================================================END TEST CASES 11==========================================================--
 
-function Test:PostconditionsRestoreFile()
+function Test.PostconditionsRestoreFile()
   commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 end

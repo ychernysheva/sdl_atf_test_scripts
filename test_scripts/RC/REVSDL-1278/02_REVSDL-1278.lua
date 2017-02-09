@@ -2,10 +2,10 @@ local commonPreconditions = require("user_modules/shared_testcases/commonPrecond
 commonPreconditions:BackupFile("sdl_preloaded_pt.json")
 commonPreconditions:ReplaceFile("sdl_preloaded_pt.json", "./test_scripts/RC/TestData/sdl_preloaded_pt.json")
 
-	local commonSteps = require("user_modules/shared_testcases/commonSteps")
+local commonSteps = require("user_modules/shared_testcases/commonSteps")
 commonSteps:DeleteLogsFileAndPolicyTable()
 
-revsdl = require("user_modules/revsdl")
+local revsdl = require("user_modules/revsdl")
 
 revsdl.AddUnknownFunctionIDs()
 revsdl.SubscribeToRcInterface()
@@ -15,15 +15,10 @@ config.application1.registerAppInterfaceParams.appID = "8675311"
 
 Test = require('connecttest')
 require('cardinalities')
-local events = require('events')
-local mobile_session = require('mobile_session')
 
---List of resultscode
-local RESULTS_CODE = {"SUCCESS", "WARNINGS", "RESUME_FAILED", "WRONG_LANGUAGE"}
-
---======================================REVSDL-1278=========================================--
+--======================================Requirement=========================================--
 ---------------------------------------------------------------------------------------------
-------------REVSDL-1278: HMILevel change for rc-apps from passenger's device ----------------
+------------Requirement: HMILevel change for rc-apps from passenger's device ----------------
 ---------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------
 --=========================================================================================--
@@ -41,12 +36,12 @@ local RESULTS_CODE = {"SUCCESS", "WARNINGS", "RESUME_FAILED", "WRONG_LANGUAGE"}
             --Of NONE HMILevel
             --Sends a remote-control RPC
             --And this RPC is allowed by app's assigned policies
-            --And this RPC is from "auto_allow" section (see REVSDL-966 for details),
+            --And this RPC is from "auto_allow" section (see Requirement for details),
             --RSDL must notify this app via OnHMIStatus (BACKGROUND, params) about assigned BACKGROUND HMILevel.
 
     --Requirement/Diagrams id in jira:
-        --REVSDL-1278
-        --TC: REVSDL-1300, REVSDL-1336
+        --Requirement
+        --TC: Requirement, Requirement
 
     --Verification criteria:
         --1. Assign BACKGROUND for passenger's rc-app - by sending RPC from "auto_allow"
@@ -158,9 +153,9 @@ local RESULTS_CODE = {"SUCCESS", "WARNINGS", "RESUME_FAILED", "WRONG_LANGUAGE"}
                         buttonPressMode = "LONG",
                         buttonName = "VOLUME_UP"
                       })
-                :Do(function(_,data)
+                :Do(function(_,data1)
                   --hmi side: sending Buttons.ButtonPress response
-                  self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+                  self.hmiConnection:SendResponse(data1.id, data1.method, "SUCCESS", {})
                 end)
           end)
 
@@ -174,7 +169,7 @@ local RESULTS_CODE = {"SUCCESS", "WARNINGS", "RESUME_FAILED", "WRONG_LANGUAGE"}
     -----------------------------------------------------------------------------------------
 
       --Begin Test case CommonRequestCheck.2.1.3
-      --Description: (refer to defect: REVSDL-1541)
+      --Description: (refer to defect: Requirement)
               --1. RSDL receives BC.OnPhoneCall(isActive:true) from HMI.
               --2. RSDL returns to mobile: OnHMIStatus(LIMITED, params) notification.
         function Test:TC2_OnPhoneCallLIMITED()
@@ -264,9 +259,9 @@ local RESULTS_CODE = {"SUCCESS", "WARNINGS", "RESUME_FAILED", "WRONG_LANGUAGE"}
                         buttonPressMode = "LONG",
                         buttonName = "VOLUME_UP"
                       })
-                :Do(function(_,data)
+                :Do(function(_,data1)
                   --hmi side: sending Buttons.ButtonPress response
-                  self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+                  self.hmiConnection:SendResponse(data1.id, data1.method, "SUCCESS", {})
                 end)
           end)
 
@@ -279,7 +274,7 @@ local RESULTS_CODE = {"SUCCESS", "WARNINGS", "RESUME_FAILED", "WRONG_LANGUAGE"}
 
     -----------------------------------------------------------------------------------------
 
-      --[[Begin Test case CommonRequestCheck.2.1.6  : Removed this case due to defect: REVSDL-1378
+      --[[Begin Test case CommonRequestCheck.2.1.6  : Removed this case due to defect: Requirement
       --Description:
               --1. HMI sends to RSDL: OnEmergencyEvent(ON)
               --2. RSDL returns to mobile: OnHMIStatus(BACKGROUND, params) notification.
@@ -300,6 +295,6 @@ local RESULTS_CODE = {"SUCCESS", "WARNINGS", "RESUME_FAILED", "WRONG_LANGUAGE"}
   --End Test case CommonRequestCheck.2.1
 --=================================================END TEST CASES 2==========================================================--
 
-function Test:PostconditionsRestoreFile()
+function Test.PostconditionsRestoreFile()
   commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 end

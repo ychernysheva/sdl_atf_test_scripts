@@ -2,10 +2,10 @@ local commonPreconditions = require("user_modules/shared_testcases/commonPrecond
 commonPreconditions:BackupFile("sdl_preloaded_pt.json")
 commonPreconditions:ReplaceFile("sdl_preloaded_pt.json", "./test_scripts/RC/TestData/sdl_preloaded_pt.json")
 
-	local commonSteps = require("user_modules/shared_testcases/commonSteps")
+local commonSteps = require("user_modules/shared_testcases/commonSteps")
 commonSteps:DeleteLogsFileAndPolicyTable()
 
-revsdl = require("user_modules/revsdl")
+local revsdl = require("user_modules/revsdl")
 
 revsdl.AddUnknownFunctionIDs()
 revsdl.SubscribeToRcInterface()
@@ -21,7 +21,6 @@ local mobile  = require('mobile_connection')
 local tcp = require('tcp_connection')
 local file_connection  = require('file_connection')
 local config = require('config')
-local module = require('testbase')
 
 
 ---------------------------------------------------------------------------------------------
@@ -100,9 +99,9 @@ end
 
 
 
---======================================REVSDL-1954========================================--
+--======================================Requirement========================================--
 ---------------------------------------------------------------------------------------------
------------REVSDL-1954: Same-named applications with the same appIDs must be-----------------
+-----------Requirement: Same-named applications with the same appIDs must be-----------------
 --------------------------------allowed from different devices-------------------------------
 ---------------------------------------------------------------------------------------------
 --=========================================================================================--
@@ -119,7 +118,7 @@ end
 					--Same <deviceRank>: Setting Driver's device before App1 Connected
 
 		--Requirement/Diagrams id in jira:
-				--REVSDL-1954
+				--Requirement
 
 		--Verification criteria:
 				--RSDL must respond with RegisterAppInterface (resultCode: DUPLICATE_NAME, success: false, params)
@@ -338,6 +337,6 @@ end
 
 --=================================================END TEST CASES 4==========================================================--
 
-function Test:PostconditionsRestoreFile()
+function Test.PostconditionsRestoreFile()
   commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 end

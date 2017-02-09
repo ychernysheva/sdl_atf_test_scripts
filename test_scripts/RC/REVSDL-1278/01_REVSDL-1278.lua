@@ -2,10 +2,10 @@ local commonPreconditions = require("user_modules/shared_testcases/commonPrecond
 commonPreconditions:BackupFile("sdl_preloaded_pt.json")
 commonPreconditions:ReplaceFile("sdl_preloaded_pt.json", "./test_scripts/RC/TestData/sdl_preloaded_pt.json")
 
-	local commonSteps = require("user_modules/shared_testcases/commonSteps")
+local commonSteps = require("user_modules/shared_testcases/commonSteps")
 commonSteps:DeleteLogsFileAndPolicyTable()
 
-revsdl = require("user_modules/revsdl")
+local revsdl = require("user_modules/revsdl")
 
 revsdl.AddUnknownFunctionIDs()
 revsdl.SubscribeToRcInterface()
@@ -15,20 +15,16 @@ config.application1.registerAppInterfaceParams.appID = "8675311"
 
 Test = require('connecttest')
 require('cardinalities')
-local events = require('events')
 local mobile_session = require('mobile_session')
-
---List of resultscode
-local RESULTS_CODE = {"SUCCESS", "WARNINGS", "RESUME_FAILED", "WRONG_LANGUAGE"}
 
 --List permission of "OnPermissionsChange" for PrimaryDevice and NonPrimaryDevice
 --groups_nonPrimaryRC Group
 local arrayGroups_nonPrimaryRC = revsdl.arrayGroups_nonPrimaryRC()
 
 
---======================================REVSDL-1278=========================================--
+--======================================Requirement=========================================--
 ---------------------------------------------------------------------------------------------
-------------REVSDL-1278: HMILevel change for rc-apps from passenger's device ----------------
+------------Requirement: HMILevel change for rc-apps from passenger's device ----------------
 ---------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------
 --=========================================================================================--
@@ -44,8 +40,8 @@ local arrayGroups_nonPrimaryRC = revsdl.arrayGroups_nonPrimaryRC()
   --Description:  In case an application with AppHMIType "REMOTE_CONTROL" successfully registers from passenger's device at SDL and this application is not present in HMILevel resumption list, RSDL must notify this app via OnHMIStatus (NONE, params) about assigned NONE HMILevel.
 
     --Requirement/Diagrams id in jira:
-        --REVSDL-1278
-        --TC: REVSDL-1299, REVSDL-1337
+        --Requirement
+        --TC: Requirement, Requirement
 
     --Verification criteria:
         --1. Assign NONE for passenger's rc-app - by RegisterAppInterface
@@ -174,9 +170,9 @@ local arrayGroups_nonPrimaryRC = revsdl.arrayGroups_nonPrimaryRC()
                         buttonPressMode = "LONG",
                         buttonName = "VOLUME_UP"
                       })
-                :Do(function(_,data)
+                :Do(function(_,data1)
                   --hmi side: sending Buttons.ButtonPress response
-                  self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+                  self.hmiConnection:SendResponse(data1.id, data1.method, "SUCCESS", {})
                 end)
           end)
 
@@ -210,6 +206,6 @@ local arrayGroups_nonPrimaryRC = revsdl.arrayGroups_nonPrimaryRC()
 
 --=================================================END TEST CASES 1==========================================================--
 
-function Test:PostconditionsRestoreFile()
+function Test.PostconditionsRestoreFile()
   commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 end

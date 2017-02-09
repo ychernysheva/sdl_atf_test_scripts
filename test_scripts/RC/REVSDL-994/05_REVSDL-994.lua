@@ -2,10 +2,10 @@ local commonPreconditions = require("user_modules/shared_testcases/commonPrecond
 commonPreconditions:BackupFile("sdl_preloaded_pt.json")
 commonPreconditions:ReplaceFile("sdl_preloaded_pt.json", "./test_scripts/RC/TestData/sdl_preloaded_pt.json")
 
-	local commonSteps = require("user_modules/shared_testcases/commonSteps")
+local commonSteps = require("user_modules/shared_testcases/commonSteps")
 commonSteps:DeleteLogsFileAndPolicyTable()
 
-revsdl = require("user_modules/revsdl")
+local revsdl = require("user_modules/revsdl")
 
 revsdl.AddUnknownFunctionIDs()
 revsdl.SubscribeToRcInterface()
@@ -15,12 +15,10 @@ config.application1.registerAppInterfaceParams.appID = "8675311"
 
 Test = require('connecttest')
 require('cardinalities')
-local events = require('events')
-local mobile_session = require('mobile_session')
 
---======================================REVSDL-994========================================--
+--======================================Requirement========================================--
 ---------------------------------------------------------------------------------------------
-------------REVSDL-994: HMILevel change for rc-apps from driver's device---------------------
+------------Requirement: HMILevel change for rc-apps from driver's device---------------------
 ---------------------------------------------------------------------------------------------
 --=========================================================================================--
 
@@ -39,8 +37,8 @@ local arrayGroups_nonPrimaryRC = revsdl.arrayGroups_nonPrimaryRC()
   --Description:  In case an application with AppHMIType "REMOTE_CONTROL" from driver's device is in any of NONE, BACKGROUND or LIMITED HMILevel and RSDL receives SDL.ActivateApp for this application (= the vehicle HMI User activates this application from the HMI), RSDL must assign FULL HMILevel to this application and send it OnHMIStatus (FULL, params) notification
 
     --Requirement/Diagrams id in jira:
-        --REVSDL-994
-        --TC: REVSDL-1076
+        --Requirement
+        --TC: Requirement
 
     --Verification criteria:
         --NONE to FULL
@@ -223,6 +221,6 @@ local arrayGroups_nonPrimaryRC = revsdl.arrayGroups_nonPrimaryRC()
 
 --=================================================END TEST CASES 5==========================================================--
 
-function Test:PostconditionsRestoreFile()
+function Test.PostconditionsRestoreFile()
   commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 end

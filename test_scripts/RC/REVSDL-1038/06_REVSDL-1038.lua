@@ -2,10 +2,10 @@ local commonPreconditions = require("user_modules/shared_testcases/commonPrecond
 commonPreconditions:BackupFile("sdl_preloaded_pt.json")
 commonPreconditions:ReplaceFile("sdl_preloaded_pt.json", "./test_scripts/RC/TestData/sdl_preloaded_pt.json")
 
-	local commonSteps = require("user_modules/shared_testcases/commonSteps")
+local commonSteps = require("user_modules/shared_testcases/commonSteps")
 commonSteps:DeleteLogsFileAndPolicyTable()
 
-revsdl = require("user_modules/revsdl")
+local revsdl = require("user_modules/revsdl")
 
 revsdl.AddUnknownFunctionIDs()
 revsdl.SubscribeToRcInterface()
@@ -15,78 +15,9 @@ config.application1.registerAppInterfaceParams.appID = "8675311"
 
 Test = require('connecttest')
 require('cardinalities')
-local events = require('events')
-local mobile_session = require('mobile_session')
 
 ---------------------------------------------------------------------------------------------
--------------------------------------STARTING COMMON FUNCTIONS-------------------------------
----------------------------------------------------------------------------------------------
-
-
---Creating an interiorVehicleDataCapability with specificed zone and moduleType
-local function interiorVehicleDataCapability(strModuleType, icol, icolspan, ilevel, ilevelspan, irow, irowspan)
-  return{
-      moduleZone = {
-        col = icol,
-        colspan = icolspan,
-        level = ilevel,
-        levelspan = ilevelspan,
-        row = irow,
-        rowspan=  irowspan
-      },
-      moduleType = strModuleType
-  }
-end
-
---Creating an interiorVehicleDataCapabilities array with maxsize = iMaxsize
-local function interiorVehicleDataCapabilities(strModuleType, icol, icolspan, ilevel, ilevelspan, irow, irowspan, iMaxsize)
-  local items = {}
-  if iItemCount == 1 then
-    table.insert(items, interiorVehicleDataCapability(strModuleType, icol, icolspan, ilevel, ilevelspan, irow, irowspan))
-  else
-    for i=1, iMaxsize do
-      table.insert(items, interiorVehicleDataCapability(strModuleType, icol, icolspan, ilevel, ilevelspan, irow, irowspan))
-    end
-  end
-  return items
-end
-
----------------------------------------------------------------------------------------------
-----------------------------------------END COMMON FUNCTIONS---------------------------------
----------------------------------------------------------------------------------------------
-
-
----------------------------------------------------------------------------------------------
--------------------------------------------Preconditions-------------------------------------
----------------------------------------------------------------------------------------------
-  --Begin Precondition.1. Need to be uncomment for checking Driver's device case
-  --[[Description: Activation App by sending SDL.ActivateApp
-
-    function Test:WaitActivation()
-
-      --mobile side: Expect OnHMIStatus notification
-      EXPECT_NOTIFICATION("OnHMIStatus")
-
-      --hmi side: sending SDL.ActivateApp request
-      local rid = self.hmiConnection:SendRequest("SDL.ActivateApp",
-                            { appID = self.applications["Test Application"] })
-
-      --hmi side: send request RC.OnSetDriversDevice
-      self.hmiConnection:SendNotification("RC.OnSetDriversDevice",
-      {device = {name = "127.0.0.1", id = 1, isSDLAllowed = true}})
-
-      --hmi side: Waiting for SDL.ActivateApp response
-      EXPECT_HMIRESPONSE(rid)
-
-    end]]
-  --End Precondition.1
-
-  -----------------------------------------------------------------------------------------
-
-
-
----------------------------------------------------------------------------------------------
------------------------REVSDL-1038: HMI's RPCs validation rules------------------------------
+-----------------------Requirement: HMI's RPCs validation rules------------------------------
 ---------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------
   --Begin Test suit CommonRequestCheck
@@ -97,7 +28,7 @@ end
     -- Invalid notification
     -- Fake params
 
---NOTE: CANNOT EXECUTE THESE TESTCASES BECAUSE OF DEFECT: REVSDL-1369:
+--NOTE: CANNOT EXECUTE THESE TESTCASES BECAUSE OF DEFECT: Requirement:
 ----<Not related to RSDL functionality. Limitation of SDL project.>----
 
 --=================================================BEGIN TEST CASES 6==========================================================--
@@ -106,7 +37,7 @@ end
   --Description:  --Invalid response expected by RSDL
 
     --Requirement/Diagrams id in jira:
-        --REVSDL-1038
+        --Requirement
         --GetInteriorVehicleDataConsent
 
     --Verification criteria:
@@ -160,6 +91,6 @@ end
 
 --=================================================END TEST CASES 6==========================================================--
 
-function Test:PostconditionsRestoreFile()
+function Test.PostconditionsRestoreFile()
   commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 end

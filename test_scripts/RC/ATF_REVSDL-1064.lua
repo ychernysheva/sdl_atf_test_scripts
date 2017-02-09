@@ -5,7 +5,7 @@ commonPreconditions:ReplaceFile("sdl_preloaded_pt.json", "./test_scripts/RC/Test
 local commonSteps = require("user_modules/shared_testcases/commonSteps")
 commonSteps:DeleteLogsFileAndPolicyTable()
 
-revsdl = require("user_modules/revsdl")
+local revsdl = require("user_modules/revsdl")
 
 revsdl.AddUnknownFunctionIDs()
 revsdl.SubscribeToRcInterface()
@@ -14,12 +14,10 @@ config.application1.registerAppInterfaceParams.appHMIType = { "REMOTE_CONTROL" }
 
 Test = require('connecttest')
 require('cardinalities')
-local events = require('events')
-local mobile_session = require('mobile_session')
 
---======================================REVSDL-994=========================================--
+--======================================Requirement=========================================--
 ---------------------------------------------------------------------------------------------
-------------REVSDL-1064: "USER_EXIT" of rc-application from vehicle HMI----------------------
+------------Requirement: "USER_EXIT" of rc-application from vehicle HMI----------------------
 ---------------------------------------------------------------------------------------------
 --=========================================================================================--
 
@@ -33,8 +31,8 @@ local mobile_session = require('mobile_session')
   --Description:  Passenger's device with HMILevel LIMITED, when RSDL receives BC.OnExitApplication("USER_EXIT"), changing it to NONE
 
     --Requirement/Diagrams id in jira:
-        --REVSDL-994
-        --TC: REVSDL-1335
+        --Requirement
+        --TC: Requirement
 
     --Verification criteria:
         --In case a remote-control application from passenger's device is in LIMITED HMILevel and RSDL receives BC.OnExitApplication("USER_EXIT") from HMI for this app, RSDL must notify this app via OnHMIStatus(HMILevel: NONE, params)
@@ -132,6 +130,6 @@ local mobile_session = require('mobile_session')
 
 --=================================================END TEST CASES 1==========================================================--
 
-function Test:PostconditionsRestoreFile()
+function Test.PostconditionsRestoreFile()
   commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 end

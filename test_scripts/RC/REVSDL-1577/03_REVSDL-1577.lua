@@ -2,10 +2,10 @@ local commonPreconditions = require("user_modules/shared_testcases/commonPrecond
 commonPreconditions:BackupFile("sdl_preloaded_pt.json")
 commonPreconditions:ReplaceFile("sdl_preloaded_pt.json", "./test_scripts/RC/TestData/sdl_preloaded_pt.json")
 
-	local commonSteps = require("user_modules/shared_testcases/commonSteps")
+local commonSteps = require("user_modules/shared_testcases/commonSteps")
 commonSteps:DeleteLogsFileAndPolicyTable()
 
-revsdl = require("user_modules/revsdl")
+local revsdl = require("user_modules/revsdl")
 
 revsdl.AddUnknownFunctionIDs()
 revsdl.SubscribeToRcInterface()
@@ -15,8 +15,6 @@ config.application1.registerAppInterfaceParams.appID = "8675311"
 
 Test = require('connecttest')
 require('cardinalities')
-local events = require('events')
-local mobile_session = require('mobile_session')
 
 --List permission of "OnPermissionsChange" for PrimaryDevice and NonPrimaryDevice
 --groups_PrimaryRC Group
@@ -25,15 +23,15 @@ local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
 local arrayGroups_nonPrimaryRC = revsdl.arrayGroups_nonPrimaryRC()
 
 
---======================================REVSDL-1577========================================--
+--======================================Requirement========================================--
 ---------------------------------------------------------------------------------------------
---------------REVSDL-1577: A device previously set as "driver's" must be---------------------
+--------------Requirement: A device previously set as "driver's" must be---------------------
 ------------------------------ switchable to "passenger's"-----------------------------------
 ---------------------------------------------------------------------------------------------
 --=========================================================================================--
 
 --=================================================BEGIN TEST CASES 3==========================================================--
-  --Begin Test suit CommonRequestCheck.3 for Req.#3 (TCs: REVSDL-1617 - [REVSDL-1577][TC-05]: RSDL sets device as passenger in case receiving RC.OnDeviceRankChanged ("PASSENGER", deviceID))
+  --Begin Test suit CommonRequestCheck.3 for Req.#3 (TCs: Requirement - [Requirement][TC-05]: RSDL sets device as passenger in case receiving RC.OnDeviceRankChanged ("PASSENGER", deviceID))
 
   --Description: In case RSDL knows a device to be driver's and RC.OnDeviceRankChanged ("PASSENGER", deviceID) for the same device comes from HMI, RSDL must set this device as passenger's
 
@@ -43,7 +41,7 @@ local arrayGroups_nonPrimaryRC = revsdl.arrayGroups_nonPrimaryRC()
 
 
     --Requirement/Diagrams id in jira:
-        --REVSDL-1577
+        --Requirement
 
     --Verification criteria:
         --In case RSDL knows a device to be driver's and RC.OnDeviceRankChanged ("PASSENGER", deviceID) for the same device comes from HMI, RSDL must set this device as passenger's
@@ -95,8 +93,8 @@ local arrayGroups_nonPrimaryRC = revsdl.arrayGroups_nonPrimaryRC()
 
 
     --Requirement/Diagrams id in jira:
-        --REVSDL-1577
-        --TC: REVSDL-1619
+        --Requirement
+        --TC: Requirement
 
     --Verification criteria:
         --In case RSDL knows a device to be driver's and RC.OnDeviceRankChanged ("PASSENGER", deviceID) for the same device comes from HMI, RSDL must set this device as passenger's
@@ -378,8 +376,8 @@ local arrayGroups_nonPrimaryRC = revsdl.arrayGroups_nonPrimaryRC()
 
 
     --Requirement/Diagrams id in jira:
-        --REVSDL-1577
-        --TC: REVSDL-1620
+        --Requirement
+        --TC: Requirement
 
     --Verification criteria:
         --In case RSDL knows a device to be driver's and RC.OnDeviceRankChanged ("PASSENGER", deviceID) for the same device comes from HMI, RSDL must set this device as passenger's
@@ -638,6 +636,6 @@ local arrayGroups_nonPrimaryRC = revsdl.arrayGroups_nonPrimaryRC()
 
 --=================================================END TEST CASES 3==========================================================--
 
-function Test:PostconditionsRestoreFile()
+function Test.PostconditionsRestoreFile()
   commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 end
