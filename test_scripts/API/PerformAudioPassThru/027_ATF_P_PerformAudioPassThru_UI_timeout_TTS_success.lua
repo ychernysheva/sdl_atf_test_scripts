@@ -1,7 +1,6 @@
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
 -- [GeneralResultCodes] GENERIC_ERROR watchdog timeout from HMI
--- SDL must return GENERIC_ERROR result to mobile app in case one of HMI components does not respond being supported and active
 -- [HMI API] UI.PerformAudioPassThru request/response
 -- [HMI API] TTS.Speak request/response
 -- [Mobile API] PerformAudioPassThru request/response
@@ -116,9 +115,7 @@ commonFunctions:newTestCasesGroup("Test")
 	        value = "icon.png"
 	      }
 	    })
-	  :Do(function() -- No HMI response is sent
-      end)
-
+	  -- No HMI response is sent
   if
 	  (self.appHMITypes["NAVIGATION"] == true) or
 	  (self.appHMITypes["COMMUNICATION"] == true) or
@@ -132,7 +129,7 @@ commonFunctions:newTestCasesGroup("Test")
     EXPECT_NOTIFICATION("OnHMIStatus"):Times(0)
   end
 
-  self.mobileSession:ExpectResponse(CorIdPerformAudioPassThru, {success = false, resultCode = "GENERIC_ERROR"})
+  self.mobileSession:ExpectResponse(CorIdPerformAudioPassThru, {success = false, resultCode = "GENERIC_ERROR", info = "UI.PerformAudioPassThru component does not respond"})
   EXPECT_NOTIFICATION("OnHashChange",{}):Times(0)
   
 end
