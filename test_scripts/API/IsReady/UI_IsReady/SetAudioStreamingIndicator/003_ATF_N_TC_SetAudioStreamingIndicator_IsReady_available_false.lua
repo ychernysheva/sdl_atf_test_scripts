@@ -74,7 +74,7 @@ commonSteps:RegisterAppInterface("Precondition_RegisterAppInterface")
 
 function Test:Precondition_ActivateApp()
   commonSteps:ActivateAppInSpecificLevel(self, self.applications[config.application1.registerAppInterfaceParams.appName])
-  EXPECT_NOTIFICATION("OnHMIStatus", {systemContext = "MAIN", hmiLevel = "FULL", audible = ""})
+  EXPECT_NOTIFICATION("OnHMIStatus", {systemContext = "MAIN", hmiLevel = "FULL"})
 end
 
 --[[ Test ]]
