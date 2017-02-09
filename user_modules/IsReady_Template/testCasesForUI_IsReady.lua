@@ -2,6 +2,7 @@ local testCasesForUI_IsReady = {}
 
 require('atf.util')
 local events = require("events")
+local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 
 --[[@InitHMI_onReady_without_UI_IsReady_available_false: replace original InitHMIOnReady from connecttest
 --! without expect UI.IsReady
@@ -267,6 +268,8 @@ function testCasesForUI_IsReady.InitHMI_onReady_without_UI_IsReady(self, exp_occ
     end)
 
   self.hmiConnection:SendNotification("BasicCommunication.OnReady")
+
+  commonTestCases:DelayedExp(20000)
 end
 
 return testCasesForUI_IsReady
