@@ -2,6 +2,7 @@ local testCasesForTTS_IsReady = {}
 
 require('atf.util')
 local events = require("events")
+local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 
 --[[@InitHMI_onReady_without_TTS_IsReady_available_false: replace original InitHMIOnReady from connecttest
 --! without expect TTS.IsReady
@@ -266,6 +267,7 @@ function testCasesForTTS_IsReady.InitHMI_onReady_without_TTS_IsReady(self, exp_o
     end)
 
   self.hmiConnection:SendNotification("BasicCommunication.OnReady")
+    commonTestCases:DelayedExp(20000)
 end
 
 return testCasesForTTS_IsReady
