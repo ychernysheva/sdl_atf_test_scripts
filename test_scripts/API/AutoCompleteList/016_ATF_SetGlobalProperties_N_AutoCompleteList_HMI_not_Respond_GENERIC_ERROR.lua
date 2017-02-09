@@ -1,15 +1,15 @@
 --------------------------------------------------------------------------------------------
 -- Requirement summary:
--- [SetGlobalProperties] SDL respond <success = false, resultCode = "GENERIC_ERROR"> to mobile app
+-- [SetGlobalProperties] Conditions for SDL respond <success = false, resultCode = "GENERIC_ERROR"> to mobile app
 --
 -- Description:
--- Case when mobile send SetGlobalProperties request, SDL tranfer SetGlobalProperties request with <autoCompleteList> param to HMI, 
--- HMI doesn't respond during default timeout, SDL respond with <GENERIC_ERROR> to mobile app
+-- Case when SDL tranfer SetGlobalProperties_request with <autoCompleteList> param to HMI, HMI doesn't respond,
+-- SDL respond with <GENERIC_ERROR> to mobile app
 --
 -- Performed steps:
 -- 1. Register Application.
 -- 2. Mobile send RPC SetGlobalProperties with <autoCompleteList> 
--- 3. HMI doesn't respond during <DefaultTimeout>
+-- 3. HMI does NOT respond during <DefaultTimeout>
 --
 -- Expected result:
 -- SDL respond <success = false, resultCode = "GENERIC_ERROR"> to mobile app
@@ -25,46 +25,102 @@ local commonSteps = require('user_modules/shared_testcases/commonSteps')
 config.defaultProtocolVersion = 2
 commonSteps:DeleteLogsFileAndPolicyTable()
 
+
 --[[ General Settings for configuration ]]
 Test = require('connecttest')
 require('cardinalities')
 require('user_modules/AppTypes')
 
+--[[Local Veriables]]
+local iTimeout = 10000
+
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
-function  Test:SetGlobalProperties_WithNotResponse_from_HMI()
+function Test:SetGlobalProperties_RequestWithoutUIResponsesFromHMI()
   local cid = self.mobileSession:SendRPC("SetGlobalProperties",
-     {
-      keyboardProperties =
-      {
-        keyboardLayout = "QWERTY",
-        keypressMode = "SINGLE_KEYPRESS",
-        limitedCharacterList =
-        {
-          "a"
-        },
-        language = "EN-US",
-        autoCompleteText = "Text_1, Text_2",
-        autoCompleteList = {"List_1, List_2", "List_1, List_2"}
-      }
-    })
-   EXPECT_HMICALL ("UI.SetGlobalProperties", 
+    {
+      menuTitle = "Menu Title",
+      timeoutPrompt = 
        {
-         keyboardProperties =
          {
-           keyboardLayout = "QWERTY",
-           keypressMode = "SINGLE_KEYPRESS",
-           limitedCharacterList =
-             {
-              "a"
-             },
-             language = "EN-US",
-             autoCompleteList = {"List_1, List_2", "List_1, List_2"}
-           }
-        })
-    :Times(0)
-   EXPECT_RESPONSE(cid, {success = false, resultCode = "GENERIC_ERROR"})
-end
+           text = "Timeout prompt",
+           type = "TEXT"
+          }
+        },
+      vrHelp = 
+       {
+         {
+           position = 1,
+           text = "VR help item"
+         }
+       },
+        helpPrompt = 
+        {
+          {
+            text = "Help prompt",
+            type = "TEXT"
+          }
+        },
+        vrHelpTitle = "VR help title",
+        keyboardProperties = 
+        {
+          keyboardLayout = "QWERTY",
+          keypressMode = "SINGLE_KEYPRESS",
+          limitedCharacterList = 
+          {
+            "a"
+          },
+          language = "EN-US",
+          autoCompleteText = "Daemon, Freedom",
+          autoCompleteList = {"List_1, List_2", "List_1, List_2"}
+        }
+      })
+      --hmi side: expect TTS.SetGlobalProperties request
+      EXPECT_HMICALL("TTS.SetGlobalProperties",
+      {
+        timeoutPrompt = 
+        {
+          {
+            text = "Timeout prompt",
+            type = "TEXT"
+          }
+        },
+        helpPrompt = 
+        {
+          {
+            text = "Help prompt",
+            type = "TEXT"
+          }
+        }
+      })
+      :Timeout(iTimeout)
+    EXPECT_HMICALL("UI.SetGlobalProperties",
+      {
+        menuTitle = "Menu Title",
+        vrHelp = 
+        {
+          {
+            position = 1,
+            text = "VR help item"
+          }
+        },
+        vrHelpTitle = "VR help title",
+        keyboardProperties = 
+        {
+          keyboardLayout = "QWERTY",
+          keypressMode = "SINGLE_KEYPRESS",
+          language = "EN-US",
+          autoCompleteList = {"List_1, List_2", "List_1, List_2"}
+        }
+      })
+      :Timeout(iTimeout)
+      :Do(function(_,_)
+        --hmi side: sending UI.SetGlobalProperties response
+      end)    
+      --mobile side: expect SetGlobalProperties response
+      EXPECT_RESPONSE(cid, { success = false, resultCode = "GENERIC_ERROR", info = nil})
+      :Timeout(12000)
+  end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
