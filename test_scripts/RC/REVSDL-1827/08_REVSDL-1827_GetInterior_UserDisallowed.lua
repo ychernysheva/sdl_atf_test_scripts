@@ -257,9 +257,9 @@ require('cardinalities')
 									zone =
 									{
 										colspan = 2,
-										row = 1,
+										row = 0,
 										rowspan = 2,
-										col = 0,
+										col = 1,
 										levelspan = 1,
 										level = 0
 									}

@@ -31,7 +31,7 @@ local mobile_session = require('mobile_session')
 ---------------------------------------------------------------------------------------------
 
 --groups_nonPrimaryRC Group
-local arrayGroups_nonPrimaryRC = revsdl.arrayGroups_PrimaryRC()
+local arrayGroups_nonPrimaryRC = revsdl.arrayGroups_nonPrimaryRC()
 
 
 --======================================Requirement========================================--
