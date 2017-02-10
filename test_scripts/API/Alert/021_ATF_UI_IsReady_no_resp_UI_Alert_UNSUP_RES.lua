@@ -35,7 +35,7 @@ config.SDLStoragePath = commonPreconditions:GetPathToSDL() .. "storage/"
 
 --[[ Local Variables ]]
 local storagePath = config.SDLStoragePath..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
-local ServerAddress = commonFunctions:read_parameter_from_smart_device_link_ini("ServerAddress") 
+local ServerAddress = commonFunctions:read_parameter_from_smart_device_link_ini("ServerAddress")
 
 --[[ General Precondition before ATF start ]]
 commonFunctions:SDLForceStop()
@@ -74,7 +74,7 @@ function Test:Precondition_ActivationApp()
     if (data.result.isSDLAllowed ~= true) then
       local request_id1 = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
       EXPECT_HMIRESPONSE(request_id1)
-      :Do(function(_,_)   
+      :Do(function(_,_)
         self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = ServerAddress}})
         EXPECT_HMICALL("BasicCommunication.ActivateApp")
         :Do(function(_,data1)
@@ -83,7 +83,7 @@ function Test:Precondition_ActivationApp()
       end)
     end
   end)
-  EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"}) 
+  EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"})
 end
 
 commonSteps:PutFile("Precondition_PutFile", "icon.png")
@@ -143,7 +143,7 @@ function Test:TestStep_Alert_UI_Alert_UNSUPPORTED_RESOURCE()
   end)
   :Do(function(_,data2)
     local function alertResponse()
-      self.hmiConnection:SendResponse(data.id, "UI.Alert", "UNSUPPORTED_RESOURCE", {info = "unsupported resource"})
+      self.hmiConnection:SendResponse(data2.id, "UI.Alert", "UNSUPPORTED_RESOURCE", {info = "unsupported resource"})
     end
     RUN_AFTER(alertResponse, 1500)
   end)
@@ -165,7 +165,7 @@ function Test:TestStep_Alert_UI_Alert_UNSUPPORTED_RESOURCE()
     RUN_AFTER(ttsSpeakResponse, 1000)
   end)
 
-  EXPECT_RESPONSE(cid, { success = true, resultCode = "UNSUPPORTED_RESOURCE", info = "unsupported resource"})
+  EXPECT_RESPONSE(cor_id, { success = true, resultCode = "UNSUPPORTED_RESOURCE", info = "unsupported resource"})
 end
 
 --[[ Postconditions ]]
