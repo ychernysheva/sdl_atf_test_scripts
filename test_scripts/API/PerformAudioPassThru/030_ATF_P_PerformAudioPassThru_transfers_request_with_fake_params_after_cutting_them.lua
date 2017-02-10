@@ -80,6 +80,7 @@ function Test:TestStep_PerformAudioPassThru_Fake_Prameter_from_HMI_Cut()
         imageType = "STATIC"
       }
     })
+
   EXPECT_HMICALL("TTS.Speak",
     {
       speakType = "AUDIO_PASS_THRU",
@@ -90,16 +91,7 @@ function Test:TestStep_PerformAudioPassThru_Fake_Prameter_from_HMI_Cut()
       self.hmiConnection:SendNotification("TTS.Started",{})
 
       local function ttsSpeakResponse()
-        -- :ValidIf (function (_,data)
-        --     if (data.params.fake = true) then
-        --       commonFunctions:printError ("ERROR:SDL transfers fake parameter")
-        --       return false
-        --     else
-        --       return true
-        --     end
-        --   end)
-
-        self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {parameter = invalid_data[i].value})
+        self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
         self.hmiConnection:SendNotification("TTS.Stopped")
       end
       RUN_AFTER(ttsSpeakResponse, 1000)
@@ -123,7 +115,7 @@ function Test:TestStep_PerformAudioPassThru_Fake_Prameter_from_HMI_Cut()
   :Do(function(_,data)
 
       local function UIPerformAudioResponse()
-        self.hmiConnection:SendResponse(data.id, "UI.PerformAudioPassThru", "SUCCESS", {})
+        self.hmiConnection:SendResponse(data.id, "UI.PerformAudioPassThru", "SUCCESS", {available = true})
       end
       RUN_AFTER(UIPerformAudioResponse, 1500)
     end)
@@ -141,20 +133,28 @@ function Test:TestStep_PerformAudioPassThru_Fake_Prameter_from_HMI_Cut()
     EXPECT_NOTIFICATION("OnHMIStatus"):Times(0)
   end
 
-  self.mobileSession:ExpectResponse(CorIdPerformAudioPassThru, {success = false, resultCode = "GENERIC_ERROR", info ="Invalid message received from vehicle" })
+  EXPECT_RESPONSE (CorIdPerformAudioPassThru, {success = true, resultCode = "SUCCESS"})
+  :ValidIf (function(_,data)
+      if data.payload.available then
+        commonFunctions:printError ("ERROR:SDL transfers fake parameter")
+        return false
+      else
+        return true
+      end
+  end)
+
   EXPECT_NOTIFICATION("OnHashChange",{}):Times(0)
-end
 end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
 
 function Test.Postcondition_Restore_preloaded_pt_File()
-commonPostconditions:RestoreFile("sdl_preloaded_pt.json")
+  commonPostconditions:RestoreFile("sdl_preloaded_pt.json")
 end
 
 function Test.Postcondition_Stop_SDL()
-StopSDL()
+  StopSDL()
 end
 
 return Test
