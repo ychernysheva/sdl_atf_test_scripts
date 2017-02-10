@@ -733,9 +733,9 @@ end
 			        name = name,
 			        imageTypeSupported =
 			       	{
-			          {"GRAPHIC_BMP"},
-			          {"GRAPHIC_JPEG"},
-			          {"GRAPHIC_PNG"}
+			          "GRAPHIC_BMP",
+			          "GRAPHIC_JPEG",
+			          "GRAPHIC_PNG"
 			        },
 			        imageResolution =
 			        {
@@ -848,6 +848,7 @@ end
 											        hmiCapabilities = { 
 											        					navigation = false,
 											        					phoneCall  = false,
+											        					steeringWheelLocation = "CENTER"
 											        				}
 											    }
 
@@ -1094,9 +1095,9 @@ end
 			        name = name,
 			        imageTypeSupported =
 			       	{
-			          {"GRAPHIC_BMP"},
-			          {"GRAPHIC_JPEG"},
-			          {"GRAPHIC_PNG"}
+			          "GRAPHIC_BMP",
+			          "GRAPHIC_JPEG",
+			          "GRAPHIC_PNG"
 			        },
 			        imageResolution =
 			        {
@@ -1209,6 +1210,7 @@ end
 											        hmiCapabilities = { 
 											        					navigation = false,
 											        					phoneCall  = false,
+											        					steeringWheelLocation = "CENTER"
 											        				}
 											    }
 
