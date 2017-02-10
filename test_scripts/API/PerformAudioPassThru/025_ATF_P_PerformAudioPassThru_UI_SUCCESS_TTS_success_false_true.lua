@@ -23,12 +23,12 @@
 -- 2. Performed steps
 -- Send PerformAudioPassThru (audioPassThruIcon, other params)
 -- HMI sends to SDL UI.PerformAudioPassThru (SUCCESS)
--- HMI sends to SDL TTS.Speak (resultcode: HMI_result_code)
+-- HMI sends to SDL TTS.Speak (resultcode: HMI_result_code,success:false/success:true)
 --
 -- Expected result:
 -- SDL sends UI.PerformAudioPassThru (audioPassThruIcon, other params) to HMI
--- SDL sends to HMI UI.PerformAudioPassThru
--- SDL sends to mobile TTS.Speak(resultcode: HMI_result_code, success:false/success:true)
+-- SDL sends to HMI TTS.Speak
+-- SDL sends to mobile (WARNINGS,success:true)
 ---------------------------------------------------------------------------------------------
 
 --[[ General configuration parameters ]]
