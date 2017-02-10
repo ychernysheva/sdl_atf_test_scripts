@@ -1667,14 +1667,16 @@ end --if(TestedInterface ~= "NAVIGATION") then
 ----------------------------------------------------------------------------------------------
 -- Not applicable
 
-function Test:Postcondition_RestorePreloadedFile()
+--[[ Postconditions ]]
+commonFunctions:newTestCasesGroup("Postconditions")
+
+function Test.Postcondition_RestorePreloadedFile()
 	commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 end
 
-Test["ForceKill" .. tostring(i)] = function (self)
-	print("------------------ Postconditions ---------------------------")
-	os.execute("ps aux | grep smart | awk \'{print $2}\' | xargs kill -9")
-	os.execute("sleep 1")
+function Test.Postcondition_Stop()
+  StopSDL()
 end
+
 
 return Test

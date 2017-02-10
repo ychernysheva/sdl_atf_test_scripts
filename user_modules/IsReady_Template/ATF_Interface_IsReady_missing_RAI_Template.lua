@@ -1056,14 +1056,15 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 ----------------------------------------------------------------------------------------------
 -- Not applicable
 
-	function Test:Postcondition_RestorePreloadedFile()
-		commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
-	end
+--[[ Postconditions ]]
+commonFunctions:newTestCasesGroup("Postconditions")
 
-	Test["ForceKill"] = function (self)
-		print("-------------------- Postconditions -------------------------")
-		os.execute("ps aux | grep smart | awk \'{print $2}\' | xargs kill -9")
-		os.execute("sleep 1")
-	end
+function Test.Postcondition_RestorePreloadedFile()
+	commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
+end
+
+function Test.Postcondition_Stop()
+  StopSDL()
+end
 
 return Test
