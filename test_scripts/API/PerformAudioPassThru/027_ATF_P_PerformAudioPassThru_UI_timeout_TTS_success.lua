@@ -7,10 +7,10 @@
 -- [HMI_API] [MOBILE_API] The "audioPassThruIcon" param at "ImageFieldName" struct
 --
 -- Description:
--- In case SDL splits the request from mobile app to one and/or more HMI interfaces 
--- and at least one of the interfaces does not respond during SDL`s watchdog 
+-- In case SDL splits the request from mobile app to one and/or more HMI interfaces
+-- and at least one of the interfaces does not respond during SDL`s watchdog
 -- (important note: this component is working and has responded to previous RPCs)
--- SDL must: return "GENERIC_ERROR, success: false" result to mobile app  and
+-- SDL must: return "GENERIC_ERROR, success: false" result to mobile app and
 -- include appropriate description into "info" parameter.
 -- In this case info = '%component-name%' component does not respond"
 --
@@ -27,7 +27,7 @@
 -- Expected result:
 -- SDL sends UI.PerformAudioPassThru (audioPassThruIcon, other params) to HMI
 -- SDL sends TTS.Speak to HMI
--- SDL sends to mobile PerformAudioPassThru (GENERIC_ERROR, success:false)
+-- SDL sends to mobile PerformAudioPassThru (GENERIC_ERROR, success:false, info = "UI.PerformAudioPassThru component does not respond")
 ---------------------------------------------------------------------------------------------
 
 --[[ General configuration parameters ]]
@@ -67,61 +67,61 @@ end
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
-	function Test:TestStep_PerformAudioPassThru_UI_timeout_TTS_SUCESS ()
-      local CorIdPerformAudioPassThru= self.mobileSession:SendRPC("PerformAudioPassThru",
-	    {
-	      initialPrompt = {{text = "Makeyourchoice",type = "TEXT"}},
-	      audioPassThruDisplayText1 = "DisplayText1",
-	      audioPassThruDisplayText2 = "DisplayText2",
-	      samplingRate = "16KHZ",
-	      maxDuration = 2000,
-	      bitsPerSample = "8_BIT",
-	      audioType = "PCM",
-	      muteAudio = true,
-	      audioPassThruIcon =
-		    { 
-		      value = "icon.png",
-		      imageType = "STATIC"
-		    }
-	    })
-	  EXPECT_HMICALL("TTS.Speak",
-	    {
-	      speakType = "AUDIO_PASS_THRU",
-	      ttsChunks = {{text = "Makeyourchoice", type = "TEXT"}},
-	      appID = self.applications[config.application1.registerAppInterfaceParams.appName]
-	    })
-	  :Do(function(_,data)
-	      self.hmiConnection:SendNotification("TTS.Started",{})
-	      
-	      local function ttsSpeakResponse()
-	        self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-	        self.hmiConnection:SendNotification("TTS.Stopped")
-	      end
-	      RUN_AFTER(ttsSpeakResponse, 1000)
-	  end)
+function Test:TestStep_PerformAudioPassThru_UI_timeout_TTS_SUCESS ()
+  local CorIdPerformAudioPassThru= self.mobileSession:SendRPC("PerformAudioPassThru",
+    {
+      initialPrompt = {{text = "Makeyourchoice",type = "TEXT"}},
+      audioPassThruDisplayText1 = "DisplayText1",
+      audioPassThruDisplayText2 = "DisplayText2",
+      samplingRate = "16KHZ",
+      maxDuration = 2000,
+      bitsPerSample = "8_BIT",
+      audioType = "PCM",
+      muteAudio = true,
+      audioPassThruIcon =
+      {
+        value = "icon.png",
+        imageType = "STATIC"
+      }
+    })
+  EXPECT_HMICALL("TTS.Speak",
+    {
+      speakType = "AUDIO_PASS_THRU",
+      ttsChunks = {{text = "Makeyourchoice", type = "TEXT"}},
+      appID = self.applications[config.application1.registerAppInterfaceParams.appName]
+    })
+  :Do(function(_,data)
+      self.hmiConnection:SendNotification("TTS.Started",{})
 
-	  EXPECT_HMICALL("UI.PerformAudioPassThru",
-	    {
-	      appID = self.applications[config.application1.registerAppInterfaceParams.appName],
-	      audioPassThruDisplayTexts = {
-	        {fieldName = "audioPassThruDisplayText1", fieldText = "DisplayText1"},
-	        {fieldName = "audioPassThruDisplayText2", fieldText = "DisplayText2"},
-	      },
-	      maxDuration = 2000,
-	      muteAudio = true,
-	      audioPassThruIcon = 
-	      { 
-	        imageType = "STATIC", 
-	        value = "icon.png"
-	      }
-	    })
-	  -- No HMI response is sent
+      local function ttsSpeakResponse()
+        self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+        self.hmiConnection:SendNotification("TTS.Stopped")
+      end
+      RUN_AFTER(ttsSpeakResponse, 1000)
+  end)
+
+  EXPECT_HMICALL("UI.PerformAudioPassThru",
+    {
+      appID = self.applications[config.application1.registerAppInterfaceParams.appName],
+      audioPassThruDisplayTexts = {
+        {fieldName = "audioPassThruDisplayText1", fieldText = "DisplayText1"},
+        {fieldName = "audioPassThruDisplayText2", fieldText = "DisplayText2"},
+      },
+      maxDuration = 2000,
+      muteAudio = true,
+      audioPassThruIcon =
+      {
+        imageType = "STATIC",
+        value = "icon.png"
+      }
+    })
+  -- No HMI response is sent
   if
-	  (self.appHMITypes["NAVIGATION"] == true) or
-	  (self.appHMITypes["COMMUNICATION"] == true) or
-	  (self.isMediaApplication == true) then
+  (self.appHMITypes["NAVIGATION"] == true) or
+  (self.appHMITypes["COMMUNICATION"] == true) or
+  (self.isMediaApplication == true) then
 
-	  EXPECT_NOTIFICATION("OnHMIStatus",
+    EXPECT_NOTIFICATION("OnHMIStatus",
       {hmiLevel = "FULL", audioStreamingState = "ATTENUATED", systemContext = "MAIN"},
       {hmiLevel = "FULL", audioStreamingState = "AUDIBLE", systemContext = "MAIN"})
     :Times(2)
@@ -131,14 +131,14 @@ commonFunctions:newTestCasesGroup("Test")
 
   self.mobileSession:ExpectResponse(CorIdPerformAudioPassThru, {success = false, resultCode = "GENERIC_ERROR", info = "UI.PerformAudioPassThru component does not respond"})
   EXPECT_NOTIFICATION("OnHashChange",{}):Times(0)
-  
+
 end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
 
 function Test.Postcondition_Restore_preloaded_pt_File()
-	commonPostconditions:RestoreFile("sdl_preloaded_pt.json")
+  commonPostconditions:RestoreFile("sdl_preloaded_pt.json")
 end
 
 function Test.Postcondition_Stop_SDL()
