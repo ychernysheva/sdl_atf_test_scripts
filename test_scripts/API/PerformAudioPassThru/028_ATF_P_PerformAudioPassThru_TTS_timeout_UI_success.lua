@@ -26,8 +26,8 @@
 --
 -- Expected result:
 -- SDL sends UI.PerformAudioPassThru (audioPassThruIcon, other params) to HMI
--- SDL sends to HMI UI.PerformAudioPassThru
--- SDL sends to mobile PerformAudioPassThru (GENERIC_ERROR, success:false, info = "TTS.Speak component does not respond")
+-- SDL sends TTS.Speak to HMI
+-- SDL sends to mobile PerformAudioPassThru (GENERIC_ERROR, success:false, info = "TTS component does not respond")
 ---------------------------------------------------------------------------------------------
 
 --[[ General configuration parameters ]]
@@ -114,7 +114,7 @@ function Test:TestStep_PerformAudioPassThru_UI_SUCESS_TTS_timeout()
         self.hmiConnection:SendResponse(data.id, "UI.PerformAudioPassThru", "SUCCESS", {})
       end
       RUN_AFTER(UIPerformAudioResponse, 1500)
-    end)
+  end)
 
   if
   (self.appHMITypes["NAVIGATION"] == true) or
@@ -129,7 +129,7 @@ function Test:TestStep_PerformAudioPassThru_UI_SUCESS_TTS_timeout()
     EXPECT_NOTIFICATION("OnHMIStatus"):Times(0)
   end
 
-  self.mobileSession:ExpectResponse(CorIdPerformAudioPassThru, {success = false, resultCode = "GENERIC_ERROR", info = "TTS.Speak component does not respond"})
+  self.mobileSession:ExpectResponse(CorIdPerformAudioPassThru, {success = false, resultCode = "GENERIC_ERROR", info = "TTS component does not respond"})
   EXPECT_NOTIFICATION("OnHashChange",{}):Times(0)
 
 end
