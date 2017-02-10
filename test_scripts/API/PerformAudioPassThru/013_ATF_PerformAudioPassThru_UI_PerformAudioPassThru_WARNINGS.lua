@@ -27,6 +27,7 @@ local commonFunctions = require ('user_modules/shared_testcases/commonFunctions'
 local commonSteps = require ('user_modules/shared_testcases/commonSteps')
 local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
+local testCasesForPerformAudioPassThru = require('user_modules/shared_testcases/testCasesForPerformAudioPassThru')
 local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 config.SDLStoragePath = commonPreconditions:GetPathToSDL() .. "storage/"
 
@@ -46,6 +47,12 @@ require('user_modules/AppTypes')
 
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
+
+commonSteps:PutFile("Precondition_PutFile", "icon.png")
+
+function Test:Precondition_Check_audioPassThruIcon_Existence()
+  testCasesForPerformAudioPassThru.Check_audioPassThruIcon_Existence(self, "icon.png")
+end
 
 function Test:Precondition_ActivationApp()
   local request_id = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.applications[config.application1.registerAppInterfaceParams.appName]})
@@ -115,7 +122,22 @@ for i=1,#resultCodes do
       commonTestCases:DelayedExp(1500)
     end)
 
+     if
+    (self.appHMITypes["NAVIGATION"] == true) or
+    (self.appHMITypes["COMMUNICATION"] == true) or
+    (self.isMediaApplication == true) then
+
+    EXPECT_NOTIFICATION("OnHMIStatus",
+      {hmiLevel = "FULL", audioStreamingState = "ATTENUATED", systemContext = "MAIN"},
+      {hmiLevel = "FULL", audioStreamingState = "AUDIBLE", systemContext = "MAIN"})
+    :Times(2)
+    else
+      EXPECT_NOTIFICATION("OnHMIStatus"):Times(0)
+    end
+
     self.mobileSession:ExpectResponse(cor_id, { success = true, resultCode = "WARNINGS"})
+    EXPECT_NOTIFICATION("OnHashChange"):Times(0)
+    commonTestCases:DelayedExp(1500)
   end
 end
 
