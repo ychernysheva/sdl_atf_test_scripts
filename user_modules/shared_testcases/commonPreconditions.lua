@@ -4,15 +4,17 @@ local Preconditions = {}
 --------------------------------------------------------------------------------------------------------
 -- Precondition function is added needed fields.
 
-function Preconditions:SendLocationPreconditionUpdateHMICap()
--- Verify config.pathToSDL
-findresult = string.find (config.pathToSDL, '.$')
-if string.sub(config.pathToSDL,findresult) ~= "/" then
-	config.pathToSDL = config.pathToSDL..tostring("/")
+function Preconditions:GetPathToSDL()
+	local pathToSDL = config.pathToSDL
+  if pathToSDL:sub(-1) ~= '/' then
+    pathToSDL = pathToSDL .. "/"
+  end
+  return pathToSDL
 end
 
+function Preconditions:SendLocationPreconditionUpdateHMICap()
 -- Update hmi_capabilities.json
-local HmiCapabilities = config.pathToSDL .. "hmi_capabilities.json"
+local HmiCapabilities = Preconditions:GetPathToSDL() .. "hmi_capabilities.json"
 
 f = assert(io.open(HmiCapabilities, "r"))
 
@@ -103,13 +105,13 @@ end
 ----------------------------------------------------------------------------------------------
 -- make reserve copy of file (FileName) in /bin folder
 function Preconditions:BackupFile(FileName)
-  os.execute(" cp " .. config.pathToSDL .. FileName .. " " .. config.pathToSDL .. FileName .. "_origin" )
+  os.execute(" cp " .. Preconditions:GetPathToSDL() .. FileName .. " " .. Preconditions:GetPathToSDL() .. FileName .. "_origin" )
 end
 
 -- restore origin of file (FileName) in /bin folder
 function Preconditions:RestoreFile(FileName)
-  os.execute(" cp " .. config.pathToSDL .. FileName .. "_origin " .. config.pathToSDL .. FileName )
-  os.execute( " rm -f " .. config.pathToSDL .. FileName .. "_origin" )
+  os.execute(" cp " .. Preconditions:GetPathToSDL() .. FileName .. "_origin " .. Preconditions:GetPathToSDL() .. FileName )
+  os.execute( " rm -f " .. Preconditions:GetPathToSDL() .. FileName .. "_origin" )
 end
 
 

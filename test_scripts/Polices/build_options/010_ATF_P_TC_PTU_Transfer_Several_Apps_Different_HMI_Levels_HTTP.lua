@@ -22,6 +22,7 @@
 ---------------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
+config.defaultProtocolVersion = 2
 
 --[[ Required Shared libraries ]]
 local mobileSession = require("mobile_session")
@@ -29,14 +30,34 @@ local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
 local commonSteps = require("user_modules/shared_testcases/commonSteps")
 local testCasesForPolicyTable = require("user_modules/shared_testcases/testCasesForPolicyTable")
 local commonTestCases = require("user_modules/shared_testcases/commonTestCases")
+local commonPreconditions = require ('user_modules/shared_testcases/commonPreconditions')
 
 --[[ Local Variables ]]
 local hmiLevels = { }
 
+--[[ Local Functions ]]
+local function SetTimeout()
+  local pathToFile = commonPreconditions:GetPathToSDL() .. 'sdl_preloaded_pt.json'
+  local file = io.open(pathToFile, "r")
+  local json_data = file:read("*all")
+  file:close()
+  local json = require("modules/json")
+  local data = json.decode(json_data)
+  if data.policy_table.functional_groupings["DataConsent-2"] then
+    data.policy_table.functional_groupings["DataConsent-2"] = {rpcs = json.null}
+  end
+  data.policy_table.module_config.timeout_after_x_seconds = 120
+  data = json.encode(data)
+  file = io.open(pathToFile, "w")
+  file:write(data)
+  file:close()
+end
+
 --[[ General Precondition before ATF start ]]
+commonFunctions:SDLForceStop()
 commonSteps:DeleteLogsFileAndPolicyTable()
-testCasesForPolicyTable.Delete_Policy_table_snapshot()
-config.defaultProtocolVersion = 2
+commonPreconditions:BackupFile("sdl_preloaded_pt.json")
+SetTimeout()
 
 --[[ General Settings for configuration ]]
 
@@ -147,38 +168,38 @@ end
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
-for time = 1, 10 do
+for time = 1, 5 do
   function Test:TestStep_CheckOnSystemRequest_AppLevel()
     print("Check OnSystemRequest sent to application. Time: "..time.."/10")
     local received_onsystemrequest = 0
-    local requestId = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
-    EXPECT_HMIRESPONSE(requestId)
+    -- local requestId = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
+    -- EXPECT_HMIRESPONSE(requestId)
+    -- :Do(function()
+    self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest", { requestType = "HTTP", fileName = "PolicyTableUpdate" })
+
+    EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "HTTP"}):Times(0)
     :Do(function()
-        self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest", { requestType = "HTTP", fileName = "PolicyTableUpdate" })
-
-        EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "HTTP"}):Times(0)
-        :Do(function()
-            self:FailTestCase("ERROR: OnSystemRequest is received for App_1, hmilevel:NONE")
-          end)
-
-        self["mobileSession2"]:ExpectNotification("OnSystemRequest", {requestType = "HTTP"}):Times(AnyNumber())
-        :Do(function()
-            received_onsystemrequest = received_onsystemrequest + 1
-            print("OnSystemRequset received for App_2: hmilevel: LIMITED")
-          end)
-
-        self["mobileSession3"]:ExpectNotification("OnSystemRequest", {requestType = "HTTP"}):Times(AnyNumber())
-        :Do(function()
-            received_onsystemrequest = received_onsystemrequest + 1
-            print("OnSystemRequset received for App_3: hmilevel: BACKGROUND")
-          end)
-
-        self["mobileSession4"]:ExpectNotification("OnSystemRequest", {requestType = "HTTP"}):Times(AnyNumber())
-        :Do(function()
-            received_onsystemrequest = received_onsystemrequest + 1
-            print("OnSystemRequset received for App_4: hmilevel: FULL")
-          end)
+        self:FailTestCase("ERROR: OnSystemRequest is received for App_1, hmilevel:NONE")
       end)
+
+    self["mobileSession2"]:ExpectNotification("OnSystemRequest", {requestType = "HTTP"}):Times(AnyNumber())
+    :Do(function()
+        received_onsystemrequest = received_onsystemrequest + 1
+        print("OnSystemRequset received for App_2: hmilevel: LIMITED")
+      end)
+
+    self["mobileSession3"]:ExpectNotification("OnSystemRequest", {requestType = "HTTP"}):Times(AnyNumber())
+    :Do(function()
+        received_onsystemrequest = received_onsystemrequest + 1
+        print("OnSystemRequset received for App_3: hmilevel: BACKGROUND")
+      end)
+
+    self["mobileSession4"]:ExpectNotification("OnSystemRequest", {requestType = "HTTP"}):Times(AnyNumber())
+    :Do(function()
+        received_onsystemrequest = received_onsystemrequest + 1
+        print("OnSystemRequset received for App_4: hmilevel: FULL")
+      end)
+    -- end)
 
     local function check_result()
       if (received_onsystemrequest > 1) then
@@ -194,7 +215,7 @@ end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
-
+testCasesForPolicyTable:Restore_preloaded_pt()
 function Test.Postcondition_Stop_SDL()
   StopSDL()
 end

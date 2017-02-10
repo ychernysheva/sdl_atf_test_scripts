@@ -142,32 +142,37 @@ function Test:Precondition_Activate_App_Consent_Device_Make_PTU_Consent_Group()
                     })
                   self.hmiConnection:SendResponse(systemRequestId, "BasicCommunication.SystemRequest", "SUCCESS", {})
                   EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UP_TO_DATE"})
+                  :Do(
+                    function()
+                      EXPECT_HMINOTIFICATION("SDL.OnAppPermissionChanged", {appID = self.HMIAppID, appPermissionsConsentNeeded = true})
+                      :Do(function(_,_)
+                          local RequestIdListOfPermissions = self.hmiConnection:SendRequest("SDL.GetListOfPermissions", { appID = self.applications["Test Application"] })
+                          EXPECT_HMIRESPONSE(RequestIdListOfPermissions,
+                            { result = {
+                                code = 0,
+                                allowedFunctions = {{name = "Location"}} },
+                              method = "SDL.GetListOfPermissions"})
+                          :Do(function(_,data1)
+                              local RequestIdGetUserFriendlyMessage = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"Location"}})
+                              EXPECT_HMIRESPONSE(RequestIdGetUserFriendlyMessage,{result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
+                              :Do(function(_,_)
+                                  local functionalGroupID = data1.result.allowedFunctions[1].id
+                                  self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent",
+                                    { appID = self.applications["Test Application"], source = "GUI", consentedFunctions = {{name = "Location", allowed = true, id = functionalGroupID} }})
+                                  GetCurrentTimeStampGroupConsent()
+                                end)
+                            end)
+                        end)
+                      EXPECT_NOTIFICATION("OnPermissionsChange", {})
+                    end
+                  )
                   :Timeout(500)
                   self.mobileSession:ExpectResponse(CorIdSystemRequest, {success = true, resultCode = "SUCCESS"})
                 end)
             end)
         end)
     end)
-  EXPECT_HMINOTIFICATION("SDL.OnAppPermissionChanged", {appID = self.HMIAppID, appPermissionsConsentNeeded = true})
-  :Do(function(_,_)
-      local RequestIdListOfPermissions = self.hmiConnection:SendRequest("SDL.GetListOfPermissions", { appID = self.applications["Test Application"] })
-      EXPECT_HMIRESPONSE(RequestIdListOfPermissions,
-        { result = {
-            code = 0,
-            allowedFunctions = {{name = "Location"}} },
-          method = "SDL.GetListOfPermissions"})
-      :Do(function(_,data1)
-          local RequestIdGetUserFriendlyMessage = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"Location"}})
-          EXPECT_HMIRESPONSE(RequestIdGetUserFriendlyMessage,{result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
-          :Do(function(_,_)
-              local functionalGroupID = data1.result.allowedFunctions[1].id
-              self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent",
-                { appID = self.applications["Test Application"], source = "GUI", consentedFunctions = {{name = "Location", allowed = true, id = functionalGroupID} }})
-              GetCurrentTimeStampGroupConsent()
-            end)
-        end)
-      EXPECT_NOTIFICATION("OnPermissionsChange", {})
-    end)
+
 end
 
 --[[ Test ]]
@@ -190,7 +195,7 @@ function Test:Validate_Snapshot_Values()
       local result = true
       for k,v in pairs(valuesFromPTS) do
         if v ~= verificationValues[k] then
-          local stringLog = "Wrong value from snapshot " .. k .. "! Expected: " .. verificationValues[k] .. " Actual: " .. v
+          -- local stringLog = "Wrong value from snapshot " .. k .. "! Expected: " .. verificationValues[k] .. " Actual: " .. v
           print("Wrong value from snapshot " .. k .. "! Expected: " .. verificationValues[k] .. " Actual: " .. v)
           result = false
         end

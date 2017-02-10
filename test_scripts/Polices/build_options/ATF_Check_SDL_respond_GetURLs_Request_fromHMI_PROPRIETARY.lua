@@ -68,9 +68,6 @@ function Test:RegisterApp()
       self.mobileSession:ExpectResponse(RequestIDRai1, { success = true, resultCode = "SUCCESS" })
       self.mobileSession:ExpectNotification("OnHMIStatus", {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
     end)
-end
-
-function Test:PTU()
   EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
   :Do(function()
       local requestId = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })

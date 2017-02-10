@@ -26,7 +26,6 @@ local commonSteps = require ('user_modules/shared_testcases/commonSteps')
 local commonPreconditions = require ('user_modules/shared_testcases/commonPreconditions')
 local commonTestCases = require ('user_modules/shared_testcases/commonTestCases')
 
-
 --[[ General Preconditions before ATF starts ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
 commonPreconditions:Connecttest_without_ExitBySDLDisconnect_WithoutOpenConnectionRegisterApp("connecttest_ConnectMobile.lua")
@@ -89,8 +88,8 @@ function Test:TestStep_Firs_Time_Register_App_And_Check_That_No_Permission_Notif
       }
     })
   :Do(function(_,data)
-      if(order_communication ~= 1) then
-        commonFunctions:printError("BasicCommunication.OnAppRegistered is not received 1 in message order. Real: received number: "..order_communication)
+      if(order_communication ~= 1 and order_communication ~= 2) then
+        commonFunctions:printError("BasicCommunication.OnAppRegistered is not received 1 or 2 in message order. Real: received number: "..order_communication)
         is_test_fail = true
       end
       order_communication = order_communication + 1
@@ -102,8 +101,8 @@ function Test:TestStep_Firs_Time_Register_App_And_Check_That_No_Permission_Notif
 
   EXPECT_RESPONSE(CorIdRAI, { success = true, resultCode = "SUCCESS"})
   :Do(function(_,_)
-      if(order_communication ~= 2) then
-        commonFunctions:printError("RAI response is not received 2 in message order. Real: received number: "..order_communication)
+      if(order_communication ~= 2 and order_communication ~= 1) then
+        commonFunctions:printError("RAI response is not received 1 or 2 in message order. Real: received number: "..order_communication)
         is_test_fail = true
       end
       order_communication = order_communication + 1
@@ -130,7 +129,7 @@ function Test:TestStep_Firs_Time_Register_App_And_Check_That_No_Permission_Notif
 
   local function verify_test_result()
     if(is_test_fail == true) then
-        self:FailTestCase("Test is FAILED. See prints.")
+      self:FailTestCase("Test is FAILED. See prints.")
     end
   end
   RUN_AFTER(verify_test_result,10000)

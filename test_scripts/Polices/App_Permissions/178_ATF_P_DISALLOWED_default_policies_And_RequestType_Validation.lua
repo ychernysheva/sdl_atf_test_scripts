@@ -41,7 +41,7 @@ local function SetRequestTypeForDefaultGroup()
 
   -- json library restriction to decode-encode element defined as "null"
   if data.policy_table.functional_groupings["DataConsent-2"] then
-    data.policy_table.functional_groupings["DataConsent-2"] = {rpcs = null}
+    data.policy_table.functional_groupings["DataConsent-2"] = {rpcs = json.null}
   end
 
   data.policy_table.app_policies.default["RequestType"] = {"PROPRIETARY"}
@@ -53,6 +53,7 @@ local function SetRequestTypeForDefaultGroup()
 end
 
 --[[ General Precondition before ATF start ]]
+commonFunctions:SDLForceStop()
 commonSteps:DeleteLogsFiles()
 commonSteps:DeletePolicyTable()
 commonPreconditions:BackupFile("sdl_preloaded_pt.json")
@@ -64,6 +65,7 @@ require('cardinalities')
 require('user_modules/AppTypes')
 
 --[[ Preconditions ]]
+commonFunctions:newTestCasesGroup("Preconditions")
 function Test:Preconditions_Assign_To_App_Default_RequestType_PROPRIETARY_Via_Activation_And_Consenting_Device()
 
   local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", {appID = self.applications[config.application1.registerAppInterfaceParams.appName]})
@@ -83,6 +85,8 @@ function Test:Preconditions_Assign_To_App_Default_RequestType_PROPRIETARY_Via_Ac
     end)
 end
 
+--[[ Test ]]
+commonFunctions:newTestCasesGroup("Test")
 function Test:TestStep_Verify_default_section()
   local test_fail = false
   local request_consent = testCasesForPolicyTableSnapshot:get_data_from_PTS("app_policies.default.RequestType.1")
