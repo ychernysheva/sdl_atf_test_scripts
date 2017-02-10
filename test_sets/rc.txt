@@ -10,18 +10,33 @@
 ./test_scripts/RC/REVSDL-932/03_REVSDL-932.lua
 ./test_scripts/RC/REVSDL-932/04_REVSDL-932.lua
 ./test_scripts/RC/REVSDL-966/01_REVSDL-966.lua
-./test_scripts/RC/REVSDL-966/02_REVSDL-966.lua OriginalRC_Defect
-./test_scripts/RC/REVSDL-966/03_REVSDL-966.lua OriginalRC_Defect
-./test_scripts/RC/REVSDL-966/04_REVSDL-966.lua OriginalRC_Defect
-./test_scripts/RC/REVSDL-966/05_REVSDL-966.lua OriginalRC_Defect
+./test_scripts/RC/REVSDL-966/02.01_REVSDL-966.lua
+./test_scripts/RC/REVSDL-966/02.02_REVSDL-966.lua
+./test_scripts/RC/REVSDL-966/02_REVSDL-966.lua
+./test_scripts/RC/REVSDL-966/03.01_REVSDL-966.lua
+./test_scripts/RC/REVSDL-966/03.02_REVSDL-966.lua
+./test_scripts/RC/REVSDL-966/03_REVSDL-966.lua
+./test_scripts/RC/REVSDL-966/04.01_REVSDL-966.lua
+./test_scripts/RC/REVSDL-966/04.02_REVSDL-966.lua
+./test_scripts/RC/REVSDL-966/04_REVSDL-966.lua
+./test_scripts/RC/REVSDL-966/05.01_REVSDL-966.lua
+./test_scripts/RC/REVSDL-966/05.02_REVSDL-966.lua
+./test_scripts/RC/REVSDL-966/05.03_REVSDL-966.lua
+./test_scripts/RC/REVSDL-966/05.04_REVSDL-966.lua SDLOPEN-584
+./test_scripts/RC/REVSDL-966/05.05_REVSDL-966.lua SDLOPEN-584
+./test_scripts/RC/REVSDL-966/05_REVSDL-966.lua SDLOPEN-584
 ./test_scripts/RC/REVSDL-966/06_REVSDL-966.lua
 ./test_scripts/RC/REVSDL-966/07_REVSDL-966.lua
 ./test_scripts/RC/REVSDL-966/08_REVSDL-966.lua
-./test_scripts/RC/REVSDL-966/09_REVSDL-966.lua OriginalRC_Defect
-./test_scripts/RC/REVSDL-966/10_REVSDL-966.lua OriginalRC_Defect
+./test_scripts/RC/REVSDL-966/09_REVSDL-966.lua SDLOPEN-584
+./test_scripts/RC/REVSDL-966/10.01_REVSDL-966.lua
+./test_scripts/RC/REVSDL-966/10.02_REVSDL-966.lua
+./test_scripts/RC/REVSDL-966/10_REVSDL-966.lua
 ./test_scripts/RC/REVSDL-966/11_REVSDL-966.lua
 ./test_scripts/RC/REVSDL-966/12_REVSDL-966.lua
-./test_scripts/RC/REVSDL-966/13_REVSDL-966.lua OriginalRC_Defect
+./test_scripts/RC/REVSDL-966/13.01_REVSDL-966.lua
+./test_scripts/RC/REVSDL-966/13.02_REVSDL-966.lua
+./test_scripts/RC/REVSDL-966/13_REVSDL-966.lua
 ./test_scripts/RC/REVSDL-994/01_REVSDL-994.lua SDLOPEN-584
 ./test_scripts/RC/REVSDL-994/02_REVSDL-994.lua SDLOPEN-584
 ./test_scripts/RC/REVSDL-994/03_REVSDL-994.lua SDLOPEN-584
@@ -71,7 +86,9 @@
 ./test_scripts/RC/REVSDL-1678/01_REVSDL-1678.lua
 ./test_scripts/RC/REVSDL-1678/02_REVSDL-1678.lua
 ./test_scripts/RC/REVSDL-1678/03_REVSDL-1678.lua
-./test_scripts/RC/REVSDL-1678/04_REVSDL-1678.lua OriginalRC_Defect
+./test_scripts/RC/REVSDL-1678/04.01_REVSDL-1678.lua
+./test_scripts/RC/REVSDL-1678/04.02_REVSDL-1678.lua
+./test_scripts/RC/REVSDL-1678/04_REVSDL-1678.lua
 ./test_scripts/RC/REVSDL-1678/05_REVSDL-1678.lua
 ./test_scripts/RC/REVSDL-1678/06_REVSDL-1678.lua
 ./test_scripts/RC/REVSDL-1678/07_REVSDL-1678.lua
