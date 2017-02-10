@@ -26,6 +26,7 @@ local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
 --groups_nonPrimaryRC Group
 local arrayGroups_nonPrimaryRC = revsdl.arrayGroups_nonPrimaryRC()
 
+local appid = "1"
 
 --======================================Requirement========================================--
 ---------------------------------------------------------------------------------------------
@@ -118,7 +119,7 @@ local arrayGroups_nonPrimaryRC = revsdl.arrayGroups_nonPrimaryRC()
 
 
              --mobile side: RegisterAppInterface response
-             self.mobileSession1:ExpectResponse(CorIdRAI, { success = true, resultCode = "WARNINGS"},
+             self.mobileSession1:ExpectResponse(CorIdRAI, { success = true, resultCode = "SUCCESS"},
               {
 
                 syncMsgVersion =
