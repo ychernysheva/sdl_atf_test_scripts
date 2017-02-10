@@ -18,12 +18,12 @@
 --
 -- 2. Performed steps
 -- Send PerformAudioPassThru (audioPassThruIcon, other params)
--- HMI sends response with fake parameters
+-- HMI sends response with fake parameters for both UI.PerformAudioPassThru and TTS.Speak
 --
 -- Expected result:
 -- SDL sends UI.PerformAudioPassThru (audioPassThruIcon, other params) to HMI
 -- SDL sends TTS.Speak to HMI
--- SDL ignores fake parameter and transfers to mobile PerformAudioPassThru (SUCESS, success: true)
+-- SDL ignores fake parameters and transfers to mobile PerformAudioPassThru (SUCESS, success: true)
 ---------------------------------------------------------------------------------------------
 
 --[[ General configuration parameters ]]
@@ -91,11 +91,11 @@ function Test:TestStep_PerformAudioPassThru_Fake_Prameter_from_HMI_Cut()
       self.hmiConnection:SendNotification("TTS.Started",{})
 
       local function ttsSpeakResponse()
-        self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+        self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {additional = true})
         self.hmiConnection:SendNotification("TTS.Stopped")
       end
       RUN_AFTER(ttsSpeakResponse, 1000)
-    end)
+  end)
 
   EXPECT_HMICALL("UI.PerformAudioPassThru",
     {
@@ -118,7 +118,7 @@ function Test:TestStep_PerformAudioPassThru_Fake_Prameter_from_HMI_Cut()
         self.hmiConnection:SendResponse(data.id, "UI.PerformAudioPassThru", "SUCCESS", {available = true})
       end
       RUN_AFTER(UIPerformAudioResponse, 1500)
-    end)
+  end)
 
   if
   (self.appHMITypes["NAVIGATION"] == true) or
@@ -136,7 +136,10 @@ function Test:TestStep_PerformAudioPassThru_Fake_Prameter_from_HMI_Cut()
   EXPECT_RESPONSE (CorIdPerformAudioPassThru, {success = true, resultCode = "SUCCESS"})
   :ValidIf (function(_,data)
       if data.payload.available then
-        commonFunctions:printError ("ERROR:SDL transfers fake parameter")
+        commonFunctions:printError ("ERROR:SDL transfers fake parameter from UI")
+        return false
+      elseif data.payload.additional then
+        commonFunctions:printError ("ERROR:SDL transfers fake parameter from TTS")
         return false
       else
         return true
