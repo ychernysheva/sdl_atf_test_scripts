@@ -35,7 +35,7 @@ config.SDLStoragePath = commonPreconditions:GetPathToSDL() .. "storage/"
 
 --[[ Local Variables ]]
 local storagePath = config.SDLStoragePath..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
-local ServerAddress = commonFunctions:read_parameter_from_smart_device_link_ini("ServerAddress") 
+local ServerAddress = commonFunctions:read_parameter_from_smart_device_link_ini("ServerAddress")
 
 --[[ General Precondition before ATF start ]]
 commonFunctions:SDLForceStop()
@@ -51,9 +51,9 @@ require('user_modules/AppTypes')
 commonFunctions:newTestCasesGroup("Preconditions")
 
 function Test:Precondition_InitHMI_OnReady()
-  testCasesForNavi_IsReady.InitHMI_onReady_without_Navi_IsReady(self, 1)
-  EXPECT_HMICALL("Navi.IsReady")
-  -- Do not send HMI response of Navi.IsReady
+  testCasesForNavi_IsReady.InitHMI_onReady_without_Navigation_IsReady(self, 1)
+  EXPECT_HMICALL("Navigation.IsReady")
+  -- Do not send HMI response of Navigation.IsReady
 end
 
 function Test:Precondition_connectMobile()
