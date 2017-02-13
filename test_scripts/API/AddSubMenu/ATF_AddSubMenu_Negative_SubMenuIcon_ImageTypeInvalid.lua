@@ -17,8 +17,6 @@
 ---------------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
-config.SDLStoragePath = config.pathToSDL .. "storage/"
-local storagePath = config.SDLStoragePath..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
 
 --[[ General configuration parameters ]]
 Test = require('connecttest')
@@ -27,9 +25,10 @@ require('cardinalities')
 --[[ Required Shared Libraries ]]
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
-require('user_modules/AppTypes')
+local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 
 --[[ Preconditions ]]
+commonFunctions:SDLForceStop()
 commonSteps:DeleteLogsFileAndPolicyTable()
 commonFunctions:newTestCasesGroup("Preconditions")
 function Test:Precondition_ActivateApp()
@@ -58,6 +57,8 @@ commonSteps:PutFile("PutFile_menuIcon", "menuIcon.jpg")
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 function Test:AddSubMenu_SubMenuIconInvalidImageType()
+  local storagePath = table.concat({ commonPreconditions:GetPathToSDL(), "storage/",
+    config.application1.registerAppInterfaceParams.appID, "_", config.deviceMAC, "/" })
   local cid = self.mobileSession:SendRPC("AddSubMenu",
   {
     menuID = 2000,
@@ -77,3 +78,5 @@ commonFunctions:newTestCasesGroup("Postconditions")
 function Test.Postcondition_StopSDL()
   StopSDL()
 end
+
+return Test

@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
---		[GENIVI] AddSubMenu: SDL must support new "subMenuIcon" parameter 
+--		[GENIVI] AddSubMenu: SDL must support new "subMenuIcon" parameter
 --		[AddSubMenu] Mobile app sends AddSubMenu without "subMenuIcon" param to HMI
 --
 -- Description:
@@ -17,18 +17,17 @@
 ---------------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
-config.SDLStoragePath = config.pathToSDL .. "storage/"
 
 --[[ General configuration parameters ]]
-Test = require('connecttest')	
+Test = require('connecttest')
 require('cardinalities')
 
 --[[ Required Shared Libraries ]]
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
-require('user_modules/AppTypes')
-	
+
 --[[ Preconditions ]]
+commonFunctions:SDLForceStop()
 commonSteps:DeleteLogsFileAndPolicyTable()
 commonFunctions:newTestCasesGroup("Preconditions")
 function Test:Precondition_ActivateApp()
@@ -36,50 +35,52 @@ function Test:Precondition_ActivateApp()
 	EXPECT_HMIRESPONSE(RequestId)
 	:Do(function(_,data)
 		if data.result.isSDLAllowed ~= true then
-			local RequestIdGetMes = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", 
+			local RequestIdGetMes = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage",
 			{language = "EN-US", messageCodes = {"DataConsent"}})
 			EXPECT_HMIRESPONSE(RequestIdGetMes)
 			:Do(function()
-				self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", 
+				self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality",
 				{allowed = true, source = "GUI", device = {id = config.deviceMAC, name = "127.0.0.1"}})
 				EXPECT_HMICALL("BasicCommunication.ActivateApp")
 				:Do(function(_,data1)
 					self.hmiConnection:SendResponse(data1.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
 				end)
-				:Times(AtLeast(1)) 
+				:Times(AtLeast(1))
 			end)
 		end
 	end)
-	EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN", audioStreamingState = "AUDIBLE"})	
+	EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN", audioStreamingState = "AUDIBLE"})
 end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
- 	function Test:AddSubMenu_NoSubMenuIconParamSUCCESS()
-		local cid = self.mobileSession:SendRPC("AddSubMenu",
-			{
-				menuID = 2000,
-				position = 300,
-				menuName ="SubMenuNoSubMenuIcon"
-			}) 
-		EXPECT_HMICALL("UI.AddSubMenu", 
-			{ 
-				menuID = 2000,
-				menuParams = 
-					{
-						position = 300,
-						menuName ="SubMenuNoSubMenuIcon"
-			        }
-		    }) 
-		:Do(function(_,data)
-			self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {}) 
-		end)
-		EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" }) 
-		EXPECT_NOTIFICATION("OnHashChange") 
-	end
+function Test:AddSubMenu_NoSubMenuIconParamSUCCESS()
+	local cid = self.mobileSession:SendRPC("AddSubMenu",
+		{
+			menuID = 2000,
+			position = 300,
+			menuName ="SubMenuNoSubMenuIcon"
+		})
+	EXPECT_HMICALL("UI.AddSubMenu",
+		{
+			menuID = 2000,
+			menuParams =
+				{
+					position = 300,
+					menuName ="SubMenuNoSubMenuIcon"
+		    }
+	  })
+	:Do(function(_,data)
+		self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+	end)
+	EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
+	EXPECT_NOTIFICATION("OnHashChange")
+end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
 function Test.Postcondition_StopSDL()
   StopSDL()
 end
+
+return Test

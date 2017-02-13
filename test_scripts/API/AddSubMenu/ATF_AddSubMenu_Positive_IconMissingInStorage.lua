@@ -8,9 +8,9 @@
 -- 1. Used preconditions:
 -- 	Delete files and policy table from previous ignition cycle if any
 -- 	Start SDL and HMI
---      Activate application
+--  Activate application
 -- 2. Performed steps:
---      Delete image from system
+--  Delete image from system
 -- 	Send AddSubMenu RPC with "subMenuIcon" with previously deleted image
 --
 -- Expected result:
@@ -18,8 +18,6 @@
 ---------------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
-config.SDLStoragePath = config.pathToSDL .. "storage/"
-local storagePath = config.SDLStoragePath..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
 
 --[[ General configuration parameters ]]
 Test = require('connecttest')
@@ -28,7 +26,7 @@ require('cardinalities')
 --[[ Required Shared Libraries ]]
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
-require('user_modules/AppTypes')
+local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 
 --[[ Local functions ]]
 local function file_check(file_name)
@@ -41,6 +39,7 @@ local function file_check(file_name)
 end
 
 --[[ Preconditions ]]
+commonFunctions:SDLForceStop()
 commonSteps:DeleteLogsFileAndPolicyTable()
 commonFunctions:newTestCasesGroup("Preconditions")
 function Test:Precondition_ActivateApp()
@@ -68,6 +67,8 @@ end
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 function Test:AddSubMenu_NoIconInAppStorage()
+  local storagePath = table.concat({ commonPreconditions:GetPathToSDL(), "storage/",
+    config.application1.registerAppInterfaceParams.appID, "_", config.deviceMAC, "/" })
   local cid = self.mobileSession:SendRPC("AddSubMenu",
   {
     menuID = 2000,
@@ -110,3 +111,5 @@ commonFunctions:newTestCasesGroup("Postconditions")
 function Test.Postcondition_StopSDL()
   StopSDL()
 end
+
+return Test

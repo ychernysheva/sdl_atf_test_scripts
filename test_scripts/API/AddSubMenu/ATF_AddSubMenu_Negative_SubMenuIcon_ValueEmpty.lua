@@ -8,7 +8,7 @@
 -- 1. Used preconditions:
 -- 	Delete files and policy table from previous ignition cycle if any
 -- 	Start SDL and HMI
---      Activate application
+--  Activate application
 -- 2. Performed steps:
 -- 	Send AddSubMenu RPC with "subMenuIcon" with empty image value
 --
@@ -17,7 +17,6 @@
 ---------------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
-config.SDLStoragePath = config.pathToSDL .. "storage/"
 
 --[[ General configuration parameters ]]
 Test = require('connecttest')
@@ -26,9 +25,9 @@ require('cardinalities')
 --[[ Required Shared Libraries ]]
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
-require('user_modules/AppTypes')
 
 --[[ Preconditions ]]
+commonFunctions:SDLForceStop()
 commonSteps:DeleteLogsFileAndPolicyTable()
 commonFunctions:newTestCasesGroup("Preconditions")
 function Test:Precondition_ActivateApp()
@@ -79,3 +78,5 @@ commonFunctions:newTestCasesGroup("Postconditions")
 function Test.Postcondition_StopSDL()
   StopSDL()
 end
+
+return Test
