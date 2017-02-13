@@ -119,8 +119,9 @@ function Test:TestStep_AddCommand_UI_warnings()
   })
   :ValidIf(function(_,data)
     local value_Icon = storagePath .. "icon.png"
-    if (string.match(data.params.cmdIcon.value, "%S*" .. "("..string.sub(storagePath, 2).."icon.png)" .. "$") == nil ) then
-      print("\27[31m value of cmdIcon is WRONG. Expected: ~".. value_Icon .. "; Real: " .. data.params.cmdIcon.value .. "\27[0m")
+    if (string.match(data.params.cmdIcon.value, "%S*" .. "("..string.sub(storagePath, 2).."icon.png)" .. "%W*$") == nil )  and
+       (data.params.cmdIcon.value ~= value_Icon ) then
+      print("\27[31m value of cmduIcon is WRONG. Expected: ".. value_Icon .. "; Real: " .. data.params.cmdIcon.value .. "\27[0m")
       return false
     else
       return true

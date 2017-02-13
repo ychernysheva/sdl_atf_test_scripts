@@ -97,17 +97,16 @@ for i=1,#resultCodes do
       cmdID = i,
       menuParams = { parentID = 0, position = 0, menuName ="Commandpositive" .. tostring(i)}
     })
-
     :ValidIf(function(_,data)
       local value_Icon = storagePath .. "icon.png"
-      if (string.match(data.params.cmdIcon.value, "%S*" .. "("..string.sub(storagePath, 2).."icon.png)" .. "$") == nil ) then
-        print("\27[31m value of menuIcon is WRONG. Expected: ~".. value_Icon .. "; Real: " .. data.params.cmdIcon.value .. "\27[0m")
+      if (string.match(data.params.cmdIcon.value, "%S*" .. "("..string.sub(storagePath, 2).."icon.png)" .. "%W*$") == nil )  and
+         (data.params.cmdIcon.value ~= value_Icon ) then
+        print("\27[31m value of cmdIcon is WRONG. Expected: ".. value_Icon .. "; Real: " .. data.params.cmdIcon.value .. "\27[0m")
         return false
       else
         return true
       end
     end)
-
     :Do(function(_,data) self.hmiConnection:SendResponse(data.id, "UI.AddCommand", resultCodes[i], {}) end)
 
     EXPECT_HMICALL("VR.AddCommand",

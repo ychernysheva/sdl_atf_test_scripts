@@ -119,8 +119,9 @@ for i=1,#resultCodes do
     })
     :ValidIf(function(_,data)
       local value_Icon = storagePath .. "icon.png"
-      if (string.match(data.params.softButtons[1].image.value, "%S*" .. "("..string.sub(storagePath, 2).."icon.png)" .. "$") == nil ) then
-        print("\27[31m value of menuIcon is WRONG. Expected: ~".. value_Icon .. "; Real: " .. data.params.softButtons[1].image.value .. "\27[0m")
+      if (string.match(data.params.softButtons[1].image.value, "%S*" .. "("..string.sub(storagePath, 2).."icon.png)" .. "%W*$") == nil )  and
+         (data.params.softButtons[1].image.value ~= value_Icon ) then
+        print("\27[31m value of softButtons.image is WRONG. Expected: ".. value_Icon .. "; Real: " .. data.params.softButtons[1].image.value .. "\27[0m")
         return false
       else
         return true

@@ -95,6 +95,7 @@ commonSteps:PutFile("Precondition_PutFile", "icon.png")
 commonFunctions:newTestCasesGroup("Test")
 
 local resultCodes = {"SUCCESS", "WARNINGS", "WRONG_LANGUAGE", "RETRY", "SAVED"}
+
   for i=1,#resultCodes do
     Test["Precondition_AddCommand_"..resultCodes[i]] = function(self)
     local cor_id_add_cmd = self.mobileSession:SendRPC("AddCommand",
@@ -113,8 +114,9 @@ local resultCodes = {"SUCCESS", "WARNINGS", "WRONG_LANGUAGE", "RETRY", "SAVED"}
     })
     :ValidIf(function(_,data)
       local value_Icon = storagePath .. "icon.png"
-      if (string.match(data.params.cmdIcon.value, "%S*" .. "("..string.sub(storagePath, 2).."icon.png)" .. "$") == nil ) then
-        print("\27[31m value of menuIcon is WRONG. Expected: ~".. value_Icon .. "; Real: " .. data.params.cmdIcon.value .. "\27[0m")
+      if (string.match(data.params.cmdIcon.value, "%S*" .. "("..string.sub(storagePath, 2).."icon.png)" .. "%W*$") == nil )  and
+         (data.params.cmdIcon.value ~= value_Icon ) then
+        print("\27[31m value of cmduIcon is WRONG. Expected: ".. value_Icon .. "; Real: " .. data.params.cmdIcon.value .. "\27[0m")
         return false
       else
         return true
