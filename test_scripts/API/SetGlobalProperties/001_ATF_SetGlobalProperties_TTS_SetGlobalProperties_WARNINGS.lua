@@ -121,6 +121,8 @@ for i=1,#resultCodes do
       print("Value data.params.menuIcon.value = "..data.params.menuIcon.value)
       
       local value_Icon = storagePath .. "action.png"
+      print("value_Icon = "..value_Icon)
+      print("Length: value_Icon = "..string.len(value_Icon))
       --if (string.match(data.params.menuIcon.value, "%S*" .. "("..string.sub(storagePath, 2).."action.png)" .. "%W*$") == nil ) then
       if (string.match(data.params.menuIcon.value, "%S*" .. "("..storagePath.."action.png)" .. "%W*$") == nil ) then
         --print("\27[31m value of menuIcon is WRONG. Expected: ~".. value_Icon .. "; Real: " .. data.params.menuIcon.value .. "\27[0m")
