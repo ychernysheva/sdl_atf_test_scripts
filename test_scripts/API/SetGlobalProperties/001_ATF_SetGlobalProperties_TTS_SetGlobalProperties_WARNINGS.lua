@@ -113,19 +113,11 @@ for i=1,#resultCodes do
       appID = self.applications[config.application1.registerAppInterfaceParams.appName]
     })
     :ValidIf(function(_,data)
-      local length_str1 = string.len("/home/jenkins/workspace/EXT_FUNC_NIGHTLY/CRQ/APPLINK-29022_NIGHTLY_SDL_must_send_WARNINGS/aut/bin/storage/0000001_12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0/action.png")
-      print("Length: '/home/jenkins/workspace/EXT_FUNC_NIGHTLY/CRQ/APPLINK-29022_NIGHTLY_SDL_must_send_WARNINGS/aut/bin/storage/0000001_12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0/action.png = '" ..length_str1)
-
-      local length_str2 = string.len(data.params.menuIcon.value)
-      print("Length: data.params.menuIcon.value = " ..length_str2)
-      print("Value data.params.menuIcon.value = "..data.params.menuIcon.value)
-      
+           
       local value_Icon = storagePath .. "action.png"
-      print("value_Icon = "..value_Icon)
-      print("Length: value_Icon = "..string.len(value_Icon))
-      --if (string.match(data.params.menuIcon.value, "%S*" .. "("..string.sub(storagePath, 2).."action.png)" .. "%W*$") == nil ) then
-      if (string.match(data.params.menuIcon.value, "%S*" .. "("..storagePath.."action.png)" .. "%W*$") == nil ) then
-        --print("\27[31m value of menuIcon is WRONG. Expected: ~".. value_Icon .. "; Real: " .. data.params.menuIcon.value .. "\27[0m")
+      if (string.match(data.params.menuIcon.value, "%S*" .. "("..string.sub(storagePath, 2).."action.png)" .. "%W*$") == nil )  and 
+         (data.params.menuIcon.value ~= value_Icon ) then
+      
         print("value of menuIcon is WRONG. Expected: ".. value_Icon .. "; Real: " .. data.params.menuIcon.value)
         return false
       else
