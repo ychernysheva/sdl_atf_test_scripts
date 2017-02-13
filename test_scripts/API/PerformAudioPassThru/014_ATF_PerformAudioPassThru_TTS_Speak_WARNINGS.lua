@@ -29,10 +29,8 @@ local commonPreconditions = require('user_modules/shared_testcases/commonPrecond
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
 local testCasesForPerformAudioPassThru = require('user_modules/shared_testcases/testCasesForPerformAudioPassThru')
 local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
-config.SDLStoragePath = commonPreconditions:GetPathToSDL() .. "storage/"
 
 --[[ Local Variables ]]
-local storagePath = config.SDLStoragePath..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
 local ServerAddress = commonFunctions:read_parameter_from_smart_device_link_ini("ServerAddress")
 
 --[[ General Precondition before ATF start ]]
@@ -101,9 +99,10 @@ for i=1,#resultCodes do
     :Do(function(_,data2)
       self.hmiConnection:SendNotification("TTS.Started",{ })
       local function ttsSpeakResponce()
-        self.hmiConnection:SendResponse (data2.id, data.method, "WARNINGS", {})
+        self.hmiConnection:SendResponse (data2.id, data2.method, "WARNINGS", {})
         self.hmiConnection:SendNotification("TTS.Stopped")
       end
+      RUN_AFTER(ttsSpeakResponce,1500)
     end)
 
     EXPECT_HMICALL("UI.PerformAudioPassThru",
