@@ -131,8 +131,9 @@ function Test:TestStep_SetGlobalProperties_WARNINGS_to_TTS_SGP_and_UNSUPPORTED_R
   })
   :ValidIf(function(_,data)
     local value_Icon = storagePath .. "action.png"
-    if (string.match(data.params.vrHelp[1].image.value, "%S*" .. "("..string.sub(storagePath, 2).."action.png)" .. "$") == nil ) then
-      print("\27[31m value of vrHelp.Image is WRONG. Expected: ~".. value_Icon .. "; Real: " .. data.params.vrHelp[1].image.value .. "\27[0m")
+    if (string.match(data.params.vrHelp[1].image.value, "%S*" .. "("..string.sub(storagePath, 2).."action.png)" .. "%W*$") == nil )  and
+       (data.params.vrHelp[1].image.value ~= value_Icon ) then
+      print("\27[31m value of vrHelp.image is WRONG. Expected: ".. value_Icon .. "; Real: " .. data.params.vrHelp[1].image.value .. "\27[0m")
       return false
     else
       return true

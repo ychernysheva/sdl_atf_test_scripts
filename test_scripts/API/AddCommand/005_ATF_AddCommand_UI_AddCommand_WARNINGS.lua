@@ -6,7 +6,7 @@
 -- test is intended to check that SDL sends WARNINGS (success:true) to mobile app in case HMI respond WARNINGS to at least one HMI-portions
 -- in this particular test it is checked case when SDL sends WARNINGS (success:true) to mobile app in case HMI respond WARNINGS to UI.AddCommand and VR.AddCommand gets ANY successfull result code
 --
--- 1. Used preconditions: 
+-- 1. Used preconditions:
 -- App is registered and activated SUCCESSFULLY
 -- 2. Performed steps:
 -- MOB -> SDL: sends AddCommand
@@ -20,7 +20,7 @@
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 -- ToDo (vvvakulenko): remove after issue "ATF does not stop HB timers by closing session and connection" is resolved
 config.defaultProtocolVersion = 2
- 
+
 --[[ Required Shared libraries ]]
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require ('user_modules/shared_testcases/commonSteps')
@@ -98,17 +98,16 @@ for i=1,#resultCodes do
       cmdID = i,
       menuParams = { parentID = 0, position = 0, menuName ="Commandpositive" .. tostring(i)}
     })
-
     :ValidIf(function(_,data)
       local value_Icon = storagePath .. "icon.png"
-      if (string.match(data.params.cmdIcon.value, "%S*" .. "("..string.sub(storagePath, 2).."icon.png)" .. "$") == nil ) then
-        print("\27[31m value of menuIcon is WRONG. Expected: ~".. value_Icon .. "; Real: " .. data.params.cmdIcon.value .. "\27[0m")
+      if (string.match(data.params.cmdIcon.value, "%S*" .. "("..string.sub(storagePath, 2).."icon.png)" .. "%W*$") == nil )  and
+         (data.params.cmdIcon.value ~= value_Icon ) then
+        print("\27[31m value of cmduIcon is WRONG. Expected: ".. value_Icon .. "; Real: " .. data.params.cmdIcon.value .. "\27[0m")
         return false
       else
         return true
       end
     end)
-
     :Do(function(_,data) self.hmiConnection:SendResponse(data.id, "UI.AddCommand", "WARNINGS", {}) end)
 
     EXPECT_HMICALL("VR.AddCommand",

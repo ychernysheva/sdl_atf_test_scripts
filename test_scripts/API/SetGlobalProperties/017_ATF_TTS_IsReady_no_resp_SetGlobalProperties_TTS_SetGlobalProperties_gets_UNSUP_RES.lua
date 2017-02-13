@@ -127,8 +127,9 @@ function Test:TestStep_SetGlobalProperties_WARNINGS_to_UI_SGP_and_UNSUPPORTED_RE
   })
   :ValidIf(function(_,data)
     local value_Icon = storagePath .. "action.png"
-    if (string.match(data.params.menuIcon.value, "%S*" .. "("..string.sub(storagePath, 2).."action.png)" .. "$") == nil ) then
-      print("\27[31m value of menuIcon is WRONG. Expected: ~".. value_Icon .. "; Real: " .. data.params.menuIcon.value .. "\27[0m")
+    if (string.match(data.params.menuIcon.value, "%S*" .. "("..string.sub(storagePath, 2).."action.png)" .. "%W*$") == nil )  and
+       (data.params.menuIcon.value ~= value_Icon ) then
+      print("\27[31m value of menuIcon is WRONG. Expected: ".. value_Icon .. "; Real: " .. data.params.menuIcon.value .. "\27[0m")
       return false
     else
       return true
