@@ -9,7 +9,7 @@
 --
 -- Description:
 -- In case HMI sends invalid response by any reason that SDL must transfer it to mobile app
--- (possible reasons to invalidate response include: mandatory params are missing, invalid json, incorrect combination of params or 
+-- (possible reasons to invalidate response include: mandatory params are missing, params out of bounds, invalid json, incorrect combination of params or 
 -- SDL has cut fake parameters from response)
 -- SDL must: respond GENERIC_ERROR (success:false, <info>) to mobile app 
 -- (info: "Invalid message received from vehicle" - if invalid response sent from HMI)
@@ -39,13 +39,15 @@ local commonPostconditions = require('user_modules/shared_testcases/commonPrecon
 local testCasesForPerformAudioPassThru = require('user_modules/shared_testcases/testCasesForPerformAudioPassThru')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
 
---[[Local variables]]
+--[[ Local variables ]]
 local invalid_data = {
-{descr = "missing mandatory parameter"}, --samplingRate, maxDuration, bitsPerSample, audioType 
-{descr = "invalid json"},
-{descr = "invalid combination of params"},
-{descr = "fake parameters in response"}	
+  {value = 123, descr = "wrongtype"},
+  {value = "TESTING" , descr = "nonexisting_enum"},
+  {value = "", descr = "missing"}
 }
+
+--[[Local functions]]
+
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFiles()
@@ -73,9 +75,9 @@ end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
-
+--UI invalid HMI response: HMI->SDL, resultcode - invalid
 for i =1, #invalid_data do
-  Test["TestStep_GENERIC_ERROR_PerformAudioPassThru_HMI_replies_" .. invalid_data[i].descr] = function(self)
+  Test["TestStep_GENERIC_ERROR_PerformAudioPassThru_UI_HMI_replies_" .. invalid_data[i].descr] = function(self)
       local CorIdPerformAudioPassThru= self.mobileSession:SendRPC("PerformAudioPassThru",
 	    {
 	      initialPrompt = {{text = "Makeyourchoice",type = "TEXT"}},
@@ -102,7 +104,7 @@ for i =1, #invalid_data do
 	      self.hmiConnection:SendNotification("TTS.Started",{})
 	      
 	      local function ttsSpeakResponse()
-	        self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {parameter = invalid_data[i].value})
+	        self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS")
 	        self.hmiConnection:SendNotification("TTS.Stopped")
 	      end
 	      RUN_AFTER(ttsSpeakResponse, 1000)
@@ -123,7 +125,79 @@ for i =1, #invalid_data do
 	        value = "icon.png"
 	      }
 	    })
-	  :Do(function() -- No HMI response is sent
+	  :Do(function(_,data) 
+		self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"UI.PerformAudioPassThru", "code":'..tostring(invalid_data[i].value)..'}}')	
+      end)
+
+  if
+	  (self.appHMITypes["NAVIGATION"] == true) or
+	  (self.appHMITypes["COMMUNICATION"] == true) or
+	  (self.isMediaApplication == true) then
+
+	  EXPECT_NOTIFICATION("OnHMIStatus",
+      {hmiLevel = "FULL", audioStreamingState = "ATTENUATED", systemContext = "MAIN"},
+      {hmiLevel = "FULL", audioStreamingState = "AUDIBLE", systemContext = "MAIN"})
+    :Times(2)
+  else
+    EXPECT_NOTIFICATION("OnHMIStatus"):Times(0)
+  end
+
+  self.mobileSession:ExpectResponse(CorIdPerformAudioPassThru, {success = false, resultCode = "GENERIC_ERROR", info ="Invalid message received from vehicle" })
+  EXPECT_NOTIFICATION("OnHashChange",{}):Times(0)
+  end 
+end
+
+for i =1, #invalid_data do
+  Test["TestStep_GENERIC_ERROR_PerformAudioPassThru_TTS_HMI_replies_" .. invalid_data[i].descr] = function(self)
+      local CorIdPerformAudioPassThru= self.mobileSession:SendRPC("PerformAudioPassThru",
+	    {
+	      initialPrompt = {{text = "Makeyourchoice",type = "TEXT"}},
+	      audioPassThruDisplayText1 = "DisplayText1",
+	      audioPassThruDisplayText2 = "DisplayText2",
+	      samplingRate = "16KHZ",
+	      maxDuration = 2000,
+	      bitsPerSample = "8_BIT",
+	      audioType = "PCM",
+	      muteAudio = true,
+	      audioPassThruIcon =
+		    { 
+		      value = "icon.png",
+		      imageType = "STATIC"
+		    }
+	    })
+	  EXPECT_HMICALL("TTS.Speak",
+	    {
+	      speakType = "AUDIO_PASS_THRU",
+	      ttsChunks = {{text = "Makeyourchoice", type = "TEXT"}},
+	      appID = self.applications[config.application1.registerAppInterfaceParams.appName]
+	    })
+	  :Do(function(_,data)
+	      self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"UI.PerformAudioPassThru", "code":'..tostring(invalid_data[i].value)..'}}')
+	      
+	      local function ttsSpeakResponse()
+	        self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS")
+	        self.hmiConnection:SendNotification("TTS.Stopped")
+	      end
+	      RUN_AFTER(ttsSpeakResponse, 1000)
+	  end)
+
+	  EXPECT_HMICALL("UI.PerformAudioPassThru",
+	    {
+	      appID = self.applications[config.application1.registerAppInterfaceParams.appName],
+	      audioPassThruDisplayTexts = {
+	        {fieldName = "audioPassThruDisplayText1", fieldText = "DisplayText1"},
+	        {fieldName = "audioPassThruDisplayText2", fieldText = "DisplayText2"},
+	      },
+	      maxDuration = 2000,
+	      muteAudio = true,
+	      audioPassThruIcon = 
+	      { 
+	        imageType = "STATIC", 
+	        value = "icon.png"
+	      }
+	    })
+	  :Do(function(_,data) 
+		self.hmiConnection:SendResponse(data.id, "UI.PerformAudioPassThru", "SUCCESS", {})
       end)
 
   if
