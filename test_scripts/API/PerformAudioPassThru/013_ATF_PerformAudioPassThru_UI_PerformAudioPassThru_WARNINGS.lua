@@ -29,10 +29,8 @@ local commonPreconditions = require('user_modules/shared_testcases/commonPrecond
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
 local testCasesForPerformAudioPassThru = require('user_modules/shared_testcases/testCasesForPerformAudioPassThru')
 local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
-config.SDLStoragePath = commonPreconditions:GetPathToSDL() .. "storage/"
 
 --[[ Local Variables ]]
-local storagePath = config.SDLStoragePath..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
 local ServerAddress = commonFunctions:read_parameter_from_smart_device_link_ini("ServerAddress")
 
 --[[ General Precondition before ATF start ]]
@@ -104,6 +102,7 @@ for i=1,#resultCodes do
         self.hmiConnection:SendResponse (data.id, data.method, resultCodes[i], {})
         self.hmiConnection:SendNotification("TTS.Stopped")
       end
+      RUN_AFTER(ttsSpeakResponce,1500)
     end)
 
     EXPECT_HMICALL("UI.PerformAudioPassThru",
@@ -119,7 +118,7 @@ for i=1,#resultCodes do
       local function UIPerformAoudioResponce()
         self.hmiConnection:SendResponse(data.id, "UI.PerformAudioPassThru", "WARNINGS", {})
       end
-      commonTestCases:DelayedExp(1500)
+      RUN_AFTER(UIPerformAoudioResponce,1500)
     end)
 
      if
