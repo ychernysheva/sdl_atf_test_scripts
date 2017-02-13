@@ -104,8 +104,8 @@ local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
               self.mobileSession1:ExpectNotification("OnPermissionsChange", arrayGroups_PrimaryRC )
 
               --mobile side:RSDL sends OnHMIStatus (NONE,params) to mobile application.
-              self.mobileSession1:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", deviceRank = "PASSENGER" })
-
+              self.mobileSession1:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE"},{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", deviceRank = "DRIVER" })
+              :Times(2)
             end)
           end
       --End Test case CommonRequestCheck.3.1.2

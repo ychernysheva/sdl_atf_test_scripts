@@ -72,7 +72,8 @@ end
 						-- RSDL must send the RC.GetInteriorVehicleDataConsent for getting driver's allowance to control this different <moduleType> to the vehicle (HMI).
 
 
-	--Begin Test case CommonRequestCheck.7.2
+
+	--Begin Test case CommonRequestCheck.7.1
 	--Description: 	RSDL must send the RC.GetInteriorVehicleDataConsent for getting driver's allowance to control this different <moduleType> to the vehicle (HMI).
 
 		--Requirement/Diagrams id in jira:
@@ -158,7 +159,7 @@ end
 
 		-----------------------------------------------------------------------------------------
 
-			--Begin Test case CommonRequestCheck.7.2.1
+			--Begin Test case CommonRequestCheck.7.1.1
 			--Description: application sends GetInteriorVehicleData as Driver zone and ModuleType = RADIO
 				function Test:GetInterior_App1DriverRADIO()
 					--mobile side: In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies
@@ -243,28 +244,57 @@ end
 
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
-			--End Test case CommonRequestCheck.7.2.1
+			--End Test case CommonRequestCheck.7.1.1
+
+		-------------------------FOR LEFT PASSENGER ZONE----------------------------------------
+
+			--Begin Precondition.1. HMI sends notification RC.OnDeviceLocationChanged(<deviceID>) to RSDL (zone:Left Passenger) (col=0, row=1, level=0)
+			--Description: HMI sends notification RC.OnDeviceLocationChanged(<deviceID>) to RSDL
+
+				function Test:ChangedLocationDevice2_Left()
+					--hmi side: HMI sends notification RC.OnDeviceLocationChanged(<deviceID>) to RSDL
+					self.hmiConnection:SendNotification("RC.OnDeviceLocationChanged",
+						{device = {name = device2, id = 2, isSDLAllowed = true},
+							deviceLocation =
+								{
+									colspan = 2,
+									row = 1,
+									rowspan = 2,
+									col = 0,
+									levelspan = 1,
+									level = 0
+								}
+						})
+				end
+			--End Precondition.1
 
 		-----------------------------------------------------------------------------------------
 
-			--Begin Test case CommonRequestCheck.7.2.2
+			--Begin Test case CommonRequestCheck.7.1.2
 			--Description: application sends SetInteriorVehicleData as Back Right and ModuleType = CLIMATE (different moduleType and the same app)
-				function Test:SetInterior_App2RightCLIMATE_NonReceivedChangedLocation()
+				function Test:SetInterior_App2RightCLIMATE_ReceivedChangedLocation()
 					--mobile side: In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies
-					local cid = self.mobileSession21:SendRPC("ButtonPress",
+					local cid = self.mobileSession21:SendRPC("SetInteriorVehicleData",
 					{
-						zone =
+						moduleData =
 						{
-							colspan = 2,
-							row = 1,
-							rowspan = 2,
-							col = 0,
-							levelspan = 1,
-							level = 0
-						},
-						moduleType = "CLIMATE",
-						buttonPressMode = "SHORT",
-						buttonName = "LOWER_VENT"
+							moduleType = "CLIMATE",
+							moduleZone =
+							{
+								colspan = 2,
+								row = 1,
+								rowspan = 2,
+								col = 1,
+								levelspan = 1,
+								level = 0
+							},
+							climateControlData =
+							{
+								fanSpeed = 50,
+								desiredTemp = 24,
+								temperatureUnit = "CELSIUS"
+							}
+						}
 					})
 
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
@@ -281,40 +311,46 @@ end
 										levelspan = 1,
 										level = 0
 									}
-					})
-					:Do(function(_,data)
-						--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
-						self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
+								})
+						:Do(function(_,data)
+							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
+							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
 
-						--hmi side: expect Buttons.ButtonPress request
-						EXPECT_HMICALL("Buttons.ButtonPress",
+							--hmi side: expect RC.SetInteriorVehicleData request
+							EXPECT_HMICALL("RC.SetInteriorVehicleData")
+							:Do(function(_,data)
+									--hmi side: sending RC.SetInteriorVehicleData response
+									self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {
+										moduleData =
 										{
-											zone =
+											moduleType = "CLIMATE",
+											moduleZone =
 											{
 												colspan = 2,
 												row = 1,
 												rowspan = 2,
-												col = 0,
+												col = 1,
 												levelspan = 1,
 												level = 0
 											},
-											moduleType = "CLIMATE",
-											buttonPressMode = "SHORT",
-											buttonName = "LOWER_VENT"
-						})
-						:Do(function(_,data)
-							--hmi side: sending Buttons.ButtonPress response
-							self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-						end)
+											climateControlData =
+											{
+												fanSpeed = 50,
+												desiredTemp = 24,
+												temperatureUnit = "CELSIUS"
+											}
+										}
+									})
+
+								end)
 					end)
 
 					self.mobileSession21:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 				end
-			--End Test case CommonRequestCheck.7.2.2
+			--End Test case CommonRequestCheck.7.1.2
 
 		-----------------------------------------------------------------------------------------
-	--End Test case CommonRequestCheck.7.2
-
+	--End Test case CommonRequestCheck.7.1
 
 --=================================================END TEST CASES 7==========================================================--
 
