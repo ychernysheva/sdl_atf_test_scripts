@@ -119,8 +119,8 @@ local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
                 end)
 
                 -- check OnHMIStatus with deviceRank = "PASSENGER"
-                self.mobileSession1:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", deviceRank = "PASSENGER" })
-                :Timeout(3000)
+                self.mobileSession1:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE"} ,{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", deviceRank = "PASSENGER" })
+                :Times(2):Timeout(3000)
 
               end)
             end
@@ -229,8 +229,8 @@ local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
                 self.mobileSession1:ExpectResponse(CorIdRegister, { success = true, resultCode = "SUCCESS"})
 
                 --check OnHMIStatus with deviceRank = "PASSENGER"
-                self.mobileSession1:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", deviceRank = "PASSENGER" })
-                :Timeout(3000)
+                self.mobileSession1:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE"}, { systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", deviceRank = "PASSENGER" })
+                :Times(2):Timeout(3000)
 
               end)
             end
@@ -292,8 +292,8 @@ local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
                 self.mobileSession2:ExpectResponse(CorIdRegister, { success = true, resultCode = "RESUME_FAILED"})
 
                 --check OnHMIStatus with deviceRank = "PASSENGER"
-                self.mobileSession2:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", deviceRank = "PASSENGER" })
-                :Timeout(3000)
+                self.mobileSession2:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE"}, { systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", deviceRank = "PASSENGER" })
+                :Times(2):Timeout(3000)
 
               end)
             end
@@ -353,8 +353,8 @@ local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
                 self.mobileSession3:ExpectResponse(CorIdRegister, { success = true, resultCode = "WRONG_LANGUAGE"})
 
                 --check OnHMIStatus with deviceRank = "PASSENGER"
-                self.mobileSession3:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", deviceRank = "PASSENGER" })
-                :Timeout(3000)
+                self.mobileSession3:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE"}, { systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", deviceRank = "PASSENGER" })
+                :Times(2):Timeout(3000)
 
               end)
             end
@@ -462,8 +462,8 @@ local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
                 end)
 
                 --check OnHMIStatus with deviceRank = "DRIVER"
-                self.mobileSession4:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", deviceRank = "DRIVER" })
-                :Timeout(3000)
+                self.mobileSession4:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE"}, { systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", deviceRank = "DRIVER" })
+                :Times(2):Timeout(3000)
 
               end)
             end

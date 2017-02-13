@@ -96,8 +96,8 @@ local arrayGroups_nonPrimaryRC = revsdl.arrayGroups_nonPrimaryRC()
                 self.mobileSession1:ExpectNotification("OnPermissionsChange", arrayGroups_nonPrimaryRC )
 
                 --check OnHMIStatus with deviceRank = "PASSENGER"
-                self.mobileSession1:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", deviceRank = "PASSENGER" })
-                :Timeout(3000)
+                self.mobileSession1:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE"}, { systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", deviceRank = "PASSENGER" })
+                :Times(2):Timeout(3000)
 
               end)
             end
@@ -105,36 +105,36 @@ local arrayGroups_nonPrimaryRC = revsdl.arrayGroups_nonPrimaryRC()
 
     -----------------------------------------------------------------------------------------
 
-      --Begin Test case CommonRequestCheck.2.3
-      --Description: From mobile app registered from non primary (passengers device) send disallowed in policy table (groups_NON_PrimaryRC) RPS with allowed seat position.
-          function Test:TC2_PassengerDevice()
+  --     --Begin Test case CommonRequestCheck.2.3
+  --     --Description: From mobile app registered from non primary (passengers device) send disallowed in policy table (groups_NON_PrimaryRC) RPS with allowed seat position.
+  --         function Test:TC2_PassengerDevice()
 
-            local cid = self.mobileSession:SendRPC("ButtonPress",
-            {
-              zone =
-              {
-                colspan = 2,
-                row = 1,
-                rowspan = 2,
-                col = 1,
-                levelspan = 1,
-                level = 0
-              },
-              moduleType = "RADIO",
-              buttonPressMode = "LONG",
-              buttonName = "VOLUME_UP"
-            })
-
-
-            EXPECT_RESPONSE(cid, { success = false, resultCode = "DISALLOWED" })
-
-          end
-      --End Test case CommonRequestCheck.2.3
-
-    -----------------------------------------------------------------------------------------
+  --           local cid = self.mobileSession:SendRPC("ButtonPress",
+  --           {
+  --             zone =
+  --             {
+  --               colspan = 2,
+  --               row = 1,
+  --               rowspan = 2,
+  --               col = 1,
+  --               levelspan = 1,
+  --               level = 0
+  --             },
+  --             moduleType = "RADIO",
+  --             buttonPressMode = "LONG",
+  --             buttonName = "VOLUME_UP"
+  --           })
 
 
-  --End Test case CommonRequestCheck.2
+  --           EXPECT_RESPONSE(cid, { success = false, resultCode = "DISALLOWED" })
+
+  --         end
+  --     --End Test case CommonRequestCheck.2.3
+
+  --   -----------------------------------------------------------------------------------------
+
+
+  -- --End Test case CommonRequestCheck.2
 
 --=================================================END TEST CASES 2==========================================================--
 
