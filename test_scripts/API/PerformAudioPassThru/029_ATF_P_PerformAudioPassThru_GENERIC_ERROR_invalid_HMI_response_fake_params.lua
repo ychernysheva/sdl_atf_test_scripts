@@ -75,7 +75,6 @@ end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
---UI invalid HMI response: HMI->SDL, resultcode - invalid
 for i =1, #invalid_data do
   Test["TestStep_GENERIC_ERROR_PerformAudioPassThru_UI_HMI_replies_" .. invalid_data[i].descr] = function(self)
       local CorIdPerformAudioPassThru= self.mobileSession:SendRPC("PerformAudioPassThru",
@@ -126,7 +125,7 @@ for i =1, #invalid_data do
 	      }
 	    })
 	  :Do(function(_,data) 
-		self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"UI.PerformAudioPassThru", "code":'..tostring(invalid_data[i].value)..'}}')	
+		self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"UI.PerformAudioPassThru", "code":'..tostring(invalid_data[i].value)..'}}')	
       end)
 
   if
@@ -172,11 +171,12 @@ for i =1, #invalid_data do
 	      appID = self.applications[config.application1.registerAppInterfaceParams.appName]
 	    })
 	  :Do(function(_,data)
-	      self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"UI.PerformAudioPassThru", "code":'..tostring(invalid_data[i].value)..'}}')
-	      
+	  	self.hmiConnection:SendNotification("TTS.Started",{})
+	      	      
 	      local function ttsSpeakResponse()
-	        self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS")
+	        self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"TTS.Started", "code":'..tostring(invalid_data[i].value)..'}}')
 	        self.hmiConnection:SendNotification("TTS.Stopped")
+
 	      end
 	      RUN_AFTER(ttsSpeakResponse, 1000)
 	  end)
