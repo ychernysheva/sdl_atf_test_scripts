@@ -114,7 +114,9 @@ function Test:Precondition_PolicyTableUpdate_Proprietary()
     end)
   end)
 
-  EXPECT_NOTIFICATION("OnHMIStatus", {systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE"})
+  EXPECT_HMICALL("BasicCommunication.ActivateApp", {level = "NONE", appID = self.applications[config.application1.registerAppInterfaceParams.appName]})
+  :Do(function(_,data) self.hmiConnection:SendResponse(data.id,"BasicCommunication.ActivateApp", "SUCCESS", {}) end)
+
 end
 
 function Test:Preconditon_ActivateApp_Null()

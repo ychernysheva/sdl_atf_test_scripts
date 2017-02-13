@@ -132,31 +132,31 @@ function Test:Precondition_PTU_appPermissionsConsentNeeded_false()
       end)
 
       EXPECT_RESPONSE(CorIdSystemRequest, { success = true, resultCode = "SUCCESS"})
+    end)
 
-      EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATING"}, {status = "UP_TO_DATE"}):Times(2)
-      :Do(function(_,data)
-        if(data.params.status == "UP_TO_DATE") then
-          EXPECT_HMINOTIFICATION("SDL.OnAppPermissionChanged", {appID = self.applications[config.application1.registerAppInterfaceParams.appName], appPermissionsConsentNeeded = true })
-          :Do(function()
-            local RequestIdListOfPermissions = self.hmiConnection:SendRequest("SDL.GetListOfPermissions", { appID = self.applications[config.application1.registerAppInterfaceParams.appName] })
+    EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATING"}, {status = "UP_TO_DATE"}):Times(2)
+    :Do(function(_,data)
+      if(data.params.status == "UP_TO_DATE") then
+        EXPECT_HMINOTIFICATION("SDL.OnAppPermissionChanged", {appID = self.applications[config.application1.registerAppInterfaceParams.appName], appPermissionsConsentNeeded = true })
+        :Do(function()
+          local RequestIdListOfPermissions = self.hmiConnection:SendRequest("SDL.GetListOfPermissions", { appID = self.applications[config.application1.registerAppInterfaceParams.appName] })
 
-            EXPECT_HMIRESPONSE(RequestIdListOfPermissions)
-            :Do(function(_,data1)
-              local groups = {}
-              if #data1.result.allowedFunctions > 0 then
-                for i = 1, #data1.result.allowedFunctions do
-                  groups[i] = {
-                    name = data1.result.allowedFunctions[i].name,
-                    id = data1.result.allowedFunctions[i].id,
-                    allowed = false}
-                end
+          EXPECT_HMIRESPONSE(RequestIdListOfPermissions)
+          :Do(function(_,data1)
+            local groups = {}
+            if #data1.result.allowedFunctions > 0 then
+              for i = 1, #data1.result.allowedFunctions do
+                groups[i] = {
+                  name = data1.result.allowedFunctions[i].name,
+                  id = data1.result.allowedFunctions[i].id,
+                  allowed = false}
               end
-              self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent", { appID = self.applications[config.application1.registerAppInterfaceParams.appName], consentedFunctions = groups, source = "GUI"})
-              EXPECT_NOTIFICATION("OnPermissionsChange")
-            end)
+            end
+            self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent", { appID = self.applications[config.application1.registerAppInterfaceParams.appName], consentedFunctions = groups, source = "GUI"})
+            EXPECT_NOTIFICATION("OnPermissionsChange")
           end)
-        end
-      end)
+        end)
+      end
     end)
   end)
 end
