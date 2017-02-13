@@ -51,7 +51,7 @@ require('user_modules/AppTypes')
 commonFunctions:newTestCasesGroup("Preconditions")
 
 function Test:Precondition_InitHMI_OnReady()
-  testCasesForNavi_IsReady.InitHMI_onReady_without_Navigation_IsReady(self, 1)
+  testCasesForNavi_IsReady.InitHMI_onReady_without_Navi_IsReady(self, 1)
   EXPECT_HMICALL("Navigation.IsReady")
   -- Do not send HMI response of Navigation.IsReady
 end
