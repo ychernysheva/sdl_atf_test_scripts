@@ -34,9 +34,6 @@ function testCasesForNavi_IsReady.InitHMI_onReady_without_Navi_IsReady(self, exp
       wersCountryCode = "wersCountryCode"
     })
   ExpectRequest("UI.GetLanguage", true, { language = "EN-US" })
-  :Times(exp_occur)
-  :Timeout(20000)
-
   ExpectRequest("VR.GetLanguage", true, { language = "EN-US" })
   ExpectRequest("TTS.GetLanguage", true, { language = "EN-US" })
   ExpectRequest("UI.ChangeRegistration", false, { }):Pin()
@@ -65,8 +62,6 @@ function testCasesForNavi_IsReady.InitHMI_onReady_without_Navi_IsReady(self, exp
         "ZH-TW","JA-JP","AR-SA","KO-KR","PT-BR","CS-CZ","DA-DK",
         "NO-NO","NL-BE","EL-GR","HU-HU","FI-FI","SK-SK" }
     })
-  :Times(exp_occur)
-  :Timeout(20000)
 
   ExpectRequest("VehicleInfo.GetVehicleType", true, {
       vehicleType =
