@@ -28,7 +28,7 @@ local commonFunctions = require ('user_modules/shared_testcases/commonFunctions'
 local commonSteps = require ('user_modules/shared_testcases/commonSteps')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
 local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
-local testCasesForUI_IsReady = require('user_modules/IsReady_Template/testCasesForUI_IsReady')
+local testCasesForTTS_IsReady = require('user_modules/IsReady_Template/testCasesForTTS_IsReady')
 local testCasesForPerformAudioPassThru = require('user_modules/shared_testcases/testCasesForPerformAudioPassThru')
 local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 local mobile_session = require('mobile_session')
@@ -48,12 +48,6 @@ require('user_modules/AppTypes')
 
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
-
-commonSteps:PutFile("Precondition_PutFile", "icon.png")
-
-function Test:Precondition_Check_audioPassThruIcon_Existence()
-  testCasesForPerformAudioPassThru.Check_audioPassThruIcon_Existence(self, "icon.png")
-end
 
 function Test:Precondition_InitHMI_OnReady()
   testCasesForTTS_IsReady.InitHMI_onReady_without_TTS_IsReady(self, 1)
@@ -90,6 +84,8 @@ function Test:Precondition_ActivationApp()
   end)
   EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"}) 
 end
+
+commonSteps:PutFile("Precondition_PutFile", "icon.png")
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
