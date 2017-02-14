@@ -128,6 +128,9 @@ for i=1,#resultCodes do
       appID = self.applications[config.application1.registerAppInterfaceParams.appName]
     })
     :Do(function(_,data4)
+      local function SendOnSystemContext(Input_SystemContext)
+        self.hmiConnection:SendNotification("UI.OnSystemContext",{ appID = self.applications[config.application1.registerAppInterfaceParams.appName], systemContext = Input_SystemContext})
+      end
       local function uiResponse()
         self.hmiConnection:SendResponse(data4.id,"UI.PerformInteraction", "WARNINGS", {})
         SendOnSystemContext (self, "VRSESSION")
