@@ -29,7 +29,6 @@ local commonSteps = require ('user_modules/shared_testcases/commonSteps')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
 local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 local testCasesForTTS_IsReady = require('user_modules/IsReady_Template/testCasesForTTS_IsReady')
-local testCasesForPerformAudioPassThru = require('user_modules/shared_testcases/testCasesForPerformAudioPassThru')
 local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 local mobile_session = require('mobile_session')
 
