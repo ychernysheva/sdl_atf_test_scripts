@@ -44,7 +44,7 @@ local invalid_data = {
   -- wrong type: integer
   {value = 123, descr = "wrongtype"},
   {value = "TESTING" , descr = "nonexisting_enum"},
-  {value = "", descr = "missing"}
+  {value = "", descr = "empty"}
 }
 
 --[[ General Precondition before ATF start ]]
