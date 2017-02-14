@@ -26,10 +26,8 @@ local commonFunctions = require ('user_modules/shared_testcases/commonFunctions'
 local commonSteps = require ('user_modules/shared_testcases/commonSteps')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
 local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
-config.SDLStoragePath = commonPreconditions:GetPathToSDL() .. "storage/"
 
 --[[ Local Variables ]]
-local storagePath = config.SDLStoragePath..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
 local ServerAddress = commonFunctions:read_parameter_from_smart_device_link_ini("ServerAddress")
 
 --[[ General Precondition before ATF start ]]
@@ -45,7 +43,7 @@ require('user_modules/AppTypes')
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
 
-commonSteps:PutFile("Precondition_PutFile", "action.png")
+commonSteps:PutFile("Precondition_PutFile", "icon.png")
 
 function Test:Precondition_ActivationApp()
   local request_id = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.applications[config.application1.registerAppInterfaceParams.appName]})
@@ -105,6 +103,7 @@ for i=1,#resultCodes do
       initialText = "StartPerformInteraction",
       initialPrompt = {{ text = "Makeyourchoice", type = "TEXT" }},
       interactionMode = "BOTH",
+      interactionChoiceSetIDList = {1001},
       timeout = 5000
     })
 
@@ -124,7 +123,7 @@ for i=1,#resultCodes do
 
     EXPECT_HMICALL("UI.PerformInteraction",
     {
-      initialText = "StartPerformInteraction",
+      initialText = {fieldName = "initialInteractionText", fieldText = "StartPerformInteraction" },
       timeout = 5000,
       appID = self.applications[config.application1.registerAppInterfaceParams.appName]
     })
@@ -136,8 +135,8 @@ for i=1,#resultCodes do
       end
       RUN_AFTER(uiResponse, 10)
     end)
-    
-    EXPECT_RESPONSE(cor_id, { success = true, resultCode = "WARNINGS", choiceID = 1001, triggerSource = "VR" } )
+
+    EXPECT_RESPONSE(cor_id, { success = true, resultCode = "WARNINGS", choiceID = 1001 } )
   end
 end
 
