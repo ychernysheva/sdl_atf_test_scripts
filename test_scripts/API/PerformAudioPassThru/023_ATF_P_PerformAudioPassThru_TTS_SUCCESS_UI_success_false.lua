@@ -161,7 +161,7 @@ for i = 1, #hmi_result_code do
     EXPECT_NOTIFICATION("OnHMIStatus"):Times(0)
   end
 
-  self.mobileSession:ExpectResponse(CorIdPerformAudioPassThru, {success = false, resultCode = hmi_result_code[i].result_code, "error message"})
+  self.mobileSession:ExpectResponse(CorIdPerformAudioPassThru, {success = false, resultCode = hmi_result_code[i].result_code, info = "error message"})
 	  EXPECT_NOTIFICATION("OnHashChange",{}):Times(0)
   end
   
