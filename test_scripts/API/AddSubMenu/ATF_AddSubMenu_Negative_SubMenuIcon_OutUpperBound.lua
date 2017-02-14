@@ -54,7 +54,7 @@ function Test:Precondition_ActivateApp()
   end)
   EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN", audioStreamingState = "AUDIBLE"})
 end
-commonSteps:PutFile("PutFile_strOutofBoundFileName", strOutofBoundFileName)
+-- commonSteps:PutFile("PutFile_strOutofBoundFileName", strOutofBoundFileName)
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
