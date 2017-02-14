@@ -89,7 +89,8 @@ function Test:TestStep_PerformAudioPassThru_MandatoryParameters_audioPassThruIco
     end)
    :ValidIf (function(_,data3)
       if(data3.params.audioPassThruIcon ~= nil) then
-        if (string.match(data3.params.audioPassThruIcon.value, "%S*" .. "("..string.sub(storagePath, 2).."icon.png)" .. "$") == nil ) then
+        if (string.match(data3.params.audioPassThruIcon.value, "%S*" .. "("..string.sub(storagePath, 2).."icon.png)" .. "$") == nil )and
+        (data3.params.audioPassThruIcon.value ~= (storagePath.."icon.png") ) then
           print("\27[31m Invalid path to DYNAMIC image\27[0m")
           return false 
         else 
