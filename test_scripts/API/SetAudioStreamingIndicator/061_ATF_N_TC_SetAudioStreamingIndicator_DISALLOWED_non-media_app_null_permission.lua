@@ -84,10 +84,9 @@ end
 function Test:Precondition_SetAudioStreamingIndicator_SUCCESS_audioStreamingIndicator_PLAY_PAUSE()
   local corr_id = self.mobileSession:SendRPC("SetAudioStreamingIndicator", { audioStreamingIndicator = "PLAY_PAUSE" })
 
-  EXPECT_HMICALL("UI.SetAudioStreamingIndicator", { audioStreamingIndicator = "PLAY_PAUSE" })
-  :Do(function(_,data) self.hmiConnection:SendResponse (data.id, data.method, "SUCCESS") end)
-
-  EXPECT_RESPONSE(corr_id, { success = true, resultCode = "SUCCESS"})
+  EXPECT_HMICALL("UI.SetAudioStreamingIndicator"):Times(0)
+  
+  EXPECT_RESPONSE(corr_id, { success = false, resultCode = "REJECTED"})
   EXPECT_NOTIFICATION("OnHashChange",{}):Times(0)
 end
 
@@ -114,7 +113,8 @@ function Test:Precondition_PolicyTableUpdate_Proprietary()
     end)
   end)
 
-  EXPECT_NOTIFICATION("OnHMIStatus", {systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE"})
+  EXPECT_HMICALL("BasicCommunication.ActivateApp", {level = "NONE", appID = self.applications[config.application1.registerAppInterfaceParams.appName]})
+  :Do(function(_,data) self.hmiConnection:SendResponse(data.id,"BasicCommunication.ActivateApp", "SUCCESS", {}) end)
 end
 
 function Test:Preconditon_ActivateApp_Null()

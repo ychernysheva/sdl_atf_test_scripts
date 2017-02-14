@@ -51,7 +51,7 @@ local hmi_result_code = {
 	{ result_code = "ABORTED", info = "" },
 	{ result_code = "IGNORED", info = "" },
 	{ result_code = "IN_USE", info = "" },
-	{ result_code = "DATA_NOT_AVAILABLE", info = "" },
+	{ result_code = "VEHICLE_DATA_NOT_AVAILABLE", info = "" },
 	{ result_code = "TIMED_OUT", info = "" },
 	{ result_code = "INVALID_DATA", info = "" },
 	{ result_code = "CHAR_LIMIT_EXCEEDED", info = "" },
@@ -93,7 +93,6 @@ for i = 1, #hmi_result_code do
 	  	corr_id_second_req = self.mobileSession:SendRPC("SetAudioStreamingIndicator", { audioStreamingIndicator = "PAUSE" })
 	  	
 	  	local function send_HMI_response()
-	  	  -- ATF issue: "Genivi: SDL doesn't accept some error_codes from HMI when they are sending with type of protocol_message "error""
 	  		self.hmiConnection:SendError(data.id, data.method, hmi_result_code[i].result_code, "error message") 
 	  	end
 	  	

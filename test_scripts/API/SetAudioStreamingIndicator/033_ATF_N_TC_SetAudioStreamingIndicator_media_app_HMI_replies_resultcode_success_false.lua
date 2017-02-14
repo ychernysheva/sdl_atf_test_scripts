@@ -49,7 +49,7 @@ local hmi_result_code = {
 	{ result_code = "ABORTED", info = "" },
 	{ result_code = "IGNORED", info = "" },
 	{ result_code = "IN_USE", info = "" },
-	{ result_code = "DATA_NOT_AVAILABLE", info = "" },
+	{ result_code = "VEHICLE_DATA_NOT_AVAILABLE", info = "" },
 	{ result_code = "TIMED_OUT", info = "" },
 	{ result_code = "INVALID_DATA", info = "" },
 	{ result_code = "CHAR_LIMIT_EXCEEDED", info = "" },
