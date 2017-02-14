@@ -133,8 +133,8 @@ for i=1,#resultCodes do
       end
       local function uiResponse()
         self.hmiConnection:SendResponse(data4.id,"UI.PerformInteraction", resultCodes[i], {})
-        SendOnSystemContext (self, "VRSESSION")
-        SendOnSystemContext (self, "MAIN")
+        SendOnSystemContext ("VRSESSION")
+        SendOnSystemContext ("MAIN")
       end
       RUN_AFTER(uiResponse, 10)
     end)
