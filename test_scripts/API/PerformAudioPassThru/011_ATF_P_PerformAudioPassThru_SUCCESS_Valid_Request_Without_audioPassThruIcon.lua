@@ -105,7 +105,7 @@ function Test:TestStep_ValidRequest_Without_audioPassThruIcon_all_other_params_p
   :Do(function(_,data)
 
       local function UIPerformAudioResponse()
-        self.hmiConnection:SendResponse(data.id, "UI.PerformAudioPassThru", "WARNINGS", {})
+        self.hmiConnection:SendResponse(data.id, "UI.PerformAudioPassThru", "SUCCESS", {})
       end
       RUN_AFTER(UIPerformAudioResponse, 1500)
       
@@ -132,7 +132,7 @@ function Test:TestStep_ValidRequest_Without_audioPassThruIcon_all_other_params_p
     EXPECT_NOTIFICATION("OnHMIStatus"):Times(0)
   end
 
-  self.mobileSession:ExpectResponse(CorIdPerformAudioPassThruAppParVD, {success = true, resultCode = "WARNINGS"})
+  self.mobileSession:ExpectResponse(CorIdPerformAudioPassThruAppParVD, {success = true, resultCode = "SUCCESS"})
   EXPECT_NOTIFICATION("OnHashChange"):Times(0)
   commonTestCases:DelayedExp(1500)
 end
