@@ -49,12 +49,6 @@ require('user_modules/AppTypes')
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
 
-commonSteps:PutFile("Precondition_PutFile", "icon.png")
-
-function Test:Precondition_Check_audioPassThruIcon_Existence()
-  testCasesForPerformAudioPassThru.Check_audioPassThruIcon_Existence(self, "icon.png")
-end
-
 function Test:Precondition_InitHMI_OnReady()
   testCasesForUI_IsReady.InitHMI_onReady_without_UI_IsReady(self, 1)
   EXPECT_HMICALL("UI.IsReady")
@@ -90,6 +84,8 @@ function Test:Precondition_ActivationApp()
   end)
   EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"}) 
 end
+
+commonSteps:PutFile("Precondition_PutFile", "icon.png")
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
