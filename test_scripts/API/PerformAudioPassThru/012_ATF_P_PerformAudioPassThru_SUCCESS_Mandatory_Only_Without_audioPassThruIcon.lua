@@ -66,7 +66,7 @@ function Test:TestStep_ValidRequest_Without_audioPassThruIcon_Mandatory_Params_P
       samplingRate = "16KHZ",
       maxDuration = 2000,
       bitsPerSample = "8_BIT",
-      audioType = "PCM"
+      audioType = "PCM" 
     })
 
   EXPECT_HMICALL("UI.PerformAudioPassThru",
@@ -76,7 +76,7 @@ function Test:TestStep_ValidRequest_Without_audioPassThruIcon_Mandatory_Params_P
       muteAudio = true
     })
   :Do(function(_,data)
-  self.hmiConnection:SendResponse(data.id, "UI.PerformAudioPassThru", "WARNINGS", {})
+  self.hmiConnection:SendResponse(data.id, "UI.PerformAudioPassThru", "SUCCESS", {})
   end)
     :ValidIf(function(_,data1)
     if data1.params.audioPassThruIcon ~= nil then 
@@ -89,7 +89,7 @@ function Test:TestStep_ValidRequest_Without_audioPassThruIcon_Mandatory_Params_P
   end)
 
   EXPECT_HMICALL("TTS.Speak"):Times(0)
-  self.mobileSession:ExpectResponse(CorIdPerfAudioPassThruOnlyMandatory, {success = true, resultCode = "WARNINGS"})
+  self.mobileSession:ExpectResponse(CorIdPerfAudioPassThruOnlyMandatory, {success = true, resultCode = "SUCCESS"})
   EXPECT_NOTIFICATION("OnHashChange"):Times(0)
 end
 
