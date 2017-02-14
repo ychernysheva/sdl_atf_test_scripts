@@ -153,7 +153,9 @@
 ./test_scripts/RC/REVSDL-1827/17_REVSDL-1827.lua SDLOPEN-696
 ./test_scripts/RC/REVSDL-1954/01.01_REVSDL-1954.lua MultiDevice
 ./test_scripts/RC/REVSDL-1954/01_REVSDL-1954.lua MultiDevice
+./test_scripts/RC/REVSDL-1954/02.01_REVSDL-1954.lua MultiDevice
 ./test_scripts/RC/REVSDL-1954/02_REVSDL-1954.lua MultiDevice
+./test_scripts/RC/REVSDL-1954/03.01_REVSDL-1954.lua MultiDevice
 ./test_scripts/RC/REVSDL-1954/03_REVSDL-1954.lua MultiDevice
 ./test_scripts/RC/REVSDL-1954/04_REVSDL-1954.lua MultiDevice
 ./test_scripts/RC/REVSDL-1983/01_REVSDL-1983.lua
