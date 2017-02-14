@@ -149,8 +149,8 @@ function Test:TestStep_VR_PerformInteraction_UNSUPPORTED_RESOURCE()
       end
       local function uiResponse()
         self.hmiConnection:SendResponse(data4.id,"UI.PerformInteraction", "WARNINGS", {})
-        SendOnSystemContext (self, "VRSESSION")
-        SendOnSystemContext (self, "MAIN")
+        SendOnSystemContext ("VRSESSION")
+        SendOnSystemContext ("MAIN")
       end
       RUN_AFTER(uiResponse, 10)
     end)
