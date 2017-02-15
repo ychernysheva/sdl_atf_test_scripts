@@ -1,6 +1,7 @@
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
 -- [GENERIC_ERROR]: SDL behavior in case HMI sends invalid response AND SDL must transfer this response to mobile app
+-- [PerformAudioPassThru] Speak (<errorCode>) + UI.PerformAudioPassThru (SUCCESS)
 -- [HMI RPC validation]: SDL must send GENERIC_ERROR to mobile app in case SDL cuts off fake params from RPC and this RPC becomes invalid
 -- [HMI API] UI.PerformAudioPassThru request/response
 -- [HMI API] TTS.Speak request/response
@@ -26,7 +27,8 @@
 -- Expected result:
 -- SDL sends UI.PerformAudioPassThru (audioPassThruIcon, other params) to HMI
 -- SDL sends TTS.Speak to HMI
--- SDL sends to mobile PerformAudioPassThru (GENERIC_ERROR, success:false, info)
+-- SDL sends to mobile PerformAudioPassThru (GENERIC_ERROR, success:false, info) if invalid HMI response sent to UI.PerformAudioPassThru part or 
+-- SDL sends to mobile PerformAudioPassThru (WARNINGS, success:true) if invalid HMI response sent to TTS.Speak part
 ---------------------------------------------------------------------------------------------
 
 --[[ General configuration parameters ]]
@@ -212,7 +214,7 @@ for i =1, #invalid_data do
       EXPECT_NOTIFICATION("OnHMIStatus"):Times(0)
     end
 
-    self.mobileSession:ExpectResponse(CorIdPerformAudioPassThru, {success = false, resultCode = "GENERIC_ERROR", info ="Invalid message received from vehicle" })
+    self.mobileSession:ExpectResponse(CorIdPerformAudioPassThru, {success = true, resultCode = "WARNINGS"})
     EXPECT_NOTIFICATION("OnHashChange",{}):Times(0)
   end
 end
