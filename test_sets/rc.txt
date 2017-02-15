@@ -1,10 +1,10 @@
 ./test_scripts/RC/REVSDL-831/01_REVSDL-831.lua
-./test_scripts/RC/REVSDL-831/03_REVSDL-831.lua MultiDevice
-./test_scripts/RC/REVSDL-846/01_REVSDL-846.lua SDLOPEN-584
-./test_scripts/RC/REVSDL-846/02_REVSDL-846.lua SDLOPEN-584
-./test_scripts/RC/REVSDL-846/03_REVSDL-846.lua SDLOPEN-584
-./test_scripts/RC/REVSDL-846/04_REVSDL-846.lua SDLOPEN-584
-./test_scripts/RC/REVSDL-846/05_REVSDL-846.lua SDLOPEN-584
+./test_scripts/RC/REVSDL-831/03_REVSDL-831.lua MultiDevice_Locally_PASS
+./test_scripts/RC/REVSDL-846/01_REVSDL-846.lua
+./test_scripts/RC/REVSDL-846/02_REVSDL-846.lua
+./test_scripts/RC/REVSDL-846/03_REVSDL-846.lua SDLOPEN-881
+./test_scripts/RC/REVSDL-846/04_REVSDL-846.lua SDLOPEN-881
+./test_scripts/RC/REVSDL-846/05_REVSDL-846.lua MultiDevice_Locally_PASS
 ./test_scripts/RC/REVSDL-932/01_REVSDL-932.lua
 ./test_scripts/RC/REVSDL-932/02_REVSDL-932.lua
 ./test_scripts/RC/REVSDL-932/03_REVSDL-932.lua
@@ -22,7 +22,7 @@
 ./test_scripts/RC/REVSDL-966/05.01_REVSDL-966.lua
 ./test_scripts/RC/REVSDL-966/05.02_REVSDL-966.lua
 ./test_scripts/RC/REVSDL-966/05.03_REVSDL-966.lua
-./test_scripts/RC/REVSDL-966/05.04_REVSDL-966.lua SDLOPEN-584
+./test_scripts/RC/REVSDL-966/05.04_REVSDL-966.lua
 ./test_scripts/RC/REVSDL-966/05.05_REVSDL-966.lua
 ./test_scripts/RC/REVSDL-966/05_REVSDL-966.lua
 ./test_scripts/RC/REVSDL-966/06_REVSDL-966.lua
@@ -39,11 +39,11 @@
 ./test_scripts/RC/REVSDL-966/13.01_REVSDL-966.lua
 ./test_scripts/RC/REVSDL-966/13.02_REVSDL-966.lua
 ./test_scripts/RC/REVSDL-966/13_REVSDL-966.lua
-./test_scripts/RC/REVSDL-994/01_REVSDL-994.lua SDLOPEN-584
-./test_scripts/RC/REVSDL-994/02_REVSDL-994.lua SDLOPEN-584
-./test_scripts/RC/REVSDL-994/03_REVSDL-994.lua SDLOPEN-584
-./test_scripts/RC/REVSDL-994/04_REVSDL-994.lua SDLOPEN-584
-./test_scripts/RC/REVSDL-994/05_REVSDL-994.lua SDLOPEN-584
+./test_scripts/RC/REVSDL-994/01_REVSDL-994.lua
+./test_scripts/RC/REVSDL-994/02_REVSDL-994.lua SDLOPEN-881
+./test_scripts/RC/REVSDL-994/03_REVSDL-994.lua SDLOPEN-881
+./test_scripts/RC/REVSDL-994/04_REVSDL-994.lua
+./test_scripts/RC/REVSDL-994/05_REVSDL-994.lua
 ./test_scripts/RC/REVSDL-1038/01_REVSDL-1038.lua
 ./test_scripts/RC/REVSDL-1038/02_REVSDL-1038.lua
 ./test_scripts/RC/REVSDL-1038/03_REVSDL-1038.lua
@@ -63,15 +63,15 @@
 ./test_scripts/RC/REVSDL-1038/20_REVSDL-1038.lua
 ./test_scripts/RC/ATF_REVSDL-1064.lua SDLOPEN-696
 ./test_scripts/RC/REVSDL-1066/01.01_REVSDL-1066.lua
-./test_scripts/RC/REVSDL-1066/01.02_REVSDL-1066.lua
+./test_scripts/RC/REVSDL-1066/01.02_REVSDL-1066.lua SDLOPEN-881
 ./test_scripts/RC/REVSDL-1066/01.03_REVSDL-1066.lua
-./test_scripts/RC/REVSDL-1066/01_REVSDL-1066.lua
-./test_scripts/RC/REVSDL-1066/02_REVSDL-1066.lua SDLOPEN-584_SDLOPEN-690
-./test_scripts/RC/REVSDL-1278/01_REVSDL-1278.lua SDLOPEN-584
-./test_scripts/RC/REVSDL-1278/02_REVSDL-1278.lua SDLOPEN-696
-./test_scripts/RC/REVSDL-1278/03_REVSDL-1278.lua SDLOPEN-696
-./test_scripts/RC/REVSDL-1278/04_REVSDL-1278.lua SDLOPEN-696
-./test_scripts/RC/REVSDL-1278/05_REVSDL-1278.lua SDLOPEN-696
+./test_scripts/RC/REVSDL-1066/01_REVSDL-1066.lua SDLOPEN-881
+./test_scripts/RC/REVSDL-1066/02_REVSDL-1066.lua SDLOPEN-881
+./test_scripts/RC/REVSDL-1278/01_REVSDL-1278.lua SDLOPEN-881
+./test_scripts/RC/REVSDL-1278/02_REVSDL-1278.lua SDLOPEN-881
+./test_scripts/RC/REVSDL-1278/03_REVSDL-1278.lua SDLOPEN-881
+./test_scripts/RC/REVSDL-1278/04_REVSDL-1278.lua SDLOPEN-881
+./test_scripts/RC/REVSDL-1278/05_REVSDL-1278.lua SDLOPEN-881
 ./test_scripts/RC/REVSDL-1360/02_REVSDL-1360.lua
 ./test_scripts/RC/REVSDL-1360/03.01_REVSDL-1360.lua
 ./test_scripts/RC/REVSDL-1360/03.02_REVSDL-1360.lua
@@ -82,9 +82,9 @@
 ./test_scripts/RC/REVSDL-1360/09.01_REVSDL-1360.lua
 ./test_scripts/RC/REVSDL-1360/09.02_REVSDL-1360.lua
 ./test_scripts/RC/REVSDL-1577/01_REVSDL-1577.lua
-./test_scripts/RC/REVSDL-1577/02_REVSDL-1577.lua SDLOPEN-584
-./test_scripts/RC/REVSDL-1577/03_REVSDL-1577.lua SDLOPEN-584
-./test_scripts/RC/REVSDL-1587/01_REVSDL-1587.lua SDLOPEN-584
+./test_scripts/RC/REVSDL-1577/02_REVSDL-1577.lua MultiDevice_Locally_PASS
+./test_scripts/RC/REVSDL-1577/03_REVSDL-1577.lua
+./test_scripts/RC/REVSDL-1587/01_REVSDL-1587.lua
 ./test_scripts/RC/REVSDL-1587/02_REVSDL-1587.lua
 ./test_scripts/RC/REVSDL-1587/03_REVSDL-1587.lua
 ./test_scripts/RC/REVSDL-1587/04_REVSDL-1587.lua
@@ -110,7 +110,7 @@
 ./test_scripts/RC/REVSDL-1749/01_REVSDL-1749.lua
 ./test_scripts/RC/REVSDL-1749/02_REVSDL-1749.lua
 ./test_scripts/RC/REVSDL-1749/03_REVSDL-1749.lua
-./test_scripts/RC/ATF_REVSDL-1766.lua SDLOPEN-690
+./test_scripts/RC/ATF_REVSDL-1766.lua
 ./test_scripts/RC/REVSDL-1800/01_REVSDL-1800.lua
 ./test_scripts/RC/REVSDL-1800/02_REVSDL-1800.lua
 ./test_scripts/RC/REVSDL-1800/03_REVSDL-1800.lua
@@ -142,28 +142,28 @@
 ./test_scripts/RC/REVSDL-1827/09_REVSDL-1827_TIMED_OUT.lua
 ./test_scripts/RC/REVSDL-1827/10_REVSDL-1827_USER_DISALLOWED.lua
 ./test_scripts/RC/REVSDL-1827/11_REVSDL-1827.lua
-./test_scripts/RC/REVSDL-1827/12.01_REVSDL-1827.lua MultiDevice
-./test_scripts/RC/REVSDL-1827/12_REVSDL-1827.lua MultiDevice
+./test_scripts/RC/REVSDL-1827/12.01_REVSDL-1827.lua MultiDevice_Locally_PASS
+./test_scripts/RC/REVSDL-1827/12_REVSDL-1827.lua MultiDevice_Locally_PASS
 ./test_scripts/RC/REVSDL-1827/13_REVSDL-1827.lua
 ./test_scripts/RC/REVSDL-1827/14_REVSDL-1827.lua
 ./test_scripts/RC/REVSDL-1827/15_REVSDL-1827.lua
 ./test_scripts/RC/REVSDL-1827/16.02_REVSDL-1827.lua
 ./test_scripts/RC/REVSDL-1827/16.02_REVSDL-1827_Precondition_OnDeviceLocationChange.lua
 ./test_scripts/RC/REVSDL-1827/16_REVSDL-1827.lua
-./test_scripts/RC/REVSDL-1827/17_REVSDL-1827.lua SDLOPEN-696
-./test_scripts/RC/REVSDL-1954/01.01_REVSDL-1954.lua MultiDevice
-./test_scripts/RC/REVSDL-1954/01_REVSDL-1954.lua MultiDevice
-./test_scripts/RC/REVSDL-1954/02.01_REVSDL-1954.lua MultiDevice
-./test_scripts/RC/REVSDL-1954/02_REVSDL-1954.lua MultiDevice
-./test_scripts/RC/REVSDL-1954/03.01_REVSDL-1954.lua MultiDevice
-./test_scripts/RC/REVSDL-1954/03_REVSDL-1954.lua MultiDevice
-./test_scripts/RC/REVSDL-1954/04_REVSDL-1954.lua MultiDevice
+./test_scripts/RC/REVSDL-1827/17_REVSDL-1827.lua
+./test_scripts/RC/REVSDL-1954/01.01_REVSDL-1954.lua SDLOPEN-872
+./test_scripts/RC/REVSDL-1954/01_REVSDL-1954.lua SDLOPEN-872
+./test_scripts/RC/REVSDL-1954/02.01_REVSDL-1954.lua MSDLOPEN-872
+./test_scripts/RC/REVSDL-1954/02_REVSDL-1954.lua SDLOPEN-872
+./test_scripts/RC/REVSDL-1954/03.01_REVSDL-1954.lua SDLOPEN-872
+./test_scripts/RC/REVSDL-1954/03_REVSDL-1954.lua SDLOPEN-872
+./test_scripts/RC/REVSDL-1954/04_REVSDL-1954.lua MultiDevice_Locally_PASS
 ./test_scripts/RC/REVSDL-1983/01_REVSDL-1983.lua
 ./test_scripts/RC/REVSDL-1983/01_REVSDL-1983_Pre_DriverDriverRADIO.lua
 ./test_scripts/RC/REVSDL-1983/02_REVSDL-1983.lua
-./test_scripts/RC/REVSDL-1983/02-REVSDL-RegisteredApp2.lua SDLOPEN-584
-./test_scripts/RC/REVSDL-1983/03-ATF_REVSDL-1983_USER_EXIT.lua
-./test_scripts/RC/REVSDL-1983/03_REVSDL-1983.lua SDLOPEN-584_SDLOPEN-690
+./test_scripts/RC/REVSDL-1983/02-REVSDL-RegisteredApp2.lua
+./test_scripts/RC/REVSDL-1983/03-ATF_REVSDL-1983_USER_EXIT.lua SDLOPEN-881
+./test_scripts/RC/REVSDL-1983/03_REVSDL-1983.lua  SDLOPEN-881
 ./test_scripts/RC/REVSDL-2162/01_REVSDL-2162.lua
 ./test_scripts/RC/REVSDL-2162/02.01.01_REVSDL-AutoAllow_DriverRADIO.lua
 ./test_scripts/RC/REVSDL-2162/02.01_REVSDL-2162.lua
