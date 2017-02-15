@@ -134,7 +134,7 @@ end
 
 					--hmi side: send request RC.OnDeviceRankChanged
 					self.hmiConnection:SendNotification("RC.OnDeviceRankChanged",
-															{deviceRank = "DRIVER", device = {name = "127.0.0.1", id = 1, isSDLAllowed = true}})
+															{deviceRank = "DRIVER", device = {name = "127.0.0.1", id = device1mac, isSDLAllowed = true}})
 
 				end)
 

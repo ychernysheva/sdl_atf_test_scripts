@@ -10,7 +10,6 @@
 ./test_scripts/RC/REVSDL-1038/10_REVSDL-1038.lua
 ./test_scripts/RC/ATF_REVSDL-1064.lua
 ./test_scripts/RC/REVSDL-1066/02_REVSDL-1066.lua
-./test_scripts/RC/REVSDL-1278/01_REVSDL-1278.lua
 ./test_scripts/RC/REVSDL-1360/02_REVSDL-1360.lua
 ./test_scripts/RC/REVSDL-1360/09.02_REVSDL-1360.lua
 ./test_scripts/RC/REVSDL-1577/01_REVSDL-1577.lua
