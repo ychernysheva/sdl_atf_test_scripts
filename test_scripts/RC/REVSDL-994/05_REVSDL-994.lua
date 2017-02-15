@@ -127,8 +127,8 @@ local arrayGroups_nonPrimaryRC = revsdl.arrayGroups_nonPrimaryRC()
           EXPECT_NOTIFICATION("OnPermissionsChange", arrayGroups_nonPrimaryRC )
 
           --mobile side: OnHMIStatus notifications with deviceRank = "PASSENGER"
-          EXPECT_NOTIFICATION("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", deviceRank = "PASSENGER" })
-
+          EXPECT_NOTIFICATION("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE"}, { systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", deviceRank = "PASSENGER" })
+          :Times(2)
         end
       --End Test case CommonRequestCheck.5.1.5
 

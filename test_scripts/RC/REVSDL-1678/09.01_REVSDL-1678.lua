@@ -770,7 +770,7 @@ local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
 					EXPECT_HMICALL("RC.GetInteriorVehicleData")
 					:Do(function(_,data)
 						--hmi side: sending GetInteriorVehicleData_response (<module+zone>, "isSubscribed:true", resultCode:<any erroneous result>)
-						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", { isSubscribed = true,
+						self.hmiConnection:SendResponse(data.id, data.method, "GENERIC_ERROR", { isSubscribed = true,
 							moduleData =
 							{
 								moduleType = "CLIMATE",
@@ -832,7 +832,7 @@ local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
 
 
 					--mobile side: RSDL removes "isSubscribed" param to the app
-					EXPECT_RESPONSE(cid, { success = false, resultCode = "SUCCESS" })
+					EXPECT_RESPONSE(cid, { success = false, resultCode = "GENERIC_ERROR" })
 					:ValidIf (function(_,data)
 						--for key,value in pairs(data.payload.isSubscribed) do print(key,value) end
 							if data.payload.isSubscribed then
@@ -879,7 +879,7 @@ local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
 					EXPECT_HMICALL("RC.GetInteriorVehicleData")
 						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleData response
-							self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {isSubscribed = true,
+							self.hmiConnection:SendResponse(data.id, data.method, "DATA_NOT_AVAILABLE", {isSubscribed = true,
 								moduleData =
 								{
 									moduleType = "CLIMATE",
@@ -941,7 +941,7 @@ local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
 
 
 					--mobile side: RSDL removes "isSubscribed" param to the app
-					EXPECT_RESPONSE(cid, { success = false, resultCode = "SUCCESS" })
+					EXPECT_RESPONSE(cid, { success = false, resultCode = "VEHICLE_DATA_NOT_AVAILABLE" })
 					:ValidIf (function(_,data)
 						--for key,value in pairs(data.payload.isSubscribed) do print(key,value) end
 							if data.payload.isSubscribed then
@@ -988,7 +988,7 @@ local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
 							EXPECT_HMICALL("RC.GetInteriorVehicleData")
 							:Do(function(_,data)
 									--hmi side: sending GetInteriorVehicleData_response (<module+zone>, "isSubscribed:true", resultCode:<any erroneous result>)
-									self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", { isSubscribed = true,
+									self.hmiConnection:SendResponse(data.id, data.method, "INVALID_DATA", { isSubscribed = true,
 										moduleData =
 										{
 											moduleType = "CLIMATE",
@@ -1049,7 +1049,7 @@ local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
 
 
 					--mobile side: RSDL removes "isSubscribed" param to the app
-					EXPECT_RESPONSE(cid, { success = false, resultCode = "SUCCESS" })
+					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 					:ValidIf (function(_,data)
 						--for key,value in pairs(data.payload.isSubscribed) do print(key,value) end
 							if data.payload.isSubscribed then
@@ -1096,7 +1096,7 @@ local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
 					EXPECT_HMICALL("RC.GetInteriorVehicleData")
 						:Do(function(_,data)
 							--hmi side: sending GetInteriorVehicleData_response (<module+zone>, "isSubscribed:true", resultCode:<any erroneous result>)
-							self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", { isSubscribed = true,
+							self.hmiConnection:SendResponse(data.id, data.method, "INVALID_DATA", { isSubscribed = true,
 								moduleData = {
 									moduleType = "RADIO",
 									moduleZone = {
@@ -1172,7 +1172,7 @@ local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
 
 
 					--mobile side: RSDL removes "isSubscribed" param to the app
-					EXPECT_RESPONSE(cid, { success = false, resultCode = "SUCCESS" })
+					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 					:ValidIf (function(_,data)
 						--for key,value in pairs(data.payload.isSubscribed) do print(key,value) end
 							if data.payload.isSubscribed then
@@ -1219,7 +1219,7 @@ local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
 							EXPECT_HMICALL("RC.GetInteriorVehicleData")
 								:Do(function(_,data)
 									--hmi side: sending GetInteriorVehicleData_response (<module+zone>, "isSubscribed:true", resultCode:<any erroneous result>)
-									self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", { isSubscribed = true,
+									self.hmiConnection:SendResponse(data.id, data.method, "GENERIC_ERROR", { isSubscribed = true,
 										moduleData = {
 											moduleType = "RADIO",
 											moduleZone = {
@@ -1294,7 +1294,7 @@ local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
 
 
 					--mobile side: RSDL removes "isSubscribed" param to the app
-					EXPECT_RESPONSE(cid, { success = false, resultCode = "SUCCESS" })
+					EXPECT_RESPONSE(cid, { success = false, resultCode = "GENERIC_ERROR" })
 					:ValidIf (function(_,data)
 						--for key,value in pairs(data.payload.isSubscribed) do print(key,value) end
 							if data.payload.isSubscribed then
@@ -1341,7 +1341,7 @@ local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
 							EXPECT_HMICALL("RC.GetInteriorVehicleData")
 							:Do(function(_,data)
 									--hmi side: sending GetInteriorVehicleData_response (<module+zone>, "isSubscribed:true", resultCode:<any erroneous result>)
-									self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", { isSubscribed = true,
+									self.hmiConnection:SendResponse(data.id, data.method, "OUT_OF_MEMORY", { isSubscribed = true,
 										moduleData = {
 											moduleType = "RADIO",
 											moduleZone = {
@@ -1416,7 +1416,7 @@ local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
 
 
 					--mobile side: RSDL removes "isSubscribed" param to the app
-					EXPECT_RESPONSE(cid, { success = false, resultCode = "SUCCESS" })
+					EXPECT_RESPONSE(cid, { success = false, resultCode = "OUT_OF_MEMORY" })
 					:ValidIf (function(_,data)
 						--for key,value in pairs(data.payload.isSubscribed) do print(key,value) end
 							if data.payload.isSubscribed then
@@ -2152,7 +2152,7 @@ local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
 					EXPECT_HMICALL("RC.GetInteriorVehicleData")
 					:Do(function(_,data)
 						--hmi side: sending GetInteriorVehicleData_response (<module+zone>, "isSubscribed:true", resultCode:<any erroneous result>)
-						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", { isSubscribed = true,
+						self.hmiConnection:SendResponse(data.id, data.method, "INVALID_DATA", { isSubscribed = true,
 							moduleData =
 							{
 								moduleType = "CLIMATE",
@@ -2214,7 +2214,7 @@ local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
 
 
 					--mobile side: RSDL removes "isSubscribed" param to the app
-					EXPECT_RESPONSE(cid, { success = false, resultCode = "SUCCESS" })
+					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 					:ValidIf (function(_,data)
 						--for key,value in pairs(data.payload.isSubscribed) do print(key,value) end
 							if data.payload.isSubscribed then
@@ -2261,7 +2261,7 @@ local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
 					EXPECT_HMICALL("RC.GetInteriorVehicleData")
 						:Do(function(_,data)
 							--hmi side: sending RC.GetInteriorVehicleData response
-							self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {
+							self.hmiConnection:SendResponse(data.id, data.method, "INVALID_DATA", {
 								moduleData =
 								{
 									moduleType = "CLIMATE",
@@ -2323,7 +2323,7 @@ local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
 
 
 					--mobile side: RSDL removes "isSubscribed" param to the app
-					EXPECT_RESPONSE(cid, { success = false, resultCode = "SUCCESS" })
+					EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 					:ValidIf (function(_,data)
 						--for key,value in pairs(data.payload.isSubscribed) do print(key,value) end
 							if data.payload.isSubscribed then
@@ -2371,7 +2371,7 @@ local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
 					EXPECT_HMICALL("RC.GetInteriorVehicleData")
 					:Do(function(_,data)
 							--hmi side: sending GetInteriorVehicleData_response (<module+zone>, "isSubscribed:true", resultCode:<any erroneous result>)
-							self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", { isSubscribed = true,
+							self.hmiConnection:SendResponse(data.id, data.method, "OUT_OF_MEMORY", { isSubscribed = true,
 								moduleData =
 								{
 									moduleType = "CLIMATE",
@@ -2432,7 +2432,7 @@ local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
 
 
 					--mobile side: RSDL removes "isSubscribed" param to the app
-					EXPECT_RESPONSE(cid, { success = false, resultCode = "SUCCESS" })
+					EXPECT_RESPONSE(cid, { success = false, resultCode = "OUT_OF_MEMORY" })
 					:ValidIf (function(_,data)
 						--for key,value in pairs(data.payload.isSubscribed) do print(key,value) end
 							if data.payload.isSubscribed then
@@ -2479,7 +2479,7 @@ local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
 					EXPECT_HMICALL("RC.GetInteriorVehicleData")
 						:Do(function(_,data)
 							--hmi side: sending GetInteriorVehicleData_response (<module+zone>, "isSubscribed:true", resultCode:<any erroneous result>)
-							self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", { isSubscribed = true,
+							self.hmiConnection:SendResponse(data.id, data.method, "WRONG_LANGUAGE", { isSubscribed = true,
 								moduleData = {
 									moduleType = "RADIO",
 									moduleZone = {
@@ -2555,7 +2555,7 @@ local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
 
 
 					--mobile side: RSDL removes "isSubscribed" param to the app
-					EXPECT_RESPONSE(cid, { success = false, resultCode = "SUCCESS" })
+					EXPECT_RESPONSE(cid, { success = false, resultCode = "WRONG_LANGUAGE" })
 					:ValidIf (function(_,data)
 						--for key,value in pairs(data.payload.isSubscribed) do print(key,value) end
 							if data.payload.isSubscribed then
@@ -2604,7 +2604,7 @@ local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
 					EXPECT_HMICALL("RC.GetInteriorVehicleData")
 						:Do(function(_,data)
 							--hmi side: sending GetInteriorVehicleData_response (<module+zone>, "isSubscribed:true", resultCode:<any erroneous result>)
-							self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", { isSubscribed = true,
+							self.hmiConnection:SendResponse(data.id, data.method, "REJECTED", { isSubscribed = true,
 								moduleData = {
 									moduleType = "RADIO",
 									moduleZone = {
@@ -2679,7 +2679,7 @@ local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
 
 
 					--mobile side: RSDL removes "isSubscribed" param to the app
-					EXPECT_RESPONSE(cid, { success = false, resultCode = "SUCCESS" })
+					EXPECT_RESPONSE(cid, { success = false, resultCode = "REJECTED" })
 					:ValidIf (function(_,data)
 						--for key,value in pairs(data.payload.isSubscribed) do print(key,value) end
 							if data.payload.isSubscribed then
@@ -2727,7 +2727,7 @@ local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
 							EXPECT_HMICALL("RC.GetInteriorVehicleData")
 							:Do(function(_,data)
 									--hmi side: sending GetInteriorVehicleData_response (<module+zone>, "isSubscribed:true", resultCode:<any erroneous result>)
-									self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", { isSubscribed = true,
+									self.hmiConnection:SendResponse(data.id, data.method, "GENERIC_ERROR", { isSubscribed = true,
 										moduleData = {
 											moduleType = "RADIO",
 											moduleZone = {
@@ -2802,7 +2802,7 @@ local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
 
 
 					--mobile side: RSDL removes "isSubscribed" param to the app
-					EXPECT_RESPONSE(cid, { success = false, resultCode = "SUCCESS" })
+					EXPECT_RESPONSE(cid, { success = false, resultCode = "GENERIC_ERROR" })
 					:ValidIf (function(_,data)
 						--for key,value in pairs(data.payload.isSubscribed) do print(key,value) end
 							if data.payload.isSubscribed then

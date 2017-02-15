@@ -33,8 +33,8 @@ require('cardinalities')
 							-- finish processing RPC
 							-- only then apply rules of req. 16.
 
-	--Begin Test case CommonRequestCheck.17.3 (have to STOP SDL after running CommonRequestCheck.17.2)
-	--Description: 	For SetInteriorVehicleData
+	--Begin Test case CommonRequestCheck.17.2 (have to STOP SDL after running CommonRequestCheck.17.1)
+	--Description: 	For GetInteriorVehicleData
 
 		--Requirement/Diagrams id in jira:
 				--Requirement
@@ -44,53 +44,73 @@ require('cardinalities')
 				--RSDL must take off the driver's permissions from this application (that is, trigger a permission prompt upon this app's next controlling request).
 
 		-----------------------------------------------------------------------------------------
+		-------------------------FOR FRONT PASSENGER ZONE----------------------------------------
 
-			--Begin Test case CommonRequestCheck.17.3.1
-			--Description: application sends SetInteriorVehicleData as Driver zone and ModuleType = RADIO and HMI sends  RC.OnDeviceLocationChanged(<deviceID>) to RSDL (zone:BACK LEFT Passenger)
-				function Test:SetInterior_Time1()
+			--Begin Precondition.1. HMI sends notification RC.OnDeviceLocationChanged(<deviceID>) to RSDL (zone:Front Passenger)
+			--Description: HMI sends notification RC.OnDeviceLocationChanged(<deviceID>) to RSDL
+
+				function Test:ChangedLocation_Front()
+					--hmi side: HMI sends notification RC.OnDeviceLocationChanged(<deviceID>) to RSDL
+					self.hmiConnection:SendNotification("RC.OnDeviceLocationChanged",
+						{device = {name = "127.0.0.1", id = 1, isSDLAllowed = true},
+							deviceLocation =
+								{
+									colspan = 2,
+									row = 0,
+									rowspan = 2,
+									col = 1,
+									levelspan = 1,
+									level = 0
+								}
+						})
+				end
+			--End Precondition.1
+
+		-----------------------------------------------------------------------------------------
+
+			--Begin Test case CommonRequestCheck.17.2.1
+			--Description: application sends GetInteriorVehicleData as Front Passenger and HMI sends RC.OnDeviceLocationChanged(<deviceID>) to RSDL (zone:BACK LEFT Passenger)
+				function Test:GetInterior_FrontRADIO_Time1AndChangedLocation()
 					--mobile side: In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies
-					local cid = self.mobileSession:SendRPC("SetInteriorVehicleData",
+					local cid = self.mobileSession:SendRPC("GetInteriorVehicleData",
 					{
-						moduleData = {
+						moduleDescription =
+						{
 							moduleType = "RADIO",
-							moduleZone = {
-								col = 0,
+							moduleZone =
+							{
 								colspan = 2,
-								level = 0,
+								row = 2,
+								rowspan = 2,
+								col = 2,
 								levelspan = 1,
-								row = 0,
-								rowspan = 2
-							},
-							radioControlData = {
-								frequencyInteger = 99,
-								frequencyFraction = 3,
-								band = "FM",
-								rdsData = {
-									PS = "name",
-									RT = "radio",
-									CT = "YYYY-MM-DDThh:mm:ss.sTZD",
-									PI = "Sign",
-									PTY = 1,
-									TP = true,
-									TA = true,
-									REG = "Murica"
-								},
-								availableHDs = 3,
-								hdChannel = 1,
-								signalStrength = 50,
-								signalChangeThreshold = 60,
-								radioEnable = true,
-								state = "ACQUIRING"
+								level = 0,
 							}
-						}
+						},
+						subscribe = true
 					})
 
-					--hmi side: expect RC.SetInteriorVehicleData request
-					EXPECT_HMICALL("RC.SetInteriorVehicleData")
-					:Do(function(_,data)
+					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
+					EXPECT_HMICALL("RC.GetInteriorVehicleDataConsent",
+								{
+									appID = self.applications["Test Application"],
+									moduleType = "RADIO",
+									zone =
+									{
+										colspan = 2,
+										row = 0,
+										rowspan = 2,
+										col = 1,
+										levelspan = 1,
+										level = 0
+									}
+								})
+						:Do(function(_,data)
+							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
+							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
 
-						--hmi side: HMI sends notification RC.OnDeviceLocationChanged(<deviceID>) to RSDL
-						self.hmiConnection:SendNotification("RC.OnDeviceLocationChanged",
+							--hmi side: HMI sends notification RC.OnDeviceLocationChanged(<deviceID>) to RSDL
+							self.hmiConnection:SendNotification("RC.OnDeviceLocationChanged",
 							{device = {name = "127.0.0.1", id = 1, isSDLAllowed = true},
 								deviceLocation =
 									{
@@ -103,78 +123,80 @@ require('cardinalities')
 									}
 							})
 
-						--hmi side: sending RC.SetInteriorVehicleData response
-						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {
-								moduleData = {
-									moduleType = "RADIO",
-									moduleZone = {
-										col = 0,
-										colspan = 2,
-										level = 0,
-										levelspan = 1,
-										row = 0,
-										rowspan = 2
-									},
-									radioControlData = {
-										frequencyInteger = 99,
-										frequencyFraction = 3,
-										band = "FM",
-										rdsData = {
-											PS = "name",
-											RT = "radio",
-											CT = "YYYY-MM-DDThh:mm:ss.sTZD",
-											PI = "Sign",
-											PTY = 1,
-											TP = true,
-											TA = true,
-											REG = "Murica"
-										},
-										availableHDs = 3,
-										hdChannel = 1,
-										signalStrength = 50,
-										signalChangeThreshold = 60,
-										radioEnable = true,
-										state = "ACQUIRING"
-									}
-								}
-						})
 
+							--hmi side: expect RC.GetInteriorVehicleData request
+							EXPECT_HMICALL("RC.GetInteriorVehicleData")
+							:Do(function(_,data)
+									--hmi side: sending RC.GetInteriorVehicleData response
+									self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {
+											moduleData = {
+												moduleType = "RADIO",
+												moduleZone = {
+													col = 2,
+													colspan = 2,
+													level = 0,
+													levelspan = 1,
+													row = 2,
+													rowspan = 2
+												},
+												radioControlData = {
+													frequencyInteger = 99,
+													frequencyFraction = 3,
+													band = "FM",
+													rdsData = {
+														PS = "name",
+														RT = "radio",
+														CT = "YYYY-MM-DDThh:mm:ss.sTZD",
+														PI = "Sign",
+														PTY = 1,
+														TP = true,
+														TA = true,
+														REG = "Murica"
+													},
+													availableHDs = 3,
+													hdChannel = 1,
+													signalStrength = 50,
+													signalChangeThreshold = 60,
+													radioEnable = true,
+													state = "ACQUIRING"
+												}
+											}
+									})
+
+							end)
 					end)
 
 					-- finish processing RPC
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 
 					--Send OnHMIStatus (NONE) to such app
-					EXPECT_NOTIFICATION("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE" }, { systemContext = "MAIN", hmiLevel = "BACKGROUND", audioStreamingState = "NOT_AUDIBLE" })
-					:Times(2)
+					EXPECT_NOTIFICATION("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE" })
 
 				end
-			--End Test case CommonRequestCheck.17.3.1
+			--End Test case CommonRequestCheck.17.2.1
 
-		------------------------------------------------------------------------------------------
+		-----------------------------------------------------------------------------------------
 
-			--Begin Test case CommonRequestCheck.17.3.2
-			--Description: application sends SetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = RADIO (asking permission)
-				function Test:SetInterior_LeftRADIO_Time1()
+			--Begin Test case CommonRequestCheck.17.2.2
+			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = RADIO (asking driver's permission)
+				function Test:GetInterior_LeftRADIO_Time1()
 					--mobile side: In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies
-					local cid = self.mobileSession:SendRPC("SetInteriorVehicleData",
+					local cid = self.mobileSession:SendRPC("GetInteriorVehicleData",
 					{
-						moduleData = {
+						moduleDescription =
+						{
 							moduleType = "RADIO",
-							moduleZone = {
-								col = 1,
+							moduleZone =
+							{
 								colspan = 2,
-								level = 0,
+								row = 2,
+								rowspan = 2,
+								col = 2,
 								levelspan = 1,
-								row = 1,
-								rowspan = 2
-							},
-							radioControlData = {
-								frequencyInteger = 99,
-								frequencyFraction = 3,
-								band = "FM"
+								level = 0,
 							}
-						}
+						},
+						subscribe = true
 					})
 
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
@@ -196,45 +218,61 @@ require('cardinalities')
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
 
-							--hmi side: expect RC.SetInteriorVehicleData request
-							EXPECT_HMICALL("RC.SetInteriorVehicleData")
+							--hmi side: expect RC.GetInteriorVehicleData request
+							EXPECT_HMICALL("RC.GetInteriorVehicleData")
 							:Do(function(_,data)
-									--hmi side: sending RC.SetInteriorVehicleData response
+									--hmi side: sending RC.GetInteriorVehicleData response
 									self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {
 											moduleData = {
 												moduleType = "RADIO",
 												moduleZone = {
-													col = 1,
+													col = 2,
 													colspan = 2,
 													level = 0,
 													levelspan = 1,
-													row = 1,
+													row = 2,
 													rowspan = 2
 												},
 												radioControlData = {
 													frequencyInteger = 99,
 													frequencyFraction = 3,
-													band = "FM"
+													band = "FM",
+													rdsData = {
+														PS = "name",
+														RT = "radio",
+														CT = "YYYY-MM-DDThh:mm:ss.sTZD",
+														PI = "Sign",
+														PTY = 1,
+														TP = true,
+														TA = true,
+														REG = "Murica"
+													},
+													availableHDs = 3,
+													hdChannel = 1,
+													signalStrength = 50,
+													signalChangeThreshold = 60,
+													radioEnable = true,
+													state = "ACQUIRING"
 												}
 											}
 									})
 
-								end)
+							end)
 					end)
 
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
-			--End Test case CommonRequestCheck.17.3.2
+			--End Test case CommonRequestCheck.17.2.2
 
 		-----------------------------------------------------------------------------------------
 
-			--Begin Test case CommonRequestCheck.17.3.3
-			--Description: application sends SetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE (asking permission)
-				function Test:SetInterior_LeftCLIMATE_Time1()
+			--Begin Test case CommonRequestCheck.17.2.3
+			--Description: application sends GetInteriorVehicleData as Left Rare Passenger (col=0, row=1, level=0) and ModuleType = CLIMATE (asking driver's permission)
+				function Test:GetInterior_LeftCLIMATE_Time1()
 					--mobile side: In case the application sends a valid rc-RPC with <interiorZone>, <moduleType> and <params> allowed by app's assigned policies
-					local cid = self.mobileSession:SendRPC("SetInteriorVehicleData",
+					local cid = self.mobileSession:SendRPC("GetInteriorVehicleData",
 					{
-						moduleData =
+						moduleDescription =
 						{
 							moduleType = "CLIMATE",
 							moduleZone =
@@ -244,15 +282,10 @@ require('cardinalities')
 								rowspan = 2,
 								col = 1,
 								levelspan = 1,
-								level = 0
-							},
-							climateControlData =
-							{
-								fanSpeed = 50,
-								desiredTemp = 24,
-								temperatureUnit = "CELSIUS"
+								level = 0,
 							}
-						}
+						},
+						subscribe = true
 					})
 
 					--hmi side: expect RC.GetInteriorVehicleDataConsent request from HMI
@@ -274,10 +307,10 @@ require('cardinalities')
 							--hmi side: sending RC.GetInteriorVehicleDataConsent response to RSDL
 							self.hmiConnection:SendResponse(data.id, "RC.GetInteriorVehicleDataConsent", "SUCCESS", {allowed = true})
 
-							--hmi side: expect RC.SetInteriorVehicleData request
-							EXPECT_HMICALL("RC.SetInteriorVehicleData")
+							--hmi side: expect RC.GetInteriorVehicleData request
+							EXPECT_HMICALL("RC.GetInteriorVehicleData")
 							:Do(function(_,data)
-									--hmi side: sending RC.SetInteriorVehicleData response
+									--hmi side: sending RC.GetInteriorVehicleData response
 									self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {
 										moduleData =
 										{
@@ -294,21 +327,27 @@ require('cardinalities')
 											climateControlData =
 											{
 												fanSpeed = 50,
+												circulateAirEnable = true,
+												dualModeEnable = true,
+												currentTemp = 30,
+												defrostZone = "FRONT",
+												acEnable = true,
 												desiredTemp = 24,
+												autoModeEnable = true,
 												temperatureUnit = "CELSIUS"
 											}
 										}
 									})
 
-								end)
+							end)
 					end)
 
 					EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 				end
-			--End Test case CommonRequestCheck.17.3.3
+			--End Test case CommonRequestCheck.17.2.3
 
 		-----------------------------------------------------------------------------------------
-	--End Test case CommonRequestCheck.17.3
+	--End Test case CommonRequestCheck.17.2
 
 --=================================================END TEST CASES 17==========================================================--
 
