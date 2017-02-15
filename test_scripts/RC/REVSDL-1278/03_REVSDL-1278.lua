@@ -112,7 +112,7 @@ require('cardinalities')
           end)
 
           --Mobile side: RSDL sends OnHMIStatus (LIMITED,params)
-          self.mobileSession:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "LIMITED", audioStreamingState = "NOT_AUDIBLE"})
+          self.mobileSession:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "LIMITED", audioStreamingState = "AUDIBLE"})
 
           self.mobileSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
         end
@@ -249,7 +249,7 @@ require('cardinalities')
           end)
 
           --Mobile side: RSDL sends OnHMIStatus (LIMITED,params)
-          self.mobileSession:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "LIMITED", audioStreamingState = "NOT_AUDIBLE"})
+          self.mobileSession:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "LIMITED", audioStreamingState = "AUDIBLE"})
 
           self.mobileSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
         end

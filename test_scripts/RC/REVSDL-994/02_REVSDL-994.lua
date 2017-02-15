@@ -87,7 +87,7 @@ local arrayGroups_PrimaryRC =  revsdl.arrayGroups_PrimaryRC()
         function Test:TC2_OnPhoneCallFULLToBACKGROUND()
 
           --hmi side: HMI send BC.OnPhoneCall to Rsdl.
-          self.hmiConnection:SendNotification("BasicCommunication.OnPhoneCall", {isActive = true})
+          self.hmiConnection:SendNotification("BasicCommunication.OnEventChanged", {eventName = "PHONE_CALL", isActive = true})
 
           --mobile side: Check that OnHMIStatus(BACKGROUND) sent by RSDL and received by App1
           self.mobileSession:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "BACKGROUND", audioStreamingState = "NOT_AUDIBLE" })
@@ -257,7 +257,7 @@ local arrayGroups_PrimaryRC =  revsdl.arrayGroups_PrimaryRC()
           EXPECT_HMIRESPONSE(rid)
 
           --App1: SDL returns to mobile: OnHMIStatus (BACKGROUND, params).
-          self.mobileSession1:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "BACKGROUND", audioStreamingState = "AUDIBLE"})
+          self.mobileSession1:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "BACKGROUND", audioStreamingState = "NOT_AUDIBLE"})
 
           --App2 side: changing HMILevel to FULL
           self.mobileSession:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "FULL"})
