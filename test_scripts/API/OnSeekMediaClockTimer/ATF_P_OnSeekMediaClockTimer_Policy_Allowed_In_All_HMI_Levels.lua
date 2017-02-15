@@ -82,7 +82,7 @@ function Test:TestStep_OnSeekMediaClockTimer_When_App_In_FULL_HMI_Level()
 end
 
 function Test:TestStep_Deactivate_App_To_LIMITED_HMI_Level_By_Sending_OnAppDeactivated_From_HMI()
-self.hmiConnection:SendNotification("BasicCommunication.OnAppDeactivated",{appID = self.applications["Test Application"]})
+self.hmiConnection:SendNotification("BasicCommunication.OnAppDeactivated",{reason = "GENERAL", appID = self.applications["Test Application"]})
 EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "LIMITED"})
 end
 
