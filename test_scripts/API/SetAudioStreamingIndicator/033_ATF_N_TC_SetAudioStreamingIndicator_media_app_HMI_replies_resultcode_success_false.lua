@@ -87,8 +87,12 @@ for i = 1, #hmi_result_code do
 
 	  EXPECT_HMICALL("UI.SetAudioStreamingIndicator", { audioStreamingIndicator = "PAUSE" })
 	  :Do(function(_,data) 
-	  	-- ATF issue: "Genivi: SDL doesn't accept some error_codes from HMI when they are sending with type of protocol_message "error""
-	  	self.hmiConnection:SendError(data.id, data.method, hmi_result_code[i].result_code, "error message") 
+	  	--TODO (istoimenova): If should be removed when "[ATF] ATF doesn't process code of HMI response VEHICLE_DATA_NOT_AVAILABLE in error message." is fixed.
+	  	if(hmi_result_code[i].result_code == "VEHICLE_DATA_NOT_AVAILABLE") then 
+	  		self.hmiConnection:Send('{"error":{"data":{"method":"UI.SetAudioStreamingIndicator"},"message":"error message","code":9},"jsonrpc":"2.0","id":'..tostring(tostring(data.id))..'}')
+	  	else
+	  		self.hmiConnection:SendError(data.id, data.method, hmi_result_code[i].result_code, "error message") 
+	  	end
 	  end)
 	  
 	  EXPECT_RESPONSE(corr_id, { success = false, resultCode = hmi_result_code[i].result_code, info = "error message"})

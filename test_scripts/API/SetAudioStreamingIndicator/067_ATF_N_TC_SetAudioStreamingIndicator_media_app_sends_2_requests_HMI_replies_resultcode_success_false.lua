@@ -93,7 +93,12 @@ for i = 1, #hmi_result_code do
 	  	corr_id_second_req = self.mobileSession:SendRPC("SetAudioStreamingIndicator", { audioStreamingIndicator = "PAUSE" })
 	  	
 	  	local function send_HMI_response()
-	  		self.hmiConnection:SendError(data.id, data.method, hmi_result_code[i].result_code, "error message") 
+		  	--TODO (istoimenova): If should be removed when "[ATF] ATF doesn't process code of HMI response VEHICLE_DATA_NOT_AVAILABLE in error message." is fixed.
+		  	if(hmi_result_code[i].result_code == "VEHICLE_DATA_NOT_AVAILABLE") then 
+		  		self.hmiConnection:Send('{"error":{"data":{"method":"UI.SetAudioStreamingIndicator"},"message":"error message","code":9},"jsonrpc":"2.0","id":'..tostring(tostring(data.id))..'}')
+		  	else
+		  		self.hmiConnection:SendError(data.id, data.method, hmi_result_code[i].result_code, "error message") 
+		  	end
 	  	end
 	  	
 	  	RUN_AFTER(send_HMI_response, 1500)
