@@ -84,7 +84,7 @@ local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
                   appID = "1"
                 })
 
-                EXPECT_HMICALL("BasicCommunication.OnAppRegistered",
+                EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered",
                 {
                   application =
                   {
@@ -186,39 +186,36 @@ local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
               --hmi side: expected  BasicCommunication.OnAppRegistered
               EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered",
                         {
-                            application =
+                          application =
+                          {
+                            appName = "SyncProxyTester",
+                            ngnMediaScreenAppName ="SPT",
+                            deviceInfo =
                             {
-                              appName = "SyncProxyTester",
-                              ngnMediaScreenAppName ="SPT",
-                              deviceInfo =
-                      {
-                        hardware = "hardware",
-                        firmwareRev = "firmwareRev",
-                        os = "os",
-                        osVersion = "osVersion",
-                        carrier = "carrier",
-                        maxNumberRFCOMMPorts = 5
-                      },
-                      policyAppID = "123456",
-                      hmiDisplayLanguageDesired ="EN-US",
-                      isMediaApplication = true,
-                      appHMIType =
-                      {
-                        "NAVIGATION", "REMOTE_CONTROL"
-                      }
+                              id = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0",
+                              isSDLAllowed = true,
+                              name = "127.0.0.1",
+                              transportType = "WIFI"
                             },
-                            ttsName =
-                    {
-
-                      {
-                        text ="SyncProxyTester",
-                        type ="TEXT"
-                      }
-                    },
-                    vrSynonyms =
-                    {
-                      "VRSyncProxyTester"
-                    }
+                            policyAppID = "123456",
+                            hmiDisplayLanguageDesired ="EN-US",
+                            isMediaApplication = true,
+                            appType =
+                            {
+                              "NAVIGATION", "REMOTE_CONTROL"
+                            }
+                          },
+                          ttsName =
+                          {
+                            {
+                              text ="SyncProxyTester",
+                              type ="TEXT"
+                            }
+                          },
+                          vrSynonyms =
+                          {
+                            "VRSyncProxyTester"
+                          }
                         })
                 :Do(function(_,data)
                   self.applications["Test Application2"] = data.params.application.appID
@@ -277,7 +274,7 @@ local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
                             application =
                             {
                               appName = "SyncProxyTester2",
-                      appHMIType = { "NAVIGATION", "REMOTE_CONTROL" },
+                      appType = { "NAVIGATION", "REMOTE_CONTROL" },
                       policyAppID = "1234567",
                       hmiDisplayLanguageDesired ="EN-US",
                       isMediaApplication = true
@@ -338,7 +335,7 @@ local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
                                 application =
                                 {
                                   appName = "SyncProxyTester3",
-                          appHMIType = { "NAVIGATION", "REMOTE_CONTROL" },
+                          appType = { "NAVIGATION", "REMOTE_CONTROL" },
                           policyAppID = "1234569",
                           hmiDisplayLanguageDesired ="EN-US",
                           isMediaApplication = true
@@ -427,7 +424,7 @@ local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
                   appID = "4"
                 })
 
-                EXPECT_HMICALL("BasicCommunication.OnAppRegistered",
+                EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered",
                 {
                   application =
                   {
