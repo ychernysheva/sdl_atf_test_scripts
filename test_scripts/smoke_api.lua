@@ -14,7 +14,7 @@ commonFunctions:SDLForceStop()
 commonSteps:DeleteLogsFileAndPolicyTable()
 
 commonPreconditions:BackupFile("sdl_preloaded_pt.json")
-os.execute("cp -f files/jsons/sdl_preloaded_pt_smoke.json " .. commonPreconditions:GetPathToSDL() .. "sdl_preloaded_pt.json")
+os.execute("cp -f files/jsons/sdl_preloaded_pt_smoke_api.json " .. commonPreconditions:GetPathToSDL() .. "sdl_preloaded_pt.json")
 
 Test = require('connecttest')
 require('cardinalities')
