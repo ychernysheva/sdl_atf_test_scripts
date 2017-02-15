@@ -178,7 +178,7 @@ local arrayGroups_nonPrimaryRC = revsdl.arrayGroups_nonPrimaryRC()
           end)
 
           --Mobile side: RSDL sends OnHMIStatus (LIMITED,params)
-          self.mobileSession1:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "LIMITED", audioStreamingState = "NOT_AUDIBLE"})
+          self.mobileSession1:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "LIMITED", audioStreamingState = "AUDIBLE"})
 
           self.mobileSession1:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
         end

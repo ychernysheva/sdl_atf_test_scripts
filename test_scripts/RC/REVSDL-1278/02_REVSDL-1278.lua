@@ -161,7 +161,7 @@ require('cardinalities')
           end)
 
           --Mobile side: RSDL sends OnHMIStatus (LIMITED,params)
-          self.mobileSession:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "LIMITED", audioStreamingState = "NOT_AUDIBLE"})
+          self.mobileSession:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "LIMITED", audioStreamingState = "AUDIBLE"})
 
           self.mobileSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
         end
@@ -176,7 +176,7 @@ require('cardinalities')
         function Test:TC2_OnPhoneCallLIMITED()
 
           --hmi side: HMI send BC.OnPhoneCall to Rsdl.
-          self.hmiConnection:SendNotification("BasicCommunication.OnPhoneCall", {isActive = true})
+          self.hmiConnection:SendNotification("BasicCommunication.OnEventChanged", {eventName = "PHONE_CALL", isActive = true})
 
           --mobile side: Check that OnHMIStatus(BACKGROUND) sent by RSDL and received by App1
           self.mobileSession:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "BACKGROUND", audioStreamingState = "NOT_AUDIBLE" })
@@ -267,31 +267,11 @@ require('cardinalities')
           end)
 
           --Mobile side: RSDL sends OnHMIStatus (LIMITED,params)
-          self.mobileSession:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "LIMITED", audioStreamingState = "NOT_AUDIBLE"})
+          self.mobileSession:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "LIMITED", audioStreamingState = "AUDIBLE"})
 
           self.mobileSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
         end
       --End Test case CommonRequestCheck.2.1.5
-
-    -----------------------------------------------------------------------------------------
-
-      --[[Begin Test case CommonRequestCheck.2.1.6  : Removed this case due to defect: Requirement
-      --Description:
-              --1. HMI sends to RSDL: OnEmergencyEvent(ON)
-              --2. RSDL returns to mobile: OnHMIStatus(BACKGROUND, params) notification.
-        function Test:TC2_OnEmergencyEventBACKGROUND()
-
-          --hmi side: HMI send BC.OnPhoneCall to Rsdl.
-          self.hmiConnection:SendNotification("BasicCommunication.OnEmergencyEvent", {enabled = true})
-
-          --mobile side: Check that OnHMIStatus(BACKGROUND) sent by RSDL and received by App1
-          self.mobileSession:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "BACKGROUND", audioStreamingState = "NOT_AUDIBLE" })
-          :Timeout(5000)
-
-        end
-      --End Test case CommonRequestCheck.2.1.6
-
-    -----------------------------------------------------------------------------------------]]
 
   --End Test case CommonRequestCheck.2.1
 --=================================================END TEST CASES 2==========================================================--
