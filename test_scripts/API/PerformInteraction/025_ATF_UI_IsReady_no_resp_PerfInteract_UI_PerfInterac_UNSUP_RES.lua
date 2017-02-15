@@ -83,6 +83,8 @@ function Test:Precondition_ActivationApp()
   EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"})
 end
 
+commonSteps:PutFile("Precondition_PutFile", "icon.png")
+
 function Test:Precondition_CreateInteractionChoiceSet()
   local cid = self.mobileSession:SendRPC("CreateInteractionChoiceSet",
   {
