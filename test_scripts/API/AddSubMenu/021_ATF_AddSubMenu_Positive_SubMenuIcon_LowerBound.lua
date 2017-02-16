@@ -25,6 +25,7 @@ require('cardinalities')
 --[[ Required Shared Libraries ]]
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
+local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 
 --[[ Preconditions ]]
 commonFunctions:SDLForceStop()
@@ -54,6 +55,8 @@ end
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 function Test:AddSubMenu_SubMenuIconLowerBound()
+  local storagePath = table.concat({ commonPreconditions:GetPathToSDL(), "storage/",
+    config.application1.registerAppInterfaceParams.appID, "_", config.deviceMAC, "/" })
   local cid = self.mobileSession:SendRPC("AddSubMenu",
   {
     menuID = 2000,
@@ -76,13 +79,13 @@ function Test:AddSubMenu_SubMenuIconLowerBound()
     subMenuIcon =
     {
       imageType = "DYNAMIC",
-      value = "s"
+      value = storagePath .. "s"
     }
   })
   :Do(function(_,data)
-  self.hmiConnection:SendError(data.id, data.method, "WARNINGS", "Reference image(s) not found")
+  self.hmiConnection:SendResponse(data.id, data.method, "WARNINGS")
   end)
-  EXPECT_RESPONSE(cid, { success = true, resultCode = "WARNINGS", info = "Reference image(s) not found" })
+  EXPECT_RESPONSE(cid, { success = true, resultCode = "WARNINGS" })
   EXPECT_NOTIFICATION("OnHashChange")
 end
 

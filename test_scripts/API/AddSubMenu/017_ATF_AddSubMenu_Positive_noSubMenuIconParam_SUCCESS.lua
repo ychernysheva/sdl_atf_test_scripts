@@ -53,7 +53,7 @@ end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
-function Test:AddSubMenu_NoSubMenuIconParamSUCCESS()
+function Test:AddSubMenu_NoSubMenuIconParam_SUCCESS()
 	local cid = self.mobileSession:SendRPC("AddSubMenu",
 		{
 			menuID = 2000,

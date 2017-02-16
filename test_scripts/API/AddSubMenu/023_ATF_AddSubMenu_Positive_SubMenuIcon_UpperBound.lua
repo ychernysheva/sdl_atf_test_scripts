@@ -25,6 +25,7 @@ require('cardinalities')
 --[[ Required Shared Libraries ]]
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
+local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 
 --[[ Local variables ]]
 local strUpperBoundFileName = string.rep("a", 65531) .. ".png" --maxlength="65535"
@@ -48,7 +49,6 @@ function Test:Precondition_ActivateApp()
     :Do(function(_,data1)
     self.hmiConnection:SendResponse(data1.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
     end)
-    :Times(AtLeast(1))
     end)
   end
   end)
@@ -58,6 +58,8 @@ end
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 function Test:AddSubMenu_SubMenuIconUpperBound()
+  local storagePath = table.concat({ commonPreconditions:GetPathToSDL(), "storage/",
+    config.application1.registerAppInterfaceParams.appID, "_", config.deviceMAC, "/" })
   local cid = self.mobileSession:SendRPC("AddSubMenu",
   {
     menuID = 2000,
@@ -80,13 +82,13 @@ function Test:AddSubMenu_SubMenuIconUpperBound()
     subMenuIcon =
     {
       imageType = "DYNAMIC",
-      value = strUpperBoundFileName
+      value = storagePath .. strUpperBoundFileName
     }
   })
   :Do(function(_,data)
-  self.hmiConnection:SendError(data.id, data.method, "WARNINGS", "Reference image(s) not found")
+  self.hmiConnection:SendResponse(data.id, data.method, "WARNINGS")
   end)
-  EXPECT_RESPONSE(cid, { success = true, resultCode = "WARNINGS", info = "Reference image(s) not found"})
+  EXPECT_RESPONSE(cid, { success = true, resultCode = "WARNINGS" })
   EXPECT_NOTIFICATION("OnHashChange")
 end
 

@@ -85,13 +85,13 @@ function Test:AddSubMenu_NoIconInAppStorage()
     subMenuIcon =
     {
       imageType = "DYNAMIC",
-      value = "menuIcon.jpg"
+      value = storagePath .. "menuIcon.jpg"
     }
   })
   :Do(function(_,data)
-  self.hmiConnection:SendError(data.id, data.method, "WARNINGS", "Reference image(s) not found")
+  self.hmiConnection:SendResponse(data.id, data.method, "WARNINGS")
   end)
-  EXPECT_RESPONSE(cid, { success = true, resultCode = "WARNINGS", info = "Reference image(s) not found"})
+  EXPECT_RESPONSE(cid, { success = true, resultCode = "WARNINGS" })
   EXPECT_NOTIFICATION("OnHashChange")
 end
 

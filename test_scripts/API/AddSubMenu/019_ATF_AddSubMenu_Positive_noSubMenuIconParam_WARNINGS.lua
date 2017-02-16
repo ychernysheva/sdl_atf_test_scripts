@@ -53,7 +53,7 @@ end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
-function Test:AddSubMenu_NoSubMenuIconParamWARNINGS()
+function Test:AddSubMenu_NoSubMenuIconParam_WARNINGS()
   local cid = self.mobileSession:SendRPC("AddSubMenu",
   {
     menuID = 1000,
@@ -70,9 +70,9 @@ function Test:AddSubMenu_NoSubMenuIconParamWARNINGS()
     }
   })
   :Do(function(_,data)
-  self.hmiConnection:SendResponse(data.id, data.method, "WARNINGS", {})
+  self.hmiConnection:SendResponse(data.id, data.method, "WARNINGS")
   end)
-  EXPECT_RESPONSE(cid, { success = true, resultCode = "WARNINGS"})
+  EXPECT_RESPONSE(cid, { success = true, resultCode = "WARNINGS" })
   EXPECT_NOTIFICATION("OnHashChange")
 end
 

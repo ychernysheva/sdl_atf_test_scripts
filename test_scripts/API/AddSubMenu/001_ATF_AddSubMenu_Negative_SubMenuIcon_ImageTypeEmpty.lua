@@ -57,7 +57,7 @@ commonSteps:PutFile("PutFile_menuIcon", "menuIcon.jpg")
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 function Test:AddSubMenu_SubMenuIconEmptyImgType()
-  local RequestAddmenuId = self.mobileSession:SendRPC("AddSubMenu",
+  local cid = self.mobileSession:SendRPC("AddSubMenu",
   {
     menuID = 2000,
     position = 200,
@@ -68,7 +68,7 @@ function Test:AddSubMenu_SubMenuIconEmptyImgType()
       value = "menuIcon.jpg"
     }
   })
-  EXPECT_RESPONSE(RequestAddmenuId, { success = false, resultCode = "INVALID_DATA" })
+  EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
   EXPECT_NOTIFICATION("OnHashChange"):Times(0)
   EXPECT_HMICALL("UI.AddSubMenu"):Times(0)
   commonTestCases:DelayedExp(10000)

@@ -53,7 +53,7 @@ end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
-function Test:AddSubMenu_NoSubMenuIconParamUNSUPPORTED_RESOURCE()
+function Test:AddSubMenu_NoSubMenuIconParam_UNSUPPORTED_RESOURCE()
   local cid = self.mobileSession:SendRPC("AddSubMenu",
   {
     menuID = 1000,
@@ -70,9 +70,9 @@ function Test:AddSubMenu_NoSubMenuIconParamUNSUPPORTED_RESOURCE()
     }
   })
   :Do(function(_,data)
-  self.hmiConnection:SendError(data.id, data.method, "UNSUPPORTED_RESOURCE", "Resource is not supported")
+  self.hmiConnection:SendResponse(data.id, data.method, "UNSUPPORTED_RESOURCE")
   end)
-  EXPECT_RESPONSE(cid, { success = true, resultCode = "UNSUPPORTED_RESOURCE", info = "Resource is not supported" })
+  EXPECT_RESPONSE(cid, { success = true, resultCode = "UNSUPPORTED_RESOURCE" })
   EXPECT_NOTIFICATION("OnHashChange")
 end
 

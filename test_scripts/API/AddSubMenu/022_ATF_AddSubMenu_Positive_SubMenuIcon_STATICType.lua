@@ -82,7 +82,7 @@ function Test:AddSubMenu_SubMenuIconSTATIC()
     }
   })
   :Do(function(_,data)
-  self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+  self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS")
   end)
   EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})
   EXPECT_NOTIFICATION("OnHashChange")

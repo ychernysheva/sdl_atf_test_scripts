@@ -71,9 +71,9 @@ function Test:AddSubMenu_NoSubMenuIcon_REJECTED()
     }
   })
   :Do(function(_,data)
-  self.hmiConnection:SendResponse(data.id, data.method, "REJECTED", {})
+  self.hmiConnection:SendError(data.id, data.method, "REJECTED", "error message")
   end)
-  EXPECT_RESPONSE(cid, { success = false, resultCode = "REJECTED" })
+  EXPECT_RESPONSE(cid, { success = false, resultCode = "REJECTED", info = "error message" })
   EXPECT_NOTIFICATION("OnHashChange"):Times(0)
   commonTestCases:DelayedExp(10000)
 end

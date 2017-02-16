@@ -25,6 +25,7 @@ require('cardinalities')
 --[[ Required Shared Libraries ]]
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
+local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 
 --[[ Preconditions ]]
 commonFunctions:SDLForceStop()
@@ -56,6 +57,8 @@ commonSteps:PutFile("PutFile_menuIcon", "menuIcon.jpg")
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 function Test:AddSubMenu_SubMenuIconDYNAMIC()
+  local storagePath = table.concat({ commonPreconditions:GetPathToSDL(), "storage/",
+    config.application1.registerAppInterfaceParams.appID, "_", config.deviceMAC, "/" })
   local cid = self.mobileSession:SendRPC("AddSubMenu",
   {
     menuID = 2000,
@@ -78,11 +81,11 @@ function Test:AddSubMenu_SubMenuIconDYNAMIC()
     subMenuIcon =
     {
       imageType = "DYNAMIC",
-      value = "menuIcon.jpg"
+      value = storagePath .. "menuIcon.jpg"
     }
   })
   :Do(function(_,data)
-  self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+  self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS")
   end)
   EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})
   EXPECT_NOTIFICATION("OnHashChange")
