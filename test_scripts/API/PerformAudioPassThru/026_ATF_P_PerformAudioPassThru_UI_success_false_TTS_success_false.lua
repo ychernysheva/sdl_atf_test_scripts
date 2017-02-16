@@ -138,9 +138,13 @@ for cnt_ui = 1, #hmi_result_code_ui do
         })
       :Do(function(_,data)
           self.hmiConnection:SendNotification("TTS.Started",{})
-
+          --TODO (mmihaylova): If should be removed when "[ATF] ATF doesn't process code of HMI response VEHICLE_DATA_NOT_AVAILABLE in error message." is fixed.
           local function ttsSpeakResponse()
-            self.hmiConnection:SendError(data.id, data.method, hmi_result_code_tts[cnt_tts].result_code, "")
+            if (hmi_result_code_tts[cnt_tts].result_code == "VEHICLE_DATA_NOT_AVAILABLE") then
+              self.hmiConnection:Send('{"error":{"data":{"method":"UI.SetAudioStreamingIndicator"},"message":"error message","code":9},"jsonrpc":"2.0","id":'..tostring(data.id)..'}')
+            else
+              self.hmiConnection:SendError(data.id, data.method, hmi_result_code_tts[cnt_tts].result_code, "")
+            end
             self.hmiConnection:SendNotification("TTS.Stopped")
           end
           RUN_AFTER(ttsSpeakResponse, 1000)
@@ -162,9 +166,13 @@ for cnt_ui = 1, #hmi_result_code_ui do
           }
         })
       :Do(function(_,data)
-
+          --TODO (mmihaylova): If should be removed when "[ATF] ATF doesn't process code of HMI response VEHICLE_DATA_NOT_AVAILABLE in error message." is fixed.
           local function UIPerformAudioResponse()
-            self.hmiConnection:SendError(data.id, "UI.PerformAudioPassThru", hmi_result_code_ui[cnt_ui].result_code, "")
+            if (hmi_result_code_ui[cnt_ui].result_code == "VEHICLE_DATA_NOT_AVAILABLE") then
+              self.hmiConnection:Send('{"error":{"data":{"method":"UI.SetAudioStreamingIndicator"},"message":"error message","code":9},"jsonrpc":"2.0","id":'..tostring(data.id)..'}')
+            else
+              self.hmiConnection:SendError(data.id, "UI.PerformAudioPassThru", hmi_result_code_ui[cnt_ui].result_code, "")
+            end
           end
           RUN_AFTER(UIPerformAudioResponse, 1500)
       end)
