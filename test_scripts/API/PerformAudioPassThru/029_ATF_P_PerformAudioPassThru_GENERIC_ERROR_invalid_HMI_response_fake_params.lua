@@ -148,7 +148,7 @@ for i =1, #invalid_data do
 end
 
 for i =1, #invalid_data do
-  Test["TestStep_GENERIC_ERROR_PerformAudioPassThru_TTS_HMI_replies_" .. invalid_data[i].descr] = function(self)
+  Test["TestStep_WARNINGS_PerformAudioPassThru_TTS_HMI_replies_" .. invalid_data[i].descr] = function(self)
     local CorIdPerformAudioPassThru= self.mobileSession:SendRPC("PerformAudioPassThru",
       {
         initialPrompt = {{text = "Makeyourchoice",type = "TEXT"}},
