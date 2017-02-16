@@ -27,6 +27,8 @@ local mobile_session = require('mobile_session')
 --groups_PrimaryRC Group
 local arrayGroups_PrimaryRC =  revsdl.arrayGroups_PrimaryRC()
 
+local device1mac = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
+
 --=================================================BEGIN TEST CASES 3==========================================================--
   --Begin Test suit CommonRequestCheck.3 for Req.#3
 
@@ -68,7 +70,7 @@ local arrayGroups_PrimaryRC =  revsdl.arrayGroups_PrimaryRC()
 
           --hmi side: send request RC.OnDeviceRankChanged
           self.hmiConnection:SendNotification("RC.OnDeviceRankChanged",
-                              {deviceRank = "DRIVER", device = {name = "127.0.0.1", id = 1, isSDLAllowed = true}})
+                              {deviceRank = "DRIVER", device = {name = "127.0.0.1", id = device1mac, isSDLAllowed = true}})
 
           --mobile side: Expect OnPermissionsChange notification for Driver's device
           EXPECT_NOTIFICATION("OnPermissionsChange", arrayGroups_PrimaryRC )

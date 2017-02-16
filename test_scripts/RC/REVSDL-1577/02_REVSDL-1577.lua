@@ -28,6 +28,9 @@ local file_connection  = require('file_connection')
 local device2 = "192.168.100.199"
 local device2Port = 12345
 
+local device2mac = "f4ef3e7b102431d7f30aa4e2d8020e922c8f6a8c4d159a711d07f28f30ebbaaf"
+local device1mac = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
+
 os.execute("ifconfig lo:1 192.168.100.199")
 ---------------------------------------------------------------------------------------------
 
@@ -153,7 +156,7 @@ end
 
           --hmi side: send request RC.OnDeviceRankChanged
           self.hmiConnection:SendNotification("RC.OnDeviceRankChanged",
-                              {deviceRank = "DRIVER", device = {name = "127.0.0.1", id = 1, isSDLAllowed = true}})
+                              {deviceRank = "DRIVER", device = {name = "127.0.0.1", id = device1mac, isSDLAllowed = true}})
 
           --mobile side: Expect OnPermissionsChange notification for Driver's device
           EXPECT_NOTIFICATION("OnPermissionsChange", arrayGroups_PrimaryRC )
@@ -172,7 +175,7 @@ end
 
           --hmi side: send request RC.OnDeviceRankChanged to Device2
           self.hmiConnection:SendNotification("RC.OnDeviceRankChanged",
-                              {deviceRank = "DRIVER", device = {name = device2, id = 2, isSDLAllowed = true}})
+                              {deviceRank = "DRIVER", device = {name = device2, id = device2mac, isSDLAllowed = true}})
 
           --APP FROM DEVICE1:
           --mobile side: Expect OnPermissionsChange notification for Device1 is Passenger

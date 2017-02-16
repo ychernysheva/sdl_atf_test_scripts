@@ -14,6 +14,8 @@ config.ValidateSchema = false
 config.application1.registerAppInterfaceParams.appHMIType = { "REMOTE_CONTROL" }
 config.application1.registerAppInterfaceParams.appID = "8675311"
 
+local device1mac = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
+
 Test = require('connecttest')
 require('cardinalities')
 
@@ -56,7 +58,7 @@ require('cardinalities')
 
           --hmi side: send request RC.OnDeviceRankChanged
           self.hmiConnection:SendNotification("RC.OnDeviceRankChanged",
-                              {deviceRank = "DRIVER", fake1 = true, device = {name = "127.0.0.1", fake2 = {1}, id = 1, isSDLAllowed = true, fake3 = "   fake params   "}})
+                              {deviceRank = "DRIVER", fake1 = true, device = {name = "127.0.0.1", fake2 = {1}, id = device1mac, isSDLAllowed = true, fake3 = "   fake params   "}})
 
           --mobile side: SDL does not send fake params to mobile app
           EXPECT_NOTIFICATION("OnPermissionsChange")
@@ -84,7 +86,7 @@ require('cardinalities')
 
           --hmi side: send request RC.OnDeviceRankChanged
           self.hmiConnection:SendNotification("RC.OnDeviceRankChanged",
-                              {fake0 = "ERROR", deviceRank = "PASSENGER", fake1 = true, device = {name = "127.0.0.1", fake2 = {1}, id = 1, isSDLAllowed = true, fake3 = "   fake params   "}})
+                              {fake0 = "ERROR", deviceRank = "PASSENGER", fake1 = true, device = {name = "127.0.0.1", fake2 = {1}, id = device1mac, isSDLAllowed = true, fake3 = "   fake params   "}})
 
           --mobile side: SDL does not send fake params to mobile app
           EXPECT_NOTIFICATION("OnPermissionsChange")

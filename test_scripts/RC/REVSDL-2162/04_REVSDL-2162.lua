@@ -28,6 +28,8 @@ local arrayGroups_nonPrimaryRC = revsdl.arrayGroups_nonPrimaryRC()
 
 local appid = "1"
 
+local device1mac = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
+
 --======================================Requirement========================================--
 ---------------------------------------------------------------------------------------------
 ----------Requirement: GetInteriorVehicleDataCapabilies - rules for policies checks----------
@@ -164,7 +166,7 @@ local appid = "1"
 
           --hmi side: send request RC.OnDeviceRankChanged
           self.hmiConnection:SendNotification("RC.OnDeviceRankChanged",
-                              {deviceRank = "DRIVER", device = {name = "127.0.0.1", id = 1, isSDLAllowed = true}})
+                              {deviceRank = "DRIVER", device = {name = "127.0.0.1", id = device1mac, isSDLAllowed = true}})
 
           --mobile side: Expect OnPermissionsChange notification for Driver's device
           self.mobileSession1:ExpectNotification("OnPermissionsChange", arrayGroups_PrimaryRC )
