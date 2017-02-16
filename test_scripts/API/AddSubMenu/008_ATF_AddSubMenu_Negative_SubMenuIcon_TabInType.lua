@@ -1,16 +1,16 @@
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
 --	[GENIVI] AddSubMenu: SDL must support new "subMenuIcon" parameter
---	[GeneralResultCodes] INVALID_DATA wrong type
+--	[GeneralResultCodes] INVALID_DATA wrong characters
 --
 -- Description:
--- 	Mobile app sends AddSubMenu with "subMenuIcon" that has invalid value type
+-- 	Mobile app sends AddSubMenu with "subMenuIcon" with type that has special symbol(tab)
 -- 1. Used preconditions:
 -- 	Delete files and policy table from previous ignition cycle if any
 -- 	Start SDL and HMI
 --  Activate application
 -- 2. Performed steps:
--- 	Send AddSubMenu RPC with "subMenuIcon" with invalid value type
+-- 	Send AddSubMenu RPC with "subMenuIcon" with special symbol(tab) in imageType
 --
 -- Expected result:
 -- 	SDL must respond with INVALID_DATA and "success":"false"
@@ -46,17 +46,17 @@ function Test:Precondition_ActivateApp()
     :Do(function(_,data1)
     self.hmiConnection:SendResponse(data1.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
     end)
-    :Times(1)
     end)
   end
   end)
   EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN", audioStreamingState = "AUDIBLE"})
 end
+
 commonSteps:PutFile("PutFile_menuIcon", "menuIcon.jpg")
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
-function Test:AddSubMenu_SubMenuIconInvalidValueType()
+function Test:AddSubMenu_SubMenuIconTabInType()
   local cid = self.mobileSession:SendRPC("AddSubMenu",
   {
     menuID = 2000,
@@ -64,8 +64,8 @@ function Test:AddSubMenu_SubMenuIconInvalidValueType()
     menuName ="SubMenu",
     subMenuIcon =
     {
-      imageType = "DYNAMIC",
-      value = 12 --string value is expected
+      imageType = "\tDYNAMIC",
+      value = "menuIcon.jpg"
     }
   })
   EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })

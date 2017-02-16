@@ -45,7 +45,6 @@ function Test:Precondition_ActivateApp()
 				:Do(function(_,data1)
 					self.hmiConnection:SendResponse(data1.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
 				end)
-				:Times(1)
 			end)
 		end
 	end)

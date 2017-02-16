@@ -1,16 +1,16 @@
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
 --	[GENIVI] AddSubMenu: SDL must support new "subMenuIcon" parameter
---	[GeneralResultCodes] INVALID_DATA empty String parameter
+--	[GeneralResultCodes] INVALID_DATA wrong characters
 --
 -- Description:
--- 	Mobile app sends AddSubMenu with "subMenuIcon" with empty imageType
+-- 	Mobile app sends AddSubMenu with "subMenuIcon" that has space in imageType
 -- 1. Used preconditions:
 -- 	Delete files and policy table from previous ignition cycle if any
 -- 	Start SDL and HMI
 --  Activate application
 -- 2. Performed steps:
--- 	Send AddSubMenu RPC with "subMenuIcon" with empty imageType
+-- 	Send AddSubMenu RPC with "subMenuIcon" with space in imageType
 --
 -- Expected result:
 -- 	SDL must respond with INVALID_DATA and "success":"false"
@@ -25,7 +25,6 @@ require('cardinalities')
 --[[ Required Shared Libraries ]]
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
-local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 
 --[[ Preconditions ]]
@@ -47,7 +46,6 @@ function Test:Precondition_ActivateApp()
     :Do(function(_,data1)
     self.hmiConnection:SendResponse(data1.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
     end)
-    :Times(1)
     end)
   end
   end)
@@ -58,21 +56,19 @@ commonSteps:PutFile("PutFile_menuIcon", "menuIcon.jpg")
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
-function Test:AddSubMenu_SubMenuIconEmptyImgType()
-  local storagePath = table.concat({ commonPreconditions:GetPathToSDL(), "storage/",
-    config.application1.registerAppInterfaceParams.appID, "_", config.deviceMAC, "/" })
-  local RequestAddmenuId = self.mobileSession:SendRPC("AddSubMenu",
+function Test:AddSubMenu_SubMenuIconSpaceInType()
+  local cid = self.mobileSession:SendRPC("AddSubMenu",
   {
     menuID = 2000,
     position = 200,
     menuName ="SubMenu",
     subMenuIcon =
     {
-      imageType = "",
-      value = storagePath .. "menuIcon.jpg"
+      imageType = " ",
+      value = "menuIcon.jpg"
     }
   })
-  EXPECT_RESPONSE(RequestAddmenuId, { success = false, resultCode = "INVALID_DATA" })
+  EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
   EXPECT_NOTIFICATION("OnHashChange"):Times(0)
   EXPECT_HMICALL("UI.AddSubMenu"):Times(0)
   commonTestCases:DelayedExp(10000)

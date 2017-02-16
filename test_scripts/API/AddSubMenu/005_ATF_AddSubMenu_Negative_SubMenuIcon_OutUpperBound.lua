@@ -27,9 +27,6 @@ local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 
---[[ Local variables ]]
-local strOutofBoundFileName = string.rep("a", 65532) .. ".png" --maxlength="65535"
-
 --[[ Preconditions ]]
 commonFunctions:SDLForceStop()
 commonSteps:DeleteLogsFileAndPolicyTable()
@@ -49,7 +46,6 @@ function Test:Precondition_ActivateApp()
     :Do(function(_,data1)
     self.hmiConnection:SendResponse(data1.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
     end)
-    :Times(1)
     end)
   end
   end)
@@ -59,6 +55,7 @@ end
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 function Test:AddSubMenu_SubMenuIconOutUpperBound()
+  local strOutofBoundFileName = string.rep("a", 65532) .. ".png" --maxlength="65535"
   local cid = self.mobileSession:SendRPC("AddSubMenu",
   {
     menuID = 2000,

@@ -25,7 +25,6 @@ require('cardinalities')
 --[[ Required Shared Libraries ]]
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
-local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 
 --[[ Preconditions ]]
 commonFunctions:SDLForceStop()
@@ -46,19 +45,17 @@ function Test:Precondition_ActivateApp()
     :Do(function(_,data1)
     self.hmiConnection:SendResponse(data1.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
     end)
-    :Times(1)
     end)
   end
   end)
   EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN", audioStreamingState = "AUDIBLE"})
 end
+
 commonSteps:PutFile("PutFile_menuIcon", "menuIcon.jpg")
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 function Test:AddSubMenu_SubMenuIconDYNAMIC()
-  local storagePath = table.concat({ commonPreconditions:GetPathToSDL(), "storage/",
-    config.application1.registerAppInterfaceParams.appID, "_", config.deviceMAC, "/" })
   local cid = self.mobileSession:SendRPC("AddSubMenu",
   {
     menuID = 2000,
@@ -67,7 +64,7 @@ function Test:AddSubMenu_SubMenuIconDYNAMIC()
     subMenuIcon =
     {
       imageType = "DYNAMIC",
-      value = storagePath .. "menuIcon.jpg"
+      value = "menuIcon.jpg"
     }
   })
   EXPECT_HMICALL("UI.AddSubMenu",
@@ -81,7 +78,7 @@ function Test:AddSubMenu_SubMenuIconDYNAMIC()
     subMenuIcon =
     {
       imageType = "DYNAMIC",
-      value = storagePath .. "menuIcon.jpg"
+      value = "menuIcon.jpg"
     }
   })
   :Do(function(_,data)

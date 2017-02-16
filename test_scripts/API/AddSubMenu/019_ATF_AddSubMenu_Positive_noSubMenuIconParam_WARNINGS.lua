@@ -1,19 +1,19 @@
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
---	[GENIVI] AddSubMenu: SDL must support new "subMenuIcon" parameter
---	[GeneralResultCodes] INVALID_DATA mandatory parameters not provided
+--		[GENIVI] AddSubMenu: SDL must support new "subMenuIcon" parameter
+--		[AddSubMenu] Mobile app sends AddSubMenu without "subMenuIcon" param to HMI
 --
 -- Description:
--- 	Mobile app sends AddSubMenu with "subMenuIcon" without value
+-- 		Mobile app sends AddSubMenu request to SDL without <subMenuIcon> parameter and with another related to request valid params
 -- 1. Used preconditions:
--- 	Delete files and policy table from previous ignition cycle if any
--- 	Start SDL and HMI
---  Activate application
+-- 		Delete files and policy table from previous ignition cycle if any
+-- 		Start SDL and HMI
+--    Activate application
 -- 2. Performed steps:
--- 	Send AddSubMenu RPC with "subMenuIcon" without value of image
+-- 		Send AddSubMenu RPC without <subMenuIcon> parameter
 --
 -- Expected result:
--- 	SDL must respond with INVALID_DATA and "success":"false"
+-- 		SDL must transfer AddSubMenu to HMI without subMenuIcon but with other params and respond with WARNINGS received from HMI to mobile app
 ---------------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
@@ -25,7 +25,6 @@ require('cardinalities')
 --[[ Required Shared Libraries ]]
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
-local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 
 --[[ Preconditions ]]
 commonFunctions:SDLForceStop()
@@ -46,32 +45,35 @@ function Test:Precondition_ActivateApp()
     :Do(function(_,data1)
     self.hmiConnection:SendResponse(data1.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
     end)
-    :Times(1)
     end)
   end
   end)
   EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN", audioStreamingState = "AUDIBLE"})
 end
 
-commonSteps:PutFile("PutFile_menuIcon", "menuIcon.jpg")
-
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
-function Test:AddSubMenu_SubMenuIconValueMissing()
+function Test:AddSubMenu_NoSubMenuIconParamWARNINGS()
   local cid = self.mobileSession:SendRPC("AddSubMenu",
   {
-    menuID = 2000,
-    position = 200,
-    menuName ="SubMenu",
-    subMenuIcon =
+    menuID = 1000,
+    position = 100,
+    menuName ="SubMenuNoSubMenuIcon"
+  })
+  EXPECT_HMICALL("UI.AddSubMenu",
+  {
+    menuID = 1000,
+    menuParams =
     {
-      imageType = "DYNAMIC"
+      position = 100,
+      menuName ="SubMenuNoSubMenuIcon"
     }
   })
-  EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
-  EXPECT_NOTIFICATION("OnHashChange"):Times(0)
-  EXPECT_HMICALL("UI.AddSubMenu"):Times(0)
-  commonTestCases:DelayedExp(10000)
+  :Do(function(_,data)
+  self.hmiConnection:SendResponse(data.id, data.method, "WARNINGS", {})
+  end)
+  EXPECT_RESPONSE(cid, { success = true, resultCode = "WARNINGS"})
+  EXPECT_NOTIFICATION("OnHashChange")
 end
 
 --[[ Postconditions ]]
