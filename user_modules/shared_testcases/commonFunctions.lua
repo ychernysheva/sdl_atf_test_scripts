@@ -54,8 +54,9 @@ function commonFunctions:isMediaApp()
 
 end
 
-function commonFunctions:userPrint( color, message)
-  print ("\27[" .. tostring(color) .. "m " .. tostring(message) .. " \27[0m")
+function commonFunctions:userPrint( color, message, delimeter)
+  delimeter = delimeter or "\n"
+  io.write("\27[" .. tostring(color) .. "m" .. tostring(message) .. "\27[0m", delimeter)
 end
 
 --1. Functions for String
@@ -990,7 +991,7 @@ function commonFunctions:check_ptu_sequence_partly(self, ptu_path, ptu_name)
   EXPECT_HMICALL("BasicCommunication.SystemRequest"):Times(0)
   EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate")
   :ValidIf(function(exp,data)
-    if 
+    if
       (exp.occurences == 1 or exp.occurences == 2) and
       data.params.status == "UP_TO_DATE" then
         return true
@@ -999,7 +1000,7 @@ function commonFunctions:check_ptu_sequence_partly(self, ptu_path, ptu_name)
       exp.occurences == 1 and
       data.params.status == "UPDATING" then
         return true
-    end             
+    end
     return false
   end):Times(Between(1,2))
   EXPECT_HMICALL("VehicleInfo.GetVehicleData", {odometer=true}):Do(
@@ -1034,7 +1035,7 @@ assert(commonFunctions:File_exists(ptu_path))
     elseif exp.occurences == 2 and
       data.params.status == "UPDATING" then
     return true
-    elseif exp.occurences == 3 and 
+    elseif exp.occurences == 3 and
       data.params.status == "UP_TO_DATE" then
       return true
     end
