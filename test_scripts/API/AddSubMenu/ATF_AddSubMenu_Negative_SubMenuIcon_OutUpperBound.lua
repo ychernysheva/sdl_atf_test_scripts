@@ -25,6 +25,7 @@ require('cardinalities')
 --[[ Required Shared Libraries ]]
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
+local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 
 --[[ Local variables ]]
 local strOutofBoundFileName = string.rep("a", 65532) .. ".png" --maxlength="65535"
@@ -54,7 +55,6 @@ function Test:Precondition_ActivateApp()
   end)
   EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN", audioStreamingState = "AUDIBLE"})
 end
--- commonSteps:PutFile("PutFile_strOutofBoundFileName", strOutofBoundFileName)
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
@@ -73,6 +73,9 @@ function Test:AddSubMenu_SubMenuIconOutUpperBound()
   EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
   EXPECT_NOTIFICATION("OnHashChange")
   :Times(0)
+  EXPECT_HMICALL("UI.AddSubMenu")
+  :Times(0)
+  commonTestCases:DelayedExp(10000)
 end
 
 --[[ Postconditions ]]

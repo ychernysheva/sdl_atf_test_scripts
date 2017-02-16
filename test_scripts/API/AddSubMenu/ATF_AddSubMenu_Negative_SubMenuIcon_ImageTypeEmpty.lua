@@ -26,6 +26,7 @@ require('cardinalities')
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
+local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 
 --[[ Preconditions ]]
 commonFunctions:SDLForceStop()
@@ -72,6 +73,11 @@ function Test:AddSubMenu_SubMenuIconEmptyImgType()
     }
   })
   EXPECT_RESPONSE(RequestAddmenuId, { success = false, resultCode = "INVALID_DATA" })
+  EXPECT_NOTIFICATION("OnHashChange")
+  :Times(0)
+  EXPECT_HMICALL("UI.AddSubMenu")
+  :Times(0)
+  commonTestCases:DelayedExp(10000)
 end
 
 --[[ Postconditions ]]

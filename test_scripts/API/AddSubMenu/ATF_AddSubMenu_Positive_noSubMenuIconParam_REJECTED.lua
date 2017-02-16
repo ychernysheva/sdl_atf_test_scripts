@@ -25,6 +25,7 @@ require('cardinalities')
 --[[ Required Shared Libraries ]]
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
+local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 
 --[[ Preconditions ]]
 commonFunctions:SDLForceStop()
@@ -76,6 +77,7 @@ function Test:AddSubMenu_NoSubMenuIcon_REJECTED()
   EXPECT_RESPONSE(cid, { success = false, resultCode = "REJECTED" })
   EXPECT_NOTIFICATION("OnHashChange")
   :Times(0)
+  commonTestCases:DelayedExp(10000)
 end
 
 --[[ Postconditions ]]
