@@ -368,7 +368,7 @@ local device1mac = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 					self.mobileSession:ExpectNotification("OnPermissionsChange", arrayGroups_PrimaryRC )
 
 					--mobile side: OnHMIStatus notifications with deviceRank = "DRIVER"
-					self.mobileSession:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", audioStreamingState = "NOT_AUDIBLE", deviceRank = "DRIVER" })
+					self.mobileSession:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", deviceRank = "DRIVER" })
 
 				end
 			--End Test case CommonRequestCheck.7.2.0

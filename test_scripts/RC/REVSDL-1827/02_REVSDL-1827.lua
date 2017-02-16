@@ -17,6 +17,7 @@ config.application1.registerAppInterfaceParams.appID = "8675311"
 Test = require('connecttest')
 require('cardinalities')
 
+local device1mac = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 --======================================Requirement========================================--
 ---------------------------------------------------------------------------------------------
 --------------Requirement: Policies: "equipment" permissions must be checked-----------------
@@ -53,7 +54,7 @@ require('cardinalities')
 				function Test:ChangedLocation_Driver()
 					--hmi side: HMI sends notification RC.OnDeviceLocationChanged(<deviceID>) to RSDL
 					self.hmiConnection:SendNotification("RC.OnDeviceLocationChanged",
-						{device = {name = "127.0.0.1", id = 1, isSDLAllowed = true},
+						{device = {name = "127.0.0.1", id = device1mac, isSDLAllowed = true},
 							deviceLocation =
 								{
 									colspan = 2,
@@ -445,7 +446,7 @@ require('cardinalities')
 				function Test:ChangedLocation_Front()
 					--hmi side: HMI sends notification RC.OnDeviceLocationChanged(<deviceID>) to RSDL
 					self.hmiConnection:SendNotification("RC.OnDeviceLocationChanged",
-						{device = {name = "127.0.0.1", id = 1, isSDLAllowed = true},
+						{device = {name = "127.0.0.1", id = device1mac, isSDLAllowed = true},
 							deviceLocation =
 								{
 									colspan = 2,
@@ -653,7 +654,7 @@ require('cardinalities')
 				function Test:ChangedLocation_Left()
 					--hmi side: HMI sends notification RC.OnDeviceLocationChanged(<deviceID>) to RSDL
 					self.hmiConnection:SendNotification("RC.OnDeviceLocationChanged",
-						{device = {name = "127.0.0.1", id = 1, isSDLAllowed = true},
+						{device = {name = "127.0.0.1", id = device1mac, isSDLAllowed = true},
 							deviceLocation =
 								{
 									colspan = 2,
@@ -877,7 +878,7 @@ require('cardinalities')
 				function Test:ChangedLocation_Driver()
 					--hmi side: HMI sends notification RC.OnDeviceLocationChanged(<deviceID>) to RSDL
 					self.hmiConnection:SendNotification("RC.OnDeviceLocationChanged",
-						{device = {name = "127.0.0.1", id = 1, isSDLAllowed = true},
+						{device = {name = "127.0.0.1", id = device1mac, isSDLAllowed = true},
 							deviceLocation =
 								{
 									colspan = 2,
@@ -1429,7 +1430,7 @@ require('cardinalities')
 				function Test:ChangedLocation_Front()
 					--hmi side: HMI sends notification RC.OnDeviceLocationChanged(<deviceID>) to RSDL
 					self.hmiConnection:SendNotification("RC.OnDeviceLocationChanged",
-						{device = {name = "127.0.0.1", id = 1, isSDLAllowed = true},
+						{device = {name = "127.0.0.1", id = device1mac, isSDLAllowed = true},
 							deviceLocation =
 								{
 									colspan = 2,
@@ -1714,7 +1715,7 @@ require('cardinalities')
 				function Test:ChangedLocation_Driver()
 					--hmi side: HMI sends notification RC.OnDeviceLocationChanged(<deviceID>) to RSDL
 					self.hmiConnection:SendNotification("RC.OnDeviceLocationChanged",
-						{device = {name = "127.0.0.1", id = 1, isSDLAllowed = true},
+						{device = {name = "127.0.0.1", id = device1mac, isSDLAllowed = true},
 							deviceLocation =
 								{
 									colspan = 2,
@@ -2382,7 +2383,7 @@ require('cardinalities')
 				function Test:ChangedLocation_Front()
 					--hmi side: HMI sends notification RC.OnDeviceLocationChanged(<deviceID>) to RSDL
 					self.hmiConnection:SendNotification("RC.OnDeviceLocationChanged",
-						{device = {name = "127.0.0.1", id = 1, isSDLAllowed = true},
+						{device = {name = "127.0.0.1", id = device1mac, isSDLAllowed = true},
 							deviceLocation =
 								{
 									colspan = 2,
@@ -2698,7 +2699,7 @@ require('cardinalities')
 				function Test:ChangedLocation_Right()
 					--hmi side: HMI sends notification RC.OnDeviceLocationChanged(<deviceID>) to RSDL
 					self.hmiConnection:SendNotification("RC.OnDeviceLocationChanged",
-						{device = {name = "127.0.0.1", id = 1, isSDLAllowed = true},
+						{device = {name = "127.0.0.1", id = device1mac, isSDLAllowed = true},
 							deviceLocation =
 								{
 									colspan = 2,
