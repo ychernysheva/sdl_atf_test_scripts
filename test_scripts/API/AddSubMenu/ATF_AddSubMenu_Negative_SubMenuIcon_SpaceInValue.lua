@@ -46,7 +46,7 @@ function Test:Precondition_ActivateApp()
     :Do(function(_,data1)
     self.hmiConnection:SendResponse(data1.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
     end)
-    :Times(AtLeast(1))
+    :Times(1)
     end)
   end
   end)
@@ -69,10 +69,8 @@ function Test:AddSubMenu_SubMenuIconSpaceInValue()
     }
   })
   EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
-  EXPECT_NOTIFICATION("OnHashChange")
-  :Times(0)
-  EXPECT_HMICALL("UI.AddSubMenu")
-  :Times(0)
+  EXPECT_NOTIFICATION("OnHashChange"):Times(0)
+  EXPECT_HMICALL("UI.AddSubMenu"):Times(0)
   commonTestCases:DelayedExp(10000)
 end
 
