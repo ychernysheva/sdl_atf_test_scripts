@@ -21,6 +21,8 @@ require('cardinalities')
 --groups_PrimaryRC Group
 local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
 
+local device1mac = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
+
 
 --======================================Requirement=========================================--
 ---------------------------------------------------------------------------------------------
@@ -785,7 +787,7 @@ local arrayGroups_PrimaryRC = revsdl.arrayGroups_PrimaryRC()
         function Test:Subscription_SetDriverDevice()
           --hmi side: send request RC.OnDeviceRankChanged
           self.hmiConnection:SendNotification("RC.OnDeviceRankChanged",
-                              {deviceRank = "DRIVER", device = {name = "127.0.0.1", id = 1, isSDLAllowed = true}})
+                              {deviceRank = "DRIVER", device = {name = "127.0.0.1", id = device1mac, isSDLAllowed = true}})
 
           --mobile side: Expect OnPermissionsChange notification for Driver's device
           EXPECT_NOTIFICATION("OnPermissionsChange", arrayGroups_PrimaryRC )

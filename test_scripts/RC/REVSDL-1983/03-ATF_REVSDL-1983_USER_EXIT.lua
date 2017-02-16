@@ -18,6 +18,8 @@ Test = require('connecttest')
 require('cardinalities')
 local mobile_session = require('mobile_session')
 
+local device1mac = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
+
 --======================================Requirement========================================--
 ---------------------------------------------------------------------------------------------
 -----------Requirement: Subscriptions: reset upon device location changed--------------------
@@ -32,7 +34,7 @@ local mobile_session = require('mobile_session')
 
           --hmi side: send request RC.OnDeviceRankChanged
           self.hmiConnection:SendNotification("RC.OnDeviceRankChanged",
-                              {deviceRank = "DRIVER", device = {name = "127.0.0.1", id = 1, isSDLAllowed = true}})
+                              {deviceRank = "DRIVER", device = {name = "127.0.0.1", id = device1mac, isSDLAllowed = true}})
 
 
         end
