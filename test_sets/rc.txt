@@ -78,6 +78,7 @@
 ./test_scripts/RC/REVSDL-1360/04_REVSDL-1360.lua
 ./test_scripts/RC/REVSDL-1360/06_REVSDL-1360.lua
 ./test_scripts/RC/REVSDL-1360/07_REVSDL-1360.lua
+./test_scripts/RC/REVSDL-1360/08.01_REVSDL-1360.lua
 ./test_scripts/RC/REVSDL-1360/08_REVSDL-1360.lua
 ./test_scripts/RC/REVSDL-1360/09.01_REVSDL-1360.lua
 ./test_scripts/RC/REVSDL-1360/09.02_REVSDL-1360.lua
