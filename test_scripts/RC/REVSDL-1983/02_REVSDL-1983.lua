@@ -357,7 +357,7 @@ local device1mac = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 
 					--hmi side: HMI sends notification RC.OnDeviceLocationChanged(<deviceID>) to RSDL
 					self.hmiConnection:SendNotification("RC.OnDeviceLocationChanged",
-						{device = {name = "127.0.0.1", id = 1, isSDLAllowed = true},
+						{device = {name = "127.0.0.1", id = device1mac, isSDLAllowed = true},
 							deviceLocation =
 								{
 									colspan = 2,

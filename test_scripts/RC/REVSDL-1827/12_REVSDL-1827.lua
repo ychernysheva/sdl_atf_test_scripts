@@ -29,6 +29,9 @@ local file_connection  = require('file_connection')
 local device2 = "192.168.100.199"
 local device2Port = 12345
 
+local device2mac = "f4ef3e7b102431d7f30aa4e2d8020e922c8f6a8c4d159a711d07f28f30ebbaaf"
+local device1mac = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
+
 os.execute("ifconfig lo:1 192.168.100.199")
 
 ---------------------------------------------------------------------------------------------
@@ -157,7 +160,7 @@ end
 				function Test:TC12_ChangedLocationDevice1_Left()
 					--hmi side: HMI sends notification RC.OnDeviceLocationChanged(<deviceID>) to RSDL
 					self.hmiConnection:SendNotification("RC.OnDeviceLocationChanged",
-						{device = {name = "127.0.0.1", id = 1, isSDLAllowed = true},
+						{device = {name = "127.0.0.1", id = device1mac, isSDLAllowed = true},
 							deviceLocation =
 								{
 									colspan = 2,
@@ -268,7 +271,7 @@ end
 				function Test:TC12_ChangedLocationDevice2_Left()
 					--hmi side: HMI sends notification RC.OnDeviceLocationChanged(<deviceID>) to RSDL
 					self.hmiConnection:SendNotification("RC.OnDeviceLocationChanged",
-						{device = {name = device2, id = 2, isSDLAllowed = true},
+						{device = {name = device2, id = device2mac, isSDLAllowed = true},
 							deviceLocation =
 								{
 									colspan = 2,
@@ -433,7 +436,7 @@ end
 				function Test:TC12_ChangedLocationDevice1_Left()
 					--hmi side: HMI sends notification RC.OnDeviceLocationChanged(<deviceID>) to RSDL
 					self.hmiConnection:SendNotification("RC.OnDeviceLocationChanged",
-						{device = {name = "127.0.0.1", id = 1, isSDLAllowed = true},
+						{device = {name = "127.0.0.1", id = device1mac, isSDLAllowed = true},
 							deviceLocation =
 								{
 									colspan = 2,
