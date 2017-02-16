@@ -123,69 +123,73 @@ for i = 1, #hmi_result_code do
       })
     :Do(function(_,data)
         self.hmiConnection:SendNotification("TTS.Started",{})
-
+        --TODO (mmihaylova): If should be removed when "[ATF] ATF doesn't process code of HMI response VEHICLE_DATA_NOT_AVAILABLE in error message." is fixed.
         local function ttsSpeakResponse()
           if (hmi_result_code[i].success == true) then
             self.hmiConnection:SendResponse(data.id, data.method, hmi_result_code[i].result_code, {})
-          else
-            self.hmiConnection:SendError(data.id,data.method, hmi_result_code[i].result_code, "error")
-          end
-          self.hmiConnection:SendNotification("TTS.Stopped")
+          elseif
+            (hmi_result_code[i].result_code == "VEHICLE_DATA_NOT_AVAILABLE") then
+              self.hmiConnection:Send('{"error":{"data":{"method":"UI.SetAudioStreamingIndicator"},"message":"error message","code":9},"jsonrpc":"2.0","id":'..tostring(data.id)..'}')
+            elseif
+              (hmi_result_code[i].result_code ~= "VEHICLE_DATA_NOT_AVAILABLE") then
+                self.hmiConnection:SendError(data.id,data.method, hmi_result_code[i].result_code, "error")
+              end
+              self.hmiConnection:SendNotification("TTS.Stopped")
+            end
+            RUN_AFTER(ttsSpeakResponse, 1000)
+          end)
+
+        EXPECT_HMICALL("UI.PerformAudioPassThru",
+          {
+            appID = self.applications[config.application1.registerAppInterfaceParams.appName],
+            audioPassThruDisplayTexts = {
+              {fieldName = "audioPassThruDisplayText1", fieldText = "DisplayText1"},
+              {fieldName = "audioPassThruDisplayText2", fieldText = "DisplayText2"},
+            },
+            maxDuration = 2000,
+            muteAudio = true,
+            audioPassThruIcon =
+            {
+              imageType = "STATIC",
+              value = "icon.png"
+            }
+          })
+        :Do(function(_,data)
+
+            local function UIPerformAudioResponse()
+              self.hmiConnection:SendResponse(data.id, "UI.PerformAudioPassThru", "SUCCESS", {})
+            end
+            RUN_AFTER(UIPerformAudioResponse, 1500)
+        end)
+
+        if
+        (self.appHMITypes["NAVIGATION"] == true) or
+        (self.appHMITypes["COMMUNICATION"] == true) or
+        (self.isMediaApplication == true) then
+
+          EXPECT_NOTIFICATION("OnHMIStatus",
+            {hmiLevel = "FULL", audioStreamingState = "ATTENUATED", systemContext = "MAIN"},
+            {hmiLevel = "FULL", audioStreamingState = "AUDIBLE", systemContext = "MAIN"})
+          :Times(2)
+        else
+          EXPECT_NOTIFICATION("OnHMIStatus"):Times(0)
         end
-        RUN_AFTER(ttsSpeakResponse, 1000)
-      end)
 
-    EXPECT_HMICALL("UI.PerformAudioPassThru",
-      {
-        appID = self.applications[config.application1.registerAppInterfaceParams.appName],
-        audioPassThruDisplayTexts = {
-          {fieldName = "audioPassThruDisplayText1", fieldText = "DisplayText1"},
-          {fieldName = "audioPassThruDisplayText2", fieldText = "DisplayText2"},
-        },
-        maxDuration = 2000,
-        muteAudio = true,
-        audioPassThruIcon =
-        {
-          imageType = "STATIC",
-          value = "icon.png"
-        }
-      })
-    :Do(function(_,data)
+        self.mobileSession:ExpectResponse(CorIdPerformAudioPassThru, {success = true, resultCode = "WARNINGS"})
+        EXPECT_NOTIFICATION("OnHashChange",{}):Times(0)
 
-        local function UIPerformAudioResponse()
-          self.hmiConnection:SendResponse(data.id, "UI.PerformAudioPassThru", "SUCCESS", {})
-        end
-        RUN_AFTER(UIPerformAudioResponse, 1500)
-    end)
+    end
+  end
 
-    if
-    (self.appHMITypes["NAVIGATION"] == true) or
-    (self.appHMITypes["COMMUNICATION"] == true) or
-    (self.isMediaApplication == true) then
+    --[[ Postconditions ]]
+    commonFunctions:newTestCasesGroup("Postconditions")
 
-      EXPECT_NOTIFICATION("OnHMIStatus",
-        {hmiLevel = "FULL", audioStreamingState = "ATTENUATED", systemContext = "MAIN"},
-        {hmiLevel = "FULL", audioStreamingState = "AUDIBLE", systemContext = "MAIN"})
-      :Times(2)
-    else
-      EXPECT_NOTIFICATION("OnHMIStatus"):Times(0)
+    function Test.Postcondition_Restore_preloaded_pt_File()
+      commonPostconditions:RestoreFile("sdl_preloaded_pt.json")
     end
 
-    self.mobileSession:ExpectResponse(CorIdPerformAudioPassThru, {success = true, resultCode = "WARNINGS"})
-    EXPECT_NOTIFICATION("OnHashChange",{}):Times(0)
-    
-  end
-end
+    function Test.Postcondition_Stop_SDL()
+      StopSDL()
+    end
 
---[[ Postconditions ]]
-commonFunctions:newTestCasesGroup("Postconditions")
-
-function Test.Postcondition_Restore_preloaded_pt_File()
-  commonPostconditions:RestoreFile("sdl_preloaded_pt.json")
-end
-
-function Test.Postcondition_Stop_SDL()
-  StopSDL()
-end
-
-return Test
+    return Test
