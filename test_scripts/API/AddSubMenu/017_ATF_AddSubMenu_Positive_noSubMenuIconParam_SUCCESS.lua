@@ -45,7 +45,6 @@ function Test:Precondition_ActivateApp()
 				:Do(function(_,data1)
 					self.hmiConnection:SendResponse(data1.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
 				end)
-				:Times(AtLeast(1))
 			end)
 		end
 	end)
@@ -54,7 +53,7 @@ end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
-function Test:AddSubMenu_NoSubMenuIconParamSUCCESS()
+function Test:AddSubMenu_NoSubMenuIconParam_SUCCESS()
 	local cid = self.mobileSession:SendRPC("AddSubMenu",
 		{
 			menuID = 2000,

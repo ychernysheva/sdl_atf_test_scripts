@@ -1,19 +1,19 @@
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
 --	[GENIVI] AddSubMenu: SDL must support new "subMenuIcon" parameter
---	[AddSubMenu] Mobile app sends AddSubMenu with "subMenuIcon" and the requested Image does NOT exist at system
+--	[GeneralResultCodes] INVALID_DATA out of bounds
 --
 -- Description:
--- 	Mobile app sends AddSubMenu with "subMenuIcon" upper bound
+-- 	Mobile app sends AddSubMenu with "subMenuIcon" with value is out upper bound
 -- 1. Used preconditions:
 -- 	Delete files and policy table from previous ignition cycle if any
 -- 	Start SDL and HMI
 --  Activate application
 -- 2. Performed steps:
--- 	Send AddSubMenu RPC without <subMenuIcon> parameter
+-- 	Send AddSubMenu RPC with "subMenuIcon"  value is out upper bound
 --
 -- Expected result:
--- 	SDL must transfer AddSubMenu to HMI and respond with received from HMI to mobile app
+-- 	SDL must respond with INVALID_DATA and "success":"false"
 ---------------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
@@ -25,9 +25,7 @@ require('cardinalities')
 --[[ Required Shared Libraries ]]
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
-
---[[ Local variables ]]
-local strUpperBoundFileName = string.rep("a", 65531) .. ".png" --maxlength="65535"
+local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 
 --[[ Preconditions ]]
 commonFunctions:SDLForceStop()
@@ -48,7 +46,6 @@ function Test:Precondition_ActivateApp()
     :Do(function(_,data1)
     self.hmiConnection:SendResponse(data1.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
     end)
-    :Times(AtLeast(1))
     end)
   end
   end)
@@ -57,7 +54,8 @@ end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
-function Test:AddSubMenu_SubMenuIconUpperBound()
+function Test:AddSubMenu_SubMenuIconOutUpperBound()
+  local strOutofBoundFileName = string.rep("a", 65532) .. ".png" --maxlength="65535"
   local cid = self.mobileSession:SendRPC("AddSubMenu",
   {
     menuID = 2000,
@@ -66,28 +64,13 @@ function Test:AddSubMenu_SubMenuIconUpperBound()
     subMenuIcon =
     {
       imageType = "DYNAMIC",
-      value = strUpperBoundFileName
+      value = strOutofBoundFileName
     }
   })
-  EXPECT_HMICALL("UI.AddSubMenu",
-  {
-    menuID = 2000,
-    menuParams =
-    {
-      position = 200,
-      menuName ="SubMenu"
-    },
-    subMenuIcon =
-    {
-      imageType = "DYNAMIC",
-      value = strUpperBoundFileName
-    }
-  })
-  :Do(function(_,data)
-  self.hmiConnection:SendError(data.id, data.method, "WARNINGS", "Reference image(s) not found")
-  end)
-  EXPECT_RESPONSE(cid, { success = true, resultCode = "WARNINGS", info = "Reference image(s) not found"})
-  EXPECT_NOTIFICATION("OnHashChange")
+  EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
+  EXPECT_NOTIFICATION("OnHashChange"):Times(0)
+  EXPECT_HMICALL("UI.AddSubMenu"):Times(0)
+  commonTestCases:DelayedExp(10000)
 end
 
 --[[ Postconditions ]]

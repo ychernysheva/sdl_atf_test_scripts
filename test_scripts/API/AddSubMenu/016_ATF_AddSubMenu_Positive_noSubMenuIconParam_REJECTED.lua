@@ -1,19 +1,19 @@
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
---		[GENIVI] AddSubMenu: SDL must support new "subMenuIcon" parameter
---		[AddSubMenu] Mobile app sends AddSubMenu without "subMenuIcon" param to HMI
+--	[GENIVI] AddSubMenu: SDL must support new "subMenuIcon" parameter
+--	[AddSubMenu] Mobile app sends AddSubMenu without "subMenuIcon" param to HMI
 --
 -- Description:
--- 		Mobile app sends AddSubMenu request to SDL without <subMenuIcon> parameter and with another related to request valid params
+-- 	Mobile app sends AddSubMenu request to SDL without <subMenuIcon> parameter and with another related to request valid params
 -- 1. Used preconditions:
--- 		Delete files and policy table from previous ignition cycle if any
--- 		Start SDL and HMI
---    Activate application
+-- 	Delete files and policy table from previous ignition cycle if any
+-- 	Start SDL and HMI
+--  Activate application
 -- 2. Performed steps:
--- 		Send AddSubMenu RPC without <subMenuIcon> parameter
+-- 	Send AddSubMenu RPC without <subMenuIcon> parameter
 --
 -- Expected result:
--- 		SDL must transfer AddSubMenu to HMI without subMenuIcon but with other params and respond with WARNINGS received from HMI to mobile app
+-- 	SDL must transfer AddSubMenu to HMI without subMenuIcon but with other params and respond with REJECTED received from HMI to mobile app
 ---------------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
@@ -25,6 +25,7 @@ require('cardinalities')
 --[[ Required Shared Libraries ]]
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
+local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 
 --[[ Preconditions ]]
 commonFunctions:SDLForceStop()
@@ -45,7 +46,6 @@ function Test:Precondition_ActivateApp()
     :Do(function(_,data1)
     self.hmiConnection:SendResponse(data1.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
     end)
-    :Times(AtLeast(1))
     end)
   end
   end)
@@ -54,7 +54,7 @@ end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
-function Test:AddSubMenu_NoSubMenuIconParamWARNINGS()
+function Test:AddSubMenu_NoSubMenuIcon_REJECTED()
   local cid = self.mobileSession:SendRPC("AddSubMenu",
   {
     menuID = 1000,
@@ -71,10 +71,11 @@ function Test:AddSubMenu_NoSubMenuIconParamWARNINGS()
     }
   })
   :Do(function(_,data)
-  self.hmiConnection:SendResponse(data.id, data.method, "WARNINGS", {})
+  self.hmiConnection:SendError(data.id, data.method, "REJECTED", "error message")
   end)
-  EXPECT_RESPONSE(cid, { success = true, resultCode = "WARNINGS"})
-  EXPECT_NOTIFICATION("OnHashChange")
+  EXPECT_RESPONSE(cid, { success = false, resultCode = "REJECTED", info = "error message" })
+  EXPECT_NOTIFICATION("OnHashChange"):Times(0)
+  commonTestCases:DelayedExp(10000)
 end
 
 --[[ Postconditions ]]

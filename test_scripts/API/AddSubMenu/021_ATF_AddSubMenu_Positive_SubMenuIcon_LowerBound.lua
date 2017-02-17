@@ -1,19 +1,19 @@
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
---	[GENIVI] AddSubMenu: SDL must support new "subMenuIcon" parameter
---	[GeneralResultCodes] INVALID_DATA wrong characters
+--		[GENIVI] AddSubMenu: SDL must support new "subMenuIcon" parameter
+--		[AddSubMenu] Mobile app sends AddSubMenu with "subMenuIcon" and the requested Image does NOT exist at system
 --
 -- Description:
--- 	Mobile app sends AddSubMenu with "subMenuIcon" value that has special symbol(new line)
+-- 		Mobile app sends AddSubMenu with "subMenuIcon" lower bound
 -- 1. Used preconditions:
--- 	Delete files and policy table from previous ignition cycle if any
--- 	Start SDL and HMI
---  Activate application
+-- 		Delete files and policy table from previous ignition cycle if any
+-- 		Start SDL and HMI
+--    Activate application
 -- 2. Performed steps:
--- 	Send AddSubMenu RPC with "subMenuIcon" with special symbol(new line) in value
+-- 		Send AddSubMenu RPC without <subMenuIcon> parameter
 --
 -- Expected result:
--- 	SDL must respond with INVALID_DATA and "success":"false"
+-- 		SDL must transfer AddSubMenu to HMI and respond with received from HMI to mobile app
 ---------------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
@@ -46,18 +46,15 @@ function Test:Precondition_ActivateApp()
     :Do(function(_,data1)
     self.hmiConnection:SendResponse(data1.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
     end)
-    :Times(AtLeast(1))
     end)
   end
   end)
   EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN", audioStreamingState = "AUDIBLE"})
 end
 
-commonSteps:PutFile("PutFile_menuIcon", "menuIcon.jpg")
-
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
-function Test:AddSubMenu_SubMenuIconNewLineInValue()
+function Test:AddSubMenu_SubMenuIconLowerBound()
   local storagePath = table.concat({ commonPreconditions:GetPathToSDL(), "storage/",
     config.application1.registerAppInterfaceParams.appID, "_", config.deviceMAC, "/" })
   local cid = self.mobileSession:SendRPC("AddSubMenu",
@@ -68,12 +65,28 @@ function Test:AddSubMenu_SubMenuIconNewLineInValue()
     subMenuIcon =
     {
       imageType = "DYNAMIC",
-      value = storagePath .. "\nmenuIcon.jpg"
+      value = "s"
     }
   })
-  EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
+  EXPECT_HMICALL("UI.AddSubMenu",
+  {
+    menuID = 2000,
+    menuParams =
+    {
+      position = 200,
+      menuName ="SubMenu"
+    },
+    subMenuIcon =
+    {
+      imageType = "DYNAMIC",
+      value = storagePath .. "s"
+    }
+  })
+  :Do(function(_,data)
+  self.hmiConnection:SendResponse(data.id, data.method, "WARNINGS")
+  end)
+  EXPECT_RESPONSE(cid, { success = true, resultCode = "WARNINGS" })
   EXPECT_NOTIFICATION("OnHashChange")
-  :Times(0)
 end
 
 --[[ Postconditions ]]
