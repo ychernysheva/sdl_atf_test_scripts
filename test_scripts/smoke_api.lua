@@ -15,6 +15,8 @@ commonSteps:DeleteLogsFileAndPolicyTable()
 
 commonPreconditions:BackupFile("sdl_preloaded_pt.json")
 os.execute("cp -f files/jsons/sdl_preloaded_pt_smoke_api.json " .. commonPreconditions:GetPathToSDL() .. "sdl_preloaded_pt.json")
+local appStorageFolder = commonPreconditions:GetPathToSDL() .. commonFunctions:read_parameter_from_smart_device_link_ini("AppStorageFolder")
+os.execute("rm -rf " .. appStorageFolder)
 
 Test = require('connecttest')
 require('cardinalities')
@@ -1207,7 +1209,7 @@ function Test:ListFiles()
       success = true,
       resultCode = "SUCCESS",
       spaceAvailable = 103878520,
-      filenames = { "0000001", " SpaceBefore", strMaxLengthFileName255, "icon.png" }
+      filenames = { " SpaceBefore", strMaxLengthFileName255, "icon.png" }
     })
 end
 
