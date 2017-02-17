@@ -32,8 +32,8 @@
 ./test_scripts/RC/REVSDL-966/09.02_REVSDL-966.lua
 ./test_scripts/RC/REVSDL-966/09_REVSDL-966.lua
 ./test_scripts/RC/REVSDL-966/10.01_REVSDL-966.lua
-./test_scripts/RC/REVSDL-966/10.02_REVSDL-966.lua
-./test_scripts/RC/REVSDL-966/10_REVSDL-966.lua
+;./test_scripts/RC/REVSDL-966/10.02_REVSDL-966.lua Unstable
+;./test_scripts/RC/REVSDL-966/10_REVSDL-966.lua Unstable
 ./test_scripts/RC/REVSDL-966/11_REVSDL-966.lua
 ./test_scripts/RC/REVSDL-966/12_REVSDL-966.lua
 ./test_scripts/RC/REVSDL-966/13.01_REVSDL-966.lua
@@ -64,7 +64,7 @@
 ;./test_scripts/RC/ATF_REVSDL-1064.lua SDLOPEN-881
 ./test_scripts/RC/REVSDL-1066/01.01_REVSDL-1066.lua
 ;./test_scripts/RC/REVSDL-1066/01.02_REVSDL-1066.lua SDLOPEN-881
-./test_scripts/RC/REVSDL-1066/01.03_REVSDL-1066.lua
+;./test_scripts/RC/REVSDL-1066/01.03_REVSDL-1066.lua Unstable
 ;./test_scripts/RC/REVSDL-1066/01_REVSDL-1066.lua SDLOPEN-881
 ;./test_scripts/RC/REVSDL-1066/02_REVSDL-1066.lua SDLOPEN-881
 ;./test_scripts/RC/REVSDL-1278/01_REVSDL-1278.lua SDLOPEN-881
@@ -132,26 +132,26 @@
 ./test_scripts/RC/REVSDL-1827/02.03.02_REVSDL-1827_SetInterior_LeftRadio.lua
 ./test_scripts/RC/REVSDL-1827/02.03.03_REVSDL-1827_SetInterior_RightRadio.lua
 ./test_scripts/RC/REVSDL-1827/02.03.04_REVSDL-1827_SetInterior_NotExistsRadio.lua
-./test_scripts/RC/REVSDL-1827/02_REVSDL-1827.lua
+;./test_scripts/RC/REVSDL-1827/02_REVSDL-1827.lua Unstable
 ./test_scripts/RC/REVSDL-1827/03.01.01_REVSDL-1827_ButtonPress_DriverRADIO.lua
 ./test_scripts/RC/REVSDL-1827/03.03.01_REVSDL-1827_SetInterior_NotexistZone_DriverAllowFrontRadio.lua
-./test_scripts/RC/REVSDL-1827/03_REVSDL-1827.lua
-./test_scripts/RC/REVSDL-1827/05_REVSDL-1827.lua
+;./test_scripts/RC/REVSDL-1827/03_REVSDL-1827.lua Unstable
+;./test_scripts/RC/REVSDL-1827/05_REVSDL-1827.lua Unstable
 ./test_scripts/RC/REVSDL-1827/06_REVSDL-1827.lua
 ;./test_scripts/RC/REVSDL-1827/07.01_REVSDL-1827.lua MultiDevice_Locally_PASS
 ;./test_scripts/RC/REVSDL-1827/07_REVSDL-1827.lua MultiDevice_Locally_PASS
-./test_scripts/RC/REVSDL-1827/08_REVSDL-1827_GetInterior_UserDisallowed.lua
+;./test_scripts/RC/REVSDL-1827/08_REVSDL-1827_GetInterior_UserDisallowed.lua Unstable
 ./test_scripts/RC/REVSDL-1827/09_REVSDL-1827_TIMED_OUT.lua
-./test_scripts/RC/REVSDL-1827/10_REVSDL-1827_USER_DISALLOWED.lua
+;./test_scripts/RC/REVSDL-1827/10_REVSDL-1827_USER_DISALLOWED.lua Unstable
 ./test_scripts/RC/REVSDL-1827/11_REVSDL-1827.lua
 ;./test_scripts/RC/REVSDL-1827/12.01_REVSDL-1827.lua MultiDevice_Locally_PASS
 ;./test_scripts/RC/REVSDL-1827/12_REVSDL-1827.lua MultiDevice_Locally_PASS
 ./test_scripts/RC/REVSDL-1827/13_REVSDL-1827.lua
-./test_scripts/RC/REVSDL-1827/14_REVSDL-1827.lua
+;./test_scripts/RC/REVSDL-1827/14_REVSDL-1827.lua Unstable
 ./test_scripts/RC/REVSDL-1827/15_REVSDL-1827.lua
-./test_scripts/RC/REVSDL-1827/16.02_REVSDL-1827.lua
+;./test_scripts/RC/REVSDL-1827/16.02_REVSDL-1827.lua Unstable
 ./test_scripts/RC/REVSDL-1827/16.02_REVSDL-1827_Precondition_OnDeviceLocationChange.lua
-./test_scripts/RC/REVSDL-1827/16_REVSDL-1827.lua
+;./test_scripts/RC/REVSDL-1827/16_REVSDL-1827.lua Unstable
 ./test_scripts/RC/REVSDL-1827/17.01_REVSDL-1827.lua
 ;./test_scripts/RC/REVSDL-1827/17.02_REVSDL-1827.lua SDLOPEN-881
 ;./test_scripts/RC/REVSDL-1827/17_REVSDL-1827.lua SDLOPEN-881
