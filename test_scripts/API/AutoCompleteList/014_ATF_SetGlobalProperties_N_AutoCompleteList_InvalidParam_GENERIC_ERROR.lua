@@ -80,7 +80,7 @@ function  Test:SetGlobalProperties_WithInvalidParam_from_HMI()
     end)
   :Do(function(_,data)
       if (data.params.autoCompleteList == nil) then
-        EXPECT_RESPONSE(cid, {success = false, resultCode = "GENERIC_ERROR"})
+        EXPECT_RESPONSE(cid, {success = false, resultCode = "GENERIC_ERROR", info = "Invalid message received from system"})
       return true
     else 
        return false
