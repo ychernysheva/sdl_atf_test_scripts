@@ -37,6 +37,7 @@ require('user_modules/AppTypes')
  end
 
 --[[ Test ]]
+commonFunctions:newTestCasesGroup("Test")
 function Test:AutoCompleteList_Array_IsOut_of_UpperBound()
  local cid = self.mobileSession:SendRPC("SetGlobalProperties",
     {
