@@ -75,7 +75,6 @@ function Test:SetGlobalProperties_RequestWithoutUIResponsesFromHMI()
           autoCompleteList = {"List_1, List_2", "List_1, List_2"}
         }
       })
-      --hmi side: expect TTS.SetGlobalProperties request
       EXPECT_HMICALL("TTS.SetGlobalProperties",
       {
         timeoutPrompt = 
@@ -117,8 +116,7 @@ function Test:SetGlobalProperties_RequestWithoutUIResponsesFromHMI()
       :Do(function(_,_)
         --hmi side: sending UI.SetGlobalProperties response
       end)    
-      --mobile side: expect SetGlobalProperties response
-      EXPECT_RESPONSE(cid, { success = false, resultCode = "GENERIC_ERROR", info = nil})
+      EXPECT_RESPONSE(cid, { success = false, resultCode = "GENERIC_ERROR", info = "Invalid message received from system"})
       :Timeout(12000)
   end
 
