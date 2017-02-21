@@ -126,9 +126,10 @@ for i=1,#resultCodes do
 
     EXPECT_HMICALL("TTS.Speak",
     {ttsChunks =
-        {{
-        text ="FirstAlert", type ="TEXT"},
-      {text ="SecondAlert", type ="TEXT"}},
+        {
+          {text ="FirstAlert", type ="TEXT"},
+          {text ="SecondAlert", type ="TEXT"}
+        },
       speakType = "ALERT_MANEUVER",
       appID = self.applications[config.application1.registerAppInterfaceParams.appName]
     })
