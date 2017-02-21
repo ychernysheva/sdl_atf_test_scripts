@@ -4,7 +4,7 @@ local Preconditions = {}
 --------------------------------------------------------------------------------------------------------
 -- Precondition function is added needed fields.
 
-local pattern_exit_codes = 
+local pattern_exit_codes =
 {
 	"1",
 	"exit_codes%.aborted"
@@ -16,17 +16,17 @@ local function update_connecttest(fileContent, FileName)
 		local patternDisconnect = "print%(\"Disconnected%!%!%!\"%).-quit%("..pattern_exit_codes[i].."%)"
 
 		local DisconnectMessage = fileContent:match(patternDisconnect)
-		
-		if( DisconnectMessage ~= nil )then 
+
+		if( DisconnectMessage ~= nil )then
 			fileContent = string.gsub(fileContent, patternDisconnect, 'print("Disconnected!!!")')
 			is_found = true
 			break
-		end 
+		end
 	end
 
 	if(is_found == false) then
 		print(" \27[31m 'Disconnected!!!' message is not found in /user_modules/" .. tostring(FileName) .. " \27[0m ")
-	end	
+	end
 
 	return fileContent
 end
@@ -140,6 +140,12 @@ end
 function Preconditions:RestoreFile(FileName)
   os.execute(" cp " .. Preconditions:GetPathToSDL() .. FileName .. "_origin " .. Preconditions:GetPathToSDL() .. FileName )
   os.execute( " rm -f " .. Preconditions:GetPathToSDL() .. FileName .. "_origin" )
+end
+
+
+-- replace origin of file with new one
+function Preconditions:ReplaceFile(originalFile, newFile)
+  os.execute(" cp " .. newFile .. " " .. Preconditions:GetPathToSDL() .. originalFile)
 end
 
 --------------------------------------------------------------------------------------------------------
