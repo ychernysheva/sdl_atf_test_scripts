@@ -146,7 +146,7 @@ for i=1,#resultCodes do
       end
       RUN_AFTER(ttsSpeakResponse, 1000)
     end)
-    
+
     EXPECT_RESPONSE(cor_id, { success = true, resultCode = "WARNINGS" })
   end
 end
