@@ -77,7 +77,7 @@ function Test:TestStep_PerformAudioPassThru_AllParameters_DYNAMIC_ImageType_SUCC
       audioType = "PCM",
       muteAudio = true,
       audioPassThruIcon =
-      { 
+      {
         value = "icon.png",
         imageType = "DYNAMIC"
       }
@@ -115,22 +115,22 @@ function Test:TestStep_PerformAudioPassThru_AllParameters_DYNAMIC_ImageType_SUCC
       end
       RUN_AFTER(UIPerformAudioResponse, 1500)
     end)
-   :ValidIf (function(_,data2)
-    	if(data2.params.audioPassThruIcon ~= nil) then
-		  	if (string.match(data2.params.audioPassThruIcon.value, "%S*" .. "("..string.sub(storagePath, 2).."icon.png)" .. "$") == nil ) and
+  :ValidIf (function(_,data2)
+      if(data2.params.audioPassThruIcon ~= nil) then
+        if (string.match(data2.params.audioPassThruIcon.value, "%S*" .. "("..string.sub(storagePath, 2).."icon.png)" .. "$") == nil ) and
         (data2.params.audioPassThruIcon.value ~= (storagePath.."icon.png") ) then
-        print("Exptected Storage Path for audioPassThruIcon: " ..storagePath.."icon.png")
-        print("Actual Storage Path for audioPassThruIcon: " ..data2.params.audioPassThruIcon.value)
-					print("\27[31m Invalid path to DYNAMIC image\27[0m")
-					return false 
-				else 
-					return true
-				end
-			else
-				print("\27[31m The audioPassThruIcon is not received \27[0m")
-				return false 
-			end
-		end)
+          print("Exptected Storage Path for audioPassThruIcon: " ..storagePath.."icon.png")
+          print("Actual Storage Path for audioPassThruIcon: " ..data2.params.audioPassThruIcon.value)
+          print("\27[31m Invalid path to DYNAMIC image\27[0m")
+          return false
+        else
+          return true
+        end
+      else
+        print("\27[31m The audioPassThruIcon is not received \27[0m")
+        return false
+      end
+    end)
   if
   (self.appHMITypes["NAVIGATION"]) == true or
   (self.appHMITypes["COMMUNICATION"]) == true or
@@ -146,7 +146,7 @@ function Test:TestStep_PerformAudioPassThru_AllParameters_DYNAMIC_ImageType_SUCC
 
   self.mobileSession:ExpectResponse(CorIdPerformAudioPassThruAppParALLDynamic, { success = true, resultCode = "SUCCESS"})
   EXPECT_NOTIFICATION("OnHashChange"):Times(0)
-  
+
   commonTestCases:DelayedExp(1500)
 end
 
@@ -154,7 +154,7 @@ end
 commonFunctions:newTestCasesGroup("Postconditions")
 
 function Test.Postcondition_Restore_preloaded_pt_File()
-	commonPostconditions:RestoreFile("sdl_preloaded_pt.json")
+  commonPostconditions:RestoreFile("sdl_preloaded_pt.json")
 end
 
 function Test.Postcondition_Stop_SDL()
