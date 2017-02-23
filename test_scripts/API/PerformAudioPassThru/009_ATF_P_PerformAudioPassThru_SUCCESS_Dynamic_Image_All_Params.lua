@@ -36,7 +36,7 @@ local commonPostconditions = require('user_modules/shared_testcases/commonPrecon
 local testCasesForPerformAudioPassThru = require('user_modules/shared_testcases/testCasesForPerformAudioPassThru')
 local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
-local storagePath = commonPostconditions:GetPathToSDL() .."storage/"
+local storagePath = commonPostconditions:GetPathToSDL() .."storage/" .. config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFiles()
@@ -119,6 +119,8 @@ function Test:TestStep_PerformAudioPassThru_AllParameters_DYNAMIC_ImageType_SUCC
     	if(data2.params.audioPassThruIcon ~= nil) then
 		  	if (string.match(data2.params.audioPassThruIcon.value, "%S*" .. "("..string.sub(storagePath, 2).."icon.png)" .. "$") == nil ) and
         (data2.params.audioPassThruIcon.value ~= (storagePath.."icon.png") ) then
+        print("Exptected Storage Path for audioPassThruIcon: " ..storagePath.."icon.png")
+        print("Actual Storage Path for audioPassThruIcon: " ..data2.params.audioPassThruIcon.value)
 					print("\27[31m Invalid path to DYNAMIC image\27[0m")
 					return false 
 				else 
