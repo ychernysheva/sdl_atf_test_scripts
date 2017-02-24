@@ -14,7 +14,7 @@
 --
 -- 1. Used preconditions
 -- 1.1. PerformAudioPassThru RPC is allowed by policy
--- 1.2. Only mandatory parameters are present and within bounds (samplingRate, maxDuration, bitsPerSample, audioType), 
+-- 1.2. Only mandatory parameters are present and within bounds (samplingRate, maxDuration, bitsPerSample, audioType),
 -- audioPassThruIcon is sent with imageType = "DYNAMIC"
 -- 1.3. AudioPassThruIcon exists at apps sub-directory of AppStorageFolder (value from ini file)
 --
@@ -34,7 +34,7 @@ local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonPostconditions = require('user_modules/shared_testcases/commonPreconditions')
 local testCasesForPerformAudioPassThru = require('user_modules/shared_testcases/testCasesForPerformAudioPassThru')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
-local storagePath = commonPostconditions:GetPathToSDL() .."storage/"
+local storagePath = commonPostconditions:GetPathToSDL() .."storage/" .. config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFiles()
@@ -71,7 +71,7 @@ function Test:TestStep_PerformAudioPassThru_MandatoryParameters_audioPassThruIco
       bitsPerSample = "16_BIT",
       audioType = "PCM",
       audioPassThruIcon =
-      { 
+      {
         value = "icon.png",
         imageType = "DYNAMIC"
       }
@@ -79,7 +79,7 @@ function Test:TestStep_PerformAudioPassThru_MandatoryParameters_audioPassThruIco
 
   EXPECT_HMICALL("UI.PerformAudioPassThru",
     {
-      audioPassThruIcon = { imageType = "DYNAMIC" },		
+      audioPassThruIcon = { imageType = "DYNAMIC" },
       appID = self.applications[config.application1.registerAppInterfaceParams.appName],
       maxDuration = 500500,
       muteAudio = true
@@ -87,21 +87,23 @@ function Test:TestStep_PerformAudioPassThru_MandatoryParameters_audioPassThruIco
   :Do(function(_,data)
       self.hmiConnection:SendResponse(data.id, "UI.PerformAudioPassThru", "SUCCESS", {})
     end)
-   :ValidIf (function(_,data3)
+  :ValidIf (function(_,data3)
       if(data3.params.audioPassThruIcon ~= nil) then
         if (string.match(data3.params.audioPassThruIcon.value, "%S*" .. "("..string.sub(storagePath, 2).."icon.png)" .. "$") == nil )and
         (data3.params.audioPassThruIcon.value ~= (storagePath.."icon.png") ) then
+          print("Exptected Storage Path for audioPassThruIcon: " ..storagePath.."icon.png ..")
+          print("Actual Storage Path for audioPassThruIcon: " ..data3.params.audioPassThruIcon.value)
           print("\27[31m Invalid path to DYNAMIC image\27[0m")
-          return false 
-        else 
+          return false
+        else
           return true
         end
       else
         print("\27[31m The audioPassThruIcon is not received \27[0m")
-        return false 
+        return false
       end
-    end)
-  
+  end)
+
   EXPECT_HMICALL("TTS.Speak"):Times(0)
   self.mobileSession:ExpectResponse(CorIdPerfAudioPassThruOnlyMandatoryDYNAMIC, {success = true, resultCode = "SUCCESS"})
   EXPECT_NOTIFICATION("OnHashChange"):Times(0)
@@ -111,7 +113,7 @@ end
 commonFunctions:newTestCasesGroup("Postconditions")
 
 function Test.Postcondition_Restore_preloaded_pt_File()
-	commonPostconditions:RestoreFile("sdl_preloaded_pt.json")
+  commonPostconditions:RestoreFile("sdl_preloaded_pt.json")
 end
 
 function Test.Postcondition_Stop_SDL()

@@ -44,7 +44,7 @@ local testCasesForPolicyTable = require('user_modules/shared_testcases/testCases
 local SDLConfig = require('user_modules/shared_testcases/SmartDeviceLinkConfigurations')
 local config_path_sdl = commonPostconditions:GetPathToSDL()
 local PathToAppFolder = config_path_sdl .. SDLConfig:GetValue("AppStorageFolder") .. "/" .. tostring(config.application1.registerAppInterfaceParams.appID .. "_" .. tostring(config.deviceMAC) .. "/")
-local storagePath = commonPostconditions:GetPathToSDL() .."storage/"
+local storagePath = commonPostconditions:GetPathToSDL() .."storage/" .. config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFiles()
@@ -110,7 +110,7 @@ function Test:TestStep_All_Params_Missing_audioPassThruIcon_DYNAMIC()
         self.hmiConnection:SendNotification("TTS.Stopped")
       end
       RUN_AFTER(ttsSpeakResponse, 1000)
-    end)
+  end)
 
   EXPECT_HMICALL("UI.PerformAudioPassThru",
     {
@@ -133,6 +133,8 @@ function Test:TestStep_All_Params_Missing_audioPassThruIcon_DYNAMIC()
       if(data2.params.audioPassThruIcon ~= nil) then
         if (string.match(data2.params.audioPassThruIcon.value, "%S*" .. "("..string.sub(storagePath, 2).."icon.png)" .. "$") == nil ) and
         (data2.params.audioPassThruIcon.value ~= (storagePath.."icon.png") ) then
+          print("Exptected Storage Path for audioPassThruIcon: " ..storagePath.."icon.png")
+          print("Actual Storage Path for audioPassThruIcon: " ..data2.params.audioPassThruIcon.value)
           print("\27[31m Invalid path to DYNAMIC image\27[0m")
           return false 
         else 
