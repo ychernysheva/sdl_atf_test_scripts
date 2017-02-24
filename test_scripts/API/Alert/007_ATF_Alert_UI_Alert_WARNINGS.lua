@@ -100,7 +100,7 @@ for i=1,#resultCodes do
         {fieldName = "alertText3", fieldText = "alertText3"}
       },
       alertType = "BOTH",
-      duration = 3000,
+      duration = 0, -- duration of Alert with softButtons present
       progressIndicator = true,
       softButtons =
         {{
