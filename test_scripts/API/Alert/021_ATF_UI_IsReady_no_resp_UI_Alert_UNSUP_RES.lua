@@ -119,7 +119,7 @@ function Test:TestStep_Alert_UI_Alert_UNSUPPORTED_RESOURCE()
       {fieldName = "alertText3", fieldText = "alertText3"}
     },
     alertType = "BOTH",
-    duration = 3000,
+    duration = 0, -- duration of Alert with softButtons present
     progressIndicator = true,
     softButtons =
       {{

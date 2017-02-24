@@ -99,16 +99,7 @@ function Test:TestStep_Alert_TTS_Speak_UNSUPPORTED_RESOURCE()
     alertText3 = "alertText3",
     ttsChunks = {{text = "TTSChunk", type = "TEXT"}},
     duration = 3000,
-    progressIndicator = true,
-    softButtons =
-      {{
-        type = "BOTH",
-        text = "Close",
-        image = { value = "icon.png", imageType = "DYNAMIC" },
-        isHighlighted = true,
-        softButtonID = 3,
-        systemAction = "DEFAULT_ACTION",
-    }}
+    progressIndicator = true
   })
 
   EXPECT_HMICALL("UI.Alert",
@@ -121,26 +112,8 @@ function Test:TestStep_Alert_TTS_Speak_UNSUPPORTED_RESOURCE()
     alertType = "BOTH",
     duration = 3000,
     progressIndicator = true,
-    softButtons =
-      {{
-        type = "BOTH",
-        text = "Close",
-        image = { imageType = "DYNAMIC"},
-        isHighlighted = true,
-        softButtonID = 3,
-        systemAction = "DEFAULT_ACTION",
-    }},
     appID = self.applications[config.application1.registerAppInterfaceParams.appName]
   })
-  :ValidIf(function(_,data)
-    local value_Icon = storagePath .. "icon.png"
-    if (string.match(data.params.softButtons[1].image.value, "%S*" .. "("..string.sub(storagePath, 2).."icon.png)" .. "$") == nil ) then
-      print("\27[31m value of menuIcon is WRONG. Expected: ~".. value_Icon .. "; Real: " .. data.params.softButtons[1].image.value .. "\27[0m")
-      return false
-    else
-      return true
-    end
-  end)
   :Do(function(_,data2)
     local function alertResponse()
       self.hmiConnection:SendResponse(data2.id, "UI.Alert", "WARNINGS", {})
