@@ -9,8 +9,6 @@ local json = require('json')
 ! @parameters:
 ! app_id - Id of application that will be included sdl_preloaded_pt.json
 ! include_certificate - true / false: true - certificate will be added in module_config
-!   true - certificate will be added in module_config
-!   false - certificate will not be added in module_config
 ! update_retry_sequence - array with new values for seconds_between_retries.
 ]]
 function testCasesForPolicyCeritificates.update_preloaded_pt(app_id, include_certificate, update_retry_sequence)
@@ -49,7 +47,6 @@ function testCasesForPolicyCeritificates.update_preloaded_pt(app_id, include_cer
 
   if(include_certificate == true) then
     io.input("files/Security/spt_credential.pem")
-		data.policy_table.module_config.certificate = ""
     local str_certificate = ""
 		for line in io.lines() do
 	    str_certificate = str_certificate .. line .."\r\n"
@@ -67,8 +64,6 @@ end
 ! ptu_certificate_exist.json: module_config section contains certificate.
 ! @parameters:
 ! include_certificate - true / false: true - certificate will be added in module_config
-!   true - certificate will be added in module_config
-!   false - certificate will not be added in module_config
 ! invalid_ptu - will add omit values + remove seconds_between_retries section -> PT file will become invalid.
 ]]
 function testCasesForPolicyCeritificates.create_ptu_certificate_exist(include_certificate, invalid_ptu)
@@ -95,14 +90,13 @@ function testCasesForPolicyCeritificates.create_ptu_certificate_exist(include_ce
 
 	if(include_certificate == true) then
 		io.input("files/Security/spt_credential.pem")
-		data.policy_table.module_config.certificate = ""
 		local str_certificate = ""
     for line in io.lines() do
       str_certificate = str_certificate .. line .."\r\n"
     end
 
     data.policy_table.module_config.certificate = str_certificate
-	end
+  end
 
   data = json.encode(data)
   file = io.open("files/ptu_certificate_exist.json", "w")
