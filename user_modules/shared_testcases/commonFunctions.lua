@@ -4,8 +4,9 @@
   --2. commonFunctions:createString(500) --example
 ---------------------------------------------------------------------------------------------
 local commonFunctions = {}
+require('atf.util')
 local json = require('json4lua/json/json')
-
+require('modules/config')
 local NewTestSuiteNumber = 0 -- use as subfix of test case "NewTestSuite" to make different test case name.
 ---------------------------------------------------------------------------------------------
 ------------------------------------------ Functions ----------------------------------------
@@ -51,7 +52,78 @@ function commonFunctions:isMediaApp()
   end
 
   return isMedia
+end
 
+--check that SDL ports are open then raise else RUN after timeout configured by step variable
+function commonFunctions:waitForSDLStart(test)
+  local step = 100
+  local hmiPort = config.hmiPort
+  local event = events.Event()
+  event.matches = function(self, e) return self == e end
+  local function raise_event()
+    assert(hmiPort ~= nil or hmiPort ~= "")
+    local output = os.execute ("netstat -vatn  | grep " .. hmiPort .. " | grep LISTEN")
+    if (output) then
+      RAISE_EVENT(event, event)
+    else 
+      RUN_AFTER(raise_event, step)
+    end
+  end
+  RUN_AFTER(raise_event, step)
+  local ret = expectations.Expectation("Wait for SDL start", test.mobileConnection)
+  ret.event = event
+  event_dispatcher:AddEvent(test.mobileConnection, ret.event, ret)
+  test:AddExpectation(ret)
+  return ret
+end
+
+function commonFunctions:createMultipleExpectationsWaiter(test, name)
+  local expectations = require('expectations')
+  local Expectation = expectations.Expectation
+  assert(name and test)
+  exp_waiter = {}
+  exp_waiter.expectation_list = {}
+  function exp_waiter:CheckStatus()
+     if #exp_waiter.expectation_list == 0 and not exp_waiter.expectation.status then 
+      exp_waiter.expectation.status = SUCCESS
+      event_dispatcher:RaiseEvent(test.mobileConnection, exp_waiter.event)
+      return true
+     end
+     return false 
+  end
+
+  function exp_waiter:AddExpectation(exp)
+    table.insert(exp_waiter.expectation_list, exp)
+    exp:Do(function()
+      exp_waiter:RemoveExpectation(exp)
+      exp_waiter:CheckStatus()
+    end)
+  end
+
+  function exp_waiter:RemoveExpectation(exp)
+    local function AnIndexOf(t,val)
+      for k,v in ipairs(t) do 
+        if v == val then return k end
+      end
+      return nil
+    end
+    
+    table.remove(exp_waiter.expectation_list,
+                 AnIndexOf(exp_waiter.expectation_list, exp))
+  end
+
+  exp_waiter.event = events.Event()
+
+  exp_waiter.event.matches = function(self, e) 
+    return self == e
+  end
+
+  exp_waiter.expectation = Expectation(name, test.mobileConnection)
+  exp_waiter.expectation.event = exp_waiter.event
+  exp_waiter.event.level = 3
+  event_dispatcher:AddEvent(test.mobileConnection, exp_waiter.event , exp_waiter.expectation)
+  test:AddExpectation(exp_waiter.expectation)
+  return exp_waiter
 end
 
 function commonFunctions:userPrint( color, message)
