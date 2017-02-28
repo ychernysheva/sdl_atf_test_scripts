@@ -26,6 +26,7 @@ config.application1.registerAppInterfaceParams.appHMIType = {"NAVIGATION"}
 --[[ Required Shared libraries ]]
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
+local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 local mobile_session = require('mobile_session')
 
 --[[ General Precondition before ATF start ]]
@@ -58,6 +59,7 @@ function Test:TestStep_RAI_PTU_Trigger()
   EXPECT_NOTIFICATION("OnHMIStatus", { systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE"})
 
   EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"}, {status = "UPDATING"}):Times(2)
+  commonTestCases:DelayedExp(20000)
 end
 
 --[[ Postconditions ]]
