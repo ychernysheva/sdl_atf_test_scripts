@@ -48,9 +48,9 @@ function testCasesForPolicyCeritificates.update_preloaded_pt(app_id, include_cer
   if(include_certificate == true) then
     io.input("files/Security/spt_credential.pem")
     local str_certificate = ""
-		for line in io.lines() do
-	    str_certificate = str_certificate .. line .."\r\n"
-	  end
+    for line in io.lines() do
+      str_certificate = str_certificate .. line .."\r\n"
+    end
 
     data.policy_table.module_config.certificate = str_certificate
   end
@@ -88,9 +88,9 @@ function testCasesForPolicyCeritificates.create_ptu_certificate_exist(include_ce
     data.policy_table.module_config.seconds_between_retries = nil
   end
 
-	if(include_certificate == true) then
-		io.input("files/Security/spt_credential.pem")
-		local str_certificate = ""
+  if(include_certificate == true) then
+    io.input("files/Security/spt_credential.pem")
+    local str_certificate = ""
     for line in io.lines() do
       str_certificate = str_certificate .. line .."\r\n"
     end
