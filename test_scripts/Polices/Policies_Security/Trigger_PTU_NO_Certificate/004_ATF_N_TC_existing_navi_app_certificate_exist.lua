@@ -4,8 +4,8 @@
 --
 -- Description:
 -- In case navigation app connects and sucessfully registers on SDL (opens RPC 7 service)
--- and PolicyTable has NO "certificate" at "module_config" section of LocalPolicyTable
--- SDL must start PolicyTableUpdate process on sending SDL.OnStatusUpdate(UPDATE_NEEDED) to HMI to get "certificate"
+-- and PolicyTable has "certificate" at "module_config" section of LocalPolicyTable
+-- SDL must not start PolicyTableUpdate process. SDL.OnStatusUpdate(UPDATE_NEEDED) should not be sent.
 --
 -- 1. Used preconditions:
 -- Navi app exists in LP, certificate is listed in module_config
@@ -67,7 +67,7 @@ end
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
 
-function Test.Postcondition_Remove_PTU_file()
+function Test.Postcondition_Restore_PreloadedPT()
   commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 end
 
