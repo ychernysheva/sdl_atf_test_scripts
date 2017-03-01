@@ -1,9 +1,8 @@
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
--- [GENIVI] [Policies] External UCS: informing HMI
+-- [Policies] [External UCS] SDL informs HMI about <externalConsentStatus> via GetListOfPermissions response
 -- [HMI API] GetListOfPermissions request/response
 -- [HMI API] ExternalConsentStatus struct & EntityStatus enum
--- [Policies] [External UCS] SDL informs HMI about <externalConsentStatus> via GetListOfPermissions response
 --
 -- Description:
 -- For Genivi applicable ONLY for 'EXTERNAL_PROPRIETARY' Polcies
@@ -50,10 +49,17 @@ function Test:Precondition_trigger_getting_device_consent()
 end
 
 function Test:Precondition_PTU_and_OnAppPermissionConsent_AllParams_Valid()
-  testCasesForPolicyTable:flow_SUCCEESS_EXTERNAL_PROPRIETARY(self)
+  local app_id = config.application1.registerAppInterfaceParams.appID 
+  local device_id = config.deviceMAC 
+  local hmi_app_id = self.applications[config.application1.registerAppInterfaceParams.appName]
+  local ptu_file_path = "files/jsons/Policies/Related_HMI_API/"
+  local ptu_file = "OnAppPermissionConsent_ptu.json"
+  
+  testCasesForPolicyTable:flow_SUCCEESS_EXTERNAL_PROPRIETARY(self, app_id, device_id, hmi_app_id, ptu_file_path, nil, ptu_file)
+
   EXPECT_HMINOTIFICATION("SDL.OnAppPermissionChanged",{ appID = self.applications[config.application1.registerAppInterfaceParams.appName]})
   :Do(function(_,data)
-      if (data.result.appPermissionsConsentNeeded == true) then
+      if (data.params.appPermissionsConsentNeeded== true) then
         local RequestIdListOfPermissions = self.hmiConnection:SendRequest("SDL.GetListOfPermissions", {appID = self.applications[config.application1.registerAppInterfaceParams.appName]})
         EXPECT_HMIRESPONSE(RequestIdListOfPermissions,{result = {code = 0, method = "SDL.GetListOfPermissions",
               -- allowed: If ommited - no information about User Consent is yet found for app.
@@ -61,9 +67,7 @@ function Test:Precondition_PTU_and_OnAppPermissionConsent_AllParams_Valid()
                 { name = "Location", id = 156072572},
                 { name = "Notifications", id = 1809526495}
               },
-              externalConsentStatus = {
-                {entityType = 13, entityID = 113, status = "ON"}
-              }
+              externalConsentStatus = {}
             }
           })
         :Do(function()
@@ -116,7 +120,6 @@ end
 commonFunctions:newTestCasesGroup("Postconditions")
 
 function Test.Postcondition_Restore_preloaded_file()
-  os.execute( " rm -f SetAudioStreamingIndicator_group1.json" )
   commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 end
 
