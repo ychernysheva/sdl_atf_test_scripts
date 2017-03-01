@@ -13,6 +13,7 @@
 -- SDL and HMI are running
 -- Application is registered and activated
 -- PTU has passed successfully
+-- PTU file is updated and application is assigned Location-1 and Notifications user-consent groups 
 -- HMI sends <externalConsentStatus> to SDl via OnAppPermissionConsent ( all params present and within bounds, EntityStatus = 'ON')
 -- SDL stores internally the received <externalConsentStatus>
 --
@@ -29,12 +30,10 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 --[[ Required Shared libraries ]]
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
-local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
-testCasesForPolicyTable:Precondition_updatePolicy_By_overwriting_preloaded_pt("files/jsons/Policies/Related_HMI_API/OnAppPermissionConsent.json")
 
 --[[ General Settings for configuration ]]
 Test = require('connecttest')
@@ -49,13 +48,10 @@ function Test:Precondition_trigger_getting_device_consent()
 end
 
 function Test:Precondition_PTU_and_OnAppPermissionConsent_AllParams_Valid()
-  local app_id = config.application1.registerAppInterfaceParams.appID 
-  local device_id = config.deviceMAC 
-  local hmi_app_id = self.applications[config.application1.registerAppInterfaceParams.appName]
   local ptu_file_path = "files/jsons/Policies/Related_HMI_API/"
   local ptu_file = "OnAppPermissionConsent_ptu.json"
   
-  testCasesForPolicyTable:flow_SUCCEESS_EXTERNAL_PROPRIETARY(self, app_id, device_id, hmi_app_id, ptu_file_path, nil, ptu_file)
+  testCasesForPolicyTable:flow_SUCCEESS_EXTERNAL_PROPRIETARY(self, nil, nil, nil, ptu_file_path, nil, ptu_file)
 
   EXPECT_HMINOTIFICATION("SDL.OnAppPermissionChanged",{ appID = self.applications[config.application1.registerAppInterfaceParams.appName]})
   :Do(function(_,data)
@@ -119,11 +115,8 @@ end
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
 
-function Test.Postcondition_Restore_preloaded_file()
-  commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
-end
-
-function Test.Postcondition_Stop()
+function Test.Postcondition_Stop_SDL() 
+	
   StopSDL()
 end
 
