@@ -98,7 +98,7 @@ end
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
-function Test:TestStep_GetListofPermissions()
+function Test:TestStep_GetListofPermissions_AllParams_Valid()
   local RequestIdListOfPermissions = self.hmiConnection:SendRequest("SDL.GetListOfPermissions", {appID = self.applications[config.application1.registerAppInterfaceParams.appName]})
 
   EXPECT_HMIRESPONSE(RequestIdListOfPermissions,{code = "0",
