@@ -56,7 +56,7 @@
   commonFunctions:newTestCasesGroup("Preconditions")
 
   function Test:CheckSDLStatus()
-    testCasesForExternalUCS.checkSDLStatus(self, sdl.RUNNING, "SDL is not running")
+    testCasesForExternalUCS.checkSDLStatus(self, sdl.RUNNING)
   end
 
   function Test:StopSDL()
@@ -112,7 +112,6 @@
 
   function Test:ActivateApp()
     testCasesForExternalUCS.activateApp(self, 1)
-    testCasesForExternalUCS.policyUpdate(self, 1)
   end
 
   function Test:CheckPTS()
