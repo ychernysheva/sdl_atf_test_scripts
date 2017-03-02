@@ -10,10 +10,16 @@ local sdl = require('SDL')
 local utils = { }
 
 -- [[ Variables ]]
+
 	utils.HMIAppIds = { }
 	utils.pts = nil
 
 -- [[ Functions ]]
+
+--[[@createTableFromJsonFile: Create table from .json file
+--! @parameters:
+--! file - input file
+--]]
 	function utils.createTableFromJsonFile(file)
 	  local f = io.open(file, "r")
 	  local content = f:read("*all")
@@ -21,12 +27,21 @@ local utils = { }
 	  return json.decode(content)
 	end
 
+--[[@createJsonFileFromTable: Create .json file from table
+--! @parameters:
+--! table - input table
+--! file - output file
+--]]
 	function utils.createJsonFileFromTable(table, file)
 	  local f = io.open(file, "w")
 	  f:write(json.encode(table))
 	  f:close()
 	end
 
+--[[@checkSDLStatus: Checks SDL status against defined one
+--! @parameters:
+--! expStatus - expected status of SDL (0 - STOPPED, 1 - RUNNING)
+--]]
 	function utils.checkSDLStatus(test, expStatus)
 	  local actStatus = sdl:CheckStatusSDL()
 	  print("SDL status: " .. tostring(actStatus))
@@ -36,12 +51,18 @@ local utils = { }
 	  end
 	end
 
+--[[@removeLPT: Delete Local Policy Table
+--! @parameters: NO
+--]]
 	function utils.removeLPT()
 		local folderPath = commonPreconditions:GetPathToSDL() ..
       commonFunctions:read_parameter_from_smart_device_link_ini("AppStorageFolder")
     os.execute("rm -rf " .. folderPath)
 	end
 
+--[[@removePTS: Delete Policy Table Snapshot
+--! @parameters: NO
+--]]
 	function utils.removePTS()
     local filePath = commonFunctions:read_parameter_from_smart_device_link_ini("SystemFilesPath") ..
       "/" .. commonFunctions:read_parameter_from_smart_device_link_ini("PathToSnapshot")
@@ -70,97 +91,110 @@ local utils = { }
     local ptu_file_name = os.tmpname()
     local requestId = test.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
     EXPECT_HMIRESPONSE(requestId)
-    :Do(
-      function()
-        test.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",
-          { requestType = "PROPRIETARY", fileName = policy_file_name })
-        utils.createJsonFileFromTable(utils.pts, ptu_file_name)
-        EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", { status = "UPDATING" }, { status = status }):Times(2)
-        test["mobileSession"..id]:ExpectNotification("OnSystemRequest", { requestType = "PROPRIETARY" })
-        :Do(
-          function()
-	          local corIdSystemRequest = test["mobileSession"..id]:SendRPC("SystemRequest",
-	            { requestType = "PROPRIETARY", fileName = policy_file_name }, ptu_file_name)
-	          EXPECT_HMICALL("BasicCommunication.SystemRequest")
-	          :Do(
-	            function(_, d)
-	              test.hmiConnection:SendResponse(d.id, "BasicCommunication.SystemRequest", "SUCCESS", { })
-	              test.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate",
-	                { policyfile = policy_file_path .. "/" .. policy_file_name })
-	            end)
-	            test["mobileSession"..id]:ExpectResponse(corIdSystemRequest, { success = true, resultCode = "SUCCESS"})
-          end)
+    :Do(function()
+      test.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",
+        { requestType = "PROPRIETARY", fileName = policy_file_name })
+      utils.createJsonFileFromTable(utils.pts, ptu_file_name)
+      EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", { status = "UPDATING" }, { status = status }):Times(2)
+      test["mobileSession"..id]:ExpectNotification("OnSystemRequest", { requestType = "PROPRIETARY" })
+      :Do(function()
+	      local corIdSystemRequest = test["mobileSession"..id]:SendRPC("SystemRequest",
+	        { requestType = "PROPRIETARY", fileName = policy_file_name }, ptu_file_name)
+	      EXPECT_HMICALL("BasicCommunication.SystemRequest")
+	      :Do(function(_, d)
+	        test.hmiConnection:SendResponse(d.id, "BasicCommunication.SystemRequest", "SUCCESS", { })
+	        test.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate",
+	          { policyfile = policy_file_path .. "/" .. policy_file_name })
+	        end)
+	        test["mobileSession"..id]:ExpectResponse(corIdSystemRequest, { success = true, resultCode = "SUCCESS"})
+        end)
       end)
     os.remove(ptu_file_name)
   end
 
+--[[@startSession: Start mobile session
+--! @parameters:
+--! id - session number (1, 2 etc.) (mandatory)
+--]]
 	function utils.startSession(test, id)
     test["mobileSession"..id] = mobile_session.MobileSession(test, test.mobileConnection)
     test["mobileSession"..id]:StartService(7)
   end
 
+--[[@registerApp: Register application
+--! @parameters:
+--! id - application number (1, 2 etc.), equals to session number (mandatory)
+--]]
 	function utils.registerApp(test, id)
 		local RAIParams = config["application"..id].registerAppInterfaceParams
     local corId = test["mobileSession"..id]:SendRPC("RegisterAppInterface", RAIParams)
     EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered",
       { application = { appName = RAIParams.appName } })
-    :Do(
-      function(_, d)
-        utils.HMIAppIds[RAIParams.appID] = d.params.application.appID
+    :Do(function(_, d)
+      utils.HMIAppIds[RAIParams.appID] = d.params.application.appID
       end)
     test["mobileSession"..id]:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
-    :Do(
-      function()
-        test["mobileSession"..id]:ExpectNotification("OnHMIStatus",
-          { hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN" })
-        test["mobileSession"..id]:ExpectNotification("OnPermissionsChange")
+    :Do(function()
+      test["mobileSession"..id]:ExpectNotification("OnHMIStatus",
+        { hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN" })
+      test["mobileSession"..id]:ExpectNotification("OnPermissionsChange")
       end)
 	end
 
+--[[@activateApp: Activate application
+--! @parameters:
+--! id - application number (1, 2 etc.), equals to session number (mandatory)
+--]]
 	function utils.activateApp(test, id)
 		local appId = config["application"..id].registerAppInterfaceParams.appID
 		local reqId = test.hmiConnection:SendRequest("SDL.ActivateApp", { appID = utils.HMIAppIds[appId] })
     EXPECT_HMIRESPONSE(reqId)
-    :Do(
-      function(_, d1)
-        if d1.result.isSDLAllowed ~= true then
-          local reqId2 = test.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage",
-            { language = "EN-US", messageCodes = { "DataConsent" } })
-          EXPECT_HMIRESPONSE(reqId2)
-          :Do(
-            function()
-              test.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality",
-                { allowed = true, source = "GUI", device = { id = config.deviceMAC, name = "127.0.0.1" } })
-              EXPECT_HMICALL("BasicCommunication.ActivateApp")
-              :Do(
-                function(_, d2)
-                  test.hmiConnection:SendResponse(d2.id,"BasicCommunication.ActivateApp", "SUCCESS", { })
-                  test["mobileSession"..id]:ExpectNotification("OnHMIStatus",
-                    { hmiLevel = "FULL", audioStreamingState = "AUDIBLE", systemContext = "MAIN" })
-                end)
+    :Do(function(_, d1)
+      if d1.result.isSDLAllowed ~= true then
+        local reqId2 = test.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage",
+          { language = "EN-US", messageCodes = { "DataConsent" } })
+        EXPECT_HMIRESPONSE(reqId2)
+        :Do(function()
+          test.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality",
+            { allowed = true, source = "GUI", device = { id = config.deviceMAC, name = "127.0.0.1" } })
+          EXPECT_HMICALL("BasicCommunication.ActivateApp")
+          :Do(function(_, d2)
+            test.hmiConnection:SendResponse(d2.id,"BasicCommunication.ActivateApp", "SUCCESS", { })
+            test["mobileSession"..id]:ExpectNotification("OnHMIStatus",
+              { hmiLevel = "FULL", audioStreamingState = "AUDIBLE", systemContext = "MAIN" })
             end)
-        end
+          end)
+      end
       end)
 	end
 
+--[[@policyUpdate: Start Local Policy Table update
+--! @parameters:
+--! id - application number (1, 2 etc.), equals to session number (mandatory)
+--! status - expected final status ('UPDATE_NEEDED', 'UP_TO_DATE')
+--! updateFunc - function to update specific sections in PTU file
+--! that has to be passed as an input parameter
+--]]
 	function utils.policyUpdate(test, id, status, updateFunc)
 		EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
-    :Do(
-      function(e, d)
-        if e.occurences == 1 then -- workaround due to issue
-	        utils.pts = utils.createTableFromJsonFile(d.params.file)
-	        test.hmiConnection:SendResponse(d.id, d.method, "SUCCESS", { })
-	        if status then
-	          updatePTU(config["application"..id].registerAppInterfaceParams.appID)
-	          if updateFunc then
-	            updateFunc(utils.pts)
-	          end
-	          ptu(test, id, status)
-	        end
+    :Do(function(_, d)
+      utils.pts = utils.createTableFromJsonFile(d.params.file)
+      test.hmiConnection:SendResponse(d.id, d.method, "SUCCESS", { })
+      if status then
+        updatePTU(config["application"..id].registerAppInterfaceParams.appID)
+        if updateFunc then
+          updateFunc(utils.pts)
         end
-    end)
+        ptu(test, id, status)
+      end
+      end)
 	end
 
+--[[@updatePreloadedPT: Update PreloadedPT file
+--! @parameters:
+--! updateFunc - function to update specific sections in PreloadedPT file
+--! that has to be passed as an input parameter
+--]]
 	function utils.updatePreloadedPT(updateFunc)
 		local preloadedFile = commonPreconditions:GetPathToSDL() .. "sdl_preloaded_pt.json"
     local preloadedTable = utils.createTableFromJsonFile(preloadedFile)
@@ -171,9 +205,12 @@ local utils = { }
     utils.createJsonFileFromTable(preloadedTable, preloadedFile)
 	end
 
+--[[@ignitionOff: Perform Igninition Off
+--! @parameters: NO
+--]]
 	function utils.ignitionOff(test)
-    StopSDL()
     test.hmiConnection:SendNotification("BasicCommunication.OnExitAllApplications", { reason = "IGNITION_OFF" })
+    StopSDL()
 	end
 
 return utils
