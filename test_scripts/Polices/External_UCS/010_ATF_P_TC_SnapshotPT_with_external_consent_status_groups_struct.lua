@@ -104,7 +104,6 @@
 
   function Test:ActivateApp()
     testCasesForExternalUCS.activateApp(self, 1)
-    testCasesForExternalUCS.policyUpdate(self, 1)
   end
 
   function Test:CheckPTS()
