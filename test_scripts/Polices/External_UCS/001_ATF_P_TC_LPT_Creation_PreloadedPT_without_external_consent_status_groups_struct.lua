@@ -13,11 +13,15 @@
 --
 -- Preconditions:
 -- 1. Stop SDL
--- 2. Modify PreloadedPolicyTable (remove 'external_consent_status_groups' section)
+-- 2. Modify PreloadedPolicyTable (add 'external_consent_status_groups' section)
+-- 3. Start SDL
+-- 4. Check SDL status => 0 (SDL is stopped)
 --
 -- Steps:
--- 1. Start SDL
--- 2. Check SDL status
+-- 1. Remove Local Policy Table
+-- 2. Modify PreloadedPolicyTable (remove 'external_consent_status_groups' section)
+-- 3. Start SDL
+-- 4. Check SDL status
 --
 -- Expected result:
 -- Status = 1 (SDL is running)
@@ -47,15 +51,11 @@
 --[[ Preconditions ]]
   commonFunctions:newTestCasesGroup("Preconditions")
 
-  function Test:CheckSDLStatus()
-    testCasesForExternalUCS.checkSDLStatus(self, sdl.RUNNING)
-  end
-
   function Test:StopSDL()
     testCasesForExternalUCS.ignitionOff(self)
   end
 
-  function Test:CheckSDLStatus()
+  function Test:CheckSDLStatus_1_STOPPED()
     testCasesForExternalUCS.checkSDLStatus(self, sdl.STOPPED)
   end
 
@@ -63,9 +63,43 @@
     testCasesForExternalUCS.removeLPT()
   end
 
-  function Test.UpdatePreloadedPT()
+  function Test.UpdatePreloadedPT_Add_section()
     local updateFunc = function(preloadedTable)
-      -- whole 'device_data' section is not allowed in PreloadedPT according to dictionary
+      preloadedTable.policy_table.device_data = {
+        [config.deviceMAC] = {
+          user_consent_records = {
+            [config.application1.registerAppInterfaceParams.appID] = {
+              external_consent_status_groups = {
+                Location = false
+              }
+            }
+          }
+        }
+      }
+    end
+    testCasesForExternalUCS.updatePreloadedPT(updateFunc)
+  end
+
+  function Test.StartSDL()
+    StartSDL(config.pathToSDL, config.ExitOnCrash)
+    os.execute("sleep 1")
+  end
+
+  function Test:CheckSDLStatus_2_STOPPED()
+    testCasesForExternalUCS.checkSDLStatus(self, sdl.STOPPED)
+  end
+
+  function Test:StopSDL()
+    testCasesForExternalUCS.ignitionOff(self)
+  end
+
+  function Test.RemoveLPT()
+    testCasesForExternalUCS.removeLPT()
+  end
+
+  function Test.UpdatePreloadedPT_Remove_section()
+    local updateFunc = function(preloadedTable)
+      -- whole 'device_data' section is not allowed in PreloadedPT according to data dictionary
       preloadedTable.policy_table.device_data = nil
     end
     testCasesForExternalUCS.updatePreloadedPT(updateFunc)
@@ -79,7 +113,7 @@
     os.execute("sleep 1")
   end
 
-  function Test:CheckSDLStatus()
+  function Test:CheckSDLStatus_3_RUNNING()
     testCasesForExternalUCS.checkSDLStatus(self, sdl.RUNNING)
   end
 
