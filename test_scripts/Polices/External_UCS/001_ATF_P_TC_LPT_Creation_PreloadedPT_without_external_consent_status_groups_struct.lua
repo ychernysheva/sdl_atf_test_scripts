@@ -20,7 +20,7 @@
 -- 2. Check SDL status
 --
 -- Expected result:
--- Status = 0 (SDL is stopped)
+-- Status = 1 (SDL is running)
 ---------------------------------------------------------------------------------------------
 
 --[[ General configuration parameters ]]
@@ -36,7 +36,8 @@
 
 --[[ General Precondition before ATF start ]]
   commonFunctions:SDLForceStop()
-  commonSteps:DeleteLogsFileAndPolicyTable()
+  commonSteps:DeletePolicyTable()
+  commonSteps:DeleteLogsFiles()
   commonPreconditions:BackupFile("sdl_preloaded_pt.json")
 
 --[[ General Settings for configuration ]]
@@ -47,7 +48,7 @@
   commonFunctions:newTestCasesGroup("Preconditions")
 
   function Test:CheckSDLStatus()
-    testCasesForExternalUCS.checkSDLStatus(self, sdl.RUNNING, "SDL is not running")
+    testCasesForExternalUCS.checkSDLStatus(self, sdl.RUNNING)
   end
 
   function Test:StopSDL()
