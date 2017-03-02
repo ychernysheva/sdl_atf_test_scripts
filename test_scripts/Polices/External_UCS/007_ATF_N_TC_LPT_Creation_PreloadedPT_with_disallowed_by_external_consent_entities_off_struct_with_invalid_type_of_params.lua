@@ -72,7 +72,7 @@
   commonFunctions:newTestCasesGroup("Preconditions")
 
   function Test:CheckSDLStatus()
-    testCasesForExternalUCS.checkSDLStatus(self, sdl.RUNNING, "SDL is not running")
+    testCasesForExternalUCS.checkSDLStatus(self, sdl.RUNNING)
   end
 
 --[[ Test ]]
