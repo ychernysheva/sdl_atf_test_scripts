@@ -71,6 +71,9 @@ local utils = { }
     os.execute("rm -rf " .. filePath)
   end
 
+--[[@updatePTU: Update Policy Table Snapshot (PTS) in the way it can be used as Policy Table Update (PTU)
+--! @parameters: NO
+--]]
   local function updatePTU()
     local appId = config.application1.registerAppInterfaceParams.appID
     utils.pts.policy_table.consumer_friendly_messages.messages = nil
@@ -88,6 +91,11 @@ local utils = { }
     utils.pts.policy_table.module_config.preloaded_pt = nil
   end
 
+--[[@ptu: Perform Policy Table Update process
+--! Support PROPRIETARY or EXTERNAL_PROPRIETARY modes
+--! @parameters:
+--! status - expected final status ('UPDATE_NEEDED', 'UP_TO_DATE')
+--]]
   local function ptu(test, status)
     local policy_file_name = "PolicyTableUpdate"
     local policy_file_path = commonFunctions:read_parameter_from_smart_device_link_ini("SystemFilesPath")
@@ -145,6 +153,9 @@ local utils = { }
   end
 
 --[[@activateApp: Activate application and start Local Policy Table update
+--! Note: PTU will be done in 2 cases:
+--! 1. Only one application is registered and it is not in NONE hmi level
+--! 2. A few applications are registered: 1st - in FULL, others - in NONE hmi levels
 --! @parameters:
 --! id - application number (1, 2 etc.), equals to session number (mandatory)
 --! status - expected final status ('UPDATE_NEEDED', 'UP_TO_DATE')
