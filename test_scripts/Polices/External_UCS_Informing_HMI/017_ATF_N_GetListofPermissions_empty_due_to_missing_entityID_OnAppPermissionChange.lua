@@ -105,7 +105,14 @@ commonFunctions:newTestCasesGroup("Test")
 function Test:TestStep_GetListofPermissions_entityType_missing()
   local RequestIdListOfPermissions = self.hmiConnection:SendRequest("SDL.GetListOfPermissions", {appID = self.applications[config.application1.registerAppInterfaceParams.appName]})
   
-  EXPECT_HMIRESPONSE(RequestIdListOfPermissions, {})
+  EXPECT_HMIRESPONSE(RequestIdListOfPermissions, {
+    code = "0",
+    allowedFunctions = {
+    { name = "Location-1", id = 156072572, allowed = true},
+    { name = "Notifications", id = 1809526495, allowed = true}
+    },
+    externalConsentStatus = {}
+  })
 end
 
 --[[ Postconditions ]]
