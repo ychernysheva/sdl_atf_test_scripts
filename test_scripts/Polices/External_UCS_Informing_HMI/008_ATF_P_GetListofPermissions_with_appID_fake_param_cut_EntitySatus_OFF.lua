@@ -14,7 +14,7 @@
 -- SDL and HMI are running
 -- Application is registered and activated
 -- PTU has passed successfully
--- PTU file is updated and application is assigned Location-1 and Notifications user-consent groups 
+-- PTU file is updated and application is assigned to functional groups: Base-4, user-consent groups: Location-1 and Notifications
 -- HMI sends <externalConsentStatus> to SDl via OnAppPermissionConsent that contains fake param (all other params present and within bounds, EntityStatus = "OFF")
 -- SDL ignores the fake parameter received and stores internally the received <externalConsentStatus>
 --
@@ -22,7 +22,7 @@
 -- HMI sends to SDL GetListOfPermissions (appID)
 --
 -- Expected result:
--- SDL sends to HMI <externalConsentStatus> 
+-- SDL sends to HMI <externalConsentStatus>
 ---------------------------------------------------------------------------------------------
 
 --[[ General configuration parameters ]]
@@ -51,7 +51,7 @@ end
 function Test:Precondition_PTU_and_OnAppPermissionConsent_FakeParam()
   local ptu_file_path = "files/jsons/Policies/Related_HMI_API/"
   local ptu_file = "OnAppPermissionConsent_ptu.json"
-  
+
   testCasesForPolicyTable:flow_SUCCEESS_EXTERNAL_PROPRIETARY(self, nil, nil, nil, ptu_file_path, nil, ptu_file)
 
   EXPECT_HMINOTIFICATION("SDL.OnAppPermissionChanged",{ appID = self.applications[config.application1.registerAppInterfaceParams.appName]})
@@ -84,8 +84,8 @@ function Test:Precondition_PTU_and_OnAppPermissionConsent_FakeParam()
                     externalConsentStatus = {
                       {entityType = 24, entityID = 94, status = "OFF"}
                     },
-                    source = "GUI", 
-                    additional = {true} -- fake parameter 
+                    source = "GUI",
+                    additional = {true} -- fake parameter
                   })
                 EXPECT_NOTIFICATION("OnPermissionsChange")
             end)
@@ -94,7 +94,7 @@ function Test:Precondition_PTU_and_OnAppPermissionConsent_FakeParam()
         commonFunctions:userPrint(31, "Wrong SDL bahavior: there are app permissions for consent, isPermissionsConsentNeeded should be true")
         return false
       end
-  end)
+    end)
 end
 
 --[[ Test ]]
@@ -109,7 +109,7 @@ function Test:TestStep_GetListofPermissions_FakeParam()
         { name = "Notifications", id = 1809526495, allowed = true}
       },
       externalConsentStatus = {
-        {entityType = 13, entityID = 113, status = "OFF"}
+        {entityType = 24, entityID = 94, status = "OFF"}
       }
     })
 end
@@ -117,8 +117,8 @@ end
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
 
-function Test.Postcondition_Stop_SDL() 
-	
+function Test.Postcondition_Stop_SDL()
+
   StopSDL()
 end
 
