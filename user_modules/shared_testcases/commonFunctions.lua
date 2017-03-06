@@ -40,6 +40,7 @@ local path_config = commonPreconditions:GetPathToSDL()
 --24. Function start PTU sequence HTTP flow
 --25. Function reads log file and find specific string in this file.
 --26. Function updates json file with new section
+--27. Function joins paths of file system
 ---------------------------------------------------------------------------------------------
 
 --return true if app is media or navigation
@@ -992,7 +993,7 @@ function commonFunctions:check_ptu_sequence_partly(self, ptu_path, ptu_name)
   EXPECT_HMICALL("BasicCommunication.SystemRequest"):Times(0)
   EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate")
   :ValidIf(function(exp,data)
-    if 
+    if
       (exp.occurences == 1 or exp.occurences == 2) and
       data.params.status == "UP_TO_DATE" then
         return true
@@ -1001,7 +1002,7 @@ function commonFunctions:check_ptu_sequence_partly(self, ptu_path, ptu_name)
       exp.occurences == 1 and
       data.params.status == "UPDATING" then
         return true
-    end             
+    end
     return false
   end):Times(Between(1,2))
   EXPECT_HMICALL("VehicleInfo.GetVehicleData", {odometer=true}):Do(
@@ -1036,7 +1037,7 @@ assert(commonFunctions:File_exists(ptu_path))
     elseif exp.occurences == 2 and
       data.params.status == "UPDATING" then
     return true
-    elseif exp.occurences == 3 and 
+    elseif exp.occurences == 3 and
       data.params.status == "UP_TO_DATE" then
       return true
     end
@@ -1228,6 +1229,18 @@ function commonFunctions:update_json_file(path_to_json, old_section, new_section
   file = io.open(path_to_json, "w")
   file:write(dataToWrite)
   file:close()
+end
+
+-- ---------------------------------------------------------------------------------------------
+--27. Function joins paths of file system
+-- ---------------------------------------------------------------------------------------------
+--! @brief Return the path resulting from combining the individual paths
+--! @args ... file paths
+--! @usage Function usage example: commonFunctions:pathJoin("/tmp", "fs/mp/images/ivsu_cache", "ptu.json") returns "/tmp/fs/mp/images/ivsu_cache/ptu.json"
+function commonFunctions:pathJoin(...)
+  local args = {...}
+  args[#args]  = string.sub(args[#args], -1) == "/" and string.sub(args[#args], 1, -2) or args[#args]
+  return table.concat(args, "/")
 end
 
 return commonFunctions
