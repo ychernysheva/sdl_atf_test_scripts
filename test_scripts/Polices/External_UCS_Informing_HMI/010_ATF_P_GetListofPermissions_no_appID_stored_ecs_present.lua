@@ -12,8 +12,8 @@
 -- SDL is built with External_Proprietary flag
 -- SDL and HMI are running
 -- Application is registered and activated
--- PTU has passed successfully
 -- PTU file is updated and application is assigned to functional groups: Base-4, user-consent groups: Location-1 and Notifications
+-- PTU has passed successfully
 -- HMI sends <externalConsentStatus> to SDl via OnAppPermissionConsent ( all params present and within bounds)
 -- SDL stores internally the received <externalConsentStatus>
 --
