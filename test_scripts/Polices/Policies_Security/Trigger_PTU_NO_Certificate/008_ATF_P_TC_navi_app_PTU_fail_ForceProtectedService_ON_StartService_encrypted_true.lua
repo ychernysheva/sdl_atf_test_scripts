@@ -38,12 +38,9 @@ config.application1.registerAppInterfaceParams.appHMIType = {"NAVIGATION"}
 --[[ Required Shared libraries ]]
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
-local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 local mobile_session = require('mobile_session')
 local testCasesForPolicyCeritificates = require('user_modules/shared_testcases/testCasesForPolicyCeritificates')
-local events = require('events')
-local Event = events.Event
 
 --[[ General Precondition before ATF start ]]
 commonPreconditions:BackupFile("smartDeviceLink.ini")
@@ -114,7 +111,6 @@ end
 
 function Test:TestStep_Audio_NACK()
   self.mobileSession.correlationId = self.mobileSession.correlationId + 1
-
   local msg = {
     serviceType = 10,
     frameInfo = 1,
@@ -122,34 +118,11 @@ function Test:TestStep_Audio_NACK()
     rpcCorrelationId = self.mobileSession.correlationId,
     encryption = true
   }
-  self.mobileSession:Send(msg)
-
-  local startserviceEvent = Event()
-  startserviceEvent.matches =
-  function(_, data)
-    return ( data.frameType == 0 and data.serviceType == 10)
-  end
-
-  self.mobileSession:ExpectEvent(startserviceEvent, "Service 10: StartServiceNACK")
-  :ValidIf(function(_, data)
-      if data.frameInfo == 2 then
-        commonFunctions:printError("Service 10: StartServiceACK is received")
-        return false
-      elseif data.frameInfo == 3 then
-        print("Service 10: Audio NACK")
-        return true
-      else
-        commonFunctions:printError("Service 10: StartServiceACK/NACK is not received at all.")
-        return false
-      end
-    end)
-
-  commonTestCases:DelayedExp(10000)
+  testCasesForPolicyCeritificates.start_service_NACK(self, msg, 10,"Audio")
 end
 
 function Test:TestStep_Video_NACK()
   self.mobileSession.correlationId = self.mobileSession.correlationId + 1
-
   local msg = {
     serviceType = 11,
     frameInfo = 1,
@@ -157,29 +130,7 @@ function Test:TestStep_Video_NACK()
     rpcCorrelationId = self.mobileSession.correlationId,
     encryption = true
   }
-  self.mobileSession:Send(msg)
-
-  local startserviceEvent = Event()
-  startserviceEvent.matches =
-  function(_, data)
-    return ( data.frameType == 0 and data.serviceType == 11)
-  end
-
-  self.mobileSession:ExpectEvent(startserviceEvent, "Service 11: StartServiceNACK")
-  :ValidIf(function(_, data)
-      if data.frameInfo == 2 then
-        commonFunctions:printError("Service 11: StartServiceACK is received")
-        return false
-      elseif data.frameInfo == 3 then
-        print("Service 11: Audio NACK")
-        return true
-      else
-        commonFunctions:printError("Service 11: StartServiceACK/NACK is not received at all.")
-        return false
-      end
-    end)
-
-  commonTestCases:DelayedExp(10000)
+  testCasesForPolicyCeritificates.start_service_NACK(self, msg, 11,"Video")
 end
 
 function Test:TestStep_RPC_NACK()
@@ -194,29 +145,7 @@ function Test:TestStep_RPC_NACK()
     rpcCorrelationId = self.mobileSession.correlationId,
     payload = '{ "audioStreamingIndicator" : "PAUSE" }'
   }
-  self.mobileSession:Send(msg)
-
-  local startserviceEvent = Event()
-  startserviceEvent.matches =
-  function(_, data)
-    return ( data.frameType == 0 and data.serviceType == 7)
-  end
-
-  self.mobileSession:ExpectEvent(startserviceEvent, "Service 7: StartServiceNACK")
-  :ValidIf(function(_, data)
-      if data.frameInfo == 2 then
-        commonFunctions:printError("Service 7: StartServiceACK is received")
-        return false
-      elseif data.frameInfo == 3 then
-        print("Service 7: Audio NACK")
-        return true
-      else
-        commonFunctions:printError("Service 7: StartServiceACK/NACK is not received at all.")
-        return false
-      end
-    end)
-
-  commonTestCases:DelayedExp(10000)
+  testCasesForPolicyCeritificates.start_service_NACK(self, msg, 7,"RPC")
 end
 
 function Test:TestStep_Hybrid_NACK()
@@ -232,29 +161,7 @@ function Test:TestStep_Hybrid_NACK()
     payload = '{ "audioStreamingIndicator" : "PAUSE" }',
     binaryData = '{ "audioStreamingIndicator" : "PAUSE" }'
   }
-  self.mobileSession:Send(msg)
-
-  local startserviceEvent = Event()
-  startserviceEvent.matches =
-  function(_, data)
-    return ( data.frameType == 0 and data.serviceType == 15)
-  end
-
-  self.mobileSession:ExpectEvent(startserviceEvent, "Service 15: StartServiceNACK")
-  :ValidIf(function(_, data)
-      if data.frameInfo == 2 then
-        commonFunctions:printError("Service 15: StartServiceACK is received")
-        return false
-      elseif data.frameInfo == 3 then
-        print("Service 15: Audio NACK")
-        return true
-      else
-        commonFunctions:printError("Service 15: StartServiceACK/NACK is not received at all.")
-        return false
-      end
-    end)
-
-  commonTestCases:DelayedExp(10000)
+  testCasesForPolicyCeritificates.start_service_NACK(self, msg, 15,"Hybrid")
 end
 
 --[[ Postconditions ]]
