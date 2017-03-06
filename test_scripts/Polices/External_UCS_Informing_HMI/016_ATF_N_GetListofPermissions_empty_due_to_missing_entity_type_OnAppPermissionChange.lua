@@ -12,16 +12,16 @@
 -- SDL is built with External_Proprietary flag
 -- SDL and HMI are running
 -- Application is registered and activated
--- PTU file is updated and application is assigned functional user-consent groups Location-1 and Notifications
+-- PTU file is updated and application is assigned to functional groups: Base-4, user-consent groups: Location-1 and Notifications
 -- PTU has passed successfully
 -- HMI sends <externalConsentStatus> to SDl via OnAppPermissionConsent (mandatory parameter entityType is missed, rest of params present and within bounds, EntityStatus = 'ON')
--- SDL stores internally the received <externalConsentStatus>
+-- SDL doesn't receive updated Permission items and consent status
 --
 -- 2. Performed steps
 -- HMI sends to SDL GetListOfPermissions (appID)
 --
 -- Expected result:
--- SDL sends do HMI <externalConsentStatus> received from HMI
+-- SDL sends to HMI empty array
 ---------------------------------------------------------------------------------------------
 
 --[[ General configuration parameters ]]
@@ -81,7 +81,7 @@ function Test:Precondition_PTU_and_OnAppPermissionConsent_AllParams_Valid()
                   {
                     appID = self.applications[config.application1.registerAppInterfaceParams.appName],
                     consentedFunctions = {
-                      { allowed = true, id = 156072572, name = "Location"},
+                      { allowed = true, id = 156072572, name = "Location-1"},
                       { allowed = true, id = 1809526495, name = "Notifications"}
                     },
                     externalConsentStatus = {
