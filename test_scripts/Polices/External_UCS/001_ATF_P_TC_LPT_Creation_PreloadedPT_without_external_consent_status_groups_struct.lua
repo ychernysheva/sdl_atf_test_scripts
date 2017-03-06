@@ -43,7 +43,6 @@ local checkedSection = "external_consent_status_groups"
 commonFunctions:SDLForceStop()
 commonSteps:DeletePolicyTable()
 commonSteps:DeleteLogsFiles()
-commonPreconditions:BackupFile("sdl_preloaded_pt.json")
 
 --[[ General Settings for configuration ]]
 Test = require("user_modules/connecttest_resumption")
@@ -98,10 +97,6 @@ commonFunctions:newTestCasesGroup("Postconditions")
 
 function Test.StopSDL()
   StopSDL()
-end
-
-function Test.RestorePreloadedFile()
-  commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 end
 
 return Test
