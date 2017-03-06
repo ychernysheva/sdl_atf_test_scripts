@@ -109,7 +109,7 @@ function Test:TestStep_GetListofPermissions_FakeParam()
         { name = "Notifications", id = 1809526495, allowed = true}
       },
       externalConsentStatus = {
-        {entityType = 13, entityID = 113, status = "ON"}
+        {entityType = 24, entityID = 94, status = "ON"}
       }
     })
 end
