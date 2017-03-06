@@ -993,14 +993,11 @@ function commonFunctions:check_ptu_sequence_partly(self, ptu_path, ptu_name)
   EXPECT_HMICALL("BasicCommunication.SystemRequest"):Times(0)
   EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate")
   :ValidIf(function(exp,data)
-    if
-      (exp.occurences == 1 or exp.occurences == 2) and
+    if (exp.occurences == 1 or exp.occurences == 2) and
       data.params.status == "UP_TO_DATE" then
         return true
     end
-    if
-      exp.occurences == 1 and
-      data.params.status == "UPDATING" then
+    if exp.occurences == 1 and data.params.status == "UPDATING" then
         return true
     end
     return false
