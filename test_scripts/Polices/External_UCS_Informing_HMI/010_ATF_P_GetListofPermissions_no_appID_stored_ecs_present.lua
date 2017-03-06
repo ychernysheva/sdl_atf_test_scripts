@@ -13,7 +13,7 @@
 -- SDL and HMI are running
 -- Application is registered and activated
 -- PTU has passed successfully
--- PTU file is updated and application is assigned Location-1 and Notifications user-consent groups 
+-- PTU file is updated and application is assigned to functional groups: Base-4, user-consent groups: Location-1 and Notifications
 -- HMI sends <externalConsentStatus> to SDl via OnAppPermissionConsent ( all params present and within bounds)
 -- SDL stores internally the received <externalConsentStatus>
 --
@@ -50,7 +50,7 @@ end
 function Test:Precondition_PTU_and_OnAppPermissionConsent_AllParams()
   local ptu_file_path = "files/jsons/Policies/Related_HMI_API/"
   local ptu_file = "OnAppPermissionConsent_ptu.json"
-  
+
   testCasesForPolicyTable:flow_SUCCEESS_EXTERNAL_PROPRIETARY(self, nil, nil, nil, ptu_file_path, nil, ptu_file)
 
   EXPECT_HMINOTIFICATION("SDL.OnAppPermissionChanged",{ appID = self.applications[config.application1.registerAppInterfaceParams.appName]})
@@ -87,7 +87,7 @@ function Test:Precondition_PTU_and_OnAppPermissionConsent_AllParams()
                   })
                 EXPECT_NOTIFICATION("OnPermissionsChange")
               end)
-        end)
+          end)
       else
         commonFunctions:userPrint(31, "Wrong SDL bahavior: there are app permissions for consent, isPermissionsConsentNeeded should be true")
         return false
@@ -107,7 +107,7 @@ function Test:TestStep_GetListofPermissions_No_appID()
         { name = "Notifications", id = 1809526495, allowed = true}
       },
       externalConsentStatus = {
-        {entityType = 13, entityID = 113, status = "ON"}
+        {entityType = 55, entityID = 44, status = "ON"}
       }
     })
 end
@@ -115,8 +115,7 @@ end
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
 
-function Test.Postcondition_Stop_SDL() 
-	
+function Test.Postcondition_Stop_SDL()
   StopSDL()
 end
 
