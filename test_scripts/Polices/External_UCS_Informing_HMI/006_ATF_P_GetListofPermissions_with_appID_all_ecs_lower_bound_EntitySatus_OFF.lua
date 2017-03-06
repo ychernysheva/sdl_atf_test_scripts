@@ -12,7 +12,7 @@
 -- SDL is built with External_Proprietary flag
 -- SDL and HMI are running
 -- Application is registered and activated
--- PTU file is updated and application is assigned functional user-consent groups Location-1 and Notifications
+-- PTU file is updated and and application is assigned to functional groups: Base-4, user-consent groups: Location-1 and Notifications
 -- PTU has passed successfully
 -- HMI sends <externalConsentStatus> to SDl via OnAppPermissionConsent ( all params present and within lower bounds, EntityStatus = "OFF")
 -- SDL stores internally the received <externalConsentStatus>
@@ -21,7 +21,7 @@
 -- HMI sends to SDL GetListOfPermissions (appID)
 --
 -- Expected result:
--- SDL sends do HMI <externalConsentStatus> received from HMI
+-- SDL sends to HMI <externalConsentStatus> received from HMI
 ---------------------------------------------------------------------------------------------
 
 --[[ General configuration parameters ]]
@@ -50,7 +50,7 @@ end
 function Test:Precondition_PTU_and_OnAppPermissionConsent_AllParams_Lower()
   local ptu_file_path = "files/jsons/Policies/Related_HMI_API/"
   local ptu_file = "OnAppPermissionConsent_ptu.json"
-  
+
   testCasesForPolicyTable:flow_SUCCEESS_EXTERNAL_PROPRIETARY(self, nil, nil, nil, ptu_file_path, nil, ptu_file)
 
   EXPECT_HMINOTIFICATION("SDL.OnAppPermissionChanged",{ appID = self.applications[config.application1.registerAppInterfaceParams.appName]})
@@ -86,8 +86,8 @@ function Test:Precondition_PTU_and_OnAppPermissionConsent_AllParams_Lower()
                     source = "GUI"
                   })
                 EXPECT_NOTIFICATION("OnPermissionsChange")
-            end)
-        end)
+              end)
+          end)
       else
         commonFunctions:userPrint(31, "Wrong SDL bahavior: there are app permissions for consent, isPermissionsConsentNeeded should be true")
         return false
@@ -115,8 +115,8 @@ end
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
 
-function Test.Postcondition_Stop_SDL() 
-	StopSDL()
+function Test.Postcondition_Stop_SDL()
+  StopSDL()
 end
 
 return Test
