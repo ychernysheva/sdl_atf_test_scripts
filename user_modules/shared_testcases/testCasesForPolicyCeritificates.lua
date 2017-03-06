@@ -3,7 +3,11 @@ require('atf.util')
 local testCasesForPolicyCeritificates = {}
 
 local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
+local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
+local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 local json = require('json')
+local events = require('events')
+local Event = events.Event
 
 --[[@update_preloaded_pt: update sdl_preloaded_pt
 ! @parameters:
@@ -102,6 +106,38 @@ function testCasesForPolicyCeritificates.create_ptu_certificate_exist(include_ce
   file = io.open("files/ptu_certificate_exist.json", "w")
   file:write(data)
   file:close()
+end
+
+--[[@start_service_NACK: send specific protocol message with expected result NACK
+! @parameters:
+! msg - message with specific service and payload
+! service - protocol service of msg
+! name - protocol name of service for specified msg
+]]
+function testCasesForPolicyCeritificates.start_service_NACK(self, msg, service, name)
+  self.mobileSession:Send(msg)
+
+  local startserviceEvent = Event()
+  startserviceEvent.matches =
+  function(_, data)
+    return ( data.frameType == 0 and data.serviceType == service)
+  end
+
+  self.mobileSession:ExpectEvent(startserviceEvent, "Service "..service..": StartServiceNACK")
+  :ValidIf(function(_, data)
+    if data.frameInfo == 2 then
+      commonFunctions:printError("Service "..service..": StartServiceACK is received")
+      return false
+    elseif data.frameInfo == 3 then
+      print("Service "..service..": "..name.." NACK")
+      return true
+    else
+      commonFunctions:printError("Service "..service..": StartServiceACK/NACK is not received at all.")
+      return false
+    end
+  end)
+
+  commonTestCases:DelayedExp(10000)
 end
 
 return testCasesForPolicyCeritificates
