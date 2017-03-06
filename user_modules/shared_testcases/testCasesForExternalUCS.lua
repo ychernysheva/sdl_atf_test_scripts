@@ -1,5 +1,7 @@
 ---------------------------------------------------------------------------------------------
 -- Common functions for External_UCS test scripts
+--
+-- Note: Only EXTERNAL_PROPRIETARY mode is supported
 ---------------------------------------------------------------------------------------------
 local mobile_session = require("mobile_session")
 local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
@@ -92,7 +94,6 @@ local utils = { }
   end
 
 --[[@ptu: Perform Policy Table Update process
---! Support PROPRIETARY or EXTERNAL_PROPRIETARY modes
 --! @parameters:
 --! status - expected final status ('UPDATE_NEEDED', 'UP_TO_DATE')
 --]]
