@@ -14,7 +14,7 @@
 -- Application is registered and activated
 -- PTU file is updated and application is assigned to functional groups: Base-4, user-consent groups: Location-1 and Notifications
 -- PTU has passed successfully
--- HMI sends <externalConsentStatus> to SDl via OnAppPermissionConsent (parameter entityID has invalid value, rest of params present and within bounds, EntityStatus = 'ON')
+-- HMI sends <externalConsentStatus> to SDl via OnAppPermissionConsent (parameter entityID has invalid value type, rest of params present and within bounds, EntityStatus = 'ON')
 -- SDL doesn't receive updated Permission items and consent status
 --
 -- 2. Performed steps
@@ -85,11 +85,12 @@ function Test:Precondition_PTU_and_OnAppPermissionConsent_Invalid_entityID()
                       { allowed = true, id = 1809526495, name = "Notifications"}
                     },
                     externalConsentStatus = {
-                      {entityType = 13, entityID = "invalidValue", status = "ON"}
+                      {entityType = 13, entityID = "invalidID", status = "ON"}
                     },
                     source = "GUI"
                   })
-                EXPECT_NOTIFICATION("OnPermissionsChange")
+                EXPECT_NOTIFICATION("OnPermissionsChange"):Times(0)
+                commonTestCases:DelayedExp(10000)
               end)
         end)
       else
@@ -108,8 +109,8 @@ function Test:TestStep_GetListofPermissions_entityID_invalid()
   EXPECT_HMIRESPONSE(RequestIdListOfPermissions, {
     code = "0",
     allowedFunctions = {
-    { name = "Location-1", id = 156072572, allowed = true},
-    { name = "Notifications", id = 1809526495, allowed = true}
+    { name = "Location-1", id = 156072572},
+    { name = "Notifications", id = 1809526495}
     },
     externalConsentStatus = {}
   })
