@@ -113,15 +113,15 @@ function Test:Preconditon_RegisterSecondApplication()
   self.mobileSession1:ExpectNotification("OnHMIStatus", { systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE"})
 end
 
---[[ Test ]]
-commonFunctions:newTestCasesGroup("Test")
-
 function Test:TestStep_Unregister_Second_Application()
   self.mobileSession1:SendRPC("UnregisterAppInterface", {})
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered",
     {appID = self.applications[config.application2.registerAppInterfaceParams.appName], unexpectedDisconnect = false})
   self.mobileSession1:ExpectResponse("UnregisterAppInterface", {success = true , resultCode = "SUCCESS"})
 end
+
+--[[ Test ]]
+commonFunctions:newTestCasesGroup("Test")
 
 function Test:TestStep_GetListofPermissions_appID_Unregistred_App_Stored_ecs()
   local RequestIdListOfPermissions = self.hmiConnection:SendRequest("SDL.GetListOfPermissions", {appID = self.applications[config.application2.registerAppInterfaceParams.appName]})
