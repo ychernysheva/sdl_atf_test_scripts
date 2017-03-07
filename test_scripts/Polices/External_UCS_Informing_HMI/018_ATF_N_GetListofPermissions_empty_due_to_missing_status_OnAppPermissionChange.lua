@@ -6,7 +6,7 @@
 --
 -- Description:
 -- For Genivi applicable ONLY for 'EXTERNAL_PROPRIETARY' Polcies
--- Check that SDL invalidates notification OnAppPermissionConsent due to missing mandatory parameter entityType
+-- Check that SDL invalidates notification OnAppPermissionConsent due to missing mandatory parameter entityStatus
 --
 -- 1. Used preconditions
 -- SDL is built with External_Proprietary flag
@@ -14,7 +14,7 @@
 -- Application is registered and activated
 -- PTU file is updated and application is assigned to functional groups: Base-4, user-consent groups: Location-1 and Notifications
 -- PTU has passed successfully
--- HMI sends <externalConsentStatus> to SDl via OnAppPermissionConsent (mandatory parameter entityType is missed, rest of params present and within bounds, EntityStatus = 'ON')
+-- HMI sends <externalConsentStatus> to SDl via OnAppPermissionConsent (mandatory parameter entityStatus is missed, rest of params present and within bounds)
 -- SDL doesn't receive updated Permission items and consent status
 --
 -- 2. Performed steps
@@ -85,11 +85,12 @@ function Test:Precondition_PTU_and_OnAppPermissionConsent_AllParams_Valid()
               { allowed = true, id = 1809526495, name = "Notifications"}
             },
             externalConsentStatus = {
-              {entityID = 113, status = "ON"}
+              {entityType = 13, entityID = 113}
             },
             source = "GUI"
           })
-          EXPECT_NOTIFICATION("OnPermissionsChange")
+          EXPECT_NOTIFICATION("OnPermissionsChange"):Times(0)
+          commonTestCases:DelayedExp(10000)
         end)
       end)
     else
@@ -108,8 +109,8 @@ function Test:TestStep_GetListofPermissions_entityType_missing()
   EXPECT_HMIRESPONSE(RequestIdListOfPermissions, {
     code = "0",
     allowedFunctions = {
-    { name = "Location-1", id = 156072572, allowed = true},
-    { name = "Notifications", id = 1809526495, allowed = true}
+    { name = "Location-1", id = 156072572},
+    { name = "Notifications", id = 1809526495}
     },
     externalConsentStatus = {}
   })
