@@ -1,6 +1,7 @@
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
 -- [Policies] External UCS: PreloadedPT with "external_consent_status_groups" struct
+-- [Policies] External UCS: PreloadedPT without "external_consent_status_groups" struct
 --
 -- Description:
 -- In case:
@@ -13,10 +14,9 @@
 -- c. shut SDL down
 --
 -- Preconditions:
--- 1. Stop SDL
--- 2. Modify PreloadedPolicyTable (remove 'external_consent_status_groups' section)
--- 3. Start SDL
--- 4. Check SDL status => 1 (SDL is running)
+-- 1. Start SDL (first run)
+-- 2. Check SDL status => 1 (SDL is running)
+-- 3. Stop SDL
 --
 -- Steps:
 -- 1. Remove Local Policy Table
@@ -26,85 +26,87 @@
 --
 -- Expected result:
 -- Status = 0 (SDL is stopped)
+--
+-- Note: Script is designed for EXTERNAL_PROPRIETARY flow
 ---------------------------------------------------------------------------------------------
 
 --[[ General configuration parameters ]]
-  config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
-  config.defaultProtocolVersion = 2
+config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
+config.defaultProtocolVersion = 2
 
 --[[ Required Shared Libraries ]]
-  local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
-  local commonSteps = require('user_modules/shared_testcases/commonSteps')
-  local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
-  local sdl = require('SDL')
-  local testCasesForExternalUCS = require('user_modules/shared_testcases/testCasesForExternalUCS')
+local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
+local commonSteps = require('user_modules/shared_testcases/commonSteps')
+local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
+local sdl = require('SDL')
+local testCasesForExternalUCS = require('user_modules/shared_testcases/testCasesForExternalUCS')
 
 --[[ General Precondition before ATF start ]]
-  commonFunctions:SDLForceStop()
-  commonSteps:DeleteLogsFileAndPolicyTable()
-  commonPreconditions:BackupFile("sdl_preloaded_pt.json")
+commonFunctions:SDLForceStop()
+commonSteps:DeleteLogsFileAndPolicyTable()
+commonPreconditions:BackupFile("sdl_preloaded_pt.json")
 
 --[[ General Settings for configuration ]]
-  Test = require("user_modules/connecttest_resumption")
-  require('user_modules/AppTypes')
+Test = require("user_modules/connecttest_resumption")
+require('user_modules/AppTypes')
 
 --[[ Preconditions ]]
-  commonFunctions:newTestCasesGroup("Preconditions")
+commonFunctions:newTestCasesGroup("Preconditions")
 
-  function Test:CheckSDLStatus_1_RUNNING()
-    testCasesForExternalUCS.checkSDLStatus(self, sdl.RUNNING)
-  end
+function Test:CheckSDLStatus_1_RUNNING()
+  testCasesForExternalUCS.checkSDLStatus(self, sdl.RUNNING)
+end
 
-  function Test:StopSDL()
-    testCasesForExternalUCS.ignitionOff(self)
-  end
+function Test:StopSDL()
+  testCasesForExternalUCS.ignitionOff(self)
+end
 
-  function Test:CheckSDLStatus_2_STOPPED()
-    testCasesForExternalUCS.checkSDLStatus(self, sdl.STOPPED)
-  end
+function Test:CheckSDLStatus_2_STOPPED()
+  testCasesForExternalUCS.checkSDLStatus(self, sdl.STOPPED)
+end
 
-  function Test.RemoveLPT()
-    testCasesForExternalUCS.removeLPT()
-  end
+function Test.RemoveLPT()
+  testCasesForExternalUCS.removeLPT()
+end
 
-  function Test.UpdatePreloadedPT_Add_section()
-    local updateFunc = function(preloadedTable)
-      preloadedTable.policy_table.device_data = {
-        [config.deviceMAC] = {
-          user_consent_records = {
-            [config.application1.registerAppInterfaceParams.appID] = {
-              external_consent_status_groups = {
-                Location = false
-              }
+function Test.UpdatePreloadedPT_Add_section()
+  local updateFunc = function(preloadedTable)
+    preloadedTable.policy_table.device_data = {
+      [config.deviceMAC] = {
+        user_consent_records = {
+          [config.application1.registerAppInterfaceParams.appID] = {
+            external_consent_status_groups = {
+              Location = false
             }
           }
         }
       }
-    end
-    testCasesForExternalUCS.updatePreloadedPT(updateFunc)
+    }
   end
+  testCasesForExternalUCS.updatePreloadedPT(updateFunc)
+end
 
 --[[ Test ]]
-  commonFunctions:newTestCasesGroup("Test")
+commonFunctions:newTestCasesGroup("Test")
 
-  function Test.StartSDL()
-    StartSDL(config.pathToSDL, config.ExitOnCrash)
-    os.execute("sleep 1")
-  end
+function Test.StartSDL()
+  StartSDL(config.pathToSDL, config.ExitOnCrash)
+  os.execute("sleep 5")
+end
 
-  function Test:CheckSDLStatus_3_STOPPED()
-    testCasesForExternalUCS.checkSDLStatus(self, sdl.STOPPED)
-  end
+function Test:CheckSDLStatus_3_STOPPED()
+  testCasesForExternalUCS.checkSDLStatus(self, sdl.STOPPED)
+end
 
 --[[ Postconditions ]]
-  commonFunctions:newTestCasesGroup("Postconditions")
+commonFunctions:newTestCasesGroup("Postconditions")
 
-  function Test.StopSDL()
-    StopSDL()
-  end
+function Test.StopSDL()
+  StopSDL()
+end
 
-  function Test.RestorePreloadedFile()
-    commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
-  end
+function Test.RestorePreloadedFile()
+  commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
+end
 
 return Test
