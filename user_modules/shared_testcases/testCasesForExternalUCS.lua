@@ -6,7 +6,6 @@
 local mobile_session = require("mobile_session")
 local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
-local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 local json = require("modules/json")
 local sdl = require('SDL')
 
