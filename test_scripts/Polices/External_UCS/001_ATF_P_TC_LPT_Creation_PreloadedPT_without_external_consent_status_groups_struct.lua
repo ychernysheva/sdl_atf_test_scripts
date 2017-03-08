@@ -80,6 +80,10 @@ function Test:CheckPreloadedPT()
   end
 end
 
+function Test.RemoveLPT()
+  testCasesForExternalUCS.removeLPT()
+end
+
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
