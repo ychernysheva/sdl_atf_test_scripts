@@ -6,6 +6,7 @@
 local mobile_session = require("mobile_session")
 local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
+local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 local json = require("modules/json")
 local sdl = require('SDL')
 
@@ -217,8 +218,12 @@ local utils = { }
 --! @parameters: NO
 --]]
   function utils.ignitionOff(test)
-    test.hmiConnection:SendNotification("BasicCommunication.OnExitAllApplications", { reason = "IGNITION_OFF" })
-    StopSDL()
+    test.hmiConnection:SendNotification("BasicCommunication.OnExitAllApplications", { reason = "SUSPEND" })
+    EXPECT_HMINOTIFICATION("BasicCommunication.OnSDLPersistenceComplete")
+    :Do(function()
+        test.hmiConnection:SendNotification("BasicCommunication.OnExitAllApplications", { reason = "IGNITION_OFF" })
+        StopSDL()
+      end)
   end
 
 return utils
