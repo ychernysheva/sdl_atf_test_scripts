@@ -124,7 +124,7 @@ end
 commonFunctions:newTestCasesGroup("Test")
 
 function Test:TestStep_GetListofPermissions_appID_Unregistred_App_Stored_ecs()
-  local RequestIdListOfPermissions = self.hmiConnection:SendRequest("SDL.GetListOfPermissions", {appID = self.applications[config.application2.registerAppInterfaceParams.appName]})
+  local RequestIdListOfPermissions = self.hmiConnection:SendRequest("SDL.GetListOfPermissions")
   EXPECT_HMIRESPONSE(RequestIdListOfPermissions,{code = "0",
       allowedFunctions = {
         { name = "Location", id = 156072572, allowed = true},
