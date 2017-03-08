@@ -12,15 +12,15 @@
 -- SDL is built with External_Proprietary flag
 -- SDL and HMI are running
 -- Application is registered and activated
+-- PTU file is updated and application is assigned to functional groups: Base-4, user-consent groups: Location-1 and Notifications
 -- PTU has passed successfully
--- PTU file is updated and application is assigned Location-1 and Notifications user-consent groups 
--- HMI sends empty <externalConsentStatus> to SDl via OnAppPermissionConsent 
+-- HMI sends empty <externalConsentStatus> to SDl via OnAppPermissionConsent
 --
 -- 2. Performed steps
 -- HMI sends to SDL GetListOfPermissions (no appID)
 --
 -- Expected result:
--- SDL sends to HMI empty <externalConsentStatus> array 
+-- SDL sends to HMI empty <externalConsentStatus> array
 ---------------------------------------------------------------------------------------------
 
 --[[ General configuration parameters ]]
@@ -49,7 +49,7 @@ end
 function Test:Precondition_PTU_and_OnAppPermissionConsent_Empty()
   local ptu_file_path = "files/jsons/Policies/Related_HMI_API/"
   local ptu_file = "OnAppPermissionConsent_ptu.json"
-  
+
   testCasesForPolicyTable:flow_SUCCEESS_EXTERNAL_PROPRIETARY(self, nil, nil, nil, ptu_file_path, nil, ptu_file)
 
   EXPECT_HMINOTIFICATION("SDL.OnAppPermissionChanged",{ appID = self.applications[config.application1.registerAppInterfaceParams.appName]})
@@ -84,7 +84,7 @@ function Test:Precondition_PTU_and_OnAppPermissionConsent_Empty()
                   })
                 EXPECT_NOTIFICATION("OnPermissionsChange")
               end)
-        end)
+          end)
       else
         commonFunctions:userPrint(31, "Wrong SDL bahavior: there are app permissions for consent, isPermissionsConsentNeeded should be true")
         return false
@@ -96,7 +96,7 @@ end
 commonFunctions:newTestCasesGroup("Test")
 
 function Test:TestStep_GetListofPermissions_No_appID_Empty()
-  local RequestIdListOfPermissions = self.hmiConnection:SendRequest("SDL.GetListOfPermissions", {appID = self.applications[config.application1.registerAppInterfaceParams.appName]})
+  local RequestIdListOfPermissions = self.hmiConnection:SendRequest("SDL.GetListOfPermissions")
 
   EXPECT_HMIRESPONSE(RequestIdListOfPermissions,{code = "0",
       allowedFunctions = {
@@ -110,8 +110,8 @@ end
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
 
-function Test.Postcondition_Stop_SDL() 
-	
+function Test.Postcondition_Stop_SDL()
+
   StopSDL()
 end
 
