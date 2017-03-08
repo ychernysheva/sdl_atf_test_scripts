@@ -22,54 +22,59 @@
 --
 -- Expected result:
 -- Section "external_consent_status_groups" is omitted
+--
+-- Note: Script is designed for EXTERNAL_PROPRIETARY flow
 ---------------------------------------------------------------------------------------------
 
 --[[ General configuration parameters ]]
-  config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
-  config.defaultProtocolVersion = 2
+config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
+config.defaultProtocolVersion = 2
 
 --[[ Required Shared Libraries ]]
-  local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
-  local commonSteps = require('user_modules/shared_testcases/commonSteps')
-  local testCasesForExternalUCS = require('user_modules/shared_testcases/testCasesForExternalUCS')
+local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
+local commonSteps = require('user_modules/shared_testcases/commonSteps')
+local testCasesForExternalUCS = require('user_modules/shared_testcases/testCasesForExternalUCS')
 
 --[[ Local variables ]]
-  local checkedSection = "external_consent_status_groups"
+local checkedSection = "external_consent_status_groups"
 
 --[[ General Precondition before ATF start ]]
-  commonFunctions:SDLForceStop()
-  commonSteps:DeleteLogsFileAndPolicyTable()
-  testCasesForExternalUCS.removePTS()
+commonFunctions:SDLForceStop()
+commonSteps:DeleteLogsFileAndPolicyTable()
+testCasesForExternalUCS.removePTS()
 
 --[[ General Settings for configuration ]]
-  Test = require("user_modules/connecttest_resumption")
-  require('user_modules/AppTypes')
+Test = require("user_modules/connecttest_resumption")
+require('user_modules/AppTypes')
 
 --[[ Preconditions ]]
-  commonFunctions:newTestCasesGroup("Preconditions")
+commonFunctions:newTestCasesGroup("Preconditions")
 
-  function Test:ConnectMobile()
-    self:connectMobile()
-  end
+function Test:ConnectMobile()
+  self:connectMobile()
+end
 
-  function Test:StartSession()
-    testCasesForExternalUCS.startSession(self, 1)
-  end
+function Test:StartSession()
+  testCasesForExternalUCS.startSession(self, 1)
+end
 
 --[[ Test ]]
-  commonFunctions:newTestCasesGroup("Test")
+commonFunctions:newTestCasesGroup("Test")
 
-  function Test:RAI()
-    testCasesForExternalUCS.registerApp(self, 1)
-  end
+function Test:RAI()
+  testCasesForExternalUCS.registerApp(self, 1)
+end
 
-  function Test:ActivateApp()
-    testCasesForExternalUCS.activateApp(self, 1)
-  end
+function Test:ActivateApp()
+  testCasesForExternalUCS.activateApp(self, 1)
+end
 
-  function Test:CheckPTS()
+function Test:CheckPTS()
+  if not testCasesForExternalUCS.pts then
+    self:FailTestCase("PTS was not created")
+  else
     local s = testCasesForExternalUCS.pts.policy_table.device_data[config.deviceMAC]
-      .user_consent_records.device[checkedSection]
+    .user_consent_records.device[checkedSection]
     if s ~= nil then
       self:FailTestCase("Section '" .. checkedSection .. "' was found in PTS")
     else
@@ -77,12 +82,13 @@
       print(" => OK")
     end
   end
+end
 
 --[[ Postconditions ]]
-  commonFunctions:newTestCasesGroup("Postconditions")
+commonFunctions:newTestCasesGroup("Postconditions")
 
-  function Test.StopSDL()
-    StopSDL()
-  end
+function Test.StopSDL()
+  StopSDL()
+end
 
 return Test
