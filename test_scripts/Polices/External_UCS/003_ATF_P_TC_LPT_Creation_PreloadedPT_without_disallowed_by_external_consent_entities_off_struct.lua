@@ -13,7 +13,7 @@
 --
 -- Preconditions:
 -- 1. Stop SDL
--- 2. Modify PreloadedPolicyTable (remove 'disallowed_by_external_consent_entities_off' section)
+-- 2. Check that PreloadedPT doesn't contain 'disallowed_by_external_consent_entities_off' section
 --
 -- Steps:
 -- 1. Start SDL
@@ -57,27 +57,29 @@ require('user_modules/AppTypes')
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
 
-function Test:CheckSDLStatus_1_RUNNING()
-  testCasesForExternalUCS.checkSDLStatus(self, sdl.RUNNING)
-end
-
 function Test:StopSDL()
   testCasesForExternalUCS.ignitionOff(self)
 end
 
-function Test:CheckSDLStatus_2_STOPPED()
+function Test:CheckSDLStatus_1_STOPPED()
   testCasesForExternalUCS.checkSDLStatus(self, sdl.STOPPED)
+end
+
+function Test:CheckPreloadedPT()
+  local preloadedFile = commonPreconditions:GetPathToSDL() .. "sdl_preloaded_pt.json"
+  local preloadedTable = testCasesForExternalUCS.createTableFromJsonFile(preloadedFile)
+  if preloadedTable
+  and preloadedTable.policy_table
+  and preloadedTable.policy_table.functional_groupings
+  and preloadedTable.policy_table.functional_groupings[grpId]
+  and preloadedTable.policy_table.functional_groupings[grpId][checkedSection]
+  then
+    self:FailTestCase("Section '" .. checkedSection .. "'' was found in PreloadedPT")
+  end
 end
 
 function Test.RemoveLPT()
   testCasesForExternalUCS.removeLPT()
-end
-
-function Test.UpdatePreloadedPT()
-  local updateFunc = function(preloadedTable)
-    preloadedTable.policy_table.functional_groupings[grpId][checkedSection] = nil
-  end
-  testCasesForExternalUCS.updatePreloadedPT(updateFunc)
 end
 
 --[[ Test ]]
@@ -117,11 +119,15 @@ function Test:ActivateApp()
 end
 
 function Test:CheckPTS()
-  if testCasesForExternalUCS.pts.policy_table.functional_groupings[grpId][checkedSection] ~= nil then
-    self:FailTestCase("Section '" .. checkedSection .. "' was found in PTS")
+  if not testCasesForExternalUCS.pts then
+    self:FailTestCase("PTS was not created")
   else
-    print("Section '".. checkedSection .. "' doesn't exist in 'functional_groupings['" .. grpId .. "'] in PTS")
-    print(" => OK")
+    if testCasesForExternalUCS.pts.policy_table.functional_groupings[grpId][checkedSection] ~= nil then
+      self:FailTestCase("Section '" .. checkedSection .. "' was found in PTS")
+    else
+      print("Section '".. checkedSection .. "' doesn't exist in 'functional_groupings['" .. grpId .. "'] in PTS")
+      print(" => OK")
+    end
   end
 end
 
