@@ -82,7 +82,7 @@ function Test:Precondition_PTU_and_OnAppPermissionConsent_entityID_missing()
           {
             appID = self.applications[config.application1.registerAppInterfaceParams.appName],
             consentedFunctions = {
-              { allowed = true, id = 156072572, name = "Location"},
+              { allowed = true, id = 156072572, name = "Location-1"},
               { allowed = true, id = 1809526495, name = "Notifications"}
             },
             externalConsentStatus = {
