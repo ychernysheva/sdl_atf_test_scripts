@@ -1,6 +1,7 @@
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
 -- [Policies] External UCS: SnapshotPT without "external_consent_status_groups" param
+-- [Policies] External UCS: "ON" updates in allowed "consent_groups" and "external_consent_status_groups" when externalConsentStatus changes to "OFF"
 --
 -- Description:
 -- In case:
@@ -111,27 +112,29 @@ end
 function Test:CheckPTS()
   if not testCasesForExternalUCS.pts then
     self:FailTestCase("PTS was not created")
-  else
-    local s = testCasesForExternalUCS.pts.policy_table.device_data[config.deviceMAC]
-    .user_consent_records[appId][checkedSection]
-    if s == nil then
-      self:FailTestCase("Section '" .. checkedSection .. "' was not found in PTS")
-    else
+  elseif testCasesForExternalUCS.pts.policy_table
+    and testCasesForExternalUCS.pts.policy_table.device_data
+    and testCasesForExternalUCS.pts.policy_table.device_data[config.deviceMAC]
+    and testCasesForExternalUCS.pts.policy_table.device_data[config.deviceMAC].user_consent_records
+    and testCasesForExternalUCS.pts.policy_table.device_data[config.deviceMAC].user_consent_records[appId]
+    and testCasesForExternalUCS.pts.policy_table.device_data[config.deviceMAC].user_consent_records[appId][checkedSection]
+    then
       print("Section '".. checkedSection .. "' exists in PTS")
       print(" => OK")
+    else
+      self:FailTestCase("Section '" .. checkedSection .. "' was not found in PTS")
     end
   end
-end
 
---[[ Postconditions ]]
-commonFunctions:newTestCasesGroup("Postconditions")
+  --[[ Postconditions ]]
+  commonFunctions:newTestCasesGroup("Postconditions")
 
-function Test.StopSDL()
-  StopSDL()
-end
+  function Test.StopSDL()
+    StopSDL()
+  end
 
-function Test.Postcondition_RestorePreloadedFile()
-  commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
-end
+  function Test.Postcondition_RestorePreloadedFile()
+    commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
+  end
 
-return Test
+  return Test
