@@ -99,7 +99,7 @@ for i=1,#resultCodes do
       local function alertResponse()
         self.hmiConnection:SendResponse(data2.id, "UI.Alert", resultCodes[i], { })
       end
-      RUN_AFTER(alertResponse, 1500)
+      RUN_AFTER(alertResponse, 2000)
     end)
 
     EXPECT_HMICALL("TTS.Speak",
@@ -116,7 +116,7 @@ for i=1,#resultCodes do
       local function ttsSpeakResponse()
         self.hmiConnection:SendResponse (data3.id, data3.method, "WARNINGS", {})
       end
-      RUN_AFTER(ttsSpeakResponse, 1000)
+      RUN_AFTER(ttsSpeakResponse, 500)
     end)
 
     EXPECT_RESPONSE(cor_id, { success = true, resultCode = "WARNINGS" })
