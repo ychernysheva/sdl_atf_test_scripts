@@ -1,7 +1,6 @@
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
--- [Policies] External UCS: PreloadedPT with "disallowed_by_external_consent_entities_on" struct
--- with invalid type of params
+-- [Policies] External UCS: PreloadedPT with "disallowed_by_external_consent_entities_on" struct with invalid type of params
 --
 -- Description:
 -- In case:
@@ -16,7 +15,7 @@
 -- Preconditions:
 -- 1. Stop SDL
 -- 2. Modify PreloadedPolicyTable (add 'disallowed_by_external_consent_entities_on' section)
--- Define not valid data type for entityType and entityId parameters
+-- Define not valid data type for entityType or/and entityId parameters
 --
 -- Steps:
 -- 1. Start SDL
@@ -30,6 +29,8 @@
 
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
+config.defaultProtocolVersion = 2
+config.ExitOnCrash = false
 
 --[[ Required Shared Libraries ]]
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
@@ -50,17 +51,8 @@ local values = {
   { v = -1, desc = "Below Min" },
   { v = 129, desc = "Beyond Max" },
   { v = "", desc = "Blank" },
-  { v = nil, desc = "Null" }
+  { v = nil, desc = "Nil" }
 }
-
---[[ Local Functions ]]
-local function getParamValues(p, i)
-  if p == 1 then
-    return values[i].v, 1
-  else
-    return 1, values[i].v
-  end
-end
 
 --[[ General Precondition before ATF start ]]
 commonFunctions:SDLForceStop()
@@ -81,55 +73,101 @@ end
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
-local n = 0
+local n = 1
 
-for p = 1, #params do
+local function sequence(desc, updateFunc)
 
-  for i = 1, #values do
+  local tcName = "TC[" .. string.format("%02d", n) .. "] - [" .. desc .. "] "
+  tcName = tcName .. string.rep("-", 50 - string.len(tcName))
 
-    n = n + 1
-    local tcName = "TC[".. string.format("%02d", n) .. "] - [" .. params[p] .. ": " .. values[i].desc .. "] "
-    .. string.rep("-", 20)
+  Test[tcName] = function() end
 
-    Test[tcName] = function() end
-
-    function Test:StopSDL()
-      testCasesForExternalUCS.ignitionOff(self)
-    end
-
-    function Test:CheckSDLStatus()
-      testCasesForExternalUCS.checkSDLStatus(self, sdl.STOPPED)
-    end
-
-    function Test.RemoveLPT()
-      testCasesForExternalUCS.removeLPT()
-    end
-
-    function Test.UpdatePreloadedPT()
-      local updateFunc = function(preloadedTable)
-        local entityIdValue, entityTypeValue = getParamValues(p, i)
-        preloadedTable.policy_table.functional_groupings[grpId][checkedSection] = {
-          {
-            entityID = entityIdValue,
-            entityType = entityTypeValue
-          }
-        }
-      end
-      testCasesForExternalUCS.updatePreloadedPT(updateFunc)
-    end
-
-    function Test.StartSDL()
-      StartSDL(config.pathToSDL, config.ExitOnCrash)
-      os.execute("sleep 5")
-    end
-
-    function Test:CheckSDLStatus()
-      testCasesForExternalUCS.checkSDLStatus(self, sdl.STOPPED)
-    end
-
+  function Test:StopSDL()
+    testCasesForExternalUCS.ignitionOff(self)
   end
 
+  function Test:CheckSDLStatus()
+    testCasesForExternalUCS.checkSDLStatus(self, sdl.STOPPED)
+  end
+
+  function Test.RemoveLPT()
+    testCasesForExternalUCS.removeLPT()
+  end
+
+  function Test.UpdatePreloadedPT()
+    testCasesForExternalUCS.updatePreloadedPT(updateFunc)
+  end
+
+  function Test.StartSDL()
+    StartSDL(config.pathToSDL, config.ExitOnCrash)
+    os.execute("sleep 5")
+  end
+
+  function Test:CheckSDLStatus()
+    testCasesForExternalUCS.checkSDLStatus(self, sdl.STOPPED)
+  end
+
+  n = n + 1
+
 end
+
+local desc
+local updateFunc
+
+-- TCs: invalid values for one of parameters
+for p = 1, #params do
+  for i = 1, #values do
+    desc = params[p] .. ": " .. values[i].desc
+    updateFunc = function(preloadedTable)
+      local function getParamValue(paramName)
+        if paramName == params[p] then
+          return values[i].v
+        else
+          return 1
+        end
+      end
+      local function logParamValue(paramName)
+        print(paramName .. ": '" .. tostring(getParamValue(paramName)) .. "'")
+      end
+      logParamValue("entityId")
+      logParamValue("entityType")
+      preloadedTable.policy_table.functional_groupings[grpId][checkedSection] = {
+        {
+          entityID = getParamValue("entityId"),
+          entityType = getParamValue("entityType"),
+        }
+      }
+    end
+    sequence(desc, updateFunc)
+  end
+end
+
+-- TC: both parameters = nil
+desc = "Both parameters = nil"
+updateFunc = function(preloadedTable)
+  preloadedTable.policy_table.functional_groupings[grpId][checkedSection] = {
+    {
+      entityID = nil,
+      entityType = nil
+    }
+  }
+end
+sequence(desc, updateFunc)
+
+-- TC: Count of elements > 100
+desc = "Max count of elements"
+updateFunc = function(preloadedTable)
+  preloadedTable.policy_table.functional_groupings[grpId][checkedSection] = { }
+  local maxCount = 100
+  for i = 1, maxCount + 1 do
+    local element = {
+      entityID = i,
+      entityType = maxCount + 2 - i
+    }
+    table.insert(preloadedTable.policy_table.functional_groupings[grpId][checkedSection], element)
+  end
+end
+sequence(desc, updateFunc)
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
