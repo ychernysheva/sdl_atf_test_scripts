@@ -1,6 +1,7 @@
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
 -- [Policies] External UCS: SnapshotPT without "external_consent_status_groups" param
+-- [Policies] External UCS: PreloadedPT without "external_consent_status_groups" struct
 --
 -- Description:
 -- In case:
