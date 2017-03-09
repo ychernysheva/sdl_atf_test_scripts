@@ -61,7 +61,7 @@ function Test:Precondition_ActivateApp()
   EXPECT_NOTIFICATION("OnHMIStatus", {systemContext = "MAIN", hmiLevel = "FULL"})
 end
 
-function Test:TestStep_First_StartService()
+function Test:Precondition_First_StartService()
   self.mobileSession.correlationId = self.mobileSession.correlationId + 1
 
   local msg = {
@@ -94,7 +94,10 @@ function Test:TestStep_First_StartService()
   commonTestCases:DelayedExp(10000)
 end
 
-function Test:Precondition_PolicyTableUpdate_fails()
+--[[ Test ]]
+commonFunctions:newTestCasesGroup("Test")
+
+function Test:TestStep_PolicyTableUpdate_fails()
   local startserviceEvent = Event()
   startserviceEvent.matches =
   function(_, data)
@@ -137,6 +140,48 @@ function Test:Precondition_PolicyTableUpdate_fails()
       end
     end)
   :Timeout(20000)
+end
+
+function Test:TestStep_Second_StartService()
+  self.mobileSession.correlationId = self.mobileSession.correlationId + 1
+
+  local msg = {
+    serviceType = 7,
+    frameInfo = 0,
+    rpcType = 0,
+    rpcFunctionId = 48,
+    encryption = true,
+    rpcCorrelationId = self.mobileSession.correlationId,
+    payload = '{ "audioStreamingIndicator" : "PAUSE" }'
+  }
+
+  self.mobileSession:Send(msg)
+
+  local startserviceEvent = Event()
+  startserviceEvent.matches =
+  function(_, data)
+    return ( (data.serviceType == 7) and (data.frameInfo == 2 or data.frameInfo == 3) )
+  end
+
+  self.mobileSession:ExpectEvent(startserviceEvent, "Service 7: StartServiceNACK")
+  :ValidIf(function(_, data)
+      if data.frameInfo == 2 then
+        commonFunctions:printError("Service 7: StartServiceACK is received")
+        return false
+      elseif data.frameInfo == 3 then
+        print("Service 7: RPC NACK")
+        return true
+      else
+        commonFunctions:printError("Service 7: StartServiceACK/NACK is not received at all.")
+        return false
+      end
+    end)
+  :Timeout(20000)
+
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate"):Times(0)
+  EXPECT_HMICALL("BasicCommunication.PolicyUpdate"):Times(0)
+  EXPECT_HMICALL("UI.SetAudioStreamingIndicator"):Times(0)
+
 end
 
 --[[ Postconditions ]]
