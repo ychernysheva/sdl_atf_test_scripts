@@ -110,7 +110,7 @@ function Test:TestStep_GetListofPermissions_entityID_missing()
   EXPECT_HMIRESPONSE(RequestIdListOfPermissions, {
     code = "0",
     allowedFunctions = {
-    { name = "Location-1", id = 156072572},
+    { name = "Location", id = 156072572},
     { name = "Notifications", id = 1809526495}
     },
     externalConsentStatus = {}
