@@ -175,7 +175,7 @@ for i =1, #invalid_data do
         self.hmiConnection:SendNotification("TTS.Started",{})
 
         local function ttsSpeakResponse()
-          self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"UI.PerformAudioPassThru", "code":"'..tostring(invalid_data[i].value)..'"}}')
+          self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"TTS.Speak", "code":"'..tostring(invalid_data[i].value)..'"}}')
           self.hmiConnection:SendNotification("TTS.Stopped")
         end
 
