@@ -7176,7 +7176,7 @@ function Test:activationApp(appIDValue)
 				
 			--Verification criteria:
 					
-						--1. When "ttsChunks" are sent within the request but the type is different from "TEXT" (SAPI_PHONEMES, LHPLUS_PHONEMES, PRE_RECORDED or SILENCE), WARNINGS is returned as a result in response. Info parameter provides additional information about the case. General result success=true in case of no errors from other components. 
+						--1. When "ttsChunks" are sent within the request but the type is different from "TEXT" (SAPI_PHONEMES, LHPLUS_PHONEMES, PRE_RECORDED, SILENCE, or FILE), WARNINGS is returned as a result in response. Info parameter provides additional information about the case. General result success=true in case of no errors from other components. 
 
 						--2. Verifiable by the following sequence:
 						--app->SDL: PerformInteraction (manual)
@@ -7193,7 +7193,7 @@ function Test:activationApp(appIDValue)
 						--SDL->app: PerformInteraction(WARNINGS,manualTextEntry)
 										
 			--Begin Test case ResultCodeCheck.6.1
-			--Description: When "ttsChunks" are sent within the request but the type is different from "TEXT" (SAPI_PHONEMES, LHPLUS_PHONEMES, PRE_RECORDED or SILENCE), WARNINGS is returned as a result in response. Info parameter provides additional information about the case. General result success=true in case of no errors from other components. 
+			--Description: When "ttsChunks" are sent within the request but the type is different from "TEXT" (SAPI_PHONEMES, LHPLUS_PHONEMES, PRE_RECORDED, SILENCE, or FILE), WARNINGS is returned as a result in response. Info parameter provides additional information about the case. General result success=true in case of no errors from other components. 
 				function Test:PI_VRWarningSuccessTrue()
 					local paramsSend = performInteractionAllParams()
 					paramsSend.interactionMode = "BOTH"

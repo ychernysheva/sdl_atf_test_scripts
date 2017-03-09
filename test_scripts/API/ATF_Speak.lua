@@ -174,7 +174,7 @@ end
 	--7. IsOutUpperBound
 	--8. Check children parameters:
 		--text: minlength="0" maxlength="500" type="String"
-		--type: type="SpeechCapabilities": "TEXT", "SAPI_PHONEMES", "LHPLUS_PHONEMES", "PRE_RECORDED", "SILENCE"
+		--type: type="SpeechCapabilities": "TEXT", "SAPI_PHONEMES", "LHPLUS_PHONEMES", "PRE_RECORDED", "SILENCE", "FILE"
 -----------------------------------------------------------------------------------------------
 
 local Request = Test:createRequest()

@@ -46,7 +46,8 @@ local ttsChunksType = {
 		{ text = "4025", type = "PRE_RECORDED" },
 		{ text = "Sapi", type = "SAPI_PHONEMES" },
 		{ text = "LHplus", type = "LHPLUS_PHONEMES" },
-		{ text = "Silence", type = "SILENCE" }
+		{ text = "Silence", type = "SILENCE" },
+		{ text = "File.m4a", type = "FILE" }
 	}
 local positiveChoiceSets = {
 		{	choiceID = 1001, menuName ="Choice1001", image = { value = pathToAppFolder .. "icon.png",	imageType ="DYNAMIC" } },
@@ -1400,8 +1401,8 @@ local blockId = 1
 
 	-----------------------------------------------------------------------------------------
 
-		--Description: ttschunk in speechCapabilities is sent with values:  SAPI_PHONEMES, LHPLUS_PHONEMES, PRE_RECORDED, SILENCE
-			local SpeechCapabilitiesArray = {"SAPI_PHONEMES", "LHPLUS_PHONEMES", "PRE_RECORDED", "SILENCE"}
+		--Description: ttschunk in speechCapabilities is sent with values:  SAPI_PHONEMES, LHPLUS_PHONEMES, PRE_RECORDED, SILENCE, FILE
+			local SpeechCapabilitiesArray = {"SAPI_PHONEMES", "LHPLUS_PHONEMES", "PRE_RECORDED", "SILENCE", "FILE"}
 
 			for i=1,#SpeechCapabilitiesArray do
 
@@ -4714,7 +4715,7 @@ local blockId = 1
         -- request is sent with all parameters missing
         -- request is sent with soft buttons and image type DYNAMIC
         -- request is sent with soft buttons and image type STATIC
-        -- Request is sent with with different ttsChunks type both supported (TEXT) and not supported (PRE_RECORDED, SAPI_PHONEMES, LHPLUS_PHONEMES, SILENCE)
+        -- Request is sent with with different ttsChunks type both supported (TEXT) and not supported (PRE_RECORDED, SAPI_PHONEMES, LHPLUS_PHONEMES, SILENCE, FILE)
 
  	    -- List of parametres in the request
 			-- 1. alertText1, type=String, maxlength=500, mandatory=false
@@ -5374,7 +5375,7 @@ local blockId = 1
 			end
 	---------------------------------------------------------------------------------------
 
-		--Description: This test is intended to check providing request with ttsChunks with type "PRE_RECORDED", "SAPI_PHONEMES","LHPLUS_PHONEMES" and "SILENCE"}}
+		--Description: This test is intended to check providing request with ttsChunks with type "PRE_RECORDED", "SAPI_PHONEMES","LHPLUS_PHONEMES", "SILENCE", "FILE"}}
 
 			for i=1, #ttsChunksType do
 				Test["Alert_ttsChunksType_" .. tostring(ttsChunksType[i].type)] = function(self)
@@ -5781,7 +5782,7 @@ local blockId = 1
 	-- 	Description:
 		-- Request is sent with all parameters
 		-- Request is sent with missing mandatory parameter
-		-- Request is sent with different ttsChunks types both supported (TEXT) and not supported (PRE_RECORDED, SAPI_PHONEMES, LHPLUS_PHONEMES, SILENCE)
+		-- Request is sent with different ttsChunks types both supported (TEXT) and not supported (PRE_RECORDED, SAPI_PHONEMES, LHPLUS_PHONEMES, SILENCE, FILE)
 
 		--  List of parametres in the request
 		-- 	1. ttsChunks, type=TTSChunk, minsize=1, maxsize=100, array=true
@@ -5853,7 +5854,7 @@ local blockId = 1
 
 	---------------------------------------------------------------------------------------
 
-		--Description: This test is intended to check processing request with unsupported speechCapabilities ("SAPI_PHONEMES", "LHPLUS_PHONEMES", "PRE_RECORDED", "SILENCE")
+		--Description: This test is intended to check processing request with unsupported speechCapabilities ("SAPI_PHONEMES", "LHPLUS_PHONEMES", "PRE_RECORDED", "SILENCE", "FILE")
 			for i=1, #ttsChunksType do
 				Test["Speak_ttsChunksType" .. tostring(ttsChunksType[i].type)] = function(self)
 					--mobile side: Speak request
@@ -7235,6 +7236,65 @@ local blockId = 1
 	            end)
 
 	        self.mobileSession:ExpectResponse(CorIdPerformAudioPassThruLSILENCEVD, { success = true, resultCode = "WARNINGS"})
+
+	      end
+
+
+---------------------------------------------------------------------------------------------
+
+	    -- Description: different speechCapabilities : FILE
+	      function Test:Case_PerformAudioPassThruFILETest()
+	        local CorIdPerformAudioPassThruFILEVD = self.mobileSession:SendRPC("PerformAudioPassThru",
+	          {
+	            initialPrompt = {
+	                                {
+	                                  text = "Makeyourchoise.m4a",
+	                                  type = "FILE",
+	                                },
+
+	                             },
+	            audioPassThruDisplayText1 = "DisplayText1",
+	            audioPassThruDisplayText2 = "DisplayText2",
+	            samplingRate = "8KHZ",
+	            maxDuration = 2000,
+	            bitsPerSample = "8_BIT",
+	            audioType = "PCM",
+	            muteAudio =  true
+	          })
+
+	        --hmi side: expect for TTS.Speak
+	        EXPECT_HMICALL("TTS.Speak",
+	                          {
+	                            ttsChunks =
+	                              {
+	                                {
+	                                  text = "Makeyourchoise.m4a",
+	                                  type = "FILE"
+	                                },
+	                              }
+	                          })
+	          :Do(function(_,data)
+	            self.hmiConnection:SendResponse(data.id, "TTS.Speak", "UNSUPPORTED_RESOURCE", { })
+	          end)
+
+	          -- hmi expects UI.PerformAudioPassThru request
+	          EXPECT_HMICALL("UI.PerformAudioPassThru",
+	            {
+	              appID = self.applications[applicationName],
+	              audioPassThruDisplayTexts = {
+	                                              {fieldName = "audioPassThruDisplayText1", fieldText = "DisplayText1"},
+	                                              {fieldName = "audioPassThruDisplayText2", fieldText = "DisplayText2"},
+
+	                                          },
+	              maxDuration = 2000,
+	              muteAudio = true
+
+	            })
+	            :Do(function(_,data)
+	              self.hmiConnection:SendResponse(data.id, "UI.PerformAudioPassThru", "SUCCESS", {})
+	            end)
+
+	        self.mobileSession:ExpectResponse(CorIdPerformAudioPassThruFILEVD, { success = true, resultCode = "WARNINGS"})
 
 	      end
 
@@ -9721,6 +9781,53 @@ local blockId = 1
 
 
 		        self.mobileSession:ExpectResponse(CorIdAlertManeuverSilenceVD, { success = true, resultCode = "WARNINGS", info = "Error in speechCapabilities"})
+
+		    end
+
+---------------------------------------------------------------------------------------------
+
+  		-- Description: Different speechCapabilities - FILE
+		    function Test:Case_AlertManeuverFileTest()
+		      local CorIdAlertManeuverFileVD = self.mobileSession:SendRPC("AlertManeuver",
+		          {ttsChunks = {
+		                          {
+		                          text = "Alert.mp3",
+		                          type = "FILE",
+		                          },
+		                        },
+		              })
+
+
+		      EXPECT_HMICALL("Navigation.AlertManeuver",
+		          {
+		          appID = self.applications[applicationName]
+		              })
+
+		      :Do(function(_,data)
+		            self.hmiConnection:SendResponse(data.id, "Navigation.AlertManeuver","SUCCESS", {})
+
+		      end)
+
+		       EXPECT_HMICALL("TTS.Speak",
+		                        {
+		                          speakType = "ALERT_MANEUVER",
+		                          ttsChunks =
+		                            {
+
+		                              {
+		                                text = "Alert.mp3",
+		                                type = "FILE"
+		                              },
+		                            },
+		                        })
+		                  :Do(function(_,data)
+
+		                    self.hmiConnection:SendError(data.id, "TTS.Speak", "UNSUPPORTED_RESOURCE", "Error in speechCapabilities")
+
+		                  end)
+
+
+		        self.mobileSession:ExpectResponse(CorIdAlertManeuverFileVD, { success = true, resultCode = "WARNINGS", info = "Error in speechCapabilities"})
 
 		    end
 

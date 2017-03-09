@@ -1350,7 +1350,7 @@ end
 			--[[
 			 - name="ttsChunks" minsize="1" maxsize="100" array="true" mandatory="false":
 			 	- name="text" minlength="0" maxlength="500" type="String"
-			 	- name="type" : TEXT, SAPI_PHONEMES, LHPLUS_PHONEMES, PRE_RECORDED, SILENCE
+			 	- name="type" : TEXT, SAPI_PHONEMES, LHPLUS_PHONEMES, PRE_RECORDED, SILENCE, FILE
 			 - name="softButtons" minsize="0" maxsize="3" array="true" mandatory="false" :
 			 	- name="type" : TEXT, IMAGE, BOTH;
 			 	- name="text" minlength="0" maxlength="500" type="String" mandatory="false";
@@ -2723,7 +2723,7 @@ end
 				--Begin Test case PositiveRequestCheck.1.6
 				--Description: ttsChunks: available values of type
 
-					local ttsChunksType = {{text = "4025",type = "PRE_RECORDED"},{ text = "Sapi",type = "SAPI_PHONEMES"}, {text = "LHplus", type = "LHPLUS_PHONEMES"}, {text = "Silence", type = "SILENCE"}}
+					local ttsChunksType = {{text = "4025",type = "PRE_RECORDED"},{ text = "Sapi",type = "SAPI_PHONEMES"}, {text = "LHplus", type = "LHPLUS_PHONEMES"}, {text = "Silence", type = "SILENCE"}, {text = "File.m4a", type = "FILE"}}
 					for i=1,#ttsChunksType do
 						Test["AlertManeuver_ttsChunksType" .. tostring(ttsChunksType[i].type)] = function(self)
 							--mobile side: Alert request 	
