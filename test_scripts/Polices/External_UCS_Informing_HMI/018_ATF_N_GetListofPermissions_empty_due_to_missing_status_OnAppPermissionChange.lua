@@ -33,6 +33,7 @@ config.defaultProtocolVersion = 2
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
+local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 
 --[[ General Precondition before ATF start ]]
 commonFunctions:SDLForceStop()
@@ -51,7 +52,7 @@ function Test:Precondition_trigger_getting_device_consent()
   testCasesForPolicyTable:trigger_getting_device_consent(self, config.application1.registerAppInterfaceParams.appName, config.deviceMAC)
 end
 
-function Test:Precondition_PTU_and_OnAppPermissionConsent_AllParams_Valid()
+function Test:Precondition_PTU_and_OnAppPermissionConsent_entityStatus_missing()
   local ptu_file_path = "files/jsons/Policies/Related_HMI_API/"
   local ptu_file = "OnAppPermissionConsent_ptu.json"
   
@@ -81,7 +82,7 @@ function Test:Precondition_PTU_and_OnAppPermissionConsent_AllParams_Valid()
           {
             appID = self.applications[config.application1.registerAppInterfaceParams.appName],
             consentedFunctions = {
-              { allowed = true, id = 156072572, name = "Location-1"},
+              { allowed = true, id = 156072572, name = "Location"},
               { allowed = true, id = 1809526495, name = "Notifications"}
             },
             externalConsentStatus = {
@@ -103,13 +104,13 @@ end
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
-function Test:TestStep_GetListofPermissions_entityType_missing()
+function Test:TestStep_GetListofPermissions_entityStatus_missing()
   local RequestIdListOfPermissions = self.hmiConnection:SendRequest("SDL.GetListOfPermissions", {appID = self.applications[config.application1.registerAppInterfaceParams.appName]})
   
   EXPECT_HMIRESPONSE(RequestIdListOfPermissions, {
     code = "0",
     allowedFunctions = {
-    { name = "Location-1", id = 156072572},
+    { name = "Location", id = 156072572},
     { name = "Notifications", id = 1809526495}
     },
     externalConsentStatus = {}
