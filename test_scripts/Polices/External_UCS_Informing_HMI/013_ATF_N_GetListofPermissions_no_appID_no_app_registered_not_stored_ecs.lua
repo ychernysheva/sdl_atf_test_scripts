@@ -97,7 +97,8 @@ end
 commonFunctions:newTestCasesGroup("Test")
 
 function Test:TestStep_GetListofPermissions_appID_NotRegistred_AtAll_App_Empty_ecs()
-  local RequestIdListOfPermissions = self.hmiConnection:SendRequest("SDL.GetListOfPermissions", {appID = self.applications[config.application2.registerAppInterfaceParams.appName]})
+  local hmi_appId = self.applications[config.application1.registerAppInterfaceParams.appName] + 1
+  local RequestIdListOfPermissions =  self.hmiConnection:SendRequest("SDL.GetListOfPermissions", {appID = hmi_appId})
 
   EXPECT_HMIRESPONSE(RequestIdListOfPermissions,{code = "0",
       allowedFunctions = {
