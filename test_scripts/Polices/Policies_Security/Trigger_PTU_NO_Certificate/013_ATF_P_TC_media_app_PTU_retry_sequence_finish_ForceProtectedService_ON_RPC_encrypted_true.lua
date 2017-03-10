@@ -102,7 +102,7 @@ function Test:Precondition_First_StartService()
   commonTestCases:DelayedExp(10000)
 end
 
---[[ Preconditions ]]
+--[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
 function Test:TestStep_PolicyTableUpdate_retry_sequence_elapse()
