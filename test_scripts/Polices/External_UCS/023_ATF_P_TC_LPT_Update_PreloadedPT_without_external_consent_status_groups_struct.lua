@@ -13,7 +13,7 @@
 --
 -- Preconditions:
 -- 1. Stop SDL (Ignition Off)
--- 2. Modify PreloadedPolicyTable (remove 'external_consent_status_groups' section)
+-- 2. Check that PreloadedPT doesn't contain 'external_consent_status_groups' section
 -- 3. Initiate Local Policy Table update by setting 'preloaded_date' parameter
 --
 -- Steps:
@@ -21,7 +21,7 @@
 -- 2. Check SDL status
 --
 -- Expected result:
--- Status = 0 (SDL is stopped)
+-- Status = 1 (SDL is running)
 --
 -- Note: Script is designed for EXTERNAL_PROPRIETARY flow
 ---------------------------------------------------------------------------------------------
@@ -37,6 +37,9 @@ local commonPreconditions = require('user_modules/shared_testcases/commonPrecond
 local sdl = require('SDL')
 local testCasesForExternalUCS = require('user_modules/shared_testcases/testCasesForExternalUCS')
 
+--[[ Local variables ]]
+local checkedSection = "external_consent_status_groups"
+
 --[[ General Precondition before ATF start ]]
 commonFunctions:SDLForceStop()
 commonSteps:DeleteLogsFileAndPolicyTable()
@@ -49,42 +52,38 @@ require('user_modules/AppTypes')
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
 
-function Test:CheckSDLStatus_1_RUNNING()
-  testCasesForExternalUCS.checkSDLStatus(self, sdl.RUNNING)
-end
-
-function Test:ConnectMobile()
-  self:connectMobile()
-end
-
-function Test:StartSession()
-  testCasesForExternalUCS.startSession(self, 1)
-end
-
-function Test:RAI()
-  testCasesForExternalUCS.registerApp(self, 1)
-end
-
 function Test:StopSDL_IGNITION_OFF()
   testCasesForExternalUCS.ignitionOff(self)
 end
 
-function Test:CheckSDLStatus_2_STOPPED()
+function Test:CheckSDLStatus_1_STOPPED()
   testCasesForExternalUCS.checkSDLStatus(self, sdl.STOPPED)
+end
+
+function Test:CheckPreloadedPT()
+  local preloadedFile = commonPreconditions:GetPathToSDL() .. "sdl_preloaded_pt.json"
+  local preloadedTable = testCasesForExternalUCS.createTableFromJsonFile(preloadedFile)
+  local result = true
+  if preloadedTable
+  and preloadedTable.policy_table
+  and preloadedTable.policy_table.device_data
+  and preloadedTable.policy_table.device_data[config.deviceMAC]
+  and preloadedTable.policy_table.device_data[config.deviceMAC].user_consent_records
+  then
+    for _, v in pairs(preloadedTable.policy_table.device_data[config.deviceMAC].user_consent_records) do
+      if v[checkedSection] then
+        result = false
+      end
+    end
+  end
+  if result == false then
+    self:FailTestCase("Section '" .. checkedSection .. "'' was found in PreloadedPT")
+  end
 end
 
 function Test.UpdatePreloadedPT()
   local updateFunc = function(preloadedTable)
     preloadedTable.policy_table.module_config.preloaded_date = os.date("%Y-%m-%d")
-    preloadedTable.policy_table.device_data = {
-      [config.deviceMAC] = {
-        user_consent_records = {
-          [config.application1.registerAppInterfaceParams.appID] = {
-            external_consent_status_groups = nil
-          }
-        }
-      }
-    }
   end
   testCasesForExternalUCS.updatePreloadedPT(updateFunc)
 end
