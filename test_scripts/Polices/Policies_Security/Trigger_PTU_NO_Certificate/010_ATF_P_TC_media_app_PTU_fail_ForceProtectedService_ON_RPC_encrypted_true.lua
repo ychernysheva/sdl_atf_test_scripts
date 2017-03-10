@@ -14,18 +14,17 @@
 -- RPC SetAudioStreamingIndicator is allowed by policy
 -- ForceProtectedService is set to ON in .ini file
 -- Media app exists in LP, no certificate in module_config
+-- Register and activate application.
+-- Send StartService(serviceType = 7 (RPC), RPCfunctionID = 48(SetAudioStreamingIndicator))
+-- -> SDL should trigger PTU: SDL.OnStatusUpdate(UPDATE_NEEDED)
+-- -> SDL should not respond to StartService_request
+-- -> SDL should not process request to HMI
 --
 -- 2. Performed steps
--- 2.1. Register and activate application.
--- 2.2. Send StartService(serviceType = 7 (RPC), RPCfunctionID = 48(SetAudioStreamingIndicator))
--- 2.3. Send wrong policyfile (updated with function create_ptu_certificate_exist(false, true) )
+-- Send wrong policyfile (updated with function create_ptu_certificate_exist(false, true) )
 --
 -- Expected result:
--- 1. Application is registered and activated successfully.
--- 2. SDL should trigger PTU: SDL.OnStatusUpdate(UPDATE_NEEDED)
--- SDL should not respond to StartService_request
--- SDL should not process request to HMI
--- 3. SDL must respond StartService (NACK) to this mobile app
+-- SDL must respond StartService (NACK) to this mobile app
 ---------------------------------------------------------------------------------------------
 
 --[[ General configuration parameters ]]
@@ -153,7 +152,7 @@ function Test:TestStep_Second_StartService_NACK()
     rpcFunctionId = 48,
     encryption = true,
     rpcCorrelationId = self.mobileSession.correlationId,
-    payload = '{ "audioStreamingIndicator" : "PLAY" }'
+    payload = '{ "audioStreamingIndicator" : "PAUSE" }'
   }
   testCasesForPolicyCeritificates.start_service_NACK(self, msg, 7,"RPC")
 end
