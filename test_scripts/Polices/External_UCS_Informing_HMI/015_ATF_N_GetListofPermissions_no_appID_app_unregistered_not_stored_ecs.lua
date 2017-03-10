@@ -108,7 +108,6 @@ function Test:Preconditon_RegisterSecondApplication()
   :Do(function(_,data) 
     self.applications[config.application2.registerAppInterfaceParams.appName] = data.params.application.appID 
     hmi_appid = self.applications[config.application2.registerAppInterfaceParams.appName]
-    hmi_appid = self.applications[config.application2.registerAppInterfaceParams.appName]
   end)
   self.mobileSession1:ExpectResponse(CorIdRegister, { success=true, resultCode = "SUCCESS"})
   self.mobileSession1:ExpectNotification("OnHMIStatus", { systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE"})
