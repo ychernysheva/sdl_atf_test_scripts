@@ -44,7 +44,7 @@ local Event = events.Event
 
 --[[ General Precondition before ATF start ]]
 commonPreconditions:BackupFile("smartDeviceLink.ini")
---commonFunctions:write_parameter_to_smart_device_link_ini("ForceProtectedService", "0x07")
+commonFunctions:write_parameter_to_smart_device_link_ini("ForceProtectedService", "0x07")
 testCasesForPolicyCeritificates.update_preloaded_pt(config.application1.registerAppInterfaceParams.appID, false)
 testCasesForPolicyCeritificates.create_ptu_certificate_exist(false, true)
 commonSteps:DeletePolicyTable()
@@ -153,33 +153,9 @@ function Test:TestStep_Second_StartService_NACK()
     rpcFunctionId = 48,
     encryption = true,
     rpcCorrelationId = self.mobileSession.correlationId,
-    payload = '{ "audioStreamingIndicator" : "PAUSE" }'
+    payload = '{ "audioStreamingIndicator" : "PLAY" }'
   }
-
-  self.mobileSession:Send(msg)
-
-  local startserviceEvent = Event()
-  startserviceEvent.matches =
-  function(_, data)
-    return ( (data.serviceType == 7) and (data.frameInfo == 2 or data.frameInfo == 3) )
-  end
-
-  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate"):Times(0)
-  EXPECT_HMICALL("BasicCommunication.PolicyUpdate"):Times(0)
-  EXPECT_HMICALL("UI.SetAudioStreamingIndicator"):Times(0)
-  self.mobileSession:ExpectEvent(startserviceEvent, "Service 7: StartServiceNACK")
-  :ValidIf(function(_, data)
-      if data.frameInfo == 2 then
-        commonFunctions:printError("Service 7: StartServiceACK is received")
-        return false
-      elseif data.frameInfo == 3 then
-        print("Service 7: RPC NACK")
-        return true
-      else
-        commonFunctions:printError("Service 7: StartServiceACK/NACK is not received at all.")
-        return false
-      end
-    end)
+  testCasesForPolicyCeritificates.start_service_NACK(self, msg, 7,"RPC")
 end
 
 --[[ Postconditions ]]
