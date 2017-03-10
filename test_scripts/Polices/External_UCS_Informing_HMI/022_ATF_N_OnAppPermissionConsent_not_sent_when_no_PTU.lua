@@ -3,7 +3,7 @@
 -- [Policies] [External UCS] SDL informs HMI about <externalConsentStatus> via GetListOfPermissions response
 -- [HMI API] GetListOfPermissions request/response
 -- [HMI API] ExternalConsentStatus struct & EntityStatus enum
--- When onAppPermission Changed should be sent
+-- "Clarification: When onAppPermission Changed should be sent"
 -- 
 --
 -- Description:
@@ -16,11 +16,12 @@
 -- Device is not consented and PTU does not take place
 --
 -- 2. Performed steps
--- SDL sends to HMI BasicCommunication.ActivateApp
+-- Activate app in order to trigger PTU
 -- SDL sends to mobile OnHMIStatus 
 -- HMI sends to SDL BasicCommunication.ActivateApp
 --
 -- Expected result:
+-- PTU is triggered
 -- HMI notification SDL.OnAppPermissionChanged is not sent 
 ---------------------------------------------------------------------------------------------
 
