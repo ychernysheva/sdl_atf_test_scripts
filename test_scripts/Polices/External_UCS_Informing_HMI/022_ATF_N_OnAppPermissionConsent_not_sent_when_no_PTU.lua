@@ -17,8 +17,6 @@
 --
 -- 2. Performed steps
 -- Activate app in order to trigger PTU
--- SDL sends to mobile OnHMIStatus 
--- HMI sends to SDL BasicCommunication.ActivateApp
 --
 -- Expected result:
 -- PTU is triggered
