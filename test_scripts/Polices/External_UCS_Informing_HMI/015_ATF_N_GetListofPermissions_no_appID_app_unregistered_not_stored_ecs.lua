@@ -33,6 +33,7 @@ local commonFunctions = require ('user_modules/shared_testcases/commonFunctions'
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
 local mobile_session = require('mobile_session')
+local hmi_appid
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
@@ -103,6 +104,7 @@ end
 function Test:Preconditon_RegisterSecondApplication()
   local CorIdRegister = self.mobileSession1:SendRPC("RegisterAppInterface", config.application2.registerAppInterfaceParams)
 
+  hmi_appid = self.applications[config.application2.registerAppInterfaceParams.appName]
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application2.registerAppInterfaceParams.appName }})
   :Do(function(_,data) self.applications[config.application2.registerAppInterfaceParams.appName] = data.params.application.appID end)
 
@@ -121,7 +123,7 @@ end
 commonFunctions:newTestCasesGroup("Test")
 
 function Test:TestStep_GetListofPermissions_appID_Unregistered_App_Empty_ecs()
-  local RequestIdListOfPermissions = self.hmiConnection:SendRequest("SDL.GetListOfPermissions", {appID = self.applications[config.application2.registerAppInterfaceParams.appName]})
+  local RequestIdListOfPermissions = self.hmiConnection:SendRequest("SDL.GetListOfPermissions", {appID = hmi_appid})
 
   EXPECT_HMIRESPONSE(RequestIdListOfPermissions,{code = "0",
       allowedFunctions = {
@@ -129,14 +131,13 @@ function Test:TestStep_GetListofPermissions_appID_Unregistered_App_Empty_ecs()
         { name = "Notifications", id = 1809526495, allowed = true}
       },
       externalConsentStatus = {}
-    })
+  })
 end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
 
 function Test.Postcondition_Stop_SDL()
-
   StopSDL()
 end
 
