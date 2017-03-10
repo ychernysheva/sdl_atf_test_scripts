@@ -103,11 +103,11 @@ end
 
 function Test:Preconditon_RegisterSecondApplication()
   local CorIdRegister = self.mobileSession1:SendRPC("RegisterAppInterface", config.application2.registerAppInterfaceParams)
-
-  hmi_appid = self.applications[config.application2.registerAppInterfaceParams.appName]
+  
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application2.registerAppInterfaceParams.appName }})
   :Do(function(_,data) self.applications[config.application2.registerAppInterfaceParams.appName] = data.params.application.appID end)
-
+  
+  hmi_appid = self.applications[config.application2.registerAppInterfaceParams.appName]
   self.mobileSession1:ExpectResponse(CorIdRegister, { success=true, resultCode = "SUCCESS"})
   self.mobileSession1:ExpectNotification("OnHMIStatus", { systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE"})
 end
