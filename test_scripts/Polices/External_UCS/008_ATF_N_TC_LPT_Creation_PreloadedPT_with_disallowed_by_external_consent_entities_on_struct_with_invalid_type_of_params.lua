@@ -38,6 +38,7 @@ local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 local sdl = require('SDL')
 local testCasesForExternalUCS = require('user_modules/shared_testcases/testCasesForExternalUCS')
+local testCasesForPolicySDLErrorsStops = require('user_modules/shared_testcases/testCasesForPolicySDLErrorsStops')
 
 --[[ Local variables ]]
 local grpId = "Location-1"
@@ -74,6 +75,7 @@ end
 commonFunctions:newTestCasesGroup("Test")
 
 local n = 1
+local startLine = 1
 
 local function sequence(desc, updateFunc)
 
@@ -105,6 +107,14 @@ local function sequence(desc, updateFunc)
 
   function Test:CheckSDLStatus()
     testCasesForExternalUCS.checkSDLStatus(self, sdl.STOPPED)
+  end
+
+  function Test:CheckLog()
+    local result = testCasesForPolicySDLErrorsStops.ReadSpecificMessage("Policy table is not initialized", startLine)
+    if result ~= true then
+      self:FailTestCase("Error message was not found in log file")
+    end
+    startLine = testCasesForPolicySDLErrorsStops.GetCountOfRows()
   end
 
   n = n + 1
