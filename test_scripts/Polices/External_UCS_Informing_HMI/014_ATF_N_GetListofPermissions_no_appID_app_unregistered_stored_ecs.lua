@@ -34,6 +34,7 @@ local commonFunctions = require ('user_modules/shared_testcases/commonFunctions'
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
 local mobile_session = require('mobile_session')
+local hmi_appid
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
@@ -68,7 +69,7 @@ function Test:Precondition_PTU_and_OnAppPermissionConsent_AllParams_First_Applic
               },
               externalConsentStatus = {}
             }
-          })
+        })
         :Do(function()
             local ReqIDGetUserFriendlyMessage = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage",
               {language = "EN-US", messageCodes = {"AppPermissions"}})
@@ -89,7 +90,7 @@ function Test:Precondition_PTU_and_OnAppPermissionConsent_AllParams_First_Applic
                     source = "GUI"
                   })
                 EXPECT_NOTIFICATION("OnPermissionsChange")
-              end)
+            end)
         end)
       else
         commonFunctions:userPrint(31, "Wrong SDL bahavior: there are app permissions for consent, isPermissionsConsentNeeded should be true")
@@ -109,6 +110,7 @@ function Test:Preconditon_RegisterSecondApplication()
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application2.registerAppInterfaceParams.appName }})
   :Do(function(_,data) self.applications[config.application2.registerAppInterfaceParams.appName] = data.params.application.appID end)
 
+  hmi_appid = self.applications[config.application2.registerAppInterfaceParams.appName]
   self.mobileSession1:ExpectResponse(CorIdRegister, { success=true, resultCode = "SUCCESS"})
   self.mobileSession1:ExpectNotification("OnHMIStatus", { systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE"})
 end
@@ -124,7 +126,7 @@ end
 commonFunctions:newTestCasesGroup("Test")
 
 function Test:TestStep_GetListofPermissions_appID_Unregistred_App_Stored_ecs()
-  local RequestIdListOfPermissions = self.hmiConnection:SendRequest("SDL.GetListOfPermissions", {appID = self.applications[config.application2.registerAppInterfaceParams.appName]})
+  local RequestIdListOfPermissions = self.hmiConnection:SendRequest("SDL.GetListOfPermissions", {appID = hmi_appid})
   EXPECT_HMIRESPONSE(RequestIdListOfPermissions,{code = "0",
       allowedFunctions = {
         { name = "Location", id = 156072572, allowed = true},
