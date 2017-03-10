@@ -14,18 +14,17 @@
 -- RPC SetAudioStreamingIndicator is allowed by policy
 -- ForceProtectedService is set to ON in .ini file
 -- Default app exists in LP, no certificate in module_config
+-- Register and activate application.
+-- Send StartService(serviceType = 7 (RPC), RPCfunctionID = 48(SetAudioStreamingIndicator))
+-- -> SDL should trigger PTU: SDL.OnStatusUpdate(UPDATE_NEEDED)
+-- -> SDL should not respond to StartService_request
+-- -> SDL should not process request to HMI
 --
 -- 2. Performed steps
--- 2.1. Register and activate application.
--- 2.2. Send StartService(serviceType = 7 (RPC), RPCfunctionID = 48(SetAudioStreamingIndicator))
--- 2.3. Send wrong policyfile (updated with function create_ptu_certificate_exist(false, true) )
+-- Send wrong policyfile (updated with function create_ptu_certificate_exist(false, true) )
 --
 -- Expected result:
--- 1. Application is registered and activated successfully.
--- 2. SDL should trigger PTU: SDL.OnStatusUpdate(UPDATE_NEEDED)
--- SDL should not respond to StartService_request
--- SDL should not process request to HMI
--- 3. SDL must respond StartService (NACK) to this mobile app
+-- SDL must respond StartService (NACK) to this mobile app
 ---------------------------------------------------------------------------------------------
 
 --[[ General configuration parameters ]]
@@ -95,6 +94,9 @@ function Test:Precondition_First_StartService()
   commonTestCases:DelayedExp(10000)
 end
 
+--[[ Test ]]
+commonFunctions:newTestCasesGroup("Test")
+
 function Test:TestStep_PolicyTableUpdate_fails()
   local startserviceEvent = Event()
   startserviceEvent.matches =
@@ -152,33 +154,7 @@ function Test:TestStep_Second_StartService_NACK()
     rpcCorrelationId = self.mobileSession.correlationId,
     payload = '{ "audioStreamingIndicator" : "PAUSE" }'
   }
-
-  self.mobileSession:Send(msg)
-
-  local startserviceEvent = Event()
-  startserviceEvent.matches =
-  function(_, data)
-    return ( (data.serviceType == 7) and (data.frameInfo == 2 or data.frameInfo == 3) )
-  end
-
-  self.mobileSession:ExpectEvent(startserviceEvent, "Service 7: StartServiceNACK")
-  :ValidIf(function(_, data)
-      if data.frameInfo == 2 then
-        commonFunctions:printError("Service 7: StartServiceACK is received")
-        return false
-      elseif data.frameInfo == 3 then
-        print("Service 7: RPC NACK")
-        return true
-      else
-        commonFunctions:printError("Service 7: StartServiceACK/NACK is not received at all.")
-        return false
-      end
-    end)
-
-  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate"):Times(0)
-  EXPECT_HMICALL("BasicCommunication.PolicyUpdate"):Times(0)
-  EXPECT_HMICALL("UI.SetAudioStreamingIndicator"):Times(0)
-
+  testCasesForPolicyCeritificates.start_service_NACK(self, msg, 7,"RPC")
 end
 
 --[[ Postconditions ]]
