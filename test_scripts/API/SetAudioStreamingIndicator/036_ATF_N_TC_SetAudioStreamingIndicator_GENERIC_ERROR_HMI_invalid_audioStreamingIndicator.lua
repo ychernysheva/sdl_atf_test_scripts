@@ -43,8 +43,8 @@ local testCasesForPolicyTable = require('user_modules/shared_testcases/testCases
 local invalid_data = {
   -- wrong type: integer
   {value = 123, descr = "wrongtype"},
-  {value = "TESTING" , descr = "nonexisting_enum"},
-  {value = "", descr = "empty"}
+  {value = '"TESTING"' , descr = "nonexisting_enum"},
+  {value = '""', descr = "empty"}
 }
 
 --[[ General Precondition before ATF start ]]
@@ -72,8 +72,8 @@ for i = 1, #invalid_data do
 
     EXPECT_HMICALL("UI.SetAudioStreamingIndicator", { audioStreamingIndicator = "PAUSE" })
     :Do(function(_,data)
-    	self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"UI.SetAudioStreamingIndicator", "code":'..tostring(invalid_data[i].value)..'}}')	
-    end)
+        self.hmiConnection:Send('{"id":' .. tostring(data.id) .. ',"jsonrpc":"2.0","result":{"available":true,"method":"UI.SetAudioStreamingIndicator", "code":' .. tostring(invalid_data[i].value) .. '}}')
+      end)
 
     EXPECT_RESPONSE(corr_id, { success = false, resultCode = "GENERIC_ERROR", info = "Invalid message received from vehicle" })
   end
