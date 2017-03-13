@@ -16,9 +16,11 @@
 -- 2. Activate app
 -- 3. Perform PTU (make sure 'external_consent_status_groups' exists in PTU file)
 -- 4. Verify status of update
+-- 5. Verify LocalPT (using data in snapshot)
 --
 -- Expected result:
--- PTU fails with UPDATE_NEEDED status
+-- a) PTU fails with UPDATE_NEEDED status
+-- b) 'external_consent_status_groups' section doesn't exist in LocalPT
 --
 -- Note: Script is designed for EXTERNAL_PROPRIETARY flow
 ---------------------------------------------------------------------------------------------
@@ -87,11 +89,44 @@ function Test:CheckStatus_UPDATE_NEEDED()
   EXPECT_HMIRESPONSE(reqId, { status = checkedStatus })
 end
 
---[[ Postconditions ]]
-commonFunctions:newTestCasesGroup("Postconditions")
-
-function Test.StopSDL()
-  StopSDL()
+function Test.RemovePTS()
+  testCasesForExternalUCS.removePTS()
 end
 
-return Test
+function Test:StartSession_2()
+  testCasesForExternalUCS.startSession(self, 2)
+end
+
+function Test:RAI_2()
+  testCasesForExternalUCS.registerApp(self, 2)
+end
+
+function Test:ActivateApp_2()
+  testCasesForExternalUCS.activateApp(self, 2)
+end
+
+function Test:CheckPTS()
+  if not testCasesForExternalUCS.pts then
+    self:FailTestCase("PTS was not created")
+  elseif testCasesForExternalUCS.pts.policy_table
+    and testCasesForExternalUCS.pts.policy_table.device_data
+    and testCasesForExternalUCS.pts.policy_table.device_data[config.deviceMAC]
+    and testCasesForExternalUCS.pts.policy_table.device_data[config.deviceMAC].user_consent_records
+    and testCasesForExternalUCS.pts.policy_table.device_data[config.deviceMAC].user_consent_records[appId]
+    and testCasesForExternalUCS.pts.policy_table.device_data[config.deviceMAC].user_consent_records[appId][checkedSection]
+    then
+      self:FailTestCase("Section '" .. checkedSection .. "' was found in PTS")
+    else
+      print("Section '".. checkedSection .. "' doesn't exist in PTS")
+      print(" => OK")
+    end
+  end
+
+  --[[ Postconditions ]]
+  commonFunctions:newTestCasesGroup("Postconditions")
+
+  function Test.StopSDL()
+    StopSDL()
+  end
+
+  return Test
