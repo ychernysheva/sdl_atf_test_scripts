@@ -51,15 +51,6 @@ local function replaceSDLPreloadedPtFile()
   local preloadedTable = testCasesForExternalUCS.createTableFromJsonFile(preloadedFile)
   preloadedTable.policy_table.functional_groupings["DataConsent-2"].rpcs = json.null
   --
-  preloadedTable.policy_table.app_policies[appId] = {
-    default_hmi = "NONE",
-    keep_context = false,
-    priority = "NONE",
-    steal_focus = false,
-    groups = {
-      "Base-4", grpId
-    }
-  }
   preloadedTable.policy_table.functional_groupings[grpId].disallowed_by_external_consent_entities_on = {
     {
       entityID = 128,
@@ -87,15 +78,19 @@ function Test:ConnectMobile()
   self:connectMobile()
 end
 
-function Test:StartSession()
+function Test:StartSession_1()
   testCasesForExternalUCS.startSession(self, 1)
 end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
-function Test:RAI()
+function Test:RAI_1()
   testCasesForExternalUCS.registerApp(self, 1)
+end
+
+function Test:ActivateApp_1()
+  testCasesForExternalUCS.activateApp(self, 1)
 end
 
 function Test:SendExternalConsent()
@@ -105,8 +100,20 @@ function Test:SendExternalConsent()
     } })
 end
 
-function Test:ActivateApp()
-  testCasesForExternalUCS.activateApp(self, 1)
+function Test.RemovePTS()
+  testCasesForExternalUCS.removePTS()
+end
+
+function Test:StartSession_2()
+  testCasesForExternalUCS.startSession(self, 2)
+end
+
+function Test:RAI_2()
+  testCasesForExternalUCS.registerApp(self, 2)
+end
+
+function Test:ActivateApp_2()
+  testCasesForExternalUCS.activateApp(self, 2)
 end
 
 function Test:CheckPTS()
