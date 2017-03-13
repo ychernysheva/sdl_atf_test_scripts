@@ -136,7 +136,7 @@ function Test:TestStep_PTU_NO_certificate()
         commonFunctions:printError("Service 7: StartServiceACK is received")
         return false
       elseif data.frameInfo == 3 then
-        print("Service 7: Audio NACK")
+        print("Service 7: RPC NACK")
         return true
       else
         commonFunctions:printError("Service 7: StartServiceACK/NACK is not received at all.")
