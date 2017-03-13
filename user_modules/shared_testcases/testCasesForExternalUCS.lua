@@ -217,8 +217,14 @@ local utils = { }
 --! @parameters: NO
 --]]
   function utils.ignitionOff(test)
-    test.hmiConnection:SendNotification("BasicCommunication.OnExitAllApplications", { reason = "IGNITION_OFF" })
-    StopSDL()
+    if sdl:CheckStatusSDL() == sdl.RUNNING then
+      test.hmiConnection:SendNotification("BasicCommunication.OnExitAllApplications", { reason = "SUSPEND" })
+      EXPECT_HMINOTIFICATION("BasicCommunication.OnSDLPersistenceComplete")
+      :Do(function()
+          test.hmiConnection:SendNotification("BasicCommunication.OnExitAllApplications", { reason = "IGNITION_OFF" })
+          StopSDL()
+        end)
+      end
   end
 
 return utils

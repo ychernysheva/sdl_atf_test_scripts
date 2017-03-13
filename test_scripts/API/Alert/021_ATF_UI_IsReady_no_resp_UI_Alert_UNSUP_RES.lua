@@ -71,18 +71,18 @@ function Test:Precondition_ActivationApp()
   local request_id = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.applications[config.application1.registerAppInterfaceParams.appName]})
   EXPECT_HMIRESPONSE(request_id)
   :Do(function(_,data)
-    if (data.result.isSDLAllowed ~= true) then
-      local request_id1 = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
-      EXPECT_HMIRESPONSE(request_id1)
-      :Do(function(_,_)
-        self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = ServerAddress}})
-        EXPECT_HMICALL("BasicCommunication.ActivateApp")
-        :Do(function(_,data1)
-          self.hmiConnection:SendResponse(data1.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
-        end)
-      end)
-    end
-  end)
+      if (data.result.isSDLAllowed ~= true) then
+        local request_id1 = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
+        EXPECT_HMIRESPONSE(request_id1)
+        :Do(function(_,_)
+            self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = ServerAddress}})
+            EXPECT_HMICALL("BasicCommunication.ActivateApp")
+            :Do(function(_,data1)
+                self.hmiConnection:SendResponse(data1.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
+              end)
+          end)
+      end
+    end)
   EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"})
 end
 
@@ -93,45 +93,45 @@ commonFunctions:newTestCasesGroup("Test")
 
 function Test:TestStep_Alert_UI_Alert_UNSUPPORTED_RESOURCE()
   local cor_id = self.mobileSession:SendRPC("Alert",
-  {
-    alertText1 = "alertText1",
-    alertText2 = "alertText2",
-    alertText3 = "alertText3",
-    ttsChunks = {{text = "TTSChunk", type = "TEXT"}},
-    duration = 3000,
-    progressIndicator = true,
-    softButtons =
+    {
+      alertText1 = "alertText1",
+      alertText2 = "alertText2",
+      alertText3 = "alertText3",
+      ttsChunks = {{text = "TTSChunk", type = "TEXT"}},
+      duration = 3000,
+      progressIndicator = true,
+      softButtons =
       {{
-        type = "BOTH",
-        text = "Close",
-        image = { value = "icon.png", imageType = "DYNAMIC" },
-        isHighlighted = true,
-        softButtonID = 3,
-        systemAction = "DEFAULT_ACTION",
-    }}
-  })
+          type = "BOTH",
+          text = "Close",
+          image = { value = "icon.png", imageType = "DYNAMIC" },
+          isHighlighted = true,
+          softButtonID = 3,
+          systemAction = "DEFAULT_ACTION",
+      }}
+    })
 
   EXPECT_HMICALL("UI.Alert",
-  {alertStrings =
-    {
-      {fieldName = "alertText1", fieldText = "alertText1"},
-      {fieldName = "alertText2", fieldText = "alertText2"},
-      {fieldName = "alertText3", fieldText = "alertText3"}
-    },
-    alertType = "BOTH",
-    duration = 0, -- duration of Alert with softButtons present
-    progressIndicator = true,
-    softButtons =
+    {alertStrings =
+      {
+        {fieldName = "alertText1", fieldText = "alertText1"},
+        {fieldName = "alertText2", fieldText = "alertText2"},
+        {fieldName = "alertText3", fieldText = "alertText3"}
+      },
+      alertType = "BOTH",
+      duration = 0, -- duration of Alert with softButtons present
+      progressIndicator = true,
+      softButtons =
       {{
-        type = "BOTH",
-        text = "Close",
-        image = { imageType = "DYNAMIC"},
-        isHighlighted = true,
-        softButtonID = 3,
-        systemAction = "DEFAULT_ACTION",
-    }},
-    appID = self.applications[config.application1.registerAppInterfaceParams.appName]
-  })
+          type = "BOTH",
+          text = "Close",
+          image = { imageType = "DYNAMIC"},
+          isHighlighted = true,
+          softButtonID = 3,
+          systemAction = "DEFAULT_ACTION",
+      }},
+      appID = self.applications[config.application1.registerAppInterfaceParams.appName]
+    })
   :ValidIf(function(_,data)
     local value_Icon = storagePath .. "icon.png"
       if (string.match(data.params.softButtons[1].image.value, "%S*" .. "("..string.sub(storagePath, 2).."icon.png)" .. "%W*$") == nil )  and
@@ -143,28 +143,28 @@ function Test:TestStep_Alert_UI_Alert_UNSUPPORTED_RESOURCE()
     end
   end)
   :Do(function(_,data2)
-    local function alertResponse()
-      self.hmiConnection:SendResponse(data2.id, "UI.Alert", "UNSUPPORTED_RESOURCE", {info = "unsupported resource"})
-    end
-    RUN_AFTER(alertResponse, 1500)
-  end)
+      local function alertResponse()
+        self.hmiConnection:SendResponse(data2.id, "UI.Alert", "UNSUPPORTED_RESOURCE", {info = "unsupported resource"})
+      end
+      RUN_AFTER(alertResponse, 1500)
+    end)
 
   EXPECT_HMICALL("TTS.Speak",
-  {ttsChunks =
+    {ttsChunks =
       {{
-        text = "TTSChunk",
-        type = "TEXT"
-    }},
-    speakType = "ALERT",
-    appID = self.applications[config.application1.registerAppInterfaceParams.appName]
-  })
+          text = "TTSChunk",
+          type = "TEXT"
+      }},
+      speakType = "ALERT",
+      appID = self.applications[config.application1.registerAppInterfaceParams.appName]
+    })
   :Do(function(_,data3)
-    self.hmiConnection:SendNotification("TTS.Started",{ })
-    local function ttsSpeakResponse()
-      self.hmiConnection:SendResponse (data3.id, data3.method, "WARNINGS", {})
-    end
-    RUN_AFTER(ttsSpeakResponse, 1000)
-  end)
+      self.hmiConnection:SendNotification("TTS.Started",{ })
+      local function ttsSpeakResponse()
+        self.hmiConnection:SendResponse (data3.id, data3.method, "WARNINGS", {})
+      end
+      RUN_AFTER(ttsSpeakResponse, 1000)
+    end)
 
   EXPECT_RESPONSE(cor_id, { success = true, resultCode = "UNSUPPORTED_RESOURCE", info = "unsupported resource"})
 end
