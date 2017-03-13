@@ -133,15 +133,15 @@ function Test:TestStep_Alert_UI_Alert_UNSUPPORTED_RESOURCE()
       appID = self.applications[config.application1.registerAppInterfaceParams.appName]
     })
   :ValidIf(function(_,data)
-      local value_Icon = storagePath .. "icon.png"
-      if (string.match(data.params.softButtons[1].image.value, "%S*" .. "("..string.sub(storagePath, 2).."icon.png)" .. "$") == nil ) and
-      (data.params.softButtons[1].image.value ~= value_Icon ) then
-        print("\27[31m value of menuIcon is WRONG. Expected: ~".. value_Icon .. "; Real: " .. data.params.softButtons[1].image.value .. "\27[0m")
-        return false
-      else
-        return true
-      end
-    end)
+    local value_Icon = storagePath .. "icon.png"
+      if (string.match(data.params.softButtons[1].image.value, "%S*" .. "("..string.sub(storagePath, 2).."icon.png)" .. "%W*$") == nil )  and
+         (data.params.softButtons[1].image.value ~= value_Icon ) then
+         print("\27[31m value of softButtons.image is WRONG. Expected: ".. value_Icon .. "; Real: " .. data.params.softButtons[1].image.value .. "\27[0m")
+      return false
+    else
+      return true
+    end
+  end)
   :Do(function(_,data2)
       local function alertResponse()
         self.hmiConnection:SendResponse(data2.id, "UI.Alert", "UNSUPPORTED_RESOURCE", {info = "unsupported resource"})
