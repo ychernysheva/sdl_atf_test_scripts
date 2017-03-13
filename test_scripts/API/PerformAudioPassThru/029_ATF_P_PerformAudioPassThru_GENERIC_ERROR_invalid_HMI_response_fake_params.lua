@@ -108,7 +108,7 @@ for i =1, #invalid_data do
           self.hmiConnection:SendNotification("TTS.Stopped")
         end
         RUN_AFTER(ttsSpeakResponse, 1000)
-      end)
+    end)
 
     EXPECT_HMICALL("UI.PerformAudioPassThru",
       {
@@ -126,8 +126,8 @@ for i =1, #invalid_data do
         }
       })
     :Do(function(_,data)
-        self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"UI.PerformAudioPassThru", "code":'..tostring(invalid_data[i].value)..'}}')
-      end)
+        self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"UI.PerformAudioPassThru", "code":"'..tostring(invalid_data[i].value)..'"}}')
+    end)
 
     if
     (self.appHMITypes["NAVIGATION"] == true) or
@@ -175,12 +175,12 @@ for i =1, #invalid_data do
         self.hmiConnection:SendNotification("TTS.Started",{})
 
         local function ttsSpeakResponse()
-          self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"TTS.Speak", "code":'..tostring(invalid_data[i].value)..'}}')
+          self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"TTS.Speak", "code":"'..tostring(invalid_data[i].value)..'"}}')
           self.hmiConnection:SendNotification("TTS.Stopped")
         end
 
         RUN_AFTER(ttsSpeakResponse, 1000)
-      end)
+    end)
 
     EXPECT_HMICALL("UI.PerformAudioPassThru",
       {

@@ -35,7 +35,7 @@ config.SDLStoragePath = commonPreconditions:GetPathToSDL() .. "storage/"
 
 --[[ Local Variables ]]
 local storagePath = config.SDLStoragePath..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
-local ServerAddress = commonFunctions:read_parameter_from_smart_device_link_ini("ServerAddress") 
+local ServerAddress = commonFunctions:read_parameter_from_smart_device_link_ini("ServerAddress")
 
 --[[ General Precondition before ATF start ]]
 commonFunctions:SDLForceStop()
@@ -71,19 +71,19 @@ function Test:Precondition_ActivationApp()
   local request_id = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.applications[config.application1.registerAppInterfaceParams.appName]})
   EXPECT_HMIRESPONSE(request_id)
   :Do(function(_,data)
-    if (data.result.isSDLAllowed ~= true) then
-      local request_id1 = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
-      EXPECT_HMIRESPONSE(request_id1)
-      :Do(function(_,_)   
-        self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = ServerAddress}})
-        EXPECT_HMICALL("BasicCommunication.ActivateApp")
-        :Do(function(_,data1)
-          self.hmiConnection:SendResponse(data1.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
-        end)
-      end)
-    end
-  end)
-  EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"}) 
+      if (data.result.isSDLAllowed ~= true) then
+        local request_id1 = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
+        EXPECT_HMIRESPONSE(request_id1)
+        :Do(function(_,_)
+            self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = ServerAddress}})
+            EXPECT_HMICALL("BasicCommunication.ActivateApp")
+            :Do(function(_,data1)
+                self.hmiConnection:SendResponse(data1.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
+              end)
+          end)
+      end
+    end)
+  EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"})
 end
 
 commonSteps:PutFile("Precondition_PutFile", "icon.png")
@@ -93,43 +93,43 @@ commonFunctions:newTestCasesGroup("Test")
 
 function Test:TestStep_AlerManeuver_TTS_Speak_UNSUPPORTED_RESOURCE()
   local cor_id_alertmaneuver = self.mobileSession:SendRPC("AlertManeuver",
-  {ttsChunks =
+    {ttsChunks =
       {{
-        text ="FirstAlert",
-        type ="TEXT",
-      },
-      {
-        text ="SecondAlert",
-        type ="TEXT",
-    }},
-    softButtons =
-      {{
-        type = "BOTH",
-        text = "Close",
-        image =
-        {
-          value = "icon.png",
-          imageType = "DYNAMIC",
+          text ="FirstAlert",
+          type ="TEXT",
         },
-        isHighlighted = true,
-        softButtonID = 821,
-        systemAction = "DEFAULT_ACTION",
-    }}
-  })
+        {
+          text ="SecondAlert",
+          type ="TEXT",
+      }},
+      softButtons =
+      {{
+          type = "BOTH",
+          text = "Close",
+          image =
+          {
+            value = "icon.png",
+            imageType = "DYNAMIC",
+          },
+          isHighlighted = true,
+          softButtonID = 821,
+          systemAction = "DEFAULT_ACTION",
+      }}
+    })
 
   EXPECT_HMICALL("Navigation.AlertManeuver",
-  {
-    softButtons =
+    {
+      softButtons =
       {{
-        type = "BOTH",
-        text = "Close",
-        image = { imageType = "DYNAMIC"},
-        isHighlighted = true,
-        softButtonID = 821,
-        systemAction = "DEFAULT_ACTION",
-    }},
-    appID = self.applications[config.application1.registerAppInterfaceParams.appName]
-  })
+          type = "BOTH",
+          text = "Close",
+          image = { imageType = "DYNAMIC"},
+          isHighlighted = true,
+          softButtonID = 821,
+          systemAction = "DEFAULT_ACTION",
+      }},
+      appID = self.applications[config.application1.registerAppInterfaceParams.appName]
+    })
   :ValidIf(function(_,data)
     local value_Icon = storagePath .. "icon.png"
      if (string.match(data.params.softButtons[1].image.value, "%S*" .. "("..string.sub(storagePath, 2).."icon.png)" .. "%W*$") == nil )  and
@@ -143,20 +143,20 @@ function Test:TestStep_AlerManeuver_TTS_Speak_UNSUPPORTED_RESOURCE()
   :Do(function(_,data) self.hmiConnection:SendResponse (data.id, data.method, "WARNINGS", {}) end)
 
   EXPECT_HMICALL("TTS.Speak",
-  {ttsChunks =
+    {ttsChunks =
       {{
-      text ="FirstAlert", type ="TEXT"},
-    {text ="SecondAlert", type ="TEXT"}},
-    speakType = "ALERT_MANEUVER",
-    appID = self.applications[config.application1.registerAppInterfaceParams.appName]
-  })
+          text ="FirstAlert", type ="TEXT"},
+        {text ="SecondAlert", type ="TEXT"}},
+      speakType = "ALERT_MANEUVER",
+      appID = self.applications[config.application1.registerAppInterfaceParams.appName]
+    })
   :Do(function(_,data)
-    self.hmiConnection:SendNotification("TTS.Started",{ })
-    local function ttsSpeakResponse()
-      self.hmiConnection:SendResponse(data.id, "TTS.Speak", "UNSUPPORTED_RESOURCE", {info = "unsupported resource"})
-    end
-    RUN_AFTER(ttsSpeakResponse, 1000)
-  end)
+      self.hmiConnection:SendNotification("TTS.Started",{ })
+      local function ttsSpeakResponse()
+        self.hmiConnection:SendResponse(data.id, "TTS.Speak", "UNSUPPORTED_RESOURCE", {info = "unsupported resource"})
+      end
+      RUN_AFTER(ttsSpeakResponse, 1000)
+    end)
 
   EXPECT_RESPONSE(cor_id_alertmaneuver, { success = true, resultCode = "UNSUPPORTED_RESOURCE", info = "unsupported resource"})
 end

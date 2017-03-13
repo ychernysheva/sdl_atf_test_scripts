@@ -1,26 +1,30 @@
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
--- [Policies] External UCS: PreloadedPT without "external_consent_status_groups" struct
+-- [Policies] External UCS: PreloadedPT without "disallowed_by_external_consent_entities_off" struct
 --
 -- Description:
 -- In case:
--- SDL uploads PreloadedPolicyTable without "external_consent_status_groups:
--- [<functional_grouping>: <Boolean>]" -> of "device_data" -> "<device identifier>"
--- -> "user_consent_records" -> "<app id>" section
+-- SDL uploads PreloadedPolicyTable without "disallowed_by_external_consent_entities_off:
+-- [entityType: <Integer>, entityId: <Integer>]" -> of "<functional grouping>" -> from "functional_groupings" section
 -- SDL must:
 -- a. consider this PreloadedPT as valid (with the pre-conditions of all other valid PreloadedPT content)
--- b. continue working as assigned.
+-- b. do not create this "disallowed_by_external_consent_entities_off: [entityType: <Integer>, entityId: <Integer>]"
+-- field of the corresponding "<functional grouping>" in the Policies database.
 --
 -- Preconditions:
 -- 1. Stop SDL
--- 2. Check that PreloadedPT doesn't contain 'external_consent_status_groups' section
+-- 2. Check that PreloadedPT doesn't contain 'disallowed_by_external_consent_entities_off' section
 --
 -- Steps:
 -- 1. Start SDL
 -- 2. Check SDL status
+-- 3. Register app
+-- 4. Activate app
+-- 5. Verify PTSnapshot
 --
 -- Expected result:
--- Status = 1 (SDL is running)
+-- a. Status = 1 (SDL is running)
+-- b. PTSnapshot doesn't contain 'disallowed_by_external_consent_entities_off' section
 --
 -- Note: Script is designed for EXTERNAL_PROPRIETARY flow
 ---------------------------------------------------------------------------------------------
@@ -37,12 +41,14 @@ local sdl = require('SDL')
 local testCasesForExternalUCS = require('user_modules/shared_testcases/testCasesForExternalUCS')
 
 --[[ Local variables ]]
-local checkedSection = "external_consent_status_groups"
+local grpId = "Location-1"
+local checkedSection = "disallowed_by_external_consent_entities_off"
 
 --[[ General Precondition before ATF start ]]
 commonFunctions:SDLForceStop()
-commonSteps:DeletePolicyTable()
-commonSteps:DeleteLogsFiles()
+commonSteps:DeleteLogsFileAndPolicyTable()
+commonPreconditions:BackupFile("sdl_preloaded_pt.json")
+testCasesForExternalUCS.removePTS()
 
 --[[ General Settings for configuration ]]
 Test = require("user_modules/connecttest_resumption")
@@ -62,20 +68,12 @@ end
 function Test:CheckPreloadedPT()
   local preloadedFile = commonPreconditions:GetPathToSDL() .. "sdl_preloaded_pt.json"
   local preloadedTable = testCasesForExternalUCS.createTableFromJsonFile(preloadedFile)
-  local result = true
   if preloadedTable
   and preloadedTable.policy_table
-  and preloadedTable.policy_table.device_data
-  and preloadedTable.policy_table.device_data[config.deviceMAC]
-  and preloadedTable.policy_table.device_data[config.deviceMAC].user_consent_records
+  and preloadedTable.policy_table.functional_groupings
+  and preloadedTable.policy_table.functional_groupings[grpId]
+  and preloadedTable.policy_table.functional_groupings[grpId][checkedSection]
   then
-    for _, v in pairs(preloadedTable.policy_table.device_data[config.deviceMAC].user_consent_records) do
-      if v[checkedSection] then
-        result = false
-      end
-    end
-  end
-  if result == false then
     self:FailTestCase("Section '" .. checkedSection .. "'' was found in PreloadedPT")
   end
 end
@@ -92,8 +90,45 @@ function Test.StartSDL()
   os.execute("sleep 5")
 end
 
-function Test:CheckSDLStatus_2_RUNNING()
+function Test:CheckSDLStatus_3_RUNNING()
   testCasesForExternalUCS.checkSDLStatus(self, sdl.RUNNING)
+end
+
+function Test:InitHMI()
+  self:initHMI()
+end
+
+function Test:InitHMI_onReady()
+  self:initHMI_onReady()
+end
+
+function Test:ConnectMobile()
+  self:connectMobile()
+end
+
+function Test:StartSession()
+  testCasesForExternalUCS.startSession(self, 1)
+end
+
+function Test:RAI()
+  testCasesForExternalUCS.registerApp(self, 1)
+end
+
+function Test:ActivateApp()
+  testCasesForExternalUCS.activateApp(self, 1)
+end
+
+function Test:CheckPTS()
+  if not testCasesForExternalUCS.pts then
+    self:FailTestCase("PTS was not created")
+  else
+    if testCasesForExternalUCS.pts.policy_table.functional_groupings[grpId][checkedSection] ~= nil then
+      self:FailTestCase("Section '" .. checkedSection .. "' was found in PTS")
+    else
+      print("Section '".. checkedSection .. "' doesn't exist in 'functional_groupings['" .. grpId .. "'] in PTS")
+      print(" => OK")
+    end
+  end
 end
 
 --[[ Postconditions ]]
@@ -101,6 +136,10 @@ commonFunctions:newTestCasesGroup("Postconditions")
 
 function Test.StopSDL()
   StopSDL()
+end
+
+function Test.RestorePreloadedFile()
+  commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 end
 
 return Test
