@@ -1,6 +1,7 @@
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
 -- [Policies] External UCS: PTU without "external_consent_status_groups" struct
+-- [Policies] External UCS: PreloadedPT without "external_consent_status_groups" struct
 --
 -- Description:
 -- In case:
@@ -38,6 +39,8 @@ local testCasesForExternalUCS = require('user_modules/shared_testcases/testCases
 
 --[[ Local variables ]]
 local checkedStatus = "UP_TO_DATE"
+local checkedSection = "external_consent_status_groups"
+local grpId = "Location-1"
 
 --[[ General Precondition before ATF start ]]
 commonFunctions:SDLForceStop()
@@ -73,6 +76,35 @@ end
 function Test:CheckStatus_UP_TO_DATE()
   local reqId = self.hmiConnection:SendRequest("SDL.GetStatusUpdate")
   EXPECT_HMIRESPONSE(reqId, { status = checkedStatus })
+end
+
+function Test.RemovePTS()
+  testCasesForExternalUCS.removePTS()
+end
+
+function Test:StartSession()
+  testCasesForExternalUCS.startSession(self, 2)
+end
+
+function Test:RAI_2()
+  testCasesForExternalUCS.registerApp(self, 2)
+end
+
+function Test:ActivateApp_2()
+  testCasesForExternalUCS.activateApp(self, 2)
+end
+
+function Test:CheckPTS()
+  if not testCasesForExternalUCS.pts then
+    self:FailTestCase("PTS was not created")
+  else
+    if testCasesForExternalUCS.pts.policy_table.functional_groupings[grpId][checkedSection] ~= nil then
+      self:FailTestCase("Section '" .. checkedSection .. "' was found in PTS")
+    else
+      print("Section '".. checkedSection .. "' doesn't exist in PTS")
+      print(" => OK")
+    end
+  end
 end
 
 --[[ Postconditions ]]
