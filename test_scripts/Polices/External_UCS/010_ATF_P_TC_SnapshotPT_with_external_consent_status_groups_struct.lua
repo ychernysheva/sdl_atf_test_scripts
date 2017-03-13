@@ -51,6 +51,15 @@ local function replaceSDLPreloadedPtFile()
   local preloadedTable = testCasesForExternalUCS.createTableFromJsonFile(preloadedFile)
   preloadedTable.policy_table.functional_groupings["DataConsent-2"].rpcs = json.null
   --
+  preloadedTable.policy_table.app_policies[appId] = {
+    default_hmi = "NONE",
+    keep_context = false,
+    priority = "NONE",
+    steal_focus = false,
+    groups = {
+      "Base-4", grpId
+    }
+  }
   preloadedTable.policy_table.functional_groupings[grpId].disallowed_by_external_consent_entities_on = {
     {
       entityID = 128,
