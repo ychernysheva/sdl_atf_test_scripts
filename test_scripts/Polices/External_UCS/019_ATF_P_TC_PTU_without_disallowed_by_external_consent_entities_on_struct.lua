@@ -13,20 +13,20 @@
 -- of the corresponding "<functional grouping>" in the Policies database.
 --
 -- Preconditions:
--- 1. Start SDL (make sure 'disallowed_by_external_consent_entities_on' section is omitted in PreloadedPT)
+-- 1. Start SDL (make sure 'disallowed_by_external_consent_entities_on' section is defined in PreloadedPT)
+-- 2. Register app1
 --
 -- Steps:
--- 1. Register app1
--- 2. Activate app1
--- 3. Perform PTU
--- 4. Verify status of update
--- 5. Register app2
--- 6. Activate app2
--- 7. Verify PTSnapshot
+-- 1. Activate app1
+-- 2. Perform PTU (make sure 'disallowed_by_external_consent_entities_on' section is omitted)
+-- 3. Verify status of update
+-- 4. Register app2
+-- 5. Activate app2
+-- 6. Verify PTSnapshot
 --
 -- Expected result:
 -- a. PTU finished successfully with UP_TO_DATE status
--- b. Section "disallowed_by_external_consent_entities_on" is omitted
+-- b. Section "disallowed_by_external_consent_entities_on" doesn't exist
 --
 -- Note: Script is designed for EXTERNAL_PROPRIETARY flow
 ---------------------------------------------------------------------------------------------
@@ -38,6 +38,7 @@ config.defaultProtocolVersion = 2
 --[[ Required Shared Libraries ]]
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
+local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 local testCasesForExternalUCS = require('user_modules/shared_testcases/testCasesForExternalUCS')
 
 --[[ Local variables ]]
@@ -48,7 +49,18 @@ local grpId = "Location-1"
 --[[ General Precondition before ATF start ]]
 commonFunctions:SDLForceStop()
 commonSteps:DeleteLogsFileAndPolicyTable()
+commonPreconditions:BackupFile("sdl_preloaded_pt.json")
 testCasesForExternalUCS.removePTS()
+
+local updateFunc = function(preloadedTable)
+  preloadedTable.policy_table.functional_groupings[grpId][checkedSection] = {
+    {
+      entityID = 128,
+      entityType = 0
+    }
+  }
+end
+testCasesForExternalUCS.updatePreloadedPT(updateFunc)
 
 --[[ General Settings for configuration ]]
 Test = require("user_modules/connecttest_resumption")
@@ -65,12 +77,12 @@ function Test:StartSession()
   testCasesForExternalUCS.startSession(self, 1)
 end
 
---[[ Test ]]
-commonFunctions:newTestCasesGroup("Test")
-
 function Test:RAI_1()
   testCasesForExternalUCS.registerApp(self, 1)
 end
+
+--[[ Test ]]
+commonFunctions:newTestCasesGroup("Test")
 
 function Test:ActivateApp_1()
   testCasesForExternalUCS.activateApp(self, 1, checkedStatus)
@@ -115,6 +127,10 @@ commonFunctions:newTestCasesGroup("Postconditions")
 
 function Test.StopSDL()
   StopSDL()
+end
+
+function Test.RestorePreloadedFile()
+  commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 end
 
 return Test
