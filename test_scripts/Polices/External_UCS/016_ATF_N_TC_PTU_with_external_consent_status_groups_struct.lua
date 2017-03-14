@@ -36,7 +36,7 @@ local testCasesForExternalUCS = require('user_modules/shared_testcases/testCases
 
 --[[ Local variables ]]
 local appId = config.application1.registerAppInterfaceParams.appID
-local grpId = "Location-1"
+local grpId = "Location"
 local checkedStatus = "UPDATE_NEEDED"
 local checkedSection = "external_consent_status_groups"
 
