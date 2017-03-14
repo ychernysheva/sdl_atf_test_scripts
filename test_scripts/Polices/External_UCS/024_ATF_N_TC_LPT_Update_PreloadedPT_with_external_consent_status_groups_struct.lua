@@ -38,6 +38,7 @@ local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 local sdl = require('SDL')
 local testCasesForExternalUCS = require('user_modules/shared_testcases/testCasesForExternalUCS')
+local testCasesForPolicySDLErrorsStops = require('user_modules/shared_testcases/testCasesForPolicySDLErrorsStops')
 
 --[[ General Precondition before ATF start ]]
 commonFunctions:SDLForceStop()
@@ -103,6 +104,13 @@ end
 
 function Test:CheckSDLStatus_3_STOPPED()
   testCasesForExternalUCS.checkSDLStatus(self, sdl.STOPPED)
+end
+
+function Test:CheckLog()
+  local result = testCasesForPolicySDLErrorsStops.ReadSpecificMessage("Parsed table is not valid policy_table")
+  if result ~= true then
+    self:FailTestCase("Error message was not found in log file")
+  end
 end
 
 --[[ Postconditions ]]
