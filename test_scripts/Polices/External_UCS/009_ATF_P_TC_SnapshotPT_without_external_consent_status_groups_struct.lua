@@ -37,6 +37,7 @@ local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local testCasesForExternalUCS = require('user_modules/shared_testcases/testCasesForExternalUCS')
 
 --[[ Local variables ]]
+local appId = config.application1.registerAppInterfaceParams.appID
 local checkedSection = "external_consent_status_groups"
 
 --[[ General Precondition before ATF start ]]
@@ -73,23 +74,25 @@ end
 function Test:CheckPTS()
   if not testCasesForExternalUCS.pts then
     self:FailTestCase("PTS was not created")
-  else
-    local s = testCasesForExternalUCS.pts.policy_table.device_data[config.deviceMAC]
-    .user_consent_records.device[checkedSection]
-    if s ~= nil then
+  elseif testCasesForExternalUCS.pts.policy_table
+    and testCasesForExternalUCS.pts.policy_table.device_data
+    and testCasesForExternalUCS.pts.policy_table.device_data[config.deviceMAC]
+    and testCasesForExternalUCS.pts.policy_table.device_data[config.deviceMAC].user_consent_records
+    and testCasesForExternalUCS.pts.policy_table.device_data[config.deviceMAC].user_consent_records[appId]
+    and testCasesForExternalUCS.pts.policy_table.device_data[config.deviceMAC].user_consent_records[appId][checkedSection]
+    then
       self:FailTestCase("Section '" .. checkedSection .. "' was found in PTS")
     else
       print("Section '".. checkedSection .. "' doesn't exist in PTS")
       print(" => OK")
     end
   end
-end
 
---[[ Postconditions ]]
-commonFunctions:newTestCasesGroup("Postconditions")
+  --[[ Postconditions ]]
+  commonFunctions:newTestCasesGroup("Postconditions")
 
-function Test.StopSDL()
-  StopSDL()
-end
+  function Test.StopSDL()
+    StopSDL()
+  end
 
-return Test
+  return Test
