@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
--- [Policies] External UCS: PreloadedPT without "disallowed_by_external_consent_entities_off" struct
+-- [Policies] External UCS: PreloadedPT with "disallowed_by_external_consent_entities_off" struct
 --
 -- Description:
 -- In case:
@@ -15,7 +15,7 @@
 -- Preconditions:
 -- 1. Stop SDL (Ignition Off)
 -- 2. Modify PreloadedPolicyTable (add 'disallowed_by_external_consent_entities_off' section)
--- Define not valid data type for entityType and entityId parameters
+-- Define not valid data type for entityType and/or entityId parameters
 -- 3. Initiate Local Policy Table update by setting 'preloaded_date' parameter
 --
 -- Steps:
