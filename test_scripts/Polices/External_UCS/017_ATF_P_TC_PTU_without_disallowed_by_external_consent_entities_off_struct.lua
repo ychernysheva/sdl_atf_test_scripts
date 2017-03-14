@@ -93,6 +93,19 @@ function Test:CheckStatus_UP_TO_DATE()
   EXPECT_HMIRESPONSE(reqId, { status = checkedStatus })
 end
 
+function Test:CheckPTS()
+  if not testCasesForExternalUCS.pts then
+    self:FailTestCase("PTS was not created")
+  else
+    if testCasesForExternalUCS.pts.policy_table.functional_groupings[grpId][checkedSection] == nil then
+      self:FailTestCase("Section '" .. checkedSection .. "' was not found in PTS")
+    else
+      print("Section '".. checkedSection .. "' exists in 'functional_groupings['" .. grpId .. "'] in PTS")
+      print(" => OK")
+    end
+  end
+end
+
 function Test.RemovePTS()
   testCasesForExternalUCS.removePTS()
 end
