@@ -75,7 +75,7 @@ for i = 1, #params_invalid_data do
     end
   end
 
-  Test["Precondition_PTU_and_OnAppPermissionConsent_Invalid_"..params_invalid_data[i]] = function(self)
+  Test["Precondition_PTU_and_OnAppPermissionConsent_Invalid_"..params_invalid_data[i].comment] = function(self)
     local ptu_file_path = "files/jsons/Policies/Related_HMI_API/"
     if ( (i % 2) == 0 ) then
       ptu_file = "OnAppPermissionConsent_ptu1.json"
