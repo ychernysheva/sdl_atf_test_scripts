@@ -12,6 +12,7 @@
 -- field of the corresponding "<functional grouping>" in the Policies database.
 --
 -- Preconditions:
+-- 0. Start SDL (make sure 'disallowed_by_external_consent_entities_off' section is defined in PreloadedPT)
 -- 1. Stop SDL (Ignition Off)
 -- 2. Modify PreloadedPolicyTable (remove 'disallowed_by_external_consent_entities_off' section)
 -- 3. Initiate Local Policy Table update by setting 'preloaded_date' parameter
@@ -45,11 +46,20 @@ local testCasesForExternalUCS = require('user_modules/shared_testcases/testCases
 local grpId = "Location-1"
 local checkedSection = "disallowed_by_external_consent_entities_off"
 
+--[[ Local Functions ]]
+local function updatePreloadedPT()
+  local updateFunc = function(preloadedTable)
+    preloadedTable.policy_table.functional_groupings[grpId][checkedSection] = { { entityID = 128, entityType = 0 } }
+  end
+  testCasesForExternalUCS.updatePreloadedPT(updateFunc)
+end
+
 --[[ General Precondition before ATF start ]]
 commonFunctions:SDLForceStop()
 commonSteps:DeleteLogsFileAndPolicyTable()
 commonPreconditions:BackupFile("sdl_preloaded_pt.json")
 testCasesForExternalUCS.removePTS()
+updatePreloadedPT()
 
 --[[ General Settings for configuration ]]
 Test = require("user_modules/connecttest_resumption")
