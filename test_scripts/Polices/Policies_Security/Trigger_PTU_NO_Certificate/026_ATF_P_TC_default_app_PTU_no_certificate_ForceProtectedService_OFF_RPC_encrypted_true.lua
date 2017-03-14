@@ -25,7 +25,8 @@
 --
 -- Expected result:
 -- SDL sends SDL.OnStatusUpdate(UP_TO_DATE)
--- SDL process request to HMI
+-- SDL should not process request to HMI
+-- SDL should repty REJECTED to default app
 -- SDL should return StartServiceACK, encrypt = false to RPC
 ---------------------------------------------------------------------------------------------
 
