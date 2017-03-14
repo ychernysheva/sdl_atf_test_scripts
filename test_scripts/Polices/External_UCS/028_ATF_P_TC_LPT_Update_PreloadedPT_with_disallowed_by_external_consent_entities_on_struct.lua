@@ -58,6 +58,25 @@ require('user_modules/AppTypes')
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
 
+function Test:CheckPreloadedPT()
+  local preloadedFile = commonPreconditions:GetPathToSDL() .. "sdl_preloaded_pt.json"
+  local preloadedTable = testCasesForExternalUCS.createTableFromJsonFile(preloadedFile)
+  local result = true
+  if preloadedTable
+  and preloadedTable.policy_table
+  and preloadedTable.policy_table.functional_groupings
+  then
+    for _, v in pairs(preloadedTable.policy_table.functional_groupings) do
+      if v[checkedSection] then
+        result = false
+      end
+    end
+  end
+  if result == false then
+    self:FailTestCase("Section '" .. checkedSection .. "'' was found in PreloadedPT")
+  end
+end
+
 function Test:CheckSDLStatus()
   testCasesForExternalUCS.checkSDLStatus(self, sdl.RUNNING)
 end
