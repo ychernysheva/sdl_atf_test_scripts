@@ -304,7 +304,6 @@ function module:runSDL()
   end
   local result, errmsg = SDL:StartSDL(config.pathToSDL, config.SDL, config.ExitOnCrash)
   if not result then
-    SDL:DeleteFile()
     quit(exit_codes.aborted)
   end
   SDL.autoStarted = true
@@ -358,7 +357,7 @@ function module:initHMI()
         })
     end)
   exp_waiter:AddExpectation(web_socket_connected_event)
-  
+
   self.hmiConnection:Connect()
   return exp_waiter.expectation
 end
@@ -382,7 +381,7 @@ function module:initHMI_onReady()
           })
         self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", params)
       end)
-    if (mandatory) then 
+    if (mandatory) then
      exp_waiter:AddExpectation(exp)
     end
    return exp
@@ -447,7 +446,7 @@ function module:initHMI_onReady()
       }
     })
   ExpectRequest("VehicleInfo.GetVehicleData", true, { vin = "52-452-52-752" })
-  
+
   local function button_capability(name, shortPressAvailable, longPressAvailable, upDownAvailable)
     return
     {
