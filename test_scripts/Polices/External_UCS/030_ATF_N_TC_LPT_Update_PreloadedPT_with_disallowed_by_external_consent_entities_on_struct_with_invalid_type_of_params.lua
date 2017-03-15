@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
--- [Policies] External UCS: PreloadedPT with "disallowed_by_external_consent_entities_on" struct
+-- [Policies] External UCS: PreloadedPT with "disallowed_by_external_consent_entities_on" struct with invalid type of params
 --
 -- Description:
 -- In case:
