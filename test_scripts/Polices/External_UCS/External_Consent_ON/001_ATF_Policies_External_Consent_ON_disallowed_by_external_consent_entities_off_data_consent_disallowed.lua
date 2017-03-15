@@ -1,3 +1,6 @@
+-------------------------------------- Requirement summary -------------------------------------------
+-- [Policies] External UCS: "ON" - allowed RPCs
+--
 ------------------------------------------------------------------------------------------------------
 ------------------------------------General Settings for Configuration--------------------------------
 ------------------------------------------------------------------------------------------------------
@@ -11,62 +14,44 @@ local policy_file = config.pathToSDL .. "storage/policy.sqlite"
 ---------------------------------------Preconditions--------------------------------------------------
 ------------------------------------------------------------------------------------------------------
 -- Start SDL and register application
-common_functions_external_consent:PreconditonSteps("mobileConnection","mobileSession", "mobileSession2")
+common_functions_external_consent:PreconditonSteps("mobileConnection","mobileSession")
 -- Activate application
 common_steps:ActivateApplication("Activate_Application_1", config.application1.registerAppInterfaceParams.appName)
 ------------------------------------------------------------------------------------------------------
 ------------------------------------------Tests-------------------------------------------------------
 ------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------
--- TEST 07:
-  -- In case
-  -- SDL Policies database does not have "consent_groups" in "device_data" -> "user_consent_records" -> "appID" section
-  -- and_ SDL received SDL.OnAppPermissionsConsent (externalConsentStatus)
-  -- SDL must
-  -- add "consent_groups" to "device_data" -> "user_consent_records" -> "appID" section in Policy Table
-  -- change_ according to the received externalConsentStatus settings in both:
-  -- "consent_groups" in "device_data" -> "user_consent_records" -> "appID" section
-  -- and
-  -- "external_consent_status_groups" in "device_data" -> "user_consent_records" -> "appID" section
+-- TEST 02:
+-- In case:
+-- SDL Policies database contains "disallowed_by_external_consent_entities_off" param in "functional grouping" section
+-- and SDL gets SDL.OnAppPermissionConsent ("externalConsentStatus: ON")
+-- allow this "functional grouping" and process requested RPCs from such "functional groupings" assigned to mobile app
 --------------------------------------------------------------------------
--- Test 07.01:
--- Description: "consent_groups" does not exist. disallowed_by_external_consent_entities_on/off. HMI -> SDL: OnAppPermissionConsent(externalConsentStatus ON)
--- Expected Result: "consent_groups" is created with same status as externalConsentStatus
+-- Test 02.01:
+-- Description: disallowed_by_external_consent_entities_off exists. Data consent is disallowed. HMI -> SDL: OnAppPermissionConsent(externalConsentStatus ON)
+-- Expected Result: requested RPC is disallowed by data consent
 --------------------------------------------------------------------------
 -- Precondition:
---   Prepare JSON file with consent groups. Add all consent group names into app_polices of applications
---   Request Policy Table Update.
+-- Prepare JSON file with consent groups. Add all consent group names into app_polices of applications
+-- Request Policy Table Update.
 --------------------------------------------------------------------------
-Test[TEST_NAME_ON.."Precondition_Update_Policy_Table"] = function(self)
+Test[TEST_NAME_ON .. "Precondition_Update_Policy_Table"] = function(self)
   -- create json for PTU from sdl_preloaded_pt.json
   local data = common_functions_external_consent:ConvertPreloadedToJson()
   -- insert Group001 into "functional_groupings"
   data.policy_table.functional_groupings.Group001 = {
     user_consent_prompt = "ConsentGroup001",
     disallowed_by_external_consent_entities_off = {{
-      entityType = 1,
-      entityID = 4
-    }},
-    rpcs = {
-      SubscribeWayPoints = {
-        hmi_levels = {"BACKGROUND", "FULL", "LIMITED"}
-      }
-    }
-  }
-  -- insert Group002 into "functional_groupings"
-  data.policy_table.functional_groupings.Group002 = {
-    user_consent_prompt = "ConsentGroup002",
-    disallowed_by_external_consent_entities_on = {{
-      entityType = 2,
-      entityID = 5
+        entityType = 2,
+        entityID = 5
     }},
     rpcs = {
       SubscribeVehicleData = {
-        hmi_levels = {"BACKGROUND", "FULL", "LIMITED"}
+        hmi_levels = {"NONE", "BACKGROUND", "FULL", "LIMITED"}
       }
     }
   }
-  --insert application "0000001" into "app_policies"
+  --insert application "0000001" which belong to functional group "Group001" into "app_policies"
   data.policy_table.app_policies["0000001"] = {
     keep_context = false,
     steal_focus = false,
@@ -74,27 +59,12 @@ Test[TEST_NAME_ON.."Precondition_Update_Policy_Table"] = function(self)
     default_hmi = "NONE",
     groups = {"Base-4", "Group001"}
   }
-  --insert application "0000002" into "app_policies"
-  data.policy_table.app_policies["0000002"] = {
-    keep_context = false,
-    steal_focus = false,
-    priority = "NONE",
-    default_hmi = "NONE",
-    groups = {"Base-4", "Group001", "Group002"}
-  }
   --insert "ConsentGroup001" into "consumer_friendly_messages"
   data.policy_table.consumer_friendly_messages.messages["ConsentGroup001"] = {languages = {}}
   data.policy_table.consumer_friendly_messages.messages.ConsentGroup001.languages["en-us"] = {
-        tts = "tts_test",
-        label = "label_test",
-        textBody = "textBody_test"
-  }
-  --insert "ConsentGroup002" into "consumer_friendly_messages"
-  data.policy_table.consumer_friendly_messages.messages["ConsentGroup002"] = {languages = {}}
-  data.policy_table.consumer_friendly_messages.messages.ConsentGroup002.languages["en-us"] = {
-        tts = "tts_test",
-        label = "label_test",
-        textBody = "textBody_test"
+    tts = "tts_test",
+    label = "label_test",
+    textBody = "textBody_test"
   }
   -- create json file for Policy Table Update
   common_functions_external_consent:CreateJsonFileForPTU(data, "/tmp/ptu_update.json")
@@ -108,64 +78,68 @@ end
 
 --------------------------------------------------------------------------
 -- Precondition:
---   Check GetListOfPermissions response with empty externalConsentStatus array list.
+-- Check GetListOfPermissions response with empty externalConsentStatus array list. Get group id.
 --------------------------------------------------------------------------
-Test[TEST_NAME_ON.."Precondition_GetListOfPermissions"] = function(self)
+Test[TEST_NAME_ON .. "Precondition_GetListOfPermissions"] = function(self)
+  --hmi side: sending SDL.GetListOfPermissions request to SDL
   local request_id = self.hmiConnection:SendRequest("SDL.GetListOfPermissions")
+  -- hmi side: expect SDL.GetListOfPermissions response
   EXPECT_HMIRESPONSE(request_id,{
-    result = {
-      code = 0,
-      method = "SDL.GetListOfPermissions",
-      allowedFunctions = {
-        {name = "ConsentGroup001", allowed = nil},
-        {name = "ConsentGroup002", allowed = nil}
-      },
-      externalConsentStatus = {}
-    }
-  })
+      result = {
+        code = 0,
+        method = "SDL.GetListOfPermissions",
+        allowedFunctions = {{name = "ConsentGroup001", allowed = nil}},
+        externalConsentStatus = {}
+      }
+    })
 end
 
 --------------------------------------------------------------------------
 -- Precondition:
---   HMI sends OnAppPermissionConsent with External Consent status = ON
+-- HMI sends OnAllowSDLFunctionality with data consent = disallowed
+--------------------------------------------------------------------------
+Test[TEST_NAME_ON .. "Precondition_HMI_sends_OnAllowSDLFunctionality"] = function(self)
+  --hmi side: send request SDL.OnAllowSDLFunctionality
+  self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality",
+    {allowed = false, source = "GUI"})
+  self.mobileSession:ExpectNotification("OnPermissionsChange")
+  :ValidIf(function(_,data)
+      local validate_result = common_functions_external_consent:ValidateHMIPermissions(data,
+      "SubscribeVehicleData")
+      return not validate_result
+    end)
+end
+
+--------------------------------------------------------------------------
+-- Precondition:
+-- HMI sends OnAppPermissionConsent with External Consent status = ON
 --------------------------------------------------------------------------
 Test[TEST_NAME_ON .. "Precondition_HMI_sends_OnAppPermissionConsent"] = function(self)
-  hmi_app_id_1 = common_functions:GetHmiAppId(config.application1.registerAppInterfaceParams.appName, self)
   -- hmi side: sending SDL.OnAppPermissionConsent for applications
-	self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent", {
-    appID = hmi_app_id_1, source = "GUI",
-    externalConsentStatus = {
-      {entityType = 1, entityID = 4, status = "ON"},
-      {entityType = 2, entityID = 5, status = "ON"}
-    }
-  })
-	self.mobileSession:ExpectNotification("OnPermissionsChange")
-	:ValidIf(function(_,data)
-    local validate_result = common_functions_external_consent:ValidateHMIPermissions(data,
-      "SubscribeWayPoints", {allowed = {"BACKGROUND","FULL","LIMITED"}, userDisallowed = {}})
-    return validate_result
-  end)
+  self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent", {
+      appID = nil, source = "GUI",
+      externalConsentStatus = {{entityType = 2, entityID = 5, status = "ON"}}
+    })
+  self.mobileSession:ExpectNotification("OnPermissionsChange")
+  :ValidIf(function(_,data)
+      local validate_result = common_functions_external_consent:ValidateHMIPermissions(data,
+      "SubscribeVehicleData")
+      return not validate_result
+    end)
 end
 
 --------------------------------------------------------------------------
 -- Main check:
---   RPC of Group001 on Application 1 is allowed to process.
+-- RPC is disallowed to process.
 --------------------------------------------------------------------------
-Test[TEST_NAME_ON .. "MainCheck_RPC_Of_App1_Group001_is_allowed"] = function(self)
-	--mobile side: send SubscribeWayPoints request
-  local corid = self.mobileSession:SendRPC("SubscribeWayPoints",{})
-  --hmi side: expected SubscribeWayPoints request
-  EXPECT_HMICALL("Navigation.SubscribeWayPoints")
-  :Do(function(_,data)
-    --hmi side: sending Navigation.SubscribeWayPoints response
-    self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS",{})
-  end)
-  --mobile side: SubscribeWayPoints response
-  EXPECT_RESPONSE("SubscribeWayPoints", {success = true , resultCode = "SUCCESS"})
+Test[TEST_NAME_ON .. "MainCheck_RPC_is_disallowed"] = function(self)
+  local corid = self.mobileSession:SendRPC("SubscribeVehicleData",{rpm = true})
+  self.mobileSession:ExpectResponse(corid, {success = false, resultCode = "DISALLOWED"})
   EXPECT_NOTIFICATION("OnHashChange")
+  :Times(0)
 end
 
--- end Test 07.01
+-- end Test 02.01
 ----------------------------------------------------
 ---------------------------------------------------------------------------------------------
 --------------------------------------Postcondition------------------------------------------
