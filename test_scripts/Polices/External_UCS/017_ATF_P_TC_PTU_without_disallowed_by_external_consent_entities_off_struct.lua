@@ -18,7 +18,7 @@
 --
 -- Steps:
 -- 1. Activate app1
--- 2. Perform PTU (make sure 'disallowed_by_external_consent_entities_off' section is omitted)
+-- 2. Perform PTU (make sure 'disallowed_by_external_consent_entities_off' section is removed)
 -- 3. Verify status of update
 -- 4. Register app2
 -- 5. Activate app2
@@ -46,21 +46,25 @@ local checkedStatus = "UP_TO_DATE"
 local checkedSection = "disallowed_by_external_consent_entities_off"
 local grpId = "Location-1"
 
+--[[ Local Functions ]]
+local function replaceSDLPreloadedPtFile()
+  local updateFunc = function(preloadedTable)
+    preloadedTable.policy_table.functional_groupings[grpId][checkedSection] = {
+      {
+        entityID = 128,
+        entityType = 0
+      }
+    }
+  end
+  testCasesForExternalUCS.updatePreloadedPT(updateFunc)
+end
+
 --[[ General Precondition before ATF start ]]
 commonFunctions:SDLForceStop()
 commonSteps:DeleteLogsFileAndPolicyTable()
 commonPreconditions:BackupFile("sdl_preloaded_pt.json")
+replaceSDLPreloadedPtFile()
 testCasesForExternalUCS.removePTS()
-
-local updateFunc = function(preloadedTable)
-  preloadedTable.policy_table.functional_groupings[grpId][checkedSection] = {
-    {
-      entityID = 128,
-      entityType = 0
-    }
-  }
-end
-testCasesForExternalUCS.updatePreloadedPT(updateFunc)
 
 --[[ General Settings for configuration ]]
 Test = require("user_modules/connecttest_resumption")
@@ -85,7 +89,10 @@ end
 commonFunctions:newTestCasesGroup("Test")
 
 function Test:ActivateApp_1()
-  testCasesForExternalUCS.activateApp(self, 1, checkedStatus)
+  local updateFunc = function(pts)
+    pts.policy_table.functional_groupings[grpId][checkedSection] = nil
+  end
+  testCasesForExternalUCS.activateApp(self, 1, checkedStatus, updateFunc)
 end
 
 function Test:CheckStatus_UP_TO_DATE()
@@ -94,10 +101,13 @@ function Test:CheckStatus_UP_TO_DATE()
 end
 
 function Test:CheckPTS()
-  if not testCasesForExternalUCS.pts then
+  local filePath = commonFunctions:read_parameter_from_smart_device_link_ini("SystemFilesPath") ..
+  "/" .. commonFunctions:read_parameter_from_smart_device_link_ini("PathToSnapshot")
+  local pts = testCasesForExternalUCS.createTableFromJsonFile(filePath)
+  if not pts then
     self:FailTestCase("PTS was not created")
   else
-    if testCasesForExternalUCS.pts.policy_table.functional_groupings[grpId][checkedSection] == nil then
+    if pts.policy_table.functional_groupings[grpId][checkedSection] == nil then
       self:FailTestCase("Section '" .. checkedSection .. "' was not found in PTS")
     else
       print("Section '".. checkedSection .. "' exists in 'functional_groupings['" .. grpId .. "'] in PTS")
