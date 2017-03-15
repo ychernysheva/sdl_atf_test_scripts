@@ -9,12 +9,12 @@
 -- and "ForceProtectedService" is OFF at .ini file
 -- and app sends StartService (<any_serviceType>, encypted=true) to SDL
 -- SDL must respond StartService (ACK, encrypted=false) to this mobile app
--- Register and activate navi application.
--- -> SDL should trigger PTU: SDL.OnStatusUpdate(UPDATE_NEEDED)
 --
 -- 1. Used preconditions:
 -- ForceProtectedService is set to OFF in .ini file
 -- Navi app exists in LP, no certificate in module_config
+-- Register and activate navi application.
+-- -> SDL should trigger PTU: SDL.OnStatusUpdate(UPDATE_NEEDED)
 --
 -- 2. Performed steps
 -- 2.1 Wait PTU retry sequence to finish
