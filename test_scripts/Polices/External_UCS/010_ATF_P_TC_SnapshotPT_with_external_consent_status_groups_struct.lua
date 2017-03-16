@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
--- [Policies] External UCS: SnapshotPT without "external_consent_status_groups" param
+-- [Policies] External UCS: SnapshotPT with "external_consent_status_groups" param
 -- [Policies] External UCS: "ON" updates in allowed "consent_groups" and "external_consent_status_groups" when externalConsentStatus changes to "OFF"
 --
 -- Description:
