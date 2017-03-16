@@ -78,7 +78,7 @@ local function makeAppIconsFolderFull(AppIconsFolder)
   local sizeToFull = appIconsFolderMaxSize - sizeAppIconsFolderInBytes
   local i =1
   while sizeToFull > oneIconSize do
-    os.execute("sleep 1")
+    os.execute("sleep 2")
     local copyFileToAppIconsFolder = assert( os.execute( "cp files/icon.png " .. commonPreconditions:GetPathToSDL() .. AppIconsFolder .. "/icon" .. i ..".png"))
     i = i + 1
     if copyFileToAppIconsFolder ~= true then
