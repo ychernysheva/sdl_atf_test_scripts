@@ -389,7 +389,14 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 										EXPECT_RESPONSE(cid, {success = false, resultCode = "IGNORED"})
 									else
 										if (TestData[i].resultCode == "") then
-											EXPECT_RESPONSE(cid, { success = TestData[i].success , resultCode = TestData[i].expected_resultCode})
+											if mob_request.name == "Slider"  then
+												-- Slider has timeout parameter, so we should add default timeout (10000) to Slider's timeout +time for delaty (~1000ms)
+												local base_timeout = 11000
+												local timeout = mob_request.params.timeout + base_timeout
+												EXPECT_RESPONSE(cid, { success = TestData[i].success , resultCode = TestData[i].expected_resultCode}):Timeout(timeout)
+											else
+												EXPECT_RESPONSE(cid, { success = TestData[i].success , resultCode = TestData[i].expected_resultCode})
+											end
 										else
 											EXPECT_RESPONSE(cid, { success = TestData[i].success , resultCode = TestData[i].expected_resultCode, info = "error message"})
 										end
