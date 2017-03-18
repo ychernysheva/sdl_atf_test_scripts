@@ -330,7 +330,7 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 					 				hmi_call.params = nil
 					 			end
 					 			if( (TestData[i].success == false) and
-					 				(mob_request.name == "DeleteCommand" or mob_request.name == "DeleteSubMenu" or mob_request.name == "UnsubscribeWayPoints") ) then
+					 				(mob_request.name == "DeleteCommand" or mob_request.name == "DeleteSubMenu" or mob_request.name == "UnsubscribeWayPoints" or mob_request.name == "UnsubscribeVehicleData") ) then
 					 				EXPECT_HMICALL( hmi_method_call, hmi_call.params)
 					 				:Times(0)
 					 			else
