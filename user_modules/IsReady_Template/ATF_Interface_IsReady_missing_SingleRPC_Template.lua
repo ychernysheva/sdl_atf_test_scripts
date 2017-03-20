@@ -344,7 +344,7 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 										else
 											if TestData[i].success == true then 
 												if(hmi_call.mandatory_params ~= nil) then
-													if(mob_request.name == "GetWayPoints") then mandatory_params = 'appID" : '.. tostring(self.applications[config.application1.registerAppInterfaceParams.appName]) end
+													if(mob_request.name == "GetWayPoints") then hmi_call.string_mandatory_params = '"appID" : '.. tostring(self.applications[config.application1.registerAppInterfaceParams.appName]) end
 													--print("mandatory_params = "..mandatory_params)
 													self.hmiConnection:SendResponse(data.id, data.method, TestData[i].resultCode, hmi_call.mandatory_params )
 												else
@@ -352,12 +352,12 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 													self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"'..data.method..'","code":'..tostring(TestData[i].value)..'}}')
 												end
 											else
-												if(mob_request.name == "GetWayPoints") then mandatory_params = 'appID" : '.. tostring(self.applications[config.application1.registerAppInterfaceParams.appName]) end
+												if(mob_request.name == "GetWayPoints") then hmi_call.string_mandatory_params = '"appID" : '.. tostring(self.applications[config.application1.registerAppInterfaceParams.appName]) 
+												end
 												if(hmi_call.mandatory_params ~= nil) then
-													--print("hmi_call.mandatory_params = " ..hmi_call.mandatory_params)
-													self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"'..data.method..'",'..hmi_call.string_mandatory_params..',"message":"error message","code":'..tostring(TestData[i].value)..'}}')
+													self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"'..data.method..'",'..hmi_call.string_mandatory_params..'},"message":"error message","code":'..tostring(TestData[i].value)..'}}')
 												else
-													self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"'..data.method..'","message":"error message","code":'..tostring(TestData[i].value)..'}}')
+													self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"'..data.method..'"},"message":"error message","code":'..tostring(TestData[i].value)..'}}')
 												end
 											end						
 										end
@@ -598,14 +598,12 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 
 -- Not applicable for '..tested_method..' HMI API.
 
-	function Test:Postcondition_RestorePreloadedFile()
+	function Test.Postcondition_RestorePreloadedFile()
 		commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 	end
 
-	Test["ForceKill"] = function (self)
-		print("--------------------- Postconditions ------------------------")
-		os.execute("ps aux | grep smart | awk \'{print $2}\' | xargs kill -9")
-		os.execute("sleep 1")
+	function Test.Postcondition_StopSDL()
+	  StopSDL()
 	end
 
 return Test
