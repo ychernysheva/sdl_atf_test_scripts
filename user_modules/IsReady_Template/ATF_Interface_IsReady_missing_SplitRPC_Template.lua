@@ -685,11 +685,6 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 										end)
 								end
 								local hmi_info = "error message"
-								
-								-- APPLINK-16277
-								if(mob_request.name == "PerformInteraction") then
-									hmi_info = "Unsupported phoneme type was sent in an item"
-								end
 
 								if (hmi_method_call == "TTS.StopSpeaking") then
 									--mobile side: expect mobile response
