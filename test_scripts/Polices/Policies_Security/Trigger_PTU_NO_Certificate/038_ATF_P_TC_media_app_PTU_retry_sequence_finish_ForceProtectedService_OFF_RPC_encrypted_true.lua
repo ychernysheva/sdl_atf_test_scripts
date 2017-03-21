@@ -66,7 +66,7 @@ function Test:Precondition_ActivateApp()
   EXPECT_NOTIFICATION("OnHMIStatus", {systemContext = "MAIN", hmiLevel = "FULL"})
 end
 
-function Test:TestStep_First_StartService()
+function Test:Precondition_First_StartService()
   self.mobileSession.correlationId = self.mobileSession.correlationId + 1
   rpc_corrid = self.mobileSession.correlationId
   local msg = {
@@ -99,7 +99,10 @@ function Test:TestStep_First_StartService()
   commonTestCases:DelayedExp(10000)
 end
 
-function Test:Precondition_PolicyTableUpdate_retry_sequence_finish()
+--[[ Test ]]
+commonFunctions:newTestCasesGroup("Test")
+  
+function Test:TestStep_PolicyTableUpdate_retry_sequence_finish()
   local startserviceEvent = Event()
   startserviceEvent.matches =
   function(_, data)
