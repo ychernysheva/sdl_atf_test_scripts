@@ -176,13 +176,9 @@ function testCasesForPolicyCeritificates.StartService_encryption(self,service)
     else 
       return false, "StartService NACK received" 
     end
+    self.mobileSession.sessionId = data.sessionId
+    self.mobileSession.hashCode = data.binaryData
   end)
-  if ( service == 7 ) then
-    ret:Do(function(_, data)
-      self.mobileSession.sessionId = data.sessionId
-      self.mobileSession.hashCode = data.binaryData
-    end)
-  end
 end
 
 return testCasesForPolicyCeritificates
