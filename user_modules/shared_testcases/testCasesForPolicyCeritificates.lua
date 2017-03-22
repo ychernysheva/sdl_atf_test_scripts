@@ -140,4 +140,47 @@ function testCasesForPolicyCeritificates.start_service_NACK(self, msg, service, 
   commonTestCases:DelayedExp(10000)
 end
 
+--[[@StartService_encryption: send specific service with flag encryption true
+! as result will check received ACK / NACK / No Response for service 0x07
+! @parameters:
+! service - protocol service of msg
+]]
+function testCasesForPolicyCeritificates.StartService_encryption(self,service)
+
+  if service ~= 7 and self.mobileSession.sessionId == 0 then error("Session cannot be started") end
+  local startSession =
+  {
+    frameType = 0,
+    serviceType = service,
+    frameInfo = 1,
+    sessionId = self.mobileSession.sessionId,
+    encryption = true
+  }
+  self.mobileSession:Send(startSession)
+
+  -- prepare event to expect
+  local startserviceEvent = Event()
+  startserviceEvent.matches = function(_, data)
+    return data.frameType == 0 and
+    data.serviceType == service and
+    (service == 7 or data.sessionId == self.mobileSession.sessionId) and
+    (data.frameInfo == 2 or -- Start Service ACK
+      data.frameInfo == 3) -- Start Service NACK
+  end
+
+  local ret = self.mobileSession:ExpectEvent(startserviceEvent, "StartService ACK")
+  :ValidIf(function(_, data)
+    if ( data.frameInfo == 2 ) then
+      print("StartService", "StartService ACK", "True")
+      return true
+    else return false, "StartService NACK received" end
+  end)
+  if ( service == 7 ) then
+    ret:Do(function(_, data)
+      self.mobileSession.sessionId = data.sessionId
+      self.mobileSession.hashCode = data.binaryData
+    end)
+  end
+end
+
 return testCasesForPolicyCeritificates
