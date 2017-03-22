@@ -173,7 +173,9 @@ function testCasesForPolicyCeritificates.StartService_encryption(self,service)
     if ( data.frameInfo == 2 ) then
       print("StartService", "StartService ACK", "True")
       return true
-    else return false, "StartService NACK received" end
+    else 
+      return false, "StartService NACK received" 
+    end
   end)
   if ( service == 7 ) then
     ret:Do(function(_, data)
