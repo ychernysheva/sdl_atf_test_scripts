@@ -31,7 +31,7 @@ function CommonFunctions:DeleteLogsFiles()
   if self:IsFileExist(config.pathToSDL .. "app_info.dat") then
     os.remove(config.pathToSDL .. "app_info.dat")
   end
-  os.remove(config.pathToSDL .. "*.log")
+  os.execute("rm -f " .. config.pathToSDL .. "*.log")
 end
 
 -- Check file existence
@@ -809,7 +809,7 @@ end
 -- @param image_file_name: name of the image
 -----------------------------------------------------------------------------
 function CommonFunctions:GetFullPathIcon(image_file_name, appId)
-  if not appId then 
+  if not appId then
     appId = config.application1.registerAppInterfaceParams.appID
   end
   local full_path_icon = table.concat({config.pathToSDL, "storage/", appId, "_", config.deviceMAC, "/", image_file_name})
