@@ -63,12 +63,10 @@ end
 
 function Test:Precondition_StartSession()
   self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
-  self.mobileSession:StartService(7)
+  testCasesForPolicyCeritificates.StartService_encryption(self, 7)
 end
 
---[[ Test ]]
-commonFunctions:newTestCasesGroup("Test")
-function Test:TestStep_RAI_PTU_Trigger()
+function Test:Precondition_RAI_PTU_Trigger()
   local CorIdRegister = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
 
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application1.registerAppInterfaceParams.appName }})
@@ -108,6 +106,9 @@ function Test:Precondition_PolicyTableUpdate_fails()
         end)
     end)
 end
+
+--[[ Test ]]
+commonFunctions:newTestCasesGroup("Test")
 
 function Test:TestStep_Audio_NACK()
   self.mobileSession.correlationId = self.mobileSession.correlationId + 1
