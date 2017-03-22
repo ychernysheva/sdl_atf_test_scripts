@@ -49,7 +49,7 @@ local time_ptu_finish = 0
 --[[ General Precondition before ATF start ]]
 commonPreconditions:BackupFile("smartDeviceLink.ini")
 commonFunctions:write_parameter_to_smart_device_link_ini("ForceProtectedService", "Non")
-testCasesForPolicyCeritificates.update_preloaded_pt(config.application1.registerAppInterfaceParams.appID, false)
+testCasesForPolicyCeritificates.update_preloaded_pt(config.application1.registerAppInterfaceParams.appID, false, {1,1,1,1,1})
 testCasesForPolicyCeritificates.create_ptu_certificate_exist(false, true)
 commonSteps:DeletePolicyTable()
 commonSteps:DeleteLogsFiles()
