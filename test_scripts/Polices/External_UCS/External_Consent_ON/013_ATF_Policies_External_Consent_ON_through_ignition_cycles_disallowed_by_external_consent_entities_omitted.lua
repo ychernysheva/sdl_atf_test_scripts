@@ -17,7 +17,7 @@ common_steps:ActivateApplication("Activate_Application_1", config.application1.r
 ------------------------------------------------------------------------------------------------------
 ------------------------------------------- Functions ------------------------------------------------
 ------------------------------------------------------------------------------------------------------
-local function CheckGroup001IsConsented()
+local function CheckRPCisDisallowed()
   --------------------------------------------------------------------------
   -- Main check:
   -- RPC of Group001 is disallowed to process.
@@ -54,7 +54,7 @@ end
 --------------------------------------------------------------------------
 -- Test 10.03:
 -- Description:
--- 1. disallowed_by_external_consent_entities_off.
+-- 1. disallowed_by_external_consent_entities_on/off is omitted.
 -- 2. HMI->SDL: OnAppPermissionConsent(externalConsentStatus ON).
 -- 3. Ignition Off then On.
 -- 4. Expected Result: externalConsentStatus is kept. RPC is allowed
@@ -111,15 +111,15 @@ end
 Test[TEST_NAME_ON.."Precondition_GetListOfPermissions"] = function(self)
   local request_id = self.hmiConnection:SendRequest("SDL.GetListOfPermissions")
   EXPECT_HMIRESPONSE(request_id,{
-    result = {
-      code = 0,
-      method = "SDL.GetListOfPermissions",
-      allowedFunctions = {
-        {name = "ConsentGroup001", allowed = nil}
-      },
-      externalConsentStatus = {}
-    }
-  })
+      result = {
+        code = 0,
+        method = "SDL.GetListOfPermissions",
+        allowedFunctions = {
+          {name = "ConsentGroup001", allowed = nil}
+        },
+        externalConsentStatus = {}
+      }
+    })
 end
 
 --------------------------------------------------------------------------
@@ -129,9 +129,9 @@ end
 Test[TEST_NAME_ON .. "Precondition_HMI_sends_OnAppPermissionConsent_externalConsentStatus"] = function(self)
   local hmi_app_id_1 = common_functions:GetHmiAppId(config.application1.registerAppInterfaceParams.appName, self)
   self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent", {
-    appID = hmi_app_id_1, source = "GUI",
-    externalConsentStatus = {{entityType = 2, entityID = 5, status = "ON"}}
-  })
+      appID = hmi_app_id_1, source = "GUI",
+      externalConsentStatus = {{entityType = 2, entityID = 5, status = "ON"}}
+    })
   self.mobileSession:ExpectNotification("OnPermissionsChange"):Times(0)
   common_functions:DelayedExp(5000)
 end
@@ -140,7 +140,7 @@ end
 -- Precondition:
 -- Group001: is_consented = 1
 --------------------------------------------------------------------------
-CheckGroup001IsConsented()
+CheckRPCisDisallowed()
 
 --------------------------------------------------------------------------
 -- Precondition:
@@ -152,7 +152,7 @@ IgnitionOffOnActivateApp("when_externalConsentStatus_ON")
 -- Main check:
 -- Group001: is_consented = 1
 --------------------------------------------------------------------------
-CheckGroup001IsConsented()
+CheckRPCisDisallowed()
 
 ------------------------------------------------------------------------------------------------------
 -------------------------------------- Postcondition -------------------------------------------------
