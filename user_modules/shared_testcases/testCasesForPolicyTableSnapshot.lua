@@ -579,7 +579,6 @@ function testCasesForPolicyTableSnapshot:get_data_from_PTS(pts_element)
   end
   if (value == nil) then
     print(" \27[31m Value of "..pts_element.." is nil \27[0m")
-    value = 0
   end
 
   return value
