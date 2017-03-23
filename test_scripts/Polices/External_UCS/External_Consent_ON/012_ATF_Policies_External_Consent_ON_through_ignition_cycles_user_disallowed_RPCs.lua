@@ -17,7 +17,7 @@ common_steps:ActivateApplication("Activate_Application_1", config.application1.r
 ------------------------------------------------------------------------------------------------------
 ------------------------------------------- Functions ------------------------------------------------
 ------------------------------------------------------------------------------------------------------
-local function CheckGroup001IsConsented()
+local function CheckRPCisUserDisallowed()
   --------------------------------------------------------------------------
   -- Main check:
   -- RPC of Group001 is disallowed to process.
@@ -147,7 +147,7 @@ end
 -- Precondition:
 -- Group001: is_consented = 1
 --------------------------------------------------------------------------
-CheckGroup001IsConsented()
+CheckRPCisUserDisallowed()
 
 --------------------------------------------------------------------------
 -- Precondition:
@@ -159,7 +159,7 @@ IgnitionOffOnActivateApp("when_externalConsentStatus_ON")
 -- Main check:
 -- Group001: is_consented = 1
 --------------------------------------------------------------------------
-CheckGroup001IsConsented()
+CheckRPCisUserDisallowed()
 
 ------------------------------------------------------------------------------------------------------
 -------------------------------------- Postcondition -------------------------------------------------
