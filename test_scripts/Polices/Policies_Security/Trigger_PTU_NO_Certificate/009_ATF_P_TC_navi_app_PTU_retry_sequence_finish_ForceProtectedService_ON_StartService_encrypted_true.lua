@@ -41,6 +41,7 @@ local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 local testCasesForPolicyCeritificates = require('user_modules/shared_testcases/testCasesForPolicyCeritificates')
+local mobile_session = require('mobile_session')
 
 --[[ Local variables ]]
 local time_wait = (60 + 61 + 62 + 62 + 62 + 62)*1000
@@ -54,11 +55,32 @@ commonSteps:DeletePolicyTable()
 commonSteps:DeleteLogsFiles()
 
 --[[ General Settings for configuration ]]
-Test = require('connecttest')
+Test = require('user_modules/connecttest_resumption')
 require('user_modules/AppTypes')
 
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
+
+function Test:Precondition_connectMobile()
+  self:connectMobile()
+end
+
+function Test:Precondition_StartSession()
+  self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
+  testCasesForPolicyCeritificates.StartService_encryption(self, 7)
+end
+
+function Test:Precondition_RAI_PTU_Trigger()
+  local CorIdRegister = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
+
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application1.registerAppInterfaceParams.appName }})
+  :Do(function(_,data) self.applications[config.application1.registerAppInterfaceParams.appName] = data.params.application.appID end)
+
+  EXPECT_RESPONSE(CorIdRegister, { success = true, resultCode = "SUCCESS" })
+  EXPECT_NOTIFICATION("OnHMIStatus", { systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE"})
+
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"}, {status = "UPDATING"}):Times(2)
+end
 
 function Test:Precondition_ActivateApp()
   commonSteps:ActivateAppInSpecificLevel(self, self.applications[config.application1.registerAppInterfaceParams.appName])
@@ -80,6 +102,9 @@ function Test.Precondition_PolicyTableUpdate_retry_sequence_elapse()
 
   commonTestCases:DelayedExp(time_wait)
 end
+
+--[[ Test ]]
+commonFunctions:newTestCasesGroup("Test")
 
 function Test:TestStep_Audio_NACK()
   self.mobileSession.correlationId = self.mobileSession.correlationId + 1
