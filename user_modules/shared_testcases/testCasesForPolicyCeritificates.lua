@@ -168,17 +168,22 @@ function testCasesForPolicyCeritificates.StartService_encryption(self,service)
       data.frameInfo == 3) -- Start Service NACK
   end
 
-  local ret = self.mobileSession:ExpectEvent(startserviceEvent, "StartService ACK")
+  self.mobileSession:ExpectEvent(startserviceEvent, "StartService ACK")
   :ValidIf(function(_, data)
-    if ( data.frameInfo == 2 ) then
-      print("StartService", "StartService ACK", "True")
-      return true
-    else 
-      return false, "StartService NACK received" 
-    end
     if ( service == 7 ) then
       self.mobileSession.sessionId = data.sessionId
       self.mobileSession.hashCode = data.binaryData
+    end
+
+    if ( data.frameInfo == 2 ) then
+      print("StartService", "StartService ACK", "True")
+      if(data.encryption == true) then
+        commonFunctions:printError("Encryption flag should not be set.") 
+        return false
+      end
+      return true
+    else 
+      return false, "StartService NACK received" 
     end
   end)
 end
