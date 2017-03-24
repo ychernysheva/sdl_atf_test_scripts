@@ -70,6 +70,13 @@ local function folderSize(PathToFolder)
   return buff:match("^%d+")
 end
 
+local function getListOfFilesInStorageFolder(folder)
+  local aHandle = assert( io.popen( "ls --full-time " .. folder .. " | awk '{print $9\"\t\"$6\" \"$7}'" , 'r'))
+  local ListOfFilesInStorageFolder = aHandle:read( '*a' )
+  aHandle:close()
+  commonFunctions:userPrint(32, "Content of storage folder: " .."\n" ..ListOfFilesInStorageFolder)
+end
+
 local function makeAppIconsFolderFull(AppIconsFolder)
   local currentSizeIconsFolderInBytes = folderSize(commonPreconditions:GetPathToSDL() .. AppIconsFolder)
   local iconsFolderSize = 1048576
@@ -89,14 +96,13 @@ local function makeAppIconsFolderFull(AppIconsFolder)
       break
     end
   end
+  getListOfFilesInStorageFolder(commonPreconditions:GetPathToSDL() .. AppIconsFolder)
 end
 
 local function checkFunction()
-  local aHandle = assert( io.popen( "ls " .. testIconsFolder .. "/" , 'r'))
-  local ListOfFilesInStorageFolder = aHandle:read( '*a' )
   local status = true
-  commonFunctions:userPrint(32, "Content of storage folder: " .."\n" ..ListOfFilesInStorageFolder)
   local iconFolderPath = testIconsFolder .. "/"
+  getListOfFilesInStorageFolder(iconFolderPath)
   local applicationFileToCheck = iconFolderPath .. RAIParameters.appID
   local applicationFileExistsResult = commonSteps:file_exists(applicationFileToCheck)
   if applicationFileExistsResult ~= true then
