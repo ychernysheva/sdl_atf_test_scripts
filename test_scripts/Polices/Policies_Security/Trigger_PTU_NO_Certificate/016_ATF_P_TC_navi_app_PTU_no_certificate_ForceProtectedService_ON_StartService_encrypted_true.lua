@@ -11,7 +11,6 @@
 -- SDL must respond StartService (NACK) to this mobile app
 --
 -- 1. Used preconditions:
--- RPC SetAudioStreamingIndicator is allowed by policy
 -- ForceProtectedService is set to ON in .ini file
 -- Navi app exists in LP, no certificate in module_config
 -- Register and activate navi application.
@@ -142,12 +141,10 @@ function Test:TestStep_RPC_NACK()
 
   local msg = {
     serviceType = 7,
-    frameInfo = 0,
-    rpcType = 0,
-    rpcFunctionId = 48,
-    encryption = true,
+    frameInfo = 1,
+    frameType = 0,
     rpcCorrelationId = self.mobileSession.correlationId,
-    payload = '{ "audioStreamingIndicator" : "PAUSE" }'
+    encryption = true
   }
   testCasesForPolicyCeritificates.start_service_NACK(self, msg, 7,"RPC")
 end
@@ -157,13 +154,10 @@ function Test:TestStep_Hybrid_NACK()
 
   local msg = {
     serviceType = 15,
-    frameInfo = 0,
-    rpcType = 0,
-    rpcFunctionId = 48,
-    encryption = true,
+    frameInfo = 1,
+    frameType = 0,
     rpcCorrelationId = self.mobileSession.correlationId,
-    payload = '{ "audioStreamingIndicator" : "PAUSE" }',
-    binaryData = '{ "audioStreamingIndicator" : "PAUSE" }'
+    encryption = true
   }
   testCasesForPolicyCeritificates.start_service_NACK(self, msg, 15,"Hybrid")
 end

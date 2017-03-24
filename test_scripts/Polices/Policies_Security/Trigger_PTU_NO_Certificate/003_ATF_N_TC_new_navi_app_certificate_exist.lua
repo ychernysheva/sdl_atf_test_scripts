@@ -31,6 +31,8 @@ local mobile_session = require('mobile_session')
 local testCasesForPolicyCeritificates = require('user_modules/shared_testcases/testCasesForPolicyCeritificates')
 
 --[[ General Precondition before ATF start ]]
+commonPreconditions:BackupFile("smartDeviceLink.ini")
+commonFunctions:write_parameter_to_smart_device_link_ini("ForceProtectedService", "Non")
 testCasesForPolicyCeritificates.update_preloaded_pt(nil, true)
 commonSteps:DeletePolicyTable()
 commonSteps:DeleteLogsFiles()
@@ -66,7 +68,8 @@ end
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
 
-function Test.Postcondition_Restore_PreloadedPT()
+function Test.Postcondition_Restore_Files()
+  commonPreconditions:RestoreFile("smartDeviceLink.ini")
   commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 end
 

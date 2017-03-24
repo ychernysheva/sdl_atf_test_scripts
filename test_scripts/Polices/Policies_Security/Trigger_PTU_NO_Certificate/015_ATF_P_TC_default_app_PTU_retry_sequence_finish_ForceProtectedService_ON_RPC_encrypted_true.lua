@@ -11,18 +11,16 @@
 -- SDL must respond StartService (NACK) to this mobile app
 --
 -- 1. Used preconditions:
--- RPC SetAudioStreamingIndicator is allowed by policy
 -- ForceProtectedService is set to ON in .ini file
 -- Default app exists in LP, no certificate in module_config
 -- Register and activate application.
--- Send StartService(serviceType = 7 (RPC), RPCfunctionID = 48(SetAudioStreamingIndicator))
+-- Send StartService(serviceType = 7 (RPC))
 -- -> SDL should trigger PTU: SDL.OnStatusUpdate(UPDATE_NEEDED)
 -- -> SDL should not respond to StartService_request
--- -> SDL should not process request to HMI
 --
 -- 2. Performed steps
 -- 2.1. Wait PTU retry sequence to elapse.
--- 2.2. Send second StartService(serviceType = 7 (RPC), RPCfunctionID = 48(SetAudioStreamingIndicator))
+-- 2.2. Send second StartService(serviceType = 7 (RPC))
 --
 -- Expected result:
 -- 1. SDL must respond StartService (NACK) to this mobile app
@@ -94,12 +92,10 @@ function Test:Precondition_First_StartService()
 
   local msg = {
     serviceType = 7,
-    frameInfo = 0,
-    rpcType = 0,
-    rpcFunctionId = 48,
+    frameType = 0,
+    frameInfo = 1,
     encryption = true,
-    rpcCorrelationId = self.mobileSession.correlationId,
-    payload = '{ "audioStreamingIndicator" : "PAUSE" }'
+    rpcCorrelationId = self.mobileSession.correlationId
   }
 
   self.mobileSession:Send(msg)
@@ -116,8 +112,7 @@ function Test:Precondition_First_StartService()
       self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
     end)
 
-  EXPECT_HMICALL("UI.SetAudioStreamingIndicator"):Times(0)
-  self.mobileSession:ExpectEvent(startserviceEvent, "Service 7: RPC SetAudioStreamingIndicator"):Times(0)
+  self.mobileSession:ExpectEvent(startserviceEvent, "Service 7: RPC"):Times(0)
 
   commonTestCases:DelayedExp(10000)
 end
@@ -183,12 +178,10 @@ function Test:TestStep_RPC_NACK()
 
   local msg = {
     serviceType = 7,
-    frameInfo = 0,
-    rpcType = 0,
-    rpcFunctionId = 48,
+    frameType = 0,
+    frameInfo = 1,
     encryption = true,
-    rpcCorrelationId = self.mobileSession.correlationId,
-    payload = '{ "audioStreamingIndicator" : "PAUSE" }'
+    rpcCorrelationId = self.mobileSession.correlationId
   }
   testCasesForPolicyCeritificates.start_service_NACK(self, msg, 7,"RPC")
 end

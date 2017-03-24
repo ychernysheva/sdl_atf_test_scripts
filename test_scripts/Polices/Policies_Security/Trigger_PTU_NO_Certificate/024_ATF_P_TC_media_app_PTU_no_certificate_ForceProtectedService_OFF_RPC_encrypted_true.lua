@@ -11,21 +11,18 @@
 -- SDL must respond StartService (ACK, encrypt=false) to this mobile app
 --
 -- 1. Used preconditions:
--- RPC SetAudioStreamingIndicator is allowed by policy
 -- ForceProtectedService is set to OFF in .ini file
 -- Media app exists in LP, no certificate in module_config
 -- Register and activate application.
--- Send StartService(serviceType = 7 (RPC), RPCfunctionID = 48(SetAudioStreamingIndicator))
+-- Send StartService(serviceType = 7 (RPC))
 -- -> SDL should trigger PTU: SDL.OnStatusUpdate(UPDATE_NEEDED)
 -- -> SDL should not respond to StartService_request
--- -> SDL should not process request to HMI
 --
 -- 2. Performed steps
 -- Send correct policy file, NO certificate in module_config
 --
 -- Expected result:
 -- SDL sends SDL.OnStatusUpdate(UP_TO_DATE)
--- SDL process request to HMI
 -- SDL should return StartServiceACK, encrypt = false to RPC
 ---------------------------------------------------------------------------------------------
 
@@ -42,9 +39,6 @@ local commonPreconditions = require('user_modules/shared_testcases/commonPrecond
 local testCasesForPolicyCeritificates = require('user_modules/shared_testcases/testCasesForPolicyCeritificates')
 local events = require('events')
 local Event = events.Event
-
---[[ Local variables ]]
-local rpc_corrid
 
 --[[ General Precondition before ATF start ]]
 commonPreconditions:BackupFile("smartDeviceLink.ini")
@@ -68,15 +62,13 @@ end
 
 function Test:Precondition_First_StartService()
   self.mobileSession.correlationId = self.mobileSession.correlationId + 1
-  rpc_corrid = self.mobileSession.correlationId
+
   local msg = {
     serviceType = 7,
-    frameInfo = 0,
-    rpcType = 0,
-    rpcFunctionId = 48,
-    encryption = true,
+    frameInfo = 1,
+    frameType = 0,
     rpcCorrelationId = self.mobileSession.correlationId,
-    payload = '{ "audioStreamingIndicator" : "PAUSE" }'
+    encryption = true
   }
 
   self.mobileSession:Send(msg)
@@ -93,8 +85,7 @@ function Test:Precondition_First_StartService()
       self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
     end)
 
-  EXPECT_HMICALL("UI.SetAudioStreamingIndicator"):Times(0)
-  self.mobileSession:ExpectEvent(startserviceEvent, "Service 7: RPC SetAudioStreamingIndicator"):Times(0)
+  self.mobileSession:ExpectEvent(startserviceEvent, "Service 7: RPC"):Times(0)
 
   commonTestCases:DelayedExp(10000)
 end
@@ -149,11 +140,6 @@ function Test:TestStep_PTU_NO_certificate_RPC_ACK_encryption_false()
         return false
       end
     end)
-
-  EXPECT_HMICALL("UI.SetAudioStreamingIndicator", { audioStreamingIndicator = "PAUSE" })
-  :Do(function(_,data) self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS") end)
-
-  EXPECT_RESPONSE(rpc_corrid, { success = true, resultCode = "SUCCESS"})
 end
 
 --[[ Postconditions ]]
