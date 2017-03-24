@@ -38,6 +38,7 @@ config.application1.registerAppInterfaceParams.isMediaApplication = false
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
+local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 local testCasesForPolicyCeritificates = require('user_modules/shared_testcases/testCasesForPolicyCeritificates')
 local events = require('events')
 local Event = events.Event
@@ -84,6 +85,9 @@ function Test:Precondition_First_StartService()
   :Do(function(_,data)
       self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
     end)
+    
+  self.mobileSession:ExpectEvent(startserviceEvent, "Service 7: RPC SetAudioStreamingIndicator"):Times(0)
+  commonTestCases:DelayedExp(10000)
 end
 
 --[[ Test ]]
