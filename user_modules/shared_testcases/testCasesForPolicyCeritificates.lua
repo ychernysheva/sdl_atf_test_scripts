@@ -188,45 +188,4 @@ function testCasesForPolicyCeritificates.StartService_encryption(self,service)
   end)
 end
 
---[[@RAI_encryption: send RAI with flag encryption true
-! as result will check received ACK / NACK / No Response for RAI
-]]
-function testCasesForPolicyCeritificates.RAI_encryption(self, arguments)
-
-  self.mobileSession.correlationId = self.mobileSession.correlationId + 1
-
-  local msg = {
-    serviceType      = 7,
-    frameInfo        = 0,
-    rpcType          = 0,
-    rpcFunctionId    = 1,
-    encryption       = true,
-    rpcCorrelationId = self.mobileSession.correlationId,
-    payload = json.encode(arguments)
-  }
-  self.mobileSession:Send(msg)
-
-  -- prepare event to expect
-  local startserviceEvent = Event()
-  startserviceEvent.matches =
-  function(_, data)
-    return ( data.frameType == 0 and data.serviceType == 7)
-  end
-
-  self.mobileSession:ExpectEvent(startserviceEvent, "StartService ACK")
-  :ValidIf(function(_, data)    
-    if ( data.frameInfo == 2 ) then
-      print("StartService", "StartService ACK", "True")
-      if(data.encryption == true) then
-        commonFunctions:printError("Encryption flag should not be set.") 
-        return false
-      end
-      return true
-    else 
-      return false, "StartService NACK received" 
-    end
-  end)
-  return self.mobileSession.correlationId
-end
-
 return testCasesForPolicyCeritificates
