@@ -63,7 +63,7 @@ function Test:Precondition_StartSession()
 end
 
 function Test:Precondition_PTU_Trigger()
-  local CorIdRegister = testCasesForPolicyCeritificates.RAI_encryption(self, config.application1.registerAppInterfaceParams)
+  local CorIdRegister = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
 
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application1.registerAppInterfaceParams.appName }})
   EXPECT_RESPONSE(CorIdRegister, { success = true, resultCode = "SUCCESS" })
