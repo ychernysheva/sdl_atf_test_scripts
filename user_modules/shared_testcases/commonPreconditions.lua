@@ -31,13 +31,20 @@ local function update_connecttest(fileContent, FileName)
 	return fileContent
 end
 
+local function Preconditions:getAbsolutePath(relativePath)
+  if type(relativePath) == "string" and relativePath ~= ""  and not relativePath:find(" ") then
+    local commandToExecute = "readlink -fm " .. relativePath
+    local db = assert(io.popen(commandToExecute, 'r'))
+    local data = assert(db:read('*a'))
+    db:close()
+    return string.gsub(data, "\n", "")
+  else
+    return ""
+  end
+end
 
 function Preconditions:GetPathToSDL()
-	local pathToSDL = config.pathToSDL
-  if pathToSDL:sub(-1) ~= '/' then
-    pathToSDL = pathToSDL .. "/"
-  end
-  return pathToSDL
+  return Preconditions:getAbsolutePath(config.pathToSDL) .. "/"
 end
 
 function Preconditions:SendLocationPreconditionUpdateHMICap()
