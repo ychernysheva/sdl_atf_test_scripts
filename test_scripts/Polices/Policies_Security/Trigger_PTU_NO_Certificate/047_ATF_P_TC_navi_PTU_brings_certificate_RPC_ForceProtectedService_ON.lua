@@ -59,7 +59,7 @@ end
 
 function Test:Precondition_StartSession()
   self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
-  self.mobileSession:StartService(7)
+  testCasesForPolicyCeritificates.StartService_encryption(self,7)
 end
 
 function Test:Precondition_PTU_Trigger()
