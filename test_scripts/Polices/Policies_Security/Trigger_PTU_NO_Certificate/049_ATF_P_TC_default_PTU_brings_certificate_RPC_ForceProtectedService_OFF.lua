@@ -1,5 +1,6 @@
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
+-- [PTU] [GENIVI] PolicyTableUpdate is valid and brings "certificate"
 -- [PTU] [GENIVI] PolicyTableUpdate has NO "certificate" and "ForceProtectedService"=OFF at .ini file
 -- [PTU] [GENIVI] SDL must start PTU for any app except navi right after app successfully request to start first secure service
 --
@@ -97,8 +98,8 @@ function Test:Precondition_First_StartService()
   commonTestCases:DelayedExp(10000)
 end
 
---[[ Preconditions ]]
-commonFunctions:newTestCasesGroup("Preconditions")
+--[[ Test ]]
+commonFunctions:newTestCasesGroup("Test")
 
 function Test:TestStep_PTU_certificate_exist_RPC_ACK_encryption_true()
   local startserviceEvent = Event()
