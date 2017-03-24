@@ -24,9 +24,9 @@ local function CheckGroup001IsNotConsentedAndGroup002IsConsented()
   --------------------------------------------------------------------------
   Test["TEST_NAME_OFF" .. "_MainCheck_RPC_of_Group001_is_disallowed"] = function(self)
     --mobile side: send SubscribeWayPoints request
-    self.mobileSession:SendRPC("SubscribeWayPoints",{})
+    local corr_id = self.mobileSession:SendRPC("SubscribeWayPoints",{})
     --mobile side: SubscribeWayPoints response
-    EXPECT_RESPONSE("SubscribeWayPoints", {success = false , resultCode = "USER_DISALLOWED"})
+    EXPECT_RESPONSE(corr_id, {success = false , resultCode = "USER_DISALLOWED"})
     EXPECT_NOTIFICATION("OnHashChange")
     :Times(0)
   end
@@ -36,12 +36,12 @@ local function CheckGroup001IsNotConsentedAndGroup002IsConsented()
   -- RPC of Group002 is allowed to process.
   --------------------------------------------------------------------------
   Test["TEST_NAME_OFF" .. "_MainCheck_RPC_of_Group002_is_allowed"] = function(self)
-    self.mobileSession:SendRPC("SubscribeVehicleData",{rpm = true})
+    local corr_id = self.mobileSession:SendRPC("SubscribeVehicleData",{rpm = true})
     EXPECT_HMICALL("VehicleInfo.SubscribeVehicleData")
     :Do(function(_,data)
         self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS",{})
       end)
-    EXPECT_RESPONSE("SubscribeVehicleData", {success = true , resultCode = "SUCCESS"})
+    EXPECT_RESPONSE(corr_id, {success = true , resultCode = "SUCCESS"})
     EXPECT_NOTIFICATION("OnHashChange")
   end
 end -- function CheckGroup001IsNotConsentedAndGroup002IsConsented()
@@ -53,7 +53,7 @@ local function CheckGroup001IsConsentedAndGroup002IsNotConsented()
   --------------------------------------------------------------------------
   Test["TEST_NAME_OFF" .. "_MainCheck_RPC_of_Group001_is_allowed"] = function(self)
     --mobile side: send SubscribeWayPoints request
-    self.mobileSession:SendRPC("SubscribeWayPoints",{})
+    local corr_id = self.mobileSession:SendRPC("SubscribeWayPoints",{})
     --hmi side: expected SubscribeWayPoints request
     EXPECT_HMICALL("Navigation.SubscribeWayPoints")
     :Do(function(_,data)
@@ -61,7 +61,7 @@ local function CheckGroup001IsConsentedAndGroup002IsNotConsented()
         self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS",{})
       end)
     --mobile side: SubscribeWayPoints response
-    EXPECT_RESPONSE("SubscribeWayPoints", {success = true , resultCode = "SUCCESS"})
+    EXPECT_RESPONSE(corr_id, {success = true , resultCode = "SUCCESS"})
     EXPECT_NOTIFICATION("OnHashChange")
   end
 
@@ -161,6 +161,8 @@ Test["TEST_NAME_OFF".."_Precondition_Update_Policy_Table"] = function(self)
   local parent_item = {"policy_table","module_config"}
   local removed_json_items = {"preloaded_pt"}
   common_functions:RemoveItemsFromJsonFile("/tmp/ptu_update.json", parent_item, removed_json_items)
+  local removed_json_items_preloaded_date = {"preloaded_date"}
+  common_functions:RemoveItemsFromJsonFile("/tmp/ptu_update.json", parent_item, removed_json_items_preloaded_date)
   -- update policy table
   common_functions_external_consent:UpdatePolicy(self, "/tmp/ptu_update.json")
 end

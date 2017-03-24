@@ -81,6 +81,8 @@ Test["TEST_NAME_OFF".."_Precondition_Update_Policy_Table"] = function(self)
   local parent_item = {"policy_table","module_config"}
   local removed_json_items = {"preloaded_pt"}
   common_functions:RemoveItemsFromJsonFile("/tmp/ptu_update.json", parent_item, removed_json_items)
+  local removed_json_items_preloaded_date = {"preloaded_date"}
+  common_functions:RemoveItemsFromJsonFile("/tmp/ptu_update.json", parent_item, removed_json_items_preloaded_date)
   -- update policy table
   common_functions_external_consent:UpdatePolicy(self, "/tmp/ptu_update.json")
 end
@@ -102,7 +104,7 @@ Test["TEST_NAME_ON".."_Precondition_GetListOfPermissions"] = function(self)
       }
     })
   :Do(function(_,data)
-      common_functions_external_consent:GetGroupId(data, "ConsentGroup001")
+      id_group_1 = common_functions_external_consent:GetGroupId(data, "ConsentGroup001")
     end)
 end
 
@@ -146,7 +148,7 @@ end
 --------------------------------------------------------------------------
 Test["TEST_NAME_OFF" .. "_MainCheck_RPC_is_disallowed"] = function(self)
   --mobile side: send SubscribeWayPoints request
-  self.mobileSession:SendRPC("SubscribeWayPoints",{})
+  local corr_id = self.mobileSession:SendRPC("SubscribeWayPoints",{})
   --hmi side: expected SubscribeWayPoints request
   EXPECT_HMICALL("Navigation.SubscribeWayPoints")
   :Do(function(_,data)
@@ -154,7 +156,7 @@ Test["TEST_NAME_OFF" .. "_MainCheck_RPC_is_disallowed"] = function(self)
       self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS",{})
     end)
   --mobile side: SubscribeWayPoints response
-  EXPECT_RESPONSE("SubscribeWayPoints", {success = true , resultCode = "SUCCESS"})
+  EXPECT_RESPONSE(corr_id, {success = true , resultCode = "SUCCESS"})
   EXPECT_NOTIFICATION("OnHashChange")
 end
 

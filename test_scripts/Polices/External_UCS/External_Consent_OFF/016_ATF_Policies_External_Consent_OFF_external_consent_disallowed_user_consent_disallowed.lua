@@ -81,6 +81,8 @@ Test["TEST_NAME_OFF".."_Precondition_Update_Policy_Table"] = function(self)
   local parent_item = {"policy_table","module_config"}
   local removed_json_items = {"preloaded_pt"}
   common_functions:RemoveItemsFromJsonFile("/tmp/ptu_update.json", parent_item, removed_json_items)
+  local removed_json_items_preloaded_date = {"preloaded_date"}
+  common_functions:RemoveItemsFromJsonFile("/tmp/ptu_update.json", parent_item, removed_json_items_preloaded_date)
   -- update policy table
   common_functions_external_consent:UpdatePolicy(self, "/tmp/ptu_update.json")
 end
@@ -125,9 +127,9 @@ end
 --------------------------------------------------------------------------
 Test["TEST_NAME_OFF" .. "_MainCheck_RPC_is_disallowed"] = function(self)
   --mobile side: send SubscribeWayPoints request
-  self.mobileSession:SendRPC("SubscribeWayPoints",{})
+  local corr_id = self.mobileSession:SendRPC("SubscribeWayPoints",{})
   --mobile side: SubscribeWayPoints response
-  EXPECT_RESPONSE("SubscribeWayPoints", {success = false , resultCode = "USER_DISALLOWED"})
+  EXPECT_RESPONSE(corr_id, {success = false , resultCode = "USER_DISALLOWED"})
   EXPECT_NOTIFICATION("OnHashChange")
   :Times(0)
 end
