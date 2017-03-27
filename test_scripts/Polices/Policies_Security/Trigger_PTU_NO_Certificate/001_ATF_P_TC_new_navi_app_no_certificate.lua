@@ -26,9 +26,12 @@ config.application1.registerAppInterfaceParams.appHMIType = {"NAVIGATION"}
 --[[ Required Shared libraries ]]
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
+local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 local mobile_session = require('mobile_session')
 
 --[[ General Precondition before ATF start ]]
+commonPreconditions:BackupFile("smartDeviceLink.ini")
+commonFunctions:write_parameter_to_smart_device_link_ini("ForceProtectedService", "Non")
 commonSteps:DeletePolicyTable()
 commonSteps:DeleteLogsFiles()
 
@@ -62,6 +65,10 @@ end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
+
+function Test.Postcondition_Restore_files()
+  commonPreconditions:RestoreFile("smartDeviceLink.ini")
+end
 
 function Test.Postcondition_Stop()
   StopSDL()

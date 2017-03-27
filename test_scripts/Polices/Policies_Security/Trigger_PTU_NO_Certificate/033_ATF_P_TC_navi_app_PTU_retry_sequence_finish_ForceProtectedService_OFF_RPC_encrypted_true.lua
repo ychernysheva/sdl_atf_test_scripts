@@ -11,7 +11,6 @@
 -- SDL must respond StartService (ACK, encrypted=false) to this mobile app
 --
 -- 1. Used preconditions:
--- RPC SetAudioStreamingIndicator is allowed by policy
 -- ForceProtectedService is set to OFF in .ini file
 -- Navi app exists in LP, no certificate in module_config
 -- Register and activate navi application.
@@ -108,12 +107,10 @@ function Test:TestStep_RPC_ACK_encrypt_false()
 
   local msg = {
     serviceType = 7,
-    frameInfo = 0,
-    rpcType = 0,
-    rpcFunctionId = 48,
+    frameType = 0,
+    frameInfo = 1,
     encryption = true,
-    rpcCorrelationId = self.mobileSession.correlationId,
-    payload = '{ "audioStreamingIndicator" : "PAUSE" }'
+    rpcCorrelationId = self.mobileSession.correlationId
   }
   self.mobileSession:Send(msg)
 
@@ -141,10 +138,6 @@ function Test:TestStep_RPC_ACK_encrypt_false()
         return false
       end
     end)
-
-  EXPECT_HMICALL("UI.SetAudioStreamingIndicator"):Times(0)
-  EXPECT_RESPONSE(msg.rpcCorrelationId, { success = false, resultCode = "REJECTED"})
-
 end
 
 --[[ Postconditions ]]

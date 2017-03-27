@@ -10,18 +10,16 @@
 -- (meaning: SDL will NOT respond to StartService_request from mobile app till PTU will be finished per comment)
 --
 -- 1. Used preconditions:
--- RPC SetAudioStreamingIndicator is allowed by policy
 -- Default app exists in LP, no certificate in module_config
 --
 -- 2. Performed steps
 -- 2.1. Register and activate application.
--- 2.2. Send StartService(serviceType = 7 (RPC), RPCfunctionID = 48(SetAudioStreamingIndicator))
+-- 2.2. Send StartService(serviceType = 7 (RPC))
 --
 -- Expected result:
 -- 1. Application is registered and activated successfully.
 -- 2. SDL should trigger PTU: SDL.OnStatusUpdate(UPDATE_NEEDED)
 -- 3. SDL should not respond to StartService_request
--- SDL should not process request to HMI
 ---------------------------------------------------------------------------------------------
 
 --[[ General configuration parameters ]]
@@ -40,6 +38,8 @@ local events = require('events')
 local Event = events.Event
 
 --[[ General Precondition before ATF start ]]
+commonPreconditions:BackupFile("smartDeviceLink.ini")
+commonFunctions:write_parameter_to_smart_device_link_ini("ForceProtectedService", "Non")
 testCasesForPolicyCeritificates.update_preloaded_pt(config.application1.registerAppInterfaceParams.appID, false)
 commonSteps:DeletePolicyTable()
 commonSteps:DeleteLogsFiles()
@@ -85,12 +85,10 @@ function Test:TestStep_First_StartService()
 
   local msg = {
     serviceType = 7,
-    frameInfo = 0,
-    rpcType = 0,
-    rpcFunctionId = 48,
+    frameType = 0,
+    frameInfo = 1,
     encryption = true,
-    rpcCorrelationId = self.mobileSession.correlationId,
-    payload = '{ "audioStreamingIndicator" : "PAUSE" }'
+    rpcCorrelationId = self.mobileSession.correlationId
   }
 
   self.mobileSession:Send(msg)
@@ -107,9 +105,7 @@ function Test:TestStep_First_StartService()
       self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
     end)
 
-  EXPECT_HMICALL("UI.SetAudioStreamingIndicator"):Times(0)
-
-  self.mobileSession:ExpectEvent(startserviceEvent, "Service 7: RPC SetAudioStreamingIndicator"):Times(0)
+  self.mobileSession:ExpectEvent(startserviceEvent, "Service 7: RPC"):Times(0)
 
   commonTestCases:DelayedExp(10000)
 end
@@ -117,7 +113,8 @@ end
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
 
-function Test.Postcondition_Restore_preloaded_pt()
+function Test.Postcondition_Restore_Files()
+  commonPreconditions:RestoreFile("smartDeviceLink.ini")
   commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 end
 

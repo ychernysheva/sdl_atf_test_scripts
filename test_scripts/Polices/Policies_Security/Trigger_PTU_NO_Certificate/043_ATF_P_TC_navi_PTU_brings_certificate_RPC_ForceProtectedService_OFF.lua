@@ -109,12 +109,10 @@ function Test:TestStep_RPC_ACK_encrypt_true()
 
   local msg = {
     serviceType = 7,
-    frameInfo = 0,
-    rpcType = 0,
-    rpcFunctionId = 48,
+    frameType = 0,
+    frameInfo = 1,
     encryption = true,
-    rpcCorrelationId = self.mobileSession.correlationId,
-    payload = '{ "audioStreamingIndicator" : "PAUSE" }'
+    rpcCorrelationId = self.mobileSession.correlationId
   }
   self.mobileSession:Send(msg)
 
@@ -142,11 +140,6 @@ function Test:TestStep_RPC_ACK_encrypt_true()
         return false
       end
     end)
-
-  EXPECT_HMICALL("UI.SetAudioStreamingIndicator", { audioStreamingIndicator = "PAUSE" })
-  :Do(function(_,data) self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS") end)
-
-  EXPECT_RESPONSE(msg.rpcCorrelationId, { success = true, resultCode = "SUCCESS"})
 
   EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate"):Times(0)
   commonTestCases:DelayedExp(10000)
