@@ -17,15 +17,13 @@
 -- Send StartService(serviceType = 7 (RPC))
 -- -> SDL should trigger PTU: SDL.OnStatusUpdate(UPDATE_NEEDED)
 -- -> SDL should not respond to StartService_request
--- -> SDL should not process request to HMI
 --
 -- 2. Performed steps
 -- Send correct policy file, certificate exists in module_config
 --
 -- Expected result:
 -- 1. SDL sends SDL.OnStatusUpdate(UP_TO_DATE)
--- 2. SDL process request to HMI
--- 3. SDL should return StartServiceACK, encrypt = true to RPC
+-- 2. SDL should return StartServiceACK, encrypt = true to RPC
 ---------------------------------------------------------------------------------------------
 
 --[[ General configuration parameters ]]
