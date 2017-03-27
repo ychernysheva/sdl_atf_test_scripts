@@ -17,7 +17,6 @@
 -- Send StartService(serviceType = 7 (RPC))
 -- -> SDL should trigger PTU: SDL.OnStatusUpdate(UPDATE_NEEDED)
 -- -> SDL should not respond to StartService_request
--- -> SDL should not process request to HMI
 --
 -- 2. Performed steps
 -- Send wrong policyfile (updated with function create_ptu_certificate_exist(false, true) )

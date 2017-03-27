@@ -20,7 +20,6 @@
 -- 1. Application is registered and activated successfully.
 -- 2. SDL should trigger PTU: SDL.OnStatusUpdate(UPDATE_NEEDED)
 -- 3. SDL should not respond to StartService_request
--- SDL should not process request to HMI
 ---------------------------------------------------------------------------------------------
 
 --[[ General configuration parameters ]]
@@ -114,7 +113,7 @@ end
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
 
-function Test.Postcondition_Restore_preloaded_pt()
+function Test.Postcondition_Restore_Files()
   commonPreconditions:RestoreFile("smartDeviceLink.ini")
   commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
 end
