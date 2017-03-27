@@ -2,6 +2,7 @@
 -- Requirement summary:
 -- [PTU] [GENIVI] SDL must start PTU for any app except navi right after app successfully request to start first secure service
 -- [PTU] [GENIVI] PolicyTableUpdate is valid and brings "certificate"
+-- [PTU] [GENIVI] PolicyTableUpdate has NO "certificate" and "ForceProtectedService"=ON at .ini file
 --
 -- Description:
 -- In case SDL starts PolicyTableUpdate in case of no "certificate" at "module_config" section at LocalPT
