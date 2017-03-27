@@ -11,22 +11,19 @@
 -- SDL must start TLSHandshake sequence (by sending TLS Hello to this mobile app)
 --
 -- 1. Used preconditions:
--- RPC SetAudioStreamingIndicator is allowed by policy
 -- ForceProtectedService is set to OFF in .ini file
 -- Default app exists in LP, no certificate in module_config
 -- Register and activate application.
 -- Send StartService(serviceType = 7 (RPC))
 -- -> SDL should trigger PTU: SDL.OnStatusUpdate(UPDATE_NEEDED)
 -- -> SDL should not respond to StartService_request
--- -> SDL should not process request to HMI
 --
 -- 2. Performed steps
 -- Send correct policy file, certificate exists in module_config
 --
 -- Expected result:
 -- 1. SDL sends SDL.OnStatusUpdate(UP_TO_DATE)
--- 2. SDL process request to HMI
--- 3. SDL should return StartServiceACK, encrypt = true to RPC
+-- 2. SDL should return StartServiceACK, encrypt = true to RPC
 ---------------------------------------------------------------------------------------------
 
 --[[ General configuration parameters ]]
@@ -85,8 +82,8 @@ function Test:Precondition_First_StartService()
   :Do(function(_,data)
       self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
     end)
-    
-  self.mobileSession:ExpectEvent(startserviceEvent, "Service 7: RPC SetAudioStreamingIndicator"):Times(0)
+
+  self.mobileSession:ExpectEvent(startserviceEvent, "Service 7: RPC"):Times(0)
   commonTestCases:DelayedExp(10000)
 end
 
