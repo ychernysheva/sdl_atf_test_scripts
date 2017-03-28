@@ -142,6 +142,7 @@ Test[TEST_NAME_ON .. "Precondition_HMI_sends_OnAppPermissionConsent_userConsent"
     })
   self.mobileSession:ExpectNotification("OnPermissionsChange")
   :Times(0)
+  common_functions:DelayedExp(5000)
 end
 
 --------------------------------------------------------------------------

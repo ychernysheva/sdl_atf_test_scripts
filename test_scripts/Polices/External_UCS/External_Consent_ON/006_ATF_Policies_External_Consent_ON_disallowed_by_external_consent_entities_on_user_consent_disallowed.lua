@@ -126,6 +126,7 @@ Test[TEST_NAME_ON .. "Precondition_RPC_is_disallowed"] = function(self)
   EXPECT_RESPONSE("SubscribeWayPoints", {success = false , resultCode = "USER_DISALLOWED"})
   EXPECT_NOTIFICATION("OnHashChange")
   :Times(0)
+  common_functions:DelayedExp(5000)
 end
 
 --------------------------------------------------------------------------
@@ -140,6 +141,7 @@ Test[TEST_NAME_ON .. "Precondition_HMI_sends_OnAppPermissionConsent_externalCons
     })
   self.mobileSession:ExpectNotification("OnPermissionsChange")
   :Times(0)
+  common_functions:DelayedExp(5000)
 end
 
 --------------------------------------------------------------------------
@@ -151,6 +153,7 @@ Test[TEST_NAME_ON .. "MainCheck_RPC_is_disallowed"] = function(self)
   EXPECT_RESPONSE("SubscribeWayPoints", {success = false , resultCode = "USER_DISALLOWED"})
   EXPECT_NOTIFICATION("OnHashChange")
   :Times(0)
+  common_functions:DelayedExp(5000)
 end
 
 -- end Test 03.02

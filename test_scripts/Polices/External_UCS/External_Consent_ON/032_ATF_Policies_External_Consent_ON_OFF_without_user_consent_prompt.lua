@@ -109,6 +109,7 @@ Test[TEST_NAME_ON .. "Precondition_HMI_sends_OnAppPermissionConsent_externalCons
     })
   EXPECT_NOTIFICATION("OnPermissionsChange")
   :Times(0)
+  common_functions:DelayedExp(5000)
 end
 
 --------------------------------------------------------------------------
@@ -141,6 +142,7 @@ Test[TEST_NAME_ON .. "MainCheck_HMI_sends_OnAppPermissionConsent_externalConsent
     })
   EXPECT_NOTIFICATION("OnPermissionsChange")
   :Times(0)
+  common_functions:DelayedExp(5000)
 end
 
 --------------------------------------------------------------------------

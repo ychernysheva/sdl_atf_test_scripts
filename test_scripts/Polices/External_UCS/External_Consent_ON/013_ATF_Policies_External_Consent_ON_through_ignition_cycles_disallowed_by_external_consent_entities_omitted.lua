@@ -27,6 +27,7 @@ local function CheckRPCisDisallowed()
     self.mobileSession:ExpectResponse(corid, {success = false, resultCode = "DISALLOWED"})
     EXPECT_NOTIFICATION("OnHashChange")
     :Times(0)
+    common_functions:DelayedExp(5000)
   end
 end
 
@@ -132,7 +133,8 @@ Test[TEST_NAME_ON .. "Precondition_HMI_sends_OnAppPermissionConsent_externalCons
       appID = hmi_app_id_1, source = "GUI",
       externalConsentStatus = {{entityType = 2, entityID = 5, status = "ON"}}
     })
-  self.mobileSession:ExpectNotification("OnPermissionsChange"):Times(0)
+  self.mobileSession:ExpectNotification("OnPermissionsChange")
+  :Times(0)
   common_functions:DelayedExp(5000)
 end
 

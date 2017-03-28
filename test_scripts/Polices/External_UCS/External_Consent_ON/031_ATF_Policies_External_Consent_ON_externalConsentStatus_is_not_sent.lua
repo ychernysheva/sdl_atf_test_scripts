@@ -115,6 +115,7 @@ Test[TEST_NAME_ON .. "MainCheck_RPC_is_disallowed_by_omit_of_user_consent"] = fu
   self.mobileSession:ExpectResponse(corid, {success = false, resultCode = "DISALLOWED"})
   EXPECT_NOTIFICATION("OnHashChange")
   :Times(0)
+  common_functions:DelayedExp(5000)
 end
 
 --------------------------------------------------------------------------
@@ -176,6 +177,7 @@ Test[TEST_NAME_ON .. "MainCheck_RPC_is_disallowed_by_user_consent"] = function(s
   self.mobileSession:ExpectResponse(corid, {success = false, resultCode = "USER_DISALLOWED"})
   EXPECT_NOTIFICATION("OnHashChange")
   :Times(0)
+  common_functions:DelayedExp(5000)
 end
 
 --------------------------------------------------------------------------
@@ -203,6 +205,7 @@ Test[TEST_NAME_ON .. "MainCheck_RPC_is_disallowed_by_data_consent_false"] = func
   self.mobileSession:ExpectResponse(corid, {success = false, resultCode = "DISALLOWED"})
   EXPECT_NOTIFICATION("OnHashChange")
   :Times(0)
+  common_functions:DelayedExp(5000)
 end
 
 -- end Test 13.01
