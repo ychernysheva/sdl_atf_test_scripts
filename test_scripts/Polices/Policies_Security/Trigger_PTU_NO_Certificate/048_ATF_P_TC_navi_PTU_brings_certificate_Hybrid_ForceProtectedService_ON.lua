@@ -111,13 +111,10 @@ function Test:TestStep_Hybrid_ACK_encrypt_true()
 
   local msg = {
     serviceType = 15,
-    frameInfo = 0,
-    rpcType = 0,
-    rpcFunctionId = 48,
-    encryption = true,
+    frameInfo = 1,
+    frameType = 0,
     rpcCorrelationId = self.mobileSession.correlationId,
-    payload = '{ "audioStreamingIndicator" : "PAUSE" }',
-    binaryData = '{ "audioStreamingIndicator" : "PAUSE" }'
+    encryption = true
   }
   self.mobileSession:Send(msg)
 
@@ -145,11 +142,6 @@ function Test:TestStep_Hybrid_ACK_encrypt_true()
         return false
       end
     end)
-
-  EXPECT_HMICALL("UI.SetAudioStreamingIndicator", { audioStreamingIndicator = "PAUSE" })
-  :Do(function(_,data) self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS") end)
-
-  EXPECT_RESPONSE(msg.rpcCorrelationId, { success = true, resultCode = "SUCCESS"})
 end
 
 --[[ Postconditions ]]
