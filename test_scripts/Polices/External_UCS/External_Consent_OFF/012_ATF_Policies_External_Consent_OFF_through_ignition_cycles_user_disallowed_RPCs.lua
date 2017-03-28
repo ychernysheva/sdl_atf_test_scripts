@@ -1,5 +1,6 @@
 --------------------------------------Requirement summary---------------------------------------------
 --[Policies] External UCS: "OFF" status between ignition cycles
+--[Policies] External UCS: "OFF" - userDisallowed RPCs
 
 ------------------------------------General Settings for Configuration--------------------------------
 require('user_modules/all_common_modules')
@@ -25,9 +26,9 @@ local function CheckGroup001IsNotConsentedAndGroup002IsConsented()
   --------------------------------------------------------------------------
   Test["TEST_NAME_OFF_MainCheck_RPC_of_Group001_is_user_disallowed"] = function(self)
     --mobile side: send SubscribeWayPoints request
-    self.mobileSession:SendRPC("SubscribeWayPoints",{})
+    local cid = self.mobileSession:SendRPC("SubscribeWayPoints",{})
 
-    EXPECT_RESPONSE("SubscribeWayPoints", {success = false , resultCode = "USER_DISALLOWED"})
+    EXPECT_RESPONSE(cid, {success = false , resultCode = "USER_DISALLOWED"})
     EXPECT_NOTIFICATION("OnHashChange")
     :Times(0)
   end
@@ -37,12 +38,12 @@ local function CheckGroup001IsNotConsentedAndGroup002IsConsented()
   -- RPC of Group002 is allowed to process.
   --------------------------------------------------------------------------
   Test["TEST_NAME_OFF_MainCheck_RPC_of_Group002_is_allowed"] = function(self)
-    self.mobileSession:SendRPC("SubscribeVehicleData",{rpm = true})
+    local cid = self.mobileSession:SendRPC("SubscribeVehicleData",{rpm = true})
     EXPECT_HMICALL("VehicleInfo.SubscribeVehicleData")
     :Do(function(_,data)
         self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS",{})
       end)
-    EXPECT_RESPONSE("SubscribeVehicleData", {success = true , resultCode = "SUCCESS"})
+    EXPECT_RESPONSE(cid, {success = true , resultCode = "SUCCESS"})
     EXPECT_NOTIFICATION("OnHashChange")
   end
 
@@ -55,7 +56,7 @@ local function CheckGroup001IsConsentedAndGroup002IsNotConsented()
   --------------------------------------------------------------------------
   Test["TEST_NAME_OFF_MainCheck_RPC_of_Group001_is_allowed"] = function(self)
     --mobile side: send SubscribeWayPoints request
-    self.mobileSession:SendRPC("SubscribeWayPoints",{})
+    local cid = self.mobileSession:SendRPC("SubscribeWayPoints",{})
     --hmi side: expected SubscribeWayPoints request
     EXPECT_HMICALL("Navigation.SubscribeWayPoints")
     :Do(function(_,data)
@@ -63,7 +64,7 @@ local function CheckGroup001IsConsentedAndGroup002IsNotConsented()
         self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS",{})
       end)
     --mobile side: SubscribeWayPoints response
-    EXPECT_RESPONSE("SubscribeWayPoints", {success = true , resultCode = "SUCCESS"})
+    EXPECT_RESPONSE(cid, {success = true , resultCode = "SUCCESS"})
     EXPECT_NOTIFICATION("OnHashChange")
   end
 
