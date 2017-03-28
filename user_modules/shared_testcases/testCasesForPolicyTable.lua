@@ -926,7 +926,7 @@ function testCasesForPolicyTable:flow_SUCCEESS_EXTERNAL_PROPRIETARY(self, app_id
   EXPECT_HMIRESPONSE(RequestId_GetUrls,{result = {code = 0, method = "SDL.GetURLS", urls = endpoints} } )
   :Do(function(_,_)
     self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",
-    { requestType = "PROPRIETARY", fileName = pts_file_name})
+    { requestType = "PROPRIETARY", fileName = SystemFilesPath .. pts_file_name})
     EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "PROPRIETARY"})
     :Do(function(_, d2)
       if not (d2.binaryData ~= nil and string.len(d2.binaryData) > 0) then
