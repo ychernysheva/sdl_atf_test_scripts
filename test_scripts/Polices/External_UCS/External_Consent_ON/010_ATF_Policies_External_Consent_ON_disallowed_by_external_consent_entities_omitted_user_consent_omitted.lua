@@ -138,6 +138,7 @@ Test[TEST_NAME_ON .. "MainCheck_RPC_is_disallowed"] = function(self)
   self.mobileSession:ExpectResponse(corid, { success = false, resultCode = "DISALLOWED"})
   EXPECT_NOTIFICATION("OnHashChange")
   :Times(0)
+  common_functions:DelayedExp(5000)
 end
 
 -- end Test 01.03

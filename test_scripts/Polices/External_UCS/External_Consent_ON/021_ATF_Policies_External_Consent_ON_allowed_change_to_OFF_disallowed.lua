@@ -154,7 +154,6 @@ Test[TEST_NAME_ON .. "MainCheck_HMI_sends_OnAppPermissionConsent_externalConsent
       externalConsentStatus = {{entityType = 2, entityID = 5, status = "OFF"}}
     })
   self.mobileSession:ExpectNotification("OnPermissionsChange")
-  :Times(1)
   :ValidIf(function(_,data)
       local validate_result = common_functions_external_consent:ValidateHMIPermissions(data,
         "SubscribeWayPoints", {allowed = {}, userDisallowed = {"BACKGROUND","FULL","LIMITED"}})
@@ -173,6 +172,7 @@ Test[TEST_NAME_ON .. "MainCheck_RPC_is_disallowed"] = function(self)
   EXPECT_RESPONSE("SubscribeWayPoints", {success = false , resultCode = "USER_DISALLOWED"})
   EXPECT_NOTIFICATION("OnHashChange")
   :Times(0)
+  common_functions:DelayedExp(5000)
 end
 
 -- end Test 09.01

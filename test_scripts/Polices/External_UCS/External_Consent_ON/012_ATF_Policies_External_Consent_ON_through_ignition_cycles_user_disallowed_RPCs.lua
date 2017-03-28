@@ -27,6 +27,7 @@ local function CheckRPCisUserDisallowed()
     self.mobileSession:ExpectResponse(corid, {success = false, resultCode = "USER_DISALLOWED"})
     EXPECT_NOTIFICATION("OnHashChange")
     :Times(0)
+    common_functions:DelayedExp(5000)
   end
 end
 
@@ -70,7 +71,7 @@ Test[TEST_NAME_ON.."Precondition_Update_Policy_Table"] = function(self)
   -- insert Group001 into "functional_groupings"
   data.policy_table.functional_groupings.Group001 = {
     user_consent_prompt = "ConsentGroup001",
-      disallowed_by_external_consent_entities_on = {{
+    disallowed_by_external_consent_entities_on = {{
         entityType = 2,
         entityID = 5
     }},
@@ -114,15 +115,15 @@ end
 Test[TEST_NAME_ON.."Precondition_GetListOfPermissions"] = function(self)
   local request_id = self.hmiConnection:SendRequest("SDL.GetListOfPermissions")
   EXPECT_HMIRESPONSE(request_id,{
-    result = {
-      code = 0,
-      method = "SDL.GetListOfPermissions",
-      allowedFunctions = {
-        {name = "ConsentGroup001", allowed = nil}
-      },
-      externalConsentStatus = {}
-    }
-  })
+      result = {
+        code = 0,
+        method = "SDL.GetListOfPermissions",
+        allowedFunctions = {
+          {name = "ConsentGroup001", allowed = nil}
+        },
+        externalConsentStatus = {}
+      }
+    })
 end
 
 --------------------------------------------------------------------------
@@ -132,15 +133,15 @@ end
 Test[TEST_NAME_ON .. "Precondition_HMI_sends_OnAppPermissionConsent_externalConsentStatus"] = function(self)
   local hmi_app_id_1 = common_functions:GetHmiAppId(config.application1.registerAppInterfaceParams.appName, self)
   self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent", {
-    appID = hmi_app_id_1, source = "GUI",
-    externalConsentStatus = {{entityType = 2, entityID = 5, status = "ON"}}
-  })
+      appID = hmi_app_id_1, source = "GUI",
+      externalConsentStatus = {{entityType = 2, entityID = 5, status = "ON"}}
+    })
   self.mobileSession:ExpectNotification("OnPermissionsChange")
   :ValidIf(function(_,data)
-    local validate_result_1 = common_functions_external_consent:ValidateHMIPermissions(data,
-    "SubscribeVehicleData", {allowed = {}, userDisallowed = {"BACKGROUND","FULL","LIMITED"}})
-    return validate_result_1
-  end)
+      local validate_result_1 = common_functions_external_consent:ValidateHMIPermissions(data,
+        "SubscribeVehicleData", {allowed = {}, userDisallowed = {"BACKGROUND","FULL","LIMITED"}})
+      return validate_result_1
+    end)
 end
 
 --------------------------------------------------------------------------

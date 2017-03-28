@@ -144,6 +144,7 @@ Test[TEST_NAME_ON .. "MainCheck_RPC_Of_Group001_is_disallowed"] = function(self)
   self.mobileSession:ExpectResponse(corid, { success = false, resultCode = "USER_DISALLOWED"})
   EXPECT_NOTIFICATION("OnHashChange")
   :Times(0)
+  common_functions:DelayedExp(5000)
 end
 
 --------------------------------------------------------------------------
@@ -155,6 +156,7 @@ Test[TEST_NAME_ON .. "MainCheck_RPC_of_Group002_is_disallowed"] = function(self)
   self.mobileSession:ExpectResponse(corid, {success = false, resultCode = "USER_DISALLOWED"})
   EXPECT_NOTIFICATION("OnHashChange")
   :Times(0)
+  common_functions:DelayedExp(5000)
 end
 
 --------------------------------------------------------------------------
