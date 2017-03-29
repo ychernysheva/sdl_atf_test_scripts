@@ -29,8 +29,9 @@ local function CheckGroup001IsNotConsentedAndGroup002IsNotConsented()
     local cid = self.mobileSession:SendRPC("SubscribeWayPoints",{})
 
     EXPECT_RESPONSE(cid, {success = false , resultCode = "DISALLOWED"})
-    EXPECT_NOTIFICATION("OnHashChange")
-    :Times(0)
+    EXPECT_NOTIFICATION("OnHashChange"):Times(0)
+    
+    common_functions:DelayedExp(10000)
   end
 
   --------------------------------------------------------------------------
@@ -44,7 +45,7 @@ local function CheckGroup001IsNotConsentedAndGroup002IsNotConsented()
     EXPECT_NOTIFICATION("OnHashChange")
   end
 
-end -- function CheckGroup001IsNotConsentedAndGroup002IsDisallowed()
+end -- function CheckGroup001IsNotConsentedAndGroup002IsNotConsented()
 
 local function CheckGroup001IsConsentedAndGroup002IsConsented()
   --------------------------------------------------------------------------
@@ -62,8 +63,9 @@ local function CheckGroup001IsConsentedAndGroup002IsConsented()
       end)
     --mobile side: SubscribeWayPoints response
     EXPECT_RESPONSE(cid, {success = true , resultCode = "SUCCESS"})
-    EXPECT_NOTIFICATION("OnHashChange")
-    :Times(0)
+    EXPECT_NOTIFICATION("OnHashChange"):Times(0)
+    
+    common_functions:DelayedExp(10000)
   end
 
   --------------------------------------------------------------------------
