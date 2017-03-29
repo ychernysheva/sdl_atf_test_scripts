@@ -106,15 +106,15 @@ function Test:TestStep_PolicyTableUpdate_fails()
     end)
 end
 
-function Test:TestStep_Hybrid_ACK_encrypt_false()
+function Test:TestStep_Hybrid_NACK()
   self.mobileSession.correlationId = self.mobileSession.correlationId + 1
 
   local msg = {
     serviceType = 15,
-    frameType = 0,
     frameInfo = 1,
-    encryption = true,
-    rpcCorrelationId = self.mobileSession.correlationId
+    frameType = 0,
+    rpcCorrelationId = self.mobileSession.correlationId,
+    encryption = true
   }
   self.mobileSession:Send(msg)
 
@@ -124,24 +124,20 @@ function Test:TestStep_Hybrid_ACK_encrypt_false()
     return ( data.frameType == 0 and data.serviceType == 15)
   end
 
-  self.mobileSession:ExpectEvent(startserviceEvent, "Service 15: StartServiceACK")
+  self.mobileSession:ExpectEvent(startserviceEvent, "Service 15: StartServiceNACK")
   :ValidIf(function(_, data)
       if data.frameInfo == 2 then
-        if(data.encryption == true) then
-          commonFunctions:printError("Service 15: StartService ACK, encryption: true is received")
-          return false
-        else
-          print("Service 15: StartServiceACK, encryption: false")
-          return true
-        end
-      elseif data.frameInfo == 3 then
-        commonFunctions:printError("Service 15: StartService NACK is received")
+        commonFunctions:printError("Service 15: StartService ACK is received")
         return false
+      elseif data.frameInfo == 3 then
+        print("Service 15: StartService NACK is received")
+        return true
       else
         commonFunctions:printError("Service 15: StartServiceACK/NACK is not received at all.")
         return false
       end
     end)
+
 end
 
 --[[ Postconditions ]]
