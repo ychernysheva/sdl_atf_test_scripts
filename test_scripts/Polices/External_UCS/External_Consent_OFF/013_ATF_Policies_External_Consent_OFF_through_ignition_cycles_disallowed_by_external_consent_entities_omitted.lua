@@ -22,7 +22,7 @@ common_steps:ActivateApplication("Activate_Application_1", config.application1.r
 local function CheckGroup001IsNotConsentedAndGroup002IsNotConsented()
   --------------------------------------------------------------------------
   -- Main check:
-  -- RPC of Group001 is disallowed to process.
+  -- RPC of Group001 is disallowed to process SubscribeWayPoints.
   --------------------------------------------------------------------------
   Test["TEST_NAME_OFF_MainCheck_RPC_of_Group001_is_disallowed"] = function(self)
     --mobile side: send SubscribeWayPoints request
@@ -35,7 +35,7 @@ local function CheckGroup001IsNotConsentedAndGroup002IsNotConsented()
 
   --------------------------------------------------------------------------
   -- Main check:
-  -- RPC of Group002 is allowed to process.
+  -- RPC of Group002 is disallowed to process SubscribeVehicleData.
   --------------------------------------------------------------------------
   Test["TEST_NAME_OFF_MainCheck_RPC_of_Group002_is_disallowed"] = function(self)
     local cid = self.mobileSession:SendRPC("SubscribeVehicleData",{rpm = true})
@@ -49,7 +49,7 @@ end -- function CheckGroup001IsNotConsentedAndGroup002IsDisallowed()
 local function CheckGroup001IsConsentedAndGroup002IsConsented()
   --------------------------------------------------------------------------
   -- Main check:
-  -- RPC of Group001 is allowed to process.
+  -- RPC of Group001 is allowed to process SubscribeWayPoints.
   --------------------------------------------------------------------------
   Test["TEST_NAME_OFF_MainCheck_RPC_of_Group001_is_allowed"] = function(self)
     --mobile side: send SubscribeWayPoints request
@@ -68,7 +68,7 @@ local function CheckGroup001IsConsentedAndGroup002IsConsented()
 
   --------------------------------------------------------------------------
   -- Main check:
-  -- RPC of Group002 is disallowed to process.
+  -- RPC of Group002 is allowed to process SubscribeVehicleData.
   --------------------------------------------------------------------------
   Test["TEST_NAME_OFF_MainCheck_RPC_of_Group002_is_allowed"] = function(self)
     local cid = self.mobileSession:SendRPC("SubscribeVehicleData",{rpm = true})
@@ -79,7 +79,7 @@ local function CheckGroup001IsConsentedAndGroup002IsConsented()
     EXPECT_RESPONSE(cid, {success = true , resultCode = "SUCCESS"})
     EXPECT_NOTIFICATION("OnHashChange")
   end
-end -- function CheckGroup001IsConsentedAndGroup002IsNotConsented()
+end -- function CheckGroup001IsConsentedAndGroup002IsConsented()
 
 local function IgnitionOffOnActivateApp(test_case_name)
   common_steps:IgnitionOff("Precondition_Ignition_Off_" .. test_case_name)
@@ -101,11 +101,12 @@ end
 -- until this externalConsentStatus value is changed by corresponding notification from HMI.
 --------------------------------------------------------------------------
 -- Test 10.02:
--- Description: disallowed_by_external_consent_entities_on/off . HMI -> SDL: OnAppPermissionConsent(externalConsentStatus OFF). Ignition Off then On.
+-- Description: disallowed_by_external_consent_entities_on/off is omitted. HMI -> SDL: OnAppPermissionConsent(externalConsentStatus OFF). Ignition Off then On.
 -- Expected Result: externalConsentStatus is kept.
 --------------------------------------------------------------------------
 -- Precondition:
 -- Prepare JSON file with consent groups. Add all consent group names into app_polices of applications
+-- omit disallowed_by_external_consent_entities_on/off
 -- Request Policy Table Update.
 --------------------------------------------------------------------------
 Test["TEST_NAME_OFF_Precondition_Update_Policy_Table"] = function(self)
@@ -208,7 +209,7 @@ end
 --------------------------------------------------------------------------
 -- Precondition:
 -- Group001: is_consented = 0
--- Group002: is_consented = 1
+-- Group002: is_consented = 0
 --------------------------------------------------------------------------
 CheckGroup001IsNotConsentedAndGroup002IsNotConsented()
 
@@ -221,7 +222,7 @@ IgnitionOffOnActivateApp("when_externalConsentStatus_OFF")
 --------------------------------------------------------------------------
 -- Main check:
 -- Group001: is_consented = 0
--- Group002: is_consented = 1
+-- Group002: is_consented = 0
 --------------------------------------------------------------------------
 CheckGroup001IsNotConsentedAndGroup002IsNotConsented()
 
@@ -283,7 +284,7 @@ end
 --------------------------------------------------------------------------
 -- Precondition:
 -- Group001: is_consented = 1
--- Group002: is_consented = 0
+-- Group002: is_consented = 1
 --------------------------------------------------------------------------
 CheckGroup001IsConsentedAndGroup002IsConsented()
 
@@ -296,7 +297,7 @@ IgnitionOffOnActivateApp("when_externalConsentStatus_ON")
 --------------------------------------------------------------------------
 -- Main check:
 -- Group001: is_consented = 1
--- Group002: is_consented = 0
+-- Group002: is_consented = 1
 --------------------------------------------------------------------------
 CheckGroup001IsConsentedAndGroup002IsConsented()
 
