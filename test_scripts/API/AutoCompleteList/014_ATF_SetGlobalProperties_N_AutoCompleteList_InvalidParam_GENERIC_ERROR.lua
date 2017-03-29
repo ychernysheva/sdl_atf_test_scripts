@@ -63,7 +63,7 @@ function  Test:SetGlobalProperties_WithInvalidParam_from_HMI()
           }
       })
  :Do(function(_,data)
-      self.hmiConnection:SendResponse(data.id, data.metod, "SUCCESS", 
+      self.hmiConnection:SendResponse(data.id, data.method, "INVALID_PARAMETER", 
        {
             keyboardProperties =
           {
@@ -80,7 +80,7 @@ function  Test:SetGlobalProperties_WithInvalidParam_from_HMI()
     end)
   :Do(function(_,data)
       if (data.params.autoCompleteList == nil) then
-        EXPECT_RESPONSE(cid, {success = false, resultCode = "GENERIC_ERROR", info = "Invalid message received from system"})
+        EXPECT_RESPONSE(cid, {success = false, resultCode = "GENERIC_ERROR", info = "Invalid message received from vehicle"})
       return true
     else 
        return false
