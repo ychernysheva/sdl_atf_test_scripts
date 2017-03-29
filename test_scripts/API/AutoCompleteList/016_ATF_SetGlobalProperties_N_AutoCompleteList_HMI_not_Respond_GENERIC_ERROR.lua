@@ -116,7 +116,15 @@ function Test:SetGlobalProperties_RequestWithoutUIResponsesFromHMI()
       :Do(function(_,_)
         --hmi side: sending UI.SetGlobalProperties response
       end)    
-      EXPECT_RESPONSE(cid, { success = false, resultCode = "GENERIC_ERROR", info = "Invalid message received from system"})
+      EXPECT_RESPONSE(cid, { success = false, resultCode = "GENERIC_ERROR"})
+      :ValidIf(function(_,data) 
+        if(data.payload.info ~= "TTS component does not respond") and (data.payload.info ~= "UI component does not respond") then
+          commonFunctions:printError("info parameter is not correct: Expected: TTS/UI component does not respond. Real: "..data.payload.info) 
+          return false
+        else
+          return true
+        end
+      end)--, info = "component does not respond"})
       :Timeout(12000)
   end
 
