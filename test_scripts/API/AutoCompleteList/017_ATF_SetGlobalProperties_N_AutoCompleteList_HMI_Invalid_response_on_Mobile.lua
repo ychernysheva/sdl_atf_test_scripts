@@ -65,7 +65,7 @@ function Test:TestStep_AutoCompleteList_InvalidResponse_from_HMI()
   :Do(function(_,data)
        self.hmiConnection:Send('"id":'..data.id..',"jsonrpc":"2.0","result":{"code":0,"method""UI.SetGlobalProperties"}}')
     end)
-  EXPECT_RESPONSE(cid, {success = false, resultCode = "GENERIC_ERROR", info = (config.application1.registerAppInterfaceParams.appHMIType[1] .. " component does not respond")})
+  EXPECT_RESPONSE(cid, {success = false, resultCode = "GENERIC_ERROR", info = "UI component does not respond"})
 end
 
 --[[ Postconditions ]]
