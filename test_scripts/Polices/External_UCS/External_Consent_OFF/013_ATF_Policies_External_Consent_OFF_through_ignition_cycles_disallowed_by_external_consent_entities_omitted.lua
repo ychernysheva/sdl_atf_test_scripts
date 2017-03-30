@@ -4,6 +4,7 @@
 
 ------------------------------------General Settings for Configuration--------------------------------
 require('user_modules/all_common_modules')
+config.defaultProtocolVersion = 2
 local common_functions_external_consent = require('user_modules/shared_testcases_custom/ATF_Policies_External_Consent_common_functions')
 local common_steps = require('user_modules/common_steps')
 local common_functions = require ('user_modules/common_functions')
@@ -30,7 +31,7 @@ local function CheckGroup001IsNotConsentedAndGroup002IsNotConsented()
 
     EXPECT_RESPONSE(cid, {success = false , resultCode = "DISALLOWED"})
     EXPECT_NOTIFICATION("OnHashChange"):Times(0)
-    
+
     common_functions:DelayedExp(10000)
   end
 
@@ -64,7 +65,7 @@ local function CheckGroup001IsConsentedAndGroup002IsConsented()
     --mobile side: SubscribeWayPoints response
     EXPECT_RESPONSE(cid, {success = true , resultCode = "SUCCESS"})
     EXPECT_NOTIFICATION("OnHashChange"):Times(0)
-    
+
     common_functions:DelayedExp(10000)
   end
 
