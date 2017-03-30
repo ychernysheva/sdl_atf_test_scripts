@@ -116,18 +116,7 @@ function Test:TestStep_PerformAudioPassThru_UI_SUCESS_TTS_timeout()
       RUN_AFTER(UIPerformAudioResponse, 1500)
   end)
 
-  if
-  (self.appHMITypes["NAVIGATION"] == true) or
-  (self.appHMITypes["COMMUNICATION"] == true) or
-  (self.isMediaApplication == true) then
-
-    EXPECT_NOTIFICATION("OnHMIStatus",
-      {hmiLevel = "FULL", audioStreamingState = "ATTENUATED", systemContext = "MAIN"},
-      {hmiLevel = "FULL", audioStreamingState = "AUDIBLE", systemContext = "MAIN"})
-    :Times(2)
-  else
-    EXPECT_NOTIFICATION("OnHMIStatus"):Times(0)
-  end
+  EXPECT_NOTIFICATION("OnHMIStatus"):Times(0)
 
   self.mobileSession:ExpectResponse(CorIdPerformAudioPassThru, {success = false, resultCode = "GENERIC_ERROR", info = "TTS component does not respond"})
   EXPECT_NOTIFICATION("OnHashChange",{}):Times(0)
