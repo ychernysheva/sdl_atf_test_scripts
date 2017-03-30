@@ -62,7 +62,7 @@ function Test:TestStep_SetAudioStreamingIndicator_GENERIC_ERROR_audioStreamingIn
 	  self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc";"2.0","result":{"audioStreamingIndicator":"PAUSE","method":"UI.SetAudioStreamingIndicator", "code":0}}')
   end)
 
-  EXPECT_RESPONSE(corr_id, { success = false, resultCode = "GENERIC_ERROR", info = "Invalid message received from vehicle" })
+  EXPECT_RESPONSE(corr_id, { success = false, resultCode = "GENERIC_ERROR", info = "UI component does not respond" })
 end
 
 --[[ Postconditions ]]
