@@ -44,6 +44,18 @@ local default_app_params3 = config.application3.registerAppInterfaceParams
 local default_app_params4 = config.application4.registerAppInterfaceParams
 local default_app_params5 = config.application5.registerAppInterfaceParams
 
+--[[ Local Functions ]]
+local function startSessionAndRegisterApp(self, session_name, app)
+  self.session_name = mobile_session.MobileSession(self, self.mobileConnection)
+  self.session_name:StartRPC():Do(function()
+    local correlation_id = self.session_name:SendRPC("RegisterAppInterface", app)
+    EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = app.appName}})
+    self.session_name:ExpectResponse(correlation_id, {success = true, resultCode = "SUCCESS"})
+    self.session_name:ExpectNotification("OnHMIStatus", {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
+    self.session_name:ExpectNotification("OnPermissionsChange", {})  
+  end)
+end
+
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
 commonSteps:DeletePolicyTable()
@@ -71,47 +83,19 @@ end
 commonFunctions:newTestCasesGroup("Check that it is able to register 5 sessions within 1 phisycal connection")
 
 function Test:Start_Session2_And_Register_App_2()
-  self.mobileSession2 = mobile_session.MobileSession(self, self.mobileConnection)
-  self.mobileSession2:StartRPC():Do(function()
-    local correlation_id = self.mobileSession2:SendRPC("RegisterAppInterface", default_app_params2)
-    EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = default_app_params2.appName}})
-    self.mobileSession2:ExpectResponse(correlation_id, {success = true, resultCode = "SUCCESS"})
-    self.mobileSession2:ExpectNotification("OnHMIStatus", {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
-    self.mobileSession2:ExpectNotification("OnPermissionsChange", {})  
-  end)
+  startSessionAndRegisterApp(self, mobileSession2, default_app_params2)
 end
 
 function Test:Start_Session3_And_Register_App_3()
-  self.mobileSession3 = mobile_session.MobileSession(self, self.mobileConnection)
-  self.mobileSession3:StartRPC():Do(function()
-    local correlation_id = self.mobileSession3:SendRPC("RegisterAppInterface", default_app_params3)
-    EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = default_app_params3.appName}})
-    self.mobileSession3:ExpectResponse(correlation_id, {success = true, resultCode = "SUCCESS"})
-    self.mobileSession3:ExpectNotification("OnHMIStatus", {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
-    self.mobileSession3:ExpectNotification("OnPermissionsChange", {})  
-  end)
+  startSessionAndRegisterApp(self, mobileSession3, default_app_params3)
 end
 
 function Test:Start_Session4_And_Register_App_4()
-  self.mobileSession4 = mobile_session.MobileSession(self, self.mobileConnection)
-  self.mobileSession4:StartRPC():Do(function()
-    local correlation_id = self.mobileSession4:SendRPC("RegisterAppInterface", default_app_params4)
-    EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = default_app_params4.appName}})
-    self.mobileSession4:ExpectResponse(correlation_id, {success = true, resultCode = "SUCCESS"})
-    self.mobileSession4:ExpectNotification("OnHMIStatus", {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
-    self.mobileSession4:ExpectNotification("OnPermissionsChange", {})  
-  end)
+  startSessionAndRegisterApp(self, mobileSession4, default_app_params4)
 end
 
 function Test:Start_Session5_And_Register_App_5()
-  self.mobileSession5 = mobile_session.MobileSession(self, self.mobileConnection)
-  self.mobileSession5:StartRPC():Do(function()
-    local correlation_id = self.mobileSession5:SendRPC("RegisterAppInterface", default_app_params5)
-    EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = default_app_params5.appName}})
-    self.mobileSession5:ExpectResponse(correlation_id, {success = true, resultCode = "SUCCESS"})
-    self.mobileSession5:ExpectNotification("OnHMIStatus", {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
-    self.mobileSession5:ExpectNotification("OnPermissionsChange", {})  
-  end)
+  startSessionAndRegisterApp(self, mobileSession5, default_app_params5)
 end
 
 -- [[ Postconditions ]]
