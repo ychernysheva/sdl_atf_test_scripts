@@ -9,9 +9,6 @@ local common_functions_external_consent = require('user_modules/shared_testcases
 local common_steps = require('user_modules/common_steps')
 local common_functions = require ('user_modules/common_functions')
 
----------------------------------------Common Variables-----------------------------------------------
-local policy_file = config.pathToSDL .. "storage/policy.sqlite"
-
 ---------------------------------------Preconditions--------------------------------------------------
 -- Start SDL and register application
 common_functions_external_consent:PreconditonSteps("mobileConnection","mobileSession")
@@ -30,7 +27,7 @@ common_steps:ActivateApplication("Activate_Application_1", config.application1.r
 -- and disallow RPCs from such functional grouping
 --------------------------------------------------------------------------
 -- Test 11.02:
--- Description: disallowed_by_external_consent_entities_off exist with 2 pairs of entities. 
+-- Description: disallowed_by_external_consent_entities_off exist with 2 pairs of entities.
 -- HMI -> SDL: OnAppPermissionConsent(externalConsentStatus ON + OFF)
 -- Expected Result: requested RPC is disallowed by External Consent
 --------------------------------------------------------------------------
@@ -94,7 +91,7 @@ Test["TEST_NAME_OFF".."_Precondition_GetListOfPermissions"] = function(self)
         allowedFunctions = {{name = "ConsentGroup001", allowed = nil}},
         externalConsentStatus = {}
       }
-  })
+    })
 end
 
 --------------------------------------------------------------------------
@@ -115,7 +112,7 @@ Test["TEST_NAME_OFF" .. "_Precondition_HMI_sends_OnAppPermissionConsent"] = func
       local validate_result = common_functions_external_consent:ValidateHMIPermissions(data,
         "SubscribeWayPoints", {allowed = {}, userDisallowed = {"BACKGROUND","FULL","LIMITED"}})
       return validate_result
-  end)
+    end)
 end
 
 --------------------------------------------------------------------------
@@ -129,6 +126,7 @@ Test["TEST_NAME_OFF" .. "_MainCheck_RPC_is_disallowed"] = function(self)
   EXPECT_RESPONSE("SubscribeWayPoints", {success = false , resultCode = "USER_DISALLOWED"})
   EXPECT_NOTIFICATION("OnHashChange")
   :Times(0)
+  common_functions:DelayedExp(5000)
 end
 
 --------------------------------------Postcondition------------------------------------------

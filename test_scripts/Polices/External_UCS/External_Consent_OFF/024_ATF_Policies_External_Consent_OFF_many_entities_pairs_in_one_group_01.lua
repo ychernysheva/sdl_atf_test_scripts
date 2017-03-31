@@ -8,9 +8,6 @@ local common_functions_external_consent = require('user_modules/shared_testcases
 local common_steps = require('user_modules/common_steps')
 local common_functions = require ('user_modules/common_functions')
 
----------------------------------------Common Variables-----------------------------------------------
-local policy_file = config.pathToSDL .. "storage/policy.sqlite"
-
 ---------------------------------------Preconditions--------------------------------------------------
 -- Start SDL and register application
 common_functions_external_consent:PreconditonSteps("mobileConnection","mobileSession")
@@ -146,7 +143,7 @@ Test["TEST_NAME_OFF".."_Precondition_GetListOfPermissions"] = function(self)
         },
         externalConsentStatus = {}
       }
-  })
+    })
 end
 
 --------------------------------------------------------------------------
@@ -163,7 +160,7 @@ Test["TEST_NAME_OFF" .. "_Precondition_HMI_sends_OnAppPermissionConsent"] = func
         {entityType = 7, entityID = 7, status = "OFF"},
         {entityType = 9, entityID = 9, status = "OFF"}
       }
-  })
+    })
   self.mobileSession:ExpectNotification("OnPermissionsChange")
   :ValidIf(function(_,data)
       local validate_result_1 = common_functions_external_consent:ValidateHMIPermissions(data,
@@ -173,7 +170,7 @@ Test["TEST_NAME_OFF" .. "_Precondition_HMI_sends_OnAppPermissionConsent"] = func
       local validate_result_3 = common_functions_external_consent:ValidateHMIPermissions(data,
         "SendLocation", {allowed = {"BACKGROUND","FULL","LIMITED"}, userDisallowed = {}})
       return (validate_result_1 and validate_result_2 and validate_result_3)
-  end)
+    end)
 end
 
 --------------------------------------------------------------------------
@@ -185,6 +182,7 @@ Test["TEST_NAME_OFF" .. "_MainCheck_RPC_of_Group001_is_disallowed"] = function(s
   self.mobileSession:ExpectResponse(corid, {success = false, resultCode = "USER_DISALLOWED"})
   EXPECT_NOTIFICATION("OnHashChange")
   :Times(0)
+  common_functions:DelayedExp(5000)
 end
 
 --------------------------------------------------------------------------
@@ -196,7 +194,7 @@ Test["TEST_NAME_OFF" .. "_MainCheck_RPC_of_Group002_is_allowed"] = function(self
   EXPECT_HMICALL("Navigation.SubscribeWayPoints")
   :Do(function(_,data)
       self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS",{})
-  end)
+    end)
   EXPECT_RESPONSE("SubscribeWayPoints", {success = true , resultCode = "SUCCESS"})
   EXPECT_NOTIFICATION("OnHashChange")
 end
@@ -213,7 +211,7 @@ Test["TEST_NAME_OFF" .. "_MainCheck_RPC_of_Group003_is_allowed"] = function(self
   EXPECT_HMICALL("Navigation.SendLocation")
   :Do(function(_,data)
       self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS",{})
-  end)
+    end)
   EXPECT_RESPONSE("SendLocation", {success = true , resultCode = "SUCCESS"})
 end
 

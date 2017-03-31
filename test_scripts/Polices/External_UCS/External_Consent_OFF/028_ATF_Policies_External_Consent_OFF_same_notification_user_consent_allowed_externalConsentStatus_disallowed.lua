@@ -9,7 +9,6 @@ local common_functions = require ('user_modules/common_functions')
 
 ---------------------------------------Common Variables-----------------------------------------------
 local id_group_1
-local policy_file = config.pathToSDL .. "storage/policy.sqlite"
 
 ---------------------------------------Preconditions--------------------------------------------------
 -- Start SDL and register application
@@ -92,7 +91,7 @@ Test["TEST_NAME_OFF".."_Precondition_GetListOfPermissions"] = function(self)
     })
   :Do(function(_,data)
       id_group_1 = common_functions_external_consent:GetGroupId(data, "ConsentGroup001")
-  end)
+    end)
 end
 
 --------------------------------------------------------------------------
@@ -112,7 +111,7 @@ Test["TEST_NAME_OFF" .. "_Precondition_HMI_sends_OnAppPermissionConsent"] = func
       local validate_result = common_functions_external_consent:ValidateHMIPermissions(data,
         "SubscribeWayPoints", {allowed = {}, userDisallowed = {"BACKGROUND","FULL","LIMITED"}})
       return validate_result
-  end)
+    end)
 end
 
 --------------------------------------------------------------------------
@@ -126,6 +125,7 @@ Test["TEST_NAME_OFF" .. "_MainCheck_RPC_is_disallowed"] = function(self)
   EXPECT_RESPONSE("SubscribeWayPoints", {success = false , resultCode = "USER_DISALLOWED"})
   EXPECT_NOTIFICATION("OnHashChange")
   :Times(0)
+  common_functions:DelayedExp(5000)
 end
 
 --------------------------------------Postcondition------------------------------------------

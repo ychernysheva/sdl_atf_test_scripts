@@ -7,9 +7,6 @@ local common_functions_external_consent = require('user_modules/shared_testcases
 local common_steps = require('user_modules/common_steps')
 local common_functions = require ('user_modules/common_functions')
 
----------------------------------------Common Variables-----------------------------------------------
-local policy_file = config.pathToSDL .. "storage/policy.sqlite"
-
 ---------------------------------------Preconditions--------------------------------------------------
 -- Start SDL and register application
 common_functions_external_consent:PreconditonSteps("mobileConnection","mobileSession")
@@ -137,7 +134,7 @@ Test["TEST_NAME_OFF" .. "_Precondition_HMI_sends_OnAppPermissionConsent"] = func
       local validate_result = common_functions_external_consent:ValidateHMIPermissions(data,
         "SubscribeWayPoints", {allowed = {}, userDisallowed = {"BACKGROUND","FULL","LIMITED"}})
       return validate_result
-  end)
+    end)
 end
 
 --------------------------------------------------------------------------
@@ -151,6 +148,7 @@ Test["TEST_NAME_OFF" .. "_MainCheck_RPC_Of_Group001_is_disallowed"] = function(s
   self.mobileSession:ExpectResponse(corid, { success = false, resultCode = "USER_DISALLOWED"})
   EXPECT_NOTIFICATION("OnHashChange")
   :Times(0)
+  common_functions:DelayedExp(5000)
 end
 
 --------------------------------------------------------------------------
@@ -162,7 +160,7 @@ Test["TEST_NAME_OFF" .. "_MainCheck_RPC_of_Group002_is_allowed"] = function(self
   EXPECT_HMICALL("VehicleInfo.SubscribeVehicleData")
   :Do(function(_,data)
       self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS",{})
-  end)
+    end)
   EXPECT_RESPONSE("SubscribeVehicleData", {success = true , resultCode = "SUCCESS"})
   EXPECT_NOTIFICATION("OnHashChange")
 end

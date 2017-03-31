@@ -131,6 +131,7 @@ Test["TEST_NAME_ON" .. "_Precondition_RPC_is_disallowed"] = function(self)
   EXPECT_RESPONSE(corr_id, {success = false , resultCode = "USER_DISALLOWED"})
   EXPECT_NOTIFICATION("OnHashChange")
   :Times(0)
+  common_functions:DelayedExp(5000)
 end
 
 --------------------------------------------------------------------------

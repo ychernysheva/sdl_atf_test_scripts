@@ -7,9 +7,6 @@ local common_functions_external_consent = require('user_modules/shared_testcases
 local common_steps = require('user_modules/common_steps')
 local common_functions = require ('user_modules/common_functions')
 
----------------------------------------Common Variables-----------------------------------------------
-local policy_file = config.pathToSDL .. "storage/policy.sqlite"
-
 ---------------------------------------Preconditions--------------------------------------------------
 common_functions_external_consent:PreconditonSteps("mobileConnection","mobileSession")
 common_steps:ActivateApplication("Activate_Application_1", config.application1.registerAppInterfaceParams.appName)
@@ -96,7 +93,7 @@ Test["TEST_NAME_OFF".."_Precondition_GetListOfPermissions"] = function(self)
         allowedFunctions = {{name = "ConsentGroup001", allowed = nil}},
         externalConsentStatus = {}
       }
-  })
+    })
 end
 
 --------------------------------------------------------------------------
@@ -114,7 +111,7 @@ Test["TEST_NAME_OFF" .. "_Precondition_HMI_sends_OnAppPermissionConsent_external
       local validate_result = common_functions_external_consent:ValidateHMIPermissions(data,
         "SubscribeWayPoints", {allowed = {"BACKGROUND","FULL","LIMITED"}, userDisallowed = {}})
       return validate_result
-  end)
+    end)
 end
 
 --------------------------------------------------------------------------
@@ -129,7 +126,7 @@ Test["TEST_NAME_OFF" .. "_Precondition_RPC_is_allowed"] = function(self)
   :Do(function(_,data)
       --hmi side: sending Navigation.SubscribeWayPoints response
       self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS",{})
-  end)
+    end)
   --mobile side: SubscribeWayPoints response
   EXPECT_RESPONSE("SubscribeWayPoints", {success = true , resultCode = "SUCCESS"})
   EXPECT_NOTIFICATION("OnHashChange")
@@ -141,7 +138,6 @@ end
 -- when HMI sends OnAppPermissionConsent with External Consent status = ON
 --------------------------------------------------------------------------
 Test["TEST_NAME_OFF" .. "_MainCheck_HMI_sends_OnAppPermissionConsent_externalConsentStatus_ON"] = function(self)
-  local hmi_app_id_1 = common_functions:GetHmiAppId(config.application1.registerAppInterfaceParams.appName, self)
   -- hmi side: sending SDL.OnAppPermissionConsent for applications
   self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent", {
       source = "GUI",
@@ -152,7 +148,7 @@ Test["TEST_NAME_OFF" .. "_MainCheck_HMI_sends_OnAppPermissionConsent_externalCon
       local validate_result = common_functions_external_consent:ValidateHMIPermissions(data,
         "SubscribeWayPoints", {allowed = {}, userDisallowed = {"BACKGROUND","FULL","LIMITED"}})
       return validate_result
-  end)
+    end)
 end
 
 --------------------------------------------------------------------------
@@ -166,6 +162,7 @@ Test["TEST_NAME_OFF" .. "_MainCheck_RPC_is_disallowed"] = function(self)
   EXPECT_RESPONSE("SubscribeWayPoints", {success = false , resultCode = "USER_DISALLOWED"})
   EXPECT_NOTIFICATION("OnHashChange")
   :Times(0)
+  common_functions:DelayedExp(5000)
 end
 
 --------------------------------------Postcondition------------------------------------------
