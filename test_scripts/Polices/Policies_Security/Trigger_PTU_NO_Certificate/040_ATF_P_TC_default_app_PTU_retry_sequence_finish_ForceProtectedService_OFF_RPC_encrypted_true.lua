@@ -22,7 +22,7 @@
 -- Wait PTU retry sequence to elapse.
 --
 -- Expected result:
--- SDL must respond StartService (ACK, encrypted=false) to this mobile app
+-- SDL must respond StartServiceNACK
 ---------------------------------------------------------------------------------------------
 
 --[[ General configuration parameters ]]
@@ -117,7 +117,7 @@ function Test:TestStep_PolicyTableUpdate_retry_sequence_finish()
       end
     end)
 
-  self.mobileSession:ExpectEvent(startserviceEvent, "Service 7: StartServiceACK")
+  self.mobileSession:ExpectEvent(startserviceEvent, "Service 7: StartServiceNACK")
   :ValidIf(function(_, data)
       local function verify_time_response()
         if (time_ptu_finish == 0) then
@@ -128,25 +128,20 @@ function Test:TestStep_PolicyTableUpdate_retry_sequence_finish()
         end
       end
 
-      if data.frameInfo == 2 then
-        if(data.encryption == true) then
-          verify_time_response()
-          commonFunctions:printError("Service 7: StartService ACK, encryption: true is received")
-          return false
-        else
-          local result = verify_time_response()
-          print("Service 7: StartServiceACK, encryption: false")
-          return (result and true)
-        end
-      elseif data.frameInfo == 3 then
+      if data.frameInfo == 3 then
+        local result = verify_time_response()
+        print("Service 7: StartServiceNACK")
+        return result
+      elseif data.frameInfo == 2 then
         verify_time_response()
-        commonFunctions:printError("Service 7: StartService NACK is received")
+        commonFunctions:printError("Service 7: StartService ACK is received")
         return false
       else
         commonFunctions:printError("Service 7: StartServiceACK/NACK is not received at all.")
         return false
       end
     end)
+
 end
 
 --[[ Postconditions ]]

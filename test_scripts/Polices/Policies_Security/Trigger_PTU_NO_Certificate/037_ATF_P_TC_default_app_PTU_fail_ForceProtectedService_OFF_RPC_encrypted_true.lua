@@ -22,7 +22,7 @@
 -- Send wrong policyfile
 --
 -- Expected result:
--- SDL must respond StartService (ACK, encrypted=false) to this mobile app
+-- SDL must respond StartServiceNACK
 ---------------------------------------------------------------------------------------------
 
 --[[ General configuration parameters ]]
@@ -121,24 +121,20 @@ function Test:TestStep_PolicyTableUpdate_fails()
         end)
     end)
 
-  self.mobileSession:ExpectEvent(startserviceEvent, "Service 7: StartServiceACK")
+  self.mobileSession:ExpectEvent(startserviceEvent, "Service 7: StartServiceNACK")
   :ValidIf(function(_, data)
       if data.frameInfo == 2 then
-        if(data.encryption == true) then
-          commonFunctions:printError("Service 7: StartService ACK, encryption: true is received")
-          return false
-        else
-          print("Service 7: StartServiceACK, encryption: false")
-          return true
-        end
-      elseif data.frameInfo == 3 then
-        commonFunctions:printError("Service 7: StartService NACK is received")
+        commonFunctions:printError("Service 7: StartService ACK is received")
         return false
+      elseif data.frameInfo == 3 then
+        print("Service 7: StartService NACK is received")
+        return true
       else
         commonFunctions:printError("Service 7: StartServiceACK/NACK is not received at all.")
         return false
       end
     end)
+
 end
 
 --[[ Postconditions ]]

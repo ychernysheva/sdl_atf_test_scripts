@@ -22,7 +22,7 @@
 -- Send Hybrid service.
 --
 -- Expected result:
--- SDL should return StartServiceACK, encrypt = false to Hybrid
+-- SDL should return StartServiceNACK, encrypt = false to Hybrid
 ---------------------------------------------------------------------------------------------
 
 --[[ General configuration parameters ]]
