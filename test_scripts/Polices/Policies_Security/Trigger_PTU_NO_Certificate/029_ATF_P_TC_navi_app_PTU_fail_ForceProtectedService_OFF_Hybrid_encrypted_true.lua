@@ -22,7 +22,7 @@
 --
 -- Expected result:
 -- 1. SDL sends SDL.OnStatusUpdate(UPDATE_NEEDED)
--- 2. SDL should return StartServiceACK, encrypt = false to Hybrid
+-- 2. SDL should return StartServiceNACK, encrypt = false to Hybrid
 ---------------------------------------------------------------------------------------------
 
 --[[ General configuration parameters ]]

@@ -22,7 +22,7 @@
 --
 -- Expected result:
 -- 1. SDL sends SDL.OnStatusUpdate(UPDATE_NEEDED)
--- 2. SDL should return StartServiceACK, encrypt = false to RPC
+-- 2. SDL should return StartServiceNACK, encrypt = false to RPC
 ---------------------------------------------------------------------------------------------
 
 --[[ General configuration parameters ]]
@@ -102,7 +102,7 @@ function Test.TestStep_PolicyTableUpdate_retry_sequence_elapse()
   commonTestCases:DelayedExp(time_wait)
 end
 
-function Test:TestStep_RPC_ACK_encrypt_false()
+function Test:TestStep_RPC_NACK_encrypt_false()
   self.mobileSession.correlationId = self.mobileSession.correlationId + 1
 
   local msg = {
@@ -120,24 +120,20 @@ function Test:TestStep_RPC_ACK_encrypt_false()
     return ( data.frameType == 0 and data.serviceType == 7)
   end
 
-  self.mobileSession:ExpectEvent(startserviceEvent, "Service 7: StartServiceACK")
+  self.mobileSession:ExpectEvent(startserviceEvent, "Service 7: StartServiceNACK")
   :ValidIf(function(_, data)
       if data.frameInfo == 2 then
-        if(data.encryption == true) then
-          commonFunctions:printError("Service 7: StartService ACK, encryption: true is received")
-          return false
-        else
-          print("Service 7: StartServiceACK, encryption: false")
-          return true
-        end
-      elseif data.frameInfo == 3 then
-        commonFunctions:printError("Service 7: StartService NACK is received")
+        commonFunctions:printError("Service 7: StartService ACK is received")
         return false
+      elseif data.frameInfo == 3 then
+        print("Service 7: StartService NACK is received")
+        return true
       else
         commonFunctions:printError("Service 7: StartServiceACK/NACK is not received at all.")
         return false
       end
     end)
+
 end
 
 --[[ Postconditions ]]
