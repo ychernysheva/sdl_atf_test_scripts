@@ -48,6 +48,26 @@ local default_app_params4 = config.application4.registerAppInterfaceParams
 local default_app_params5 = config.application5.registerAppInterfaceParams
 local devicePort = 12345
 
+--[[ Local Functions ]]
+local function createConnectionAndRegisterApp(self, device, filename, app, connection_name, session_name)
+  local tcpConnection = tcp.Connection(device, devicePort)
+  local fileConnection = file_connection.FileConnection(filename, tcpConnection)
+  self.connection_name = mobile.MobileConnection(fileConnection)
+  self.session_name = mobile_session.MobileSession(self, self.connection_name, app)
+  event_dispatcher:AddConnection(self.connection_name)
+  self.session_name:ExpectEvent(events.connectedEvent, "Connection started")
+  self.connection_name:Connect()
+  self.session_name:StartService(7):Do(function()
+    local correlationId = self.session_name:SendRPC("RegisterAppInterface", app)
+    EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", {application = { appName = app.appName}})
+    self.session_name:ExpectResponse(correlationId , { success = true, resultCode = "SUCCESS"})
+    self.session_name:ExpectNotification("OnHMIStatus",{hmiLevel = "NONE", 
+          audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"}):Do(function(_, data)
+      commonFunctions:userPrint(35, "1st App is successfully registered")
+    end)
+  end)
+end
+
 --1. Device 1:
 local device1 = "127.0.0.1"
 --2. Device 2:
@@ -86,101 +106,23 @@ end
 commonFunctions:newTestCasesGroup("Check that it is able to register up to 5 Apps on different connections")
 
 function Test:FirstConnection()
-  local tcpConnection = tcp.Connection(device1, devicePort)
-  local fileConnection = file_connection.FileConnection("mobile1.out", tcpConnection)
-  self.mobileConnection = mobile.MobileConnection(fileConnection)
-  self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection, default_app_params1)
-  event_dispatcher:AddConnection(self.mobileConnection)
-  self.mobileSession:ExpectEvent(events.connectedEvent, "Connection started")
-  self.mobileConnection:Connect()
-  self.mobileSession:StartService(7):Do(function()
-    local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", default_app_params1)
-    EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", {application = { appName = default_app_params1.appName}})
-    self.mobileSession:ExpectResponse(correlationId , { success = true, resultCode = "SUCCESS"})
-    self.mobileSession:ExpectNotification("OnHMIStatus",{hmiLevel = "NONE", 
-         audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"}):Do(function(_, data)
-      commonFunctions:userPrint(35, "1st App is successfully registered")
-    end)
-  end)
+  createConnectionAndRegisterApp(self, device1, "mobile1.out", default_app_params1, mobileConnection1, mobileSession1)
 end
 
 function Test:SecondConnection()
-  local tcpConnection = tcp.Connection(device2, devicePort)
-  local fileConnection = file_connection.FileConnection("mobile2.out", tcpConnection)
-  self.mobileConnection2 = mobile.MobileConnection(fileConnection)
-  self.mobileSession2 = mobile_session.MobileSession(self, self.mobileConnection2, default_app_params2)
-  event_dispatcher:AddConnection(self.mobileConnection2)
-  self.mobileSession2:ExpectEvent(events.connectedEvent, "Connection started")
-  self.mobileConnection2:Connect()
-  self.mobileSession2:StartService(7):Do(function()
-    local correlationId = self.mobileSession2:SendRPC("RegisterAppInterface", default_app_params2)
-    EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", {application = { appName = default_app_params2.appName}})
-    self.mobileSession2:ExpectResponse(correlationId , { success = true, resultCode = "SUCCESS"})
-    self.mobileSession2:ExpectNotification("OnHMIStatus",{hmiLevel = "NONE", 
-         audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"}):Do(function(_, data)
-      commonFunctions:userPrint(35, "2nd App is successfully registered")
-    end)
-  end)
+  createConnectionAndRegisterApp(self, device2, "mobile2.out", default_app_params2, mobileConnection2, mobileSession2)
 end
 
 function Test:ThirdConnection()
-  local tcpConnection = tcp.Connection(device3, devicePort)
-  local fileConnection = file_connection.FileConnection("mobile3.out", tcpConnection)
-  self.mobileConnection3 = mobile.MobileConnection(fileConnection)
-  self.mobileSession3 = mobile_session.MobileSession(
-    self, self.mobileConnection3, default_app_params3)
-  event_dispatcher:AddConnection(self.mobileConnection3)
-  self.mobileSession3:ExpectEvent(events.connectedEvent, "Connection started")
-  self.mobileConnection3:Connect()
-  self.mobileSession3:StartService(7):Do(function()
-    local correlationId = self.mobileSession3:SendRPC("RegisterAppInterface", default_app_params3)
-    EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", {application = { appName = default_app_params3.appName}})
-    self.mobileSession3:ExpectResponse(correlationId , { success = true, resultCode = "SUCCESS"})
-    self.mobileSession3:ExpectNotification("OnHMIStatus",{hmiLevel = "NONE", 
-         audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"}):Do(function(_, data)
-      commonFunctions:userPrint(35, "3rd App is successfully registered")
-    end)
-  end)
+  createConnectionAndRegisterApp(self, device3, "mobile3.out", default_app_params3, mobileConnection3, mobileSession3)
 end
 
 function Test:FourthConnection()
-  local tcpConnection = tcp.Connection(device4, devicePort)
-  local fileConnection = file_connection.FileConnection("mobile4.out", tcpConnection)
-  self.mobileConnection4 = mobile.MobileConnection(fileConnection)
-  self.mobileSession4 = mobile_session.MobileSession(
-    self, self.mobileConnection4, default_app_params4)
-  event_dispatcher:AddConnection(self.mobileConnection4)
-  self.mobileSession4:ExpectEvent(events.connectedEvent, "Connection started")
-  self.mobileConnection4:Connect()
-  self.mobileSession4:StartService(7):Do(function()
-    local correlationId = self.mobileSession4:SendRPC("RegisterAppInterface", default_app_params4)
-    EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", {application = { appName = default_app_params4.appName}})
-    self.mobileSession4:ExpectResponse(correlationId , { success = true, resultCode = "SUCCESS"})
-    self.mobileSession4:ExpectNotification("OnHMIStatus",{hmiLevel = "NONE", 
-         audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"}):Do(function(_, data)
-      commonFunctions:userPrint(35, "4th App is successfully registered")
-    end)
-  end)
+  createConnectionAndRegisterApp(self, device4, "mobile4.out", default_app_params4, mobileConnection4, mobileSession4)  
 end
 
 function Test:FifthConnection()
-  local tcpConnection = tcp.Connection(device5, devicePort)
-  local fileConnection = file_connection.FileConnection("mobile5.out", tcpConnection)
-  self.mobileConnection5 = mobile.MobileConnection(fileConnection)
-  self.mobileSession5 = mobile_session.MobileSession(
-    self, self.mobileConnection5, default_app_params5)
-  event_dispatcher:AddConnection(self.mobileConnection5)
-  self.mobileSession5:ExpectEvent(events.connectedEvent, "Connection started")
-  self.mobileConnection5:Connect()
- self.mobileSession5:StartService(7):Do(function()
-    local correlationId = self.mobileSession5:SendRPC("RegisterAppInterface", default_app_params5)
-    EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", {application = { appName = default_app_params5.appName}})
-    self.mobileSession5:ExpectResponse(correlationId , { success = true, resultCode = "SUCCESS"})
-    self.mobileSession5:ExpectNotification("OnHMIStatus",{hmiLevel = "NONE", 
-         audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"}):Do(function(_, data)
-      commonFunctions:userPrint(35, "5th App is successfully registered")
-    end)
-  end)
+  createConnectionAndRegisterApp(self, device5, "mobile5.out", default_app_params5, mobileConnection5, mobileSession5)  
 end
 
 -- [[ Postconditions ]]
