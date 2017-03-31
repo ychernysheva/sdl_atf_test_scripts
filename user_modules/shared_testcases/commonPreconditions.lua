@@ -44,7 +44,13 @@ function Preconditions:getAbsolutePath(relativePath)
 end
 
 function Preconditions:GetPathToSDL()
-  return Preconditions:getAbsolutePath(config.pathToSDL) .. "/"
+	local pathToSDL = config.pathToSDL
+  if pathToSDL:sub(-1) ~= '/' then
+    pathToSDL = pathToSDL .. "/"
+  end
+  return pathToSDL
+  --Uncomment when Preconditions:getAbsolutePath issue is fixed
+  -- return Preconditions:getAbsolutePath(config.pathToSDL) .. "/"
 end
 
 function Preconditions:SendLocationPreconditionUpdateHMICap()
