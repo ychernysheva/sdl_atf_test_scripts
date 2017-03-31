@@ -119,6 +119,7 @@ Test["TEST_NAME_OFF" .. "_Precondition_HMI_sends_OnAppPermissionConsent"] = func
     })
   self.mobileSession:ExpectNotification("OnPermissionsChange")
   :Times(0)
+  common_functions:DelayedExp(5000)
 end
 
 --------------------------------------------------------------------------
@@ -132,6 +133,7 @@ Test["TEST_NAME_OFF" .. "_MainCheck_RPC_is_disallowed"] = function(self)
   EXPECT_RESPONSE(corr_id, {success = false , resultCode = "USER_DISALLOWED"})
   EXPECT_NOTIFICATION("OnHashChange")
   :Times(0)
+  common_functions:DelayedExp(5000)
 end
 
 --------------------------------------Postcondition------------------------------------------

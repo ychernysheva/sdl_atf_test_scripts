@@ -31,6 +31,7 @@ local function CheckGroup001IsNotConsentedAndGroup002IsConsented()
     EXPECT_RESPONSE(cid, {success = false , resultCode = "USER_DISALLOWED"})
     EXPECT_NOTIFICATION("OnHashChange")
     :Times(0)
+    common_functions:DelayedExp(5000)
   end
 
   --------------------------------------------------------------------------
@@ -77,6 +78,7 @@ local function CheckGroup001IsConsentedAndGroup002IsNotConsented()
     self.mobileSession:ExpectResponse(corid, {success = false, resultCode = "USER_DISALLOWED"})
     EXPECT_NOTIFICATION("OnHashChange")
     :Times(0)
+    common_functions:DelayedExp(5000)
   end
 end -- function CheckGroup001IsConsentedAndGroup002IsNotConsented()
 
