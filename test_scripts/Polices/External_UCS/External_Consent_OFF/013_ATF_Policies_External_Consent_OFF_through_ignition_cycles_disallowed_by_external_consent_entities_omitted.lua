@@ -3,6 +3,7 @@
 --[Policies] External UCS: "OFF" in case of omitted "disallowed_by_external_consent_entities" param in functional groupings
 
 ------------------------------------General Settings for Configuration--------------------------------
+config.application1.registerAppInterfaceParams.appHMIType = { "MEDIA" }
 require('user_modules/all_common_modules')
 config.defaultProtocolVersion = 2
 local common_functions_external_consent = require('user_modules/shared_testcases_custom/ATF_Policies_External_Consent_common_functions')
@@ -43,7 +44,7 @@ local function CheckGroup001IsNotConsentedAndGroup002IsNotConsented()
     local cid = self.mobileSession:SendRPC("SubscribeVehicleData",{rpm = true})
 
     EXPECT_RESPONSE(cid, {success = true , resultCode = "DISALLOWED"})
-    EXPECT_NOTIFICATION("OnHashChange")
+    EXPECT_NOTIFICATION("OnHashChange"):Times(0)
   end
 
 end -- function CheckGroup001IsNotConsentedAndGroup002IsNotConsented()
@@ -64,7 +65,7 @@ local function CheckGroup001IsConsentedAndGroup002IsConsented()
       end)
     --mobile side: SubscribeWayPoints response
     EXPECT_RESPONSE(cid, {success = true , resultCode = "SUCCESS"})
-    EXPECT_NOTIFICATION("OnHashChange"):Times(0)
+    EXPECT_NOTIFICATION("OnHashChange")
 
     common_functions:DelayedExp(10000)
   end
