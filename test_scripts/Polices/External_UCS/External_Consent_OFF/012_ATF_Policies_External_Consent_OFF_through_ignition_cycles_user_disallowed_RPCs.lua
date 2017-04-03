@@ -3,6 +3,7 @@
 --[Policies] External UCS: "OFF" - userDisallowed RPCs
 
 ------------------------------------General Settings for Configuration--------------------------------
+config.application1.registerAppInterfaceParams.appHMIType = { "MEDIA" }
 require('user_modules/all_common_modules')
 local common_functions_external_consent = require('user_modules/shared_testcases_custom/ATF_Policies_External_Consent_common_functions')
 local common_steps = require('user_modules/common_steps')

@@ -2,13 +2,11 @@
 --[Policies] External UCS: settings for all connected apps
 
 ------------------------------------General Settings for Configuration--------------------------------
+config.application1.registerAppInterfaceParams.appHMIType = { "MEDIA" }
 require('user_modules/all_common_modules')
 local common_functions_external_consent = require('user_modules/shared_testcases_custom/ATF_Policies_External_Consent_common_functions')
 local common_steps = require('user_modules/common_steps')
 local common_functions = require ('user_modules/common_functions')
-
----------------------------------------Common Variables-----------------------------------------------
-local policy_file = config.pathToSDL .. "storage/policy.sqlite"
 
 ---------------------------------------Preconditions--------------------------------------------------
 common_functions_external_consent:PreconditonSteps("mobileConnection","mobileSession")
@@ -116,7 +114,7 @@ Test["TEST_NAME_OFF".."_Precondition_GetListOfPermissions"] = function(self)
         },
         externalConsentStatus = {}
       }
-  })
+    })
 end
 
 --------------------------------------------------------------------------
@@ -135,7 +133,7 @@ Test["TEST_NAME_OFF" .. "_Precondition_HMI_sends_OnAppPermissionConsent"] = func
       local validate_result = common_functions_external_consent:ValidateHMIPermissions(data,
         "SendLocation", {allowed = {"BACKGROUND","FULL","LIMITED"}, userDisallowed = {}})
       return validate_result
-  end)
+    end)
 end
 
 --------------------------------------------------------------------------
@@ -152,11 +150,11 @@ Test["TEST_NAME_OFF" .. "_MainCheck_RPC_of_Application_1_Group001_is_allowed"] =
   self.mobileSession:SendRPC("SendLocation", {
       longitudeDegrees = 1.1,
       latitudeDegrees = 1.1
-  })
+    })
   EXPECT_HMICALL("Navigation.SendLocation")
   :Do(function(_,data)
       self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS",{})
-  end)
+    end)
   self.mobileSession:ExpectResponse("SendLocation", {success = true , resultCode = "SUCCESS"})
 end
 
@@ -168,11 +166,11 @@ Test["TEST_NAME_OFF" .. "_MainCheck_RPC_of_Application_2_Group001_is_allowed"] =
   self.mobileSession2:SendRPC("SendLocation", {
       longitudeDegrees = 1.1,
       latitudeDegrees = 1.1
-  })
+    })
   EXPECT_HMICALL("Navigation.SendLocation")
   :Do(function(_,data)
       self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS",{})
-  end)
+    end)
   self.mobileSession2:ExpectResponse("SendLocation", {success = true , resultCode = "SUCCESS"})
 end
 

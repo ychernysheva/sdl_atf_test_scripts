@@ -2,13 +2,11 @@
 --[Policies] External UCS: settings for all connected apps
 
 ------------------------------------General Settings for Configuration--------------------------------
+config.application1.registerAppInterfaceParams.appHMIType = { "MEDIA" }
 require('user_modules/all_common_modules')
 local common_functions_external_consent = require('user_modules/shared_testcases_custom/ATF_Policies_External_Consent_common_functions')
 local common_steps = require('user_modules/common_steps')
 local common_functions = require ('user_modules/common_functions')
-
----------------------------------------Common Variables-----------------------------------------------
-local policy_file = config.pathToSDL .. "storage/policy.sqlite"
 
 ---------------------------------------Preconditions--------------------------------------------------
 common_functions_external_consent:PreconditonSteps("mobileConnection","mobileSession")
@@ -35,7 +33,7 @@ end
 -- 3. add corresponding records to PolicyTable -> "<deviceID>" section
 --------------------------------------------------------------------------
 -- Test 12.02:
--- Description: disallowed_by_external_consent_entities_off. 
+-- Description: disallowed_by_external_consent_entities_off.
 -- HMI -> SDL: OnAppPermissionConsent(externalConsentStatus OFF). Register new applications.
 -- Expected Result: external_consent is created automatically.
 --------------------------------------------------------------------------
@@ -117,7 +115,7 @@ Test["TEST_NAME_OFF".."_Precondition_GetListOfPermissions"] = function(self)
         },
         externalConsentStatus = {}
       }
-  })
+    })
 end
 
 --------------------------------------------------------------------------
@@ -136,7 +134,7 @@ Test["TEST_NAME_OFF" .. "_Precondition_HMI_sends_OnAppPermissionConsent"] = func
       local validate_result = common_functions_external_consent:ValidateHMIPermissions(data,
         "SendLocation", {allowed = {}, userDisallowed = {"BACKGROUND","FULL","LIMITED"}})
       return validate_result
-  end)
+    end)
 end
 
 --------------------------------------------------------------------------
@@ -153,7 +151,7 @@ Test["TEST_NAME_OFF" .. "_MainCheck_RPC_of_Application_1_Group001_is_disallowed"
   self.mobileSession:SendRPC("SendLocation", {
       longitudeDegrees = 1.1,
       latitudeDegrees = 1.1
-  })
+    })
   self.mobileSession:ExpectResponse("SendLocation", {success = false , resultCode = "USER_DISALLOWED"})
 end
 
