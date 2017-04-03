@@ -83,7 +83,6 @@ function Test:Precondition_PTU_and_OnAppPermissionConsent_Empty_First_Applicatio
                       { allowed = true, id = 156072572, name = "Location"},
                       { allowed = true, id = 1809526495, name = "Notifications"}
                     },
-                    externalConsentStatus = {},
                     source = "GUI"
                   })
                 EXPECT_NOTIFICATION("OnPermissionsChange")
@@ -93,7 +92,7 @@ function Test:Precondition_PTU_and_OnAppPermissionConsent_Empty_First_Applicatio
         commonFunctions:userPrint(31, "Wrong SDL bahavior: there are app permissions for consent, isPermissionsConsentNeeded should be true")
         return false
       end
-  end)
+    end)
 end
 
 function Test:Precondition_StartSecondSession()
@@ -103,12 +102,12 @@ end
 
 function Test:Preconditon_RegisterSecondApplication()
   local CorIdRegister = self.mobileSession1:SendRPC("RegisterAppInterface", config.application2.registerAppInterfaceParams)
-  
+
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application2.registerAppInterfaceParams.appName }})
-  :Do(function(_,data) 
-    self.applications[config.application2.registerAppInterfaceParams.appName] = data.params.application.appID 
-    hmi_appid = self.applications[config.application2.registerAppInterfaceParams.appName]
-  end)
+  :Do(function(_,data)
+      self.applications[config.application2.registerAppInterfaceParams.appName] = data.params.application.appID
+      hmi_appid = self.applications[config.application2.registerAppInterfaceParams.appName]
+    end)
   self.mobileSession1:ExpectResponse(CorIdRegister, { success=true, resultCode = "SUCCESS"})
   self.mobileSession1:ExpectNotification("OnHMIStatus", { systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE"})
 end
@@ -132,7 +131,7 @@ function Test:TestStep_GetListofPermissions_appID_Unregistered_App_Empty_ecs()
         { name = "Notifications", id = 1809526495, allowed = true}
       },
       externalConsentStatus = {}
-  })
+    })
 end
 
 --[[ Postconditions ]]

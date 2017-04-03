@@ -79,7 +79,6 @@ function Test:Precondition_PTU_and_OnAppPermissionConsent_Empty()
                       { allowed = true, id = 156072572, name = "Location"},
                       { allowed = true, id = 1809526495, name = "Notifications"}
                     },
-                    externalConsentStatus = {},
                     source = "GUI"
                   })
                 EXPECT_NOTIFICATION("OnPermissionsChange")
@@ -89,7 +88,7 @@ function Test:Precondition_PTU_and_OnAppPermissionConsent_Empty()
         commonFunctions:userPrint(31, "Wrong SDL bahavior: there are app permissions for consent, isPermissionsConsentNeeded should be true")
         return false
       end
-  end)
+    end)
 end
 
 --[[ Test ]]
