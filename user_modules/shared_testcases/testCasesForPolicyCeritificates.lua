@@ -176,7 +176,7 @@ function testCasesForPolicyCeritificates.StartService_encryption(self,service)
     end
 
     if ( data.frameInfo == 2 ) then
-      print("StartService", "StartService ACK", "True")
+      print("StartServiceACK, encryption: false")
       if(data.encryption == true) then
         commonFunctions:printError("Encryption flag should not be set.") 
         return false
