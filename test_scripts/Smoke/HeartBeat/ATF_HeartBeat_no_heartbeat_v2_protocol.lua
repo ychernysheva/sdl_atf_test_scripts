@@ -25,6 +25,7 @@ config.application1.registerAppInterfaceParams.isMediaApplication = true
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
+local constants = require('protocol_handler/ford_protocol_constants')
 local mobile_session = require('mobile_session')
 
 --[[ General Settings for configuration ]]
@@ -72,8 +73,16 @@ function Test:Start_Session_And_Register_App()
   end)
 end
 
-function Test.Wait_15_seconds()
+function Test:Wait_15_seconds()
+  local event = events.Event()
+  event.matches = function(s, data)
+    return data.frameType == constants.FRAME_TYPE.CONTROL_FRAME and
+    data.serviceType == constants.SERVICE_TYPE.CONTROL and
+    data.frameInfo == constants.FRAME_INFO.HEARTBEAT   and
+    self.mobileSession.sessionId == data.sessionId
+  end
   commonTestCases:DelayedExp(15000)
+  self.mobileSession:ExpectEvent(event, "Heartbeat"):Times(0)
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered"):Times(0)
 end
 
