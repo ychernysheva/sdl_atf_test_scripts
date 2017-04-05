@@ -28,6 +28,7 @@ config.application1.registerAppInterfaceParams.isMediaApplication = true
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
+local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 local mobile_session = require('mobile_session')
 
 --[[ General Settings for configuration ]]
@@ -42,6 +43,7 @@ local default_app_params = config.application1.registerAppInterfaceParams
 commonFunctions:newTestCasesGroup("Preconditions")
 commonSteps:DeletePolicyTable()
 commonSteps:DeleteLogsFiles()
+commonPreconditions:BackupFile("smartDeviceLink.ini")
 
 function Test:StartSDL_And_Connect_Mobile()
   self:runSDL()
@@ -59,7 +61,7 @@ function Test:StartSDL_And_Connect_Mobile()
 end
 
 --[[ Test ]]
-commonFunctions:newTestCasesGroup("Check that no heartbeat occurs if App uses v3 protocol and doesn't send HB to SDL, but response to SDL HB requests")
+commonFunctions:newTestCasesGroup("Test")
 
 function Test:Start_Session_And_Register_App()
   self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
@@ -85,16 +87,14 @@ function Test.Wait_15_seconds()
 end
 
 function Test:Verify_That_App_Still_Registered()
-  commonSteps:ActivateAppInSpecificLevel(self, default_app_params.hmi_app_id)
-  EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL",
-    audioStreamingState = "AUDIBLE", systemContext = "MAIN"}):Do(function()
-    commonFunctions:userPrint(35, "App is activated")
-  end)
+  local cor_id = self.mobileSession:SendRPC("RegisterAppInterface", default_app_params)
+  self.mobileSession:ExpectResponse(cor_id, { success = false, resultCode = "APPLICATION_REGISTERED_ALREADY"})
 end
 
 -- [[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postcondition")
 function Test.Stop_SDL()
+  commonPreconditions:RestoreFile("smartDeviceLink.ini")
   StopSDL()
 end
 
