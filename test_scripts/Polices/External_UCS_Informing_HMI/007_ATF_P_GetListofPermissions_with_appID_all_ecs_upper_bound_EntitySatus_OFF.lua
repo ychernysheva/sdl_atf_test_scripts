@@ -37,7 +37,7 @@ local testCasesForPolicyTable = require('user_modules/shared_testcases/testCases
 local external_consent_status = {}
 
 for i =1, 100 do
-  external_consent_status[i] = {entityTpe = i, entityID = i, status = "OFF"}
+  external_consent_status[i] = {entityType = i, entityID = i, status = "OFF"}
 end
 
 --[[ General Precondition before ATF start ]]
@@ -98,7 +98,7 @@ function Test:Precondition_PTU_and_OnAppPermissionConsent_AllParams_Upper()
         commonFunctions:userPrint(31, "Wrong SDL bahavior: there are app permissions for consent, isPermissionsConsentNeeded should be true")
         return false
       end
-  end)
+    end)
 
 end
 
