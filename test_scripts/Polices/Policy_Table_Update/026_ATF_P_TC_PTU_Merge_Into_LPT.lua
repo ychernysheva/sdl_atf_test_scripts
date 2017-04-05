@@ -36,6 +36,7 @@ local policy_file_name = "PolicyTableUpdate"
 local ptu_file = "files/jsons/Policies/Policy_Table_Update/ptu_18190.json"
 --"files/ptu_general.json")
 --[[ Local Functions ]]
+
 local function json_to_table(file)
   local f = io.open(file, "r")
   if f == nil then error("File not found") end
@@ -61,7 +62,6 @@ local function is_table_equal(t1, t2)
 end
 
 local function update_preloaded_pt_removeRC()
-  commonPreconditions:BackupFile("sdl_preloaded_pt.json")
   local config_path = commonPreconditions:GetPathToSDL()
 
   local pathToFile = config_path .. 'sdl_preloaded_pt.json'
@@ -84,6 +84,7 @@ local function update_preloaded_pt_removeRC()
 end
 
 --[[ General Precondition before ATF start ]]
+commonPreconditions:BackupFile("sdl_preloaded_pt.json")
 update_preloaded_pt_removeRC()
 testCasesForPolicyTable.Delete_Policy_table_snapshot()
 commonSteps:DeleteLogsFileAndPolicyTable()
