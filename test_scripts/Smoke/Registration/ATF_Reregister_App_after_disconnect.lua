@@ -74,13 +74,15 @@ end
 function Test:Reregister_Application()
   local mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
   local on_rpc_service_started = mobileSession:StartRPC()
-  local cid = self.mobileSession:SendRPC("RegisterAppInterface", default_app_params) 
+  on_rpc_service_started:Do(function()
+    local cid = self.mobileSession:SendRPC("RegisterAppInterface", default_app_params) 
 
-  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = {appName = default_app_params.appName} })
-  self.mobileSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS"})
+    EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = {appName = default_app_params.appName} })
+    self.mobileSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS"})
 
-  EXPECT_NOTIFICATION("OnHMIStatus", { systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE"})
-  EXPECT_NOTIFICATION("OnPermissionsChange")
+    EXPECT_NOTIFICATION("OnHMIStatus", { systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE"})
+    EXPECT_NOTIFICATION("OnPermissionsChange")
+  end)
 end
 
 -- [[ Postconditions ]]

@@ -25,7 +25,7 @@
 --  1. SDL successfully registers all four applications and notifies HMI and mobile 
 --     SDL->HMI: OnAppRegistered(params)
 --     SDL->appID: SUCCESS, success:"true":RegisterAppInterface() 
---  3. SDL assignes HMILevel after application registering:
+--  2. SDL assignes HMILevel after application registering:
 --     SDL->appID: OnHMIStatus(HMlLevel, audioStreamingState, systemContext)
 
 -- [[ Required Shared Libraries ]]
@@ -45,14 +45,14 @@ local default_app_params4 = config.application4.registerAppInterfaceParams
 local default_app_params5 = config.application5.registerAppInterfaceParams
 
 --[[ Local Functions ]]
-local function startSessionAndRegisterApp(self, session_name, app)
-  self.session_name = mobile_session.MobileSession(self, self.mobileConnection)
-  self.session_name:StartRPC():Do(function()
-    local correlation_id = self.session_name:SendRPC("RegisterAppInterface", app)
+local function startSessionAndRegisterApp(self, app)
+  self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
+  self.mobileSession:StartRPC():Do(function()
+    local correlation_id = self.mobileSession:SendRPC("RegisterAppInterface", app)
     EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = app.appName}})
-    self.session_name:ExpectResponse(correlation_id, {success = true, resultCode = "SUCCESS"})
-    self.session_name:ExpectNotification("OnHMIStatus", {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
-    self.session_name:ExpectNotification("OnPermissionsChange", {})  
+    self.mobileSession:ExpectResponse(correlation_id, {success = true, resultCode = "SUCCESS"})
+    self.mobileSession:ExpectNotification("OnHMIStatus", {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
+    self.mobileSession:ExpectNotification("OnPermissionsChange", {})  
   end)
 end
 
@@ -80,22 +80,22 @@ function Test:Start_SDL_With_One_Activated_App()
 end
 
 --[[ Test ]]
-commonFunctions:newTestCasesGroup("Check that it is able to register 5 sessions within 1 phisycal connection")
+commonFunctions:newTestCasesGroup("Test")
 
 function Test:Start_Session2_And_Register_App_2()
-  startSessionAndRegisterApp(self, mobileSession2, default_app_params2)
+  startSessionAndRegisterApp(self, default_app_params2)
 end
 
 function Test:Start_Session3_And_Register_App_3()
-  startSessionAndRegisterApp(self, mobileSession3, default_app_params3)
+  startSessionAndRegisterApp(self, default_app_params3)
 end
 
 function Test:Start_Session4_And_Register_App_4()
-  startSessionAndRegisterApp(self, mobileSession4, default_app_params4)
+  startSessionAndRegisterApp(self, default_app_params4)
 end
 
 function Test:Start_Session5_And_Register_App_5()
-  startSessionAndRegisterApp(self, mobileSession5, default_app_params5)
+  startSessionAndRegisterApp(self, default_app_params5)
 end
 
 -- [[ Postconditions ]]

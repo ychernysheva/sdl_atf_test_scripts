@@ -24,7 +24,7 @@
 --  1. SDL successfully registers all five applications and notifies HMI and mobile
 --     SDL->HMI: OnAppRegistered(params)
 --     SDL->appID: SUCCESS, success:"true":RegisterAppInterface()
---  3. SDL assignes HMILevel after application registering:
+--  2. SDL assignes HMILevel after application registering:
 --     SDL->appID: OnHMIStatus(HMlLevel, audioStreamingState, systemContext)
 
 -- [[ Required Shared Libraries ]]
@@ -48,26 +48,6 @@ local default_app_params4 = config.application4.registerAppInterfaceParams
 local default_app_params5 = config.application5.registerAppInterfaceParams
 local devicePort = 12345
 
---[[ Local Functions ]]
-local function createConnectionAndRegisterApp(self, device, filename, app, connection_name, session_name)
-  local tcpConnection = tcp.Connection(device, devicePort)
-  local fileConnection = file_connection.FileConnection(filename, tcpConnection)
-  self.connection_name = mobile.MobileConnection(fileConnection)
-  self.session_name = mobile_session.MobileSession(self, self.connection_name, app)
-  event_dispatcher:AddConnection(self.connection_name)
-  self.session_name:ExpectEvent(events.connectedEvent, "Connection started")
-  self.connection_name:Connect()
-  self.session_name:StartService(7):Do(function()
-    local correlationId = self.session_name:SendRPC("RegisterAppInterface", app)
-    EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", {application = { appName = app.appName}})
-    self.session_name:ExpectResponse(correlationId , { success = true, resultCode = "SUCCESS"})
-    self.session_name:ExpectNotification("OnHMIStatus",{hmiLevel = "NONE", 
-          audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"}):Do(function(_, data)
-      commonFunctions:userPrint(35, "1st App is successfully registered")
-    end)
-  end)
-end
-
 --1. Device 1:
 local device1 = "127.0.0.1"
 --2. Device 2:
@@ -79,7 +59,7 @@ local device4 = "1.0.0.1"
 --5. Device 5:
 local device5 = "8.8.8.8"
 
--- Cretion dummy connections fo script
+-- Cretion dummy connections for script
 os.execute("ifconfig lo:1 " .. device2)
 os.execute("ifconfig lo:2 " .. device3)
 os.execute("ifconfig lo:3 " .. device4)
@@ -90,12 +70,31 @@ commonFunctions:newTestCasesGroup("Preconditions")
 commonSteps:DeletePolicyTable()
 commonSteps:DeleteLogsFiles()
 
+local function createConnectionAndRegisterApp(self, device, filename, app)
+  local tcpConnection = tcp.Connection(device, devicePort)
+  local fileConnection = file_connection.FileConnection(filename, tcpConnection)
+  self.mobileConnection = mobile.MobileConnection(fileConnection)
+  self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection, app)
+  event_dispatcher:AddConnection(self.mobileConnection)
+  self.mobileSession:ExpectEvent(events.connectedEvent, "Connection started")
+  self.mobileConnection:Connect()
+  self.mobileSession:StartService(7):Do(function()
+    local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", app)
+    EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", {application = { appName = app.appName}})
+    self.mobileSession:ExpectResponse(correlationId , { success = true, resultCode = "SUCCESS"})
+    self.mobileSession:ExpectNotification("OnHMIStatus",{hmiLevel = "NONE", 
+          audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"}):Do(function()
+      commonFunctions:userPrint(35, "1st App is successfully registered")
+    end)
+  end)
+end
+
 function Test:Start_SDL()
   self:runSDL()
   commonFunctions:waitForSDLStart(self):Do(function()
     self:initHMI():Do(function()
       commonFunctions:userPrint(35, "HMI initialized")
-      self:initHMI_onReady():Do(function ()
+      self:initHMI_onReady():Do(function()
         commonFunctions:userPrint(35, "HMI is ready")
       end)
     end)
@@ -103,26 +102,26 @@ function Test:Start_SDL()
 end
 
 --[[ Test ]]
-commonFunctions:newTestCasesGroup("Check that it is able to register up to 5 Apps on different connections")
+commonFunctions:newTestCasesGroup("Test")
 
 function Test:FirstConnection()
-  createConnectionAndRegisterApp(self, device1, "mobile1.out", default_app_params1, mobileConnection1, mobileSession1)
+  createConnectionAndRegisterApp(self, device1, "mobile1.out", default_app_params1)
 end
 
 function Test:SecondConnection()
-  createConnectionAndRegisterApp(self, device2, "mobile2.out", default_app_params2, mobileConnection2, mobileSession2)
+  createConnectionAndRegisterApp(self, device2, "mobile2.out", default_app_params2)
 end
 
 function Test:ThirdConnection()
-  createConnectionAndRegisterApp(self, device3, "mobile3.out", default_app_params3, mobileConnection3, mobileSession3)
+  createConnectionAndRegisterApp(self, device3, "mobile3.out", default_app_params3)
 end
 
 function Test:FourthConnection()
-  createConnectionAndRegisterApp(self, device4, "mobile4.out", default_app_params4, mobileConnection4, mobileSession4)  
+  createConnectionAndRegisterApp(self, device4, "mobile4.out", default_app_params4)  
 end
 
 function Test:FifthConnection()
-  createConnectionAndRegisterApp(self, device5, "mobile5.out", default_app_params5, mobileConnection5, mobileSession5)  
+  createConnectionAndRegisterApp(self, device5, "mobile5.out", default_app_params5)  
 end
 
 -- [[ Postconditions ]]

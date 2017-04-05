@@ -29,7 +29,6 @@
 -- [[ Required Shared Libraries ]]
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
-local mobile_session = require('mobile_session')
 
 --[[ General Settings for configuration ]]
 Test = require('user_modules/dummy_connecttest')
@@ -66,13 +65,13 @@ commonSteps:precondition_AddNewSession()
 commonSteps:RegisterTheSecondMediaApp() 
 
 --[[ Test ]]
-commonFunctions:newTestCasesGroup("Reregister App if two Apps are registered")
+commonFunctions:newTestCasesGroup("Test")
 
 function Test:Unregister_App()
   local cid = self.mobileSession:SendRPC("UnregisterAppInterface", default_app_params1)
   EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered", {unexpectedDisconnect = false, 
-                   appID = self.applications[default_app_params1]})
+                   appID = self.applications[default_app_params1.appName]})
 end
 
 function Test:Reregister_Application()

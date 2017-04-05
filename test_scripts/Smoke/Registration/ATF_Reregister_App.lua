@@ -27,7 +27,6 @@
 -- [[ Required Shared Libraries ]]
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
-local mobile_session = require('mobile_session')
 
 --[[ General Settings for configuration ]]
 Test = require('user_modules/dummy_connecttest')
@@ -61,20 +60,20 @@ function Test:Start_SDL_With_One_Registered_App()
 end
 
 --[[ Test ]]
-commonFunctions:newTestCasesGroup("Check that it is able to reregister App within current connection")
+commonFunctions:newTestCasesGroup("Test")
 
 function Test:Unregister_App()
   local cid = self.mobileSession:SendRPC("UnregisterAppInterface", default_app_params)
   EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered", {unexpectedDisconnect = false, 
-                   appID = self.applications[default_app_params]})
+                   appID = self.applications[default_app_params.appName]})
 end
 
 function Test:Reregister_Application()
   local correlation_id = self.mobileSession:SendRPC("RegisterAppInterface", default_app_params)
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = default_app_params.appName}})
 
-  EXPECT_RESPONSE(correlation_id, {success = true, resultCode = "SUCCESS"}):Do(function(_,data)
+  EXPECT_RESPONSE(correlation_id, {success = true, resultCode = "SUCCESS"}):Do(function()
     EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
   end)
   EXPECT_NOTIFICATION("OnPermissionsChange")

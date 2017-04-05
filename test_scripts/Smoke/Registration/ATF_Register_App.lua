@@ -16,7 +16,7 @@
 --  1. SDL successfully registers application and notifies HMI and mobile
 --     SDL->HMI: OnAppRegistered(params)
 --     SDL->appID: SUCCESS, success:"true":RegisterAppInterface()
---  3. SDL assignes HMILevel after application registering:
+--  2. SDL assignes HMILevel after application registering:
 --     SDL->appID: OnHMIStatus(HMlLevel, audioStreamingState, systemContext)
 
 -- [[ Required Shared Libraries ]]
@@ -38,7 +38,7 @@ commonSteps:DeletePolicyTable()
 commonSteps:DeleteLogsFiles()
 
 --[[ Test ]]
-commonFunctions:newTestCasesGroup("Check that it is able to register App")
+commonFunctions:newTestCasesGroup("Test")
 
 function Test:Start_SDL()
   self:runSDL()
@@ -62,7 +62,7 @@ function Test:Register_App()
     local correlation_id = self.mobileSession:SendRPC("RegisterAppInterface", default_app_params)
     EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = default_app_params.appName}})
 
-    EXPECT_RESPONSE(correlation_id, {success = true, resultCode = "SUCCESS"}):Do(function(_,data)
+    EXPECT_RESPONSE(correlation_id, {success = true, resultCode = "SUCCESS"}):Do(function()
       EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
     end)
     EXPECT_NOTIFICATION("OnPermissionsChange")
