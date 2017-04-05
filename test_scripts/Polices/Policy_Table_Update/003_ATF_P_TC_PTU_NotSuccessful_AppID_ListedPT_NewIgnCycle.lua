@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------
 -- Requirements summary:
--- [PolicyTableUpdate] Policy Table Update in case of failed retry strategy during previour IGN_ON (SDL.PolicyUpdate)
+-- [PolicyTableUpdate] Policy Table Update in case of failed retry strategy during previous IGN_ON (SDL.PolicyUpdate)
 -- [HMI API] PolicyUpdate request/response
 -- Can you clarify the state of PTU(UPDATE_NEEDED) in previous ign_cycle according to ...
 --
@@ -18,7 +18,7 @@
 --
 -- Expected result:
 -- PTU is requested. PTS is created.
--- SDL->HMI: SDL.OnStatusUpdate(UPDATE_NEEDED)
+-- SDL-> HMI: SDL.PolicyUpdate()
 ---------------------------------------------------------------------------------------------
 
 --[[ General configuration parameters ]]
