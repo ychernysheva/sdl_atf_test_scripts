@@ -181,7 +181,7 @@
 ./test_scripts/Polices/Related_HMI_API/212_ATF_GetListOfPermissions_with_appID.lua
 ./test_scripts/Polices/build_options/001_ATF_P_TC_SDL_Build_DEXTENDED_POLICY_EXTERNAL_PROPRIETARY.lua
 ;./test_scripts/Polices/user_consent_of_Policies/ATF_Factory_reset.lua APPLINK-30921
-;./test_scripts/Polices/Policy_Table_Update/018_ATF_P_TC_Sending_PTS_to_mobile_application.lua APPLINK-31534
+./test_scripts/Polices/Policy_Table_Update/018_ATF_P_TC_Sending_PTS_to_mobile_application.lua APPLINK-31534
 ;./test_scripts/Polices/Policy_Table_Update/022_ATF_P_TC_Got_PTU_from_mobile_application.lua APPLINK-30390
 ;./test_scripts/Polices/Policy_Table_Update/024_ATF_P_TC_PTU_validation_rules.lua APPLINK-30390
 ;./test_scripts/Polices/Policy_Table_Update/025_ATF_P_TC_PTU_validation_failure.lua APPLINK-30390
@@ -191,9 +191,9 @@
 ;./test_scripts/Polices/Policy_Table_Update/038_ATF_P_TC_PTU_Omit_Of_Consumer_Friendly_Messages.lua locally_PASS
 ;./test_scripts/Polices/Policy_Table_Update/027_ATF_P_TC_HMILvl_on_PTU_affected_in_FULL_or_LIMITED.lua	locally_PASS
 ;./test_scripts/Polices/Policy_Table_Update/ATF_PTU_request_after_N_ignition_cycles.lua	locally_PASS
-;./test_scripts/Polices/Policies_Security/003_ATF_P_PolicyTable_Certificate_EMPTY_value.lua	locally_PASS
+./test_scripts/Polices/Policies_Security/003_ATF_P_PolicyTable_Certificate_EMPTY_value.lua	locally_PASS
 ;./test_scripts/Polices/Policies_Security/002_ATF_P_Policies_Performance_Requirement.lua	locally_PASS
-;./test_scripts/Polices/user_consent_of_Policies/ATF_Consent_status_allowed_on_device_connect.lua	locally_PASS
+./test_scripts/Polices/user_consent_of_Policies/ATF_Consent_status_allowed_on_device_connect.lua	locally_PASS
 ;./test_scripts/Polices/user_consent_of_Policies/ATF_Device_identifier_creation_upon_connect_no_apps.lua	locally_PASS
 ;./test_scripts/Polices/user_consent_of_Policies/ATF_Device_identifier_creation_upon_connect_with_apps.lua		locally_PASS
 ;./test_scripts/Polices/Validation_of_PolicyTables/238_ATF_merge_preloaded_pt_into_local_pt_app_policies.lua		locally_PASS. Issue: Test Failed because was not found sdl_preloaded_pt.json file Solution: Need improvement in environment preparation on CI SDL behavior is correct
