@@ -29,6 +29,7 @@ config.application1.registerAppInterfaceParams.isMediaApplication = true
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
+local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 local mobile_session = require('mobile_session')
 
 --[[ General Settings for configuration ]]
@@ -38,11 +39,13 @@ require('user_modules/AppTypes')
 
 -- [[Local variables]]
 local default_app_params = config.application1.registerAppInterfaceParams
+local default_app_params2 = config.application2.registerAppInterfaceParams
 
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
 commonSteps:DeletePolicyTable()
 commonSteps:DeleteLogsFiles()
+commonPreconditions:BackupFile("smartDeviceLink.ini")
 
 function Test:StartSDL_And_Connect_Mobile()
   self:runSDL()
@@ -60,7 +63,7 @@ function Test:StartSDL_And_Connect_Mobile()
 end
 
 --[[ Test ]]
-commonFunctions:newTestCasesGroup("Check that heartbeat occurs if App uses v3 protocol version and doesn't send HB to SDL and doesn't response to SDL HB")
+commonFunctions:newTestCasesGroup("Test")
 
 function Test:Start_Session_And_Register_App()
   self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
@@ -80,17 +83,36 @@ function Test:Start_Session_And_Register_App()
   end)
 end
 
+function Test:Register_Second_App_With_HeartBeat()
+  self.mobileSession1 = mobile_session.MobileSession(self, self.mobileConnection)
+  self.mobileSession1.sendHeartbeatToSDL = true
+  self.mobileSession1.answerHeartbeatFromSDL = true
+  self.mobileSession1.ignoreSDLHeartBeatACK = false
+  self.mobileSession1:StartRPC():Do(function()
+    local correlation_id = self.mobileSession1:SendRPC("RegisterAppInterface", default_app_params2)
+    EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = default_app_params2.appName}})
+    self.mobileSession1:ExpectResponse(correlation_id, {success = true, resultCode = "SUCCESS"})
+    self.mobileSession1:ExpectNotification("OnHMIStatus", {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
+    self.mobileSession1:ExpectNotification("OnPermissionsChange", {})  
+  end)
+end
+
 function Test:Wait_15_seconds_And_Verify_OnAppUnregistered()
-  commonTestCases:DelayedExp(15000)
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered", 
-    {appID = default_app_params.hmi_app_id, unexpectedDisconnect =  true}):Do(function()
+    {appID = default_app_params.hmi_app_id, unexpectedDisconnect =  true}):Timeout(15000):Do(function()
     self.mobileSession:StopHeartbeat()
   end)
+end
+
+function Test:Verify_That_Second_App_Still_Registered()
+  local cor_id = self.mobileSession1:SendRPC("RegisterAppInterface", default_app_params2)
+  self.mobileSession1:ExpectResponse(cor_id, { success = false, resultCode = "APPLICATION_REGISTERED_ALREADY"})
 end
 
 -- [[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postcondition")
 function Test.Stop_SDL()
+  commonPreconditions:RestoreFile("smartDeviceLink.ini")
   StopSDL()
 end
 

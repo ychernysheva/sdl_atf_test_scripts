@@ -11,7 +11,7 @@
 --
 --  2. Performed steps
 --  Start SPT, select transport, specify protocols = 2
---  Wait 1 min.
+--  Wait 15 sec.
 --
 --  Expected behavior:
 --  1. App has successfully registered.
@@ -57,16 +57,15 @@ function Test:StartSDL_And_Connect_Mobile()
 end
 
 --[[ Test ]]
-commonFunctions:newTestCasesGroup("Check that no heartbeat occurs if App uses v2 protocol version")
+commonFunctions:newTestCasesGroup("Test")
 
 function Test:Start_Session_And_Register_App()
   self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
+  self.mobileSession.sendHeartbeatToSDL = false
+  self.mobileSession.answerHeartbeatFromSDL = false
   self.mobileSession:StartRPC():Do(function()
     local correlation_id = self.mobileSession:SendRPC("RegisterAppInterface", default_app_params)
-    EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", 
-      { application = { appName = default_app_params.appName}}):Do(function(_,data)
-      default_app_params.hmi_app_id = data.params.application.appID
-    end)
+    EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = default_app_params.appName}})
     self.mobileSession:ExpectResponse(correlation_id, {success = true, resultCode = "SUCCESS"})
     self.mobileSession:ExpectNotification("OnHMIStatus", {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
     self.mobileSession:ExpectNotification("OnPermissionsChange", {})  
@@ -87,11 +86,8 @@ function Test:Wait_15_seconds()
 end
 
 function Test:Verify_That_App_Still_Registered()
-  commonSteps:ActivateAppInSpecificLevel(self, default_app_params.hmi_app_id)
-  EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL",
-    audioStreamingState = "AUDIBLE", systemContext = "MAIN"}):Do(function()
-    commonFunctions:userPrint(35, "App is activated")
-  end)
+  local cor_id = self.mobileSession:SendRPC("RegisterAppInterface", default_app_params)
+  self.mobileSession:ExpectResponse(cor_id, { success = false, resultCode = "APPLICATION_REGISTERED_ALREADY"})
 end
 
 -- [[ Postconditions ]]
