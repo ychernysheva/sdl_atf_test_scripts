@@ -21,6 +21,7 @@
 ---------------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
+config.defaultProtocolVersion = 2
 
 --[[ Required Shared libraries ]]
 local mobileSession = require("mobile_session")
@@ -98,7 +99,7 @@ local function activate_app(self, id)
 end
 
 local function deactivate_app(self, id)
-  self.hmiConnection:SendNotification("BasicCommunication.OnAppDeactivated", { appID = get_app_hmi_id(self, id)})
+  self.hmiConnection:SendNotification("BasicCommunication.OnAppDeactivated", {appID = get_app_hmi_id(self, id), reason = "GENERAL"})
 end
 
 local function register_OnHMIStatus(self, id)
