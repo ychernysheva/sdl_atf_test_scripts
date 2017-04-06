@@ -45,6 +45,7 @@ local function CheckGroup001IsNotConsentedAndGroup002IsNotConsented()
 
     EXPECT_RESPONSE(cid, {success = false , resultCode = "DISALLOWED"})
     EXPECT_NOTIFICATION("OnHashChange"):Times(0)
+    common_functions:DelayedExp(5000)
   end
 
 end -- function CheckGroup001IsNotConsentedAndGroup002IsNotConsented()
@@ -272,6 +273,7 @@ Test["TEST_NAME_OFF_Precondition_HMI_sends_OnAppPermissionConsent_externalConsen
       externalConsentStatus = {{entityType = 2, entityID = 5, status = "ON"}}
     })
   self.mobileSession:ExpectNotification("OnPermissionsChange"):Times(0)
+  common_functions:DelayedExp(5000)
 end
 
 --------------------------------------------------------------------------
