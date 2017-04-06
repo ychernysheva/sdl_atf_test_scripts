@@ -43,8 +43,9 @@ local function CheckGroup001IsNotConsentedAndGroup002IsNotConsented()
   Test["TEST_NAME_OFF_MainCheck_RPC_of_Group002_is_disallowed"] = function(self)
     local cid = self.mobileSession:SendRPC("SubscribeVehicleData",{rpm = true})
 
-    EXPECT_RESPONSE(cid, {success = true , resultCode = "DISALLOWED"})
+    EXPECT_RESPONSE(cid, {success = false , resultCode = "DISALLOWED"})
     EXPECT_NOTIFICATION("OnHashChange"):Times(0)
+    common_functions:DelayedExp(5000)
   end
 
 end -- function CheckGroup001IsNotConsentedAndGroup002IsNotConsented()
@@ -271,18 +272,8 @@ Test["TEST_NAME_OFF_Precondition_HMI_sends_OnAppPermissionConsent_externalConsen
       appID = hmi_app_id_1, source = "GUI",
       externalConsentStatus = {{entityType = 2, entityID = 5, status = "ON"}}
     })
-  self.mobileSession:ExpectNotification("OnPermissionsChange")
-  :ValidIf(function(_,data)
-      local validate_result_1 = common_functions_external_consent:ValidateHMIPermissions(data,
-        "SubscribeWayPoints", {allowed = {"BACKGROUND","FULL","LIMITED"}, userDisallowed = {}})
-      local validate_result_2 = common_functions_external_consent:ValidateHMIPermissions(data,
-        "SubscribeVehicleData", {allowed = {"BACKGROUND","FULL","LIMITED"}, userDisallowed = {}})
-
-      if(validate_result_1 == false) then commonFunctions:printError("SubscribeWayPoints doesn't have permissions for allowed = {BACKGROUND, FULL, LIMITED}") end
-      if(validate_result_2 == false) then commonFunctions:printError("SubscribeVehicleData doesn't have permissions for allowed = {BACKGROUND, FULL, LIMITED}") end
-
-      return (validate_result_1 and validate_result_2)
-    end)
+  self.mobileSession:ExpectNotification("OnPermissionsChange"):Times(0)
+  common_functions:DelayedExp(5000)
 end
 
 --------------------------------------------------------------------------
