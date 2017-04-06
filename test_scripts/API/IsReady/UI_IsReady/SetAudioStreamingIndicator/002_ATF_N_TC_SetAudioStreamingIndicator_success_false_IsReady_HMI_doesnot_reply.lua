@@ -51,7 +51,8 @@ local hmi_result_code = {
 	{ result_code = "ABORTED"},
 	{ result_code = "IGNORED"},
 	{ result_code = "IN_USE"},
-	{ result_code = "VEHICLE_DATA_NOT_AVAILABLE"},
+	--TODO(istoimenova): update when "Must SDL resend HMI resultCode hmi_apis::Common_Result::DATA_NOT_AVAILABLE to mobile app" is resolved
+	--{ result_code = "VEHICLE_DATA_NOT_AVAILABLE"},
 	{ result_code = "TIMED_OUT"},
 	{ result_code = "INVALID_DATA"},
 	{ result_code = "CHAR_LIMIT_EXCEEDED"},
