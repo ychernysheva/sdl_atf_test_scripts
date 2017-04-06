@@ -48,7 +48,7 @@ Test["TEST_NAME_OFF_Precondition_Update_Policy_Table"] = function(self)
     user_consent_prompt = "ConsentGroup001",
     rpcs = {
       SubscribeVehicleData = {
-        hmi_levels = {"NONE", "BACKGROUND", "FULL", "LIMITED"}
+        hmi_levels = {"BACKGROUND", "FULL", "LIMITED"}
       }
     }
   }
@@ -114,7 +114,7 @@ Test["TEST_NAME_OFF_Precondition_HMI_sends_OnAppPermissionConsent_allowed"] = fu
   self.mobileSession:ExpectNotification("OnPermissionsChange")
   :ValidIf(function(_,data)
       local validate_result = common_functions_external_consent:ValidateHMIPermissions(data,
-        "SubscribeWayPoints", {allowed = {"BACKGROUND","FULL","LIMITED"}, userDisallowed = {}})
+        "SubscribeVehicleData", {allowed = {"BACKGROUND", "FULL", "LIMITED"}, userDisallowed = {}})
       return validate_result
     end)
 end
@@ -147,7 +147,7 @@ Test["TEST_NAME_OFF_Precondition_HMI_sends_OnAppPermissionConsent_user_disallowe
   self.mobileSession:ExpectNotification("OnPermissionsChange")
   :ValidIf(function(_,data)
       local validate_result = common_functions_external_consent:ValidateHMIPermissions(data,
-        "SubscribeWayPoints", {allowed = {}, userDisallowed = {"BACKGROUND","FULL","LIMITED"}})
+        "SubscribeVehicleData", {allowed = {}, userDisallowed = {"BACKGROUND","FULL","LIMITED"}})
       return validate_result
     end)
 end
