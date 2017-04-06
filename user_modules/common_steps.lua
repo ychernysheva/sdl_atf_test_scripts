@@ -35,7 +35,7 @@ function CommonSteps:AddMobileConnection(test_case_name, mobile_connection_name)
   Test[test_case_name] = function(self)
     mobile_connection_name = mobile_connection_name or "mobileConnection"
     local tcpConnection = tcp.Connection(config.mobileHost, config.mobilePort)
-    local fileConnection = file_connection.FileConnection("mobile_" .. mobile_connection_name .. ".out", tcpConnection)    
+    local fileConnection = file_connection.FileConnection("mobile_" .. mobile_connection_name .. ".out", tcpConnection)
     self[mobile_connection_name] = mobile.MobileConnection(fileConnection)
     event_dispatcher:AddConnection(self[mobile_connection_name])
     self[mobile_connection_name]:Connect()
@@ -105,7 +105,7 @@ end
 function CommonSteps:CloseMobileSessionByAppName(test_case_name, app_name)
   Test[test_case_name] = function(self)
     CommonSteps:CloseMobileSession_InternalUsed(app_name, self)
-  end  
+  end
 end
 
 -- COMMON FUNCTIONS FOR SERVICES
@@ -139,7 +139,7 @@ function CommonSteps:RegisterApplication(test_case_name, mobile_session_name, ap
     application_parameters = application_parameters or config.application1.registerAppInterfaceParams
     local app_name = application_parameters.appName
     common_functions:StoreApplicationData(mobile_session_name, app_name, application_parameters, _, self)
-    
+
     local CorIdRAI = self[mobile_session_name]:SendRPC("RegisterAppInterface", application_parameters)
     EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", {application = {appName = app_name}})
     :Do(function(_,data)
@@ -204,7 +204,7 @@ function CommonSteps:ActivateApplication(test_case_name, app_name, expected_leve
           end)
       end
     end) -- :Do(function(_,data)
-      
+
     self[mobile_session_name]:ExpectNotification("OnHMIStatus", {hmiLevel = expected_level, audioStreamingState = audio_streaming_state, systemContext = "MAIN"})
     -- Verify OnHMIStatus for other applications
     if expected_on_hmi_status_for_other_applications then
@@ -216,7 +216,7 @@ function CommonSteps:ActivateApplication(test_case_name, app_name, expected_leve
             common_functions:StoreHmiStatus(app_name, data.payload, self)
           end)
       end -- for k_app_name, v
-    end -- if expected_on_hmi_status_for_other_applications then      
+    end -- if expected_on_hmi_status_for_other_applications then
   end
 end
 --------------------------------------------------------------------------------
@@ -281,19 +281,15 @@ end
 --------------------------------------------------------------------------------
 function CommonSteps:IgnitionOff(test_case_name)
   Test[test_case_name] = function(self)
-    local hmi_app_ids = common_functions:GetHmiAppIds(self)
-    local total_apps = #hmi_app_ids
-    if total_apps == 0 then
-      common_functions:PrintError("[Warning]: There is no registered app.")
-    end
-    self.hmiConnection:SendNotification("BasicCommunication.OnExitAllApplications", {reason = "IGNITION_OFF"})
-    EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered", {unexpectedDisconnect = false})
-    :Times(total_apps)
-    :Do(function(exp,data) -- ToDo: Remove Do .. end when defect: SDL is not stopped when IGNITION_OFF by ATF
-       if exp.occurences == total_apps then
-        StopSDL()
-       end
-    end)
+    local sdl = require('SDL')
+    if sdl:CheckStatusSDL() == sdl.RUNNING then
+      self.hmiConnection:SendNotification("BasicCommunication.OnExitAllApplications", { reason = "SUSPEND" })
+      EXPECT_HMINOTIFICATION("BasicCommunication.OnSDLPersistenceComplete")
+      :Do(function()
+          self.hmiConnection:SendNotification("BasicCommunication.OnExitAllApplications", { reason = "IGNITION_OFF" })
+          StopSDL()
+        end)
+      end
   end
 end
 
@@ -486,11 +482,11 @@ end
 function CommonSteps:FileExisted(name)
    	local f=io.open(name,"r")
 
-   	if f ~= nil then 
+   	if f ~= nil then
    		io.close(f)
    		return true
-   	else 
-   		return false 
+   	else
+   		return false
    	end
 end
 
@@ -507,8 +503,8 @@ function CommonSteps:RemoveFileInSdlBinFolder(test_case_name, file_name)
       os.remove(config.pathToSDL .. file_name)
     end
   end
-end                
--- Execute query to insert/ update/ delete data to LPT 
+end
+-- Execute query to insert/ update/ delete data to LPT
 function CommonSteps:ModifyLocalPolicyTable(test_case_name, sql_query)
   Test[test_case_name] = function(self)
     local policy_file = config.pathToSDL .. "storage/policy.sqlite"
@@ -517,7 +513,7 @@ function CommonSteps:ModifyLocalPolicyTable(test_case_name, sql_query)
     ful_sql_query = "sqlite3 " .. policy_file_temp .. " \"" .. sql_query .. "\""
     handler = io.popen(ful_sql_query, 'r')
     handler:close()
-    os.execute("sleep 1") 
+    os.execute("sleep 1")
     os.execute("cp " .. policy_file_temp .. " " .. policy_file)
     os.execute("rm -rf " .. policy_file_temp)
   end
