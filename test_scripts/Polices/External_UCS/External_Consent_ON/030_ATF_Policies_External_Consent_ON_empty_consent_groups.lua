@@ -6,10 +6,12 @@
 ------------------------------------------------------------------------------------------------------
 require('user_modules/all_common_modules')
 local common_functions_external_consent = require('user_modules/shared_testcases_custom/ATF_Policies_External_Consent_common_functions')
+local common_functions = require ('user_modules/common_functions')
+local common_steps = require('user_modules/common_steps')
 ------------------------------------------------------------------------------------------------------
 ---------------------------------------Common Variables-----------------------------------------------
 ------------------------------------------------------------------------------------------------------
-local policy_file = config.pathToSDL .. "storage/policy.sqlite"
+
 ------------------------------------------------------------------------------------------------------
 ---------------------------------------Preconditions--------------------------------------------------
 ------------------------------------------------------------------------------------------------------
@@ -40,7 +42,7 @@ common_steps:ActivateApplication("Activate_Application_1", config.application1.r
 -- Prepare JSON file with consent groups. Add all consent group names into app_polices of applications
 -- Request Policy Table Update.
 --------------------------------------------------------------------------
-Test[TEST_NAME_ON.."Precondition_Update_Policy_Table"] = function(self)
+Test["TEST_NAME_ON_Precondition_Update_Policy_Table"] = function(self)
   -- create json for PTU from sdl_preloaded_pt.json
   local data = common_functions_external_consent:ConvertPreloadedToJson()
   -- insert Group001 into "functional_groupings"
@@ -75,7 +77,7 @@ Test[TEST_NAME_ON.."Precondition_Update_Policy_Table"] = function(self)
     steal_focus = false,
     priority = "NONE",
     default_hmi = "NONE",
-    groups = {"Base-4", "Group001"}
+    groups = {"Base-4", "Group001", "Group002"}
   }
   --insert application "0000002" into "app_policies"
   data.policy_table.app_policies["0000002"] = {
@@ -113,7 +115,7 @@ end
 -- Precondition:
 -- Check GetListOfPermissions response with empty externalConsentStatus array list.
 --------------------------------------------------------------------------
-Test[TEST_NAME_ON.."Precondition_GetListOfPermissions"] = function(self)
+Test["TEST_NAME_ON_Precondition_GetListOfPermissions"] = function(self)
   local request_id = self.hmiConnection:SendRequest("SDL.GetListOfPermissions")
   EXPECT_HMIRESPONSE(request_id,{
       result = {
@@ -132,8 +134,8 @@ end
 -- Precondition:
 -- HMI sends OnAppPermissionConsent with External Consent status = ON
 --------------------------------------------------------------------------
-Test[TEST_NAME_ON .. "Precondition_HMI_sends_OnAppPermissionConsent"] = function(self)
-  hmi_app_id_1 = common_functions:GetHmiAppId(config.application1.registerAppInterfaceParams.appName, self)
+Test["TEST_NAME_ON_Precondition_HMI_sends_OnAppPermissionConsent"] = function(self)
+  local hmi_app_id_1 = common_functions:GetHmiAppId(config.application1.registerAppInterfaceParams.appName, self)
   -- hmi side: sending SDL.OnAppPermissionConsent for applications
   self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent", {
       appID = hmi_app_id_1, source = "GUI",
@@ -154,7 +156,7 @@ end
 -- Main check:
 -- RPC of Group001 on Application 1 is allowed to process.
 --------------------------------------------------------------------------
-Test[TEST_NAME_ON .. "MainCheck_RPC_Of_App1_Group001_is_allowed"] = function(self)
+Test["TEST_NAME_ON_MainCheck_RPC_Of_App1_Group001_is_allowed"] = function(self)
   --mobile side: send SubscribeWayPoints request
   local corid = self.mobileSession:SendRPC("SubscribeWayPoints",{})
   --hmi side: expected SubscribeWayPoints request
@@ -164,7 +166,7 @@ Test[TEST_NAME_ON .. "MainCheck_RPC_Of_App1_Group001_is_allowed"] = function(sel
       self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS",{})
     end)
   --mobile side: SubscribeWayPoints response
-  EXPECT_RESPONSE("SubscribeWayPoints", {success = true , resultCode = "SUCCESS"})
+  EXPECT_RESPONSE(corid, {success = true , resultCode = "SUCCESS"})
   EXPECT_NOTIFICATION("OnHashChange")
 end
 
@@ -174,6 +176,6 @@ end
 --------------------------------------Postcondition------------------------------------------
 ---------------------------------------------------------------------------------------------
 -- Stop SDL
-Test["Stop_SDL"] = function(self)
+Test["Stop_SDL"] = function()
   StopSDL()
 end
