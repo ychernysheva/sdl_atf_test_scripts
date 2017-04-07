@@ -66,7 +66,7 @@ local function checkFunction()
   local applicationFileExistsResult = commonSteps:file_exists(applicationFileToCheck)
   local aHandle = assert( io.popen( "ls " .. commonPreconditions:GetPathToSDL() .. "Icons/" , 'r'))
   local listOfFilesInStorageFolder = aHandle:read( '*a' )
-  commonFunctions:userPrint(33, "Content of storage folder: " .."\n" .. listOfFilesInStorageFolder)
+  commonFunctions:userPrint(33, "Content of storage folder: " .."\n" .. tostring(listOfFilesInStorageFolder))
   if applicationFileExistsResult ~= false then
     commonFunctions:userPrint(31, RAIParameters.appID .. " icon is added to AppIconsFolder although the size of file is larger than AppIconsFolderMaxSize")
     status = false

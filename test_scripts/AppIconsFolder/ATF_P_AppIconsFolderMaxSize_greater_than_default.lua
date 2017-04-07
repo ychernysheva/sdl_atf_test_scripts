@@ -94,7 +94,7 @@ local function checkFunction()
   local status = true
   local aHandle = assert( io.popen( "ls " .. testIconsFolder .. "/" , 'r'))
   local ListOfFilesInStorageFolder = aHandle:read( '*a' )
-  commonFunctions:userPrint(32, "Content of storage folder: " .."\n" ..ListOfFilesInStorageFolder)
+  commonFunctions:userPrint(32, "Content of storage folder: " .."\n" ..tostring(ListOfFilesInStorageFolder))
   local iconsFolder = testIconsFolder .. "/"
   local applicationFileToCheck = iconsFolder .. RAIParameters.appID
   local applicationFileExistsResult = commonSteps:file_exists(applicationFileToCheck)
