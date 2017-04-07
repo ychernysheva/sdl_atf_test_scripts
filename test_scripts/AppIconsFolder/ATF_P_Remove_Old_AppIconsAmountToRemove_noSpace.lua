@@ -74,7 +74,7 @@ local function getListOfFilesInStorageFolder(folder)
   local aHandle = assert( io.popen( "ls --full-time " .. folder .. " | awk '{print $9\"\t\"$6\" \"$7}'" , 'r'))
   local ListOfFilesInStorageFolder = aHandle:read( '*a' )
   aHandle:close()
-  commonFunctions:userPrint(32, "Content of storage folder: " .."\n" ..ListOfFilesInStorageFolder)
+  commonFunctions:userPrint(32, "Content of storage folder: " .."\n" ..tostring(ListOfFilesInStorageFolder))
 end
 
 local function makeAppIconsFolderFull(AppIconsFolder)

@@ -96,7 +96,7 @@ local function checkFunction()
   local status = true
   local aHandle = assert( io.popen( "ls " .. commonPreconditions:GetPathToSDL() .. "Icons/" , 'r'))
   local listOfFilesInStorageFolder = aHandle:read( '*a' )
-  commonFunctions:userPrint(32, "Content of storage folder: " .. "\n" ..listOfFilesInStorageFolder)
+  commonFunctions:userPrint(32, "Content of storage folder: " .. "\n" ..tostring(listOfFilesInStorageFolder) ) 
   local iconsFolder = commonPreconditions:GetPathToSDL() .. "Icons/"
   local applicationFileToCheck = iconsFolder .. RAIParameters.appID
   local applicationFileExistsResult = commonSteps:file_exists(applicationFileToCheck)
