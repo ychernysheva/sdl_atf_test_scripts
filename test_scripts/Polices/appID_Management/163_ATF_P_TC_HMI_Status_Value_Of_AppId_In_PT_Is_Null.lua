@@ -76,7 +76,7 @@ end
 function Test:Precondition_UpdatePolicy()
   testCasesForPolicyAppIdManagament:updatePolicyTable(self, "files/jsons/Policies/appID_Management/ptu_013_2.json")
   EXPECT_HMINOTIFICATION("SDL.OnAppPermissionChanged", { appID =  HMIAppID, appRevoked =  true})
-  EXPECT_HMICALL("BasicCommunication.ActivateApp", { hmiLevel = "NONE" })
+  EXPECT_HMICALL("BasicCommunication.ActivateApp", { level = "NONE" })
 end
 
 --[[ Test ]]
