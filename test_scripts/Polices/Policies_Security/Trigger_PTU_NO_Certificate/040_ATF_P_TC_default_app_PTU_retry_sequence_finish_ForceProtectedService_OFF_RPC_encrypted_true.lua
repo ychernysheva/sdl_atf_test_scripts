@@ -48,7 +48,7 @@ local time_ptu_finish = 0
 --[[ General Precondition before ATF start ]]
 commonPreconditions:BackupFile("smartDeviceLink.ini")
 commonFunctions:write_parameter_to_smart_device_link_ini("ForceProtectedService", "Non")
-testCasesForPolicyCeritificates.update_preloaded_pt(config.application1.registerAppInterfaceParams.appID, false, {1,1,1,1,1})
+testCasesForPolicyCeritificates.update_preloaded_pt(config.application1.registerAppInterfaceParams.appID, false, {1,1,1,1,1}, 15)
 testCasesForPolicyCeritificates.create_ptu_certificate_exist(false, true)
 commonSteps:DeletePolicyTable()
 commonSteps:DeleteLogsFiles()
@@ -110,12 +110,16 @@ function Test:TestStep_PolicyTableUpdate_retry_sequence_finish()
     {status="UPDATE_NEEDED"}, {status = "UPDATING"},
     {status="UPDATE_NEEDED"}, {status = "UPDATING"},
     {status="UPDATE_NEEDED"}, {status = "UPDATING"},
-    {status="UPDATE_NEEDED"})
-  :Times(9)
+    {status="UPDATE_NEEDED"}, {status = "UPDATING"},
+    {status="UPDATE_NEEDED"}
+    )
+  :Times(11)
   :Timeout(time_wait)
   :Do(function(exp)
-      if(exp == 9) then
+    print("exp = "..tostring(exp.occurences))
+      if(exp.occurences == 11) then
         time_ptu_finish = timestamp()
+        print("time_ptu_finish = "..tostring(time_ptu_finish))
       end
     end)
 
