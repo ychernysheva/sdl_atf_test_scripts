@@ -77,7 +77,8 @@ end
 commonFunctions:newTestCasesGroup("Test")
 function Test:TestStep_UpdatePolicy()
   testCasesForPolicyAppIdManagament:updatePolicyTable(self, "files/jsons/Policies/appID_Management/ptu_013_2.json")
-  self.mobileSession2:ExpectNotification("OnHMIStatus", { hmiLevel ="NONE", systemContext = "MAIN", audioStreamingState = "NOT_AUDIBLE" })
+  EXPECT_HMINOTIFICATION("SDL.OnAppPermissionChanged", { appID =  HMIAppID, appRevoked =  true})
+  EXPECT_HMICALL("BasicCommunication.ActivateApp", { level = "NONE" })
 end
 
 function Test.Postcondition_Stop()
