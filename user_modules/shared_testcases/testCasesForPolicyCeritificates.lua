@@ -15,7 +15,8 @@ local Event = events.Event
 ! include_certificate - true / false: true - certificate will be added in module_config
 ! update_retry_sequence - array with new values for seconds_between_retries.
 ]]
-function testCasesForPolicyCeritificates.update_preloaded_pt(app_id, include_certificate, update_retry_sequence)
+function testCasesForPolicyCeritificates.update_preloaded_pt(app_id, include_certificate, update_retry_sequence, timeout_after_x_seconds)
+  if not timeout_after_x_seconds then timeout_after_x_seconds = 30 end
   commonPreconditions:BackupFile("sdl_preloaded_pt.json")
   local config_path = commonPreconditions:GetPathToSDL()
 
@@ -34,7 +35,7 @@ function testCasesForPolicyCeritificates.update_preloaded_pt(app_id, include_cer
 
   if (update_retry_sequence ~= nil) then
     data.policy_table.module_config.seconds_between_retries = update_retry_sequence
-    data.policy_table.module_config.timeout_after_x_seconds = 30
+    data.policy_table.module_config.timeout_after_x_seconds = timeout_after_x_seconds
   end
 
   if(app_id ~= nil) then
@@ -178,12 +179,12 @@ function testCasesForPolicyCeritificates.StartService_encryption(self,service)
     if ( data.frameInfo == 2 ) then
       print("StartServiceACK, encryption: false")
       if(data.encryption == true) then
-        commonFunctions:printError("Encryption flag should not be set.") 
+        commonFunctions:printError("Encryption flag should not be set.")
         return false
       end
       return true
-    else 
-      return false, "StartService NACK received" 
+    else
+      return false, "StartService NACK received"
     end
   end)
 end
