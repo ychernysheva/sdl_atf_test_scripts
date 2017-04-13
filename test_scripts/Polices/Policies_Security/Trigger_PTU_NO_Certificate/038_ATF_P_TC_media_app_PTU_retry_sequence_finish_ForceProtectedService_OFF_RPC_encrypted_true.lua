@@ -114,8 +114,8 @@ function Test:TestStep_PolicyTableUpdate_retry_sequence_finish()
     )
   :Times(11)
   :Timeout(time_wait)
-  :Do(function(exp)
-    print("exp = "..tostring(exp.occurences))
+  :Do(function(exp, data)
+    print("exp = "..tostring(exp.occurences) .. "\t" .. data.params.status .. "\t" .. os.date("%X"))
       if(exp.occurences == 11) then
         time_ptu_finish = timestamp()
         print("time_ptu_finish = "..tostring(time_ptu_finish))
@@ -146,6 +146,9 @@ function Test:TestStep_PolicyTableUpdate_retry_sequence_finish()
         return false
       end
     end)
+  :Timeout(time_wait)
+
+  commonTestCases:DelayedExp(time_wait)
 end
 
 --[[ Postconditions ]]
