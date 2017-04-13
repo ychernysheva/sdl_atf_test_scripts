@@ -11,8 +11,6 @@
 -- Application is registered.
 -- PTU is requested.
 -- SDL->HMI: SDL.OnStatusUpdate(UPDATE_NEEDED)
--- SDL->HMI:SDL.PolicyUpdate(file, timeout, retry[])
--- HMI -> SDL: SDL.GetURLs (<service>)
 -- 2. Performed steps
 -- HMI->SDL:BasicCommunication.OnSystemRequest ('url', requestType:HTTP, appID)
 --
@@ -64,18 +62,36 @@ function Test:TestStep_Sending_PTS_to_mobile_application()
 
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", {application = { appName = config.application1.registerAppInterfaceParams.appName } })
   :Do(function()
-    local endpoints_table = commonFunctions:get_data_policy_sql(config.pathToSDL.."/storage/policy.sqlite", "select url from endpoint where service = '0x07' and application_id = 'default'")
-    for _,v in pairs(endpoints_table) do
-      endpoints_url = v
-    end
+      local endpoints_table = commonFunctions:get_data_policy_sql(config.pathToSDL.."/storage/policy.sqlite", "select url from endpoint where service = '0x07' and application_id = 'default'")
+      for _,v in pairs(endpoints_table) do
+        endpoints_url = v
+      end
 
-    local timeout_table = commonFunctions:get_data_policy_sql(config.pathToSDL.."/storage/policy.sqlite", "select timeout_after_x_seconds from module_config")
-    for _,v in pairs(timeout_table) do
-      timeout = v
-    end
+      local timeout_table = commonFunctions:get_data_policy_sql(config.pathToSDL.."/storage/policy.sqlite", "select timeout_after_x_seconds from module_config")
+      for _,v in pairs(timeout_table) do
+        timeout = v
+      end
 
-    EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "HTTP", url = endpoints_url, timeout = timeout})
-  end)
+      EXPECT_NOTIFICATION("OnSystemRequest")
+      :ValidIf(function(e, d)
+          print(e.occurences .. ": " .. d.payload.requestType)
+          if (e.occurences == 1) then
+            return true
+          elseif (e.occurences == 2) and (d.payload.requestType == "HTTP") then
+            print("OnSystemRequest(HTTP) is sent to App")
+            if (d.payload.url ~= endpoints_url) then
+              return false, "Expected URL: " .. endpoints_url .. ", actual: " .. tostring(d.payload.url)
+            end
+            if (d.payload.timeout ~= timeout) then
+              return false, "Expected Timeout: " .. timeout .. ", actual: " .. tostring(d.payload.timeout)
+            end
+          else
+            return false, "OnSystemRequest(HTTP) was not sent to App"
+          end
+          return true
+        end)
+      :Times(2)
+    end)
 
 end
 
