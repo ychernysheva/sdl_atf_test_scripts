@@ -77,11 +77,19 @@ function Test:TestStep_OnStatusUpdate_UPDATE_NEEDED_new_PTU_request()
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", {application = { appName = config.application1.registerAppInterfaceParams.appName } })
   EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",
     { status = "UPDATE_NEEDED" }, {status = "UPDATING"}):Times(2)
-  EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "HTTP"})
-  :Do(function()
-    time_system_request_prev = timestamp()
-  end)
-
+  EXPECT_NOTIFICATION("OnSystemRequest"):Times(2)
+  :ValidIf(function(_, data)
+      time_system_request_prev = timestamp()
+      if not data then return false end
+      if not data.payload then return false end
+      if data.payload.requestType == "HTTP" or data.payload.requestType == "LOCK_SCREEN_ICON_URL" then
+        print("Got requestType = "..tostring(data.payload.requestType))
+        return true
+      else
+        print("Got something wrong instead of data.requestType = HTTP or LOCK_SCREEN_ICON_URL: "..tostring(data.payload.requestType))
+        return false
+      end
+    end)
   self.mobileSession:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS" })
   self.mobileSession:ExpectNotification("OnHMIStatus", {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
 end
@@ -95,14 +103,12 @@ function Test:TestStep_Retry_Timeout_Expiration()
   local time_wait = {}
   local sec_btw_ret = {1, 2, 3, 4, 5}
   local total_time
-
-  time_wait[1] = timeout_after_x_seconds
-  time_wait[2] = sec_btw_ret[1] + timeout_after_x_seconds
-  time_wait[3] = sec_btw_ret[1] + sec_btw_ret[2] + timeout_after_x_seconds
-  time_wait[4] = sec_btw_ret[2] + sec_btw_ret[3] + timeout_after_x_seconds
-  time_wait[5] = sec_btw_ret[3] + sec_btw_ret[4] + timeout_after_x_seconds
-  time_wait[6] = sec_btw_ret[4] + sec_btw_ret[5] + timeout_after_x_seconds
-  total_time = (time_wait[1] + time_wait[2] + time_wait[3] + time_wait[4] + time_wait[5] + time_wait[6])*1000
+  time_wait[1] = sec_btw_ret[1] + timeout_after_x_seconds
+  time_wait[2] = sec_btw_ret[2] + time_wait[1] + timeout_after_x_seconds
+  time_wait[3] = sec_btw_ret[3] + time_wait[2] + timeout_after_x_seconds
+  time_wait[4] = sec_btw_ret[4] + time_wait[3] + timeout_after_x_seconds
+  time_wait[5] = sec_btw_ret[5] + time_wait[4] + timeout_after_x_seconds
+  total_time = (time_wait[1] + time_wait[2] + time_wait[3] + time_wait[4] + time_wait[5] )*1000
 
   local function verify_retry_sequence(occurences)
     local time_1 = time_system_request_curr
@@ -110,7 +116,7 @@ function Test:TestStep_Retry_Timeout_Expiration()
     local timeout = (time_1 - time_2)
 
     if (time_wait[occurences] == nil) then
-      time_wait[occurences]  = time_wait[6]
+      time_wait[occurences] = time_wait[5]
       commonFunctions:printError("ERROR: OnSystemRequest is received more than expected.")
       is_test_fail = true
     end
@@ -128,12 +134,12 @@ function Test:TestStep_Retry_Timeout_Expiration()
 
   EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "HTTP", fileType = "JSON"}):Timeout(total_time+60000):Times(5)
   :Do(function(exp)
-    if(time_system_request_curr ~= 0) then
-      time_system_request_prev = time_system_request_curr
-    end
-    time_system_request_curr = timestamp()
-    verify_retry_sequence(exp.occurences)
-  end)
+      if(time_system_request_curr ~= 0) then
+        time_system_request_prev = time_system_request_curr
+      end
+      time_system_request_curr = timestamp()
+      verify_retry_sequence(exp.occurences)
+    end)
 
   commonTestCases:DelayedExp(total_time)
   if(is_test_fail == true) then
