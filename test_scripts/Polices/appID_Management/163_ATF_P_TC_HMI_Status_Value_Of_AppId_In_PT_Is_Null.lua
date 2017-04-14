@@ -75,8 +75,12 @@ end
 
 function Test:Precondition_UpdatePolicy()
   testCasesForPolicyAppIdManagament:updatePolicyTable(self, "files/jsons/Policies/appID_Management/ptu_013_2.json")
-  EXPECT_HMINOTIFICATION("SDL.OnAppPermissionChanged", { appID =  HMIAppID, appRevoked =  true})
+  EXPECT_HMINOTIFICATION("SDL.OnAppPermissionChanged", { appID = HMIAppID, appRevoked = true})
   EXPECT_HMICALL("BasicCommunication.ActivateApp", { level = "NONE" })
+  :Do(function(_, data)
+      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+      self.mobileSession2:ExpectNotification("OnHMIStatus", { hmiLevel ="NONE", systemContext = "MAIN", audioStreamingState = "NOT_AUDIBLE" })
+    end)
 end
 
 --[[ Test ]]
@@ -84,8 +88,7 @@ commonFunctions:newTestCasesGroup("Test")
 function Test:TestStep_ActivateApp()
   local requestId = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = HMIAppID})
   -- code = 4: REJECTED
-  EXPECT_HMIRESPONSE(requestId,{result = {code = 4, isAppRevoked = true, method = "SDL.ActivateApp"}})
-  self.mobileSession2:ExpectNotification("OnHMIStatus", { hmiLevel = "NONE" })
+  EXPECT_HMIRESPONSE(requestId, { result = {code = 4, isAppRevoked = true, method = "SDL.ActivateApp" }})
 end
 
 function Test.Postcondition_Stop()
