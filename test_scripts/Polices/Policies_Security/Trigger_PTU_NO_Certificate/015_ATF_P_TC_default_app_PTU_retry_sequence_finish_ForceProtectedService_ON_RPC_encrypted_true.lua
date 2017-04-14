@@ -130,12 +130,12 @@ function Test:TestStep_PolicyTableUpdate_retry_sequence_elapse()
   end
 
   EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",
-    {status="UPDATE_NEEDED"}, {status = "UPDATING"},
-    {status="UPDATE_NEEDED"}, {status = "UPDATING"},
-    {status="UPDATE_NEEDED"}, {status = "UPDATING"},
-    {status="UPDATE_NEEDED"}, {status = "UPDATING"},
-    {status="UPDATE_NEEDED"}, {status = "UPDATING"},
-    {status="UPDATE_NEEDED"}
+    {status = "UPDATE_NEEDED"}, {status = "UPDATING"},
+    {status = "UPDATE_NEEDED"}, {status = "UPDATING"},
+    {status = "UPDATE_NEEDED"}, {status = "UPDATING"},
+    {status = "UPDATE_NEEDED"}, {status = "UPDATING"},
+    {status = "UPDATE_NEEDED"}, {status = "UPDATING"},
+    {status = "UPDATE_NEEDED"}
     )
   :Times(11)
   :Timeout(time_wait)
@@ -171,10 +171,7 @@ function Test:TestStep_PolicyTableUpdate_retry_sequence_elapse()
         commonFunctions:printError("Service 7: StartServiceACK/NACK is not received at all.")
         return false
       end
-    end)
-  :Timeout(time_wait)
-
-  commonTestCases:DelayedExp(time_wait)
+    end):Timeout(time_wait)
 end
 
 function Test:TestStep_RPC_NACK()
