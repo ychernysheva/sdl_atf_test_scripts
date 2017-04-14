@@ -146,7 +146,7 @@ function Test:TestStep_PolicyTableUpdate_retry_sequence_finish()
         commonFunctions:printError("Service 7: StartServiceACK/NACK is not received at all.")
         return false
       end
-    end)
+    end):Timeout(time_wait)
 
 end
 
