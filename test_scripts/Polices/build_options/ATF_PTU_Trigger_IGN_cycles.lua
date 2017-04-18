@@ -16,15 +16,17 @@
 
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
+config.application1.registerAppInterfaceParams.appID = "123456"
 
 --[[ Required Shared libraries ]]
 local mobileSession = require("mobile_session")
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
+local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 
 --[[ Local Variables ]]
-local exchnage_after = 5
+local exchange_after = 5
 local sdl_preloaded_pt = "sdl_preloaded_pt.json"
 local ptu_file = "files/ptu.json"
 
@@ -60,7 +62,7 @@ os.execute("cp ".. ptu_file .. " " .. ptu_file .. ".BAK")
 
 -- Update files
 for _, v in pairs({config.pathToSDL .. sdl_preloaded_pt, ptu_file}) do
-  modify_file(v, genpattern2str("exchange_after_x_ignition_cycles", "%d+"), tostring(exchnage_after))
+  modify_file(v, genpattern2str("exchange_after_x_ignition_cycles", "%d+"), tostring(exchange_after))
 end
 
 --[[ General Settings for configuration ]]
@@ -93,9 +95,10 @@ function Test:TestStep_SUCCEESS_Flow_PROPRIETARY()
 end
 
 --[[ Test ]]
+
 commonFunctions:newTestCasesGroup("Test")
 
-for i = 1, exchnage_after do
+for i = 1, exchange_after do
   Test["Preconditions_perform_" .. tostring(i) .. "_IGN_OFF_ON"] = function() end
 
   function Test:IGNITION_OFF()
@@ -129,11 +132,13 @@ for i = 1, exchnage_after do
     EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
     self.mobileSession:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS" })
     self.mobileSession:ExpectNotification("OnHMIStatus", { hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN" })
-    if i == exchnage_after then
-      EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", { status = "UPDATE_NEEDED" }, { status = "UPDATING" })
-      :Times(AtLeast(1))
+    if i == exchange_after then
+      EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", { status = "UPDATE_NEEDED" }, { status = "UPDATING" }):Times(2)
       EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
+    else
+      EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate"):Times(0)
     end
+    commonTestCases:DelayedExp(5000)
   end
 end
 
