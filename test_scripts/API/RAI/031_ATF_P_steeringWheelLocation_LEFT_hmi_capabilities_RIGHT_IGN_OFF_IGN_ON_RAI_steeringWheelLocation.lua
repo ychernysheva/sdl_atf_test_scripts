@@ -213,6 +213,8 @@ end
 
 function Test:Precondition_IGNITION_OFF()
   self.hmiConnection:SendNotification("BasicCommunication.OnExitAllApplications", {reason = "IGNITION_OFF"})
+  --TODO(istoimenova): Remove when "[ATF] ATF stops execution of scripts at IGNITION_OFF." is resolved.
+  StopSDL()
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered")
   EXPECT_HMINOTIFICATION("BasicCommunication.OnSDLClose")
 end
