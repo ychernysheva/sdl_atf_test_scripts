@@ -36,6 +36,7 @@ commonSteps:DeleteLogsFileAndPolicyTable()
 testCasesForPolicyTable:Precondition_updatePolicy_By_overwriting_preloaded_pt("files/DeviceConsentedAndAppPermissionsForConsent_preloaded_pt.json")
 --TODO(istoimenova): shall be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
 config.defaultProtocolVersion = 2
+config.application1.registerAppInterfaceParams.appHMIType = { "MEDIA" }
 
 --[[ Local variables ]]
 local allowed_rps = {}
