@@ -2,7 +2,7 @@
 --  [Services]: SDL must support Heartbeat over protocol v3 or higher
 --
 --  Description:
---  Check that no heartbeat occurs if App uses v2 protocol version.
+--  Check that no heartbeat timeout occurs if App uses v2 protocol version.
 
 --  1. Used precondition
 --  SDL, HMI are running.
@@ -25,8 +25,10 @@ config.application1.registerAppInterfaceParams.isMediaApplication = true
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
+local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 local constants = require('protocol_handler/ford_protocol_constants')
 local mobile_session = require('mobile_session')
+local events = require("events")
 
 --[[ General Settings for configuration ]]
 Test = require('user_modules/dummy_connecttest')
@@ -40,6 +42,8 @@ local default_app_params = config.application1.registerAppInterfaceParams
 commonFunctions:newTestCasesGroup("Preconditions")
 commonSteps:DeletePolicyTable()
 commonSteps:DeleteLogsFiles()
+commonPreconditions:BackupFile("smartDeviceLink.ini")
+commonFunctions:write_parameter_to_smart_device_link_ini("HeartBeatTimeout", 5000)
 
 function Test:StartSDL_And_Connect_Mobile()
   self:runSDL()
@@ -74,7 +78,7 @@ end
 
 function Test:Wait_15_seconds()
   local event = events.Event()
-  event.matches = function(s, data)
+  event.matches = function(_,data)
     return data.frameType == constants.FRAME_TYPE.CONTROL_FRAME and
     data.serviceType == constants.SERVICE_TYPE.CONTROL and
     data.frameInfo == constants.FRAME_INFO.HEARTBEAT   and
@@ -93,6 +97,7 @@ end
 -- [[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postcondition")
 function Test.Stop_SDL()
+  commonPreconditions:RestoreFile("smartDeviceLink.ini")
   StopSDL()
 end
 

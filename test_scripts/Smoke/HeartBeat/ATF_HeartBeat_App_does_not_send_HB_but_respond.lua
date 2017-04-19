@@ -2,7 +2,7 @@
 --  [HeartBeat][Genivi]: SDL must track sending of HeartBeat_request from/to mobile app
 --
 --  Description:
---  Check that no heartbeat occurs if App uses v3 protocol version and doesn't send HB to SDL, 
+--  Check that no heartbeat timeout occurs if App uses v3 protocol version and doesn't send HB to SDL, 
 --  but response to SDL heartbeat requests in time or less than HB timeout.
 
 --  1. Used precondition
@@ -44,6 +44,7 @@ commonFunctions:newTestCasesGroup("Preconditions")
 commonSteps:DeletePolicyTable()
 commonSteps:DeleteLogsFiles()
 commonPreconditions:BackupFile("smartDeviceLink.ini")
+commonFunctions:write_parameter_to_smart_device_link_ini("HeartBeatTimeout", 5000)
 
 function Test:StartSDL_And_Connect_Mobile()
   self:runSDL()
@@ -65,7 +66,6 @@ commonFunctions:newTestCasesGroup("Test")
 
 function Test:Start_Session_And_Register_App()
   self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
-  commonFunctions:write_parameter_to_smart_device_link_ini("HeartBeatTimeout", 5000)
   self.mobileSession.sendHeartbeatToSDL = false
   self.mobileSession.answerHeartbeatFromSDL = true
   self.mobileSession.ignoreSDLHeartBeatACK = false

@@ -3,7 +3,7 @@
 --  [HeartBeat][Genivi]: SDL must track sending of HeartBeat_request from/to mobile app
 --
 --  Description:
---  Check that no heartbeat occurs if App uses v3 protocol version and send HB to SDL in time less than HB timeout.
+--  Check that no heartbeat timeout occurs if App uses v3 protocol version and send HB to SDL in time less than HB timeout.
 --
 --  1. Used precondition
 --  SDL, HMI are running.
@@ -30,7 +30,6 @@ local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 local mobile_session = require('mobile_session')
-local constants = require('protocol_handler/ford_protocol_constants')
 --[[ General Settings for configuration ]]
 Test = require('user_modules/dummy_connecttest')
 require('cardinalities')
@@ -44,6 +43,7 @@ commonFunctions:newTestCasesGroup("Preconditions")
 commonSteps:DeletePolicyTable()
 commonSteps:DeleteLogsFiles()
 commonPreconditions:BackupFile("smartDeviceLink.ini")
+commonFunctions:write_parameter_to_smart_device_link_ini("HeartBeatTimeout", 5000)
 
 function Test:StartSDL_And_Connect_Mobile()
   self:runSDL()
@@ -65,7 +65,6 @@ commonFunctions:newTestCasesGroup("Test")
 
 function Test:Start_Session_And_Register_App()
   self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
-  commonFunctions:write_parameter_to_smart_device_link_ini("HeartBeatTimeout", 5000)
   self.mobileSession.sendHeartbeatToSDL = true
   self.mobileSession.answerHeartbeatFromSDL = false
   self.mobileSession.ignoreSDLHeartBeatACK = false
