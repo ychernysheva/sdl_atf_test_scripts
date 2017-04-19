@@ -6,8 +6,8 @@
 -- "exchange_after_x_ignition_cycles" field ("module_config" section) of policies database, SDL must trigger a PTU sequence
 -- 1. Used preconditions:
 -- SDL is built with "DEXTENDED_POLICY: ON" flag
--- the 1-st IGN cycle, PTU was succesfully applied. Policies DataBase contains "exchange_after_x_ignition_cycles" = 10
--- 2. Performed steps: Perform ignition_on/off 11 times
+-- the 1-st IGN cycle, PTU was succesfully applied. Policies DataBase contains "exchange_after_x_ignition_cycles" = 5
+-- 2. Performed steps: Perform ignition_off/on 5 times
 --
 -- Expected result:
 -- When amount of ignition cycles notified by HMI via BasicCommunication.OnIgnitionCycleOver gets equal to the value of "exchange_after_x_ignition_cycles"
@@ -16,15 +16,18 @@
 
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
+config.application1.registerAppInterfaceParams.appID = "123456"
+config.application1.registerAppInterfaceParams.appHMIType = { "DEFAULT" }
 
 --[[ Required Shared libraries ]]
 local mobileSession = require("mobile_session")
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
+local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 
 --[[ Local Variables ]]
-local exchnage_after = 5
+local exchange_after = 5
 local sdl_preloaded_pt = "sdl_preloaded_pt.json"
 local ptu_file = "files/ptu.json"
 
@@ -60,7 +63,7 @@ os.execute("cp ".. ptu_file .. " " .. ptu_file .. ".BAK")
 
 -- Update files
 for _, v in pairs({config.pathToSDL .. sdl_preloaded_pt, ptu_file}) do
-  modify_file(v, genpattern2str("exchange_after_x_ignition_cycles", "%d+"), tostring(exchnage_after))
+  modify_file(v, genpattern2str("exchange_after_x_ignition_cycles", "%d+"), tostring(exchange_after))
 end
 
 --[[ General Settings for configuration ]]
@@ -70,7 +73,7 @@ require('user_modules/AppTypes')
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
 
-function Test:TestStep_SUCCEESS_Flow_PROPRIETARY()
+function Test:Precondition_SUCCEESS_Flow_PROPRIETARY()
   local policy_file_name = "PolicyTableUpdate"
   local policy_file_path = commonFunctions:read_parameter_from_smart_device_link_ini("SystemFilesPath")
   local RequestId_GetUrls = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
@@ -95,45 +98,47 @@ end
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
-for i = 1, exchnage_after do
-  Test["Preconditions_perform_" .. tostring(i) .. "_IGN_OFF_ON"] = function() end
+for i = 1, exchange_after do
+  Test["TestStep_perform_" .. tostring(i) .. "_IGN_OFF_ON"] = function() end
 
-  function Test:IGNITION_OFF()
+  function Test:TestStep_IGNITION_OFF()
     self.hmiConnection:SendNotification("BasicCommunication.OnIgnitionCycleOver")
   end
 
   for j = 1, 3 do
-    Test["Waiting ".. j .." sec"] = function() os.execute("sleep 1") end
+    Test["TestStep_Waiting ".. j .." sec"] = function() os.execute("sleep 1") end
   end
 
-  function Test.StopSDL()
+  function Test.TestStep_StopSDL()
     StopSDL()
   end
-  function Test.StartSDL()
+  function Test.TestStep_StartSDL()
     StartSDL(config.pathToSDL, config.ExitOnCrash)
   end
-  function Test:InitHMI()
+  function Test:TestStep_InitHMI()
     self:initHMI()
   end
-  function Test:InitHMI_onReady()
+  function Test:TestStep_InitHMI_onReady()
     self:initHMI_onReady()
   end
-  function Test:StartMobileSession()
+  function Test:TestStep_StartMobileSession()
     self:connectMobile()
     self.mobileSession = mobileSession.MobileSession(self, self.mobileConnection)
     self.mobileSession:StartService(7)
   end
 
-  function Test:Register_App()
+  function Test:TestStep_Register_App()
     local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
     EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
     self.mobileSession:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS" })
     self.mobileSession:ExpectNotification("OnHMIStatus", { hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN" })
-    if i == exchnage_after then
-      EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", { status = "UPDATE_NEEDED" }, { status = "UPDATING" })
-      :Times(AtLeast(1))
+    if i == exchange_after then
+      EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", { status = "UPDATE_NEEDED" }, { status = "UPDATING" }):Times(2)
       EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
+    else
+      EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate"):Times(0)
     end
+    commonTestCases:DelayedExp(5000)
   end
 end
 
