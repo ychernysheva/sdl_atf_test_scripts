@@ -97,7 +97,7 @@ function Test:TestStep_First_StartService()
     return ( (data.serviceType == 7) and (data.frameInfo == 2 or data.frameInfo == 3) )
   end
 
-  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", { status = "UPDATE_NEEDED", {status = "UPDATING"}}):Times(2)
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"}, {status = "UPDATING"}):Times(2)
   EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
   :Do(function(_,data)
       self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
