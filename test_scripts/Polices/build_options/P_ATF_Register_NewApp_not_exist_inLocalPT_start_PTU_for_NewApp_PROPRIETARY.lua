@@ -24,6 +24,7 @@
 --[[ General configuration parameters ]]
 config.defaultProtocolVersion = 2
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
+config.application1.registerAppInterfaceParams.appHMIType = { "MEDIA" }
 
 --[[ Required Shared libraries ]]
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
@@ -45,7 +46,7 @@ local registerAppInterfaceParams =
   isMediaApplication = true,
   languageDesired = 'EN-US',
   hmiDisplayLanguageDesired = 'EN-US',
-  appHMIType = {"NAVIGATION"},
+  appHMIType = {"MEDIA"},
   appID = "MyTestApp",
   deviceInfo =
   {
@@ -61,18 +62,44 @@ local registerAppInterfaceParams =
 commonSteps:DeleteLogsFileAndPolicyTable()
 
 --[[ General Settings for configuration ]]
-Test = require('connecttest')
+Test = require('user_modules/connecttest_resumption')
+
+function Test:Precondition_connectMobile()
+  self:connectMobile()
+end
+
+function Test:Precondition_StartSession()
+  self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
+  self.mobileSession:StartService(7)
+end
 
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup ("Preconditions")
-function Test:Precondition_PolicyUpdateStarted()
+function Test:Precondition_RegisterApp_trigger()
+  local CorIdRegister = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
+
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application1.registerAppInterfaceParams.appName }})
+  EXPECT_RESPONSE(CorIdRegister, { success = true, resultCode = "SUCCESS" })
+  EXPECT_NOTIFICATION("OnHMIStatus", { systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE"})
 
   EXPECT_HMICALL ("BasicCommunication.PolicyUpdate")
   :Do(function(_,data)
       self.hmiConnection:SendResponse(data.id, "BasicCommunication.PolicyUpdate", "SUCCESS", {})
     end)
+
+  EXPECT_NOTIFICATION("OnSystemRequest")--, {requestType = "LOCK_SCREEN_ICON_URL"} )
+  :ValidIf(function(_,data)
+      if(data.payload.requestType ~= "LOCK_SCREEN_ICON_URL") then
+        commonFunctions:printError("requestType should be PROPRIETARY")
+        return false
+      end
+      return true
+    end)
+end
+
+function Test:Precondition_PolicyUpdateStarted()
   local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
-  EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {url = "http://policies.telematics.ford.com/api/policies"}}})
+  EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
   :Do(function(_,_)
       self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",
         {
@@ -83,7 +110,14 @@ function Test:Precondition_PolicyUpdateStarted()
         }
       )
     end)
-  EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "PROPRIETARY" })
+  EXPECT_NOTIFICATION("OnSystemRequest")
+  :ValidIf(function(_,data)
+      if(data.payload.requestType ~= "PROPRIETARY") then
+        commonFunctions:printError("requestType should be PROPRIETARY")
+        return false
+      end
+      return true
+    end)
 end
 
 function Test:Precondition_OpenNewSession()
@@ -117,7 +151,7 @@ function Test:TestStep_FinishPTU_For_FirstApplication()
       self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate", { policyfile = "/tmp/fs/mp/images/ivsu_cache/ptu.json" })
       -- PTU will be restarted because of new AppID is registered
       EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UP_TO_DATE"}, {status = "UPDATE_NEEDED"})
-  end)
+    end)
 end
 
 function Test:TestStep_CheckThatAppID_Present_In_DataBase()
@@ -130,36 +164,13 @@ function Test:TestStep_CheckThatAppID_Present_In_DataBase()
     self:FailTestCase("PolicyTable is not avaliable" .. tostring(PolicyDBPath))
   end
   os.execute(" sleep 2 ")
-  local AppId_2 = "sqlite3 " .. tostring(PolicyDBPath) .. "\"SELECT id FROM application WHERE id = '"..tostring(registerAppInterfaceParams.appID).."'\""
+  local AppId_2 = "sqlite3 " .. tostring(PolicyDBPath) .. " \"SELECT id FROM application WHERE id = '"..tostring(registerAppInterfaceParams.appID).."'\""
   local bHandle = assert( io.popen(AppId_2, 'r'))
-  local AppIdValue_2 = bHandle:read( '*l' )
+  local AppIdValue_2 = bHandle:read( '*all')
   if AppIdValue_2 == nil then
     self:FailTestCase("Value in DB is unexpected value " .. tostring(AppIdValue_2))
   end
 end
-
--- function Test:TestStep_Start_New_PolicyUpdate_For_SecondApplication()
---   EXPECT_HMICALL ("BasicCommunication.PolicyUpdate")
---   :Do(function(_,data)
---       self.hmiConnection:SendResponse(data.id, "BasicCommunication.PolicyUpdate", "SUCCESS", {})
---     end)
---   local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
---   EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {url = "http://policies.telematics.ford.com/api/policies"}}})
---   :Do(function(_,_)
---       self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",
---         {
---           requestType = "PROPRIETARY",
---           url = "http://policies.telematics.ford.com/api/policies",
---           appID = self.applications ["MyTestApp"],
---           fileName = "sdl_snapshot.json"
---         }
---       )
---     end)
---   EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "PROPRIETARY" })
---   :Do(function(_,_)
---       EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
---     end)
--- end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
