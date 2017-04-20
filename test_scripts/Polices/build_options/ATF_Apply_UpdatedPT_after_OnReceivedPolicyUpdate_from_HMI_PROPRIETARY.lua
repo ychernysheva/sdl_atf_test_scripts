@@ -7,10 +7,10 @@
 -- 2. Performed steps:
 -- MOB->SDL: SystemRequest(PROPRIETARY, filename)
 -- HMI->SDL: BasicCommunication.SystemRequest (<resultCode>)
--- SDL->MOB: BasicCommunication.SystemRequest (<result code from HMI responce)
+-- HMI->SDL: SDL.OnReceivedPolicyUpdate (policyFile)
 --
 -- Expected result:
--- HMI->SDL: SDL.OnReceivedPolicyUpdate (policyFile)
+-- SDL->MOB: BasicCommunication.SystemRequest (<result code from HMI responce)
 ---------------------------------------------------------------------------------------------
 
 --[[ General configuration parameters ]]
@@ -63,22 +63,31 @@ end
 commonFunctions:newTestCasesGroup("Test")
 
 function Test:TestStep_Update_Policy()
+  local policy_file_path = commonFunctions:read_parameter_from_smart_device_link_ini("SystemFilesPath") .. "/"
+
   local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
   EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
   :Do(function()
-      self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest", {requestType = "PROPRIETARY", fileName = testData.fileName})
+      self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest", {requestType = "PROPRIETARY", fileName = policy_file_path .. "sdl_snapshot.json"})
       EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY" })
-      :Do(function()
-          self.mobileSession:SendRPC("SystemRequest",
+      :Do(function(_,d1)
+          if not (d1.binaryData ~= nil and string.len(d1.binaryData) > 0) then
+            self:FailTestCase("PTS was not sent to Mobile in payload of OnSystemRequest")
+          end
+
+          local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest",
             {
               fileName = testData.fileName,
               requestType = "PROPRIETARY"
             }, "files/ptu.json")
+
           EXPECT_HMICALL("BasicCommunication.SystemRequest")
           :Do(function(_,data)
               self.hmiConnection:SendResponse(data.id,"BasicCommunication.SystemRequest", "SUCCESS", {})
               self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate", { policyfile = testData.ivsuPath .. "/" .. testData.fileName })
             end)
+
+          EXPECT_RESPONSE(CorIdSystemRequest, { success = true, resultCode = "SUCCESS"})
         end)
     end)
 end
