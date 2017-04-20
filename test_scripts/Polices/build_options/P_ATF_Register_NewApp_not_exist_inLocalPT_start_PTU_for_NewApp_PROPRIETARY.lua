@@ -98,6 +98,8 @@ function Test:Precondition_RegisterApp_trigger()
 end
 
 function Test:Precondition_PolicyUpdateStarted()
+  local policy_file_path = commonFunctions:read_parameter_from_smart_device_link_ini("SystemFilesPath") .. "/"
+
   local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
   EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
   :Do(function(_,_)
@@ -106,11 +108,16 @@ function Test:Precondition_PolicyUpdateStarted()
           requestType = "PROPRIETARY",
           url = "http://policies.telematics.ford.com/api/policies",
           appID = self.applications ["Test Application"],
-          fileName = "sdl_snapshot.json"
+          fileName = policy_file_path .. "sdl_snapshot.json"
         }
       )
     end)
   EXPECT_NOTIFICATION("OnSystemRequest")
+  :Do(function(_, data)
+      if not (data.binaryData ~= nil and string.len(data.binaryData) > 0) then
+        self:FailTestCase("PTS was not sent to Mobile in payload of OnSystemRequest")
+      end
+    end)
   :ValidIf(function(_,data)
       if(data.payload.requestType ~= "PROPRIETARY") then
         commonFunctions:printError("requestType should be PROPRIETARY")
