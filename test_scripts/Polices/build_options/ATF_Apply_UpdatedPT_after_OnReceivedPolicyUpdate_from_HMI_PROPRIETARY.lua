@@ -7,10 +7,10 @@
 -- 2. Performed steps:
 -- MOB->SDL: SystemRequest(PROPRIETARY, filename)
 -- HMI->SDL: BasicCommunication.SystemRequest (<resultCode>)
--- SDL->MOB: BasicCommunication.SystemRequest (<result code from HMI responce)
+-- HMI->SDL: SDL.OnReceivedPolicyUpdate (policyFile)
 --
 -- Expected result:
--- HMI->SDL: SDL.OnReceivedPolicyUpdate (policyFile)
+-- SDL->MOB: BasicCommunication.SystemRequest (<result code from HMI responce)
 ---------------------------------------------------------------------------------------------
 
 --[[ General configuration parameters ]]
@@ -69,7 +69,7 @@ function Test:TestStep_Update_Policy()
       self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest", {requestType = "PROPRIETARY", fileName = testData.fileName})
       EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY" })
       :Do(function()
-          self.mobileSession:SendRPC("SystemRequest",
+          local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest",
             {
               fileName = testData.fileName,
               requestType = "PROPRIETARY"
@@ -79,6 +79,8 @@ function Test:TestStep_Update_Policy()
               self.hmiConnection:SendResponse(data.id,"BasicCommunication.SystemRequest", "SUCCESS", {})
               self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate", { policyfile = testData.ivsuPath .. "/" .. testData.fileName })
             end)
+
+          EXPECT_RESPONSE(CorIdSystemRequest, { success = true, resultCode = "SUCCESS"})
         end)
     end)
 end
