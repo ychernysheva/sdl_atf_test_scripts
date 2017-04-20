@@ -1,8 +1,6 @@
 -- Requirement summary:
 -- [PolicyTableUpdate] New application has registered and doesn't yet exist in Local PT during PTU in progress
 --
--- Note: Rename attached ptu_prop.json at ptu.json, and copy on this way: /tmp/fs/mp/images/ivsu_cache/, for line 111 and for line 121
---
 -- Description:
 -- PoliciesManager must add the appID of the newly registered app to the Local PT in case
 -- such appID does not yet exist in Local PT and PoliciesManager has sent the PT Snapshot and has not received the PT Update yet.
@@ -181,7 +179,7 @@ end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
-Test["StopSDL"] = function()
+function Test.Postcondition_SDLStop()
   StopSDL()
 end
 
