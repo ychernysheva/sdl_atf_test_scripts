@@ -27,6 +27,9 @@
 --  2. SDL assignes HMILevel after application registering:
 --     SDL->appID: OnHMIStatus(HMlLevel, audioStreamingState, systemContext)
 
+--TODO(istoimenova): Remove when "ATF does not stop HB timers by closing session and connection" is fixed
+config.defaultProtocolVersion = 2
+
 -- [[ Required Shared Libraries ]]
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
