@@ -15,9 +15,7 @@
 --    Policy Manager must clear all user consent records in "user_consent_records" section of the LocalPT, other content of the LocalPT must be unchanged
 ---------------------------------------------------------------------------------------------------------------------------------------------------------
 --[[ General Settings for configuration ]]
-Test = require('connecttest')
-require('cardinalities')
-local events = require('events')
+
 
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
@@ -26,9 +24,9 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require ('user_modules/shared_testcases/commonSteps')
 local testCasesForPolicyTableSnapshot = require ('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
-local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
-require('user_modules/AppTypes')
 local mobile_session = require('mobile_session')
+local events = require('events')
+local sdl = require('SDL')
 
 --[[ Local Functions ]]
 local function DelayedExp(time)
@@ -53,17 +51,15 @@ local function RestorePreloadedPT()
   os.execute('cp ' .. config.pathToSDL .. 'backup_sdl_preloaded_pt.json' .. ' ' .. config.pathToSDL .. 'sdl_preloaded_pt.json')
 end
 
-local function FACTORY_DEFAULTS(self, appNumber)
-  StopSDL()
-  if appNumber == nil then
-    appNumber = 1
-  end
+local function FACTORY_DEFAULTS(self)--, appNumber)
+  -- if appNumber == nil then
+  --   appNumber = 1
+  -- end
   self.hmiConnection:SendNotification("BasicCommunication.OnExitAllApplications",
   {
     reason = "FACTORY_DEFAULTS"
   })
   EXPECT_HMINOTIFICATION("BasicCommunication.OnSDLClose", {})
-  :Times(1)
   DelayedExp(1000)
 end
 
@@ -72,8 +68,30 @@ commonSteps:DeleteLogsFiles()
 commonSteps:DeletePolicyTable()
 ReplacePreloadedFile()
 
+Test = require('user_modules/connecttest_resumption')
+require('user_modules/AppTypes')
+require('cardinalities')
+
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
+
+function Test:Precondition_ConnectMobile()
+  self:connectMobile()
+end
+
+function Test:Precondition_StartSession()
+  self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
+  self.mobileSession:StartService(7)
+end
+
+function Test:Precondition_Register_To_Trigger_PTU()
+  local CorIdRAI = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
+
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application1.registerAppInterfaceParams.appName }})
+  :Do(function(_,data) self.applications[config.application1.registerAppInterfaceParams.appName] = data.params.application.appID end)
+
+  EXPECT_RESPONSE(CorIdRAI, { success = true, resultCode = "SUCCESS"})
+end
 
 function Test:Precondition_Activate_app()
   local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.applications[config.application1.registerAppInterfaceParams.appName]})
@@ -112,7 +130,17 @@ function Test:Precondition_Execute_Factory_reset()
   FACTORY_DEFAULTS(self)
 end
 
-function Test:Precondition_StartSDL()
+--TODO(istoimenova): Remove when "[ATF] ATF stops execution of scripts at IGNITION_OFF." is resolved.
+function Test.CheckSDLStatus()
+  local actStatus = sdl:CheckStatusSDL()
+  print("SDL status: " .. tostring(actStatus))
+  if actStatus == sdl.RUNNING then
+    StopSDL()
+  end
+  os.execute("sleep 15")
+end
+
+function Test.Precondition_StartSDL()
   StartSDL(config.pathToSDL, config.ExitOnCrash)
 end
 
@@ -183,10 +211,12 @@ function Test:Check_no_user_consent_records_in_PT()
 end
 
 --[[ Postcondition ]]
-function Test:Postcondition_RestorePreloadedPT()
+function Test.Postcondition_RestorePreloadedPT()
   RestorePreloadedPT()
 end
 
-function Test:Postcondition_StopSDL()
+function Test.Postcondition_StopSDL()
   StopSDL()
 end
+
+return Test
