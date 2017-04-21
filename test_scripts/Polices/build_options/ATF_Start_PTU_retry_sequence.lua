@@ -100,7 +100,7 @@ function Test:TestStep_Sending_PTS_to_mobile_application()
       :Do(function(exp_pu, data)
           print(exp_pu.occurences..":"..data.params.status)
           if(data.params.status == "UPDATE_NEEDED") then
-            verify_retry_sequence(exp_pu.occurences - 1)
+            verify_retry_sequence(exp_pu.occurences)
           end
         end)
 
