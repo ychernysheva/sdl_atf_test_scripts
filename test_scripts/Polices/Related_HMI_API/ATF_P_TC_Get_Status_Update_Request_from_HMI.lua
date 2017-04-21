@@ -7,10 +7,10 @@
 -- In case HMI needs to find out current status of PTU and sends GetStatusRequest to SDL
 --
 -- Preconditions:
--- 1. App 123_xyz is not registered
+-- 1. Register app 123_xyz.
 --
 -- Steps:
--- 1. Register new app 123_xyz
+-- 1. Allow SDL due to activation of app 123_xyz
 -- 2. HMI -> SDL: Send GetStatusUpdate() and verify status of response
 -- 3. Verify that PTU sequence is started
 -- 4. HMI -> SDL: Send GetStatusUpdate() and verify status of response
@@ -42,8 +42,6 @@ require("user_modules/AppTypes")
 commonFunctions:newTestCasesGroup("Test")
 
 function Test:Test_1_UPDATE_NEEDED()
-  local reqId = self.hmiConnection:SendRequest("SDL.GetStatusUpdate")
-  EXPECT_HMIRESPONSE(reqId, { status = "UPDATE_NEEDED" })
   local requestId1 = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.applications["Test Application"] })
   EXPECT_HMIRESPONSE(requestId1)
   :Do(function(_, data1)
@@ -54,11 +52,14 @@ function Test:Test_1_UPDATE_NEEDED()
         :Do(function()
             self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality",
               { allowed = true, source = "GUI", device = { id = config.deviceMAC, name = "127.0.0.1" } })
+
+            local reqId = self.hmiConnection:SendRequest("SDL.GetStatusUpdate")
+            EXPECT_HMIRESPONSE(reqId, { status = "UPDATE_NEEDED" })
+
             EXPECT_HMICALL("BasicCommunication.ActivateApp")
             :Do(function(_, data2)
                 self.hmiConnection:SendResponse(data2.id,"BasicCommunication.ActivateApp", "SUCCESS", { })
               end)
-            :Times(AtLeast(1))
           end)
       end
     end)
