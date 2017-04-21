@@ -26,7 +26,7 @@ require('cardinalities')
 local mobile_session = require('mobile_session')
 
 --[[ Preconditions ]]
-function Test:Precondtion_initHMI_onReady()
+function Test:Precondtion_connectMobile()
   self:connectMobile()
 end
 
