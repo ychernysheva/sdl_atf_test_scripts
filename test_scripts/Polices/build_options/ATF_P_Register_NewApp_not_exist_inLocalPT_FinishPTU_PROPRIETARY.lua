@@ -92,7 +92,6 @@ function Test:TestStep_RegisterNewApplication()
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = "Media Application" }})
   self.mobileSession2:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
   self.mobileSession2:ExpectNotification("OnPermissionsChange")
-  self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest", {requestType = "LOCK_SCREEN_ICON_URL"})
 end
 
 function Test:TestStep_PolicyUpdateFinished_ForDefaultApplication()
