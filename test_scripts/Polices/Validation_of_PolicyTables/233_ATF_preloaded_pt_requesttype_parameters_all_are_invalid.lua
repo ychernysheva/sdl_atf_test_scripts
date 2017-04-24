@@ -8,7 +8,7 @@
 -- Delete files and policy table from previous ignition cycle if any
 -- Do not start default SDL
 -- 2. Performed steps:
--- Add several values in "RequestType" array (all of them is invalid) in PreloadedPT json file
+-- Add several values in "RequestType" array (all of them are invalid) in PreloadedPT json file
 -- Start SDL with created PreloadedPT json file
 --
 -- Expected result:
@@ -21,14 +21,33 @@ local commonSteps = require ('user_modules/shared_testcases/commonSteps')
 local commonPreconditions = require ('user_modules/shared_testcases/commonPreconditions')
 local testCasesForPolicySDLErrorsStops = require ('user_modules/shared_testcases/testCasesForPolicySDLErrorsStops')
 local testCasesForPolicyTable = require ('user_modules/shared_testcases/testCasesForPolicyTable')
+local sdl = require('modules/SDL')
+local testCasesForExternalUCS = require('user_modules/shared_testcases/testCasesForExternalUCS')
+local json = require("modules/json")
 
 --[[ General configuration parameters ]]
 config.defaultProtocolVersion = 2
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
+config.ExitOnCrash = false
 commonSteps:DeleteLogsFileAndPolicyTable()
 
 --[[ Local Variables ]]
-local PRELOADED_PT_FILE_NAME = "sdl_preloaded_pt.json"
+local function update_preloaded_file()
+  commonPreconditions:BackupFile("sdl_preloaded_pt.json")
+  local pathToFile = config.pathToSDL .. "sdl_preloaded_pt.json"
+
+  local file = io.open(pathToFile, "r")
+  local json_data = file:read("*a")
+  file:close()
+
+  local data = json.decode(json_data)
+  data.policy_table.app_policies.default.RequestType = {"IVSU","HTML"}
+
+  local dataToWrite = json.encode(data)
+  file = io.open(pathToFile, "w")
+  file:write(dataToWrite)
+  file:close()
+end
 
 --[[ General Settings for configuration ]]
 Test = require('connecttest')
@@ -40,34 +59,36 @@ function Test:Precondition_stop_sdl()
 end
 
 function Test.TestStep_updatePreloadedPT()
-  local testParameters = {RequestType = {"IVSU","HTML"} }
   commonSteps:DeletePolicyTable()
   commonSteps:DeleteLogsFiles()
-  commonPreconditions:BackupFile(PRELOADED_PT_FILE_NAME)
-  testCasesForPolicySDLErrorsStops.updatePreloadedPT("data.policy_table.app_policies.default", testParameters)
+  update_preloaded_file()
 end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
-function Test:TestStep_checkSdl_Running()
-  --In case SDL stops function will return true
-  local result = testCasesForPolicySDLErrorsStops:CheckSDLShutdown(self)
-  if (result ~= true) then
-    self:FailTestCase("Error: SDL should not stop.")
-  end
+function Test.TestStep_start_sdl()
+  StartSDL(config.pathToSDL, config.ExitOnCrash)
+  os.execute("sleep 5")
+end
+
+function Test:TestStep_checkSdl_Stopped()
+  testCasesForExternalUCS.checkSDLStatus(self, sdl.STOPPED)
 end
 
 function Test:TestStep_CheckSDLLogError()
   --function will return true in case error is observed in smartDeviceLink.log
   local result = testCasesForPolicySDLErrorsStops.ReadSpecificMessage("Policy table is not initialized.")
   if (result ~= true) then
-    self:FailTestCase("Error: message 'Policy table is not initialized.' should not be observed in smartDeviceLink.log.")
+    self:FailTestCase("Error: message 'Policy table is not initialized.' should be observed in smartDeviceLink.log.")
   end
 end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
+
 testCasesForPolicyTable:Restore_preloaded_pt()
 function Test.Postcondition_Stop()
   StopSDL()
 end
+
+return Test

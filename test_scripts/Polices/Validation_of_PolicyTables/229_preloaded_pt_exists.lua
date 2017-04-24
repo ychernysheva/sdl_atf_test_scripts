@@ -25,10 +25,13 @@ local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local testCasesForPolicySDLErrorsStops = require('user_modules/shared_testcases/testCasesForPolicySDLErrorsStops')
 local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
+local sdl = require('modules/SDL')
+local testCasesForExternalUCS = require('user_modules/shared_testcases/testCasesForExternalUCS')
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
 config.defaultProtocolVersion = 2
+config.ExitOnCrash = false
 
 --[[ Local variables ]]
 local PPT_FILE_NAME = "sdl_preloaded_pt.json"
@@ -58,13 +61,13 @@ end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
+function Test.TestStep_start_sdl()
+  StartSDL(config.pathToSDL, config.ExitOnCrash)
+  os.execute("sleep 5")
+end
+
 function Test:TestStep_CheckSDLStops()
-  --TODO(istoimenova): Should be checked when ATF problem is fixed with SDL crash
-  --EXPECT_HMINOTIFICATION("BasicCommunication.OnSDLClose")
-  local result = testCasesForPolicySDLErrorsStops:CheckSDLShutdown(self)
-  if (result == false) then
-    self:FailTestCase("Error: SDL doesn't stop.")
-  end
+  testCasesForExternalUCS.checkSDLStatus(self, sdl.STOPPED)
 end
 
 function Test:TestStep_CheckSDLLogError()

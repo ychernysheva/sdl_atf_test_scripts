@@ -17,13 +17,15 @@
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 --TODO(istoimenova): shall be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
 config.defaultProtocolVersion = 2
+config.ExitOnCrash = false
 
 --[[ Required Shared libraries ]]
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require ('user_modules/shared_testcases/commonSteps')
-local testCasesForPolicySDLErrorsStops = require ('user_modules/shared_testcases/testCasesForPolicySDLErrorsStops')
 local testCasesForPolicyTable = require ('user_modules/shared_testcases/testCasesForPolicyTable')
 local commonPreconditions = require ('user_modules/shared_testcases/commonPreconditions')
+local sdl = require('modules/SDL')
+local testCasesForExternalUCS = require('user_modules/shared_testcases/testCasesForExternalUCS')
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
@@ -89,26 +91,27 @@ function Test:Precondition_StopSDL()
 end
 
 function Test:Precondition_ReloadNewINIFile()
-  oldPathToPtSnapshot = self.changePtsPathInSdlIni(INCORRECT_LINUX_PATH_TO_POLICY_SNAPSHOT_FILE)
+  self.changePtsPathInSdlIni(INCORRECT_LINUX_PATH_TO_POLICY_SNAPSHOT_FILE)
 end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
-
-function Test:TestStep_VerifySDL_Stops()
-  --TODO(istoimenova): Should be checked when ATF problem is fixed with SDL crash
-  EXPECT_HMINOTIFICATION("BasicCommunication.OnSDLClose")
-  local result = testCasesForPolicySDLErrorsStops:CheckSDLShutdown(self)
-  if (result == false) then
-    self:FailTestCase("Error: SDL doesn't stop.")
-  end
+function Test.TestStep_start_sdl()
+  StartSDL(config.pathToSDL, config.ExitOnCrash)
+  os.execute("sleep 5")
 end
 
-function Test:TestStep_CheckSDLLogError()
-  local result = testCasesForPolicySDLErrorsStops.ReadSpecificMessage("PathToSnapshot is not correct")
-  if (result == false) then
-    self:FailTestCase("Error: message 'PathToSnapshot is not correct' is not observed in smartDeviceLink.log.")
-  end
+function Test:TestStep_VerifySDL_Stops()
+  testCasesForExternalUCS.checkSDLStatus(self, sdl.STOPPED)
+end
+
+function Test.TestStep_CheckSDLLogError()
+  --TODO(istoimenova): Update when concrete rule for printing in sdl log is created
+  -- SDL not always manage to print the error in log
+  -- local result = testCasesForPolicySDLErrorsStops.ReadSpecificMessage("PathToSnapshot is not correct")
+  -- if (result == false) then
+  -- self:FailTestCase("Error: message 'PathToSnapshot is not correct' is not observed in smartDeviceLink.log.")
+  -- end
 end
 
 --[[ Postconditions ]]
