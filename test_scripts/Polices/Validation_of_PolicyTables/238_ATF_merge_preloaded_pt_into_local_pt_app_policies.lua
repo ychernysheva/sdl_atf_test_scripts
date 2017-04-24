@@ -25,6 +25,7 @@ local testCasesForPolicyTable = require ('user_modules/shared_testcases/testCase
 local json = require("modules/json")
 
 --[[ Local Variables ]]
+config.pathToSDL = commonPreconditions.GetPathToSDL()
 local PRELOADED_PT_FILE_NAME = "sdl_preloaded_pt.json"
 
 local TESTED_DATA = {
@@ -423,58 +424,58 @@ function Test:TestStep_VerifyInitialLocalPT()
     end
   end
 
-function Test:TestStep_StopSDL()
-  StopSDL(self)
-end
-
-function Test.TestStep_PrepareNewPreloadedPT()
-  prepareNewPreloadedPT()
-end
-
-function Test:TestStep_StartSDL()
-  StartSDL(config.pathToSDL, true, self)
-end
-
-function Test:TestStep_VerifyNewLocalPT()
-  os.execute("sleep 3")
-  TestData:store("New Local PT is stored", constructPathToDatabase(), "new_policy.sqlite")
-  local checks = {
-    {
-      query = 'select preloaded_date from module_config',
-      expectedValues = {TESTED_DATA.preloaded_date[2]}
-    },
-    {
-      query = 'select a.id, a.keep_context, a.steal_focus, a.default_hmi, a.priority_value, fg.name from application a inner join app_group ag on a.id = ag.application_id inner join functional_group fg on ag.functional_group_id = fg.id',
-      expectedValues = (function(structure)
-
-        local function evalBoolean(val)
-          if not val then
-            return 0
-          else
-            return 1
-          end
-        end
-
-        local result = {}
-        for key, value in pairs(structure) do
-          for i = 1, #value.groups do
-            table.insert(result, table.concat({tostring(key), "|", evalBoolean(value.keep_context), "|", evalBoolean(value.steal_focus), "|", value.default_hmi, "|", value.priority, "|", value.groups[i]}))
-          end
-        end
-        return result
-      end)  (TESTED_DATA[3].app_policies)
-    }
-  }
-  if not self.checkLocalPT(checks) then
-    self:FailTestCase("SDL has wrong values in LocalPT")
+  function Test:TestStep_StopSDL()
+    StopSDL(self)
   end
-end
 
---[[ Postconditions ]]
-commonFunctions:newTestCasesGroup("Postconditions")
-testCasesForPolicyTable:Restore_preloaded_pt()
-function Test.Postcondition()
-  StopSDL()
-end
+  function Test.TestStep_PrepareNewPreloadedPT()
+    prepareNewPreloadedPT()
+  end
 
-return Test
+  function Test:TestStep_StartSDL()
+    StartSDL(config.pathToSDL, true, self)
+  end
+
+  function Test:TestStep_VerifyNewLocalPT()
+    os.execute("sleep 3")
+    TestData:store("New Local PT is stored", constructPathToDatabase(), "new_policy.sqlite")
+    local checks = {
+      {
+        query = 'select preloaded_date from module_config',
+        expectedValues = {TESTED_DATA.preloaded_date[2]}
+      },
+      {
+        query = 'select a.id, a.keep_context, a.steal_focus, a.default_hmi, a.priority_value, fg.name from application a inner join app_group ag on a.id = ag.application_id inner join functional_group fg on ag.functional_group_id = fg.id',
+        expectedValues = (function(structure)
+
+            local function evalBoolean(val)
+              if not val then
+                return 0
+              else
+                return 1
+              end
+            end
+
+            local result = {}
+            for key, value in pairs(structure) do
+              for i = 1, #value.groups do
+                table.insert(result, table.concat({tostring(key), "|", evalBoolean(value.keep_context), "|", evalBoolean(value.steal_focus), "|", value.default_hmi, "|", value.priority, "|", value.groups[i]}))
+              end
+            end
+            return result
+            end) (TESTED_DATA[3].app_policies)
+        }
+      }
+      if not self.checkLocalPT(checks) then
+        self:FailTestCase("SDL has wrong values in LocalPT")
+      end
+    end
+
+    --[[ Postconditions ]]
+    commonFunctions:newTestCasesGroup("Postconditions")
+    testCasesForPolicyTable:Restore_preloaded_pt()
+    function Test.Postcondition()
+      StopSDL()
+    end
+
+    return Test
