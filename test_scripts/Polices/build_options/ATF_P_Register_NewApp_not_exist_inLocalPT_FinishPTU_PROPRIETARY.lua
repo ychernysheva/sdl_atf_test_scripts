@@ -80,6 +80,12 @@ function Test:Precondition_PolicyUpdateStarted_ForDefaultApplication()
   EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "PROPRIETARY" })
 end
 
+function Test:Precondition_ActivateApp()
+  local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.applications[config.application1.registerAppInterfaceParams.appName]})
+  EXPECT_HMIRESPONSE(RequestId)
+  EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"})
+end
+
 function Test:Precondition_OpenNewSession()
   self.mobileSession2 = mobile_session.MobileSession(self, self.mobileConnection)
   self.mobileSession2:StartService(7)
@@ -92,6 +98,14 @@ function Test:TestStep_RegisterNewApplication()
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = "Media Application" }})
   self.mobileSession2:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
   self.mobileSession2:ExpectNotification("OnPermissionsChange")
+  self.mobileSession2:ExpectNotification("OnSystemRequest")--, {requestType = "LOCK_SCREEN_ICON_URL"} )
+  :ValidIf(function(_,data)
+      if(data.payload.requestType ~= "LOCK_SCREEN_ICON_URL") then
+        commonFunctions:printError("requestType should be PROPRIETARY")
+        return false
+      end
+      return true
+    end)
 end
 
 function Test:TestStep_PolicyUpdateFinished_ForDefaultApplication()
