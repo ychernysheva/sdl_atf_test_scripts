@@ -8,15 +8,14 @@
 -- a) SDL and HMI are running
 -- b) device is connected to SDL and is consented by the User
 -- 2. Performed steps
--- 1) register the app_1 and activate in FULL HMILevel
--- 2) Update PTU.
--- 3) register the app_2 and activate in LIMITED HMILevel
+-- 1) register the app_1
+-- 2) register the app_2 and activate in FULL HMILevel
 -- 4) Update PTU.
 
 -- Expected result:
--- 1) appID_1 remains in FULL. After PTU OnHMIStatus does not calls
--- 2) appID_2 remains in LIMITED. After PTU OnHMIStatus does not calls
--- 3) After each PTU OnPermissionsChange is called
+-- 1) appID_1 remains in NONE. After PTU OnHMIStatus does not calls
+-- 2) appID_2 remains in FULL. After PTU OnHMIStatus does not calls
+-- 3) After PTU OnPermissionsChange is called
 
 ---------------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
