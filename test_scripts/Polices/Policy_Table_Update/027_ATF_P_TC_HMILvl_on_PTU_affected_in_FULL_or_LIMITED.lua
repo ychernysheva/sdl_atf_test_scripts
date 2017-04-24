@@ -28,7 +28,7 @@ local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
 local json = require('json')
 --[[ Local Variables ]]
-local HMIAppID, HMIAppID2
+local HMIAppID2
 
 local applications =
 {
@@ -161,9 +161,7 @@ function Test:RegisterFirstApp()
       local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", applications[1].registerAppInterfaceParams)
 
       EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
-      :Do(function(_,data)
-          HMIAppID = data.params.application.appID
-        end)
+
       self.mobileSession:ExpectResponse(correlationId, { success = true })
       -- EXPECT_RESPONSE(correlationId, { success = true })
       self.mobileSession:ExpectNotification("OnPermissionsChange")
@@ -182,19 +180,15 @@ function Test:RegisterSecondApp()
       self.mobileSession2:ExpectResponse(correlationId2, { success = true })
       self.mobileSession2:ExpectNotification("OnPermissionsChange")
     end)
-end
-
-function Test:ActivateFirstApp()
-  commonSteps:ActivateAppInSpecificLevel(self, HMIAppID)
+  self.mobileSession2:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE"})
 end
 
 function Test:ActivateSecondApp()
   commonSteps:ActivateAppInSpecificLevel(self, HMIAppID2)
+  self.mobileSession2:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "FULL"})
 end
 
 function Test:UpdatePolicyAfterAddApps_ExpectOnHMIStatusNotCall()
-  EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
-
   testCasesForPolicyTable:updatePolicyInDifferentSessions(Test, ptu_first_app_registered,
     applications[2].registerAppInterfaceParams.appName,
     self.mobileSession2)
