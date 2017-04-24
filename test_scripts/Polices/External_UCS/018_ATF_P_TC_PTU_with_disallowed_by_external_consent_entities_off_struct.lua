@@ -120,10 +120,8 @@ end
 
 function Test:RAI_2()
   testCasesForExternalUCS.registerApp(self, 2)
-end
-
-function Test:ActivateApp_2()
-  testCasesForExternalUCS.activateApp(self, 2)
+  EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
+  :Do(function(_, d) testCasesForExternalUCS.pts = testCasesForExternalUCS.createTableFromJsonFile(d.params.file) end)
 end
 
 function Test:CheckPTS()
