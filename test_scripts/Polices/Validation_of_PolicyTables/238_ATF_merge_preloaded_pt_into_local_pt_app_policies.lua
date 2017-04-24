@@ -471,11 +471,11 @@ function Test:TestStep_VerifyInitialLocalPT()
       end
     end
 
-    --[[ Postconditions ]]
-    commonFunctions:newTestCasesGroup("Postconditions")
-    testCasesForPolicyTable:Restore_preloaded_pt()
-    function Test.Postcondition()
-      StopSDL()
-    end
+--[[ Postconditions ]]
+commonFunctions:newTestCasesGroup("Postconditions")
+testCasesForPolicyTable:Restore_preloaded_pt()
+function Test.Postcondition()
+  StopSDL()
+end
 
-    return Test
+return Test
