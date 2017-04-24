@@ -103,15 +103,7 @@ end
 
 function Test:TestStep_VerifySDL_Stops()
   testCasesForExternalUCS.checkSDLStatus(self, sdl.STOPPED)
-end
-
-function Test.TestStep_CheckSDLLogError()
-  --TODO(istoimenova): Update when concrete rule for printing in sdl log is created
-  -- SDL not always manage to print the error in log
-  -- local result = testCasesForPolicySDLErrorsStops.ReadSpecificMessage("PathToSnapshot is not correct")
-  -- if (result == false) then
-  -- self:FailTestCase("Error: message 'PathToSnapshot is not correct' is not observed in smartDeviceLink.log.")
-  -- end
+  -- Errors for SDL can't be checked in log, because SDL stops imediatelly because of incorrect path.
 end
 
 --[[ Postconditions ]]

@@ -81,6 +81,11 @@ function Test:TestStep_CheckSDLLogError()
   if (result ~= true) then
     self:FailTestCase("Error: message 'Policy table is not initialized.' should be observed in smartDeviceLink.log.")
   end
+
+  result = testCasesForPolicySDLErrorsStops.ReadSpecificMessage("BasicCommunication.OnSDLClose")
+  if (result ~= true) then
+    self:FailTestCase("Error: 'BasicCommunication.OnSDLClose' is observed in smartDeviceLink.log.")
+  end
 end
 
 --[[ Postconditions ]]
