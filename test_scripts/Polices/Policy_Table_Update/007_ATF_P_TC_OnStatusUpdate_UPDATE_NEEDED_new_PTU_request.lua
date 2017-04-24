@@ -60,7 +60,12 @@ end
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 function Test:TestStep_OnStatusUpdate_UPDATE_NEEDED_new_PTU_request()
-  self.hmiConnection:SendRequest("SDL.UpdateSDL")
+  local RequestIdUpdateSDL = self.hmiConnection:SendRequest("SDL.UpdateSDL")
+  EXPECT_HMIRESPONSE(RequestIdUpdateSDL,{result = {code = 0, method = "SDL.UpdateSDL", result = "UPDATE_NEEDED" }})
+
+  EXPECT_HMICALL("BasicCommunication.PolicyUpdate", {file = "/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json"})
+  :Do(function(_,data) self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {}) end)
+
   EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"}):Times(0)
   commonTestCases:DelayedExp(10000)
 end
