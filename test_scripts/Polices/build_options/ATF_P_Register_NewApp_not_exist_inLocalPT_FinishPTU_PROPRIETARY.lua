@@ -101,7 +101,7 @@ function Test:TestStep_RegisterNewApplication()
   self.mobileSession2:ExpectNotification("OnSystemRequest")--, {requestType = "LOCK_SCREEN_ICON_URL"} )
   :ValidIf(function(_,data)
       if(data.payload.requestType ~= "LOCK_SCREEN_ICON_URL") then
-        commonFunctions:printError("requestType should be PROPRIETARY")
+        commonFunctions:printError("requestType should be LOCK_SCREEN_ICON_URL")
         return false
       end
       return true
