@@ -1,29 +1,32 @@
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
---    [Policies] "pre_DataConsent" policies and "preconsented_groups" validation
+-- [Policies] "pre_DataConsent" policies and "preconsented_groups" validation
 --
 -- Description:
---     Validation of "preconsented_groups" sub-section in "pre_DataConsent" if "pre_DataConsent" policies assigned to the application.
---     Checking incorrect "preconsented_groups" value - empty value.
---     1. Used preconditions:
---      SDL and HMI are running
---      Connect device
+-- Validation of "preconsented_groups" sub-section in "pre_DataConsent" if "pre_DataConsent" policies assigned to the application.
+-- Checking incorrect "preconsented_groups" value - empty value.
+-- 1. Used preconditions:
+-- SDL and HMI are running
+-- Connect device
 --
---     2. Performed steps
---      Add session("pre_DataConsent" policies are assigned to the application)-> PTU is triggered
+-- 2. Performed steps
+-- Add session("pre_DataConsent" policies are assigned to the application)-> PTU is triggered
 --
 -- Expected result:
---     PoliciesManager must validate "preconsented_groups" sub-section in "pre_DataConsent" and treat it as invalid -> PTU invalid
+-- PoliciesManager must validate "preconsented_groups" sub-section in "pre_DataConsent" and treat it as invalid -> PTU invalid
 ---------------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 --[ToDo: should be removed when fixed: "ATF does not stop HB timers by closing session and connection"
 config.defaultProtocolVersion = 2
+config.ExitOnCrash = false
 
 --[[ Required Shared libraries ]]
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require ('user_modules/shared_testcases/commonSteps')
 local testCasesForPolicySDLErrorsStops = require('user_modules/shared_testcases/testCasesForPolicySDLErrorsStops')
+local sdl = require('modules/SDL')
+local testCasesForExternalUCS = require('user_modules/shared_testcases/testCasesForExternalUCS')
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFiles()
@@ -92,20 +95,24 @@ end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
+function Test.TestStep_start_sdl()
+  StartSDL(config.pathToSDL, config.ExitOnCrash)
+  os.execute("sleep 5")
+end
 
 function Test:TestStep_Validate_emptyValue_preconsented_groups_Preloaded()
-  --TODO(istoimenova): Should be checked when ATF problem is fixed with SDL crash
-  EXPECT_HMINOTIFICATION("BasicCommunication.OnSDLClose")
-  local result = testCasesForPolicySDLErrorsStops:CheckSDLShutdown(self)
-  if (result == false) then
-    self:FailTestCase("Error: SDL doesn't stop.")
-  end
+  testCasesForExternalUCS.checkSDLStatus(self, sdl.STOPPED)
 end
 
 function Test:TestStep_CheckSDLLogError()
   local result = testCasesForPolicySDLErrorsStops.ReadSpecificMessage("Policy table is not initialized.")
   if (result == false) then
     self:FailTestCase("Error: message 'Policy table is not initialized.' is not observed in smartDeviceLink.log.")
+  end
+
+  result = testCasesForPolicySDLErrorsStops.ReadSpecificMessage("BasicCommunication.OnSDLClose")
+  if (result == false) then
+    self:FailTestCase("Error: 'BasicCommunication.OnSDLClose' is not observed in smartDeviceLink.log.")
   end
 end
 

@@ -23,10 +23,13 @@ local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local testCasesForPolicySDLErrorsStops = require('user_modules/shared_testcases/testCasesForPolicySDLErrorsStops')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
 local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
+local testCasesForExternalUCS = require('user_modules/shared_testcases/testCasesForExternalUCS')
+local sdl = require('modules/SDL')
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
 config.defaultProtocolVersion = 2
+config.ExitOnCrash = false
 
 --[[ Local Variables ]]
 local PRELOADED_PT_FILE_NAME = "sdl_preloaded_pt.json"
@@ -66,19 +69,24 @@ function Test.Precondition_UpdatePreloadedPT()
 end
 
 --[[ Test ]]
-function Test:Test_StartSdl()
-  --TODO(istoimenova): Should be checked when ATF problem is fixed with SDL crash
-  EXPECT_HMINOTIFICATION("BasicCommunication.OnSDLClose")
-  local result = testCasesForPolicySDLErrorsStops:CheckSDLShutdown(self)
-  if (result == false) then
-    self:FailTestCase("Error: SDL doesn't stop.")
-  end
+function Test.Test_StartSdl()
+  StartSDL(config.pathToSDL, config.ExitOnCrash)
+  os.execute("sleep 5")
+end
+
+function Test:CheckSDLStatus()
+  testCasesForExternalUCS.checkSDLStatus(self, sdl.STOPPED)
 end
 
 function Test:TestStep_CheckSDLLogError()
   local result = testCasesForPolicySDLErrorsStops.ReadSpecificMessage("Policy table is not initialized.")
   if (result == false) then
     self:FailTestCase("Error: message 'Policy table is not initialized.' is not observed in smartDeviceLink.log.")
+  end
+
+  result = testCasesForPolicySDLErrorsStops.ReadSpecificMessage("BasicCommunication.OnSDLClose")
+  if (result == false) then
+    self:FailTestCase("Error: 'BasicCommunication.OnSDLClose' is not observed in smartDeviceLink.log.")
   end
 end
 

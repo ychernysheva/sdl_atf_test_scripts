@@ -20,15 +20,16 @@ local commonFunctions = require ('user_modules/shared_testcases/commonFunctions'
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
--- local json = require("modules/json")
--- local SDL = require('modules/SDL')
 local testCasesForPolicySDLErrorsStops = require('user_modules/shared_testcases/testCasesForPolicySDLErrorsStops')
+local sdl = require('modules/SDL')
+local testCasesForExternalUCS = require('user_modules/shared_testcases/testCasesForExternalUCS')
 
 --[[ Local Variables ]]
 local PRELOADED_PT_FILE_NAME = "sdl_preloaded_pt.json"
 
 --[[ General Precondition before ATF start ]]
 config.defaultProtocolVersion = 2
+config.ExitOnCrash = false
 
 --[[ General configuration parameters ]]
 Test = require('connecttest')
@@ -37,6 +38,10 @@ require("user_modules/AppTypes")
 --[[ Preconditions ]]
 function Test:Precondition_stop_sdl()
   StopSDL(self)
+end
+
+function Test:CheckSDLStatus()
+  testCasesForExternalUCS.checkSDLStatus(self, sdl.STOPPED)
 end
 
 function Test.Precondition()
@@ -48,19 +53,24 @@ function Test.Precondition()
 end
 
 --[[ Test ]]
-function Test:TestStep_start_sdl()
-  --TODO(istoimenova): Should be checked when ATF problem is fixed with SDL crash
-  EXPECT_HMINOTIFICATION("BasicCommunication.OnSDLClose")
-  local result = testCasesForPolicySDLErrorsStops:CheckSDLShutdown(self)
-  if (result == false) then
-    self:FailTestCase("Error: SDL doesn't stop.")
-  end
+function Test.TestStep_start_sdl()
+  StartSDL(config.pathToSDL, config.ExitOnCrash)
+  os.execute("sleep 5")
+end
+
+function Test:CheckSDLStatus()
+  testCasesForExternalUCS.checkSDLStatus(self, sdl.STOPPED)
 end
 
 function Test:TestStep_CheckSDLLogError()
   local result = testCasesForPolicySDLErrorsStops.ReadSpecificMessage("Policy table is not initialized.")
   if (result == false) then
     self:FailTestCase("Error: message 'Policy table is not initialized.' is not observed in smartDeviceLink.log.")
+  end
+
+  result = testCasesForPolicySDLErrorsStops.ReadSpecificMessage("BasicCommunication.OnSDLClose")
+  if (result == false) then
+    self:FailTestCase("Error: 'BasicCommunication.OnSDLClose' is not observed in smartDeviceLink.log.")
   end
 end
 
