@@ -1259,7 +1259,6 @@
                 "NORMAL": 4,
                 "VOICECOM": 20
             },
-            "preloaded_pt": false,
             "seconds_between_retries": [
                 1,
                 5,
