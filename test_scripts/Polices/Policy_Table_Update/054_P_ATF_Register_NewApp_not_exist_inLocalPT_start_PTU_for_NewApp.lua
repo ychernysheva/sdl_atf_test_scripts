@@ -23,6 +23,7 @@
 --[[ General configuration parameters ]]
 config.defaultProtocolVersion = 2
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
+config.application1.registerAppInterfaceParams.appHMIType = { "MEDIA" }
 
 --[[ Required Shared libraries ]]
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
@@ -42,7 +43,7 @@ local registerAppInterfaceParams =
   isMediaApplication = true,
   languageDesired = 'EN-US',
   hmiDisplayLanguageDesired = 'EN-US',
-  appHMIType = {"NAVIGATION"},
+  appHMIType = {"COMMUNICATION"},
   appID = "MyTestApp",
   deviceInfo =
   {
@@ -100,10 +101,10 @@ function Test:TestStep_RAI_NewSession()
 end
 
 function Test:TestStep_FinishPTU_ForAppId1()
-  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UP_TO_DATE"}, {status = "UPDATE_NEEDED"})
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UP_TO_DATE"}, {status = "UPDATE_NEEDED"}):Times(2)
   local SystemFilesPath = commonFunctions:read_parameter_from_smart_device_link_ini("SystemFilesPath")
   local CorIdSystemRequest = self.mobileSession:SendRPC ("SystemRequest", { requestType = "PROPRIETARY", fileName = "PolicyTableUpdate", appID = config.application1.registerAppInterfaceParams.appID },
-  "files/jsons/Policies/Policy_Table_Update/ptu.json")
+  "files/jsons/Policies/Policy_Table_Update/ptu_without_preloaded.json")
 
   EXPECT_HMICALL("BasicCommunication.SystemRequest")
   :Do(function(_,data)
