@@ -133,14 +133,14 @@ function Test:RAI_PTU()
       self.mobileSession:ExpectNotification("OnSystemRequest")
       :Do(
         function(_, d2)
+          log("SDL->MOB: N: OnSystemRequest, RequestType: "..d2.payload.requestType )
           if (not onSystemRequestRecieved) and (d2.payload.requestType == "HTTP") then
             onSystemRequestRecieved = true
-            log("SDL->MOB: N: OnSystemRequest")
             ptu_table = json.decode(d2.binaryData)
             ptu(self)
           end
         end)
-      :Times(AnyNumber())
+      :Times(2)
     end)
 
   self.mobileSession:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
@@ -152,13 +152,13 @@ function Test:RAI_PTU()
         function(_ ,d)
           log("SDL->MOB: N: OnHMIStatus", d.payload.hmiLevel)
         end)
-      self.mobileSession:ExpectNotification("OnPermissionsChange")
-      :Do(
-        function()
-          log("SDL->MOB: N: OnPermissionsChange")
-        end)
-      :Times(2) -- 1st before update and 2nd after update
     end)
+  self.mobileSession:ExpectNotification("OnPermissionsChange")
+  :Do(
+    function()
+      log("SDL->MOB: N: OnPermissionsChange")
+    end)
+  :Times(2) -- 1st before update and 2nd after update
 end
 
 function Test.Test_ShowSequence()
