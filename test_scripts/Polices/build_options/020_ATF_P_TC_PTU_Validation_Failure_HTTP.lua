@@ -79,6 +79,7 @@ local function storePTUInFile(ptu, ptu_file_name)
 end
 
 local function ptu(self)
+  print("Start PTU")
   local policy_file_name = "PolicyTableUpdate"
   local ptu_file_name = os.tmpname()
   updatePTU(ptu_table)
@@ -133,18 +134,21 @@ function Test:RAI_PTU()
       :Times(4)
       -- workaround due to issue in Mobile API: APPLINK-30390
       local onSystemRequestRecieved = false
+
       self.mobileSession:ExpectNotification("OnSystemRequest")
       :Do(
         function(_, d2)
+          log("SDL->MOB: N: OnSystemRequest, RequestType: "..d2.payload.requestType )
           if (not onSystemRequestRecieved) and (d2.payload.requestType == "HTTP") then
             onSystemRequestRecieved = true
-            log("SDL->MOB: N: OnSystemRequest")
+            --log("SDL->MOB: N: OnSystemRequest")
             ptu_table = json.decode(d2.binaryData)
             ptu(self)
           end
         end)
-      :Times(AnyNumber())
+      :Times(2)
     end)
+
   self.mobileSession:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
   :Do(
     function()
