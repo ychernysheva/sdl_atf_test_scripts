@@ -34,7 +34,7 @@ local json = require("modules/json")
 local app_id = config.application1.registerAppInterfaceParams.appID
 local sequence = { }
 local ptu_table
-local actual_request_type
+local actual_request_type = ""
 
 --[[ Local Functions ]]
 local function timestamp()
@@ -134,15 +134,15 @@ function Test:RAI_PTU()
       self.mobileSession:ExpectNotification("OnSystemRequest")
       :Do(
         function(_, d2)
+          log("SDL->MOB: N: OnSystemRequest, RequestType: " .. d2.payload.requestType)
           if (not onSystemRequestRecieved) and (d2.payload.requestType == "HTTP") then
             actual_request_type = d2.payload.requestType
             onSystemRequestRecieved = true
-            log("SDL->MOB: N: OnSystemRequest")
             ptu_table = json.decode(d2.binaryData)
             ptu(self)
           end
         end)
-      :Times(AnyNumber())
+      :Times(2)
     end)
   self.mobileSession:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
   :Do(
