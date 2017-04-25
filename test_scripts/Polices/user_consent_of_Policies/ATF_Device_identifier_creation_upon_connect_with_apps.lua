@@ -93,7 +93,6 @@ end
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 function Test:Check_device_identifier_added_to_lpt()
-  local is_test_fail = true
   if( commonSteps:file_exists(pts_json) == false) then
     self:FailTestCase(pts_json .. " doesn't exist")
   else
@@ -103,13 +102,13 @@ function Test:Check_device_identifier_added_to_lpt()
     local json = require("modules/json")
     local data = json.decode(json_data)
     local deviceIdentificatorInPTS = next(data.policy_table.device_data, nil)
+
     if (deviceIdentificatorInPTS == config.deviceMAC) then
       commonFunctions:userPrint(33, "device_identifier ".. deviceIdentificatorInPTS.. " section is created")
-      is_test_fail = false
+    else
+      self:FailTestCase("Test is FAILED. device_identifier section is not created.")
     end
-    if(is_test_fail == true) then
-      self:FailTestCase("Test is FAILED.")
-    end
+
   end
 end
 
