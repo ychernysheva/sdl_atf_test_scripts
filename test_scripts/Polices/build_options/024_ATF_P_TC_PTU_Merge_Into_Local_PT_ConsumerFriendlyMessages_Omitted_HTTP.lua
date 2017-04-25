@@ -35,7 +35,6 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 local mobile_session = require("mobile_session")
 local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
 local commonSteps = require("user_modules/shared_testcases/commonSteps")
-local commonTestCases = require("user_modules/shared_testcases/commonTestCases")
 local json = require("modules/json")
 
 --[[ Local Variables ]]
@@ -99,17 +98,12 @@ function Test:RegisterApp()
       }
     })
   self.mobileSession:ExpectResponse(reqId, { success = true, resultCode = "SUCCESS" })
-end
-
-function Test:GetPTS()
-  commonTestCases:DelayedExp(3000)
-  self.mobileSession:ExpectNotification("OnSystemRequest")
+  self.mobileSession:ExpectNotification("OnSystemRequest"):Times(2)
   :Do(function(_, d)
       if d.payload.requestType == "HTTP" then
         ptu = json.decode(d.binaryData)
       end
     end)
-  :Times(AnyNumber())
 end
 
 function Test:ValidatePTS()
@@ -122,7 +116,11 @@ function Test:ValidatePTS()
   end
 end
 
-function Test.UpdatePTS()
+function Test:UpdatePTS()
+  if not ptu then
+    self:FailTestCase("Expected PTS is not received")
+    return
+  end
   ptu.policy_table.device_data = nil
   ptu.policy_table.usage_and_error_counts = nil
   ptu.policy_table.app_policies["0000001"] = { keep_context = false, steal_focus = false, priority = "NONE", default_hmi = "NONE" }
@@ -165,7 +163,6 @@ function Test:ValidateNumberMessages()
       print("Number of records: " .. r_actual)
       return true
     end)
-  :Times(1)
 end
 
 --[[ Postconditions ]]
