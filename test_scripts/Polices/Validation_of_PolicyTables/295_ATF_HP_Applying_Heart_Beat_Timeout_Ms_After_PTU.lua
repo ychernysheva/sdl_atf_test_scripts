@@ -104,6 +104,8 @@ local function DelayedExp(time)
     EXPECT_HMICALL("UI.AddCommand"):Times(0)
     EXPECT_HMICALL("VR.AddCommand"):Times(0)
     EXPECT_RESPONSE(cid, { success = false, resultCode = "DISALLOWED" })
+
+    DelayedExp(10000)
   end
 
   --[[ Test ]]
