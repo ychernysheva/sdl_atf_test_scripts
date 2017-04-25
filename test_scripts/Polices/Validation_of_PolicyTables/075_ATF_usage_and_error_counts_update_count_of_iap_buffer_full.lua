@@ -14,25 +14,27 @@
 -- Expected result:
 -- SDL must: increment "count_of_iap_buffer_full" section value of Local Policy Table.
 ---------------------------------------------------------------------------------------------
-
---[[ General configuration parameters ]]
-Test = require('connecttest')
-local config = require('config')
 config.defaultProtocolVersion = 2
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 
 --[[ Required Shared libraries ]]
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require ('user_modules/shared_testcases/commonSteps')
+
+commonSteps:DeletePolicyTable()
+commonSteps:DeleteLogsFiles()
+--[[ General configuration parameters ]]
+Test = require('connecttest')
+local config = require('config')
 require('user_modules/AppTypes')
 
 --[[ Local Variables ]]
-
+local hmi_iap_buffer_full = 5
 local TESTED_DATA = {
   policy_table = {
     usage_and_error_counts = {
       count_sync_out_of_memory = 0,
-      count_of_iap_buffer_full = 5,
+      count_of_iap_buffer_full = hmi_iap_buffer_full,
       count_of_sync_reboots = 0
     }
   }
@@ -152,24 +154,24 @@ function Test.checkLocalPT(checkTable)
     if actualLocalPtValues then
       comparationResult = isValuesCorrect(actualLocalPtValues, expectedLocalPtValues)
       if not comparationResult then
-        TestData:store(table.concat({"Test ", queryString, " failed: SDL has wrong values in LocalPT"}))
-        TestData:store("ExpectedLocalPtValues")
+        --TestData:store(table.concat({"Test ", queryString, " failed: SDL has wrong values in LocalPT"}))
+        --TestData:store("ExpectedLocalPtValues")
         commonFunctions:userPrint(31, table.concat({"Test ", queryString, " failed: SDL has wrong values in LocalPT"}))
         commonFunctions:userPrint(35, "ExpectedLocalPtValues")
         for _, values in pairs(expectedLocalPtValues) do
-          TestData:store(values)
+          --TestData:store(values)
           print(values)
         end
-        TestData:store("ActualLocalPtValues")
+        --TestData:store("ActualLocalPtValues")
         commonFunctions:userPrint(35, "ActualLocalPtValues")
         for _, values in pairs(actualLocalPtValues) do
-          TestData:store(values)
+          --TestData:store(values)
           print(values)
         end
         isTestPass = false
       end
     else
-      TestData:store("Test failed: Can't get data from LocalPT")
+      --TestData:store("Test failed: Can't get data from LocalPT")
       commonFunctions:userPrint(31, "Test failed: Can't get data from LocalPT")
       isTestPass = false
     end
@@ -192,7 +194,7 @@ end
 commonFunctions:newTestCasesGroup("Test")
 
 function Test:HMIsendAddStatisticsInfo()
-  for _ = 1, 2 do
+  for _ = 1, hmi_iap_buffer_full do
     os.execute("sleep 2")
     self:addStatisticsInfo("iAPP_BUFFER_FULL")
   end
@@ -223,7 +225,7 @@ function Test:StopSDL2()
 end
 
 function Test:CheckPTUinLocalPT()
-  TestData:store("Store LocalPT after SDL.AddStatisticsInfo", constructPathToDatabase(), "policy.sqlite" )
+  --TestData:store("Store LocalPT after SDL.AddStatisticsInfo", constructPathToDatabase(), "policy.sqlite" )
   local checks = {
     {
       query = 'select count_of_iap_buffer_full, count_sync_out_of_memory, count_of_sync_reboots from usage_and_error_count',
@@ -244,9 +246,8 @@ end
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
 
-function Test.Postcondition()
-  --commonSteps:DeletePolicyTable()
-  TestData:info()
+function Test.Postcondition_StopSDL()
+  StopSDL()
 end
 
 return Test
