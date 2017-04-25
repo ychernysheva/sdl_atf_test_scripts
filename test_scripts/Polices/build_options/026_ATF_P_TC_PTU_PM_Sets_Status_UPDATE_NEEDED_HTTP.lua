@@ -25,11 +25,12 @@ config.defaultProtocolVersion = 2
 local mobile_session = require("mobile_session")
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
+local commonTestCases = require ('user_modules/shared_testcases/commonTestCases')
 
 --[[ Local variables ]]
 local sequence = { }
-local ts_on_system_request = nil
-local ts_on_status_update = nil
+local ts_on_system_request = 0
+local ts_on_status_update = 0
 
 local r_expected_timeout = 60
 local attempts = (r_expected_timeout / 5) + 1
@@ -89,14 +90,14 @@ function Test:RAI_PTU()
     function(_, d1)
       log("SDL->HMI: N: BC.OnAppRegistered")
       self.applications[config.application1.registerAppInterfaceParams.appID] = d1.params.application.appID
-      EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate")
+      EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"}, {status = "UPDATING"}, {status = "UPDATE_NEEDED"}, {status = "UPDATING"})
       :Do(function(_, d)
           log("SDL->HMI: N: SDL.OnStatusUpdate", d.params.status)
           if d.params.status == "UPDATE_NEEDED" then
             ts_on_status_update = os.time()
           end
         end)
-      :Times(AnyNumber())
+      :Times(4)
       :Pin()
       -- workaround due to issue in Mobile API: APPLINK-30390
       local onSystemRequestRecieved = false
@@ -104,13 +105,13 @@ function Test:RAI_PTU()
       :Do(
         function(e2, d2)
           print(e2.occurences .. ":" .. d2.payload.requestType)
+          log("SDL->MOB: N: OnSystemRequest, RequestType: " .. d2.payload.requestType)
           if (not onSystemRequestRecieved) and (d2.payload.requestType == "HTTP") then
             onSystemRequestRecieved = true
             ts_on_system_request = os.time()
-            log("SDL->MOB: N: OnSystemRequest")
           end
         end)
-      :Times(AnyNumber())
+      :Times(3) -- LOCK_SCREEN_ICON_URL, HTTP, HTTP
       :Pin()
     end)
   self.mobileSession:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
@@ -127,17 +128,18 @@ function Test:RAI_PTU()
         function()
           log("SDL->MOB: N: OnPermissionsChange")
         end)
-      :Times(1)
     end)
+
+  commonTestCases:DelayedExp(65000) -- wait exchange_after_x_seconds(t0) + tollerance 5 sec
 end
 
 Test["Starting waiting cycle [" .. attempts * 5 .. "] sec"] = function() end
 
-for i = 1, attempts do
-  Test["Waiting " .. i * 5 .. " sec"] = function()
-    os.execute("sleep 5")
-  end
-end
+-- for i = 1, attempts do
+-- Test["Waiting " .. i * 5 .. " sec"] = function()
+-- os.execute("sleep 5")
+-- end
+-- end
 
 function Test.ShowSequence()
   show_log()
