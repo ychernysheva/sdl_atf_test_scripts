@@ -30,6 +30,7 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
+local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 local testCasesForRAI = require('user_modules/shared_testcases/testCasesForRAI')
 local mobile_session = require('mobile_session')
 
@@ -183,6 +184,7 @@ function Test:Precondition_InitHMI_OnReady()
       }}
     })
   end)
+  commonTestCases:DelayedExp(5000) 
 end
 
 function Test:Precondition_connectMobile()
