@@ -11,7 +11,7 @@
 -- Connect device not from LPT
 --
 -- Expected result:
--- SDL must add new <device identifier> section in "device_data" section
+-- SDL must add new device in deviceList of BasicCommunication.UpdateDeviceList
 ---------------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
