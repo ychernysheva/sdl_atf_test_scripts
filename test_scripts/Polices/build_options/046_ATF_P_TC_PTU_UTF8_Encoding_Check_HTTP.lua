@@ -114,12 +114,19 @@ require("user_modules/AppTypes")
 
 --[[ Specific Notifications ]]
 function Test:RegisterNotification()
+  local request_http_received = false
   self.mobileSession:ExpectNotification("OnSystemRequest")
   :Do(function(_, d)
-      ptu = json.decode(d.binaryData)
+      if(d.payload.requestType == "HTTP") then
+        request_http_received = true
+        ptu = json.decode(d.binaryData)
+      end
     end)
-  :Times(AtLeast(1))
-  :Pin()
+  :Times(2)
+
+  if(request_http_received == false) then
+    self:FailTestCase("OnSystemRequest with requestType = HTTP is not received at all")
+  end
 end
 
 --[[ Preconditions ]]
@@ -133,41 +140,53 @@ function Test.DeletePTUFile()
 end
 
 function Test:ValidatePTS()
-  if ptu.policy_table.consumer_friendly_messages.messages then
-    self:FailTestCase("Expected absence of 'consumer_friendly_messages.messages' section in PTS")
+  if (ptu == nil) then
+    self:FailTestCase("ptu is empty")
+  else
+    if ptu.policy_table.consumer_friendly_messages.messages then
+      self:FailTestCase("Expected absence of 'consumer_friendly_messages.messages' section in PTS")
+    end
   end
 end
 
-function Test.UpdatePTS()
-  ptu.policy_table.device_data = nil
-  ptu.policy_table.usage_and_error_counts = nil
-  ptu.policy_table.app_policies["0000001"] = { keep_context = false, steal_focus = false, priority = "NONE", default_hmi = "NONE" }
-  ptu.policy_table.app_policies["0000001"]["groups"] = { "Base-4", "Base-6" }
-  ptu.policy_table.functional_groupings["DataConsent-2"].rpcs = json.null
-  -- updating specific parameters
-  ptu.policy_table.consumer_friendly_messages.messages = {
-    ["AppPermissions"] = { ["languages"] = { ["en-us"] = { }}},
-    ["AppPermissionsHelp"] = { ["languages"] = { ["en-us"] = { }}}}
-  ptu.policy_table.consumer_friendly_messages.messages["AppPermissions"]["languages"]["en-us"].tts = "表示您同意_1"
-  ptu.policy_table.consumer_friendly_messages.messages["AppPermissions"]["languages"]["en-us"].label = "Метка"
-  ptu.policy_table.consumer_friendly_messages.messages["AppPermissions"]["languages"]["en-us"].line1 = "LINE1"
-  ptu.policy_table.consumer_friendly_messages.messages["AppPermissions"]["languages"]["en-us"].line2 = "LINE2"
-  ptu.policy_table.consumer_friendly_messages.messages["AppPermissions"]["languages"]["en-us"].textBody = "TEXTBODY"
-  ptu.policy_table.consumer_friendly_messages.messages["AppPermissionsHelp"]["languages"]["en-us"].tts = "授權請求_2"
+function Test:UpdatePTS()
+  if (ptu == nil) then
+    self:FailTestCase("ptu is empty")
+  else
+    ptu.policy_table.device_data = nil
+    ptu.policy_table.usage_and_error_counts = nil
+    ptu.policy_table.app_policies["0000001"] = { keep_context = false, steal_focus = false, priority = "NONE", default_hmi = "NONE" }
+    ptu.policy_table.app_policies["0000001"]["groups"] = { "Base-4", "Base-6" }
+    ptu.policy_table.functional_groupings["DataConsent-2"].rpcs = json.null
+    -- updating specific parameters
+    ptu.policy_table.consumer_friendly_messages.messages = {
+      ["AppPermissions"] = { ["languages"] = { ["en-us"] = { }}},
+      ["AppPermissionsHelp"] = { ["languages"] = { ["en-us"] = { }}}}
+    ptu.policy_table.consumer_friendly_messages.messages["AppPermissions"]["languages"]["en-us"].tts = "表示您同意_1"
+    ptu.policy_table.consumer_friendly_messages.messages["AppPermissions"]["languages"]["en-us"].label = "Метка"
+    ptu.policy_table.consumer_friendly_messages.messages["AppPermissions"]["languages"]["en-us"].line1 = "LINE1"
+    ptu.policy_table.consumer_friendly_messages.messages["AppPermissions"]["languages"]["en-us"].line2 = "LINE2"
+    ptu.policy_table.consumer_friendly_messages.messages["AppPermissions"]["languages"]["en-us"].textBody = "TEXTBODY"
+    ptu.policy_table.consumer_friendly_messages.messages["AppPermissionsHelp"]["languages"]["en-us"].tts = "授權請求_2"
+  end
 end
 
-function Test.StorePTSInFile()
-  local f = io.open(f_name, "w")
-  f:write(json.encode(ptu))
-  f:close()
+function Test:StorePTSInFile()
+  if (ptu == nil) then
+    self:FailTestCase("ptu is empty")
+  else
+    local f = io.open(f_name, "w")
+    f:write(json.encode(ptu))
+    f:close()
+  end
 end
 
 function Test:Precondition_Successful_PTU()
   local corId = self.mobileSession:SendRPC("SystemRequest", { requestType = "HTTP", fileName = policy_file_name }, f_name)
   log("MOB->SDL: SystemRequest")
   EXPECT_RESPONSE(corId, { success = true, resultCode = "SUCCESS" })
-  :Do(function(_, _)
-      log("SUCCESS: SystemRequest")
+  :Do(function(_, data)
+      log(data.payload.resultCode .. ": SystemRequest")
     end)
 end
 
@@ -200,10 +219,11 @@ end
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
 function Test.Clean()
-  -- os.remove(f_name)
+  os.remove(f_name)
 end
 
 function Test.Postcondition_Stop_SDL()
   StopSDL()
 end
+
 return Test
