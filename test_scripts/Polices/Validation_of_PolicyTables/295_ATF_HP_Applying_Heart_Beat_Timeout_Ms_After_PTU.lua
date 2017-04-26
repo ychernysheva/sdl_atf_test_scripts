@@ -10,7 +10,8 @@
 -- 1. Used preconditions:
 -- a) Set SDL in first life cycle state
 -- b) Set HeartBeatTimeout = 7000 in .ini file
--- c) Register app where heart_beat_timeout_ms = 4000 for pre_DataConsent section
+-- c) Register app, activate, consent device and update policy where heart_beat_timeout_ms = 4000 for pre_DataConsent section
+-- d) Send OnAllowSDLFunctionality allowed = false to assign pre_DataConsent permission to app
 -- 2. Performed steps
 -- a) Check heartBeat time sent from SDL
 --
@@ -36,7 +37,6 @@ local HBTime_min = 0
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
 commonPreconditions:Connecttest_without_ExitBySDLDisconnect_WithoutOpenConnectionRegisterApp("connecttest_ConnectMobile.lua")
-testCasesForPolicyTable:Precondition_updatePolicy_By_overwriting_preloaded_pt("files/ptu_heart_beat_timeout_ms_app_1234567.json")
 commonPreconditions:BackupFile("smartDeviceLink.ini")
 commonFunctions:write_parameter_to_smart_device_link_ini("HeartBeatTimeout", "7000")
 
@@ -70,14 +70,42 @@ local function DelayedExp(time)
     self.mobileSession:StartService(7)
   end
 
-  function Test:Precondition_Register_App_With_heart_beat_timeout_ms_Param()
+  function Test:Precondition_RegisterApp()
     local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
     EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
     :Do(function(_,data)
+        self.applications[config.application1.registerAppInterfaceParams.appName] = data.params.application.appID
         self.HMIAppID = data.params.application.appID
       end)
     self.mobileSession:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS" })
     self.mobileSession:ExpectNotification("OnHMIStatus", {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
+  end
+
+  function Test:Precondition_Activate_Consent_App()
+    testCasesForPolicyTable:trigger_getting_device_consent(self, config.application1.registerAppInterfaceParams.appName, config.deviceMAC)
+  end
+
+  function Test:Precondition_Update_Policy_With_heart_beat_timeout_ms_Param()
+    testCasesForPolicyTable:flow_SUCCEESS_EXTERNAL_PROPRIETARY(self, config.application1.registerAppInterfaceParams.appID, config.deviceMAC,
+      self.HMIAppID, nil, nil, "ptu_heart_beat_timeout_ms_app_1234567.json")
+  end
+
+  function Test:Precondition_HMI_sends_OnAllowSDLFunctionality()
+    self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", {allowed = false, source = "GUI"})
+    self.mobileSession:ExpectNotification("OnPermissionsChange")
+  end
+
+  function Test:Precondition_Check_App_PreDataConsent()
+    local cid = self.mobileSession:SendRPC("AddCommand", {
+        cmdID = 1,
+        menuParams = { parentID = 0, position = 0, menuName ="Commandpositive1" },
+        vrCommands = { "VRCommandonepositive1", "VRCommandonepositivedouble1"}})
+
+    EXPECT_HMICALL("UI.AddCommand"):Times(0)
+    EXPECT_HMICALL("VR.AddCommand"):Times(0)
+    EXPECT_RESPONSE(cid, { success = false, resultCode = "DISALLOWED" })
+
+    DelayedExp(10000)
   end
 
   --[[ Test ]]
@@ -95,7 +123,7 @@ local function DelayedExp(time)
 
       self.mobileSession:ExpectEvent(event, "Heartbeat")
       :ValidIf(function()
-          print("Heartbeat = "..timestamp().."ms")
+          print("HeartBeat received: "..timestamp().."ms")
           self.mobileSession:Send(
             { frameType = constants.FRAME_TYPE.CONTROL_FRAME,
               serviceType = constants.SERVICE_TYPE.CONTROL,
