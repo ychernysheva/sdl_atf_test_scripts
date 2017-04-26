@@ -288,7 +288,7 @@ function Test.preparePreloadedPT()
 end
 
 local function activateAppInSpecificLevel(self, HMIAppID, hmi_level)
-  local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = HMIAppID, level = hmi_level})
+  local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = HMIAppID})
 
   EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = hmi_level, systemContext = "MAIN" })
   --hmi side: expect SDL.ActivateApp response
