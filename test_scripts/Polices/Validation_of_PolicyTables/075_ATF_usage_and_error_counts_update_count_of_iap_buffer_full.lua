@@ -23,18 +23,18 @@ local commonSteps = require ('user_modules/shared_testcases/commonSteps')
 
 commonSteps:DeletePolicyTable()
 commonSteps:DeleteLogsFiles()
+
 --[[ General configuration parameters ]]
 Test = require('connecttest')
-local config = require('config')
 require('user_modules/AppTypes')
 
 --[[ Local Variables ]]
-local hmi_iap_buffer_full = 5
+
 local TESTED_DATA = {
   policy_table = {
     usage_and_error_counts = {
       count_sync_out_of_memory = 0,
-      count_of_iap_buffer_full = hmi_iap_buffer_full,
+      count_of_iap_buffer_full = 5,
       count_of_sync_reboots = 0
     }
   }
@@ -194,7 +194,7 @@ end
 commonFunctions:newTestCasesGroup("Test")
 
 function Test:HMIsendAddStatisticsInfo()
-  for _ = 1, hmi_iap_buffer_full do
+  for _ = 1, 2 do
     os.execute("sleep 2")
     self:addStatisticsInfo("iAPP_BUFFER_FULL")
   end
@@ -210,6 +210,9 @@ end
 
 function Test:InitHMI()
   self:initHMI()
+end
+
+function Test:InitHMI_onReady()
   self:initHMI_onReady()
 end
 
@@ -246,7 +249,7 @@ end
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
 
-function Test.Postcondition_StopSDL()
+function Test.Postcondition()
   StopSDL()
 end
 
