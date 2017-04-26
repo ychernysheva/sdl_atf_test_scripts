@@ -33,7 +33,6 @@ local ts_on_system_request = 0
 local ts_on_status_update = 0
 
 local r_expected_timeout = 60
-local attempts = (r_expected_timeout / 5) + 1
 
 --[[ Local Functions ]]
 local function timestamp()
@@ -83,6 +82,7 @@ end
 commonFunctions:newTestCasesGroup("Test")
 
 function Test:RAI_PTU()
+  print("Starting waiting cycle of 65 sec")
   local corId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
   log("MOB->SDL: RQ: RegisterAppInterface")
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application1.registerAppInterfaceParams.appName } })
@@ -98,8 +98,7 @@ function Test:RAI_PTU()
           end
         end)
       :Times(4)
-      :Pin()
-      -- workaround due to issue in Mobile API: APPLINK-30390
+
       local onSystemRequestRecieved = false
       self.mobileSession:ExpectNotification("OnSystemRequest")
       :Do(
@@ -112,7 +111,7 @@ function Test:RAI_PTU()
           end
         end)
       :Times(3) -- LOCK_SCREEN_ICON_URL, HTTP, HTTP
-      :Pin()
+
     end)
   self.mobileSession:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
   :Do(
@@ -133,7 +132,7 @@ function Test:RAI_PTU()
   commonTestCases:DelayedExp(65000) -- wait exchange_after_x_seconds(t0) + tollerance 5 sec
 end
 
-Test["Starting waiting cycle [" .. attempts * 5 .. "] sec"] = function() end
+-- Test["Starting waiting cycle [" .. attempts * 5 .. "] sec"] = function() end
 
 -- for i = 1, attempts do
 -- Test["Waiting " .. i * 5 .. " sec"] = function()
