@@ -1,0 +1,17 @@
+./test_scripts/RC/REVSDL-1577/02_REVSDL-1577.lua
+./test_scripts/RC/REVSDL-1827/07.01_REVSDL-1827.lua
+./test_scripts/RC/REVSDL-1577/02_REVSDL-1577.lua
+./test_scripts/RC/REVSDL-1827/07.01_REVSDL-1827.lua
+./test_scripts/RC/REVSDL-1827/07_REVSDL-1827.lua
+./test_scripts/RC/REVSDL-1827/12.01_REVSDL-1827.lua
+./test_scripts/RC/REVSDL-1827/12_REVSDL-1827.lua
+./test_scripts/RC/REVSDL-1954/01.01_REVSDL-1954.lua
+./test_scripts/RC/REVSDL-1954/01_REVSDL-1954.lua
+./test_scripts/RC/REVSDL-1954/02.01_REVSDL-1954.lua
+./test_scripts/RC/REVSDL-1954/02_REVSDL-1954.lua
+./test_scripts/RC/REVSDL-1954/03.01_REVSDL-1954.lua
+./test_scripts/RC/REVSDL-1954/03_REVSDL-1954.lua
+./test_scripts/RC/REVSDL-1954/04_REVSDL-1954.luas
+./test_scripts/RC/REVSDL-831/03_REVSDL-831.lua
+./test_scripts/RC/REVSDL-846/05_REVSDL-846.lua
+./test_scripts/Smoke/Registration/ATF_Register_5_connection.lua
