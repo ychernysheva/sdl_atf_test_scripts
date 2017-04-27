@@ -1,4 +1,7 @@
 ---------------------------------------------------------------------------------------------
+-- Requirement summary:
+-- [Policy] Preloaded PT exists at the path defined in .ini file but NO "read" permissions
+--
 -- Description:
 -- Behavior of SDL during start SDL with Preloaded PT file without read permissions
 -- 1. Used preconditions:
@@ -7,9 +10,6 @@
 -- 2. Performed steps:
 -- Create correct PreloadedPolicyTable file without read permissions
 -- Start SDL
-
--- Requirement summary:
--- [Policy] Preloaded PT exists at the path defined in .ini file but NO "read" permissions
 --
 -- Expected result:
 -- PolicyManager shut SDL down
@@ -61,20 +61,20 @@ function Test.TestStep_start_sdl()
   os.execute("sleep 5")
 end
 
-function Test:TestStep_checkSdl_Running()
-  testCasesForExternalUCS.checkSDLStatus(self, sdl.RUNNING)
+function Test:TestStep_checkSdl_Stop()
+  testCasesForExternalUCS.checkSDLStatus(self, sdl.STOPPED)
 end
 
 function Test:TestStep_CheckSDLLogError()
   --function will return true in case error is observed in smartDeviceLink.log
   local result = testCasesForPolicySDLErrorsStops.ReadSpecificMessage("Policy table is not initialized.")
-  if (result == true) then
-    self:FailTestCase("Error: message 'Policy table is not initialized.' is observed in smartDeviceLink.log.")
+  if (result ~= true) then
+    self:FailTestCase("Error: message 'Policy table is not initialized.' is not observed in smartDeviceLink.log.")
   end
 
   result = testCasesForPolicySDLErrorsStops.ReadSpecificMessage("BasicCommunication.OnSDLClose")
-  if (result == true) then
-    self:FailTestCase("Error: 'BasicCommunication.OnSDLClose' is observed in smartDeviceLink.log.")
+  if (result ~= true) then
+    self:FailTestCase("Error: 'BasicCommunication.OnSDLClose' is not observed in smartDeviceLink.log.")
   end
 end
 
