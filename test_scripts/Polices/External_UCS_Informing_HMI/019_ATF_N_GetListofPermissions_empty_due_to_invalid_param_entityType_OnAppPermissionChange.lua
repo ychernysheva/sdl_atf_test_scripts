@@ -98,6 +98,9 @@ for i = 1, #params_invalid_data do
 
     testCasesForPolicyTable:flow_SUCCEESS_EXTERNAL_PROPRIETARY(self, nil, nil, nil, ptu_file_path, nil, ptu_file)
 
+    EXPECT_NOTIFICATION("OnPermissionsChange")
+    :Do(function() print("SDL->mob: OnPermissionsChange time: " .. timestamp()) end)
+
     EXPECT_HMINOTIFICATION("SDL.OnAppPermissionChanged",{ appID = self.applications[config.application1.registerAppInterfaceParams.appName]})
     :Do(function(_,data)
         if (data.params.appPermissionsConsentNeeded== true) then
@@ -124,7 +127,7 @@ for i = 1, #params_invalid_data do
                       },
                       source = "GUI"
                     })
-                  EXPECT_NOTIFICATION("OnPermissionsChange"):Times(0)
+                  print("SDL->HMI: SDL.OnAppPermissionConsent time: ".. timestamp())
                   commonTestCases:DelayedExp(10000)
                 end)
             end)
