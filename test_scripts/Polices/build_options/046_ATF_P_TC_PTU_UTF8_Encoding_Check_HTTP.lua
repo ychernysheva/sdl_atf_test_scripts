@@ -24,6 +24,7 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
 local commonSteps = require("user_modules/shared_testcases/commonSteps")
 local json = require("modules/json")
+local mobile_session = require('mobile_session')
 
 --[[ Local Variables ]]
 local db_file = config.pathToSDL .. "/" .. commonFunctions:read_parameter_from_smart_device_link_ini("AppStorageFolder") .. "/policy.sqlite"
@@ -32,6 +33,7 @@ local policy_file_name = "PolicyTableUpdate"
 local f_name = os.tmpname()
 local ptu
 local sequence = { }
+local request_http_received = false
 
 --[[ Local Functions ]]
 local function timestamp()
@@ -108,22 +110,41 @@ commonSteps:DeleteLogsFileAndPolicyTable()
 config.defaultProtocolVersion = 2
 
 --[[ General Settings for configuration ]]
-Test = require("connecttest")
+Test = require("user_modules/connecttest_resumption")
 require('cardinalities')
 require("user_modules/AppTypes")
 
 --[[ Specific Notifications ]]
-function Test:RegisterNotification()
-  local request_http_received = false
-  self.mobileSession:ExpectNotification("OnSystemRequest")
+function Test:Precondition_connectMobile()
+  self:connectMobile()
+end
+
+function Test:Precondition_StartSession()
+  self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
+  self.mobileSession:StartService(7)
+end
+
+--[[ Preconditions ]]
+commonFunctions:newTestCasesGroup ("Preconditions")
+function Test:Precondition_RegisterApp_trigger()
+  local CorIdRegister = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
+
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application1.registerAppInterfaceParams.appName }})
+  EXPECT_RESPONSE(CorIdRegister, { success = true, resultCode = "SUCCESS" })
+  EXPECT_NOTIFICATION("OnHMIStatus", { systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE"})
+
+  EXPECT_NOTIFICATION("OnSystemRequest")
   :Do(function(_, d)
+      print("SDL->MOB: OnSystemRequest, requestType: "..d.payload.requestType)
       if(d.payload.requestType == "HTTP") then
         request_http_received = true
         ptu = json.decode(d.binaryData)
       end
     end)
   :Times(2)
+end
 
+function Test:CheckNotifications()
   if(request_http_received == false) then
     self:FailTestCase("OnSystemRequest with requestType = HTTP is not received at all")
   end
