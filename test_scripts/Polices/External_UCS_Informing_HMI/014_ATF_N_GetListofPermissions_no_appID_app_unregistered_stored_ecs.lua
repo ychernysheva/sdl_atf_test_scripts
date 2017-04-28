@@ -57,7 +57,7 @@ function Test:Precondition_PTU_and_OnAppPermissionConsent_AllParams_First_Applic
   local time_onAppPermissionChanged = 0
 
   EXPECT_NOTIFICATION("OnPermissionsChange")
-  :Times(2)
+  :Times(AnyNumber())
   :ValidIf(function(exp)
       local time = timestamp()
       print("SDL->mob: OnPermissionsChange time: " .. time)

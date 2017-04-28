@@ -92,9 +92,6 @@ function Test:Precondition_PTU_and_OnAppPermissionConsent_entityStatus_missing()
                     source = "GUI"
                   })
 
-                EXPECT_NOTIFICATION("OnPermissionsChange")
-                :Do(function() print("SDL->mob: OnPermissionsChange time: " .. timestamp()) end)
-
                 commonTestCases:DelayedExp(10000)
               end)
           end)
