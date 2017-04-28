@@ -313,15 +313,15 @@ function Test:TestStep_VerifyNewLocalPT()
     },
     {
       query = 'select language_code from message where message_type_name = "VehicleInfo"',
-      expectedValues = {TESTED_DATA[1].key, TESTED_DATA[2].key}
+      expectedValues = {TESTED_DATA[2].key}
     },
     {
       query = 'select tts from message where message_type_name = "VehicleInfo"',
-      expectedValues = {TESTED_DATA[1].tts, TESTED_DATA[2].tts}
+      expectedValues = {TESTED_DATA[2].tts}
     },
     {
       query = 'select label from message where message_type_name = "VehicleInfo"',
-      expectedValues = {TESTED_DATA[1].label, TESTED_DATA[2].label}
+      expectedValues = {TESTED_DATA[2].label}
     }
   }
   if not self.checkLocalPT(checks) then
