@@ -50,8 +50,23 @@ end
 function Test:Precondition_PTU_and_OnAppPermissionConsent_AllParams_Valid()
   local ptu_file_path = "files/jsons/Policies/Related_HMI_API/"
   local ptu_file = "OnAppPermissionConsent_ptu.json"
-  
-  testCasesForPolicyTable:flow_SUCCEESS_EXTERNAL_PROPRIETARY(self, nil, nil, nil, ptu_file_path, nil, ptu_file)
+  local time_onAppPermissionChanged = 0
+
+  EXPECT_NOTIFICATION("OnPermissionsChange")
+  :Times(AnyNumber())
+  :ValidIf(function(exp)
+      local time = timestamp()
+      print("SDL->mob: OnPermissionsChange time: " .. time)
+      if (exp.occurences == 2) then
+        if (time < time_onAppPermissionChanged) then
+          commonFunctions:printError("Second OnPermissionsChange is received before OnAppPermissionConsent")
+          return false
+        else
+          return true
+        end
+      end
+      return true
+    end)
 
   EXPECT_HMINOTIFICATION("SDL.OnAppPermissionChanged",{ appID = self.applications[config.application1.registerAppInterfaceParams.appName]})
   :Do(function(_,data)
@@ -85,14 +100,17 @@ function Test:Precondition_PTU_and_OnAppPermissionConsent_AllParams_Valid()
                     },
                     source = "GUI"
                   })
-                EXPECT_NOTIFICATION("OnPermissionsChange")
+                time_onAppPermissionChanged = timestamp()
+                print("SDL->HMI: SDL.OnAppPermissionConsent time: ".. time_onAppPermissionChanged)
               end)
-        end)
+          end)
       else
         commonFunctions:userPrint(31, "Wrong SDL bahavior: there are app permissions for consent, isPermissionsConsentNeeded should be true")
         return false
       end
-  end)
+    end)
+
+  testCasesForPolicyTable:flow_SUCCEESS_EXTERNAL_PROPRIETARY(self, nil, nil, nil, ptu_file_path, nil, ptu_file)
 end
 
 --[[ Test ]]
@@ -115,8 +133,8 @@ end
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
 
-function Test.Postcondition_Stop_SDL() 
-	
+function Test.Postcondition_Stop_SDL()
+
   StopSDL()
 end
 

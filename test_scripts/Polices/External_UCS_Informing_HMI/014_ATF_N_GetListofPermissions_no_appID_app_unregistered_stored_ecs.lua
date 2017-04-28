@@ -54,8 +54,23 @@ end
 function Test:Precondition_PTU_and_OnAppPermissionConsent_AllParams_First_Application()
   local ptu_file_path = "files/jsons/Policies/Related_HMI_API/"
   local ptu_file = "OnAppPermissionConsent_ptu.json"
+  local time_onAppPermissionChanged = 0
 
-  testCasesForPolicyTable:flow_SUCCEESS_EXTERNAL_PROPRIETARY(self, nil, nil, nil, ptu_file_path, nil, ptu_file)
+  EXPECT_NOTIFICATION("OnPermissionsChange")
+  :Times(AnyNumber())
+  :ValidIf(function(exp)
+      local time = timestamp()
+      print("SDL->mob: OnPermissionsChange time: " .. time)
+      if (exp.occurences == 2) then
+        if (time < time_onAppPermissionChanged) then
+          commonFunctions:printError("Second OnPermissionsChange is received before OnAppPermissionConsent")
+          return false
+        else
+          return true
+        end
+      end
+      return true
+    end)
 
   EXPECT_HMINOTIFICATION("SDL.OnAppPermissionChanged",{ appID = self.applications[config.application1.registerAppInterfaceParams.appName]})
   :Do(function(_,data)
@@ -69,7 +84,7 @@ function Test:Precondition_PTU_and_OnAppPermissionConsent_AllParams_First_Applic
               },
               externalConsentStatus = {}
             }
-        })
+          })
         :Do(function()
             local ReqIDGetUserFriendlyMessage = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage",
               {language = "EN-US", messageCodes = {"AppPermissions"}})
@@ -89,14 +104,17 @@ function Test:Precondition_PTU_and_OnAppPermissionConsent_AllParams_First_Applic
                     },
                     source = "GUI"
                   })
-                EXPECT_NOTIFICATION("OnPermissionsChange")
-            end)
-        end)
+                time_onAppPermissionChanged = timestamp()
+                print("SDL->HMI: SDL.OnAppPermissionConsent time: ".. time_onAppPermissionChanged)
+              end)
+          end)
       else
         commonFunctions:userPrint(31, "Wrong SDL bahavior: there are app permissions for consent, isPermissionsConsentNeeded should be true")
         return false
       end
-  end)
+    end)
+
+  testCasesForPolicyTable:flow_SUCCEESS_EXTERNAL_PROPRIETARY(self, nil, nil, nil, ptu_file_path, nil, ptu_file)
 end
 
 function Test:Precondition_StartSecondSession()
@@ -108,11 +126,11 @@ function Test:Preconditon_RegisterSecondApplication()
   local CorIdRegister = self.mobileSession1:SendRPC("RegisterAppInterface", config.application2.registerAppInterfaceParams)
 
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application2.registerAppInterfaceParams.appName }})
-  :Do(function(_,data) 
-    self.applications[config.application2.registerAppInterfaceParams.appName] = data.params.application.appID 
-    hmi_appid = self.applications[config.application2.registerAppInterfaceParams.appName]
-  end)
-  
+  :Do(function(_,data)
+      self.applications[config.application2.registerAppInterfaceParams.appName] = data.params.application.appID
+      hmi_appid = self.applications[config.application2.registerAppInterfaceParams.appName]
+    end)
+
   self.mobileSession1:ExpectResponse(CorIdRegister, { success=true, resultCode = "SUCCESS"})
   self.mobileSession1:ExpectNotification("OnHMIStatus", { systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE"})
 end

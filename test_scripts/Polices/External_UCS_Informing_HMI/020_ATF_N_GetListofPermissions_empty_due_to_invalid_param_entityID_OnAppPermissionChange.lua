@@ -96,43 +96,46 @@ for i = 1, #params_invalid_data do
       }
     end
 
-    testCasesForPolicyTable:flow_SUCCEESS_EXTERNAL_PROPRIETARY(self, nil, nil, nil, ptu_file_path, nil, ptu_file)
+    EXPECT_NOTIFICATION("OnPermissionsChange")
+    :Do(function() print("SDL->mob: OnPermissionsChange time: " .. timestamp()) end)
 
     EXPECT_HMINOTIFICATION("SDL.OnAppPermissionChanged",{ appID = self.applications[config.application1.registerAppInterfaceParams.appName]})
     :Do(function(_,data)
-      if (data.params.appPermissionsConsentNeeded== true) then
-        local RequestIdListOfPermissions = self.hmiConnection:SendRequest("SDL.GetListOfPermissions", {appID = self.applications[config.application1.registerAppInterfaceParams.appName]})
+        if (data.params.appPermissionsConsentNeeded== true) then
+          local RequestIdListOfPermissions = self.hmiConnection:SendRequest("SDL.GetListOfPermissions", {appID = self.applications[config.application1.registerAppInterfaceParams.appName]})
           EXPECT_HMIRESPONSE(RequestIdListOfPermissions,{result = {code = 0, method = "SDL.GetListOfPermissions",
-            -- allowed: If ommited - no information about User Consent is yet found for app.
-            allowedFunctions = allowed_func,
-            externalConsentStatus = {}
-          }
-        })
-        :Do(function()
-          local ReqIDGetUserFriendlyMessage = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage",
-          {language = "EN-US", messageCodes = {"AppPermissions"}})
-         
-          EXPECT_HMIRESPONSE(ReqIDGetUserFriendlyMessage,
-          {result = {code = 0, messages = {{messageCode = "AppPermissions"}}, method = "SDL.GetUserFriendlyMessage"}})
-          :Do(function(_,_)
-            self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent",
-            {
-              appID = self.applications[config.application1.registerAppInterfaceParams.appName],
-              consentedFunctions = consentedgroups,
-              externalConsentStatus = {
-                {entityType = 13, entityID = params_invalid_data[i].param_value, status = "ON"}
-              },
-              source = "GUI"
+                -- allowed: If ommited - no information about User Consent is yet found for app.
+                allowedFunctions = allowed_func,
+                externalConsentStatus = {}
+              }
             })
-            EXPECT_NOTIFICATION("OnPermissionsChange"):Times(0)
-            commonTestCases:DelayedExp(10000)
-          end)
-        end)
-      else
-        commonFunctions:userPrint(31, "Wrong SDL bahavior: there are app permissions for consent, isPermissionsConsentNeeded should be true")
-        return false
-      end
-    end)
+          :Do(function()
+              local ReqIDGetUserFriendlyMessage = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage",
+                {language = "EN-US", messageCodes = {"AppPermissions"}})
+
+              EXPECT_HMIRESPONSE(ReqIDGetUserFriendlyMessage,
+                {result = {code = 0, messages = {{messageCode = "AppPermissions"}}, method = "SDL.GetUserFriendlyMessage"}})
+              :Do(function(_,_)
+                  self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent",
+                    {
+                      appID = self.applications[config.application1.registerAppInterfaceParams.appName],
+                      consentedFunctions = consentedgroups,
+                      externalConsentStatus = {
+                        {entityType = 13, entityID = params_invalid_data[i].param_value, status = "ON"}
+                      },
+                      source = "GUI"
+                    })
+                  print("SDL->HMI: SDL.OnAppPermissionConsent time: ".. timestamp())
+                  commonTestCases:DelayedExp(10000)
+                end)
+            end)
+        else
+          commonFunctions:userPrint(31, "Wrong SDL bahavior: there are app permissions for consent, isPermissionsConsentNeeded should be true")
+          return false
+        end
+      end)
+
+    testCasesForPolicyTable:flow_SUCCEESS_EXTERNAL_PROPRIETARY(self, nil, nil, nil, ptu_file_path, nil, ptu_file)
   end
 
   --[[ Test ]]
@@ -149,10 +152,10 @@ for i = 1, #params_invalid_data do
       }
     end
     EXPECT_HMIRESPONSE(RequestIdListOfPermissions, {
-      code = "0",
-      allowedFunctions = allowed_func,
-      externalConsentStatus = {}
-    })
+        code = "0",
+        allowedFunctions = allowed_func,
+        externalConsentStatus = {}
+      })
   end
 end
 

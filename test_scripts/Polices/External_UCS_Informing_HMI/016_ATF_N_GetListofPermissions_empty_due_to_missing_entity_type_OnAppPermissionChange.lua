@@ -55,8 +55,9 @@ end
 function Test:Precondition_PTU_and_OnAppPermissionConsent_entityType_missing()
   local ptu_file_path = "files/jsons/Policies/Related_HMI_API/"
   local ptu_file = "OnAppPermissionConsent_ptu.json"
-  
-  testCasesForPolicyTable:flow_SUCCEESS_EXTERNAL_PROPRIETARY(self, nil, nil, nil, ptu_file_path, nil, ptu_file)
+
+  EXPECT_NOTIFICATION("OnPermissionsChange")
+  :Do(function() print("SDL->mob: OnPermissionsChange time: " .. timestamp()) end)
 
   EXPECT_HMINOTIFICATION("SDL.OnAppPermissionChanged",{ appID = self.applications[config.application1.registerAppInterfaceParams.appName]})
   :Do(function(_,data)
@@ -90,15 +91,17 @@ function Test:Precondition_PTU_and_OnAppPermissionConsent_entityType_missing()
                     },
                     source = "GUI"
                   })
-                EXPECT_NOTIFICATION("OnPermissionsChange"):Times(0)
+                print("SDL->HMI: SDL.OnAppPermissionConsent time: ".. timestamp())
                 commonTestCases:DelayedExp(10000)
               end)
-        end)
+          end)
       else
         commonFunctions:userPrint(31, "Wrong SDL bahavior: there are app permissions for consent, isPermissionsConsentNeeded should be true")
         return false
       end
-  end)
+    end)
+
+  testCasesForPolicyTable:flow_SUCCEESS_EXTERNAL_PROPRIETARY(self, nil, nil, nil, ptu_file_path, nil, ptu_file)
 end
 
 --[[ Test ]]
@@ -108,19 +111,19 @@ function Test:TestStep_GetListofPermissions_entityType_missing()
   local RequestIdListOfPermissions = self.hmiConnection:SendRequest("SDL.GetListOfPermissions", {appID = self.applications[config.application1.registerAppInterfaceParams.appName]})
 
   EXPECT_HMIRESPONSE(RequestIdListOfPermissions, {
-    code = "0",
-    allowedFunctions = {
-    { name = "Location", id = 156072572},
-    { name = "Notifications", id = 1809526495}
-    },
-    externalConsentStatus = {}
-  })
+      code = "0",
+      allowedFunctions = {
+        { name = "Location", id = 156072572},
+        { name = "Notifications", id = 1809526495}
+      },
+      externalConsentStatus = {}
+    })
 end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
 
-function Test.Postcondition_Stop_SDL() 
+function Test.Postcondition_Stop_SDL()
   StopSDL()
 end
 
