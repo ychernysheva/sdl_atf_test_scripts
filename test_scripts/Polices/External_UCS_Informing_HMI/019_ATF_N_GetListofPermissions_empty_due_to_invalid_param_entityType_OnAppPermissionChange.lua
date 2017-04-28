@@ -96,8 +96,6 @@ for i = 1, #params_invalid_data do
       }
     end
 
-    testCasesForPolicyTable:flow_SUCCEESS_EXTERNAL_PROPRIETARY(self, nil, nil, nil, ptu_file_path, nil, ptu_file)
-
     EXPECT_NOTIFICATION("OnPermissionsChange")
     :Do(function() print("SDL->mob: OnPermissionsChange time: " .. timestamp()) end)
 
@@ -136,6 +134,8 @@ for i = 1, #params_invalid_data do
           return false
         end
       end)
+
+    testCasesForPolicyTable:flow_SUCCEESS_EXTERNAL_PROPRIETARY(self, nil, nil, nil, ptu_file_path, nil, ptu_file)
   end
 
   --[[ Test ]]

@@ -56,8 +56,6 @@ function Test:Precondition_PTU_and_OnAppPermissionConsent_entityStatus_missing()
   local ptu_file_path = "files/jsons/Policies/Related_HMI_API/"
   local ptu_file = "OnAppPermissionConsent_ptu.json"
 
-  testCasesForPolicyTable:flow_SUCCEESS_EXTERNAL_PROPRIETARY(self, nil, nil, nil, ptu_file_path, nil, ptu_file)
-
   EXPECT_NOTIFICATION("OnPermissionsChange")
   :Do(function() print("SDL->mob: OnPermissionsChange time: " .. timestamp()) end)
 
@@ -105,6 +103,8 @@ function Test:Precondition_PTU_and_OnAppPermissionConsent_entityStatus_missing()
         return false
       end
     end)
+
+  testCasesForPolicyTable:flow_SUCCEESS_EXTERNAL_PROPRIETARY(self, nil, nil, nil, ptu_file_path, nil, ptu_file)
 end
 
 --[[ Test ]]

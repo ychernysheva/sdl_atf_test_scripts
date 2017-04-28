@@ -52,8 +52,6 @@ function Test:Precondition_PTU_and_OnAppPermissionConsent_Empty()
   local ptu_file = "OnAppPermissionConsent_ptu.json"
   local time_onAppPermissionChanged = 0
 
-  testCasesForPolicyTable:flow_SUCCEESS_EXTERNAL_PROPRIETARY(self, nil, nil, nil, ptu_file_path, nil, ptu_file)
-
   EXPECT_NOTIFICATION("OnPermissionsChange")
   :Times(2)
   :ValidIf(function(exp)
@@ -108,6 +106,8 @@ function Test:Precondition_PTU_and_OnAppPermissionConsent_Empty()
         return false
       end
     end)
+
+  testCasesForPolicyTable:flow_SUCCEESS_EXTERNAL_PROPRIETARY(self, nil, nil, nil, ptu_file_path, nil, ptu_file)
 end
 
 --[[ Test ]]
