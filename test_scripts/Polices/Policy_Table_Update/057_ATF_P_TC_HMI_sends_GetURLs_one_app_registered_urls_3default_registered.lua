@@ -86,35 +86,6 @@ function Test:TestStep_PTU_GetURLs()
     end)
 end
 
---[[ Test ]]
-commonFunctions:newTestCasesGroup("Test")
-function Test:TestStep_PTU_GetURLs_AppRegistered()
-  local is_test_fail = false
-  local policy_endpoints = {}
-
-  local sevices_table = commonFunctions:get_data_policy_sql(config.pathToSDL.."/storage/policy.sqlite", "select service from endpoint")
-
-  for _, value in pairs(sevices_table) do
-    policy_endpoints[#policy_endpoints + 1] = { found = false, service = value }
-    --TODO(istoimenova): Should be updated when policy defect is fixed
-    if ( value == "4" or value == "7" or value == "1") then
-      policy_endpoints[#policy_endpoints].found = true
-    end
-  end
-
-  for i = 1, #policy_endpoints do
-    if(policy_endpoints[i].found == false) then
-      commonFunctions:printError("endpoints for service "..policy_endpoints[i].service .. " should not be observed." )
-      is_test_fail = true
-    end
-  end
-
-  if(is_test_fail == true) then
-    self:FailTestCase("Test is FAILED. See prints.")
-  end
-
-end
-
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
 testCasesForPolicyTable:Restore_preloaded_pt()
