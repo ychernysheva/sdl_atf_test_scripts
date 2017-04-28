@@ -25,6 +25,7 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
+local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 local json = require('json')
 --[[ Local Variables ]]
 local HMIAppID2
@@ -202,6 +203,8 @@ function Test:UpdatePolicyAfterAddApps_ExpectOnHMIStatusNotCall()
   -- Expect after updating HMI status will not change
   self.mobileSession:ExpectNotification("OnHMIStatus"):Times(0)
   self.mobileSession2:ExpectNotification("OnHMIStatus"):Times(0)
+
+  commonTestCases:DelayedExp(10000)
 end
 
 --[[ Postconditions ]]
