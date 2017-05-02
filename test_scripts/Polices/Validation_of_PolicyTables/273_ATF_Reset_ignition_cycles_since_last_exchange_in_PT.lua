@@ -28,6 +28,7 @@ config.application1.registerAppInterfaceParams.appHMIType = { "MEDIA" }
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
+local commonTestCases = require ('user_modules/shared_testcases/commonTestCases')
 
 --[[ Local variables ]]
 local ignition_cycles_before_ptu
@@ -84,6 +85,7 @@ end
 
 function Test:Precondition_InitOnready()
   self:initHMI_onReady()
+  commonTestCases:DelayedExp(10000)
 end
 
 function Test:Precondition_StartNewSession()

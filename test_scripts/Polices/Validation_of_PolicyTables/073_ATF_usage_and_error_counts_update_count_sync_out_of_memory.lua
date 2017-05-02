@@ -215,7 +215,7 @@ end
 
 function Test:InitHMI_OnReady2()
   self:initHMI_onReady()
-
+  commonTestCases:DelayedExp(10000)
 end
 function Test:HMIsendOnSystemError2()
   for _ = 1, 4 do
