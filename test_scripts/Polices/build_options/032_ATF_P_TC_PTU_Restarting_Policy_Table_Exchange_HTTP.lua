@@ -161,61 +161,62 @@ local function DelayedExp(time)
           maxNumberRFCOMMPorts = 1
         }
       })
-    EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "HTTP"})
-    :ValidIf(function(exp,_)
+    EXPECT_NOTIFICATION("OnSystemRequest")
+    :ValidIf(function(exp,data)
+        if(data.payload.requestType == "HTTP") then
+          if exp.occurences == 2 then
+            startPTUtime = os.time()
+            firstTryTime = startPTUtime + timeout_after_x_seconds + seconds_between_retries[1]
+            return true
+          end
 
-        if exp.occurences == 1 then
-          startPTUtime = os.time()
-          firstTryTime = startPTUtime + timeout_after_x_seconds + seconds_between_retries[1]
-          return true
-        end
+          if exp.occurences == 3 and firstTryTime == os.time() then
+            secondTryTime = timeout_after_x_seconds + firstTryTime + seconds_between_retries[2]
+            print ("first retry time: " .. os.time())
+            return true
+          elseif exp.occurences == 2 and firstTryTime ~= os.time() then
+            print ("Wrong first retry time! Expected: " .. timeout[1] .. " Actual: " .. os.time() - startPTUtime)
+            return false
+          end
 
-        if exp.occurences == 2 and firstTryTime == os.time() then
-          secondTryTime = timeout_after_x_seconds + firstTryTime + seconds_between_retries[2]
-          print ("first retry time: " .. os.time())
-          return true
-        elseif exp.occurences == 2 and firstTryTime ~= os.time() then
-          print ("Wrong first retry time! Expected: " .. timeout[1] .. " Actual: " .. os.time() - startPTUtime)
-          return false
-        end
+          if exp.occurences == 4 and secondTryTime == os.time() then
+            thirdTryTime = timeout_after_x_seconds + secondTryTime + seconds_between_retries[3]
+            print ("second retry time: " .. os.time())
+            return true
+          elseif exp.occurences == 2 and secondTryTime ~= os.time() then
+            print ("Wrong second retry time! Expected: " .. timeout[2] .. " Actual: " .. os.time() - firstTryTime)
+            return false
+          end
 
-        if exp.occurences == 3 and secondTryTime == os.time() then
-          thirdTryTime = timeout_after_x_seconds + secondTryTime + seconds_between_retries[3]
-          print ("second retry time: " .. os.time())
-          return true
-        elseif exp.occurences == 2 and secondTryTime ~= os.time() then
-          print ("Wrong second retry time! Expected: " .. timeout[2] .. " Actual: " .. os.time() - firstTryTime)
-          return false
-        end
+          if exp.occurences == 5 and thirdTryTime == os.time() then
+            print ("third retry time: " .. os.time())
+            return true
+          elseif exp.occurences == 2 and thirdTryTime ~= os.time() then
+            print ("Wrong third retry time! Expected: " .. timeout[3] .. " Actual: " .. os.time() - secondTryTime)
+            return false
+          end
 
-        if exp.occurences == 4 and thirdTryTime == os.time() then
-          print ("third retry time: " .. os.time())
-          return true
-        elseif exp.occurences == 2 and thirdTryTime ~= os.time() then
-          print ("Wrong third retry time! Expected: " .. timeout[3] .. " Actual: " .. os.time() - secondTryTime)
-          return false
-        end
+          if exp.occurences == 6 and fourthTryTime == os.time() then
+            print ("fourth retry time: " .. os.time())
+            return true
+          elseif exp.occurences == 2 and fourthTryTime ~= os.time() then
+            print ("Wrong fourth retry time! Expected: " .. timeout[4] .. " Actual: " .. os.time() - thirdTryTime)
+            return false
+          end
 
-        if exp.occurences == 5 and fourthTryTime == os.time() then
-          print ("fourth retry time: " .. os.time())
-          return true
-        elseif exp.occurences == 2 and fourthTryTime ~= os.time() then
-          print ("Wrong fourth retry time! Expected: " .. timeout[4] .. " Actual: " .. os.time() - thirdTryTime)
-          return false
-        end
-
-        if exp.occurences == 6 and fifthTryTime == os.time() then
-          print ("fifth retry time: " .. os.time())
-          return true
-        elseif exp.occurences == 2 and fifthTryTime ~= os.time() then
-          print ("Wrong fifth retry time! Expected: " .. timeout[5] .. " Actual: " .. os.time() - fifthTryTime)
-          return false
+          if exp.occurences == 7 and fifthTryTime == os.time() then
+            print ("fifth retry time: " .. os.time())
+            return true
+          elseif exp.occurences == 2 and fifthTryTime ~= os.time() then
+            print ("Wrong fifth retry time! Expected: " .. timeout[5] .. " Actual: " .. os.time() - fifthTryTime)
+            return false
+          end
         end
 
         return false
 
       end)
-    :Times(#seconds_between_retries + 1)
+    :Times(#seconds_between_retries + 2) -- 6 HTTP, 1 LOCK_SCREEN_ICON_URL
 
     DelayedExp((timeout[1] + timeout[2] + timeout[3] + timeout[4] + timeout[5] + timeout[6])*1000) --msec
     EXPECT_RESPONSE(CorIdRAI, { success = true, resultCode = "SUCCESS"})
