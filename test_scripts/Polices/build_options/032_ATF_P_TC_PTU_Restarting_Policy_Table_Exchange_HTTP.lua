@@ -28,12 +28,19 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 config.defaultProtocolVersion = 2
 
 --[[ Required Shared libraries ]]
-local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require ('user_modules/shared_testcases/commonSteps')
+local events = require('events')
 
 --[[ Local Variables ]]
-local seconds_between_retries = {1, 5, 25}
-local timeout_after_x_seconds = 60
+local seconds_between_retries = {1, 1, 1, 1, 1} -- in min
+local timeout_after_x_seconds = 30 -- in sec
+local timeout = {} -- in sec
+timeout[1] = timeout_after_x_seconds
+timeout[2] = timeout[1] + seconds_between_retries[1]*60
+timeout[3] = timeout[1] + timeout[2] + seconds_between_retries[2]*60
+timeout[4] = timeout[1] + timeout[3] + seconds_between_retries[3]*60
+timeout[5] = timeout[1] + timeout[4] + seconds_between_retries[4]*60
+timeout[6] = timeout[1] + timeout[5] + seconds_between_retries[5]*60
 
 --[[ General Settings for configuration ]]
 Test = require('connecttest')
@@ -74,156 +81,181 @@ local function DelayedExp(time)
   local event = events.Event()
   event.matches = function(self, e) return self == e end
   EXPECT_EVENT(event, "Delayed event")
-    :Timeout(time + 1000)
+  :Timeout(time + 1000)
   RUN_AFTER(function()
-  RAISE_EVENT(event, event)
-  end, time)
-end
+      RAISE_EVENT(event, event)
+      end, time)
+  end
 
---[[ Preconditions ]]
-function Test:Precondition_StopSDL()
-  StopSDL()
-end
+  --[[ Preconditions ]]
+  function Test.Precondition_StopSDL()
+    StopSDL()
+  end
 
-function Test:Precondition_DeleteLogsAndPolicyTable()
-  commonSteps:DeleteLogsFiles()
-  commonSteps:DeletePolicyTable()
-end
+  function Test.Precondition_DeleteLogsAndPolicyTable()
+    commonSteps:DeleteLogsFiles()
+    commonSteps:DeletePolicyTable()
+  end
 
-function Test:Precondition_Backup_sdl_preloaded_pt()
-  BackupPreloaded()
-end
+  function Test.Precondition_Backup_sdl_preloaded_pt()
+    BackupPreloaded()
+  end
 
-function Test:Precondition_Set_Set_Retry_Values_In_Preloaded_File()
-  SetRetryValuesInPreloadedFile()
-end
+  function Test.Precondition_Set_Set_Retry_Values_In_Preloaded_File()
+    SetRetryValuesInPreloadedFile()
+  end
 
-function Test:Precondition_StartSDL_FirstLifeCycle()
-  StartSDL(config.pathToSDL, config.ExitOnCrash)
-end
+  function Test.Precondition_StartSDL_FirstLifeCycle()
+    StartSDL(config.pathToSDL, config.ExitOnCrash)
+  end
 
-function Test:Precondition_InitHMI_FirstLifeCycle()
-  self:initHMI()
-end
+  function Test:Precondition_InitHMI_FirstLifeCycle()
+    self:initHMI()
+  end
 
-function Test:Precondition_InitHMI_onReady_FirstLifeCycle()
-  self:initHMI_onReady()
-end
+  function Test:Precondition_InitHMI_onReady_FirstLifeCycle()
+    self:initHMI_onReady()
+  end
 
-function Test:Precondition_ConnectMobile_FirstLifeCycle()
-  self:connectMobile()
-end
+  function Test:Precondition_ConnectMobile_FirstLifeCycle()
+    self:connectMobile()
+  end
 
-function Test:Precondition_StartSession()
-  self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
-  self.mobileSession:StartService(7)
-end
+  function Test:Precondition_StartSession()
+    self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
+    self.mobileSession:StartService(7)
+  end
 
-function Test:Precondition_RestorePreloadedPT()
-  RestorePreloadedPT()
-end
+  function Test.Precondition_RestorePreloadedPT()
+    RestorePreloadedPT()
+  end
 
---[[ Test ]]
-function Test:TestStep_Register_App_And_Check_Retry_Timeouts()
-  local startPTUtime
-  local firstTryTime
-  local secondTryTime
-  local thirdTryTime
-  local CorIdRAI = self.mobileSession:SendRPC("RegisterAppInterface",
-    {
-      syncMsgVersion =
+  --[[ Test ]]
+  function Test:TestStep_Register_App_And_Check_Retry_Timeouts()
+    print("Wait retry sequence to elapse: " .. (timeout[1] + timeout[2] + timeout[3] + timeout[4] + timeout[5] + timeout[6]) .. "sec.")
+    local startPTUtime = 0
+    local firstTryTime = 0
+    local secondTryTime = 0
+    local thirdTryTime = 0
+    local fourthTryTime = 0
+    local fifthTryTime = 0
+
+    local CorIdRAI = self.mobileSession:SendRPC("RegisterAppInterface",
       {
-        majorVersion = 3,
-        minorVersion = 0
-      },
-      appName = "AppName",
-      isMediaApplication = true,
-      languageDesired = "EN-US",
-      hmiDisplayLanguageDesired = "EN-US",
-      appID = "1234567",
-      deviceInfo =
+        syncMsgVersion =
+        {
+          majorVersion = 3,
+          minorVersion = 0
+        },
+        appName = "AppName",
+        isMediaApplication = true,
+        languageDesired = "EN-US",
+        hmiDisplayLanguageDesired = "EN-US",
+        appID = "1234567",
+        deviceInfo =
+        {
+          os = "Android",
+          carrier = "Megafon",
+          firmwareRev = "Name: Linux, Version: 3.4.0-perf",
+          osVersion = "4.4.2",
+          maxNumberRFCOMMPorts = 1
+        }
+      })
+    EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "HTTP"})
+    :ValidIf(function(exp,_)
+
+        if exp.occurences == 1 then
+          startPTUtime = os.time()
+          firstTryTime = startPTUtime + timeout_after_x_seconds + seconds_between_retries[1]
+          return true
+        end
+
+        if exp.occurences == 2 and firstTryTime == os.time() then
+          secondTryTime = timeout_after_x_seconds + firstTryTime + seconds_between_retries[2]
+          print ("first retry time: " .. os.time())
+          return true
+        elseif exp.occurences == 2 and firstTryTime ~= os.time() then
+          print ("Wrong first retry time! Expected: " .. timeout[1] .. " Actual: " .. os.time() - startPTUtime)
+          return false
+        end
+
+        if exp.occurences == 3 and secondTryTime == os.time() then
+          thirdTryTime = timeout_after_x_seconds + secondTryTime + seconds_between_retries[3]
+          print ("second retry time: " .. os.time())
+          return true
+        elseif exp.occurences == 2 and secondTryTime ~= os.time() then
+          print ("Wrong second retry time! Expected: " .. timeout[2] .. " Actual: " .. os.time() - firstTryTime)
+          return false
+        end
+
+        if exp.occurences == 4 and thirdTryTime == os.time() then
+          print ("third retry time: " .. os.time())
+          return true
+        elseif exp.occurences == 2 and thirdTryTime ~= os.time() then
+          print ("Wrong third retry time! Expected: " .. timeout[3] .. " Actual: " .. os.time() - secondTryTime)
+          return false
+        end
+
+        if exp.occurences == 5 and fourthTryTime == os.time() then
+          print ("fourth retry time: " .. os.time())
+          return true
+        elseif exp.occurences == 2 and fourthTryTime ~= os.time() then
+          print ("Wrong fourth retry time! Expected: " .. timeout[4] .. " Actual: " .. os.time() - thirdTryTime)
+          return false
+        end
+
+        if exp.occurences == 6 and fifthTryTime == os.time() then
+          print ("fifth retry time: " .. os.time())
+          return true
+        elseif exp.occurences == 2 and fifthTryTime ~= os.time() then
+          print ("Wrong fifth retry time! Expected: " .. timeout[5] .. " Actual: " .. os.time() - fifthTryTime)
+          return false
+        end
+
+        return false
+
+      end)
+    :Times(#seconds_between_retries + 1)
+
+    DelayedExp((timeout[1] + timeout[2] + timeout[3] + timeout[4] + timeout[5] + timeout[6])*1000) --msec
+    EXPECT_RESPONSE(CorIdRAI, { success = true, resultCode = "SUCCESS"})
+  end
+
+  function Test:TestStep_StartSession2()
+    self.mobileSession2 = mobile_session.MobileSession(self, self.mobileConnection)
+    self.mobileSession2:StartService(7)
+  end
+
+  function Test:TestStep_Register_New_App_And_Check_New_PTU_Starting()
+    local CorIdRAI2 = self.mobileSession2:SendRPC("RegisterAppInterface",
       {
-        os = "Android",
-        carrier = "Megafon",
-        firmwareRev = "Name: Linux, Version: 3.4.0-perf",
-        osVersion = "4.4.2",
-        maxNumberRFCOMMPorts = 1
-      }
-    })
-EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "HTTP"})
-:ValidIf(function(exp,_)
+        syncMsgVersion =
+        {
+          majorVersion = 3,
+          minorVersion = 0
+        },
+        appName = "AnotherAppName",
+        isMediaApplication = true,
+        languageDesired = "EN-US",
+        hmiDisplayLanguageDesired = "EN-US",
+        appID = "7654321",
+        deviceInfo =
+        {
+          os = "Android",
+          carrier = "Megafon",
+          firmwareRev = "Name: Linux, Version: 3.4.0-perf",
+          osVersion = "4.4.2",
+          maxNumberRFCOMMPorts = 1
+        }
+      })
+    EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "LOCK_SCREEN_ICON_URL"}, {requestType = "HTTP"})
+    EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"}, {status = "UPDATING"}):Times(2)
+    self.mobileSession2:ExpectResponse(CorIdRAI2, {success = true, resultCode = "SUCCESS"})
+  end
 
-if exp.occurences == 1 then 
-  startPTUtime = os.time()
-  firstTryTime = startPTUtime + timeout_after_x_seconds + seconds_between_retries[1]
-  return true
-end
+  --[[ Postconditions ]]
+  function Test.Postcondition_SDLStop()
+    StopSDL()
+  end
 
-if exp.occurences == 2 and firstTryTime == os.time() then 
-  secondTryTime = timeout_after_x_seconds + firstTryTime + seconds_between_retries[2]
-  print ("first retry time: " .. os.time())
-  return true
-  elseif exp.occurences == 2 and firstTryTime ~= os.time() then 
-    print ("Wrong first retry time! Expected: " .. timeout_after_x_seconds + seconds_between_retries[1] .. " Actual: " .. os.time() - startPTUtime)
-    return false
-end
-
-if exp.occurences == 3 and secondTryTime == os.time() then 
-  thirdTryTime = timeout_after_x_seconds + secondTryTime + seconds_between_retries[3]
-  print ("second retry time: " .. os.time())
-  return true
-  elseif exp.occurences == 2 and secondTryTime ~= os.time() then 
-    print ("Wrong second retry time! Expected: " .. timeout_after_x_seconds + seconds_between_retries[2] .. " Actual: " .. os.time() - firstTryTime)
-    return false
-end
-
-if exp.occurences == 4 and thirdTryTime == os.time() then 
-  print ("third retry time: " .. os.time())
-  return true
-  elseif exp.occurences == 2 and thirdTryTime ~= os.time() then 
-    print ("Wrong third retry time! Expected: " .. timeout_after_x_seconds + seconds_between_retries[3] .. " Actual: " .. os.time() - secondTryTime)
-    return false
-end
-return false
-
-end):Times(#seconds_between_retries + 1)
-DelayedExp(timeout_after_x_seconds + seconds_between_retries[1] + seconds_between_retries[2] + seconds_between_retries[3])
-EXPECT_RESPONSE(CorIdRAI, { success = true, resultCode = "SUCCESS"})  
-end
-
-function Test:TestStep_StartSession2()
-  self.mobileSession2 = mobile_session.MobileSession(self, self.mobileConnection)
-  self.mobileSession2:StartService(7)
-end
-
-function Test:TestStep_Register_New_App_And_Check_New_PTU_Starting()
-local CorIdRAI2 = self.mobileSession2:SendRPC("RegisterAppInterface",
-    {
-      syncMsgVersion =
-      {
-        majorVersion = 3,
-        minorVersion = 0
-      },
-      appName = "AnotherAppName",
-      isMediaApplication = true,
-      languageDesired = "EN-US",
-      hmiDisplayLanguageDesired = "EN-US",
-      appID = "7654321",
-      deviceInfo =
-      {
-        os = "Android",
-        carrier = "Megafon",
-        firmwareRev = "Name: Linux, Version: 3.4.0-perf",
-        osVersion = "4.4.2",
-        maxNumberRFCOMMPorts = 1
-      }
-    })
-  EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "HTTP"})
-  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
-  self.mobileSession2:ExpectResponse(CorIdRAI2, {success = true, resultCode = "SUCCESS"})
-end
-
---[[ Postconditions ]]
-function Test:Postcondition_SDLStop()
-  StopSDL()
-end
+  return Test
