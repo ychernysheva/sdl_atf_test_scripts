@@ -40,7 +40,7 @@ local ptu_file = os.tmpname()
 local sequence = { }
 local attempts_1 = 0
 
-local attempts_2 = { 30, 90, 180, 270, 360, 450 }
+local attempts_2 = { 30, 31, 62, 93, 124, 155 }
 local r_expected_1_status = { "UPDATE_NEEDED", "UPDATING"}
 local r_expected_2_status = { "UPDATE_NEEDED", "UPDATING", -- trigger PTU, start t0
   "UPDATE_NEEDED", "UPDATING", -- elapsed to, start t1
