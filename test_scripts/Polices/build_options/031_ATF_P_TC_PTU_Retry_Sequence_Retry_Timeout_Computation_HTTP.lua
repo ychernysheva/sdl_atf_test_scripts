@@ -49,9 +49,9 @@ local f_name = os.tmpname()
 local ptu
 local sequence = { }
 local accuracy = 5
-local r_expected = { 30, 90, 180, 270, 360} -- 450 is for finish retry sequence
+local r_expected = { 30, 31, 62, 93, 124} -- 155 is for finish retry sequence
 local r_actual = { }
-local attempts = ( 30 + 90 + 180 + 270 + 360 )
+local attempts = ( 30 + 31 + 62 + 93 + 124 )
 local timestamps = { 0, 0, 0, 0, 0, 0 }
 
 --[[ Local Functions ]]
