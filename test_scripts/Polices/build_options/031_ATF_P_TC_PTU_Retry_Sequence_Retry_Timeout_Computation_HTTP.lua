@@ -39,6 +39,7 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 local mobileSession = require("mobile_session")
 local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
 local commonSteps = require("user_modules/shared_testcases/commonSteps")
+local commonPreconditions = require("user_modules/shared_testcases/commonPreconditions")
 local json = require("modules/json")
 
 --[[ Local Variables ]]
@@ -48,10 +49,10 @@ local f_name = os.tmpname()
 local ptu
 local sequence = { }
 local accuracy = 5
-local r_expected = { 11, 22, 33 }
+local r_expected = { 30, 90, 180, 270, 360} -- 450 is for finish retry sequence
 local r_actual = { }
-local attempts = 15
-local timestamps = { }
+local attempts = ( 30 + 90 + 180 + 270 + 360 )
+local timestamps = { 0, 0, 0, 0, 0, 0 }
 
 --[[ Local Functions ]]
 local function timestamp()
@@ -136,20 +137,46 @@ function Test.DeletePTUFile()
 end
 
 function Test:ValidatePTS()
-  if ptu.policy_table.consumer_friendly_messages.messages then
-    self:FailTestCase("Expected absence of 'consumer_friendly_messages.messages' section in PTS")
+  if(ptu == nil) then
+    self:FailTestCase("Binary data is empty")
+  else
+    if ptu.policy_table.consumer_friendly_messages.messages then
+      self:FailTestCase("Expected absence of 'consumer_friendly_messages.messages' section in PTS")
+    end
   end
 end
 
-function Test.UpdatePTS()
-  ptu.policy_table.device_data = nil
-  ptu.policy_table.usage_and_error_counts = nil
-  ptu.policy_table.app_policies["0000001"] = { keep_context = false, steal_focus = false, priority = "NONE", default_hmi = "NONE" }
-  ptu.policy_table.app_policies["0000001"]["groups"] = { "Base-4", "Base-6" }
-  ptu.policy_table.functional_groupings["DataConsent-2"].rpcs = json.null
-  -- updating parameters in order to speed up the process
-  ptu.policy_table.module_config.seconds_between_retries = { 1, 1, 1 }
-  ptu.policy_table.module_config.timeout_after_x_seconds = 10
+function Test:UpdatePTS()
+  if(ptu == nil) then
+    local config_path = commonPreconditions:GetPathToSDL()
+    local pathToFile = config_path .. 'sdl_preloaded_pt.json'
+
+    local file = io.open(pathToFile, "r")
+    local json_data = file:read("*all")
+    file:close()
+
+    ptu = json.decode(json_data)
+
+    ptu.policy_table.device_data = nil
+    ptu.policy_table.usage_and_error_counts = nil
+    ptu.policy_table.app_policies["0000001"] = { keep_context = false, steal_focus = false, priority = "NONE", default_hmi = "NONE" }
+    ptu.policy_table.app_policies["0000001"]["groups"] = { "Base-4", "Base-6" }
+    ptu.policy_table.functional_groupings["DataConsent-2"].rpcs = json.null
+    -- updating parameters in order to speed up the process
+    ptu.policy_table.module_config.seconds_between_retries = { 1, 1, 1, 1, 1 }
+    ptu.policy_table.module_config.timeout_after_x_seconds = 30
+
+    self:FailTestCase("Binary data is empty. Preloaded file will be used")
+  else
+    ptu.policy_table.device_data = nil
+    ptu.policy_table.usage_and_error_counts = nil
+    ptu.policy_table.app_policies["0000001"] = { keep_context = false, steal_focus = false, priority = "NONE", default_hmi = "NONE" }
+    ptu.policy_table.app_policies["0000001"]["groups"] = { "Base-4", "Base-6" }
+    ptu.policy_table.functional_groupings["DataConsent-2"].rpcs = json.null
+    -- updating parameters in order to speed up the process
+    ptu.policy_table.module_config.seconds_between_retries = { 1, 1, 1, 1, 1 }
+    ptu.policy_table.module_config.timeout_after_x_seconds = 30
+  end
 end
 
 function Test.StorePTSInFile()
@@ -177,15 +204,18 @@ end
 
 function Test:RegisterNotification()
   self.mobileSession:ExpectNotification("OnSystemRequest", { requestType = "HTTP" })
-  :Do(function()
-      log("SDL->MOB: OnSystemRequest")
+  :Do(function(_, data)
+      print("SDL->MOB: OnSystemRequest, requestType: " .. data.payload.requestType)
+      log("SDL->MOB: OnSystemRequest, requestType: " .. data.payload.requestType)
       table.insert(timestamps, os.time())
     end)
   :Times(AnyNumber())
   :Pin()
+
   self.mobileSession2:ExpectNotification("OnSystemRequest", { requestType = "HTTP" })
-  :Do(function()
-      log("SDL->MOB2: OnSystemRequest")
+  :Do(function(_, data)
+      print("SDL->MOB: OnSystemRequest, requestType: " .. data.payload.requestType)
+      log("SDL->MOB2: OnSystemRequest, requestType: " .. data.payload.requestType)
       table.insert(timestamps, os.time())
     end)
   :Times(AnyNumber())
@@ -205,9 +235,9 @@ function Test:TestStep_RegisterNewApp()
   self.mobileSession2:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
 end
 
-Test["TestStep_Starting waiting cycle [" .. attempts * 5 .. "] sec"] = function() end
+Test["TestStep_Starting waiting cycle [" .. attempts .. "] sec"] = function() end
 
-for i = 1, attempts do
+for i = 1, (attempts/5) do
   Test["Waiting " .. i * 5 .. " sec"] = function()
     os.execute("sleep 5")
   end
@@ -223,8 +253,8 @@ function Test.TestStep_ShowTimeouts()
   print("--------------------------------------------------")
 end
 
-function Test:TestStep_ValidateResult()
-  for i = 1, #r_expected do
+for i = 1, #r_expected do
+  Test["TestStep_ValidateResult_retry_sequence_" .. i] = function(self)
     if (r_actual[i] < get_min(r_expected[i], accuracy))
     or (r_actual[i] > get_max(r_expected[i], accuracy))
     then
