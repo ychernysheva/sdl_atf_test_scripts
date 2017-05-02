@@ -36,11 +36,11 @@ local seconds_between_retries = {1, 1, 1, 1, 1} -- in min
 local timeout_after_x_seconds = 30 -- in sec
 local timeout = {} -- in sec
 timeout[1] = timeout_after_x_seconds
-timeout[2] = timeout[1] + seconds_between_retries[1]*60
-timeout[3] = timeout[1] + timeout[2] + seconds_between_retries[2]*60
-timeout[4] = timeout[1] + timeout[3] + seconds_between_retries[3]*60
-timeout[5] = timeout[1] + timeout[4] + seconds_between_retries[4]*60
-timeout[6] = timeout[1] + timeout[5] + seconds_between_retries[5]*60
+timeout[2] = timeout[1] + seconds_between_retries[1]
+timeout[3] = timeout[1] + timeout[2] + seconds_between_retries[2]
+timeout[4] = timeout[1] + timeout[3] + seconds_between_retries[3]
+timeout[5] = timeout[1] + timeout[4] + seconds_between_retries[4]
+timeout[6] = timeout[1] + timeout[5] + seconds_between_retries[5]
 
 --[[ General Settings for configuration ]]
 Test = require('connecttest')
