@@ -164,14 +164,15 @@ local function DelayedExp(time)
     EXPECT_NOTIFICATION("OnSystemRequest")
     :ValidIf(function(exp,data)
         if(data.payload.requestType == "HTTP") then
+
           if exp.occurences == 2 then
             startPTUtime = os.time()
-            firstTryTime = startPTUtime + timeout_after_x_seconds + seconds_between_retries[1]
+            firstTryTime = timeout[1]
             return true
           end
 
           if exp.occurences == 3 and firstTryTime == os.time() then
-            secondTryTime = timeout_after_x_seconds + firstTryTime + seconds_between_retries[2]
+            secondTryTime = timeout[2]
             print ("first retry time: " .. os.time())
             return true
           elseif exp.occurences == 2 and firstTryTime ~= os.time() then
@@ -180,26 +181,28 @@ local function DelayedExp(time)
           end
 
           if exp.occurences == 4 and secondTryTime == os.time() then
-            thirdTryTime = timeout_after_x_seconds + secondTryTime + seconds_between_retries[3]
+            thirdTryTime = timeout[3]
             print ("second retry time: " .. os.time())
             return true
-          elseif exp.occurences == 2 and secondTryTime ~= os.time() then
+          elseif exp.occurences == 3 and secondTryTime ~= os.time() then
             print ("Wrong second retry time! Expected: " .. timeout[2] .. " Actual: " .. os.time() - firstTryTime)
             return false
           end
 
           if exp.occurences == 5 and thirdTryTime == os.time() then
+            fourthTryTime = timeout[4]
             print ("third retry time: " .. os.time())
             return true
-          elseif exp.occurences == 2 and thirdTryTime ~= os.time() then
+          elseif exp.occurences == 4 and thirdTryTime ~= os.time() then
             print ("Wrong third retry time! Expected: " .. timeout[3] .. " Actual: " .. os.time() - secondTryTime)
             return false
           end
 
           if exp.occurences == 6 and fourthTryTime == os.time() then
+            fifthTryTime = timeout[5]
             print ("fourth retry time: " .. os.time())
             return true
-          elseif exp.occurences == 2 and fourthTryTime ~= os.time() then
+          elseif exp.occurences == 5 and fourthTryTime ~= os.time() then
             print ("Wrong fourth retry time! Expected: " .. timeout[4] .. " Actual: " .. os.time() - thirdTryTime)
             return false
           end
@@ -207,7 +210,7 @@ local function DelayedExp(time)
           if exp.occurences == 7 and fifthTryTime == os.time() then
             print ("fifth retry time: " .. os.time())
             return true
-          elseif exp.occurences == 2 and fifthTryTime ~= os.time() then
+          elseif exp.occurences == 6 and fifthTryTime ~= os.time() then
             print ("Wrong fifth retry time! Expected: " .. timeout[5] .. " Actual: " .. os.time() - fifthTryTime)
             return false
           end
