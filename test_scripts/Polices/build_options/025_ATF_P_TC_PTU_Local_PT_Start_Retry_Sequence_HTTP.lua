@@ -33,7 +33,7 @@ local commonSteps = require("user_modules/shared_testcases/commonSteps")
 --[[ Local Variables ]]
 local sequence = { }
 local attempts = 15
-local timestamps = { }
+local timestamps = {0, 0}
 local r_expected = 61
 local r_actual
 local r_expected_status = { "UPDATE_NEEDED", "UPDATING", "UPDATE_NEEDED", "UPDATING" }
