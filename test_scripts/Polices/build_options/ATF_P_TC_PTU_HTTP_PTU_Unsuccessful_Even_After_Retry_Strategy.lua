@@ -30,6 +30,7 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 local mobileSession = require("mobile_session")
 local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
 local commonSteps = require("user_modules/shared_testcases/commonSteps")
+local commonPreconditions = require("user_modules/shared_testcases/commonPreconditions")
 local json = require("modules/json")
 
 --[[ Local Variables ]]
@@ -37,13 +38,20 @@ local system_file_path = commonFunctions:read_parameter_from_smart_device_link_i
 local ptu
 local ptu_file = os.tmpname()
 local sequence = { }
-local attempts_1 = 10
-local attempts_2 = 10
-local r_expected_1_status = "UPDATE_NEEDED"
-local r_expected_2_status = "UPDATE_NEEDED"
+local attempts_1 = 0
+
+local attempts_2 = { 30, 90, 180, 270, 360, 450 }
+local r_expected_1_status = { "UPDATE_NEEDED", "UPDATING"}
+local r_expected_2_status = { "UPDATE_NEEDED", "UPDATING", -- trigger PTU, start t0
+  "UPDATE_NEEDED", "UPDATING", -- elapsed to, start t1
+  "UPDATE_NEEDED", "UPDATING", -- elapsed t1, start t2
+  "UPDATE_NEEDED", "UPDATING", -- elapsed t2, start t3
+  "UPDATE_NEEDED", "UPDATING", -- elapsed t3, start t4
+  "UPDATE_NEEDED", "UPDATING", -- elapsed t4, start t5
+  "UPDATE_NEEDED"
+}
 local r_actual_sequence = { }
-local r_actual_1_status
-local r_actual_2_status
+local r_actual_1_status = { }
 
 --[[ Local Functions ]]
 local function timestamp()
@@ -80,6 +88,7 @@ config.defaultProtocolVersion = 2
 function Test:RegisterNotification()
   self.mobileSession:ExpectNotification("OnSystemRequest")
   :Do(function(_, d)
+      print("SDL->MOB: OnSystemRequest()", d.payload.requestType)
       ptu = json.decode(d.binaryData)
     end)
   :Times(AtLeast(1))
@@ -90,20 +99,46 @@ end
 commonFunctions:newTestCasesGroup("Preconditions")
 
 function Test:ValidatePTS()
-  if ptu.policy_table.consumer_friendly_messages.messages then
-    self:FailTestCase("Expected absence of 'consumer_friendly_messages.messages' section in PTS")
+  if(ptu == nil) then
+    self:FailTestCase("Binary data is empty")
+  else
+    if ptu.policy_table.consumer_friendly_messages.messages then
+      self:FailTestCase("Expected absence of 'consumer_friendly_messages.messages' section in PTS")
+    end
   end
 end
 
-function Test.UpdatePTS()
-  ptu.policy_table.device_data = nil
-  ptu.policy_table.usage_and_error_counts = nil
-  ptu.policy_table.app_policies["0000001"] = { keep_context = false, steal_focus = false, priority = "NONE", default_hmi = "NONE" }
-  ptu.policy_table.app_policies["0000001"]["groups"] = { "Base-4", "Base-6" }
-  ptu.policy_table.functional_groupings["DataConsent-2"].rpcs = json.null
-  -- set minimum values for timeouts of retry cycle
-  ptu.policy_table.module_config.seconds_between_retries = { 1, 1 }
-  ptu.policy_table.module_config.timeout_after_x_seconds = 10
+function Test:UpdatePTS()
+  if(ptu == nil) then
+
+    local config_path = commonPreconditions:GetPathToSDL()
+    local pathToFile = config_path .. 'sdl_preloaded_pt.json'
+
+    local file = io.open(pathToFile, "r")
+    local json_data = file:read("*all")
+    file:close()
+
+    ptu = json.decode(json_data)
+    ptu.policy_table.device_data = nil
+    ptu.policy_table.usage_and_error_counts = nil
+    ptu.policy_table.app_policies["0000001"] = { keep_context = false, steal_focus = false, priority = "NONE", default_hmi = "NONE" }
+    ptu.policy_table.app_policies["0000001"]["groups"] = { "Base-4", "Base-6" }
+    ptu.policy_table.functional_groupings["DataConsent-2"].rpcs = json.null
+    -- set minimum values for timeouts of retry cycle
+    ptu.policy_table.module_config.seconds_between_retries = { 1, 1, 1, 1, 1 }
+    ptu.policy_table.module_config.timeout_after_x_seconds = 30
+
+    self:FailTestCase("Binary data is empty. Preloaded file will be used")
+  else
+    ptu.policy_table.device_data = nil
+    ptu.policy_table.usage_and_error_counts = nil
+    ptu.policy_table.app_policies["0000001"] = { keep_context = false, steal_focus = false, priority = "NONE", default_hmi = "NONE" }
+    ptu.policy_table.app_policies["0000001"]["groups"] = { "Base-4", "Base-6" }
+    ptu.policy_table.functional_groupings["DataConsent-2"].rpcs = json.null
+    -- set minimum values for timeouts of retry cycle
+    ptu.policy_table.module_config.seconds_between_retries = { 1, 1, 1, 1, 1 }
+    ptu.policy_table.module_config.timeout_after_x_seconds = 30
+  end
 end
 
 function Test.StorePTSInFile()
@@ -128,20 +163,25 @@ end
 function Test:RegisterEvents()
   EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate")
   :Do(function(_, d)
+      print("SDL->HMI: SDL.OnStatusUpdate", d.params.status)
       log("SDL->HMI: SDL.OnStatusUpdate", d.params.status)
       table.insert(r_actual_sequence, d.params.status)
     end)
   :Times(AnyNumber())
   :Pin()
+
   self.mobileSession:ExpectNotification("OnSystemRequest", { requestType = "HTTP" })
-  :Do(function()
-      log("SDL->MOB1: OnSystemRequest")
+  :Do(function(_,data)
+      print("SDL->MOB1: OnSystemRequest, requestType: " .. data.payload.requestType)
+      log("SDL->MOB1: OnSystemRequest, requestType: " .. data.payload.requestType)
     end)
   :Times(AnyNumber())
   :Pin()
+
   self.mobileSession2:ExpectNotification("OnSystemRequest", { requestType = "HTTP" })
-  :Do(function()
-      log("SDL->MOB2: OnSystemRequest")
+  :Do(function(_,data)
+      print("SDL->MOB2: OnSystemRequest, requestType: " .. data.payload.requestType)
+      log("SDL->MOB2: OnSystemRequest, requestType: " .. data.payload.requestType)
     end)
   :Times(AnyNumber())
   :Pin()
@@ -171,12 +211,14 @@ for i = 1, attempts_1 do
 end
 
 function Test.FinishCycle_1()
-  r_actual_1_status = r_actual_sequence[#r_actual_sequence]
+  r_actual_1_status = r_actual_sequence--[#r_actual_sequence]
   log("--- 1st retry cycle finished ---")
   r_actual_sequence = { }
 end
 
 function Test:Ignition_Off()
+  log("-----------------------")
+  log("IGNITION OFF")
   StopSDL()
   self.hmiConnection:SendNotification("BasicCommunication.OnExitAllApplications", { reason = "IGNITION_OFF" })
   EXPECT_HMINOTIFICATION("BasicCommunication.OnSDLClose")
@@ -193,6 +235,8 @@ function Test.CleanData()
 end
 
 function Test:RunSDL()
+  log("IGNITION ON")
+  log("-----------------------")
   self:runSDL()
 end
 
@@ -255,17 +299,20 @@ function Test:RegisterApp_2()
   log("SDL->MOB2: SUCCESS: RegisterAppInterface")
 end
 
-Test["Starting waiting cycle [" .. attempts_2 * 5 .. "] sec"] = function() end
+for cycles = 1, #attempts_2 do
+  Test["Starting waiting t" .. (cycles - 1) .. " [" .. attempts_2[cycles] .. "] sec"] = function() end
 
-for i = 1, attempts_2 do
-  Test["Waiting " .. i * 5 .. " sec"] = function()
-    os.execute("sleep 5")
+  for i = 1, (attempts_2[cycles]/5) do
+    Test["Waiting " .. i * 5 .. " sec"] = function()
+      os.execute("sleep 5")
+    end
   end
-end
 
-function Test.FinishCycle_2()
-  r_actual_2_status = r_actual_sequence[1]
-  log("--- 2nd retry cycle finished ---")
+  function Test.FinishCycle()
+    --r_actual_2_status = r_actual_sequence[1]
+    log("--- retry " .. (cycles - 1) .. " finished ---")
+  end
+
 end
 
 function Test.ShowSequence()
@@ -281,26 +328,23 @@ function Test.ShowSequence()
 end
 
 function Test:ValidateStatuses_1()
-  if r_expected_1_status ~= r_actual_1_status then
-    local msg = table.concat({"\nFor the 1st retry cycle last status of OnStatusUpdate()",
-        "\nExpected: ", r_expected_1_status,
-        "\nActual: ", tostring(r_actual_1_status)})
+
+  local msg = "\nFor the 1st retry cycle last status of OnStatusUpdate()" ..
+  "\nExpected: " .. commonFunctions:convertTableToString(r_expected_1_status, 1) ..
+  "\nActual: " .. commonFunctions:convertTableToString(r_actual_1_status, 1)
+
+  if ( commonFunctions:is_table_equal(r_expected_1_status, r_actual_1_status) == false) then
     self:FailTestCase(msg)
   end
 end
-
+commonFunctions:convertTableToString(r_actual_sequence, 1)
 function Test:ValidateStatuses_2()
-  if r_expected_2_status ~= r_actual_2_status then
-    local msg = table.concat({"\nFor the 2nd retry cycle first status of OnStatusUpdate()",
-        "\nExpected: ", r_expected_2_status,
-        "\nActual: ", tostring(r_actual_2_status)})
-    self:FailTestCase(msg)
-  end
-end
+  local msg = "\nFor the retry cycle first status of OnStatusUpdate()" ..
+  "\nExpected: " .. commonFunctions:convertTableToString(r_expected_2_status, 1) ..
+  "\nActual: " .. commonFunctions:convertTableToString(r_actual_sequence, 1)
 
-function Test:ValidateSnapshot()
-  if not check_file_exists(system_file_path .. "/sdl_snapshot.json") then
-    self:FailTestCase("PTS is NOT created during 2nd retry cycle")
+  if ( commonFunctions:is_table_equal(r_expected_2_status, r_actual_sequence) == false) then
+    self:FailTestCase(msg)
   end
 end
 
