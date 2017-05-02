@@ -101,7 +101,7 @@ local function DelayedExp(time)
     BackupPreloaded()
   end
 
-  function Test.Precondition_Set_Set_Retry_Values_In_Preloaded_File()
+  function Test.Precondition_Set_Retry_Values_In_Preloaded_File()
     SetRetryValuesInPreloadedFile()
   end
 
@@ -132,7 +132,7 @@ local function DelayedExp(time)
 
   --[[ Test ]]
   function Test:TestStep_Register_App_And_Check_Retry_Timeouts()
-    print("Wait retry sequence to elapse: " .. (timeout[1] + timeout[2] + timeout[3] + timeout[4] + timeout[5] + timeout[6]) .. "sec.")
+    print("Wait retry sequence to elapse: " .. (timeout[1] + timeout[2] + timeout[3] + timeout[4] + timeout[5] + timeout[6]) .. "sec. + 2min tolerance")
     local startPTUtime = 0
     local firstTryTime = 0
     local secondTryTime = 0
@@ -221,7 +221,7 @@ local function DelayedExp(time)
       end)
     :Times(#seconds_between_retries + 2) -- 6 HTTP, 1 LOCK_SCREEN_ICON_URL
 
-    DelayedExp((timeout[1] + timeout[2] + timeout[3] + timeout[4] + timeout[5] + timeout[6])*1000) --msec
+    DelayedExp((timeout[1] + timeout[2] + timeout[3] + timeout[4] + timeout[5] + timeout[6])*1000 + 2*60000) --msec
     EXPECT_RESPONSE(CorIdRAI, { success = true, resultCode = "SUCCESS"})
   end
 
