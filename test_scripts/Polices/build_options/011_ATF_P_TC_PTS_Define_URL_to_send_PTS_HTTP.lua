@@ -94,26 +94,38 @@ end
 commonFunctions:newTestCasesGroup("Preconditions")
 
 function Test:ValidatePTS()
-  if ptu.policy_table.consumer_friendly_messages.messages then
-    self:FailTestCase("Expected absence of 'consumer_friendly_messages.messages' section in PTS")
+  if(ptu == nil) then
+    self:FailTestCase("Binary data is empty")
+  else
+    if ptu.policy_table.consumer_friendly_messages.messages then
+      self:FailTestCase("Expected absence of 'consumer_friendly_messages.messages' section in PTS")
+    end
   end
 end
 
-function Test.UpdatePTS()
-  ptu.policy_table.device_data = nil
-  ptu.policy_table.usage_and_error_counts = nil
-  ptu.policy_table.app_policies["0000001"] = { keep_context = false, steal_focus = false, priority = "NONE", default_hmi = "NONE" }
-  ptu.policy_table.app_policies["0000001"]["groups"] = { "Base-4", "Base-6" }
-  -- ptu.policy_table.app_policies["0000001"]["RequestType"] = { "HTTP" }
-  ptu.policy_table.functional_groupings["DataConsent-2"].rpcs = json.null
-  ptu.policy_table.module_config.endpoints["0x07"]["0000001"] = { r_expected[1] }
-  ptu.policy_table.module_config.endpoints["0x07"]["0000002"] = { r_expected[2] }
+function Test:UpdatePTS()
+  if(ptu == nil) then
+    self:FailTestCase("Binary data is empty")
+  else
+    ptu.policy_table.device_data = nil
+    ptu.policy_table.usage_and_error_counts = nil
+    ptu.policy_table.app_policies["0000001"] = { keep_context = false, steal_focus = false, priority = "NONE", default_hmi = "NONE" }
+    ptu.policy_table.app_policies["0000001"]["groups"] = { "Base-4", "Base-6" }
+    -- ptu.policy_table.app_policies["0000001"]["RequestType"] = { "HTTP" }
+    ptu.policy_table.functional_groupings["DataConsent-2"].rpcs = json.null
+    ptu.policy_table.module_config.endpoints["0x07"]["0000001"] = { r_expected[1] }
+    ptu.policy_table.module_config.endpoints["0x07"]["0000002"] = { r_expected[2] }
+  end
 end
 
-function Test.StorePTSInFile()
-  local f = io.open(ptu_file_name, "w")
-  f:write(json.encode(ptu))
-  f:close()
+function Test:StorePTSInFile()
+  if(ptu == nil) then
+    self:FailTestCase("Binary data is empty")
+  else
+    local f = io.open(ptu_file_name, "w")
+    f:write(json.encode(ptu))
+    f:close()
+  end
 end
 
 --[[ Test ]]
@@ -124,8 +136,8 @@ function Test:PTU()
   local corId = self.mobileSession:SendRPC("SystemRequest", { requestType = "HTTP", fileName = policy_file_name }, ptu_file_name)
   log("MOB->SDL: RQ: SystemRequest")
   EXPECT_RESPONSE(corId, { success = true, resultCode = "SUCCESS" })
-  :Do(function(_, _)
-      log("SDL->MOB: RS: SUCCESS: SystemRequest")
+  :Do(function(_, data)
+      log("SDL->MOB: RS: "..data.payload.resultCode..": SystemRequest")
     end)
 end
 
@@ -144,6 +156,7 @@ end
 function Test:RegisterNotification()
   self.mobileSession:ExpectNotification("OnSystemRequest")
   :Do(function(_, d)
+      log("SDL->MOB1: OnSystemRequest, RequestType: ".. d.payload.requestType)
       if d.payload.requestType == "HTTP" then
         r_actual_app = 1
         r_actual_url = d.payload.url
@@ -156,6 +169,7 @@ end
 function Test:RegisterNotification()
   self.mobileSession2:ExpectNotification("OnSystemRequest")
   :Do(function(_, d)
+      log("SDL->MOB2: OnSystemRequest, RequestType: ".. d.payload.requestType)
       if d.payload.requestType == "HTTP" then
         r_actual_app = 2
         r_actual_url = d.payload.url
