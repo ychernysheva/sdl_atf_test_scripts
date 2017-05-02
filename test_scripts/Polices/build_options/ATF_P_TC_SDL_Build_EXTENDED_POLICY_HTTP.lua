@@ -54,29 +54,33 @@ end
 function Test:TestStep_Trigger_PTU_Check_HTTP_flow()
   local corId = self.mobileSession2:SendRPC("RegisterAppInterface", config.application2.registerAppInterfaceParams)
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application2.registerAppInterfaceParams.appName }})
-   :Do(function()
-     EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "HTTP"})
-      :Do(function()
-          local CorIdSystemRequest = self.mobileSession:SendRPC ("SystemRequest",
-            { requestType = "HTTP", fileName = "PTU" }, filePTU)
-          EXPECT_RESPONSE(CorIdSystemRequest, {success = true, resultCode = "SUCCESS"})
-          
-        end)
-      self.mobileSession2:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
-      self.mobileSession2:ExpectNotification("OnPermissionsChange")
-   end)
-    EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate")
-     :ValidIf(function(exp,data)
-       if exp.occurences == 1 and data.params.status == "UPDATE_NEEDED" then
-         return true
-       elseif exp.occurences == 2 and data.params.status == "UPDATING" then
-         return true
-       elseif exp.occurences == 3 and data.params.status == "UP_TO_DATE" then
-         return true
-        end
-        return false
+
+  EXPECT_NOTIFICATION("OnSystemRequest")
+  :Do(function(_,data)
+      print("OnSystemRequest, requestType: "..data.payload.requestType)
+      if(data.payload.requestType == "HTTP") then
+        local CorIdSystemRequest = self.mobileSession:SendRPC ("SystemRequest",
+          { requestType = "HTTP", fileName = "PTU" }, filePTU)
+        EXPECT_RESPONSE(CorIdSystemRequest, {success = true, resultCode = "SUCCESS"})
+      end
     end)
-     :Times(3)
+  :Times(2)
+
+  self.mobileSession2:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
+  self.mobileSession2:ExpectNotification("OnPermissionsChange")
+
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate")
+  :ValidIf(function(exp,data)
+      if exp.occurences == 1 and data.params.status == "UPDATE_NEEDED" then
+        return true
+      elseif exp.occurences == 2 and data.params.status == "UPDATING" then
+        return true
+      elseif exp.occurences == 3 and data.params.status == "UP_TO_DATE" then
+        return true
+      end
+      return false
+    end)
+  :Times(3)
 end
 
 --[[ Postconditions ]]
