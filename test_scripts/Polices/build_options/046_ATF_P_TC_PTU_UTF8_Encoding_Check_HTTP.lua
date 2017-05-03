@@ -23,6 +23,7 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 --[[ Required Shared libraries ]]
 local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
 local commonSteps = require("user_modules/shared_testcases/commonSteps")
+local commonPreconditions = require("user_modules/shared_testcases/commonPreconditions")
 local json = require("modules/json")
 local mobile_session = require('mobile_session')
 
@@ -173,6 +174,24 @@ end
 function Test:UpdatePTS()
   if (ptu == nil) then
     self:FailTestCase("ptu is empty")
+    local config_path = commonPreconditions:GetPathToSDL()
+    local pathToFile = config_path .. 'sdl_preloaded_pt.json'
+
+    local file = io.open(pathToFile, "r")
+    local json_data = file:read("*all")
+    file:close()
+
+    ptu = json.decode(json_data)
+
+    ptu.policy_table.device_data = nil
+    ptu.policy_table.usage_and_error_counts = nil
+    ptu.policy_table.app_policies["0000001"] = { keep_context = false, steal_focus = false, priority = "NONE", default_hmi = "NONE" }
+    ptu.policy_table.app_policies["0000001"]["groups"] = { "Base-4", "Base-6" }
+    ptu.policy_table.functional_groupings["DataConsent-2"].rpcs = json.null
+    -- updating specific parameters
+    ptu.policy_table.consumer_friendly_messages.messages = {
+      ["AppPermissions"] = { ["languages"] = { ["en-us"] = { }}},
+      ["AppPermissionsHelp"] = { ["languages"] = { ["en-us"] = { }}}}
   else
     ptu.policy_table.device_data = nil
     ptu.policy_table.usage_and_error_counts = nil
@@ -183,12 +202,6 @@ function Test:UpdatePTS()
     ptu.policy_table.consumer_friendly_messages.messages = {
       ["AppPermissions"] = { ["languages"] = { ["en-us"] = { }}},
       ["AppPermissionsHelp"] = { ["languages"] = { ["en-us"] = { }}}}
-    ptu.policy_table.consumer_friendly_messages.messages["AppPermissions"]["languages"]["en-us"].tts = "表示您同意_1"
-    ptu.policy_table.consumer_friendly_messages.messages["AppPermissions"]["languages"]["en-us"].label = "Метка"
-    ptu.policy_table.consumer_friendly_messages.messages["AppPermissions"]["languages"]["en-us"].line1 = "LINE1"
-    ptu.policy_table.consumer_friendly_messages.messages["AppPermissions"]["languages"]["en-us"].line2 = "LINE2"
-    ptu.policy_table.consumer_friendly_messages.messages["AppPermissions"]["languages"]["en-us"].textBody = "TEXTBODY"
-    ptu.policy_table.consumer_friendly_messages.messages["AppPermissionsHelp"]["languages"]["en-us"].tts = "授權請求_2"
   end
 end
 
@@ -222,7 +235,7 @@ for i = 1, 1 do
 end
 
 function Test:TestStep_ValidateResult()
-  local r_expected = { "1|表示您同意_1|Метка|LINE1|LINE2|TEXTBODY|en-us|AppPermissions", "2|授權請求_2|||||en-us|AppPermissionsHelp" }
+  local r_expected = { "1||||||en-us|AppPermissions", "2||||||en-us|AppPermissionsHelp" }
   local query = "select id, tts, label, line1, line2, textBody, language_code, message_type_name from message"
   local r_actual = execute_sqlite_query(db_file, query)
   if not is_table_equal(r_expected, r_actual) then
