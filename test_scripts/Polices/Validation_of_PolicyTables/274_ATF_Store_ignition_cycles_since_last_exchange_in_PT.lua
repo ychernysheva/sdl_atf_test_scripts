@@ -1,22 +1,22 @@
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
---   [Policies] "ignition_cycles_since_last_exchange" storage into PolicyTable
+-- [Policies] "ignition_cycles_since_last_exchange" storage into PolicyTable
 --
 -- Description:
---     Incrementing value in 'ignition_cycles_since_last_exchange' section of LocalPT
---     1. Used preconditions:
---      Delete log file and policy table if any
---      Start SDL and HMI
---      Register app
+-- Incrementing value in 'ignition_cycles_since_last_exchange' section of LocalPT
+-- 1. Used preconditions:
+-- Delete log file and policy table if any
+-- Start SDL and HMI
+-- Register app
 --
---     2. Performed steps
---      Check initial value of 'ignition_cycles_since_last_exchange' in PTs
---      Perform ignition OFF
---      Check 'ignition_cycles_since_last_exchange' value in policy table
+-- 2. Performed steps
+-- Check initial value of 'ignition_cycles_since_last_exchange' in PTs
+-- Perform ignition OFF
+-- Check 'ignition_cycles_since_last_exchange' value in policy table
 --
 -- Expected result:
---     On getting BasicCommunication.OnIgnitionCycleOver from HMI,
---     Pollicies Manager must increment the value in 'ignition_cycles_since_last_exchange' section of LocalPT
+-- On getting BasicCommunication.OnIgnitionCycleOver from HMI,
+-- Pollicies Manager must increment the value in 'ignition_cycles_since_last_exchange' section of LocalPT
 ---------------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
@@ -93,14 +93,14 @@ function Test:Precondition_Register_app()
   self.mobileSession2 = mobile_session.MobileSession(self, self.mobileConnection)
   self.mobileSession2:StartService(7)
   :Do(function()
-    local correlationId = self.mobileSession2:SendRPC("RegisterAppInterface", config.application2.registerAppInterfaceParams)
-    EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
+      local correlationId = self.mobileSession2:SendRPC("RegisterAppInterface", config.application2.registerAppInterfaceParams)
+      EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
       :Do(function(_,data)
-        self.HMIAppID2 = data.params.application.appID
-      end)
-    self.mobileSession2:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS" })
-    self.mobileSession2:ExpectNotification("OnHMIStatus", {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
-  end)
+          self.HMIAppID2 = data.params.application.appID
+        end)
+      self.mobileSession2:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS" })
+      self.mobileSession2:ExpectNotification("OnHMIStatus", {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
+    end)
 end
 
 --[[ Test ]]
@@ -139,6 +139,7 @@ end
 
 function Test:TestStep5_InitOnready()
   self:initHMI_onReady()
+  commonTestCases:DelayedExp(10000)
 end
 
 function Test:TestStep6_Check_ignition_cycles_since_last_exchange()

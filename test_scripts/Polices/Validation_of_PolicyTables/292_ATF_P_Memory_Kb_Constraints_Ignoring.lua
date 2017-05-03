@@ -40,6 +40,7 @@ testCasesForPolicyTable.Delete_Policy_table_snapshot()
 testCasesForPolicyTable:Precondition_updatePolicy_By_overwriting_preloaded_pt("files/jsons/Policies/PTU_ValidationRules/preloaded_memory_kb_exist.json")
 commonPreconditions:BackupFile("smartDeviceLink.ini")
 commonFunctions:write_parameter_to_smart_device_link_ini("AppDirectoryQuota", "1000000")
+commonFunctions:write_parameter_to_smart_device_link_ini("FrequencyCount", "0")
 
 --[[ General Settings for configuration ]]
 Test = require('connecttest')

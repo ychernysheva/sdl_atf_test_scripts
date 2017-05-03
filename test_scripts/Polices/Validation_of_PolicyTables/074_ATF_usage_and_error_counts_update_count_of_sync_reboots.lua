@@ -20,6 +20,7 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 --[[ Required Shared libraries ]]
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require ('user_modules/shared_testcases/commonSteps')
+local commonTestCases = require ('user_modules/shared_testcases/commonTestCases')
 
 commonSteps:DeletePolicyTable()
 commonSteps:DeleteLogsFiles()
@@ -209,7 +210,11 @@ end
 
 function Test:InitHMI2()
   self:initHMI()
+end
+
+function Test:InitHMI_OnReady_2()
   self:initHMI_onReady()
+  commonTestCases:DelayedExp(10000)
 end
 
 function Test:HMIsendOnSystemError2()
