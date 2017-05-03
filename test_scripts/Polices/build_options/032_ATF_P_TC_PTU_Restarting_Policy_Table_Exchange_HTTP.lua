@@ -138,7 +138,6 @@ local function DelayedExp(time)
     local secondTryTime = 0
     local thirdTryTime = 0
     local fourthTryTime = 0
-    local fifthTryTime = 0
 
     local CorIdRAI = self.mobileSession:SendRPC("RegisterAppInterface",
       {
@@ -167,50 +166,53 @@ local function DelayedExp(time)
 
           if exp.occurences == 2 then
             startPTUtime = os.time()
-            firstTryTime = timeout[1]
             return true
           end
 
-          if exp.occurences == 3 and firstTryTime == (os.time() - startPTUtime) then
-            secondTryTime = timeout[2]
-            print ("first retry time: " .. secondTryTime)
+          if exp.occurences == 3 and timeout[2] == (os.time() - startPTUtime) then
+            firstTryTime = os.time()
+            print ("first retry time: " .. timeout[2])
             return true
-          elseif exp.occurences == 3 and firstTryTime ~= (os.time() - startPTUtime) then
+          elseif exp.occurences == 3 and timeout[2] ~= (os.time() - startPTUtime) then
+            firstTryTime = os.time()
             print ("Wrong first retry time! Expected: " .. timeout[2] .. " Actual: " .. (os.time() - startPTUtime) )
             return false
           end
 
-          if exp.occurences == 4 and secondTryTime == (os.time() - firstTryTime) then
-            thirdTryTime = timeout[3]
-            print ("second retry time: " ..thirdTryTime)
+          if exp.occurences == 4 and timeout[3] == (os.time() - firstTryTime) then
+            secondTryTime = os.time()
+            print ("second retry time: " .. timeout[3])
             return true
-          elseif exp.occurences == 4 and secondTryTime ~= (os.time() - firstTryTime) then
+          elseif exp.occurences == 4 and timeout[3] ~= (os.time() - firstTryTime) then
+            secondTryTime = os.time()
             print ("Wrong second retry time! Expected: " .. timeout[3] .. " Actual: " .. (os.time() - firstTryTime) )
             return false
           end
 
-          if exp.occurences == 5 and thirdTryTime == (os.time() - secondTryTime) then
-            fourthTryTime = timeout[4]
-            print ("third retry time: " .. fourthTryTime)
+          if exp.occurences == 5 and timeout[4] == (os.time() - secondTryTime) then
+            thirdTryTime = os.time()
+            print ("third retry time: " .. timeout[4])
             return true
-          elseif exp.occurences == 5 and thirdTryTime ~= (os.time() - secondTryTime) then
+          elseif exp.occurences == 5 and timeout[4] ~= (os.time() - secondTryTime) then
+            thirdTryTime = os.time()
             print ("Wrong third retry time! Expected: " .. timeout[4] .. " Actual: " .. (os.time() - secondTryTime) )
             return false
           end
 
-          if exp.occurences == 6 and fourthTryTime == (os.time() - thirdTryTime) then
-            fifthTryTime = timeout[5]
-            print ("fourth retry time: " .. fifthTryTime)
+          if exp.occurences == 6 and timeout[5] == (os.time() - thirdTryTime) then
+            fourthTryTime = os.time()
+            print ("fourth retry time: " .. timeout[5])
             return true
-          elseif exp.occurences == 6 and fourthTryTime ~= (os.time() - thirdTryTime) then
+          elseif exp.occurences == 6 and timeout[5] ~= (os.time() - thirdTryTime) then
+            fourthTryTime = os.time()
             print ("Wrong fourth retry time! Expected: " .. timeout[5] .. " Actual: " .. (os.time() - thirdTryTime) )
             return false
           end
 
-          if exp.occurences == 7 and fifthTryTime == (os.time() - fourthTryTime) then
+          if exp.occurences == 7 and timeout[6] == (os.time() - fourthTryTime) then
             print ("fifth retry time: " .. timeout[6])
             return true
-          elseif exp.occurences == 7 and fifthTryTime ~= (os.time() - fourthTryTime) then
+          elseif exp.occurences == 7 and timeout[6] ~= (os.time() - fourthTryTime) then
             print ("Wrong fifth retry time! Expected: " .. timeout[6] .. " Actual: " .. (os.time() - fourthTryTime) )
             return false
           end
