@@ -15,7 +15,7 @@
 -- Expected result:
 -- 1) appID_1 remains in NONE. After PTU OnHMIStatus does not calls
 -- 2) appID_2 remains in FULL. After PTU OnHMIStatus does not calls
--- 3) After PTU OnPermissionsChange is called
+-- 3) After PTU OnPermissionsChange is called for both applications.
 
 ---------------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
@@ -25,6 +25,7 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
+local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 local json = require('json')
 --[[ Local Variables ]]
 local HMIAppID2
@@ -86,7 +87,7 @@ local basic_ptu_file = "files/ptu.json"
 local ptu_first_app_registered = "files/ptu1app.json"
 
 -- Prepare parameters for app to save it in json file
-local function PrepareJsonPTU1(name, new_ptufile)
+local function PrepareJsonPTU1(name, previous_ptu, new_ptufile)
   local json_app = [[ {
     "keep_context": false,
     "steal_focus": false,
@@ -103,7 +104,9 @@ local function PrepareJsonPTU1(name, new_ptufile)
     ]
   }]]
   local app = json.decode(json_app)
-  testCasesForPolicyTable:AddApplicationToPTJsonFile(basic_ptu_file, new_ptufile, name, app)
+  --testCasesForPolicyTable:AddApplicationToPTJsonFile(basic_ptu_file, new_ptufile, name, app)
+  testCasesForPolicyTable:AddApplicationToPTJsonFile(previous_ptu, new_ptufile, name, app)
+
 end
 
 --[[ General Precondition before ATF start ]]
@@ -146,8 +149,8 @@ function Test:Precondition_StartSecondSession()
 end
 
 function Test.Precondition_PreparePTData()
-  PrepareJsonPTU1(applications[1].registerAppInterfaceParams.appID, ptu_first_app_registered)
-  PrepareJsonPTU1(applications[2].registerAppInterfaceParams.appID, ptu_first_app_registered)
+  PrepareJsonPTU1(applications[1].registerAppInterfaceParams.appID, basic_ptu_file, ptu_first_app_registered)
+  PrepareJsonPTU1(applications[2].registerAppInterfaceParams.appID, ptu_first_app_registered, ptu_first_app_registered)
 end
 --[[ end of Preconditions ]]
 
@@ -162,8 +165,8 @@ function Test:RegisterFirstApp()
       EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
 
       self.mobileSession:ExpectResponse(correlationId, { success = true })
-      -- EXPECT_RESPONSE(correlationId, { success = true })
       self.mobileSession:ExpectNotification("OnPermissionsChange")
+      self.mobileSession:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE"})
     end)
 end
 
@@ -191,11 +194,17 @@ function Test:UpdatePolicyAfterAddApps_ExpectOnHMIStatusNotCall()
   testCasesForPolicyTable:updatePolicyInDifferentSessions(Test, ptu_first_app_registered,
     applications[2].registerAppInterfaceParams.appName,
     self.mobileSession2)
+
+  self.mobileSession:ExpectNotification("OnPermissionsChange")
+  :Do(function() print("App1: OnPermissionsChange") end)
   self.mobileSession2:ExpectNotification("OnPermissionsChange")
+  :Do(function() print("App2: OnPermissionsChange") end)
 
   -- Expect after updating HMI status will not change
   self.mobileSession:ExpectNotification("OnHMIStatus"):Times(0)
   self.mobileSession2:ExpectNotification("OnHMIStatus"):Times(0)
+
+  commonTestCases:DelayedExp(10000)
 end
 
 --[[ Postconditions ]]
