@@ -171,47 +171,47 @@ local function DelayedExp(time)
             return true
           end
 
-          if exp.occurences == 3 and firstTryTime == os.time() then
+          if exp.occurences == 3 and firstTryTime == (os.time() - startPTUtime) then
             secondTryTime = timeout[2]
-            print ("first retry time: " .. os.time())
+            print ("first retry time: " .. secondTryTime)
             return true
-          elseif exp.occurences == 2 and firstTryTime ~= os.time() then
-            print ("Wrong first retry time! Expected: " .. timeout[1] .. " Actual: " .. os.time() - startPTUtime)
+          elseif exp.occurences == 3 and firstTryTime ~= (os.time() - startPTUtime) then
+            print ("Wrong first retry time! Expected: " .. timeout[2] .. " Actual: " .. (os.time() - startPTUtime) )
             return false
           end
 
-          if exp.occurences == 4 and secondTryTime == os.time() then
+          if exp.occurences == 4 and secondTryTime == (os.time() - firstTryTime) then
             thirdTryTime = timeout[3]
-            print ("second retry time: " .. os.time())
+            print ("second retry time: " ..thirdTryTime)
             return true
-          elseif exp.occurences == 3 and secondTryTime ~= os.time() then
-            print ("Wrong second retry time! Expected: " .. timeout[2] .. " Actual: " .. os.time() - firstTryTime)
+          elseif exp.occurences == 4 and secondTryTime ~= (os.time() - firstTryTime) then
+            print ("Wrong second retry time! Expected: " .. timeout[3] .. " Actual: " .. (os.time() - firstTryTime) )
             return false
           end
 
-          if exp.occurences == 5 and thirdTryTime == os.time() then
+          if exp.occurences == 5 and thirdTryTime == (os.time() - secondTryTime) then
             fourthTryTime = timeout[4]
-            print ("third retry time: " .. os.time())
+            print ("third retry time: " .. fourthTryTime)
             return true
-          elseif exp.occurences == 4 and thirdTryTime ~= os.time() then
-            print ("Wrong third retry time! Expected: " .. timeout[3] .. " Actual: " .. os.time() - secondTryTime)
+          elseif exp.occurences == 5 and thirdTryTime ~= (os.time() - secondTryTime) then
+            print ("Wrong third retry time! Expected: " .. timeout[4] .. " Actual: " .. (os.time() - secondTryTime) )
             return false
           end
 
-          if exp.occurences == 6 and fourthTryTime == os.time() then
+          if exp.occurences == 6 and fourthTryTime == (os.time() - thirdTryTime) then
             fifthTryTime = timeout[5]
-            print ("fourth retry time: " .. os.time())
+            print ("fourth retry time: " .. fifthTryTime)
             return true
-          elseif exp.occurences == 5 and fourthTryTime ~= os.time() then
-            print ("Wrong fourth retry time! Expected: " .. timeout[4] .. " Actual: " .. os.time() - thirdTryTime)
+          elseif exp.occurences == 6 and fourthTryTime ~= (os.time() - thirdTryTime) then
+            print ("Wrong fourth retry time! Expected: " .. timeout[5] .. " Actual: " .. (os.time() - thirdTryTime) )
             return false
           end
 
-          if exp.occurences == 7 and fifthTryTime == os.time() then
-            print ("fifth retry time: " .. os.time())
+          if exp.occurences == 7 and fifthTryTime == (os.time() - fourthTryTime) then
+            print ("fifth retry time: " .. timeout[6])
             return true
-          elseif exp.occurences == 6 and fifthTryTime ~= os.time() then
-            print ("Wrong fifth retry time! Expected: " .. timeout[5] .. " Actual: " .. os.time() - fifthTryTime)
+          elseif exp.occurences == 7 and fifthTryTime ~= (os.time() - fourthTryTime) then
+            print ("Wrong fifth retry time! Expected: " .. timeout[6] .. " Actual: " .. (os.time() - fourthTryTime) )
             return false
           end
         end
