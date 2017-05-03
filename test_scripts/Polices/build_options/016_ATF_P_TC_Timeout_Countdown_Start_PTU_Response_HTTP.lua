@@ -69,10 +69,15 @@ function Test:TestStep_OnStatusUpdate_UPDATE_NEEDED_new_PTU_request()
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", {application = { appName = config.application1.registerAppInterfaceParams.appName } })
   EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",
     { status = "UPDATE_NEEDED" }, {status = "UPDATING"}):Times(2)
-  EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "HTTP"})
-  :Do(function()
-    time_system_request_first = timestamp()
-  end)
+
+  EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "LOCK_SCREEN_ICON_URL"}, {requestType = "HTTP"})
+  :Times(2)
+  :Do(function(_,data)
+      print("SDL->MOB: OnSystemRequest, requestType: " .. data.payload.requestType)
+      if(data.payload.requestType == "HTTP") then
+        time_system_request_first = timestamp()
+      end
+    end)
 
   self.mobileSession:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS" })
   self.mobileSession:ExpectNotification("OnHMIStatus", {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
@@ -86,26 +91,18 @@ function Test:TestStep_Sending_PTS_to_mobile_application()
   local is_test_fail = false
   local timeout_pts
 
-
   local seconds_between_retries = {}
-  --TODO(istoimenova): Should be removed when "[GENIVI] HTTP: sdl_snapshot.json is not saved to file system" is fixed.
-  if ( commonSteps:file_exists( '/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json') ) then
-    timeout_pts = testCasesForPolicyTableSnapshot:get_data_from_PTS("module_config.timeout_after_x_seconds")
-    for i = 1, #testCasesForPolicyTableSnapshot.pts_seconds_between_retries do
-      seconds_between_retries[i] = testCasesForPolicyTableSnapshot.pts_seconds_between_retries[i].value
-    end
-  else
-    timeout_pts = testCasesForPolicyTableSnapshot:get_data_from_Preloaded_PT("module_config.timeout_after_x_seconds")
-    for i = 1, #testCasesForPolicyTableSnapshot.seconds_between_retries do
-      seconds_between_retries[i] = testCasesForPolicyTableSnapshot.seconds_between_retries[i].value
-    end
+
+  timeout_pts = testCasesForPolicyTableSnapshot:get_data_from_Preloaded_PT("module_config.timeout_after_x_seconds")
+  for i = 1, #testCasesForPolicyTableSnapshot.seconds_between_retries do
+    seconds_between_retries[i] = testCasesForPolicyTableSnapshot.seconds_between_retries[i].value
   end
 
   local time_wait = (timeout_pts*seconds_between_retries[1]*1000 + 2000)
   commonTestCases:DelayedExp(time_wait) -- tolerance 10 sec
 
   local function verify_retry_sequence(occurences)
-  --time_updating[#time_updating + 1] = testCasesForPolicyTable.time_trigger
+    --time_updating[#time_updating + 1] = testCasesForPolicyTable.time_trigger
 
     local time_1 = time_system_request[#time_system_request]
     local time_2 = time_system_request_first
@@ -122,9 +119,9 @@ function Test:TestStep_Sending_PTS_to_mobile_application()
 
   EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "HTTP", fileType = "JSON"})
   :Do(function()
-    time_system_request[#time_system_request + 1] = timestamp()
-    verify_retry_sequence(1)
-  end)
+      time_system_request[#time_system_request + 1] = timestamp()
+      verify_retry_sequence(1)
+    end)
 
   if(is_test_fail == true) then
     self:FailTestCase("Test is FAILED. See prints.")
