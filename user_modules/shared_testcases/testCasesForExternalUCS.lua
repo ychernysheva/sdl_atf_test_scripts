@@ -185,7 +185,8 @@ local utils = { }
         end
       end)
     EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
-    :Do(function(_, d)
+    :Do(function(exp, d)
+      if(exp.occurences == 1) then
         utils.pts = utils.createTableFromJsonFile(d.params.file)
         if status then
           test.hmiConnection:SendResponse(d.id, d.method, "SUCCESS", { })
@@ -195,7 +196,10 @@ local utils = { }
           end
           ptu(test, status)
         end
-      end)
+      end
+    end)
+    --TODO: Remove when issue "[GENIVI] SDL restarts PTU sequence with sending redundant BC.PolicyUpdate" is resolved
+    :Times(AtLeast(1))
   end
 
 --[[@updatePreloadedPT: Update PreloadedPT file
