@@ -31,6 +31,7 @@
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 config.defaultProtocolVersion = 2
+config.ExitOnCrash = false
 
 --[[ Required Shared libraries ]]
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
@@ -129,7 +130,7 @@ end
 function Test:Check_TOO_MANY_REQUESTS_in_DB()
   local db_path = config.pathToSDL.."storage/policy.sqlite"
   local sql_query = "SELECT count_of_removals_for_bad_behavior FROM app_level WHERE application_id = '" .. config.application1.registerAppInterfaceParams.appID .. "'"
-  local exp_result = 2
+  local exp_result = {"1"}
   if commonFunctions:is_db_contains(db_path, sql_query, exp_result) == false then
     self:FailTestCase("DB doesn't include expected value")
   end
