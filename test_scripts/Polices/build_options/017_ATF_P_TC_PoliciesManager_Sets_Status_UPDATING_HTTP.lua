@@ -81,7 +81,8 @@ function Test:TestStep_PoliciesManager_changes_status_UPDATING()
             local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", { requestType = "HTTP", fileName = "PolicyTableUpdate", },"files/ptu.json")
             EXPECT_RESPONSE(CorIdSystemRequest, { success = true, resultCode = "SUCCESS"})
           end
-        end)
+      end)
+      :Times(2)
 
       EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate"):Times(2)
       :Do(function(_,data)
