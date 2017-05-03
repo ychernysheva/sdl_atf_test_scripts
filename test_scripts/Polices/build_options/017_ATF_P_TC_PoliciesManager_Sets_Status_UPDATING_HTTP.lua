@@ -66,35 +66,36 @@ function Test:TestStep_PoliciesManager_changes_status_UPDATING()
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", {application = { appName = config.application1.registerAppInterfaceParams.appName } })
   :Do(function()
 
-      EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "HTTP"})
-      :Do(function()
-          if(message_order ~= 2) then
-            commonFunctions:printError("OnSystemRequest is not received as message 2 after OnAppRegistered. Received as message: "..message_order)
-            is_test_fail = true
-          else
-            print("OnSystemRequest received as message 2 after OnAppRegistered.")
+      EXPECT_NOTIFICATION("OnSystemRequest")--, {requestType = "LOCK_SCREEN_ICON_URL"}, {requestType = "HTTP"})
+      :Do(function(_,data)
+          print("SDL -> MOB: OnSystemRequest, requestType: " .. data.payload.requestType)
+          if(data.payload.requestType == "LOCK_SCREEN_ICON_URL") then
+            message_order = message_order + 1
           end
-          message_order = message_order + 1
-          local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", { requestType = "HTTP", fileName = "PolicyTableUpdate", },"files/ptu.json")
-          EXPECT_RESPONSE(CorIdSystemRequest, { success = true, resultCode = "SUCCESS"})
+          if(data.payload.requestType == "HTTP") then
+            if(message_order ~= 3) then
+              commonFunctions:printError("OnSystemRequest is not received as message 3 after OnAppRegistered. Received as message: "..message_order)
+              is_test_fail = true
+            end
+            message_order = message_order + 1
+            local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", { requestType = "HTTP", fileName = "PolicyTableUpdate", },"files/ptu.json")
+            EXPECT_RESPONSE(CorIdSystemRequest, { success = true, resultCode = "SUCCESS"})
+          end
         end)
 
-      EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate"):Times(Between(1,2))
+      EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate"):Times(2)
       :Do(function(_,data)
-          if(data.params.status == "UPDATE_NEEDED") then
-            if(message_order ~= 1) then
-              commonFunctions:printError("SDL.OnStatusUpdate(UPDATE_NEEDED) is not received as message 1 after OnAppRegistered. Received as message: "..message_order)
+          print("SDL -> HMI: OnStatusUpdate, status: " .. data.params.status)
+          if(data.params.status == "UPDATE_NEEDED") then -- OnSystemRequest(LOCK_SCREEN_ICON_URL) could be received in different order as message 1 or 2 after RAI
+            if( (message_order ~= 1) and (message_order ~= 2) ) then
+              commonFunctions:printError("SDL.OnStatusUpdate(UPDATE_NEEDED) is not received as message 1/2 after OnAppRegistered. Received as message: "..message_order)
               is_test_fail = true
-            else
-              print("SDL.OnStatusUpdate(UPDATING) received as message 1 after OnAppRegistered.")
             end
             message_order = message_order + 1
           elseif(data.params.status == "UPDATING") then
-            if(message_order ~= 3) then
-              commonFunctions:printError("SDL.OnStatusUpdate(UPDATING) is not received as message 3 after OnAppRegistered. Received as message: "..message_order)
+            if(message_order ~= 4) then
+              commonFunctions:printError("SDL.OnStatusUpdate(UPDATING) is not received as message 4 after OnAppRegistered. Received as message: "..message_order)
               is_test_fail = true
-            else
-              print("SDL.OnStatusUpdate(UPDATING) received as message 3 after OnAppRegistered.")
             end
             message_order = message_order + 1
           end
