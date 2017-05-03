@@ -205,7 +205,7 @@ function Test:TestStep_Register_app()
       self.mobileSession:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS" })
       self.mobileSession:ExpectNotification("OnHMIStatus", {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
     end)
-  EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "HTTP"})
+  EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "LOCK_SCREEN_ICON_URL"}, {requestType = "HTTP"}):Times(2)
   EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate")
   :ValidIf(function(exp,data)
       if exp.occurences == 1 and data.params.status == "UPDATE_NEEDED" then
