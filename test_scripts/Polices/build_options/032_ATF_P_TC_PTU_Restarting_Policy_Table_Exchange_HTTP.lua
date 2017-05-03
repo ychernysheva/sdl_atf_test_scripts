@@ -252,7 +252,7 @@ local function DelayedExp(time)
           maxNumberRFCOMMPorts = 1
         }
       })
-    EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "LOCK_SCREEN_ICON_URL"}, {requestType = "HTTP"})
+    EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "LOCK_SCREEN_ICON_URL"}, {requestType = "HTTP"}):Times(2)
     EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"}, {status = "UPDATING"}):Times(2)
     self.mobileSession2:ExpectResponse(CorIdRAI2, {success = true, resultCode = "SUCCESS"})
   end
