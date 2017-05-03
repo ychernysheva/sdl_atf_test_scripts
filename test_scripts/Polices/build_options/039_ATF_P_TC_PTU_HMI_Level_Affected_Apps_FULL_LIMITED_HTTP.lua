@@ -21,10 +21,15 @@
 ---------------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
+config.application1.registerAppInterfaceParams.isMediaApplication = true
+config.application1.registerAppInterfaceParams.appHMIType = { "MEDIA" }
+config.application2.registerAppInterfaceParams.isMediaApplication = false
+config.application2.registerAppInterfaceParams.appHMIType = { "DEFAULT" }
 
 --[[ Required Shared libraries ]]
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
+local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
 local json = require('json')
 
@@ -111,97 +116,105 @@ function Test:TestStep_RegisterFirstApp()
       EXPECT_RESPONSE(correlationId, { success = true })
       EXPECT_NOTIFICATION("OnPermissionsChange")
     end)
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"}, {status = "UPDATING"}):Times(2)
 end
 
 function Test:TestStep_ActivateAppInFull()
   commonSteps:ActivateAppInSpecificLevel(self,HMIAppID,"FULL")
+  self.mobileSession:ExpectNotification("OnHMIStatus", {hmiLevel = "FULL", audioStreamingState = "AUDIBLE", systemContext = "MAIN"})
+  :Do(function(_,data) print("SDL -> MOB1: OnHMIStatus, level: " .. data.payload.hmiLevel) end)
 end
 
 function Test:TestStep_UpdatePolicyAfterAddFirstAp_ExpectOnHMIStatusNotCall()
-  EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "HTTP"})
-  :Do(function()
-      local CorIdSystemRequest1 = self.mobileSession:SendRPC("SystemRequest",
-        {
-          requestType = "HTTP",
-          fileName = "ptu1app.json",
-        },"files/ptu1app.json")
-      self.mobileSession:ExpectResponse(CorIdSystemRequest1, {success = true, resultCode = "SUCCESS"})
-    end)
-  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate")
-  :ValidIf(function(exp,data)
-      if
-      (exp.occurences == 1 or exp.occurences == 2) and
-      data.params.status == "UP_TO_DATE" then
-        return true
-      end
-      if
-      exp.occurences == 1 and
-      data.params.status == "UPDATING" then
-        return true
-      end
-      return false
-      end):Times(Between(1,2))
-    self.mobileSession:ExpectNotification("OnPermissionsChange")
-    -- Expect after updating HMI status will not change
-    self.mobileSession:ExpectNotification("OnHMIStatus"):Times(0)
-  end
 
-  function Test:TestStep_RegisterSecondApp()
-    self.mobileSession1 = mobile_session.MobileSession(self, self.mobileConnection)
-    self.mobileSession1:StartService(7)
-    :Do(function (_,_)
-        local correlationId = self.mobileSession1:SendRPC("RegisterAppInterface", config.application2.registerAppInterfaceParams)
-        EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
-        :Do(function(_,data)
-            HMIAppID = data.params.application.appID
-          end)
-        self.mobileSession1:ExpectResponse(correlationId, { success = true })
-        self.mobileSession1:ExpectNotification("OnPermissionsChange")
-      end)
-  end
+  local CorIdSystemRequest1 = self.mobileSession:SendRPC("SystemRequest",
+    {
+      requestType = "HTTP",
+      fileName = "ptu1app.json",
+    },"files/ptu1app.json")
+  self.mobileSession:ExpectResponse(CorIdSystemRequest1, {success = true, resultCode = "SUCCESS"})
 
-  function Test:TestStep_ActivateSecondAppInLimited()
-    commonSteps:ActivateAppInSpecificLevel(self,HMIAppID,"LIMITED")
-  end
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UP_TO_DATE"})
 
-  function Test:TestStep_UpdatePolicyAfterAddSecondApp_ExpectOnHMIStatusNotCall()
-    self.mobileSession1:ExpectNotification("OnSystemRequest", {requestType = "HTTP"})
-    :Do(function()
-        local CorIdSystemRequest = self.mobileSession1:SendRPC("SystemRequest",
-          {
-            requestType = "HTTP",
-            fileName = "ptu2app.json",
-          },"files/ptu2app.json")
-        self.mobileSession1:ExpectResponse(CorIdSystemRequest, {success = true, resultCode = "SUCCESS"})
-      end)
-    EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate")
-    :ValidIf(function(exp,data)
-        if
-        (exp.occurences == 1 or exp.occurences == 2) and
-        data.params.status == "UP_TO_DATE" then
-          return true
-        end
-        if
-        exp.occurences == 1 and
-        data.params.status == "UPDATING" then
-          return true
-        end
-        return false
-        end):Times(Between(1,2))
+  self.mobileSession:ExpectNotification("OnPermissionsChange")
+  -- Expect after updating HMI status will not change
+  self.mobileSession:ExpectNotification("OnHMIStatus"):Times(0)
+  commonTestCases:DelayedExp(10000)
+end
+
+function Test:TestStep_RegisterSecondApp()
+  local onsystemreq_app1 = false
+  local onsystemreq_app2 = false
+  self.mobileSession1 = mobile_session.MobileSession(self, self.mobileConnection)
+  self.mobileSession1:StartService(7)
+  :Do(function (_,_)
+      local correlationId = self.mobileSession1:SendRPC("RegisterAppInterface", config.application2.registerAppInterfaceParams)
+      EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
+      :Do(function(_,data)
+          HMIAppID = data.params.application.appID
+        end)
+      self.mobileSession1:ExpectResponse(correlationId, { success = true })
       self.mobileSession1:ExpectNotification("OnPermissionsChange")
-      -- Expect after updating HMI status will not change
-      self.mobileSession1:ExpectNotification("OnHMIStatus"):Times(0)
-    end
+    end)
 
-    --[[ Postconditions ]]
-    commonFunctions:newTestCasesGroup("Postconditions")
+  self.mobileSession1:ExpectNotification("OnSystemRequest", {requestType = "HTTP"}):Times(Between(1,2)) --"LOCK_SCREEN_ICON_URL" + HTTP
+  :Do(function(_,data)
+      print("SDL -> MOB2: OnSystemRequest, requestType: " .. data.payload.requestType)
+      if(data.payload.requestType == "HTTP") then
+        if(onsystemreq_app2 == true) then self:FailTestCase("OnSystemRequest(HTTP) has already received for application 1") end
+        onsystemreq_app1 = true
+      end
+    end)
 
-    function Test.Postcondition_RemovePTUfiles()
-      os.remove(ptu_first_app_registered)
-      os.remove(ptu_second_app_registered)
-    end
-    function Test.Postcondition_Stop_SDL()
-      StopSDL()
-    end
+  self.mobileSession:ExpectNotification("OnSystemRequest", {requestType = "HTTP"}):Times(Between(0,1))
+  :Do(function(_,data)
+      print("SDL -> MOB1: OnSystemRequest, requestType: " .. data.payload.requestType)
+      if(data.payload.requestType == "HTTP") then
+        if(onsystemreq_app1 == true) then self:FailTestCase("OnSystemRequest(HTTP) has already received for application 2") end
+        onsystemreq_app2 = true
+      end
+    end)
 
-    return Test
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"}, {status = "UPDATING"}):Times(2)
+end
+
+function Test:TestStep_ActivateSecondAppInLimited()
+  commonSteps:ActivateAppInSpecificLevel(self,HMIAppID,"LIMITED") -- function is working only for activate application in FULL
+  self.mobileSession:ExpectNotification("OnHMIStatus", {hmiLevel = "LIMITED", audioStreamingState = "AUDIBLE", systemContext = "MAIN"})
+  :Do(function(_,data) print("SDL -> MOB1: OnHMIStatus, level: " .. data.payload.hmiLevel) end)
+
+  self.mobileSession1:ExpectNotification("OnHMIStatus", {hmiLevel = "FULL", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
+  :Do(function(_,data) print("SDL -> MOB2: OnHMIStatus, level: " .. data.payload.hmiLevel) end)
+end
+
+function Test:TestStep_UpdatePolicyAfterAddSecondApp_ExpectOnHMIStatusNotCall()
+
+  local CorIdSystemRequest = self.mobileSession1:SendRPC("SystemRequest",
+    {
+      requestType = "HTTP",
+      fileName = "ptu2app.json",
+    },"files/ptu2app.json")
+  self.mobileSession1:ExpectResponse(CorIdSystemRequest, {success = true, resultCode = "SUCCESS"})
+
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UP_TO_DATE"})
+
+  self.mobileSession1:ExpectNotification("OnPermissionsChange")
+  -- Expect after updating HMI status will not change
+  self.mobileSession1:ExpectNotification("OnHMIStatus"):Times(0)
+  self.mobileSession:ExpectNotification("OnHMIStatus"):Times(0)
+  commonTestCases:DelayedExp(10000)
+end
+
+--[[ Postconditions ]]
+commonFunctions:newTestCasesGroup("Postconditions")
+
+function Test.Postcondition_RemovePTUfiles()
+  os.remove(ptu_first_app_registered)
+  os.remove(ptu_second_app_registered)
+end
+
+function Test.Postcondition_Stop_SDL()
+  StopSDL()
+end
+
+return Test
