@@ -31,8 +31,50 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
+local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
+local json = require('json')
+
+--TODO(istoimenova): The function should be done in common file to be used in other scripts from the CRQ
+--[[@create_ptu_file: creates PTU file for specific application permissions.
+! @parameters:
+! app_id - Id of application that will be included tmp.json
+]]
+local function create_ptu_file(app_id)
+  local config_path = commonPreconditions:GetPathToSDL()
+  local pathToFile = config_path .. 'sdl_preloaded_pt.json'
+
+  local file = io.open(pathToFile, "r")
+  local json_data = file:read("*all")
+  file:close()
+
+  local data = json.decode(json_data)
+  if(data.policy_table.functional_groupings["DataConsent-2"]) then
+    data.policy_table.functional_groupings["DataConsent-2"].rpcs = json.null
+  end
+
+  data.policy_table.module_config.preloaded_pt = nil
+  data.policy_table.module_config.preloaded_date = nil
+
+  if(app_id ~= nil) then
+    data.policy_table.app_policies[app_id] = nil
+    data.policy_table.app_policies[app_id] =
+    {
+      keep_context = false,
+      steal_focus = false,
+      priority = "NONE",
+      default_hmi = "NONE",
+      groups = {"Base-4", "Notifications", "Location-1"}
+    }
+  end
+
+  data = json.encode(data)
+  file = io.open("files/tmp.json", "w")
+  file:write(data)
+  file:close()
+end
 
 --[[ General Precondition before ATF start ]]
+create_ptu_file(config.application1.registerAppInterfaceParams.appID)
 commonSteps:DeleteLogsFileAndPolicyTable()
 
 --[[ General Settings for configuration ]]
@@ -48,10 +90,26 @@ function Test:Precondition_trigger_getting_device_consent()
 end
 
 function Test:Precondition_PTU_and_OnAppPermissionConsent_AllParams_Lower()
-  local ptu_file_path = "files/jsons/Policies/Related_HMI_API/"
-  local ptu_file = "OnAppPermissionConsent_ptu.json"
+  local ptu_file_path = "files/"
+  local ptu_file = "tmp.json"
 
-  testCasesForPolicyTable:flow_SUCCEESS_EXTERNAL_PROPRIETARY(self, nil, nil, nil, ptu_file_path, nil, ptu_file)
+  local time_onAppPermissionChanged = 0
+
+  EXPECT_NOTIFICATION("OnPermissionsChange")
+  :Times(2)
+  :ValidIf(function(exp)
+      local time = timestamp()
+      print("SDL->mob: OnPermissionsChange time: " .. time)
+      if (exp.occurences == 2) then
+        if (time < time_onAppPermissionChanged) then
+          commonFunctions:printError("Second OnPermissionsChange is received before OnAppPermissionConsent")
+          return false
+        else
+          return true
+        end
+      end
+      return true
+    end)
 
   EXPECT_HMINOTIFICATION("SDL.OnAppPermissionChanged",{ appID = self.applications[config.application1.registerAppInterfaceParams.appName]})
   :Do(function(_,data)
@@ -85,14 +143,18 @@ function Test:Precondition_PTU_and_OnAppPermissionConsent_AllParams_Lower()
                     },
                     source = "GUI"
                   })
-                EXPECT_NOTIFICATION("OnPermissionsChange")
+
+                time_onAppPermissionChanged = timestamp()
+                print("SDL->HMI: SDL.OnAppPermissionConsent time: ".. time_onAppPermissionChanged)
               end)
-        end)
+          end)
       else
         commonFunctions:userPrint(31, "Wrong SDL bahavior: there are app permissions for consent, isPermissionsConsentNeeded should be true")
         return false
       end
-  end)
+    end)
+
+  testCasesForPolicyTable:flow_SUCCEESS_EXTERNAL_PROPRIETARY(self, nil, nil, nil, ptu_file_path, nil, ptu_file)
 end
 
 --[[ Test ]]
@@ -116,6 +178,7 @@ end
 commonFunctions:newTestCasesGroup("Postconditions")
 
 function Test.Postcondition_Stop_SDL()
+  os.execute( " rm -f files/tmp.json" )
   StopSDL()
 end
 
