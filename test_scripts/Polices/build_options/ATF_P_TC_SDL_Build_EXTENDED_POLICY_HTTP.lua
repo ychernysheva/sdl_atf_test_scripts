@@ -21,6 +21,7 @@ config.defaultProtocolVersion = 2
 --[[ Required Shared libraries ]]
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
+local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
@@ -98,6 +99,8 @@ function Test:TestStep_Trigger_PTU_Check_HTTP_flow()
       return false
     end)
   :Times(3)
+
+  commonTestCases:DelayedExp(10000)
 end
 
 --[[ Postconditions ]]
