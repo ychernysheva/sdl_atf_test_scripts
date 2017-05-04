@@ -37,6 +37,30 @@ local sequence = { }
 local request_http_received = false
 
 --[[ Local Functions ]]
+local function update_ptu()
+  if(ptu == nil) then
+    local config_path = commonPreconditions:GetPathToSDL()
+    local pathToFile = config_path .. 'sdl_preloaded_pt.json'
+
+    local file = io.open(pathToFile, "r")
+    local json_data = file:read("*all")
+    file:close()
+
+    ptu = json.decode(json_data)
+  end
+
+  ptu.policy_table.device_data = nil
+  ptu.policy_table.usage_and_error_counts = nil
+  ptu.policy_table.app_policies["0000001"] = { keep_context = false, steal_focus = false, priority = "NONE", default_hmi = "NONE" }
+  ptu.policy_table.app_policies["0000001"]["groups"] = { "Base-4", "Base-6" }
+  ptu.policy_table.functional_groupings["DataConsent-2"].rpcs = json.null
+  --TODO: Update part in case to check UTF-8 parameters.
+  -- updating specific parameters
+  ptu.policy_table.consumer_friendly_messages.messages = {
+    ["AppPermissions"] = { ["languages"] = { ["en-us"] = { }}},
+    ["AppPermissionsHelp"] = { ["languages"] = { ["en-us"] = { }}}}
+end
+
 local function timestamp()
   local f = io.popen("date +%H:%M:%S.%3N")
   local o = f:read("*all")
@@ -163,45 +187,12 @@ end
 
 function Test:ValidatePTS()
   if (ptu == nil) then
-    self:FailTestCase("ptu is empty")
+    update_ptu()
+    self:FailTestCase("ptu is empty. Preloaded file will be used")
   else
     if ptu.policy_table.consumer_friendly_messages.messages then
       self:FailTestCase("Expected absence of 'consumer_friendly_messages.messages' section in PTS")
     end
-  end
-end
-
-function Test:UpdatePTS()
-  if (ptu == nil) then
-    self:FailTestCase("ptu is empty")
-    local config_path = commonPreconditions:GetPathToSDL()
-    local pathToFile = config_path .. 'sdl_preloaded_pt.json'
-
-    local file = io.open(pathToFile, "r")
-    local json_data = file:read("*all")
-    file:close()
-
-    ptu = json.decode(json_data)
-
-    ptu.policy_table.device_data = nil
-    ptu.policy_table.usage_and_error_counts = nil
-    ptu.policy_table.app_policies["0000001"] = { keep_context = false, steal_focus = false, priority = "NONE", default_hmi = "NONE" }
-    ptu.policy_table.app_policies["0000001"]["groups"] = { "Base-4", "Base-6" }
-    ptu.policy_table.functional_groupings["DataConsent-2"].rpcs = json.null
-    -- updating specific parameters
-    ptu.policy_table.consumer_friendly_messages.messages = {
-      ["AppPermissions"] = { ["languages"] = { ["en-us"] = { }}},
-      ["AppPermissionsHelp"] = { ["languages"] = { ["en-us"] = { }}}}
-  else
-    ptu.policy_table.device_data = nil
-    ptu.policy_table.usage_and_error_counts = nil
-    ptu.policy_table.app_policies["0000001"] = { keep_context = false, steal_focus = false, priority = "NONE", default_hmi = "NONE" }
-    ptu.policy_table.app_policies["0000001"]["groups"] = { "Base-4", "Base-6" }
-    ptu.policy_table.functional_groupings["DataConsent-2"].rpcs = json.null
-    -- updating specific parameters
-    ptu.policy_table.consumer_friendly_messages.messages = {
-      ["AppPermissions"] = { ["languages"] = { ["en-us"] = { }}},
-      ["AppPermissionsHelp"] = { ["languages"] = { ["en-us"] = { }}}}
   end
 end
 
@@ -235,6 +226,7 @@ for i = 1, 1 do
 end
 
 function Test:TestStep_ValidateResult()
+  --TODO: Update part in case to check UTF-8 parameters.
   local r_expected = { "1||||||en-us|AppPermissions", "2||||||en-us|AppPermissionsHelp" }
   local query = "select id, tts, label, line1, line2, textBody, language_code, message_type_name from message"
   local r_actual = execute_sqlite_query(db_file, query)
