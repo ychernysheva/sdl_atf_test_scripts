@@ -33,7 +33,7 @@ local commonSteps = require("user_modules/shared_testcases/commonSteps")
 --[[ Local Variables ]]
 local sequence = { }
 local attempts = 15
-local timestamps = {0, 0}
+local timestamps = { }
 local r_expected = 61
 local r_actual
 local r_expected_status = { "UPDATE_NEEDED", "UPDATING", "UPDATE_NEEDED", "UPDATING" }
@@ -144,15 +144,21 @@ end
 
 function Test.TestStep_ShowTimeouts()
   print("--- Seconds between retries ----------------------")
-  r_actual = timestamps[2] - timestamps[1]
+  if( #timestamps ~= 0 and timestamps[2] ~= nil and timestamps[1] ~= nil ) then
+    r_actual = timestamps[2] - timestamps[1]
+  end
   print(tostring(r_actual))
   print("--------------------------------------------------")
 end
 
 function Test:TestStep_Validate_Timeouts()
-  if (r_actual < r_expected - 5) or (r_actual > r_expected + 5) then
-    local msg = table.concat({ "Expected timeout: '", r_expected, "', got: '", r_actual, "'" })
-    self:FailTestCase(msg)
+  if ( r_actual ~= nil ) then
+    if (r_actual < r_expected - 5) or (r_actual > r_expected + 5) then
+      local msg = table.concat({ "Expected timeout: '", r_expected, "', got: '", r_actual, "'" })
+      self:FailTestCase(msg)
+    end
+  else
+    self:FailTestCase("Expected timeout is not calculated.")
   end
 end
 
