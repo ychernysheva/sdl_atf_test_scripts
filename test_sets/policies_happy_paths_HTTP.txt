@@ -13,7 +13,7 @@
 ./test_scripts/Polices/build_options/012_ATF_P_TC_HMI_sends_GetURLs_no_app_registered_HTTP.lua .
 ./test_scripts/Polices/build_options/023_ATF_P_TC_PTU_Merge_Into_Local_PT_ConsumerFriendlyMessages_HTTP.lua .
 ./test_scripts/Polices/build_options/032_ATF_P_TC_PTU_Restarting_Policy_Table_Exchange_HTTP.lua GitHub
-./test_scripts/Polices/build_options/046_ATF_P_TC_PTU_UTF8_Encoding_Check_HTTP.lua GitHub
+;./test_scripts/Polices/build_options/046_ATF_P_TC_PTU_UTF8_Encoding_Check_HTTP.lua Requirement_could_not_be_checked_based_on_clarification
 ./test_scripts/Polices/build_options/ATF_P_TC_SDL_Build_EXTENDED_POLICY_HTTP.lua GitHub
 ./test_scripts/Polices/build_options/022_ATF_P_TC_PTU_Merge_Into_Local_PT_HTTP.lua GitHub
 ./test_scripts/Polices/build_options/TC001_SDL_Build_HTTP_Flow_DEXTENDED_POLICY_OFF.lua GitHub
