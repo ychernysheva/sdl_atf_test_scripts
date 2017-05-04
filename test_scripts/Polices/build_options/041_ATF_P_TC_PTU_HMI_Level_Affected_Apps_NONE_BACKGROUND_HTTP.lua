@@ -1,6 +1,7 @@
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
 -- [PolicyTableUpdate] HMILevel on Policy Update for the apps affected in NONE/BACKGROUND
+-- Information: Applicable for F-S and External_Proprietary Polciies
 --
 -- Description:
 -- SDL must change HMILevel of applications that are currently in NONE or BACKGROUND "default_hmi" from assigned policies in case of Policy Table Update
@@ -16,16 +17,19 @@
 -- 2) SDL->app_2: OnPermissionsChange
 --
 -- Expected:
--- 1) SDL->appID_2: OnHMIStatus(BACKGROUND) //as "default_hmi" from the newly assigned policies has value of BACKGROUND
-
+-- 1) SDL->appID_1: NONE OnHMIStatus -- should keep last value BACKGROUND
+-- 1) SDL->appID_2: NONE OnHMIStatus -- should keep last value NONE
 ---------------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
+config.application1.registerAppInterfaceParams.appHMIType = { "DEFAULT" }
+config.application1.registerAppInterfaceParams.isMediaApplication = false
 
 --[[ Required Shared libraries ]]
 local mobileSession = require("mobile_session")
 local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
 local commonSteps = require("user_modules/shared_testcases/commonSteps")
+local commonTestCases = require("user_modules/shared_testcases/commonTestCases")
 local json = require("modules/json")
 
 --[[ Local Variables ]]
@@ -81,17 +85,7 @@ local function activate_app(self, id)
 end
 
 local function deactivate_app(self, id)
-  self.hmiConnection:SendNotification("BasicCommunication.OnAppDeactivated", { appID = get_app_hmi_id(self, id)})
-end
-
-local function register_OnHMIStatus(self, id)
-  self["mobileSession" .. id]:ExpectNotification("OnHMIStatus")
-  :Do(function(_, d)
-      log("SDL->MOB" .. id .. ": OnHMIStatus()", d.payload.hmiLevel)
-      r_actual_hmi_levels[id] = d.payload.hmiLevel
-    end)
-  :Times(AnyNumber())
-  :Pin()
+  self.hmiConnection:SendNotification("BasicCommunication.OnAppDeactivated", { appID = get_app_hmi_id(self, id), reason = "GENERAL"})
 end
 
 local function register_OnPermissionsChange(self, id)
@@ -202,25 +196,45 @@ function Test:StartMobileSession_2()
   start_mobile_session(self, 2)
 end
 
-function Test:Register_OnHMIStatus()
-  register_OnHMIStatus(self, 1)
-  register_OnHMIStatus(self, 2)
-end
+-- function Test:Register_OnHMIStatus()
+-- register_OnHMIStatus(self, 1)
+-- register_OnHMIStatus(self, 2)
+-- end
 
 function Test:RegisterApp_1()
   register_default_app(self, 1)
+  self["mobileSession1"]:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE"})
+  :Do(function(_, d)
+      print("SDL->MOB1: OnHMIStatus()", d.payload.hmiLevel)
+      r_actual_hmi_levels[1] = d.payload.hmiLevel
+    end)
 end
 
 function Test:RegisterApp_2()
   register_default_app(self, 2)
+  self["mobileSession2"]:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "NONE"})
+  :Do(function(_, d)
+      print("SDL->MOB2: OnHMIStatus()", d.payload.hmiLevel)
+      r_actual_hmi_levels[2] = d.payload.hmiLevel
+    end)
 end
 
 function Test:ActivateApp_1()
   activate_app(self, 1) -- app1 -> FULL
+  self["mobileSession1"]:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "FULL"})
+  :Do(function(_, d)
+      print("SDL->MOB1: OnHMIStatus()", d.payload.hmiLevel)
+      r_actual_hmi_levels[1] = d.payload.hmiLevel
+    end)
 end
 
 function Test:DeactivateApp_1() -- app1 -> BACKGROUND
   deactivate_app(self, 1)
+  self["mobileSession1"]:ExpectNotification("OnHMIStatus",{ systemContext = "MAIN", hmiLevel = "BACKGROUND"})
+  :Do(function(_, d)
+      print("SDL->MOB1: OnHMIStatus()", d.payload.hmiLevel)
+      r_actual_hmi_levels[1] = d.payload.hmiLevel
+    end)
 end
 
 function Test.ShowHMILevels()
@@ -244,15 +258,21 @@ commonFunctions:newTestCasesGroup("Test")
 
 function Test:Test_PTU_1()
   ptu(self, 1)
+  self["mobileSession1"]:ExpectNotification("OnHMIStatus"):Times(0)
+  self["mobileSession2"]:ExpectNotification("OnHMIStatus"):Times(0)
+  commonTestCases:DelayedExp(10000)
 end
 
 function Test:Test_UPDATING()
-local reqId = self.hmiConnection:SendRequest("SDL.GetStatusUpdate")
-EXPECT_HMIRESPONSE(reqId, {status = "UPDATING"})
+  local reqId = self.hmiConnection:SendRequest("SDL.GetStatusUpdate")
+  EXPECT_HMIRESPONSE(reqId, {status = "UPDATING"})
 end
 
 function Test:Test_PTU_2()
   ptu(self, 2)
+  self["mobileSession1"]:ExpectNotification("OnHMIStatus"):Times(0)
+  self["mobileSession2"]:ExpectNotification("OnHMIStatus"):Times(0)
+  commonTestCases:DelayedExp(10000)
 end
 
 function Test:Test_UP_TO_DATE()
@@ -273,7 +293,7 @@ function Test.Test_ShowSequence()
 end
 
 function Test:Test_Validation_OnHMIStatus()
-  local r_expected_hmi_levels = { "BACKGROUND", "BACKGROUND" }
+  local r_expected_hmi_levels = { "BACKGROUND", "NONE" }
   for i = 1, 2 do
     if r_expected_hmi_levels[i] ~= r_actual_hmi_levels[i] then
       local msg = table.concat({
