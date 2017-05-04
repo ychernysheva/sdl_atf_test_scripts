@@ -21,6 +21,7 @@ config.defaultProtocolVersion = 2
 --[[ Required Shared libraries ]]
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
+local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
@@ -52,31 +53,54 @@ function Test:TestStep_OpenNewSession()
 end
 
 function Test:TestStep_Trigger_PTU_Check_HTTP_flow()
+  local onsysrequest_app1 = false
+  local onsysrequest_app2 = false
   local corId = self.mobileSession2:SendRPC("RegisterAppInterface", config.application2.registerAppInterfaceParams)
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application2.registerAppInterfaceParams.appName }})
-   :Do(function()
-     EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "HTTP"})
-      :Do(function()
-          local CorIdSystemRequest = self.mobileSession:SendRPC ("SystemRequest",
-            { requestType = "HTTP", fileName = "PTU" }, filePTU)
-          EXPECT_RESPONSE(CorIdSystemRequest, {success = true, resultCode = "SUCCESS"})
-          
-        end)
-      self.mobileSession2:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
-      self.mobileSession2:ExpectNotification("OnPermissionsChange")
-   end)
-    EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate")
-     :ValidIf(function(exp,data)
-       if exp.occurences == 1 and data.params.status == "UPDATE_NEEDED" then
-         return true
-       elseif exp.occurences == 2 and data.params.status == "UPDATING" then
-         return true
-       elseif exp.occurences == 3 and data.params.status == "UP_TO_DATE" then
-         return true
-        end
-        return false
+
+  self.mobileSession2:ExpectNotification("OnSystemRequest"):Times(Between(1,2))
+  :Do(function(_,data)
+      print("SDL-> MOB2: OnSystemRequest, requestType: "..data.payload.requestType)
+      if(data.payload.requestType == "HTTP") then
+        onsysrequest_app2 = true
+        if(onsysrequest_app1 == true) then self:FailTestCase("OnSystemRequest(HTTP) for application 1 already received") end
+
+        local CorIdSystemRequest = self.mobileSession2:SendRPC ("SystemRequest",
+          { requestType = "HTTP", fileName = "PTU" }, filePTU)
+        self.mobileSession2:ExpectResponse(CorIdSystemRequest, {success = true, resultCode = "SUCCESS"})
+      end
     end)
-     :Times(3)
+
+  self.mobileSession:ExpectNotification("OnSystemRequest"):Times(Between(0,1))
+  :Do(function(_,data)
+      print("SDL-> MOB1: OnSystemRequest, requestType: "..data.payload.requestType)
+      if(data.payload.requestType == "HTTP") then
+        onsysrequest_app1 = true
+        if(onsysrequest_app2 == true) then self:FailTestCase("OnSystemRequest(HTTP) for application 2 already received") end
+
+        local CorIdSystemRequest = self.mobileSession:SendRPC ("SystemRequest",
+          { requestType = "HTTP", fileName = "PTU" }, filePTU)
+        self.mobileSession:ExpectResponse(CorIdSystemRequest, {success = true, resultCode = "SUCCESS"})
+      end
+    end)
+
+  self.mobileSession2:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
+  self.mobileSession2:ExpectNotification("OnPermissionsChange")
+
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate")
+  :ValidIf(function(exp,data)
+      if exp.occurences == 1 and data.params.status == "UPDATE_NEEDED" then
+        return true
+      elseif exp.occurences == 2 and data.params.status == "UPDATING" then
+        return true
+      elseif exp.occurences == 3 and data.params.status == "UP_TO_DATE" then
+        return true
+      end
+      return false
+    end)
+  :Times(3)
+
+  commonTestCases:DelayedExp(10000)
 end
 
 --[[ Postconditions ]]
@@ -84,3 +108,5 @@ commonFunctions:newTestCasesGroup("Postconditions")
 function Test.Postcondition_SDLStop()
   StopSDL()
 end
+
+return Test
