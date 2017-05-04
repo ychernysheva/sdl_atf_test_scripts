@@ -15,8 +15,13 @@
 -- SDL must: increment "count_of_sync_reboots" section value of Local Policy Table.
 ---------------------------------------------------------------------------------------------
 
+
+--[[ Required Shared libraries ]]
+local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
+local commonSteps = require('user_modules/shared_testcases/commonSteps')
+
 --[[ General configuration parameters ]]
-Test = require('connecttest')
+Test = require('user_modules/dummy_connecttest')
 local config = require('config')
 config.defaultProtocolVersion = 2
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
@@ -188,38 +193,73 @@ function Test:Precondition()
   TestData:init(self)
 end
 
+function Test:SDLStatePrecondition() 
+  self:runSDL()
+  commonFunctions:waitForSDLStart(self):Do(function()
+    self:initHMI():Do(function()
+      commonFunctions:userPrint(35, "HMI initialized")
+      self:initHMI_onReady():Do(function ()
+        commonFunctions:userPrint(35, "HMI is ready")
+        self:connectMobile():Do(function ()
+          commonFunctions:userPrint(35, "Mobile Connected")
+          self:startSession()
+        end)
+      end)
+    end)
+  end)
+end
+
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 
 function Test:HMIsendOnSystemError()
   for _ = 1, 3 do
     os.execute("sleep 2")
+    print("Calling onSystemError(SYNC_REBOOTED)") 
     self:onSystemError("SYNC_REBOOTED")
   end
 end
 
 function Test:StopSDL()
-  StopSDL(self)
+  self.hmiConnection:SendNotification("BasicCommunication.OnExitAllApplications",
+    { reason = "SUSPEND" })
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnSDLPersistenceComplete"):Do(function()
+    print("Received BasicCommunication.OnSDLPersistenceComplete, stopping SDL")
+    StopSDL()
+  end)
 end
 
-function Test:StartSDL2()
-  StartSDL(config.pathToSDL, config.ExitOnCrash, self)
-end
-
-function Test:InitHMI2()
-  self:initHMI()
-  self:initHMI_onReady()
+function Test:StartSDL2() 
+  self:runSDL()
+  commonFunctions:waitForSDLStart(self):Do(function()
+    self:initHMI():Do(function()
+      commonFunctions:userPrint(35, "HMI initialized")
+      self:initHMI_onReady():Do(function ()
+        commonFunctions:userPrint(35, "HMI is ready")
+        self:connectMobile():Do(function ()
+          commonFunctions:userPrint(35, "Mobile Connected")
+          self:startSession()
+        end)
+      end)
+    end)
+  end)
 end
 
 function Test:HMIsendOnSystemError2()
   for _ = 1, 4 do
     os.execute("sleep 2")
+    print("Calling onSystemError(SYNC_REBOOTED)") 
     self:onSystemError("SYNC_REBOOTED")
   end
 end
 
 function Test:StopSDL2()
-  StopSDL(self)
+  self.hmiConnection:SendNotification("BasicCommunication.OnExitAllApplications",
+    { reason = "SUSPEND" })
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnSDLPersistenceComplete"):Do(function()
+    print("Received BasicCommunication.OnSDLPersistenceComplete, stopping SDL")
+    StopSDL()
+  end)
 end
 
 function Test:CheckPTUinLocalPT()
