@@ -164,7 +164,7 @@ function Test:TestStep_RegisterNewApp()
   :Do( function(_, data)
       print("SDL -> MOB1: OnSystemRequest, requestType: "..data.payload.requestType)
       if(data.payload.requestType == "HTTP") then
-        if(data.binaryData ~= nil) then
+        if(data.binaryData ~= nil and data.binaryData ~= "" ) then
           ptu = json.decode(data.binaryData)
         else
           self:FailTestCase("Binary data is empty")
