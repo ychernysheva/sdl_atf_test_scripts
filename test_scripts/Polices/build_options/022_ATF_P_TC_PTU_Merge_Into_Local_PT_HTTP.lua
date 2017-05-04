@@ -173,7 +173,8 @@ function Test:TestStep_RegisterNewApp()
         self:FailTestCase("OnSystemRequest, HTTP for app1 is not received.")
       end
     end)
-
+                
+  commonTestCases:DelayedExp(10000)
 end
 
 function Test:TestStep_ValidateResult()
