@@ -38,17 +38,21 @@ local system_file_path = commonFunctions:read_parameter_from_smart_device_link_i
 local ptu
 local ptu_file = os.tmpname()
 local sequence = { }
-local attempts_1 = 0
+local attempts_1 = { 30, 31, 62, 93, 124, 155 }
 
-local attempts_2 = { 30, 31, 62, 93, 124, 155 }
-local r_expected_1_status = { "UPDATE_NEEDED", "UPDATING"}
-local r_expected_2_status = { "UPDATE_NEEDED", "UPDATING", -- trigger PTU, start t0
+local attempts_2 = { 30 }--, 31, 62, 93, 124, 155 }
+--local r_expected_1_status = { "UPDATE_NEEDED", "UPDATING"}
+local r_expected_1_status = { "UPDATE_NEEDED", "UPDATING", -- trigger PTU, start t0
   "UPDATE_NEEDED", "UPDATING", -- elapsed to, start t1
   "UPDATE_NEEDED", "UPDATING", -- elapsed t1, start t2
   "UPDATE_NEEDED", "UPDATING", -- elapsed t2, start t3
   "UPDATE_NEEDED", "UPDATING", -- elapsed t3, start t4
   "UPDATE_NEEDED", "UPDATING", -- elapsed t4, start t5
   "UPDATE_NEEDED"
+}
+
+local r_expected_2_status = { "UPDATE_NEEDED", "UPDATING", -- trigger PTU, start t0
+  "UPDATE_NEEDED", "UPDATING" -- elapsed to, start t1
 }
 local r_actual_sequence = { }
 local r_actual_1_status = { }
@@ -199,17 +203,25 @@ function Test:RegisterApp_2()
     end)
 end
 
-Test["Starting waiting cycle [" .. attempts_1 * 5 .. "] sec"] = function() end
+for cycles = 1, #attempts_1 do
+  Test["Starting waiting t" .. (cycles - 1) .. " [" .. attempts_1[cycles] .. "] sec"] = function() end
 
-for i = 1, attempts_1 do
-  Test["Waiting " .. i * 5 .. " sec"] = function()
-    os.execute("sleep 5")
+  for i = 1, (attempts_1[cycles]/5) do
+    Test["Waiting " .. i * 5 .. " sec"] = function()
+      os.execute("sleep 5")
+    end
   end
+
+  function Test.FinishCycle()
+    --r_actual_2_status = r_actual_sequence[1]
+    log("--- retry " .. (cycles - 1) .. " finished ---")
+  end
+
 end
 
 function Test.FinishCycle_1()
   r_actual_1_status = r_actual_sequence--[#r_actual_sequence]
-  log("--- 1st retry cycle finished ---")
+  log("--- 1st retry sequence finished ---")
   r_actual_sequence = { }
 end
 
@@ -311,11 +323,9 @@ for cycles = 1, #attempts_2 do
     end
   end
 
-  function Test.FinishCycle()
-    --r_actual_2_status = r_actual_sequence[1]
-    log("--- retry " .. (cycles - 1) .. " finished ---")
-  end
-
+end
+function Test.FinishCycle()
+  log("--- 2nd retry sequence (2 cycles) finished---")
 end
 
 function Test.ShowSequence()
