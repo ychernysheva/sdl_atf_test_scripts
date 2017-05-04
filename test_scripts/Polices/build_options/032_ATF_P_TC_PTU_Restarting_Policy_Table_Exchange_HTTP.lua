@@ -29,6 +29,7 @@ config.defaultProtocolVersion = 2
 
 --[[ Required Shared libraries ]]
 local commonSteps = require ('user_modules/shared_testcases/commonSteps')
+local commonTestCases = require ('user_modules/shared_testcases/commonTestCases')
 local events = require('events')
 
 --[[ Local Variables ]]
@@ -278,6 +279,8 @@ local function DelayedExp(time)
 
     EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"}, {status = "UPDATING"}):Times(2)
     self.mobileSession2:ExpectResponse(CorIdRAI2, {success = true, resultCode = "SUCCESS"})
+
+    commonTestCases:DelayedExp(10000)
   end
 
   function Test:TestStep_CheckHTTP_Received()
