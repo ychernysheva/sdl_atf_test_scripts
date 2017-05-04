@@ -42,6 +42,9 @@ timeout[4] = timeout[1] + timeout[3] + seconds_between_retries[3]
 timeout[5] = timeout[1] + timeout[4] + seconds_between_retries[4]
 timeout[6] = timeout[1] + timeout[5] + seconds_between_retries[5]
 
+local onsysrequest_app1 = false
+local onsysrequest_app2 = false
+
 --[[ General Settings for configuration ]]
 Test = require('connecttest')
 require('cardinalities')
@@ -254,9 +257,33 @@ local function DelayedExp(time)
           maxNumberRFCOMMPorts = 1
         }
       })
-    EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "LOCK_SCREEN_ICON_URL"}, {requestType = "HTTP"}):Times(2)
+
+    self.mobileSession2:ExpectNotification("OnSystemRequest"):Times(Between(1,2))
+    :Do(function(_,data)
+        print("SDL->MOB2: OnSystemRequest, requestType: " .. data.payload.requestType)
+        if(data.payload.requestType == "HTTP") then
+          onsysrequest_app2 = true
+          if(onsysrequest_app1 == true) then self:FailTestCase("OnSystemRequest(HTTP) for application 1 already received") end
+        end
+      end)
+
+    self.mobileSession:ExpectNotification("OnSystemRequest"):Times(Between(0,1))
+    :Do(function(_,data)
+        print("SDL->MOB1: OnSystemRequest, requestType: " .. data.payload.requestType)
+        if(data.payload.requestType == "HTTP") then
+          onsysrequest_app1 = true
+          if(onsysrequest_app2 == true) then self:FailTestCase("OnSystemRequest(HTTP) for application 2 already received") end
+        end
+      end)
+
     EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"}, {status = "UPDATING"}):Times(2)
     self.mobileSession2:ExpectResponse(CorIdRAI2, {success = true, resultCode = "SUCCESS"})
+  end
+
+  function Test:TestStep_CheckHTTP_Received()
+    if (onsysrequest_app1 == false and onsysrequest_app2 == false) then
+      self:FailTestCase("OnSystemRequest(HTTP) is not received at new trigger")
+    end
   end
 
   --[[ Postconditions ]]
