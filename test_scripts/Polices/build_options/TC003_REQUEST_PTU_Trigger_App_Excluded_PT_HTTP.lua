@@ -32,7 +32,8 @@ local json = require("modules/json")
 
 --[[ Local variables]]
 local ptu
-local request_http_received = false
+local onsysrequest_app1 = false
+local onsysrequest_app2 = false
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
@@ -76,18 +77,39 @@ function Test:TestStep_PTU_AppID_SecondApp_NotListed_PT()
 
   self.mobileSession1:ExpectNotification("OnSystemRequest")
   :Do(function(_, data)
-      print("SDL->MOB1: OnSystemRequest()", data.payload.requestType)
+      print("SDL->MOB2: OnSystemRequest()", data.payload.requestType)
       if data.payload.requestType == "HTTP" then
-        request_http_received = true
+        onsysrequest_app2 = true
+        if(onsysrequest_app1 == true) then self:FailTestCase("OnSystemRequest(HTTP) for application 1 already received") end
+
         ptu = json.decode(data.binaryData)
       end
     end)
-  :Times(2)
+  :Times(Between(1,2))
+
+  self.mobileSession:ExpectNotification("OnSystemRequest")
+  :Do(function(_, data)
+      print("SDL->MOB1: OnSystemRequest()", data.payload.requestType)
+      if data.payload.requestType == "HTTP" then
+        onsysrequest_app1 = true
+        if(onsysrequest_app2 == true) then self:FailTestCase("OnSystemRequest(HTTP) for application 2 already received") end
+
+        ptu = json.decode(data.binaryData)
+      end
+    end)
+  :Times(Between(0,1))
+
+  commonTestCases:DelayedExp(10000)
 end
 
 function Test:ValidatePTS()
-  if(request_http_received == false) then self:FailTestCase("OnSystemRequest , requestType: HTTP is not received at all") end
-  if(ptu == nil) then self:FailTestCase("Binary data is empty") end
+  if(onsysrequest_app1 == false and onsysrequest_app2 == false) then
+    self:FailTestCase("OnSystemRequest , requestType: HTTP is not received at all")
+  end
+
+  if(ptu == nil or ptu =="") then
+    self:FailTestCase("Binary data is empty")
+  end
 end
 
 --[[ Postconditions ]]
