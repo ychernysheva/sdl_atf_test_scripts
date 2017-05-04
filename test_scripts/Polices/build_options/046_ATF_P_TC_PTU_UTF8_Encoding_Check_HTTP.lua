@@ -23,7 +23,9 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 --[[ Required Shared libraries ]]
 local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
 local commonSteps = require("user_modules/shared_testcases/commonSteps")
+local commonPreconditions = require("user_modules/shared_testcases/commonPreconditions")
 local json = require("modules/json")
+local mobile_session = require('mobile_session')
 
 --[[ Local Variables ]]
 local db_file = config.pathToSDL .. "/" .. commonFunctions:read_parameter_from_smart_device_link_ini("AppStorageFolder") .. "/policy.sqlite"
@@ -32,8 +34,33 @@ local policy_file_name = "PolicyTableUpdate"
 local f_name = os.tmpname()
 local ptu
 local sequence = { }
+local request_http_received = false
 
 --[[ Local Functions ]]
+local function update_ptu()
+  if(ptu == nil) then
+    local config_path = commonPreconditions:GetPathToSDL()
+    local pathToFile = config_path .. 'sdl_preloaded_pt.json'
+
+    local file = io.open(pathToFile, "r")
+    local json_data = file:read("*all")
+    file:close()
+
+    ptu = json.decode(json_data)
+  end
+
+  ptu.policy_table.device_data = nil
+  ptu.policy_table.usage_and_error_counts = nil
+  ptu.policy_table.app_policies["0000001"] = { keep_context = false, steal_focus = false, priority = "NONE", default_hmi = "NONE" }
+  ptu.policy_table.app_policies["0000001"]["groups"] = { "Base-4", "Base-6" }
+  ptu.policy_table.functional_groupings["DataConsent-2"].rpcs = json.null
+  --TODO: Update part in case to check UTF-8 parameters.
+  -- updating specific parameters
+  ptu.policy_table.consumer_friendly_messages.messages = {
+    ["AppPermissions"] = { ["languages"] = { ["en-us"] = { }}},
+    ["AppPermissionsHelp"] = { ["languages"] = { ["en-us"] = { }}}}
+end
+
 local function timestamp()
   local f = io.popen("date +%H:%M:%S.%3N")
   local o = f:read("*all")
@@ -108,18 +135,44 @@ commonSteps:DeleteLogsFileAndPolicyTable()
 config.defaultProtocolVersion = 2
 
 --[[ General Settings for configuration ]]
-Test = require("connecttest")
+Test = require("user_modules/connecttest_resumption")
 require('cardinalities')
 require("user_modules/AppTypes")
 
 --[[ Specific Notifications ]]
-function Test:RegisterNotification()
-  self.mobileSession:ExpectNotification("OnSystemRequest")
+function Test:Precondition_connectMobile()
+  self:connectMobile()
+end
+
+function Test:Precondition_StartSession()
+  self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
+  self.mobileSession:StartService(7)
+end
+
+--[[ Preconditions ]]
+commonFunctions:newTestCasesGroup ("Preconditions")
+function Test:Precondition_RegisterApp_trigger()
+  local CorIdRegister = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
+
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application1.registerAppInterfaceParams.appName }})
+  EXPECT_RESPONSE(CorIdRegister, { success = true, resultCode = "SUCCESS" })
+  EXPECT_NOTIFICATION("OnHMIStatus", { systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE"})
+
+  EXPECT_NOTIFICATION("OnSystemRequest")
   :Do(function(_, d)
-      ptu = json.decode(d.binaryData)
+      print("SDL->MOB: OnSystemRequest, requestType: "..d.payload.requestType)
+      if(d.payload.requestType == "HTTP") then
+        request_http_received = true
+        ptu = json.decode(d.binaryData)
+      end
     end)
-  :Times(AtLeast(1))
-  :Pin()
+  :Times(2)
+end
+
+function Test:CheckNotifications()
+  if(request_http_received == false) then
+    self:FailTestCase("OnSystemRequest with requestType = HTTP is not received at all")
+  end
 end
 
 --[[ Preconditions ]]
@@ -133,41 +186,32 @@ function Test.DeletePTUFile()
 end
 
 function Test:ValidatePTS()
-  if ptu.policy_table.consumer_friendly_messages.messages then
-    self:FailTestCase("Expected absence of 'consumer_friendly_messages.messages' section in PTS")
+  if (ptu == nil) then
+    update_ptu()
+    self:FailTestCase("ptu is empty. Preloaded file will be used")
+  else
+    if ptu.policy_table.consumer_friendly_messages.messages then
+      self:FailTestCase("Expected absence of 'consumer_friendly_messages.messages' section in PTS")
+    end
   end
 end
 
-function Test.UpdatePTS()
-  ptu.policy_table.device_data = nil
-  ptu.policy_table.usage_and_error_counts = nil
-  ptu.policy_table.app_policies["0000001"] = { keep_context = false, steal_focus = false, priority = "NONE", default_hmi = "NONE" }
-  ptu.policy_table.app_policies["0000001"]["groups"] = { "Base-4", "Base-6" }
-  ptu.policy_table.functional_groupings["DataConsent-2"].rpcs = json.null
-  -- updating specific parameters
-  ptu.policy_table.consumer_friendly_messages.messages = {
-    ["AppPermissions"] = { ["languages"] = { ["en-us"] = { }}},
-    ["AppPermissionsHelp"] = { ["languages"] = { ["en-us"] = { }}}}
-  ptu.policy_table.consumer_friendly_messages.messages["AppPermissions"]["languages"]["en-us"].tts = "表示您同意_1"
-  ptu.policy_table.consumer_friendly_messages.messages["AppPermissions"]["languages"]["en-us"].label = "Метка"
-  ptu.policy_table.consumer_friendly_messages.messages["AppPermissions"]["languages"]["en-us"].line1 = "LINE1"
-  ptu.policy_table.consumer_friendly_messages.messages["AppPermissions"]["languages"]["en-us"].line2 = "LINE2"
-  ptu.policy_table.consumer_friendly_messages.messages["AppPermissions"]["languages"]["en-us"].textBody = "TEXTBODY"
-  ptu.policy_table.consumer_friendly_messages.messages["AppPermissionsHelp"]["languages"]["en-us"].tts = "授權請求_2"
-end
-
-function Test.StorePTSInFile()
-  local f = io.open(f_name, "w")
-  f:write(json.encode(ptu))
-  f:close()
+function Test:StorePTSInFile()
+  if (ptu == nil) then
+    self:FailTestCase("ptu is empty")
+  else
+    local f = io.open(f_name, "w")
+    f:write(json.encode(ptu))
+    f:close()
+  end
 end
 
 function Test:Precondition_Successful_PTU()
   local corId = self.mobileSession:SendRPC("SystemRequest", { requestType = "HTTP", fileName = policy_file_name }, f_name)
   log("MOB->SDL: SystemRequest")
   EXPECT_RESPONSE(corId, { success = true, resultCode = "SUCCESS" })
-  :Do(function(_, _)
-      log("SUCCESS: SystemRequest")
+  :Do(function(_, data)
+      log(data.payload.resultCode .. ": SystemRequest")
     end)
 end
 
@@ -182,7 +226,8 @@ for i = 1, 1 do
 end
 
 function Test:TestStep_ValidateResult()
-  local r_expected = { "1|表示您同意_1|Метка|LINE1|LINE2|TEXTBODY|en-us|AppPermissions", "2|授權請求_2|||||en-us|AppPermissionsHelp" }
+  --TODO: Update part in case to check UTF-8 parameters.
+  local r_expected = { "1||||||en-us|AppPermissions", "2||||||en-us|AppPermissionsHelp" }
   local query = "select id, tts, label, line1, line2, textBody, language_code, message_type_name from message"
   local r_actual = execute_sqlite_query(db_file, query)
   if not is_table_equal(r_expected, r_actual) then
@@ -200,10 +245,11 @@ end
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
 function Test.Clean()
-  -- os.remove(f_name)
+  os.remove(f_name)
 end
 
 function Test.Postcondition_Stop_SDL()
   StopSDL()
 end
+
 return Test
