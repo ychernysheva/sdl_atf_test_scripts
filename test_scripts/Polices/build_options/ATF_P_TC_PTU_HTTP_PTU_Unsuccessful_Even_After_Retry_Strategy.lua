@@ -75,6 +75,28 @@ local function check_file_exists(name)
   end
 end
 
+local function update_ptu()
+  if(ptu == nil) then
+    local config_path = commonPreconditions:GetPathToSDL()
+    local pathToFile = config_path .. 'sdl_preloaded_pt.json'
+
+    local file = io.open(pathToFile, "r")
+    local json_data = file:read("*all")
+    file:close()
+
+    ptu = json.decode(json_data)
+  end
+
+  ptu.policy_table.device_data = nil
+  ptu.policy_table.usage_and_error_counts = nil
+  ptu.policy_table.app_policies["0000001"] = { keep_context = false, steal_focus = false, priority = "NONE", default_hmi = "NONE" }
+  ptu.policy_table.app_policies["0000001"]["groups"] = { "Base-4", "Base-6" }
+  ptu.policy_table.functional_groupings["DataConsent-2"].rpcs = json.null
+  -- updating parameters in order to speed up the process
+  ptu.policy_table.module_config.seconds_between_retries = { 1, 1, 1, 1, 1 }
+  ptu.policy_table.module_config.timeout_after_x_seconds = 30
+end
+
 --[[ General Precondition before ATF start ]]
 commonFunctions:SDLForceStop()
 commonSteps:DeleteLogsFileAndPolicyTable()
@@ -100,7 +122,7 @@ commonFunctions:newTestCasesGroup("Preconditions")
 
 function Test:ValidatePTS()
   if(ptu == nil) then
-    self:FailTestCase("Binary data is empty")
+    self:FailTestCase("Binary data is empty. Preloaded file will be used.")
   else
     if ptu.policy_table.consumer_friendly_messages.messages then
       self:FailTestCase("Expected absence of 'consumer_friendly_messages.messages' section in PTS")
@@ -108,37 +130,8 @@ function Test:ValidatePTS()
   end
 end
 
-function Test:UpdatePTS()
-  if(ptu == nil) then
-
-    local config_path = commonPreconditions:GetPathToSDL()
-    local pathToFile = config_path .. 'sdl_preloaded_pt.json'
-
-    local file = io.open(pathToFile, "r")
-    local json_data = file:read("*all")
-    file:close()
-
-    ptu = json.decode(json_data)
-    ptu.policy_table.device_data = nil
-    ptu.policy_table.usage_and_error_counts = nil
-    ptu.policy_table.app_policies["0000001"] = { keep_context = false, steal_focus = false, priority = "NONE", default_hmi = "NONE" }
-    ptu.policy_table.app_policies["0000001"]["groups"] = { "Base-4", "Base-6" }
-    ptu.policy_table.functional_groupings["DataConsent-2"].rpcs = json.null
-    -- set minimum values for timeouts of retry cycle
-    ptu.policy_table.module_config.seconds_between_retries = { 1, 1, 1, 1, 1 }
-    ptu.policy_table.module_config.timeout_after_x_seconds = 30
-
-    self:FailTestCase("Binary data is empty. Preloaded file will be used")
-  else
-    ptu.policy_table.device_data = nil
-    ptu.policy_table.usage_and_error_counts = nil
-    ptu.policy_table.app_policies["0000001"] = { keep_context = false, steal_focus = false, priority = "NONE", default_hmi = "NONE" }
-    ptu.policy_table.app_policies["0000001"]["groups"] = { "Base-4", "Base-6" }
-    ptu.policy_table.functional_groupings["DataConsent-2"].rpcs = json.null
-    -- set minimum values for timeouts of retry cycle
-    ptu.policy_table.module_config.seconds_between_retries = { 1, 1, 1, 1, 1 }
-    ptu.policy_table.module_config.timeout_after_x_seconds = 30
-  end
+function Test.UpdatePTS()
+  update_ptu()
 end
 
 function Test.StorePTSInFile()
@@ -196,10 +189,14 @@ function Test:RegisterApp_2()
         self.applications[app.appName] = app.appID
       end
     end)
+  :Times(Between(1,2))
+
   local corId = self.mobileSession2:SendRPC("RegisterAppInterface", config.application2.registerAppInterfaceParams)
   log("MOB2->SDL: RegisterAppInterface")
   self.mobileSession2:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
-  log("SDL->MOB2: SUCCESS: RegisterAppInterface")
+  :Do(function(_,data)
+      log("SDL->MOB2: " .. data.payload.resultCode .. ": RegisterAppInterface")
+    end)
 end
 
 Test["Starting waiting cycle [" .. attempts_1 * 5 .. "] sec"] = function() end
@@ -270,15 +267,17 @@ function Test:RegisterEvents()
     end)
   :Times(AnyNumber())
   :Pin()
+
   self.mobileSession:ExpectNotification("OnSystemRequest", { requestType = "HTTP" })
-  :Do(function()
-      log("SDL->MOB1: OnSystemRequest")
+  :Do(function(_,data)
+      log("SDL->MOB1: OnSystemRequest, requestType: " .. data.payload.requestType)
     end)
   :Times(AnyNumber())
   :Pin()
+
   self.mobileSession2:ExpectNotification("OnSystemRequest", { requestType = "HTTP" })
-  :Do(function()
-      log("SDL->MOB2: OnSystemRequest")
+  :Do(function(_,data)
+      log("SDL->MOB2: OnSystemRequest, requestType: " .. data.payload.requestType)
     end)
   :Times(AnyNumber())
   :Pin()
@@ -293,10 +292,14 @@ function Test:RegisterApp_2()
         self.applications[app.appName] = app.appID
       end
     end)
+  :Times(Between(1,2))
+
   local corId = self.mobileSession2:SendRPC("RegisterAppInterface", config.application2.registerAppInterfaceParams)
   log("MOB2->SDL: RegisterAppInterface")
   self.mobileSession2:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
-  log("SDL->MOB2: SUCCESS: RegisterAppInterface")
+  :Do(function(_,data)
+      log("SDL->MOB2: " .. data.payload.resultCode .. ": RegisterAppInterface")
+    end)
 end
 
 for cycles = 1, #attempts_2 do
