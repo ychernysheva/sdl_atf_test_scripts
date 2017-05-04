@@ -93,8 +93,9 @@ function Test:TestStep_PTU_AppID_SecondApp_NotListed_PT()
       if data.payload.requestType == "HTTP" then
         onsysrequest_app1 = true
         if(onsysrequest_app2 == true) then self:FailTestCase("OnSystemRequest(HTTP) for application 2 already received") end
-
-        ptu = json.decode(data.binaryData)
+        if(data.binaryData ~= nil and data.binaryData ~= "") then
+          ptu = json.decode(data.binaryData)
+        end
       end
     end)
   :Times(Between(0,1))
