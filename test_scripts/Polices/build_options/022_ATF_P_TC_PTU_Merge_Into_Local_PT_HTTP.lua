@@ -112,7 +112,7 @@ function Test:Precondition_RegisterApp()
 
   self.mobileSession:ExpectNotification("OnSystemRequest")
   :Do( function(_, data)
-      print("OnSystemRequest, requestType: "..data.payload.requestType)
+      print("SDL -> MOB1: OnSystemRequest, requestType: "..data.payload.requestType)
       if(data.payload.requestType == "HTTP") then
         ptu = json.decode(data.binaryData)
       end
@@ -148,18 +148,27 @@ function Test:TestStep_RegisterNewApp()
         self.applications[app.appName] = app.appID
       end
     end)
+  :Times(Between(1,2))
+
   local corId = self.mobileSession2:SendRPC("RegisterAppInterface", config.application2.registerAppInterfaceParams)
   self.mobileSession2:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
 
   EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"}, {status = "UPDATING"}):Times(2)
 
   self.mobileSession2:ExpectNotification("OnSystemRequest", {status = "LOCK_SCREEN_ICON_URL"})
+  :Do(function(_,data)
+      print("SDL -> MOB2: OnSystemRequest, requestType: "..data.payload.requestType)
+    end)
 
   self.mobileSession:ExpectNotification("OnSystemRequest")
   :Do( function(_, data)
-      print("Mob1: OnSystemRequest, requestType: "..data.payload.requestType)
+      print("SDL -> MOB1: OnSystemRequest, requestType: "..data.payload.requestType)
       if(data.payload.requestType == "HTTP") then
-        ptu = json.decode(data.binaryData)
+        if(data.binaryData ~= nil) then
+          ptu = json.decode(data.binaryData)
+        else
+          self:FailTestCase("Binary data is empty")
+        end
       else
         self:FailTestCase("OnSystemRequest, HTTP for app1 is not received.")
       end
