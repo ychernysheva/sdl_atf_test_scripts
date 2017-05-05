@@ -1,7 +1,3 @@
---UNREADY: Need to add json file from https://github.com/smartdevicelink/sdl_atf_test_scripts/pull/363/
--- Also the sequence array is filled in with BasicCommunication.OnSystemRequest
--- r_actual also returns nil and this invalidates the whole check
-
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
 -- [PolicyTableUpdate] Local Policy Table retry timeout expiration
@@ -75,19 +71,20 @@ function Test:TestStep_OnStatusUpdate_UPDATE_NEEDED_new_PTU_request()
   local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
 
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", {application = { appName = config.application1.registerAppInterfaceParams.appName } })
-  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",
-    { status = "UPDATE_NEEDED" }, {status = "UPDATING"}):Times(2)
-  EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "HTTP"})
-  :Do(function()
-    time_system_request_prev = timestamp()
-  end)
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",{ status = "UPDATE_NEEDED" }, {status = "UPDATING"}):Times(2)
+
+  EXPECT_NOTIFICATION("OnSystemRequest")
+  :Do(function(_, data)
+      print("SDL->MOB: OnSystemRequest()", data.payload.requestType)
+      if data.payload.requestType == "HTTP" then
+        time_system_request_prev = timestamp()
+      end
+    end)
+  :Times(2)
 
   self.mobileSession:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS" })
   self.mobileSession:ExpectNotification("OnHMIStatus", {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
 end
-
---[[ Test ]]
-commonFunctions:newTestCasesGroup("Test")
 
 function Test:TestStep_Retry_Timeout_Expiration()
   local is_test_fail = false
@@ -103,6 +100,7 @@ function Test:TestStep_Retry_Timeout_Expiration()
   time_wait[5] = sec_btw_ret[3] + sec_btw_ret[4] + timeout_after_x_seconds
   time_wait[6] = sec_btw_ret[4] + sec_btw_ret[5] + timeout_after_x_seconds
   total_time = (time_wait[1] + time_wait[2] + time_wait[3] + time_wait[4] + time_wait[5] + time_wait[6])*1000
+  print("Wait " .. total_time .. "msec")
 
   local function verify_retry_sequence(occurences)
     local time_1 = time_system_request_curr
@@ -110,7 +108,7 @@ function Test:TestStep_Retry_Timeout_Expiration()
     local timeout = (time_1 - time_2)
 
     if (time_wait[occurences] == nil) then
-      time_wait[occurences]  = time_wait[6]
+      time_wait[occurences] = time_wait[6]
       commonFunctions:printError("ERROR: OnSystemRequest is received more than expected.")
       is_test_fail = true
     end
@@ -127,13 +125,14 @@ function Test:TestStep_Retry_Timeout_Expiration()
   if(time_wait == 0) then time_wait = 63000 end
 
   EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "HTTP", fileType = "JSON"}):Timeout(total_time+60000):Times(5)
-  :Do(function(exp)
-    if(time_system_request_curr ~= 0) then
-      time_system_request_prev = time_system_request_curr
-    end
-    time_system_request_curr = timestamp()
-    verify_retry_sequence(exp.occurences)
-  end)
+  :Do(function(exp, data)
+      print("SDL->MOB: OnSystemRequest()", data.payload.requestType)
+      if(time_system_request_curr ~= 0) then
+        time_system_request_prev = time_system_request_curr
+      end
+      time_system_request_curr = timestamp()
+      verify_retry_sequence(exp.occurences)
+    end)
 
   commonTestCases:DelayedExp(total_time)
   if(is_test_fail == true) then
