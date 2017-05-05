@@ -64,7 +64,7 @@ function Test:RegisterNotification()
   self.mobileSession:ExpectNotification("OnSystemRequest")
   :Do(function(_, d)
       if d.payload.requestType == "HTTP" then
-        log("SDL->MOB1: OnSystemRequest()", d.payload.requestType, d.payload.url)
+        log("SDL->MOB1: OnSystemRequest()", d.payload.requestType, tostring(d.payload.url) )
         table.insert(r_actual, d.payload.url)
       end
     end)
@@ -126,11 +126,15 @@ function Test.ShowSequence()
   print("--------------------------------------------------")
 end
 
-function Test:ValidateResult()
-  for i = 1, 3 do
-    if r_expected[i] ~= r_actual[i] then
-      local m = table.concat({"\nExpected url:\n", tostring(r_expected[i]), "\nActual:\n", tostring(r_actual[i]), "\n"})
-      self:FailTestCase(m)
+for i = 1, 3 do
+  Test["ValidateResult" .. i] = function(self)
+    if(r_actual[i] ~= nil) then
+      if r_expected[i] ~= r_actual[i] then
+        local m = table.concat({"\nExpected url:\n", tostring(r_expected[i]), "\nActual:\n", tostring(r_actual[i]), "\n"})
+        self:FailTestCase(m)
+      end
+    else
+      self:FailTestCase("Actual url is empty")
     end
   end
 end
