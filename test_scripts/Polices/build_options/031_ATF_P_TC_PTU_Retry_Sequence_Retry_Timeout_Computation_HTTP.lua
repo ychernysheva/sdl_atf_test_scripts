@@ -67,6 +67,8 @@ local function update_ptu()
     ptu = json.decode(json_data)
   end
 
+  ptu.policy_table.preloaded_pt = nil
+  ptu.policy_table.preloaded_date = nil
   ptu.policy_table.device_data = nil
   ptu.policy_table.usage_and_error_counts = nil
   ptu.policy_table.app_policies["0000001"] = { keep_context = false, steal_focus = false, priority = "NONE", default_hmi = "NONE" }
@@ -200,7 +202,9 @@ function Test:RegisterNotification()
   :Do(function(_, data)
       print("SDL->MOB1: OnSystemRequest, requestType: " .. data.payload.requestType)
       log("SDL->MOB1: OnSystemRequest, requestType: " .. data.payload.requestType)
-      table.insert(timestamps, os.time())
+      if(data.payload.requestType == "HTTP") then
+        table.insert(timestamps, os.time())
+      end
     end)
   :Times(AnyNumber())
   :Pin()
@@ -209,7 +213,9 @@ function Test:RegisterNotification()
   :Do(function(_, data)
       print("SDL->MOB2: OnSystemRequest, requestType: " .. data.payload.requestType)
       log("SDL->MOB2: OnSystemRequest, requestType: " .. data.payload.requestType)
-      table.insert(timestamps, os.time())
+      if(data.payload.requestType == "HTTP") then
+        table.insert(timestamps, os.time())
+      end
     end)
   :Times(AnyNumber())
   :Pin()
