@@ -93,12 +93,13 @@ function Test:TestStep_Retry_Timeout_Expiration()
   local sec_btw_ret = {1, 2, 3, 4, 5}
   local total_time
 
-  time_wait[1] = timeout_after_x_seconds
-  time_wait[2] = sec_btw_ret[1] + timeout_after_x_seconds
-  time_wait[3] = sec_btw_ret[1] + sec_btw_ret[2] + timeout_after_x_seconds
-  time_wait[4] = sec_btw_ret[2] + sec_btw_ret[3] + timeout_after_x_seconds
-  time_wait[5] = sec_btw_ret[3] + sec_btw_ret[4] + timeout_after_x_seconds
-  time_wait[6] = sec_btw_ret[4] + sec_btw_ret[5] + timeout_after_x_seconds
+  time_wait[1] = timeout_after_x_seconds -- 30
+  time_wait[2] = timeout_after_x_seconds + sec_btw_ret[1] -- 31
+  time_wait[3] = timeout_after_x_seconds + sec_btw_ret[2] + time_wait[2] -- 30 + 2 + 31 = 63
+  time_wait[4] = timeout_after_x_seconds + sec_btw_ret[3] + time_wait[3] -- 30 + 3 + 63 = 96
+  time_wait[5] = timeout_after_x_seconds + sec_btw_ret[4] + time_wait[4] -- 30 + 4 + 96 = 130
+  time_wait[6] = timeout_after_x_seconds + sec_btw_ret[5] + time_wait[5] -- 30 + 5 + 130 = 165
+
   total_time = (time_wait[1] + time_wait[2] + time_wait[3] + time_wait[4] + time_wait[5] + time_wait[6])*1000
   print("Wait " .. total_time .. "msec")
 
