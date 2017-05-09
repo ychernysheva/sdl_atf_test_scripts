@@ -60,7 +60,7 @@ function Test:TestStep_OnStatusUpdate_UPDATE_NEEDED_new_PTU_request()
   EXPECT_NOTIFICATION("OnSystemRequest")
   :Do(function(_,data)
       if(data.payload.requestType == "HTTP") then
-        if(data.binaryData == nil) then
+        if(data.binaryData == nil or data.binaryData == "") then
           self:FailTestCase("Binary data is empty")
         else
           print("Binary data is sent to mobile")
