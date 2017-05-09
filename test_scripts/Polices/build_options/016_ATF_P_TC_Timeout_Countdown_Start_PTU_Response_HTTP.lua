@@ -83,9 +83,6 @@ function Test:TestStep_OnStatusUpdate_UPDATE_NEEDED_new_PTU_request()
   self.mobileSession:ExpectNotification("OnHMIStatus", {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
 end
 
---[[ Test ]]
-commonFunctions:newTestCasesGroup("Test")
-
 function Test:TestStep_Sending_PTS_to_mobile_application()
   local time_system_request = {}
   local is_test_fail = false
@@ -99,7 +96,7 @@ function Test:TestStep_Sending_PTS_to_mobile_application()
   end
 
   local time_wait = (timeout_pts*seconds_between_retries[1]*1000 + 2000)
-  commonTestCases:DelayedExp(time_wait) -- tolerance 10 sec
+  commonTestCases:DelayedExp(time_wait) -- tolerance 2 sec
 
   local function verify_retry_sequence(occurences)
     --time_updating[#time_updating + 1] = testCasesForPolicyTable.time_trigger
@@ -117,7 +114,7 @@ function Test:TestStep_Sending_PTS_to_mobile_application()
     return true
   end
 
-  EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "HTTP", fileType = "JSON"})
+  EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "HTTP", fileType = "BINARY"})
   :Do(function()
       time_system_request[#time_system_request + 1] = timestamp()
       verify_retry_sequence(1)
