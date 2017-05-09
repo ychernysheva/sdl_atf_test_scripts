@@ -125,7 +125,7 @@ function Test:TestStep_Retry_Timeout_Expiration()
 
   if(time_wait == 0) then time_wait = 63000 end
 
-  EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "HTTP", fileType = "JSON"}):Timeout(total_time+60000):Times(5)
+  EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "HTTP", fileType = "BINARY"}):Timeout(total_time+60000):Times(5)
   :Do(function(exp, data)
       print("SDL->MOB: OnSystemRequest()", data.payload.requestType)
       if(time_system_request_curr ~= 0) then
@@ -143,6 +143,10 @@ end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
+
+function Test.Postcondition_Restore_files()
+  commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
+end
 
 function Test.Postcondition_Stop_SDL()
   StopSDL()
