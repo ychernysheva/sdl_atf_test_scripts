@@ -65,28 +65,13 @@ commonSteps:DeleteLogsFileAndPolicyTable()
 config.defaultProtocolVersion = 2
 
 --[[ General Settings for configuration ]]
-Test = require('connecttest')
+Test = require('user_modules/connecttest_resumption')
 require('cardinalities')
 require('user_modules/AppTypes')
 local mobile_session = require('mobile_session')
 
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
-
-function Test.Precondition_StopSDL()
-  StopSDL()
-end
-function Test.Precondition_StartSDL()
-  StartSDL(config.pathToSDL, config.ExitOnCrash)
-end
-
-function Test:Precondition_initHMI()
-  self:initHMI()
-end
-
-function Test:Precondition_initHMI_onReady()
-  self:initHMI_onReady()
-end
 
 function Test:Precondition_ConnectMobile()
   self:connectMobile()
@@ -157,7 +142,7 @@ function Test:TestStep_RegisterSecondApp()
       self.mobileSession1:ExpectNotification("OnPermissionsChange")
     end)
 
-  self.mobileSession1:ExpectNotification("OnSystemRequest", {requestType = "HTTP"}):Times(Between(1,2)) --"LOCK_SCREEN_ICON_URL" + HTTP
+  self.mobileSession1:ExpectNotification("OnSystemRequest"):Times(Between(1,2)) --"LOCK_SCREEN_ICON_URL" + HTTP
   :Do(function(_,data)
       print("SDL -> MOB2: OnSystemRequest, requestType: " .. data.payload.requestType)
       if(data.payload.requestType == "HTTP") then
@@ -166,7 +151,7 @@ function Test:TestStep_RegisterSecondApp()
       end
     end)
 
-  self.mobileSession:ExpectNotification("OnSystemRequest", {requestType = "HTTP"}):Times(Between(0,1))
+  self.mobileSession:ExpectNotification("OnSystemRequest"):Times(Between(0,1)) --HTTP
   :Do(function(_,data)
       print("SDL -> MOB1: OnSystemRequest, requestType: " .. data.payload.requestType)
       if(data.payload.requestType == "HTTP") then
@@ -176,6 +161,8 @@ function Test:TestStep_RegisterSecondApp()
     end)
 
   EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"}, {status = "UPDATING"}):Times(2)
+
+  commonTestCases:DelayedExp(10000)
 end
 
 function Test:TestStep_ActivateSecondAppInLimited()
