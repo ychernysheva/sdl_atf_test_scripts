@@ -82,7 +82,7 @@ function Test:TestStep_Sending_PTS_to_mobile_application()
             if (d.payload.url ~= endpoints_url) then
               return false, "Expected URL: " .. endpoints_url .. ", actual: " .. tostring(d.payload.url)
             end
-            if (d.payload.timeout ~= timeout) then
+            if (tostring(d.payload.timeout) ~= timeout) then
               return false, "Expected Timeout: " .. timeout .. ", actual: " .. tostring(d.payload.timeout)
             end
           else
