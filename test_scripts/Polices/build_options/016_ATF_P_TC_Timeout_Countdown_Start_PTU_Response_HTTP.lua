@@ -119,6 +119,7 @@ function Test:TestStep_Sending_PTS_to_mobile_application()
       time_system_request[#time_system_request + 1] = timestamp()
       verify_retry_sequence(1)
     end)
+  :Timeout(time_wait)
 
   if(is_test_fail == true) then
     self:FailTestCase("Test is FAILED. See prints.")
