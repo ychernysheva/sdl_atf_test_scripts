@@ -58,52 +58,27 @@ end
 commonFunctions:newTestCasesGroup("Test")
 
 function Test:TestStep_PoliciesManager_changes_status_UPDATING()
-  local message_order = 1
-  local is_test_fail = false
 
   self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
 
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", {application = { appName = config.application1.registerAppInterfaceParams.appName } })
   :Do(function()
 
-      EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "HTTP"})
-      :Do(function()
-          if(message_order ~= 2) then
-            commonFunctions:printError("OnSystemRequest is not received as message 2 after OnAppRegistered. Received as message: "..message_order)
-            is_test_fail = true
-          else
-            print("OnSystemRequest received as message 2 after OnAppRegistered.")
-          end
-          message_order = message_order + 1
-          local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", { requestType = "HTTP", fileName = "PolicyTableUpdate", },"files/ptu.json")
-          EXPECT_RESPONSE(CorIdSystemRequest, { success = true, resultCode = "SUCCESS"})
-        end)
-
-      EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate"):Times(Between(1,2))
+      EXPECT_NOTIFICATION("OnSystemRequest")--, {requestType = "LOCK_SCREEN_ICON_URL"}, {requestType = "HTTP"})
       :Do(function(_,data)
-          if(data.params.status == "UPDATE_NEEDED") then
-            if(message_order ~= 1) then
-              commonFunctions:printError("SDL.OnStatusUpdate(UPDATE_NEEDED) is not received as message 1 after OnAppRegistered. Received as message: "..message_order)
-              is_test_fail = true
-            else
-              print("SDL.OnStatusUpdate(UPDATING) received as message 1 after OnAppRegistered.")
-            end
-            message_order = message_order + 1
-          elseif(data.params.status == "UPDATING") then
-            if(message_order ~= 3) then
-              commonFunctions:printError("SDL.OnStatusUpdate(UPDATING) is not received as message 3 after OnAppRegistered. Received as message: "..message_order)
-              is_test_fail = true
-            else
-              print("SDL.OnStatusUpdate(UPDATING) received as message 3 after OnAppRegistered.")
-            end
-            message_order = message_order + 1
+          print("SDL -> MOB: OnSystemRequest, requestType: " .. data.payload.requestType)
+        end)
+      :Times(2)
+
+      EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate"):Times(2)
+      :Do(function(exp,data)
+          print("SDL -> HMI: OnStatusUpdate, status: " .. data.params.status)
+          if(data.params.status == "UPDATE_NEEDED" and exp.occurences ~= 1) then
+            self:FailTestCase("SDL.OnStatusUpdate(UPDATE_NEEDED) is not received for first OnStatusUpdate, Received at occurences: " .. exp.occurences)
+          elseif(data.params.status == "UPDATING" and exp.occurences ~= 2) then
+            self:FailTestCase("SDL.OnStatusUpdate(UPDATING) is not received for second OnStatusUpdate, Received at occurences: " .. exp.occurences)
           end
         end)
-
-      if(is_test_fail == true) then
-        self:FailTestCase("Test is FAILED. See prints.")
-      end
-
     end)
 end
 
