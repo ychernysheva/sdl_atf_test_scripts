@@ -117,8 +117,8 @@ function Test:TestStep_Register_App_And_Check_That_PTU_Triggered()
   EXPECT_RESPONSE(CorIdRAI, { success = true, resultCode = "SUCCESS" })
 
   EXPECT_HMICALL("BasicCommunication.PolicyUpdate"):Times(0)
-  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", { status="UPDATE_NEEDED" }, { status="UPDATING" }):Times(AtLeast(1))
-  EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "HTTP" })
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", { status="UPDATE_NEEDED" }, { status="UPDATING" }):Times(2)
+  EXPECT_NOTIFICATION("OnSystemRequest"):Times(2) -- { requestType = "LOCK_SCREEN_ICON_URL" }, { requestType = "HTTP" }
 
 end
 
