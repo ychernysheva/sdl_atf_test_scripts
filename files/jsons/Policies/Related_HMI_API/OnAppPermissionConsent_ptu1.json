@@ -13,18 +13,16 @@
         625
       ],
       "endpoints": {
+        "0x04": {
+          "default": [
+            "http://ivsu.software.ford.com/api/getsoftwareupdates"
+          ]
+        },
         "0x07": {
-                    "default": ["http://policies.telematics.ford.com/api/policies"]
-                },
-                "0x04": {
-                    "default": ["http://ivsu.software.ford.com/api/getsoftwareupdates"]
-                },
-                "queryAppsUrl": {
-                    "default": ["http://sdl.shaid.server"]
-                },
-                "lock_screen_icon_url": {
-                    "default": ["http://i.imgur.com/QwZ9uKG.png"]
-                }
+          "default": [
+            "http://policies.telematics.ford.com/api/policies"
+          ]
+        }
       },
       "notifications_per_minute_by_priority": {
         "EMERGENCY": 60,
@@ -394,7 +392,6 @@
           }
         }
       },
-
       "Notifications": {
         "user_consent_prompt": "Notifications",
         "rpcs": {
@@ -2298,12 +2295,15 @@
         "default_hmi": "NONE",
         "groups": [
           "Base-4"
-        ],
-        "RequestType":[
-          "PROPRIETARY",
-          "HTTP",
-          "QUERY_APPS",
-          "LOCK_SCREEN_ICON_URL"
+        ]
+      },
+	  "0000001": {
+        "keep_context": false,
+        "steal_focus": false,
+        "priority": "NONE",
+        "default_hmi": "NONE",
+        "groups": [
+          "Base-4", "DrivingCharacteristics-3"
         ]
       },
       "device": {
@@ -2322,31 +2322,7 @@
         "default_hmi": "NONE",
         "groups": [
           "BaseBeforeDataConsent"
-        ],
-        "RequestType":[
-          "PROPRIETARY"
         ]
-      },
-       "0000001": {
-        "keep_context": false,
-        "steal_focus": false,
-        "priority": "NONE",
-        "default_hmi": "NONE",
-        "groups": ["Base-4"],
-        "RequestType":[
-          "TRAFFIC_MESSAGE_CHANNEL",
-          "PROPRIETARY",
-          "HTTP",
-          "QUERY_APPS"
-        ]
-      },
-      "MyTestApp": {
-  "keep_context": false,
-        "steal_focus": false,
-        "priority": "NONE",
-        "default_hmi": "NONE",
-        "groups": ["Base-4"],
-        "nicknames": ["Media Application", "MediaApp"]
       }
     }
   }
