@@ -27,6 +27,8 @@
 
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
+--TODO: Should be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
+config.defaultProtocolVersion = 2
 
 --[[ Required Shared libraries ]]
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
@@ -35,16 +37,15 @@ local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
 local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 
+--[[ Local variables ]]
+local time_system_request_prev = 0
+local time_system_request_curr = 0
+local is_test_fail = false
+
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
 testCasesForPolicyTable:Precondition_updatePolicy_By_overwriting_preloaded_pt("files/jsons/Policies/build_options/retry_seq.json")
 commonPreconditions:Connecttest_without_ExitBySDLDisconnect_WithoutOpenConnectionRegisterApp("connecttest_ConnectMobile.lua")
---TODO: Should be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
-config.defaultProtocolVersion = 2
-
---[[ Local variables ]]
-local time_system_request_prev = 0
-local time_system_request_curr = 0
 
 --[[ General Settings for configuration ]]
 Test = require('user_modules/connecttest_ConnectMobile')
@@ -75,7 +76,7 @@ function Test:TestStep_OnStatusUpdate_UPDATE_NEEDED_new_PTU_request()
 
   EXPECT_NOTIFICATION("OnSystemRequest")
   :Do(function(_, data)
-      print("SDL->MOB: OnSystemRequest()", data.payload.requestType)
+      print(timestamp()/1000 .. ": " .. "SDL->MOB: OnSystemRequest()", data.payload.requestType)
       if data.payload.requestType == "HTTP" then
         time_system_request_prev = timestamp()
       end
@@ -87,20 +88,19 @@ function Test:TestStep_OnStatusUpdate_UPDATE_NEEDED_new_PTU_request()
 end
 
 function Test:TestStep_Retry_Timeout_Expiration()
-  local is_test_fail = false
   local timeout_after_x_seconds = 30
   local time_wait = {}
   local sec_btw_ret = {1, 2, 3, 4, 5}
   local total_time
 
-  time_wait[1] = timeout_after_x_seconds -- 30
-  time_wait[2] = timeout_after_x_seconds + sec_btw_ret[1] -- 31
-  time_wait[3] = timeout_after_x_seconds + sec_btw_ret[2] + time_wait[2] -- 30 + 2 + 31 = 63
-  time_wait[4] = timeout_after_x_seconds + sec_btw_ret[3] + time_wait[3] -- 30 + 3 + 63 = 96
-  time_wait[5] = timeout_after_x_seconds + sec_btw_ret[4] + time_wait[4] -- 30 + 4 + 96 = 130
-  time_wait[6] = timeout_after_x_seconds + sec_btw_ret[5] + time_wait[5] -- 30 + 5 + 130 = 165
+  time_wait[0] = timeout_after_x_seconds -- 30
+  time_wait[1] = timeout_after_x_seconds + sec_btw_ret[1] -- 30 + 1 = 31
+  time_wait[2] = timeout_after_x_seconds + sec_btw_ret[2] + time_wait[1] -- 30 + 2 + 31 = 63
+  time_wait[3] = timeout_after_x_seconds + sec_btw_ret[3] + time_wait[2] -- 30 + 3 + 63 = 96
+  time_wait[4] = timeout_after_x_seconds + sec_btw_ret[4] + time_wait[3] -- 30 + 4 + 96 = 130
+  time_wait[5] = timeout_after_x_seconds + sec_btw_ret[5] + time_wait[4] -- 30 + 5 + 130 = 165
 
-  total_time = (time_wait[1] + time_wait[2] + time_wait[3] + time_wait[4] + time_wait[5] + time_wait[6])*1000
+  total_time = (time_wait[0] + time_wait[1] + time_wait[2] + time_wait[3] + time_wait[4] + time_wait[5])*1000
   print("Wait " .. total_time .. "msec")
 
   local function verify_retry_sequence(occurences)
@@ -123,19 +123,41 @@ function Test:TestStep_Retry_Timeout_Expiration()
     return true
   end
 
-  if(time_wait == 0) then time_wait = 63000 end
-
-  EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "HTTP", fileType = "BINARY"}):Timeout(total_time+60000):Times(5)
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate")
   :Do(function(exp, data)
-      print("SDL->MOB: OnSystemRequest()", data.payload.requestType)
+      print(timestamp()/1000 .. ": " .. exp.occurences .. ": " .. data.params.status)
+      if exp.occurences < 11 then
+        return
+      elseif exp.occurences == 11 and data.params.status == "UPDATE_NEEDED" then
+        if(time_system_request_curr ~= 0) then
+          time_system_request_prev = time_system_request_curr
+        end
+        time_system_request_curr = timestamp()
+        verify_retry_sequence(5)
+      else
+        is_test_fail = true
+        commonFunctions:printError("ERROR: SDL.OnStatusUpdate(UPDATE_NEEDED) was not sent at the end of retry sequence")
+      end
+    end)
+  :Times(AnyNumber())
+  :Timeout(total_time + 60000)
+
+  EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "HTTP", fileType = "BINARY" })
+  :Do(function(exp, data)
+      print(timestamp()/1000 .. ": " .. "SDL->MOB: OnSystemRequest()", data.payload.requestType)
       if(time_system_request_curr ~= 0) then
         time_system_request_prev = time_system_request_curr
       end
       time_system_request_curr = timestamp()
-      verify_retry_sequence(exp.occurences)
+      verify_retry_sequence(exp.occurences - 1)
     end)
+  :Times(5)
+  :Timeout(total_time + 60000)
 
   commonTestCases:DelayedExp(total_time)
+end
+
+function Test:VerifyResults()
   if(is_test_fail == true) then
     self:FailTestCase("Test is FAILED. See prints.")
   end

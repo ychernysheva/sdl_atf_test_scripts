@@ -69,7 +69,7 @@ function commonFunctions:waitForSDLStart(test)
     local output = os.execute ("netstat -vatn  | grep " .. hmiPort .. " | grep LISTEN")
     if (output) then
       RAISE_EVENT(event, event)
-    else 
+    else
       RUN_AFTER(raise_event, step)
     end
   end
@@ -88,12 +88,12 @@ function commonFunctions:createMultipleExpectationsWaiter(test, name)
   exp_waiter = {}
   exp_waiter.expectation_list = {}
   function exp_waiter:CheckStatus()
-     if #exp_waiter.expectation_list == 0 and not exp_waiter.expectation.status then 
+     if #exp_waiter.expectation_list == 0 and not exp_waiter.expectation.status then
       exp_waiter.expectation.status = SUCCESS
       event_dispatcher:RaiseEvent(test.mobileConnection, exp_waiter.event)
       return true
      end
-     return false 
+     return false
   end
 
   function exp_waiter:AddExpectation(exp)
@@ -106,19 +106,19 @@ function commonFunctions:createMultipleExpectationsWaiter(test, name)
 
   function exp_waiter:RemoveExpectation(exp)
     local function AnIndexOf(t,val)
-      for k,v in ipairs(t) do 
+      for k,v in ipairs(t) do
         if v == val then return k end
       end
       return nil
     end
-    
+
     table.remove(exp_waiter.expectation_list,
                  AnIndexOf(exp_waiter.expectation_list, exp))
   end
 
   exp_waiter.event = events.Event()
 
-  exp_waiter.event.matches = function(self, e) 
+  exp_waiter.event.matches = function(self, e)
     return self == e
   end
 
@@ -130,8 +130,9 @@ function commonFunctions:createMultipleExpectationsWaiter(test, name)
   return exp_waiter
 end
 
-function commonFunctions:userPrint( color, message)
-  print ("\27[" .. tostring(color) .. "m " .. tostring(message) .. " \27[0m")
+function commonFunctions:userPrint( color, message, delimeter)
+  delimeter = delimeter or "\n"
+  io.write("\27[" .. tostring(color) .. "m" .. tostring(message) .. "\27[0m", delimeter)
 end
 
 --1. Functions for String
