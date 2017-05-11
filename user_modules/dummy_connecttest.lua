@@ -69,7 +69,6 @@ function module.hmiConnection:EXPECT_HMIRESPONSE(id, args)
         func_name = data.result.method
       elseif func_name == nil and type(data.error) == 'table' then
         print_table(data)
-        -- print (debug.traceback())
         func_name = data.error.data.method
       end
 
@@ -158,7 +157,6 @@ function EXPECT_HMICALL(methodName, ...)
 end
 
 function EXPECT_NOTIFICATION(func,...)
-  -- xmlReporter.AddMessage(debug.getinfo(1, "n").name, "EXPECTED_RESULT", ... )
   local args = table.pack(...)
   local args_count = 1
   if #args > 0 then
@@ -306,7 +304,6 @@ function module:runSDL()
   end
   local result, errmsg = SDL:StartSDL(config.pathToSDL, config.SDL, config.ExitOnCrash)
   if not result then
-    SDL:DeleteFile()
     quit(exit_codes.aborted)
   end
   SDL.autoStarted = true
@@ -360,7 +357,7 @@ function module:initHMI()
         })
     end)
   exp_waiter:AddExpectation(web_socket_connected_event)
-  
+
   self.hmiConnection:Connect()
   return exp_waiter.expectation
 end
@@ -382,10 +379,9 @@ function module:initHMI_onReady()
             ["mandatory"] = mandatory ,
             ["params"]= params
           })
-        --print ("request:", name)
         self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", params)
       end)
-    if (mandatory) then 
+    if (mandatory) then
      exp_waiter:AddExpectation(exp)
     end
    return exp
@@ -450,7 +446,7 @@ function module:initHMI_onReady()
       }
     })
   ExpectRequest("VehicleInfo.GetVehicleData", true, { vin = "52-452-52-752" })
-  
+
   local function button_capability(name, shortPressAvailable, longPressAvailable, upDownAvailable)
     return
     {
