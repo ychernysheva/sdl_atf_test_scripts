@@ -1,7 +1,3 @@
---UNREADY: Need to add json file from https://github.com/smartdevicelink/sdl_atf_test_scripts/pull/363/
--- Also the sequence array is filled in with BasicCommunication.OnSystemRequest
--- r_actual also returns nil and this invalidates the whole check
-
 ---------------------------------------------------------------------------------------------
 -- Requirement summary:
 -- [PolicyTableUpdate] Local Policy Table retry timeout expiration
@@ -12,25 +8,26 @@
 -- or the number of retry attempts is limited by the number of elements
 -- in "seconds_between_retries" section of LPT.
 --
--- 1. Used preconditions
--- SDL is built with "-DEXTENDED_POLICY: HTTP" flag
--- Application 1 is registered and activated
--- PTU with updated 'timeout_after_x_seconds' and 'seconds_between_retries' params
--- is performed to speed up the test
--- PTU finished successfully (UP_TO_DATE)
--- 2. Performed steps
--- Trigger new PTU by registering Application 2
--- SDL -> mobile BC.OnSystemRequest (params, url)
--- PTU does not come within defined timeout
--- Check timestamps of BC.PolicyUpdate() requests
--- Calculate timeouts
+-- Preconditions:
+-- 1. SDL is built with "-DEXTENDED_POLICY: HTTP" flag
+-- 2. LPT is updated: params 'timeout_after_x_seconds' and 'seconds_between_retries' in order to speed up the test
+-- 3. SDL is started
+-- 4. Application is registered
+--
+-- Steps:
+-- 1. PTU is triggered
+-- 2. SDL -> mobile: BC.OnSystemRequest (params, url)
+-- 3. PTU does not come within defined timeout
+-- 4. SDL -> mobile: BC.OnSystemRequest (params, url)
+-- 5. Check number of retries
 --
 -- Expected result:
--- Timeouts correspond to 'timeout_after_x_seconds' and 'seconds_between_retries' params
+-- Number of retries corresponds to number of elements in 'seconds_between_retries' array
 ---------------------------------------------------------------------------------------------
 
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
+config.defaultProtocolVersion = 2
 
 --[[ Required Shared libraries ]]
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
@@ -38,23 +35,16 @@ local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
 local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
+local mobile_session = require('mobile_session')
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
 testCasesForPolicyTable:Precondition_updatePolicy_By_overwriting_preloaded_pt("files/jsons/Policies/build_options/retry_seq.json")
-commonPreconditions:Connecttest_without_ExitBySDLDisconnect_WithoutOpenConnectionRegisterApp("connecttest_ConnectMobile.lua")
---TODO: Should be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
-config.defaultProtocolVersion = 2
-
---[[ Local variables ]]
-local time_system_request_prev = 0
-local time_system_request_curr = 0
 
 --[[ General Settings for configuration ]]
-Test = require('user_modules/connecttest_ConnectMobile')
+Test = require('user_modules/connecttest_resumption')
 require('cardinalities')
 require('user_modules/AppTypes')
-local mobile_session = require('mobile_session')
 
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
@@ -74,81 +64,65 @@ commonFunctions:newTestCasesGroup("Test")
 function Test:TestStep_OnStatusUpdate_UPDATE_NEEDED_new_PTU_request()
   local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
 
-  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", {application = { appName = config.application1.registerAppInterfaceParams.appName } })
-  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",
-    { status = "UPDATE_NEEDED" }, {status = "UPDATING"}):Times(2)
-  EXPECT_NOTIFICATION("OnSystemRequest"):Times(2)
-  :ValidIf(function(_, data)
-      time_system_request_prev = timestamp()
-      if not data then return false end
-      if not data.payload then return false end
-      if data.payload.requestType == "HTTP" or data.payload.requestType == "LOCK_SCREEN_ICON_URL" then
-        print("Got requestType = "..tostring(data.payload.requestType))
-        return true
-      else
-        print("Got something wrong instead of data.requestType = HTTP or LOCK_SCREEN_ICON_URL: "..tostring(data.payload.requestType))
-        return false
-      end
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", {application = {appName = config.application1.registerAppInterfaceParams.appName}})
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"}, {status = "UPDATING"}):Times(2)
+
+  EXPECT_NOTIFICATION("OnSystemRequest")
+  :Do(function(_, data)
+      print("[" .. atf_logger.formated_time(true) .. "] " .. "SDL->MOB: OnSystemRequest()", data.payload.requestType)
     end)
+  :Times(2)
+
   self.mobileSession:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS" })
   self.mobileSession:ExpectNotification("OnHMIStatus", {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
 end
 
---[[ Test ]]
-commonFunctions:newTestCasesGroup("Test")
-
 function Test:TestStep_Retry_Timeout_Expiration()
-  local is_test_fail = false
   local timeout_after_x_seconds = 30
   local time_wait = {}
   local sec_btw_ret = {1, 2, 3, 4, 5}
   local total_time
-  time_wait[1] = sec_btw_ret[1] + timeout_after_x_seconds
-  time_wait[2] = sec_btw_ret[2] + time_wait[1] + timeout_after_x_seconds
-  time_wait[3] = sec_btw_ret[3] + time_wait[2] + timeout_after_x_seconds
-  time_wait[4] = sec_btw_ret[4] + time_wait[3] + timeout_after_x_seconds
-  time_wait[5] = sec_btw_ret[5] + time_wait[4] + timeout_after_x_seconds
-  total_time = (time_wait[1] + time_wait[2] + time_wait[3] + time_wait[4] + time_wait[5] )*1000
 
-  local function verify_retry_sequence(occurences)
-    local time_1 = time_system_request_curr
-    local time_2 = time_system_request_prev
-    local timeout = (time_1 - time_2)
+  time_wait[0] = timeout_after_x_seconds -- 30
+  time_wait[1] = timeout_after_x_seconds + sec_btw_ret[1] -- 30 + 1 = 31
+  time_wait[2] = timeout_after_x_seconds + sec_btw_ret[2] + time_wait[1] -- 30 + 2 + 31 = 63
+  time_wait[3] = timeout_after_x_seconds + sec_btw_ret[3] + time_wait[2] -- 30 + 3 + 63 = 96
+  time_wait[4] = timeout_after_x_seconds + sec_btw_ret[4] + time_wait[3] -- 30 + 4 + 96 = 130
+  time_wait[5] = timeout_after_x_seconds + sec_btw_ret[5] + time_wait[4] -- 30 + 5 + 130 = 165
 
-    if (time_wait[occurences] == nil) then
-      time_wait[occurences] = time_wait[5]
-      commonFunctions:printError("ERROR: OnSystemRequest is received more than expected.")
-      is_test_fail = true
-    end
+  total_time = (time_wait[0] + time_wait[1] + time_wait[2] + time_wait[3] + time_wait[4] + time_wait[5]) * 1000 + 10000
+  print("Waiting " .. total_time .. "ms")
 
-    if( ( timeout > (time_wait[occurences]*1000 + 2000) ) or ( timeout < (time_wait[occurences]*1000 - 2000) )) then
-      is_test_fail = true
-      commonFunctions:printError("ERROR: timeout for retry sequence "..occurences.." is not as expected: "..(time_wait[occurences]*1000).."msec(2sec tolerance). real: "..timeout.."ms")
-    else
-      print("timeout is as expected for retry sequence "..occurences..": "..(time_wait[occurences]*1000).."ms. real: "..timeout)
-    end
-    return true
-  end
-
-  if(time_wait == 0) then time_wait = 63000 end
-
-  EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "HTTP", fileType = "JSON"}):Timeout(total_time+60000):Times(5)
-  :Do(function(exp)
-      if(time_system_request_curr ~= 0) then
-        time_system_request_prev = time_system_request_curr
-      end
-      time_system_request_curr = timestamp()
-      verify_retry_sequence(exp.occurences)
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",
+    {status = "UPDATE_NEEDED"}, {status = "UPDATING"},
+    {status = "UPDATE_NEEDED"}, {status = "UPDATING"},
+    {status = "UPDATE_NEEDED"}, {status = "UPDATING"},
+    {status = "UPDATE_NEEDED"}, {status = "UPDATING"},
+    {status = "UPDATE_NEEDED"}, {status = "UPDATING"},
+    {status = "UPDATE_NEEDED"})
+  :Do(function(exp, data)
+      print("[" .. atf_logger.formated_time(true) .. "] " .. "SDL->HMI: SDL.OnStatusUpdate()"
+        .. ": " .. exp.occurences .. ": " .. data.params.status)
     end)
+  :Times(11)
+  :Timeout(total_time)
+
+  EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "HTTP", fileType = "BINARY"})
+  :Do(function(_, data)
+      print("[" .. atf_logger.formated_time(true) .. "] " .. "SDL->MOB: OnSystemRequest()", data.payload.requestType)
+    end)
+  :Times(5)
+  :Timeout(total_time)
 
   commonTestCases:DelayedExp(total_time)
-  if(is_test_fail == true) then
-    self:FailTestCase("Test is FAILED. See prints.")
-  end
 end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
+
+function Test.Postcondition_Restore_files()
+  commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
+end
 
 function Test.Postcondition_Stop_SDL()
   StopSDL()
