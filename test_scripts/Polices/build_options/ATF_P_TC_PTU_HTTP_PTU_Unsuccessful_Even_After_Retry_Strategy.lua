@@ -133,11 +133,15 @@ function Test:TestStep_OnStatusUpdate_UPDATE_NEEDED_new_PTU_request()
 
   EXPECT_NOTIFICATION("OnSystemRequest")
   :ValidIf(function(_, data)
-      if (data.payload.requestType == "HTTP") and (data.binaryData ~= nil) and (data.binaryData ~= "") then
-        return true
+      if (data.payload.requestType == "HTTP") then
+        if (data.binaryData ~= nil) and (data.binaryData ~= "") then
+          return true
+        end
+        return false, "PTS was not sent to Mobile in payload of OnSystemRequest"
       end
-      return false, "PTS was not sent to Mobile in payload of OnSystemRequest"
+      return true
     end)
+  :Times(2)
 
   self.mobileSession:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS" })
   self.mobileSession:ExpectNotification("OnHMIStatus", {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
