@@ -24,6 +24,8 @@
 
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
+config.application1.registerAppInterfaceParams.appHMIType = { "MEDIA" }
+config.ExitOnCrash = false
 
 --[[ Required Shared libraries ]]
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
@@ -54,7 +56,7 @@ end
 
 function Test:Precondition_RegisterNewApplication()
   local correlationId = self.mobileSession1:SendRPC("RegisterAppInterface", config.application2.registerAppInterfaceParams)
-  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", { status = "UPDATE_NEEDED" })
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", { status = "UPDATE_NEEDED" }, {status = "UPDATING"}):Times(2)
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application2.registerAppInterfaceParams.appName } })
   self.mobileSession1:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS" })
 end
@@ -97,7 +99,7 @@ commonFunctions:newTestCasesGroup("Test")
 
 function Test:TestStep_PTU_NotSuccessful_AppID_ListedPT_NewIgnCycle()
   local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
-  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", { status = "UPDATE_NEEDED" })
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", { status = "UPDATE_NEEDED" }, {status = "UPDATING"}):Times(2)
   self.mobileSession:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS" })
 end
 

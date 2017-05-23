@@ -232,25 +232,22 @@ function Test.checkLocalPT(checkTable)
     actualLocalPtValues = executeSqliteQuery(queryString, constructPathToDatabase())
     if actualLocalPtValues then
       comparationResult = isValuesCorrect(actualLocalPtValues, expectedLocalPtValues)
+      commonFunctions:userPrint(35, "ExpectedLocalPtValues")
+      for _, values in pairs(expectedLocalPtValues) do
+        print(values)
+      end
+      commonFunctions:userPrint(35, "ActualLocalPtValues")
+      for _, values in pairs(actualLocalPtValues) do
+        print(values)
+      end
       if not comparationResult then
-        TestData:store(table.concat({"Test ", queryString, " failed: SDL has wrong values in LocalPT"}))
-        TestData:store("ExpectedLocalPtValues")
+        --TestData:store(table.concat({"Test ", queryString, " failed: SDL has wrong values in LocalPT"}))
+        --TestData:store("ExpectedLocalPtValues")
         commonFunctions:userPrint(31, table.concat({"Test ", queryString, " failed: SDL has wrong values in LocalPT"}))
-        commonFunctions:userPrint(35, "ExpectedLocalPtValues")
-        for _, values in pairs(expectedLocalPtValues) do
-          TestData:store(values)
-          print(values)
-        end
-        TestData:store("ActualLocalPtValues")
-        commonFunctions:userPrint(35, "ActualLocalPtValues")
-        for _, values in pairs(actualLocalPtValues) do
-          TestData:store(values)
-          print(values)
-        end
         isTestPass = false
       end
     else
-      TestData:store("Test failed: Can't get data from LocalPT")
+      --TestData:store("Test failed: Can't get data from LocalPT")
       commonFunctions:userPrint(31, "Test failed: Can't get data from LocalPT")
       isTestPass = false
     end
@@ -261,7 +258,7 @@ end
 --[[Precondition]]
 function Test.Precondition()
   TestData:init()
-  TestData:store("Initial preloaded PT is stored", config.pathToSDL .. PRELOADED_PT_FILE_NAME, "initial_" .. PRELOADED_PT_FILE_NAME)
+  --TestData:store("Initial preloaded PT is stored", config.pathToSDL .. PRELOADED_PT_FILE_NAME, "initial_" .. PRELOADED_PT_FILE_NAME)
 end
 
 --[[ Test ]]
@@ -269,7 +266,7 @@ commonFunctions:newTestCasesGroup("Test")
 
 function Test:TestStep_VerifyInitialLocalPT()
   os.execute("sleep 3")
-  TestData:store("Initial Local PT is stored", constructPathToDatabase(), "initial_policy.sqlite")
+  --TestData:store("Initial Local PT is stored", constructPathToDatabase(), "initial_policy.sqlite")
   local checks = {
     {
       query = 'select preloaded_date from module_config',
@@ -299,7 +296,7 @@ end
 
 function Test.TestStep_LoadNewPreloadedPT()
   prepareNewPreloadedPT()
-  TestData:store("New preloaded PT is stored", config.pathToSDL .. PRELOADED_PT_FILE_NAME, "new_" .. PRELOADED_PT_FILE_NAME)
+  --TestData:store("New preloaded PT is stored", config.pathToSDL .. PRELOADED_PT_FILE_NAME, "new_" .. PRELOADED_PT_FILE_NAME)
 end
 
 function Test:TestStep_StartSDL()
@@ -308,7 +305,7 @@ end
 
 function Test:TestStep_VerifyNewLocalPT()
   os.execute("sleep 3")
-  TestData:store("New Local PT is stored", constructPathToDatabase(), "new_policy.sqlite")
+  --TestData:store("New Local PT is stored", constructPathToDatabase(), "new_policy.sqlite")
   local checks = {
     {
       query = 'select preloaded_date from module_config',
@@ -316,15 +313,15 @@ function Test:TestStep_VerifyNewLocalPT()
     },
     {
       query = 'select language_code from message where message_type_name = "VehicleInfo"',
-      expectedValues = {TESTED_DATA[1].key, TESTED_DATA[2].key}
+      expectedValues = {TESTED_DATA[2].key}
     },
     {
       query = 'select tts from message where message_type_name = "VehicleInfo"',
-      expectedValues = {TESTED_DATA[1].tts, TESTED_DATA[2].tts}
+      expectedValues = {TESTED_DATA[2].tts}
     },
     {
       query = 'select label from message where message_type_name = "VehicleInfo"',
-      expectedValues = {TESTED_DATA[1].label, TESTED_DATA[2].label}
+      expectedValues = {TESTED_DATA[2].label}
     }
   }
   if not self.checkLocalPT(checks) then
@@ -337,7 +334,7 @@ commonFunctions:newTestCasesGroup("Postconditions")
 testCasesForPolicyTable:Restore_preloaded_pt()
 function Test.Postcondition()
   StopSDL()
-  TestData:info()
+  --TestData:info()
 end
 
 return Test

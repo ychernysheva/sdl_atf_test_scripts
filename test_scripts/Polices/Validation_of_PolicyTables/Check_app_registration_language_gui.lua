@@ -22,6 +22,7 @@
 
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
+config.application1.registerAppInterfaceParams.appHMIType = { "MEDIA" }
 config.defaultProtocolVersion = 2
 
 --[[ Required Shared libraries ]]
@@ -32,6 +33,7 @@ local json = require('json')
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
+testCasesForPolicyTable.Delete_Policy_table_snapshot()
 
 --[[ General Settings for configuration ]]
 Test = require('connecttest')
@@ -194,13 +196,18 @@ end
 
 function Test:CheckValueFromPTAfterSecondRegistration()
   local snapshot_path = "/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json"
-  local snapshot = assert(io.open(snapshot_path, "r"))
-  local fileContent = snapshot:read("*all")
-  snapshot.close()
-  local snapshot_table = json.decode(fileContent)
-  local actual_value = snapshot_table["policy_table"]["usage_and_error_counts"]["app_level"]["0000001"]["app_registration_language_gui"]
-  if actual_value ~= language_desired then
-    self:FailTestCase("Unexpected value in sdl_snapshot.json is :" .. tostring(actual_value))
+
+  if(commonSteps:file_exists(snapshot_path)) then
+    local snapshot = assert(io.open(snapshot_path, "r"))
+    local fileContent = snapshot:read("*all")
+    snapshot.close()
+    local snapshot_table = json.decode(fileContent)
+    local actual_value = snapshot_table["policy_table"]["usage_and_error_counts"]["app_level"]["0000001"]["app_registration_language_gui"]
+    if actual_value ~= language_desired then
+      self:FailTestCase("Unexpected value in sdl_snapshot.json is :" .. tostring(actual_value))
+    end
+  else
+    self:FailTestCase("sdl_snapshot.json is not created")
   end
 end
 

@@ -27,8 +27,13 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
-local testCasesForPolicyTableSnapshot = require('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
 local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
+local json = require("modules/json")
+
+--[[ Local variables]]
+local ptu
+local onsysrequest_app1 = false
+local onsysrequest_app2 = false
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
@@ -62,31 +67,51 @@ function Test:TestStep_StartNewSession()
 end
 
 function Test:TestStep_PTU_AppID_SecondApp_NotListed_PT()
-  local is_test_passed = true
   local correlationId = self.mobileSession1:SendRPC("RegisterAppInterface", config.application2.registerAppInterfaceParams)
 
-  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application2.registerAppInterfaceParams.appName } })
-  :Do(function()
-
-    EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",
-          { status = "UPDATE_NEEDED" }, {status = "UPDATING"}):Times(2)
-    :Do(function(_,data)
-      if(data.params.status == "UPDATE_NEEDED") then
-        is_test_passed = testCasesForPolicyTableSnapshot:verify_PTS(true,
-                { config.application1.registerAppInterfaceParams.appID, config.application2.registerAppInterfaceParams.appID, },
-                {config.deviceMAC},
-                {""},
-                "print")
-      end
-    end)
-    EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "HTTP"})
-
-    if(is_test_passed == false) then
-      self:FailTestCase("Test is FAILED. See prints.")
-    end
-  end)
   self.mobileSession1:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS"})
   self.mobileSession1:ExpectNotification("OnHMIStatus", {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
+
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application2.registerAppInterfaceParams.appName } })
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", { status = "UPDATE_NEEDED" }, {status = "UPDATING"}):Times(2)
+
+  self.mobileSession1:ExpectNotification("OnSystemRequest")
+  :Do(function(_, data)
+      print("SDL->MOB2: OnSystemRequest()", data.payload.requestType)
+      if data.payload.requestType == "HTTP" then
+        onsysrequest_app2 = true
+        if(onsysrequest_app1 == true) then self:FailTestCase("OnSystemRequest(HTTP) for application 1 already received") end
+        if(data.binaryData ~= nil and data.binaryData ~= "") then
+          ptu = json.decode(data.binaryData)
+        end
+      end
+    end)
+  :Times(Between(1,2))
+
+  self.mobileSession:ExpectNotification("OnSystemRequest")
+  :Do(function(_, data)
+      print("SDL->MOB1: OnSystemRequest()", data.payload.requestType)
+      if data.payload.requestType == "HTTP" then
+        onsysrequest_app1 = true
+        if(onsysrequest_app2 == true) then self:FailTestCase("OnSystemRequest(HTTP) for application 2 already received") end
+        if(data.binaryData ~= nil and data.binaryData ~= "") then
+          ptu = json.decode(data.binaryData)
+        end
+      end
+    end)
+  :Times(Between(0,1))
+
+  commonTestCases:DelayedExp(10000)
+end
+
+function Test:ValidatePTS()
+  if(onsysrequest_app1 == false and onsysrequest_app2 == false) then
+    self:FailTestCase("OnSystemRequest , requestType: HTTP is not received at all")
+  end
+
+  if(ptu == nil or ptu =="") then
+    self:FailTestCase("Binary data is empty")
+  end
 end
 
 --[[ Postconditions ]]

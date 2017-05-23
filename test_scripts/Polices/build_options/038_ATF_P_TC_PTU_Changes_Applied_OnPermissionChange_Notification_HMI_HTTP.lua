@@ -95,6 +95,7 @@ function Test:RAI_PTU()
       self.applications[config.application1.registerAppInterfaceParams.appID] = d1.params.application.appID
       EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", { status = "UPDATE_NEEDED" }, { status = "UPDATING" }, {status = "UP_TO_DATE" })
       :Times(3)
+
       local onSystemRequestRecieved = false
       self.mobileSession:ExpectNotification("OnSystemRequest")
       :Do(
@@ -105,7 +106,7 @@ function Test:RAI_PTU()
             ptu(self)
           end
         end)
-      :Times(AnyNumber())
+      :Times(2)
     end)
   self.mobileSession:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
   :Do(
@@ -113,8 +114,9 @@ function Test:RAI_PTU()
       self.mobileSession:ExpectNotification("OnHMIStatus", { hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN" })
       self.mobileSession:ExpectNotification("OnPermissionsChange")
       :Times(2)
-      EXPECT_HMINOTIFICATION("SDL.OnAppPermissionChanged")
     end)
+
+  EXPECT_HMINOTIFICATION("SDL.OnAppPermissionChanged")
 end
 
 --[[ Postconditions ]]

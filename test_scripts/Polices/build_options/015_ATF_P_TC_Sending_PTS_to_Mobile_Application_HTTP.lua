@@ -11,6 +11,8 @@
 -- Application is registered.
 -- PTU is requested.
 -- SDL->HMI: SDL.OnStatusUpdate(UPDATE_NEEDED)
+-- SDL->HMI:SDL.PolicyUpdate(file, timeout, retry[])
+-- HMI -> SDL: SDL.GetURLs (<service>)
 -- 2. Performed steps
 -- HMI->SDL:BasicCommunication.OnSystemRequest ('url', requestType:HTTP, appID)
 --
@@ -72,9 +74,9 @@ function Test:TestStep_Sending_PTS_to_mobile_application()
         timeout = v
       end
 
-      EXPECT_NOTIFICATION("OnSystemRequest")
+      EXPECT_NOTIFICATION("OnSystemRequest"): Times(2)
       :ValidIf(function(e, d)
-          print(e.occurences .. ": " .. d.payload.requestType)
+          print("OnSystemRequest: " .. e.occurences .. ": " .. d.payload.requestType)
           if (e.occurences == 1) then
             return true
           elseif (e.occurences == 2) and (d.payload.requestType == "HTTP") then
@@ -90,7 +92,6 @@ function Test:TestStep_Sending_PTS_to_mobile_application()
           end
           return true
         end)
-      :Times(2)
     end)
 
 end

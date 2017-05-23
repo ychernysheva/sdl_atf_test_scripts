@@ -12,35 +12,35 @@
 -- Application is registered.
 -- PTU is requested.
 -- SDL->HMI: SDL.OnStatusUpdate(UPDATE_NEEDED)
+-- SDL->HMI:SDL.PolicyUpdate(file, timeout, retry[])
+-- HMI -> SDL: SDL.GetURLs (<service>)
+-- HMI->SDL: BasicCommunication.OnSystemRequest ('url', requestType:HTTP, appID="default")
+--
 -- 2. Performed steps
 -- SDL->app: OnSystemRequest ('url', requestType:HTTP, fileType="JSON", appID)
---
 -- Expected result:
 -- SDL->HMI: SDL.OnStatusUpdate(UPDATING) right after SDL->app: OnSystemRequest
--- Note: SDL.OnStatusUpdate(UPDATING) may come before OnSystemRequest due to the fact that messages
--- to HMI and to app are sent asynchronously
 ---------------------------------------------------------------------------------------------
 
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
-config.defaultProtocolVersion = 2
 
 --[[ Required Shared libraries ]]
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
-local mobile_session = require('mobile_session')
-
---[[ Local Variables ]]
-local act_events = { }
-local exp_events = { "BC.OnAppRegistered", "SDL.OnStatusUpdate(UPDATE_NEEDED)", "OnSystemRequest(HTTP)", "SDL.OnStatusUpdate(UPDATING)" }
+local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 
 --[[ General Precondition before ATF start ]]
-commonFunctions:SDLForceStop()
-commonSteps:DeletePolicyTable()
-commonSteps:DeleteLogsFiles()
+commonSteps:DeleteLogsFileAndPolicyTable()
+commonPreconditions:Connecttest_without_ExitBySDLDisconnect_WithoutOpenConnectionRegisterApp("connecttest_ConnectMobile.lua")
+--TODO: Should be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
+config.defaultProtocolVersion = 2
 
 --[[ General Settings for configuration ]]
-Test = require('user_modules/connecttest_resumption')
+Test = require('user_modules/connecttest_ConnectMobile')
+require('cardinalities')
+require('user_modules/AppTypes')
+local mobile_session = require('mobile_session')
 
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
@@ -58,35 +58,28 @@ end
 commonFunctions:newTestCasesGroup("Test")
 
 function Test:TestStep_PoliciesManager_changes_status_UPDATING()
+
   self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
-  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application1.registerAppInterfaceParams.appName } })
+
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", {application = { appName = config.application1.registerAppInterfaceParams.appName } })
   :Do(function()
-      table.insert(act_events, exp_events[1])
-      EXPECT_NOTIFICATION("OnSystemRequest")
-      :Do(function(e, d)
-          if (e.occurences == 2) and (d.payload.requestType == "HTTP") then
-            table.insert(act_events, exp_events[3])
+
+      EXPECT_NOTIFICATION("OnSystemRequest")--, {requestType = "LOCK_SCREEN_ICON_URL"}, {requestType = "HTTP"})
+      :Do(function(_,data)
+          print("SDL -> MOB: OnSystemRequest, requestType: " .. data.payload.requestType)
+        end)
+      :Times(2)
+
+      EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate"):Times(2)
+      :Do(function(exp,data)
+          print("SDL -> HMI: OnStatusUpdate, status: " .. data.params.status)
+          if(data.params.status == "UPDATE_NEEDED" and exp.occurences ~= 1) then
+            self:FailTestCase("SDL.OnStatusUpdate(UPDATE_NEEDED) is not received for first OnStatusUpdate, Received at occurences: " .. exp.occurences)
+          elseif(data.params.status == "UPDATING" and exp.occurences ~= 2) then
+            self:FailTestCase("SDL.OnStatusUpdate(UPDATING) is not received for second OnStatusUpdate, Received at occurences: " .. exp.occurences)
           end
         end)
-      :Times(2)
-      EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate")
-      :Do(function(_, d)
-          table.insert(act_events, "SDL.OnStatusUpdate(" .. tostring(d.params.status) .. ")")
-        end)
-      :Times(2)
     end)
-end
-
-function Test:TestStep_CheckResult()
-  local msg = "\nExpected sequence:\n"
-  .. commonFunctions:convertTableToString(exp_events, 1)
-  .. "\nActual sequence:\n"
-  .. commonFunctions:convertTableToString(act_events, 1)
-  if not (((act_events[3] == exp_events[3]) and (act_events[4] == exp_events[4])) or
-    ((act_events[4] == exp_events[3]) and (act_events[3] == exp_events[4])))
-  then
-    self:FailTestCase(msg)
-  end
 end
 
 --[[ Postconditions ]]

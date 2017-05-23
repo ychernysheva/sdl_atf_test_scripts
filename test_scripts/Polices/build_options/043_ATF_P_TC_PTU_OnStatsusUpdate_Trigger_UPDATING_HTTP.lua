@@ -61,7 +61,8 @@ function Test:TestStep_OnStatusUpdate_UPDATE_NEEDED_new_PTU_request()
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", {application = { appName = config.application1.registerAppInterfaceParams.appName } })
   EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",
     { status = "UPDATE_NEEDED" }, {status = "UPDATING"}):Times(2)
-  EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "HTTP"})
+
+  EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "LOCK_SCREEN_ICON_URL"}, {requestType = "HTTP"}):Times(2)
 
   self.mobileSession:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS" })
   self.mobileSession:ExpectNotification("OnHMIStatus", {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})

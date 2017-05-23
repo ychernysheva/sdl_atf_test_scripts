@@ -28,6 +28,8 @@ local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local commonTestCases = require("user_modules/shared_testcases/commonTestCases")
 local json = require("modules/json")
+local mobile_session = require('mobile_session')
+local commonPreconditions = require("user_modules/shared_testcases/commonPreconditions")
 
 --[[ Local Variables ]]
 local sequence = { }
@@ -38,6 +40,19 @@ local r_actual_url
 local r_expected = { "http://policies.domain1.com/api/policies", "http://policies.domain2.com/api/policies"}
 
 --[[ Local Functions ]]
+local function get_ptu()
+  if(ptu == nil) then
+    local config_path = commonPreconditions:GetPathToSDL()
+    local pathToFile = config_path .. 'sdl_preloaded_pt.json'
+
+    local file = io.open(pathToFile, "r")
+    local json_data = file:read("*all")
+    file:close()
+
+    ptu = json.decode(json_data)
+  end
+end
+
 local function timestamp()
   local f = io.popen("date +%H:%M:%S.%3N")
   local o = f:read("*all")
@@ -69,7 +84,7 @@ commonFunctions:SDLForceStop()
 commonSteps:DeleteLogsFileAndPolicyTable()
 
 --[[ General Settings for configuration ]]
-Test = require('connecttest')
+Test = require('user_modules/connecttest_resumption')
 require('cardinalities')
 require('user_modules/AppTypes')
 
@@ -81,21 +96,51 @@ EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate")
 :Times(AnyNumber())
 :Pin()
 
-function Test:RegisterNotification()
-  self.mobileSession:ExpectNotification("OnSystemRequest")
-  :Do(function(_, d)
-      ptu = json.decode(d.binaryData)
-    end)
-  :Times(AtLeast(1))
-  :Pin()
-end
-
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
 
+function Test:Precondition_connectMobile()
+  self:connectMobile()
+end
+
+function Test:Precondition_StartSession()
+  self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
+  self.mobileSession:StartService(7)
+end
+
+function Test:Precondition_RAI()
+  local CorIdRegister = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
+
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application1.registerAppInterfaceParams.appName }})
+  :Do(function(_,data) self.applications[config.application1.registerAppInterfaceParams.appName] = data.params.application.appID end)
+
+  EXPECT_RESPONSE(CorIdRegister, { success = true, resultCode = "SUCCESS" })
+  EXPECT_NOTIFICATION("OnHMIStatus", { systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE"})
+
+  EXPECT_NOTIFICATION("OnSystemRequest")
+  :Do(function(_,data)
+      print("SDL->MOB1: OnSystemRequest, requestType: " .. data.payload.requestType)
+      if(data.payload.requestType == "HTTP") then
+        if(data.binaryData ~= nil and data.binaryData ~= "") then
+          ptu = json.decode(data.binaryData)
+        else
+          get_ptu()
+          self:FailTestCase("Binary data is empty. Preloaded file will be used")
+        end
+      end
+    end)
+  :Times(2)
+
+end
+
 function Test:ValidatePTS()
-  if ptu.policy_table.consumer_friendly_messages.messages then
-    self:FailTestCase("Expected absence of 'consumer_friendly_messages.messages' section in PTS")
+  if(ptu == nil or ptu == "") then
+    get_ptu()
+    self:FailTestCase("Binary data is empty. Preloaded file will be used")
+  else
+    if ptu.policy_table.consumer_friendly_messages.messages then
+      self:FailTestCase("Expected absence of 'consumer_friendly_messages.messages' section in PTS")
+    end
   end
 end
 
@@ -124,8 +169,8 @@ function Test:PTU()
   local corId = self.mobileSession:SendRPC("SystemRequest", { requestType = "HTTP", fileName = policy_file_name }, ptu_file_name)
   log("MOB->SDL: RQ: SystemRequest")
   EXPECT_RESPONSE(corId, { success = true, resultCode = "SUCCESS" })
-  :Do(function(_, _)
-      log("SDL->MOB: RS: SUCCESS: SystemRequest")
+  :Do(function(_, data)
+      log("SDL->MOB: RS: "..data.payload.resultCode..": SystemRequest")
     end)
 end
 
@@ -141,30 +186,6 @@ function Test:Precondition_StartSession()
   self.mobileSession2:StartService(7)
 end
 
-function Test:RegisterNotification()
-  self.mobileSession:ExpectNotification("OnSystemRequest")
-  :Do(function(_, d)
-      if d.payload.requestType == "HTTP" then
-        r_actual_app = 1
-        r_actual_url = d.payload.url
-      end
-    end)
-  :Times(AnyNumber())
-  :Pin()
-end
-
-function Test:RegisterNotification()
-  self.mobileSession2:ExpectNotification("OnSystemRequest")
-  :Do(function(_, d)
-      if d.payload.requestType == "HTTP" then
-        r_actual_app = 2
-        r_actual_url = d.payload.url
-      end
-    end)
-  :Times(AnyNumber())
-  :Pin()
-end
-
 function Test:RegisterApp_2()
   commonTestCases:DelayedExp(5000)
   local corId = self.mobileSession2:SendRPC("RegisterAppInterface", config.application2.registerAppInterfaceParams)
@@ -173,6 +194,29 @@ function Test:RegisterApp_2()
       self.applications[data.params.application.appName] = data.params.application.appID
     end)
   self.mobileSession2:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
+
+  self.mobileSession2:ExpectNotification("OnSystemRequest"):Times(Between(1,2))
+  :Do(function(_,data)
+      print("SDL->MOB2: OnSystemRequest, requestType: " .. data.payload.requestType)
+      if(data.payload.requestType == "HTTP") then
+        if(data.payload.url ~= nil) then
+          r_actual_app = 1
+          r_actual_url = data.payload.url
+        end
+      end
+    end)
+
+  self.mobileSession:ExpectNotification("OnSystemRequest"):Times(Between(0,1))
+  :Do(function(_,data)
+      print("SDL->MOB1: OnSystemRequest, requestType: " .. data.payload.requestType)
+      if(data.payload.requestType == "HTTP") then
+        if(data.payload.url ~= nil) then
+          r_actual_app = 2
+          r_actual_url = data.payload.url
+        end
+      end
+    end)
+  commonTestCases:DelayedExp(10000)
 end
 
 function Test:ValidateResult()
