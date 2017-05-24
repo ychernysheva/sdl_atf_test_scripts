@@ -27,11 +27,11 @@ local ButtonNames_NoCUSTOM_BUTTON_OK
 if config.application1.registerAppInterfaceParams.isMediaApplication then
 
 	ButtonNames_NoCUSTOM_BUTTON = {"OK","SEEKLEFT","SEEKRIGHT", "TUNEUP", "TUNEDOWN","PRESET_0", "PRESET_1", "PRESET_2", "PRESET_3", "PRESET_4", "PRESET_5", "PRESET_6", "PRESET_7", "PRESET_8", "PRESET_9", "SEARCH"}
-										
+
 	ButtonNames_NoCUSTOM_BUTTON_OK = {"SEEKLEFT","SEEKRIGHT", "TUNEUP", "TUNEDOWN", "PRESET_0", "PRESET_1", "PRESET_2", "PRESET_3", "PRESET_4", "PRESET_5", "PRESET_6", "PRESET_7", "PRESET_8", "PRESET_9", "SEARCH"}
-	
+
 	-- group of media buttons, this group  should be updated with PRESETS 0-9 due to APPLINK-14516 (APPLINK-14503)
-	MediaButtons = 
+	MediaButtons =
 					{
 						"SEEKLEFT",
 						"SEEKRIGHT",
@@ -47,17 +47,17 @@ if config.application1.registerAppInterfaceParams.isMediaApplication then
 						-- "PRESET_7",
 						-- "PRESET_8",
 						-- "PRESET_9"
-					}			
+					}
 else --Non-media app
 
 	ButtonNames_NoCUSTOM_BUTTON = {"OK", "PRESET_0", "PRESET_1", "PRESET_2", "PRESET_3", "PRESET_4", "PRESET_5", "PRESET_6", "PRESET_7", "PRESET_8", "PRESET_9","SEARCH"}
-										
-	ButtonNames_NoCUSTOM_BUTTON_OK = {"PRESET_0", "PRESET_1", "PRESET_2", "PRESET_3", "PRESET_4", "PRESET_5", "PRESET_6", "PRESET_7", "PRESET_8", "PRESET_9", "SEARCH"}		
+
+	ButtonNames_NoCUSTOM_BUTTON_OK = {"PRESET_0", "PRESET_1", "PRESET_2", "PRESET_3", "PRESET_4", "PRESET_5", "PRESET_6", "PRESET_7", "PRESET_8", "PRESET_9", "SEARCH"}
 end
 
 --Create button capability function
 local function button_capability(name, shortPressAvailable, longPressAvailable, upDownAvailable)
-	
+
 	return
 		{
 		 name = name,
@@ -67,8 +67,8 @@ local function button_capability(name, shortPressAvailable, longPressAvailable, 
 		}
 end
 
--- Input capabilities used with Buttons.Getcapabilities response timeout 
-local Input_Timeoutcapabilities = 
+-- Input capabilities used with Buttons.Getcapabilities response timeout
+local Input_Timeoutcapabilities =
 {
     capabilities =
     {
@@ -128,7 +128,7 @@ local Input_Invalidcapabilities =
 		  	  		button_capability("INVALID")
 		  		},
 		  	},
-		  	presetBankCapabilities = { onScreenPresetsAvailable = true } 
+		  	presetBankCapabilities = { onScreenPresetsAvailable = true }
 		  }
 
  -- DefaultTimeout in smartDeviceLink.ini
@@ -136,7 +136,7 @@ local iTimeout = 10000
 
 ---------------------------------------------------------------------------------------------
 ---------------------------------------- Common steps ---------------------------------------
---------------------------------------------------------------------------------------------- 
+---------------------------------------------------------------------------------------------
 
 --Stop SDL
 function stopSDL()
@@ -144,9 +144,9 @@ function stopSDL()
 	Test["StopSDL"] = function(self)
 
 		--run StopSDL function
-		StopSDL()		
+		StopSDL()
 	end
-end	
+end
 
 --Start SDL
 function startSDL()
@@ -155,7 +155,7 @@ function startSDL()
 		--run StartSDL function
 		StartSDL(config.pathToSDL, config.ExitOnCrash)
 	end
-end	
+end
 
 --Start HMI
 function initHMI()
@@ -175,7 +175,7 @@ function initHMI()
 
   	EXPECT_HMIEVENT(events.connectedEvent, "Connected websocket")
   		:Do(function()
-      	registerComponent("Buttons", 
+      	registerComponent("Buttons",
 				      		{"Buttons.OnButtonSubscription"
 				      		}
 				      	)
@@ -206,7 +206,7 @@ function initHMI()
       	registerComponent("Navigation")
     	end)
   	self.hmiConnection:Connect()
-  		self.hmiConnection:SendNotification("BasicCommunication.OnReady")			
+  		self.hmiConnection:SendNotification("BasicCommunication.OnReady")
 	end
 end
 
@@ -224,9 +224,9 @@ function connectMobileStartSession()
 		event_dispatcher:AddConnection(self.mobileConnection)
 		self.mobileSession:ExpectEvent(events.connectedEvent, "Connection started")
 		self.mobileConnection:Connect()
-		self.mobileSession:StartService(7)	
+		self.mobileSession:StartService(7)
 	end
-end	
+end
 
 --HMI sends Buttons.GetCapabilities response with specific value of Capabilities parameter
 local function HMI_Send_Button_GetCapabilities_Response(Input_capabilities)
@@ -234,19 +234,19 @@ local function HMI_Send_Button_GetCapabilities_Response(Input_capabilities)
 	Test["HMISendsButtonGetCapabilitiesResponse"] = function(self)
 
 		critical(true)
-		
+
 		local function ExpectRequest(name, mandatory, params)
 
 			local SDL_Request = name
-			--print("ExpectRequest: name = "..SDL_Request)  	
+			--print("ExpectRequest: name = "..SDL_Request)
 		  	xmlReporter.AddMessage(debug.getinfo(1, "n").name, tostring(name))
 		  	local event = events.Event()
 		  	event.level = 2
 
-		  	event.matches = function(self, data) 
-		  						return data.method == name 
+		  	event.matches = function(self, data)
+		  						return data.method == name
 							end
-					  
+
 			return	EXPECT_HMIEVENT(event, name)
 					:Times(mandatory and 1 or AnyNumber())
 					:Do(function(_, data)
@@ -257,11 +257,11 @@ local function HMI_Send_Button_GetCapabilities_Response(Input_capabilities)
 
 		local function ExpectNotification(name, mandatory)
 		  	xmlReporter.AddMessage(debug.getinfo(1, "n").name, tostring(name))
-		  	
+
 		  	local event = events.Event()
 		  	event.level = 2
-		  	event.matches = function(self, data) 
-		  					return data.method == name 
+		  	event.matches = function(self, data)
+		  					return data.method == name
 		  					end
 		  	--print("ExpectNotification: data.method = "..data.method)
 
@@ -325,7 +325,7 @@ local function HMI_Send_Button_GetCapabilities_Response(Input_capabilities)
 					capabilities = Input_capabilities,
 					presetBankCapabilities = { onScreenPresetsAvailable = true }
 				}
-		
+
 		ExpectRequest("VR.GetCapabilities", true, { vrCapabilities = { "TEXT" } })
 		ExpectRequest("TTS.GetCapabilities", true, {
 			speechCapabilities = { "TEXT", "PRE_RECORDED" },
@@ -475,51 +475,51 @@ local function HMI_Send_Button_GetCapabilities_Response(Input_capabilities)
 			end
 		  end)
 
-		self.hmiConnection:SendNotification("BasicCommunication.OnReady") 		
+		self.hmiConnection:SendNotification("BasicCommunication.OnReady")
 	end
-end	
+end
 
---HMI does not send Buttons.GetCapabilities response due to timeout 
+--HMI does not send Buttons.GetCapabilities response due to timeout
 
 local function HMI_Send_Button_GetCapabilities_Response_Timeout(Input_Timeoutcapabilities)
 
 	Test["HMISendsButtonGetCapabilitiesResponse_Timeout"] = function(self)
 
 		critical(true)
-		
+
 		local function ExpectRequest(name, mandatory, params)
 			local SDL_Request = name
-			--print("ExpectRequest: name = "..name)	  	
+			--print("ExpectRequest: name = "..name)
 		  	--xmlReporter.AddMessage(debug.getinfo(1, "n").Buttons.GetCapabilities, tostring(Buttons.GetCapabilities))
 		  	local event = events.Event()
-		  	event.level = 2		  
-			
-			 if(name == "Buttons.GetCapabilities") then									
+		  	event.level = 2
+
+			 if(name == "Buttons.GetCapabilities") then
 				EXPECT_HMIEVENT(event,name)
 				:Times(1)
-				:Do(function(_, data)										
+				:Do(function(_, data)
 						--print("HMI response of "..SDL_Request.. " is not sent by HMI ")
-					end)	
+					end)
 			else
 			--All other requests
-				event.matches = function(self, data) 
+				event.matches = function(self, data)
 		  							return data.method == name
-								end		
-		
+								end
+
 				return	EXPECT_HMIEVENT(event, name)
 					:Times(mandatory and 1 or AnyNumber())
 					:Do(function(_, data)
-						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", params)							
+						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", params)
 						--print("SDL_Request: "..SDL_Request.. " EXPECT_HMIEVENT = "..data.method)
- 					end)	
-			end	
+ 					end)
+			end
 		end
 		local function ExpectNotification(name, mandatory)
-		  	xmlReporter.AddMessage(debug.getinfo(1, "n").name, tostring(name))	  	 	
+		  	xmlReporter.AddMessage(debug.getinfo(1, "n").name, tostring(name))
 		  	local event = events.Event()
 		  	event.level = 2
-		  	event.matches = function(self, data) 
-		  					return data.method == name 
+		  	event.matches = function(self, data)
+		  					return data.method == name
 		  					end
 			--print("ExpectNotification: data.method = "..data.method)
 		  	return
@@ -750,7 +750,7 @@ local function HMI_Send_Button_GetCapabilities_Response_Timeout(Input_Timeoutcap
 		ExpectRequest("UI.IsReady", true, { available = true })
 		ExpectRequest("Navigation.IsReady", true, { available = true })
 		ExpectRequest("VehicleInfo.IsReady", true, { available = true })
-		--ExpectRequest("Buttons.GetCapabilities", true, buttons_capabilities)--:Times(1) --Check if timeout occurs 
+		--ExpectRequest("Buttons.GetCapabilities", true, buttons_capabilities)--:Times(1) --Check if timeout occurs
 
 		self.applications = { }
 		ExpectRequest("BasicCommunication.UpdateAppList", false, { })
@@ -763,9 +763,9 @@ local function HMI_Send_Button_GetCapabilities_Response_Timeout(Input_Timeoutcap
 			end
 		  end)
 
-		self.hmiConnection:SendNotification("BasicCommunication.OnReady") 		
+		self.hmiConnection:SendNotification("BasicCommunication.OnReady")
 	end
-end	
+end
 
 --HMI sends Buttons.GetCapabilities response with specific invalid value of Capabilities parameter
 
@@ -774,37 +774,37 @@ local function HMI_Send_Button_GetCapabilities_Response_Invalid()
 	Test["HMISendsButtonGetCapabilitiesResponse_Invalid"] = function(self)
 
 		critical(true)
-		
+
 		local function ExpectRequest(name, mandatory, params)
 			local SDL_Request = name
-			--print("ExpectRequest: name = "..name)	  	
+			--print("ExpectRequest: name = "..name)
 		  	--xmlReporter.AddMessage(debug.getinfo(1, "n").Buttons.GetCapabilities, tostring(Buttons.GetCapabilities))
 		  	local event = events.Event()
-		  	event.level = 2		  
-			if(name == "Buttons.GetCapabilities") then			
-				self.hmiConnection:SendResponse(data.id, "Buttons.GetCapabilities", "UNSUPPORTED_RESOURCE", {presetBankCapabilities = { onScreenPresetsAvailable = true } } )				
+		  	event.level = 2
+			if(name == "Buttons.GetCapabilities") then
+				self.hmiConnection:SendResponse(data.id, "Buttons.GetCapabilities", "UNSUPPORTED_RESOURCE", {presetBankCapabilities = { onScreenPresetsAvailable = true } } )
 			else
 				--All other requests
-				event.matches = function(self, data) 
+				event.matches = function(self, data)
 		  							return data.method == name
-								end		
-		
+								end
+
 				return	EXPECT_HMIEVENT(event, name)
 					:Times(mandatory and 1 or AnyNumber())
 					:Do(function(_, data)
 
-						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", params)								
+						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", params)
 						--print("SDL_Request: "..SDL_Request.. " EXPECT_HMIEVENT = "..data.method)
-					end)	
-			end	
+					end)
+			end
 		end
 
 		local function ExpectNotification(name, mandatory)
-		  	xmlReporter.AddMessage(debug.getinfo(1, "n").name, tostring(name))	  	
+		  	xmlReporter.AddMessage(debug.getinfo(1, "n").name, tostring(name))
 		  	local event = events.Event()
 		  	event.level = 2
-		  	event.matches = function(self, data) 
-		  					return data.method == name 
+		  	event.matches = function(self, data)
+		  					return data.method == name
 		  					end
 			--print("ExpectNotification: data.method = "..data.method)
 		  	return
@@ -1048,12 +1048,12 @@ local function HMI_Send_Button_GetCapabilities_Response_Invalid()
 			end
 		  end)
 
-		self.hmiConnection:SendNotification("BasicCommunication.OnReady") 		
+		self.hmiConnection:SendNotification("BasicCommunication.OnReady")
 	end
-end	
+end
 
 
---Mobile registers application and verification ButtonCapabilities parameter in positive case 
+--Mobile registers application and verification ButtonCapabilities parameter in positive case
 
 local function MobileRegisterAppAndVerifyButtonCapabilities(Input_ButtonsCapabilities)
 
@@ -1065,11 +1065,11 @@ local function MobileRegisterAppAndVerifyButtonCapabilities(Input_ButtonsCapabil
 		--Mobile: Verify RegisterAppInterface response
 		EXPECT_RESPONSE(correlationId, { success = true, buttonCapabilities = Input_ButtonsCapabilities})
 		:Do(function(_,data)
-		end)	
+		end)
 	end
 end
 
---Mobile registers application and verification ButtonCapabilities parameter when Timeout occurs 
+--Mobile registers application and verification ButtonCapabilities parameter when Timeout occurs
 
 local function MobileRegisterAppAndVerifyButtonCapabilitiesTimeout ()
 
@@ -1079,10 +1079,10 @@ local function MobileRegisterAppAndVerifyButtonCapabilitiesTimeout ()
 		local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
 
 		--Mobile: Verify RegisterAppInterface response
-		EXPECT_RESPONSE(correlationId, { 
+		EXPECT_RESPONSE(correlationId, {
 											success = true,
 											buttoncapabilities = Input_ButtonsCapabilities_RAI
-											
+
 										})
 		:Do(function(_,data)
 		end)
@@ -1099,9 +1099,9 @@ local function MobileRegisterAppAndVerifyButtonCapabilitiesInvalid ()
 		local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
 
 		--Mobile: Verify RegisterAppInterface response
-		EXPECT_RESPONSE(correlationId, { 
+		EXPECT_RESPONSE(correlationId, {
 											success = true,
-											buttonCapabilities = Input_ButtonsCapabilities_RAI									
+											buttonCapabilities = Input_ButtonsCapabilities_RAI
 										})
 		:Do(function(_,data)
 		end)
@@ -1136,27 +1136,27 @@ local function MobileRegisterAppAndVerifyButtonCapabilitiesInvalid ()
 	end
 end
 
- 
+
 --Success test case
 local function SuccessTestCase(Input_capabilities)
-	
+
 	--Precondition:
-	startSDL()	
-	
+	startSDL()
+
 	--Step 1: initiate HMI
 	initHMI()
-	
+
 	--Step 2: HMI sends Button.GetCapabilities response
 	HMI_Send_Button_GetCapabilities_Response(Input_capabilities)
-	
+
 	--Step 3: Mobile starts session
 	connectMobileStartSession()
-	
+
 	--Step 4: Mobile register an application and verify ButtonCapabilities parameter in RegisterAppInterface response
 	MobileRegisterAppAndVerifyButtonCapabilities(Input_capabilities)
-	  
+
 	--Postcondition
-	stopSDL()	
+	stopSDL()
 
 end
 
@@ -1169,7 +1169,7 @@ end
 	commonFunctions:newTestCasesGroup("Preconditions")
 
 --Stop SDL
-stopSDL()	
+stopSDL()
 
 
 -----------------------------------------------------------------------------------------------
@@ -1177,22 +1177,22 @@ stopSDL()
 -------------------------------- Check positive cases of response -----------------------------
 -----------------------------------------------------------------------------------------------
 
---Requirement id in JIRA: 	
-	--APPLINK-24325: [Buttons.GetCapabilities] response from HMI and RegisterAppInterface 
-	--Description: If after sdl is started the HMI provides valid successful ButtonsGetCapabilities_response the sdl must provide the 
-	--obtained buttons capabilities information to each and every application via RegisterAppInterface_response in the current ignition cycle 
-	
+--Requirement id in JIRA:
+	--APPLINK-24325: [Buttons.GetCapabilities] response from HMI and RegisterAppInterface
+	--Description: If after sdl is started the HMI provides valid successful ButtonsGetCapabilities_response the sdl must provide the
+	--obtained buttons capabilities information to each and every application via RegisterAppInterface_response in the current ignition cycle
+
 		-- Parametres in GetCapabilities response:
 		--1. capabilities, type= Common.ButtonCapabilities, array=true, minsize=1, maxsize=100, mandatory=true
-		--2. presetBankCapabilities, type=Common.PresetBankCapabilities 
-	
+		--2. presetBankCapabilities, type=Common.PresetBankCapabilities
+
 	--Verification criteria
-		--1. HMI responsds to initHMI request from SDL with BC.OnReady		
-		--2. SDL sends to HMI: Buttons.GetCapabilities request 
+		--1. HMI responsds to initHMI request from SDL with BC.OnReady
+		--2. SDL sends to HMI: Buttons.GetCapabilities request
 		--3. HMI checks the Buttons capabilities and sends to SDL response Buttons.GetCapabilities ("capabilities", "presetBankCapabilities")
 		--4. The validity of parametres is checked in RegisterAppInterface_response ("buttonCapabilities", "presetBankCapabilities")
 
-	--APPLINK-20199: [HMI API]Buttons.GetCapabilities request/response 
+	--APPLINK-20199: [HMI API]Buttons.GetCapabilities request/response
 	--Description: Defines the hard (physical) and soft (touchscreen) buttons available from SYNC
 					--OK
 					--SEEKLEFT
@@ -1212,20 +1212,20 @@ stopSDL()
 					--CUSTOM_BUTTON
 					--SEARCH
 
-	--Verification criteria: 
+	--Verification criteria:
 		--1. SDL receives the list of button names supported by HMI via response to Buttons.GetCapabilities from HMI:
 		--2. SDL sends the list of button names supported by HMI to mobile app IN CASE SDL has received this information from HMI via response to Buttons.GetCapabilities (the case when SDL does not receive buttons capabilities from HMI or receives just partial values -> is covered by the requirement of SDLAQ-CRS-2678: The order of capabilities processing).
-		
+
 -----------------------------------------------------------------------------------------------
---Begin Test suit buttonCapabilities Positive 
+--Begin Test suit buttonCapabilities Positive
 
 	--Begin Test case buttonCapabilities.01
 	--Description: HMI sends Buttons.GetCapabilities response with all button names
 
 
-		for i =1, #ButtonNames_NoCUSTOM_BUTTON do 
-		--Print new line to separate new test cases group			
-		commonFunctions:newTestCasesGroup("Test case: HMI sends Buttons.GetCapabilities with all button names NoCustomButton- \"".. ButtonNames_NoCUSTOM_BUTTON[i] .. "\"")		
+		for i =1, #ButtonNames_NoCUSTOM_BUTTON do
+		--Print new line to separate new test cases group
+		commonFunctions:newTestCasesGroup("Test case: HMI sends Buttons.GetCapabilities with all button names NoCustomButton- \"".. ButtonNames_NoCUSTOM_BUTTON[i] .. "\"")
 		--Test data: Create capabilities for Buttons.GetCapabilities response
 		local capabilities =
 				{
@@ -1250,12 +1250,12 @@ stopSDL()
 
 		--Execute success case
 		SuccessTestCase(capabilities)
-	end 
+	end
 
-	
-		--Print new line to separate new test cases group	
-		commonFunctions:newTestCasesGroup("Test case: HMI sends Buttons.GetCapabilities with all button names NoCustomButton_OK")	
-		
+
+		--Print new line to separate new test cases group
+		commonFunctions:newTestCasesGroup("Test case: HMI sends Buttons.GetCapabilities with all button names NoCustomButton_OK")
+
 		--Test data: Create capabilities for Buttons.GetCapabilities response
 		local capabilities =
 				{
@@ -1285,10 +1285,10 @@ stopSDL()
 	---------------------------------------------------------------------------------------------
 	--Begin Test case buttonCapabilities.02
 	--Description: HMI sends Buttons.GetCapabilities response with some button names
-		
-		for i =1, #ButtonNames_NoCUSTOM_BUTTON do 
+
+		for i =1, #ButtonNames_NoCUSTOM_BUTTON do
 		--Print new line to separate new test cases group
-		commonFunctions:newTestCasesGroup("Test case: HMI sends Buttons.GetCapabilities with some button names NoCustomButton- \"".. ButtonNames_NoCUSTOM_BUTTON[i] .. "\"")		
+		commonFunctions:newTestCasesGroup("Test case: HMI sends Buttons.GetCapabilities with some button names NoCustomButton- \"".. ButtonNames_NoCUSTOM_BUTTON[i] .. "\"")
 		--Test data: Create capabilities for Buttons.GetCapabilities response
 		local capabilities =
 				{
@@ -1305,60 +1305,60 @@ stopSDL()
 
 		--Execute success case
 		SuccessTestCase(capabilities)
-	end 
+	end
 
 
 		--Print new line to separate new test cases group
-		commonFunctions:newTestCasesGroup("Test case: HMI sends Buttons.GetCapabilities with some button names NoCustomButton_OK")	
-		
+		commonFunctions:newTestCasesGroup("Test case: HMI sends Buttons.GetCapabilities with some button names NoCustomButton_OK")
+
 		--Test data: Create capabilities for Buttons.GetCapabilities response
 		local capabilities =
 				{
 					button_capability("PRESET_1"),
-					button_capability("PRESET_2"), -- commented to be removed 
-					--button_capability("PRESET_3"), -- commented to be removed 
-					--button_capability("PRESET_4"), -- commented to be removed 
-					--button_capability("PRESET_5"), -- commented to be removed 
-					--button_capability("PRESET_6"), -- commented to be removed 
+					button_capability("PRESET_2"), -- commented to be removed
+					--button_capability("PRESET_3"), -- commented to be removed
+					--button_capability("PRESET_4"), -- commented to be removed
+					--button_capability("PRESET_5"), -- commented to be removed
+					--button_capability("PRESET_6"), -- commented to be removed
 					button_capability("OK", true, false, true),
-					-- button_capability("SEEKLEFT"), -- commented to be removed 
-					-- button_capability("SEEKRIGHT") -- commented to be removed 
+					-- button_capability("SEEKLEFT"), -- commented to be removed
+					-- button_capability("SEEKRIGHT") -- commented to be removed
 				}
 
 		--Execute success case
 		SuccessTestCase(capabilities)
-	
+
 	--End Test case buttonCapabilities.02
 	---------------------------------------------------------------------------------------------
 
 	--Begin Test case buttonCapabilities.03
 	--Description: HMI sends Buttons.GetCapabilities response with one button
 
-		for i =1, #ButtonNames_NoCUSTOM_BUTTON do 
+		for i =1, #ButtonNames_NoCUSTOM_BUTTON do
 			--Print new line to separate new test case
-			commonFunctions:newTestCasesGroup("Test case: HMI sends Buttons.GetCapabilities with one button NoCustomButton- \"".. ButtonNames_NoCUSTOM_BUTTON[i] .. "\"")	
-			
+			commonFunctions:newTestCasesGroup("Test case: HMI sends Buttons.GetCapabilities with one button NoCustomButton- \"".. ButtonNames_NoCUSTOM_BUTTON[i] .. "\"")
+
 			--Test data: Create capabilities for Buttons.GetCapabilities response
 			local capabilities = {button_capability(ButtonNames_NoCUSTOM_BUTTON[i])}
-			
+
 			--Execute success case
 			SuccessTestCase(capabilities)
-			
+
 		end
 
 			--Print new line to separate new test case
-			commonFunctions:newTestCasesGroup("Test case: HMI sends Buttons.GetCapabilities with one button NoCustomButton_OK")	
-			
+			commonFunctions:newTestCasesGroup("Test case: HMI sends Buttons.GetCapabilities with one button NoCustomButton_OK")
+
 			--Test data: Create capabilities for Buttons.GetCapabilities response
 			local capabilities = {button_capability(ButtonNames_NoCUSTOM_BUTTON_OK[i])}
-			
+
 			--Execute success case
 			SuccessTestCase(capabilities)
 
-	--End Test case buttonCapabilities.03	
+	--End Test case buttonCapabilities.03
 	---------------------------------------------------------------------------------------------
 
---End Test suit buttonCapabilities Positive 
+--End Test suit buttonCapabilities Positive
 
 
 -----------------------------------------------------------------------------------------------
@@ -1372,59 +1372,59 @@ stopSDL()
 -- NOTE 2. Case when SDL does not receive button capabilities or receives just partial values should be covered by APPLINK-7622 The order of capabilities processing
 -- (SDLAQ-CRS-2678)
 -- NOTE 3. For the reasons above the two applicable checks will be when the Button.Getcapabilities response is timed out (1)
---and when response comes with empty parametres (2) the expected result is that when invalid parametres are sent (or no params sent at all), the default ones will be taken 
+--and when response comes with empty parametres (2) the expected result is that when invalid parametres are sent (or no params sent at all), the default ones will be taken
 
 
---Requirement id in JIRA: 	
-	--APPLINK-24325: [Buttons.GetCapabilities] response from HMI and RegisterAppInterface 
-	--Description: If after sdl is started HMI does not provide successful ButtonsGetCapabilities_response the sdl must take the default ones 
-	-- from hmi_capabilities.json(GetCapabilities) 
-		
---Verification criteria
-		--1. HMI responsds to initHMI request from SDL with BC.OnReady		
-		--2. SDL sends to HMI: Buttons.GetCapabilities request 
-		--3. HMI checks the Buttons capabilities and and either does not send Buttons.GetCapabilities response or sends it with wrong params
-		--4. The validity of parametres is checked in RegisterAppInterface_response ("buttonCapabilities", "presetBankCapabilities") and the ones from
-		--hmi_capabilities.json(GetCapabilities) are taken  
-
-	--Begin Test case Negative buttonCapabilities.01
-	
-	--Description: After sdl is started HMI does not provide successful ButtonsGetCapabilities_response due to timeout and sdl takes the default parametres 
+--Requirement id in JIRA:
+	--APPLINK-24325: [Buttons.GetCapabilities] response from HMI and RegisterAppInterface
+	--Description: If after sdl is started HMI does not provide successful ButtonsGetCapabilities_response the sdl must take the default ones
 	-- from hmi_capabilities.json(GetCapabilities)
 
-	--Verification criteria: 
+--Verification criteria
+		--1. HMI responsds to initHMI request from SDL with BC.OnReady
+		--2. SDL sends to HMI: Buttons.GetCapabilities request
+		--3. HMI checks the Buttons capabilities and and either does not send Buttons.GetCapabilities response or sends it with wrong params
+		--4. The validity of parametres is checked in RegisterAppInterface_response ("buttonCapabilities", "presetBankCapabilities") and the ones from
+		--hmi_capabilities.json(GetCapabilities) are taken
+
+	--Begin Test case Negative buttonCapabilities.01
+
+	--Description: After sdl is started HMI does not provide successful ButtonsGetCapabilities_response due to timeout and sdl takes the default parametres
+	-- from hmi_capabilities.json(GetCapabilities)
+
+	--Verification criteria:
 		--1. SDL does not receive the list of button names supported by HMI via response to Buttons.GetCapabilities from HMI as it times out
 		--2. SDL takes the parametres from hmi_capabilities.json(GetCapabilities) and sends it with RegisterAppInterface_response
 
 -----------------------------------------------------------------------------------------------
---Begin Test suit buttonCapabilities Negative 
+--Begin Test suit buttonCapabilities Negative
 
 	--Print new line to separate new test case
 	commonFunctions:newTestCasesGroup("Test case: Button.GetCapabilities Times Out")
 
---Timeout test case 
+--Timeout test case
 local function NegativeTimeoutTestCase()
 
 	--Precondition:
-	startSDL()	
-	
+	startSDL()
+
 	--Step 1: initiate HMI
 	initHMI()
-	
+
 	--Step 2: HMI times out Button.GetCapabilities response
 	HMI_Send_Button_GetCapabilities_Response_Timeout(Input_Timeoutcapabilities)
 
 	--Step 3: Mobile starts session
 	connectMobileStartSession()
-	
+
 	--Step 4: Mobile register an application and verify ButtonCapabilities parameter in RegisterAppInterface response
 	 MobileRegisterAppAndVerifyButtonCapabilitiesTimeout(Input_ButtonsCapabilities_RAI)
-	
+
 end
 
 --function Test:NegativeCheckTimeout ()
- 	NegativeTimeoutTestCase()	
---end 
+ 	NegativeTimeoutTestCase()
+--end
 
 --Postcondition
 stopSDL()
@@ -1433,11 +1433,11 @@ stopSDL()
 -------------------------------------------------------------------------------------------------
 
 	--Begin Test case Negative buttonCapabilities.02
-	
-	--Description: After sdl is started HMI does not provide successful ButtonsGetCapabilities_response due to timeout and sdl takes the default parametres 
+
+	--Description: After sdl is started HMI does not provide successful ButtonsGetCapabilities_response due to timeout and sdl takes the default parametres
 	-- from hmi_capabilities.json(GetCapabilities)
 
-	--Verification criteria: 
+	--Verification criteria:
 		--1. SDL does not receive the list of button names supported by HMI via response to Buttons.GetCapabilities from HMI as incorrect params are sent
 		--2. SDL takes the parametres from hmi_capabilities.json(GetCapabilities) and sends it with RegisterAppInterface_response
 
@@ -1449,30 +1449,30 @@ stopSDL()
 	local function NegativeTestCaseInvalidParametres()
 
 	--Precondition:
-	startSDL()	
-	
+	startSDL()
+
 	--Step 1: initiate HMI
 	initHMI()
-	
+
 	--Step 2: HMI sends Button.GetCapabilities response
-	
+
 	HMI_Send_Button_GetCapabilities_Response_Invalid(Input_Invalidcapabilities)
-	
+
 	--Step 3: Mobile starts session
 	connectMobileStartSession()
-		
+
 	--Step 4: Mobile register an application and verify ButtonCapabilities parameter in RegisterAppInterface response
 	  MobileRegisterAppAndVerifyButtonCapabilitiesInvalid(Input_ButtonsCapabilities_RAI)
 end
 
 
 --function Test:CheckNegative ()
- 
+
  	NegativeTestCaseInvalidParametres()
-	
---end 
+
+--end
 
 	--End Test case Negative buttonCapabilities.02
 --------------------------------------------------------------------------------------------
 
---End Test suit buttonCapabilities Negative 				
+--End Test suit buttonCapabilities Negative

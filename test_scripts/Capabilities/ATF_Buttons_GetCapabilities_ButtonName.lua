@@ -42,15 +42,15 @@ local ButtonNames = {
 						"SEARCH"
 					}
 
-					
+
 ---------------------------------------------------------------------------------------------
 --------------------------------------- Common functions ------------------------------------
 ---------------------------------------------------------------------------------------------
- 
- 
+
+
 --Create button capability function
 local function button_capability(name, shortPressAvailable, longPressAvailable, upDownAvailable)
-	
+
 	return
 	{
 		name = name,
@@ -60,11 +60,11 @@ local function button_capability(name, shortPressAvailable, longPressAvailable, 
 	}
 end
 
- 
- 
+
+
 ---------------------------------------------------------------------------------------------
 ---------------------------------------- Common steps ---------------------------------------
---------------------------------------------------------------------------------------------- 
+---------------------------------------------------------------------------------------------
 
 --Stop SDL
 function stopSDL()
@@ -72,9 +72,9 @@ function stopSDL()
 	Test["StopSDL"] = function(self)
 
 		--run StopSDL function
-		StopSDL()		
+		StopSDL()
 	end
-end	
+end
 
 --Start SDL
 function startSDL()
@@ -83,7 +83,7 @@ function startSDL()
 		--run StartSDL function
 		StartSDL(config.pathToSDL, config.ExitOnCrash)
 	end
-end	
+end
 
 --Start HMI
 function initHMI()
@@ -179,9 +179,9 @@ local function HMI_Send_Button_GetCapabilities_Response(Input_capabilities)
 			capabilities = Input_capabilities,
 			presetBankCapabilities = { onScreenPresetsAvailable = true }
 		}
-		
+
 		ExpectRequest("Buttons.GetCapabilities", true, buttons_capabilities)
-		
+
 		ExpectRequest("VR.GetCapabilities", true, { vrCapabilities = { "TEXT" } })
 		ExpectRequest("TTS.GetCapabilities", true, {
 			speechCapabilities = { "TEXT", "PRE_RECORDED" },
@@ -331,10 +331,10 @@ local function HMI_Send_Button_GetCapabilities_Response(Input_capabilities)
 		  end)
 
 		self.hmiConnection:SendNotification("BasicCommunication.OnReady")
-	  
-			
+
+
 	end
-end	
+end
 
 --Start Mobile and Add New Session
 function connectMobileStartSession()
@@ -350,9 +350,9 @@ function connectMobileStartSession()
 		event_dispatcher:AddConnection(self.mobileConnection)
 		self.mobileSession:ExpectEvent(events.connectedEvent, "Connection started")
 		self.mobileConnection:Connect()
-		self.mobileSession:StartService(7)	
+		self.mobileSession:StartService(7)
 	end
-end	
+end
 
 --Mobile register application and verify ButtonCapabilities parameter
 local function MobileRegisterAppAndVerifyButtonCapabilities(Input_ButtonsCapabilities)
@@ -366,31 +366,31 @@ local function MobileRegisterAppAndVerifyButtonCapabilities(Input_ButtonsCapabil
 		EXPECT_RESPONSE(correlationId, { success = true, buttonCapabilities = Input_ButtonsCapabilities})
 		:Do(function(_,data)
 				--commonFunctions:printTable(data.payload.buttonCapabilities)
-		end)	
+		end)
 	end
 end
 
- 
+
 --Success test case
 local function SuccessTestCase(Input_capabilities)
-	
+
 	--Precondition:
-	startSDL()	
-	
+	startSDL()
+
 	--Step 1: initiate HMI
 	initHMI()
-	
+
 	--Step 2: HMI sends Button.GetCapabilities response
 	HMI_Send_Button_GetCapabilities_Response(Input_capabilities)
-	
+
 	--Step 3: Mobile starts session
 	connectMobileStartSession()
-	
+
 	--Step 4: Mobile register an application and verify ButtonCapabilities parameter in RegisterAppInterface response
 	MobileRegisterAppAndVerifyButtonCapabilities(Input_capabilities)
-	  
+
 	--Postcondition
-	stopSDL()	
+	stopSDL()
 
 end
 
@@ -400,7 +400,7 @@ end
 ---------------------------------------------------------------------------------------------
 
 --Stop SDL
-stopSDL()	
+stopSDL()
 
 
 
@@ -409,7 +409,7 @@ stopSDL()
 -------------------------------- Check positive cases of response -----------------------------
 -----------------------------------------------------------------------------------------------
 
---Requirement id in JAMA or JIRA: 	
+--Requirement id in JAMA or JIRA:
 	--SDLAQ-N_CRS-148: ButtonName
 	--Description: Defines the hard (physical) and soft (touchscreen) buttons available from SYNC
 					--OK
@@ -430,10 +430,10 @@ stopSDL()
 					--CUSTOM_BUTTON
 					--SEARCH
 
-	--Verification criteria: 
+	--Verification criteria:
 		--1. SDL receives the list of button names supported by HMI via response to Buttons.GetCapabilities from HMI:
 		--2. SDL sends the list of button names supported by HMI to mobile app IN CASE SDL has received this information from HMI via response to Buttons.GetCapabilities (the case when SDL does not receive buttons capabilities from HMI or receives just partial values -> is covered by the requirement of SDLAQ-CRS-2678: The order of capabilities processing).
-		
+
 -----------------------------------------------------------------------------------------------
 --Begin Test suit buttonCapabilities
 
@@ -441,8 +441,8 @@ stopSDL()
 	--Description: HMI sends Buttons.GetCapabilities response with all button names
 
 		--Print new line to separate new test cases group
-		commonFunctions:newTestCasesGroup("Test case: HMI sends Buttons.GetCapabilities with all button names")	
-		
+		commonFunctions:newTestCasesGroup("Test case: HMI sends Buttons.GetCapabilities with all button names")
+
 		--Test data: Create capabilities for Buttons.GetCapabilities response
 		local capabilities =
 				{
@@ -467,15 +467,15 @@ stopSDL()
 
 		--Execute success case
 		SuccessTestCase(capabilities)
-		
+
 	--End Test case buttonCapabilities.01
 	---------------------------------------------------------------------------------------------
 	--Begin Test case buttonCapabilities.02
 	--Description: HMI sends Buttons.GetCapabilities response with some button names
 
 		--Print new line to separate new test cases group
-		commonFunctions:newTestCasesGroup("Test case: HMI sends Buttons.GetCapabilities with some button names")	
-		
+		commonFunctions:newTestCasesGroup("Test case: HMI sends Buttons.GetCapabilities with some button names")
+
 		--Test data: Create capabilities for Buttons.GetCapabilities response
 		local capabilities =
 				{
@@ -492,7 +492,7 @@ stopSDL()
 
 		--Execute success case
 		SuccessTestCase(capabilities)
-		
+
 	--End Test case buttonCapabilities.02
 	---------------------------------------------------------------------------------------------
 
@@ -501,17 +501,17 @@ stopSDL()
 
 		for i = 1, #ButtonNames do
 			--Print new line to separate new test case
-			commonFunctions:newTestCasesGroup("Test case: HMI sends Buttons.GetCapabilities with one button - \"".. ButtonNames[i] .. "\"")	
-			
+			commonFunctions:newTestCasesGroup("Test case: HMI sends Buttons.GetCapabilities with one button - \"".. ButtonNames[i] .. "\"")
+
 			--Test data: Create capabilities for Buttons.GetCapabilities response
 			local capabilities = {button_capability(ButtonNames[i])}
-			
+
 			--Execute success case
 			SuccessTestCase(capabilities)
-			
+
 		end
 
-	--End Test case buttonCapabilities.03	
+	--End Test case buttonCapabilities.03
 	---------------------------------------------------------------------------------------------
 
 --End Test suit buttonCapabilities
@@ -525,4 +525,3 @@ stopSDL()
 --The case when SDL does not receive buttons capabilities from HMI or receives just partial values
 -- -> is covered by the requirement of SDLAQ-CRS-2678: The order of capabilities processing
 
-	

@@ -292,7 +292,7 @@ function Test:initHMI_BasicCommunication_OnReady_Invalid(case)
           self.applications[app.appName] = app.appID
         end
       end)
-	
+
 	if (case == "Wrong Type") then
 		--HMI send BasicCommunication.OnReady notification with wrongtype: method=1234
 		self.hmiConnection:Send('{"jsonrpc":"2.0","method":1234}')
@@ -302,9 +302,9 @@ function Test:initHMI_BasicCommunication_OnReady_Invalid(case)
 	else
 		--Do NOT send BasicCommunication.OnReady notification
 	end
-	
+
 	commonTestCases:DelayedExp(1000)
-	
+
 end
 -- Stop SDL, start SDL, HMI initialization with specified modes, create mobile connection.
 local function RestartSDL_InitHMI_ConnectMobile(self, Description, Params, case)
@@ -313,12 +313,12 @@ local function RestartSDL_InitHMI_ConnectMobile(self, Description, Params, case)
 	Test["BC_StopSDL"] = function(self)
 		StopSDL()
 	end
-	
+
 	--Start SDL
 	Test["BC_StartSDL"] = function(self)
 		StartSDL(config.pathToSDL, config.ExitOnCrash)
 	end
-	
+
 	--InitHMI
 	Test["BC_InitHMI"] = function(self)
 		self:initHMI()
@@ -327,12 +327,12 @@ local function RestartSDL_InitHMI_ConnectMobile(self, Description, Params, case)
 	Test["BC_initHMI_" .. Description] = function(self)
 		self:initHMI_BasicCommunication_OnReady_Invalid(case)
 	end
-	
+
 	--ConnectMobile
 	Test["BC_ConnectMobile"] = function(self)
 		self:connectMobile()
 	end
-	
+
 	--StartSession
 	Test["BC_StartSession"] = function(self)
 		self.mobileSession= mobile_session.MobileSession(
@@ -340,45 +340,45 @@ local function RestartSDL_InitHMI_ConnectMobile(self, Description, Params, case)
 			self.mobileConnection)
 		self.mobileSession:StartService(7)
 	end
-	
+
 end
-	
+
 
 
 ---------------------------------------------------------------------------------------------
 -----------------------------------------I TEST BLOCK----------------------------------------
 --------CommonRequestCheck: Check notification BasicCommunication.OnReady from HMI-----------
----------------------------------------------------------------------------------------------	
+---------------------------------------------------------------------------------------------
 
-	--Description: TC's checks processing 
+	--Description: TC's checks processing
 		--HMI sends BasicCommunication.OnReady
 		--HMI does NOT send BasicCommunication.OnReady
 		--HMI sends InvalidJson BasicCommunication.OnReady
 		--HMI sends WrongType BasicCommunication.OnReady
 
-		--Requirement id in JAMA: 
+		--Requirement id in JAMA:
 				--APPLINK-24441: https://adc.luxoft.com/svn/APPLINK/doc/technical/HOW-TOs_and_Guidelines/FORD.SmartDeviceLink.SDL_Integration_Guidelines.docx
-				
-		----------------------------------------------------------------------------------------------		
-		
+
+		----------------------------------------------------------------------------------------------
+
 		local TestData = {
 			{description = "HMI sends BasicCommunication.OnReady", 				parameter = {"BasicCommunication.OnReady"},								case = "HMI sends valid OnReady"},
 			{description = "HMI does NOT send BasicCommunication.OnReady", 		parameter = {},															case = "Do Not send"},
 			{description = "HMI sends InvalidJson BasicCommunication.OnReady", 	parameter = {'{"jsonrpc":"2.0","method""BasicCommunication.OnReady"}'},	case = "Invalid Json"},
 			{description = "HMI sends WrongType BasicCommunication.OnReady", 	parameter = {'{"jsonrpc":"2.0","method":1234}'},						case = "Wrong Type"}
-			
+
 		}
 
-		----------------------------------------------------------------------------------------------				
-				
-		--Description: 
+		----------------------------------------------------------------------------------------------
+
+		--Description:
 		--Main executing
 		--i=1 already running when start script in file: "/modules/connecttest" file when InitHMI function executing
 		for i=2, #TestData do
-			
+
 			--Print new line to separate new test cases group
 			commonFunctions:newTestCasesGroup("-----------------------I." ..tostring(i).." [" ..TestData[i].description .. "]------------------------------")
-			
+
 			RestartSDL_InitHMI_ConnectMobile(self, TestData[i].description, TestData[i].parameter, TestData[i].case)
-			
+
 		end
