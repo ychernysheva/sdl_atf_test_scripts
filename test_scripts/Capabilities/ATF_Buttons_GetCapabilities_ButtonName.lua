@@ -172,7 +172,6 @@ local function HMI_Send_Button_GetCapabilities_Response(Input_capabilities)
 			  trim = "SE"
 			}
 		  })
-		ExpectRequest("VehicleInfo.GetVehicleData", true, { vin = "52-452-52-752" })
 
 		local buttons_capabilities =
 		{

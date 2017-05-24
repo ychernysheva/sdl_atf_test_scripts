@@ -318,7 +318,6 @@ local function HMI_Send_Button_GetCapabilities_Response(Input_capabilities)
 			  trim = "SE"
 			}
 		  })
-		ExpectRequest("VehicleInfo.GetVehicleData", true, { vin = "52-452-52-752" })
 
 		local buttons_capabilities =
 				{
@@ -577,7 +576,6 @@ local function HMI_Send_Button_GetCapabilities_Response_Timeout(Input_Timeoutcap
 			  trim = "SE"
 			}
 		  })
-		ExpectRequest("VehicleInfo.GetVehicleData", true, { vin = "52-452-52-752" })
 		local function button_capability(name, shortPressAvailable, longPressAvailable, upDownAvailable)
 		    return
 		    {
@@ -862,7 +860,7 @@ local function HMI_Send_Button_GetCapabilities_Response_Invalid()
 			  trim = "SE"
 			}
 		  })
-		ExpectRequest("VehicleInfo.GetVehicleData", true, { vin = "52-452-52-752" })
+
 		local function button_capability(name, shortPressAvailable, longPressAvailable, upDownAvailable)
 		    return
 		    {

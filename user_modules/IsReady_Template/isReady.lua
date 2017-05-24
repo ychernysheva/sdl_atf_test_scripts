@@ -956,12 +956,6 @@ end
 
 		    ExpectRequest("TTS.ChangeRegistration", false, { }):Pin()
 
-		    ExpectRequest("VehicleInfo.GetVehicleData", true, { vin = "52-452-52-752" })
-			-- TODO: APPLINK-28499: Should VehicleInfo.GetVehicleData be expected with initHMI OnReady
-			-- Update after clarification if needed.
-			:Times(0)
-			:Timeout(10000)
-
 		    local function button_capability(name, shortPressAvailable, longPressAvailable, upDownAvailable)
 		      	xmlReporter.AddMessage(debug.getinfo(1, "n").name, tostring(name))
 		      	return
@@ -1287,12 +1281,6 @@ end
 		    ExpectRequest("VR.ChangeRegistration", false, { }):Pin()
 
 		    ExpectRequest("TTS.ChangeRegistration", false, { }):Pin()
-
-		    ExpectRequest("VehicleInfo.GetVehicleData", true, { vin = "52-452-52-752" })
-			-- TODO: APPLINK-28499: Should VehicleInfo.GetVehicleData be expected with initHMI OnReady
-			-- Update after clarification if needed.
-			:Times(0)
-			:Timeout(10000)
 
 		    local function button_capability(name, shortPressAvailable, longPressAvailable, upDownAvailable)
 		      	xmlReporter.AddMessage(debug.getinfo(1, "n").name, tostring(name))

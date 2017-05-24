@@ -377,7 +377,7 @@ function Test:initHMI_onReady_TTS_IsReady(case)
 			trim = "SE"
 		}
 	})
-	ExpectRequest("VehicleInfo.GetVehicleData", true, { vin = "52-452-52-752" })
+
 
 	local function button_capability(name, shortPressAvailable, longPressAvailable, upDownAvailable)
 		xmlReporter.AddMessage(debug.getinfo(1, "n").name, tostring(name))

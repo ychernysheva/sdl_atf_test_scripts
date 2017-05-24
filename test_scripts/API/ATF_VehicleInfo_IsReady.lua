@@ -143,8 +143,6 @@ function Test:initHMI_onReady_VehicleinfoIsReady(method1, resultCode, params1, c
         }
      })
 	 :Times(0)
-    ExpectRequest("VehicleInfo.GetVehicleData", true, { vin = "52-452-52-752" })
-	:Times(0)
 
     local function button_capability(name, shortPressAvailable, longPressAvailable, upDownAvailable)
       xmlReporter.AddMessage(debug.getinfo(1, "n").name, tostring(name))

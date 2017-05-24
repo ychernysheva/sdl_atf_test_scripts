@@ -376,10 +376,6 @@ function Test:initHMI_onReady_VR_IsReady(case)
 		}
 	})
 
-
-	ExpectRequest("VehicleInfo.GetVehicleData", true, { vin = "52-452-52-752" })
-
-
 	local function button_capability(name, shortPressAvailable, longPressAvailable, upDownAvailable)
 		xmlReporter.AddMessage(debug.getinfo(1, "n").name, tostring(name))
 		return
@@ -743,10 +739,6 @@ local function Case1_BothVR_TTS_IsReady_available_false()
 			trim = "SE"
 		}
 	})
-
-
-	ExpectRequest("VehicleInfo.GetVehicleData", true, { vin = "52-452-52-752" })
-
 
 	local function button_capability(name, shortPressAvailable, longPressAvailable, upDownAvailable)
 		xmlReporter.AddMessage(debug.getinfo(1, "n").name, tostring(name))
