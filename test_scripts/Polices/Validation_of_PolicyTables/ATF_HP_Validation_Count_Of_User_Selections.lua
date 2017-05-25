@@ -63,7 +63,7 @@ function Test:Precondition_Activate_App_Consent_Device()
 end
 
 function Test:Precondition_Deactivate_App()
-  self.hmiConnection:SendNotification("BasicCommunication.OnAppDeactivated", {appID = self.applications["Test Application"]})
+  self.hmiConnection:SendNotification("BasicCommunication.OnAppDeactivated", {appID = self.applications["Test Application"], reason = "GENERAL"})
   EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "LIMITED"})
 end
 

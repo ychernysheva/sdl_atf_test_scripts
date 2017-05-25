@@ -24,6 +24,7 @@
 ---------------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
+config.application1.registerAppInterfaceParams.appHMIType = { "MEDIA" }
 
 --[[ Required Shared libraries ]]
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
@@ -48,6 +49,7 @@ function Test:PTU_requested_through_HMI()
 
   EXPECT_HMIRESPONSE(RequestIdUpdateSDL,{result = {code = 0, method = "SDL.UpdateSDL", result = "UPDATE_NEEDED" }})
 
+  EXPECT_HMINOTIFICATION("SDL.OnSDLConsentNeeded"):Times(0)
   EXPECT_HMICALL("BasicCommunication.PolicyUpdate", {}):Times(0)
   EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"}):Times(0)
 

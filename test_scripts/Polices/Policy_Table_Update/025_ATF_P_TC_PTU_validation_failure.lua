@@ -115,27 +115,35 @@ end
 
 function Test:TestStep_CheckSDLLogError()
   local is_test_fail = false
-  local result = testCasesForPolicySDLErrorsStops.ReadSpecificMessage("policy_table.policy_table.device_data: should be ommited in PT_UPDATE")
+
+  --TODO(istoimenova): Update in case specific rule how errors to be printed is created
+  local result = testCasesForPolicySDLErrorsStops.ReadSpecificMessage("policy_table.policy_table.device_data:")--" should be omitted in PT_UPDATE")
   if (result == false) then
     commonFunctions:printError("Error: message 'policy_table.policy_table.device_data: should be ommited in PT_UPDATE' is not observed in smartDeviceLink.log.")
     is_test_fail = true
   end
 
-  result = testCasesForPolicySDLErrorsStops.ReadSpecificMessage("policy_table.policy_table.module_config.seconds_between_retries: object is not initialized")
+  result = testCasesForPolicySDLErrorsStops.ReadSpecificMessage("policy_table.policy_table.module_config.seconds_between_retries:")-- object is not initialized")
   if (result == false) then
     commonFunctions:printError("Error: message 'policy_table.policy_table.module_config.seconds_between_retries: object is not initialized' is not observed in smartDeviceLink.log.")
     is_test_fail = true
   end
 
-  result = testCasesForPolicySDLErrorsStops.ReadSpecificMessage("policy_table.policy_table.module_meta: should be ommited in PT_UPDATE")
+  result = testCasesForPolicySDLErrorsStops.ReadSpecificMessage("policy_table.policy_table.module_meta:")-- should be ommited in PT_UPDATE")
   if (result == false) then
     commonFunctions:printError("Error: message 'policy_table.policy_table.module_meta: should be ommited in PT_UPDATE' is not observed in smartDeviceLink.log.")
     is_test_fail = true
   end
 
-  result = testCasesForPolicySDLErrorsStops.ReadSpecificMessage("policy_table.policy_table.usage_and_error_counts: should be ommited in PT_UPDATE")
+  result = testCasesForPolicySDLErrorsStops.ReadSpecificMessage("policy_table.policy_table.usage_and_error_counts:")-- should be ommited in PT%_UPDATE")
   if (result == false) then
     commonFunctions:printError("Error: message 'policy_table.policy_table.usage_and_error_counts: should be ommited in PT_UPDATE' is not observed in smartDeviceLink.log.")
+    is_test_fail = true
+  end
+
+  result = testCasesForPolicySDLErrorsStops.ReadSpecificMessage("Policy table is not valid.")
+  if (result == false) then
+    commonFunctions:printError("Error: message 'Policy table is not valid.' is not observed in smartDeviceLink.log.")
     is_test_fail = true
   end
 

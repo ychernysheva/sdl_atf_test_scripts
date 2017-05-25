@@ -27,6 +27,7 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local mobile_session = require('mobile_session')
+local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
 
 --[[ Local Variables ]]
 --NewTestSuiteNumber = 0
@@ -57,6 +58,7 @@ local registerAppInterfaceParams =
 
 --[[ General Precondition before ATF start]]
 commonSteps:DeleteLogsFileAndPolicyTable()
+testCasesForPolicyTable.Delete_Policy_table_snapshot()
 
 --[[ General Settings for configuration ]]
 Test = require('connecttest')
@@ -78,6 +80,12 @@ function Test:Precondition_PolicyUpdateStarted_ForDefaultApplication()
   EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "PROPRIETARY" })
 end
 
+function Test:Precondition_ActivateApp()
+  local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.applications[config.application1.registerAppInterfaceParams.appName]})
+  EXPECT_HMIRESPONSE(RequestId)
+  EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"})
+end
+
 function Test:Precondition_OpenNewSession()
   self.mobileSession2 = mobile_session.MobileSession(self, self.mobileConnection)
   self.mobileSession2:StartService(7)
@@ -90,18 +98,36 @@ function Test:TestStep_RegisterNewApplication()
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = "Media Application" }})
   self.mobileSession2:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
   self.mobileSession2:ExpectNotification("OnPermissionsChange")
+  self.mobileSession2:ExpectNotification("OnSystemRequest")--, {requestType = "LOCK_SCREEN_ICON_URL"} )
+  :ValidIf(function(_,data)
+      if(data.payload.requestType ~= "LOCK_SCREEN_ICON_URL") then
+        commonFunctions:printError("requestType should be LOCK_SCREEN_ICON_URL")
+        return false
+      end
+      return true
+    end)
 end
 
 function Test:TestStep_PolicyUpdateFinished_ForDefaultApplication()
   local policy_file_name = "PTU"
   local policy_file_path = commonFunctions:read_parameter_from_smart_device_link_ini("SystemFilesPath")
-  local ptu_file_name = "files/ptu.json"
+  local ptu_file_name = "files/jsons/Policies/Policy_Table_Update/ptu.json"
+  --local SystemFilesPath = commonFunctions:read_parameter_from_smart_device_link_ini("SystemFilesPath") .. "/"
+  local pts_file_name = commonFunctions:read_parameter_from_smart_device_link_ini("PathToSnapshot")
+
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UP_TO_DATE"}, {status = "UPDATE_NEEDED"}, {status = "UPDATING"}):Times(3)
+
   local requestId = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
+
   EXPECT_HMIRESPONSE(requestId)
   :Do(function()
-      self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest", {requestType = "PROPRIETARY", fileName = policy_file_name})
+      self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",
+        { requestType = "PROPRIETARY", fileName = policy_file_path .."/" .. pts_file_name})
       EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "PROPRIETARY"})
-      :Do(function()
+      :Do(function(_, data)
+          if not (data.binaryData ~= nil and string.len(data.binaryData) > 0) then
+            self:FailTestCase("PTS was not sent to Mobile in payload of OnSystemRequest")
+          end
           local corIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", {requestType = "PROPRIETARY", fileName = policy_file_name}, ptu_file_name)
           EXPECT_HMICALL("BasicCommunication.SystemRequest")
           :Do(function(_, d)
@@ -111,6 +137,7 @@ function Test:TestStep_PolicyUpdateFinished_ForDefaultApplication()
           EXPECT_RESPONSE(corIdSystemRequest, { success = true, resultCode = "SUCCESS"})
         end)
     end)
+
 end
 
 function Test:TestStep_CheckThatAppID_Present_In_DataBase()

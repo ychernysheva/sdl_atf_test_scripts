@@ -79,7 +79,10 @@ end
 
 -- Triger PTU to update sdl snapshot
 function Test:TestStep_trigger_user_request_update_from_HMI()
-  testCasesForPolicyTable:trigger_user_request_update_from_HMI(self)
+  self.hmiConnection:SendNotification("SDL.OnPolicyUpdate", {} )
+
+  EXPECT_HMICALL("BasicCommunication.PolicyUpdate",{})
+  :Do(function(_,data) self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {}) end)
 end
 
 function Test:TestStep_verify_PermissionConsent()

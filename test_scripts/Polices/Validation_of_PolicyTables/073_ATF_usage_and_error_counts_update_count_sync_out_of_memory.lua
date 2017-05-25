@@ -14,10 +14,6 @@
 -- Expected result:
 -- SDL must: increment "count_sync_out_of_memory" section value of Local Policy Table.
 ---------------------------------------------------------------------------------------------
-
---[[ General configuration parameters ]]
-Test = require('connecttest')
-local config = require('config')
 config.defaultProtocolVersion = 2
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 
@@ -26,6 +22,12 @@ local commonFunctions = require ('user_modules/shared_testcases/commonFunctions'
 local commonSteps = require ('user_modules/shared_testcases/commonSteps')
 local commonTestCases = require ('user_modules/shared_testcases/commonTestCases')
 
+commonSteps:DeleteLogsFiles()
+commonSteps:DeletePolicyTable()
+
+--[[ General configuration parameters ]]
+Test = require('connecttest')
+local config = require('config')
 require('user_modules/AppTypes')
 
 --[[ Local Variables ]]
@@ -154,24 +156,24 @@ function Test.checkLocalPT(checkTable)
     if actualLocalPtValues then
       comparationResult = isValuesCorrect(actualLocalPtValues, expectedLocalPtValues)
       if not comparationResult then
-        TestData:store(table.concat({"Test ", queryString, " failed: SDL has wrong values in LocalPT"}))
-        TestData:store("ExpectedLocalPtValues")
+        --TestData:store(table.concat({"Test ", queryString, " failed: SDL has wrong values in LocalPT"}))
+        --TestData:store("ExpectedLocalPtValues")
         commonFunctions:userPrint(31, table.concat({"Test ", queryString, " failed: SDL has wrong values in LocalPT"}))
         commonFunctions:userPrint(35, "ExpectedLocalPtValues")
         for _, values in pairs(expectedLocalPtValues) do
-          TestData:store(values)
+          --TestData:store(values)
           print(values)
         end
-        TestData:store("ActualLocalPtValues")
+        --TestData:store("ActualLocalPtValues")
         commonFunctions:userPrint(35, "ActualLocalPtValues")
         for _, values in pairs(actualLocalPtValues) do
-          TestData:store(values)
+          --TestData:store(values)
           print(values)
         end
         isTestPass = false
       end
     else
-      TestData:store("Test failed: Can't get data from LocalPT")
+      --TestData:store("Test failed: Can't get data from LocalPT")
       commonFunctions:userPrint(31, "Test failed: Can't get data from LocalPT")
       isTestPass = false
     end
@@ -213,7 +215,7 @@ end
 
 function Test:InitHMI_OnReady2()
   self:initHMI_onReady()
-
+  commonTestCases:DelayedExp(10000)
 end
 function Test:HMIsendOnSystemError2()
   for _ = 1, 4 do
@@ -227,7 +229,7 @@ function Test:StopSDL2()
 end
 
 function Test:CheckPTUinLocalPT()
-  TestData:store("Store LocalPT after SDL.onSystemError", constructPathToDatabase(), "policy.sqlite" )
+  --TestData:store("Store LocalPT after SDL.onSystemError", constructPathToDatabase(), "policy.sqlite" )
   local checks = {
     {
       query = 'select count_of_iap_buffer_full, count_sync_out_of_memory, count_of_sync_reboots from usage_and_error_count',
@@ -248,9 +250,8 @@ end
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
 
-function Test.Postcondition()
-  commonSteps:DeletePolicyTable()
-  TestData:info()
+function Test.Postcondition_StopSDL()
+  StopSDL()
 end
 
 return Test

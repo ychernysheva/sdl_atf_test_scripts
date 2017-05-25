@@ -25,18 +25,22 @@
 -- Expected result:
 -- SDL must: increment value of "minutes_in_hmi_limited" for this <X+N> minutes in Local Policy Table.
 ---------------------------------------------------------------------------------------------
-
---[[ General configuration parameters ]]
-Test = require('connecttest')
-local config = require('config')
 config.defaultProtocolVersion = 2
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
+config.application1.registerAppInterfaceParams.isMediaApplication = true
 
 --[[ Required Shared libraries ]]
 local json = require("modules/json")
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require ('user_modules/shared_testcases/commonSteps')
 local mobile_session = require('mobile_session')
+
+commonSteps:DeleteLogsFiles()
+commonSteps:DeletePolicyTable()
+
+--[[ General configuration parameters ]]
+Test = require('connecttest')
+local config = require('config')
 require('cardinalities')
 require('user_modules/AppTypes')
 
@@ -284,7 +288,7 @@ function Test.preparePreloadedPT()
 end
 
 local function activateAppInSpecificLevel(self, HMIAppID, hmi_level)
-  local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = HMIAppID, level = hmi_level})
+  local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = HMIAppID})
 
   EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = hmi_level, systemContext = "MAIN" })
   --hmi side: expect SDL.ActivateApp response
@@ -317,7 +321,7 @@ local function activateAppInSpecificLevel(self, HMIAppID, hmi_level)
 end
 
 local function deactivateApp(self, HMIAppID)
-  self.hmiConnection:SendNotification("BasicCommunication.OnAppDeactivated", {appID = HMIAppID})
+  self.hmiConnection:SendNotification("BasicCommunication.OnAppDeactivated", {appID = HMIAppID, reason = "GENERAL"})
 end
 
 local function wait(delaySeconds)
@@ -377,6 +381,7 @@ function Test:RegisterApp()
     end)
   EXPECT_RESPONSE(correlationId, { success = true })
   EXPECT_NOTIFICATION("OnPermissionsChange")
+  EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "NONE", systemContext = "MAIN", audioStreamingState = "NOT_AUDIBLE" })
 end
 
 function Test.AppInNoneNMinutes()
@@ -391,6 +396,7 @@ end
 
 function Test:DeactivateApp()
   deactivateApp(self, HMIAppId)
+  EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "LIMITED", systemContext = "MAIN", audioStreamingState = "AUDIBLE" })
 end
 
 function Test.AppInLimitedMMinutes()
@@ -434,6 +440,7 @@ function Test:RegisterApp2()
     end)
   EXPECT_RESPONSE(correlationId, { success = true })
   EXPECT_NOTIFICATION("OnPermissionsChange")
+  EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "NONE", systemContext = "MAIN", audioStreamingState = "NOT_AUDIBLE" })
 end
 
 function Test.AppInNoneXMinutes()
@@ -448,6 +455,7 @@ end
 
 function Test:DeactivateApp()
   deactivateApp(self, HMIAppId)
+  EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "LIMITED", systemContext = "MAIN", audioStreamingState = "AUDIBLE" })
 end
 
 function Test.AppInLimitedYMinutes()

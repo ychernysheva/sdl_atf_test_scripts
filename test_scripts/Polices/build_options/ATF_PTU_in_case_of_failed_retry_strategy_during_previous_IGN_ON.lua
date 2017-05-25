@@ -1,8 +1,3 @@
--- UNREADY
--- currently case fails due to:
--- issure "[Service] SDL doesn't send onSDLClose to HMI upon ignition Off"
--- testCasesForPolicyTableSnapshot.lua is not ready yet
----------------------------------------------------------------------------------------------
 -- Requirement summary:
 -- [PolicyTableUpdate] Policy Table Update in case of failed retry strategy during previous IGN_ON
 -- [HMI API] OnStatusUpdate
@@ -17,8 +12,8 @@
 -- Expected result:
 -- 1. PolicyManager checks the status of PTU Update
 -- 2. On application with app_ID registering :
---   2.1. app_ID->SDL:RegisterAppInterface()
---   2.2. SDL->app_ID:SUCCESS:RegisterAppInterface()
+-- 2.1. app_ID->SDL:RegisterAppInterface()
+-- 2.2. SDL->app_ID:SUCCESS:RegisterAppInterface()
 -- 3. PTU sequence started: *SDL->HMI: SDL.OnStatusUpdate(UPDATE_NEEDED)*
 -- 4. PTS is created by SDL.....//PTU started
 ---------------------------------------------------------------------------------------------
@@ -50,7 +45,7 @@ function Test.Precondition_SDLStop()
   StopSDL()
 end
 
-function Test:Precondition_DeleteLogsAndPolicyTable()
+function Test.Precondition_DeleteLogsAndPolicyTable()
   commonSteps:DeleteLogsFiles()
   commonSteps:DeletePolicyTable()
 end
@@ -59,26 +54,26 @@ function Test.Precondition_StartSDL()
   StartSDL(config.pathToSDL, config.ExitOnCrash)
 end
 
-function Test:Precondtion_initHMI()
+function Test:Precondition_initHMI()
   self:initHMI()
 end
 
-function Test:Precondtion_initHMI_onReady()
+function Test:Precondition_initHMI_onReady()
   self:initHMI_onReady()
 end
 
-function Test:Precondtion_initHMI_onReady()
+function Test:Precondition_connectMobile()
   self:connectMobile()
 end
 
-function Test:Precondtion_CreateSession()
-      self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
-    self.mobileSession:StartService(7)
+function Test:Precondition_CreateSession()
+  self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
+  self.mobileSession:StartService(7)
 end
 
 function Test:RegisterApp()
-    self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
-    EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
+  self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"}, {status = "UPDATING"}):Times(2)
 end
 
 --[[ Test ]]
@@ -113,18 +108,21 @@ function Test:TestStep_ConnectMobile()
 end
 
 function Test:TestStep_StartSession()
-      self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
-    self.mobileSession:StartService(7)
+  self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
+  self.mobileSession:StartService(7)
 end
 
 function Test:TestStep_RegisterApp_failed_retry_strategy_in_prev_IGN_cycle()
+  --TODO(istoimenova): Remove when "[ATF] One and the Same CorrelationID is Sent for Two Sessions" is fixed.
+  self.mobileSession.correlationId = self.mobileSession.correlationId + 1
+
   local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
-  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"}, {status = "UPDATING"})
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"}, {status = "UPDATING"}):Times(2)
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config.application1.appName } })
   EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
-      :Do(function(_,data)
-          self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-        end)
+  :Do(function(_,data)
+      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+    end)
   self.mobileSession:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS"})
 end
 

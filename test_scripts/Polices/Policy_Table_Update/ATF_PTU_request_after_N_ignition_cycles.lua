@@ -160,10 +160,7 @@ function Test:TestStep_Register_App_And_Check_PTU_Triggered()
       :Do(
         function()
           EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
-          :Do(
-            function()
-              EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
-            end)
+          EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
         end)
       self.mobileSession:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS" })
     end)
