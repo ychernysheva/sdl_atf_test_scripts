@@ -43,7 +43,7 @@ commonSteps:DeleteLogsFileAndPolicyTable()
 Test = require('connecttest')
 
 require('cardinalities')
-local events = require('events') 
+local events = require('events')
 local mobile_session = require('mobile_session')
 require('user_modules/AppTypes')
 
@@ -60,18 +60,18 @@ require('user_modules/AppTypes')
 
 --List of parameters in VR.IsReady response:
 --Parameter 1: correlationID: type=Integer, mandatory="true"
---Parameter 2: method: type=String, mandatory="true" (method = "VR.IsReady") 
---Parameter 3: resultCode: type=String Enumeration(Integer), mandatory="true" 
---Parameter 4: info/message: type=String, minlength="1" maxlength="10" mandatory="false" 
+--Parameter 2: method: type=String, mandatory="true" (method = "VR.IsReady")
+--Parameter 3: resultCode: type=String Enumeration(Integer), mandatory="true"
+--Parameter 4: info/message: type=String, minlength="1" maxlength="10" mandatory="false"
 --Parameter 5: available: type=Boolean, mandatory="true"
 -----------------------------------------------------------------------------------------------
 --Cover APPLINK-25286: [HMI_API] VR.IsReady
 function Test:initHMI_onReady_VR_IsReady(case)
 	critical(true)
 	local function ExpectRequest(name, mandatory, params)
-		
-		
-		
+
+
+
 		xmlReporter.AddMessage(debug.getinfo(1, "n").name, tostring(name))
 		local event = events.Event()
 		event.level = 2
@@ -80,56 +80,56 @@ function Test:initHMI_onReady_VR_IsReady(case)
 		EXPECT_HMIEVENT(event, name)
 		:Times(mandatory and 1 or AnyNumber())
 		:Do(function(_, data)
-			
+
 			--APPLINK-25286: [HMI_API] VR.IsReady
 			if (name == "VR.IsReady") then
-				
+
 				--On the view of JSON message, VR.IsReady response has colerationidID, code/resultCode, method and message parameters. Below are tests to verify all invalid cases of the response.
-				
+
 				--caseID 1-3: Check special cases
 				--0. availabe_false
 				--1. HMI_Does_Not_Repond
 				--2. MissedAllParamaters
 				--3. Invalid_Json
-				
+
 				if (case == 0) then -- responds {available = false}
-					self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {available = false}) 
-					
+					self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {available = false})
+
 				elseif (case == 1) then -- does not respond
-					--self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", params) 
-					
+					--self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", params)
+
 				elseif (case == 2) then --MissedAllParamaters
 					self.hmiConnection:Send('{}')
-					
+
 				elseif (case == 3) then --Invalid_Json
-					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"VR.IsReady", "code":0}}')	
-					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc";"2.0","result":{"available":true,"method":"VR.IsReady", "code":0}}')	
-					
+					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"VR.IsReady", "code":0}}')
+					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc";"2.0","result":{"available":true,"method":"VR.IsReady", "code":0}}')
+
 					--*****************************************************************************************************************************
-					
+
 					--caseID 11-14 are used to checking "collerationID" parameter
 					--11. collerationID_IsMissed
 					--12. collerationID_IsNonexistent
 					--13. collerationID_IsWrongType
-					--14. collerationID_IsNegative 	
-					
+					--14. collerationID_IsNegative
+
 				elseif (case == 11) then --collerationID_IsMissed
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"VR.IsReady", "code":0}}')
 					self.hmiConnection:Send('{"jsonrpc":"2.0","result":{"available":true,"method":"VR.IsReady", "code":0}}')
-					
+
 				elseif (case == 12) then --collerationID_IsNonexistent
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"VR.IsReady", "code":0}}')
 					self.hmiConnection:Send('{"id":'..tostring(data.id + 10)..',"jsonrpc":"2.0","result":{"available":true,"method":"VR.IsReady", "code":0}}')
-					
+
 				elseif (case == 13) then --collerationID_IsWrongType
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"VR.IsReady", "code":0}}')
 					self.hmiConnection:Send('{"id":"'..tostring(data.id)..'","jsonrpc":"2.0","result":{"available":true,"method":"VR.IsReady", "code":0}}')
-					
+
 				elseif (case == 14) then --collerationID_IsNegative
 					self.hmiConnection:Send('{"id":'..tostring(-1)..',"jsonrpc":"2.0","result":{"available":true,"method":"VR.IsReady", "code":0}}')
-					
+
 					--*****************************************************************************************************************************
-					
+
 					--caseID 21-27 are used to checking "method" parameter
 					--21. method_IsMissed
 					--22. method_IsNotValid
@@ -139,41 +139,41 @@ function Test:initHMI_onReady_VR_IsReady(case)
 					--26. method_IsInvalidCharacter_Newline
 					--27. method_IsInvalidCharacter_OnlySpaces
 					--28. method_IsInvalidCharacter_Tab
-					
+
 				elseif (case == 21) then --method_IsMissed
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"VR.IsReady", "code":0}}')
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"code":0}}')
-					
+
 				elseif (case == 22) then --method_IsNotValid
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"VR.IsReady", "code":0}}')
-					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"VR.IsRea", "code":0}}')				
-					
+					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"VR.IsRea", "code":0}}')
+
 				elseif (case == 23) then --method_IsOtherResponse
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"VR.IsReady", "code":0}}')
-					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"UI.IsReady", "code":0}}')			
-					
+					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"UI.IsReady", "code":0}}')
+
 				elseif (case == 24) then --method_IsEmpty
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"VR.IsReady", "code":0}}')
-					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"", "code":0}}')							 
-					
+					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"", "code":0}}')
+
 				elseif (case == 25) then --method_IsWrongType
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"VR.IsReady", "code":0}}')
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":123456789, "code":0}}')
-					
+
 				elseif (case == 26) then --method_IsInvalidCharacter_Newline
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"VR.IsReady", "code":0}}')
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"VR.IsR\neady", "code":0}}')
-					
+
 				elseif (case == 27) then --method_IsInvalidCharacter_OnlySpaces
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"VR.IsReady", "code":0}}')
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":" ", "code":0}}')
-					
+
 				elseif (case == 28) then --method_IsInvalidCharacter_Tab
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"VR.IsReady", "code":0}}')
-					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"VR.IsRe\tady", "code":0}}')		
-					
+					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"VR.IsRe\tady", "code":0}}')
+
 					--*****************************************************************************************************************************
-					
+
 					--caseID 31-35 are used to checking "resultCode" parameter
 					--31. resultCode_IsMissed
 					--32. resultCode_IsNotExist
@@ -181,34 +181,34 @@ function Test:initHMI_onReady_VR_IsReady(case)
 					--34. resultCode_INVALID_DATA (code = 11)
 					--35. resultCode_DATA_NOT_AVAILABLE (code = 9)
 					--36. resultCode_GENERIC_ERROR (code = 22)
-					
+
 				elseif (case == 31) then --resultCode_IsMissed
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"VR.IsReady", "code":0}}')
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"VR.IsReady"}}')
-					
+
 				elseif (case == 32) then --resultCode_IsNotExist
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"VR.IsReady", "code":0}}')
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"VR.IsReady", "code":123}}')
-					
+
 				elseif (case == 33) then --resultCode_IsWrongType
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"VR.IsReady", "code":0}}')
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"VR.IsReady", "code":"0"}}')
-					
+
 				elseif (case == 34) then --resultCode_INVALID_DATA
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"VR.IsReady", "code":0}}')
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"VR.IsReady", "code":11}}')
-					
+
 				elseif (case == 35) then --resultCode_DATA_NOT_AVAILABLE
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"VR.IsReady", "code":0}}')
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"VR.IsReady", "code":9}}')
-					
+
 				elseif (case == 36) then --resultCode_GENERIC_ERROR
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"VR.IsReady", "code":0}}')
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"VR.IsReady", "code":22}}')
-					
-					
+
+
 					--*****************************************************************************************************************************
-					
+
 					--caseID 41-45 are used to checking "message" parameter
 					--41. message_IsMissed
 					--42. message_IsLowerBound
@@ -219,75 +219,75 @@ function Test:initHMI_onReady_VR_IsReady(case)
 					--47. message_IsInvalidCharacter_Tab
 					--48. message_IsInvalidCharacter_OnlySpaces
 					--49. message_IsInvalidCharacter_Newline
-					
+
 				elseif (case == 41) then --message_IsMissed
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"VR.IsReady"}, "message":"The data sent is invalid","code":11}}') --INVALID_DATA
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"VR.IsReady"},"code":11}}')
-					
+
 				elseif (case == 42) then --message_IsLowerBound
 					local messageValue = "a"
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"VR.IsReady"}, "message":"The data sent is invalid","code":11}}') --INVALID_DATA
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"VR.IsReady"}, "message":"' .. messageValue ..'","code":11}}')
-					
+
 				elseif (case == 43) then --message_IsUpperBound
 					local messageValue = string.rep("a", 1000)
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"VR.IsReady"}, "message":"The data sent is invalid","code":11}}') --INVALID_DATA
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"VR.IsReady"}, "message":"' .. messageValue ..'","code":11}}')
-					
+
 				elseif (case == 44) then --message_IsOutUpperBound
 					local messageValue = string.rep("a", 1001)
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"VR.IsReady"}, "message":"The data sent is invalid","code":11}}') --INVALID_DATA
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"VR.IsReady"}, "message":"' .. messageValue ..'","code":11}}')
-					
+
 				elseif (case == 45) then --message_IsEmpty_IsOutLowerBound
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"VR.IsReady"}, "message":"The data sent is invalid","code":11}}') --INVALID_DATA
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"VR.IsReady"}, "message":"","code":11}}')
-					
+
 				elseif (case == 46) then --message_IsWrongType
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"VR.IsReady"}, "message":"The data sent is invalid","code":11}}') --INVALID_DATA
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"VR.IsReady"}, "message":123,"code":11}}')
-					
+
 				elseif (case == 47) then --message_IsInvalidCharacter_Tab
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"VR.IsReady"}, "message":"The data sent is invalid","code":11}}') --INVALID_DATA
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"VR.IsReady"}, "message":"a\tb","code":11}}')
-					
+
 				elseif (case == 48) then --message_IsInvalidCharacter_OnlySpaces
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"VR.IsReady"}, "message":"The data sent is invalid","code":11}}') --INVALID_DATA
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"VR.IsReady"}, "message":" ","code":11}}')
-					
+
 				elseif (case == 49) then --message_IsInvalidCharacter_Newline
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"VR.IsReady"}, "message":"The data sent is invalid","code":11}}') --INVALID_DATA
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"VR.IsReady"}, "message":"a\n\b","code":11}}')
-					
+
 					--*****************************************************************************************************************************
-					
+
 					--caseID 51-55 are used to checking "available" parameter
 					--51. available_IsMissed
 					--52. available_IsWrongType
-					
+
 				elseif (case == 51) then --available_IsMissed
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"VR.IsReady", "code":0}}')
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"VR.IsReady", "code":"0"}}')
-					
+
 				elseif (case == 52) then --available_IsWrongType
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"VR.IsReady", "code":0}}')
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":"true","method":"VR.IsReady", "code":"0"}}')
-					
+
 				else
 					print("***************************Error: VR.IsReady: Input value is not correct ***************************")
 				end
-				
-				
+
+
 			else
-				self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", params) 			
+				self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", params)
 			end
-			
-			
-			
+
+
+
 		end)
-		
+
 	end
-	
+
 	ExpectRequest("BasicCommunication.MixingAudioSupported",
 	true,
 	{ attenuatedSupported = true })
@@ -300,13 +300,13 @@ function Test:initHMI_onReady_VR_IsReady(case)
 	ExpectRequest("UI.GetLanguage", true, { language = "EN-US" })
 	ExpectRequest("VR.GetLanguage", true, { language = "EN-US" })
 	:Times(0)
-	
+
 	ExpectRequest("TTS.GetLanguage", true, { language = "EN-US" })
 	ExpectRequest("UI.ChangeRegistration", false, { }):Pin()
 	ExpectRequest("TTS.SetGlobalProperties", false, { }):Pin()
 	ExpectRequest("BasicCommunication.UpdateDeviceList", false, { }):Pin()
 	ExpectRequest("VR.ChangeRegistration", false, { }):Pin()
-	
+
 	ExpectRequest("TTS.ChangeRegistration", false, { }):Pin()
 	ExpectRequest("VR.GetSupportedLanguages", true, {
 		languages =
@@ -317,7 +317,7 @@ function Test:initHMI_onReady_VR_IsReady(case)
 		}
 	})
 	:Times(0)
-	
+
 	ExpectRequest("TTS.GetSupportedLanguages", true, {
 		languages =
 		{
@@ -345,10 +345,8 @@ function Test:initHMI_onReady_VR_IsReady(case)
 			trim = "SE"
 		}
 	})
-	:Times(0) 
-	ExpectRequest("VehicleInfo.GetVehicleData", true, { vin = "52-452-52-752" })
 	:Times(0)
-	
+
 	local function button_capability(name, shortPressAvailable, longPressAvailable, upDownAvailable)
 		xmlReporter.AddMessage(debug.getinfo(1, "n").name, tostring(name))
 		return
@@ -384,7 +382,7 @@ function Test:initHMI_onReady_VR_IsReady(case)
 	ExpectRequest("Buttons.GetCapabilities", true, buttons_capabilities)
 	ExpectRequest("VR.GetCapabilities", true, { vrCapabilities = { "TEXT" } })
 	:Times(0)
-	
+
 	ExpectRequest("TTS.GetCapabilities", true, {
 		speechCapabilities = { "TEXT", "PRE_RECORDED" },
 		prerecordedSpeechCapabilities =
@@ -397,7 +395,7 @@ function Test:initHMI_onReady_VR_IsReady(case)
 		}
 	})
 	--:Times(0)
-	
+
 	local function text_field(name, characterSet, width, rows)
 		xmlReporter.AddMessage(debug.getinfo(1, "n").name, tostring(name))
 		return
@@ -425,9 +423,9 @@ function Test:initHMI_onReady_VR_IsReady(case)
 				resolutionHeight = height or 64
 			}
 		}
-		
+
 	end
-	
+
 	ExpectRequest("UI.GetCapabilities", true, {
 		displayCapabilities =
 		{
@@ -516,13 +514,13 @@ function Test:initHMI_onReady_VR_IsReady(case)
 		}
 	})
 	--:Times(0)
-	
+
 	ExpectRequest("VR.IsReady", true, { available = true })
 	ExpectRequest("TTS.IsReady", true, { available = true })
 	ExpectRequest("UI.IsReady", true, { available = true })
 	ExpectRequest("Navigation.IsReady", true, { available = true })
-	ExpectRequest("VehicleInfo.IsReady", true, { available = true }) 
-	
+	ExpectRequest("VehicleInfo.IsReady", true, { available = true })
+
 	self.applications = { }
 	ExpectRequest("BasicCommunication.UpdateAppList", false, { })
 	:Pin()
@@ -533,46 +531,46 @@ function Test:initHMI_onReady_VR_IsReady(case)
 			self.applications[app.appName] = app.appID
 		end
 	end)
-	
+
 	self.hmiConnection:SendNotification("BasicCommunication.OnReady")
-end 
+end
 
 local function StopStartSDL_HMI_MOBILE(TestCaseName)
-	
+
 	--Stop SDL
 	Test[tostring(TestCaseName) .. "_Precondition_StopSDL"] = function(self)
 		StopSDL()
 	end
-	
+
 	--Start SDL
 	Test[tostring(TestCaseName) .. "_Precondition_StartSDL"] = function(self)
 		StartSDL(config.pathToSDL, config.ExitOnCrash)
 	end
-	
+
 	--InitHMI
 	Test[tostring(TestCaseName) .. "_Precondition_InitHMI"] = function(self)
 		self:initHMI()
 	end
-	
-	
+
+
 	--InitHMIonReady: Cover APPLINK-25286: [HMI_API] VR.IsReady
 	Test[tostring(TestCaseName) .. "_initHMI_onReady_VR_IsReady_" .. tostring(description)] = function(self)
-		
+
 		self:initHMI_onReady_VR_IsReady(0)	--	available = false
 	end
-	
-	
+
+
 	--ConnectMobile
 	Test[tostring(TestCaseName) .. "_ConnectMobile"] = function(self)
 		self:connectMobile()
 	end
-	
+
 	--StartSession
 	Test[tostring(TestCaseName) .. "_StartSession"] = function(self)
 		self.mobileSession= mobile_session.MobileSession(self, self.mobileConnection)
 		self.mobileSession:StartService(7)
 	end
-	
+
 end
 
 
@@ -614,7 +612,7 @@ end
 -- -> any other <Interface>.RPC (<Interface> - TTS, UI)
 -- SDL must:
 -- transfer only <Interface>.RPC to HMI (in case <Interface> is supported by system)
--- respond with '<received_errorCode_from_HMI>' to mobile app IN CASE <Interface>.RPC got any erroneous resultCode from HMI (please see list with resultCodes below)		
+-- respond with '<received_errorCode_from_HMI>' to mobile app IN CASE <Interface>.RPC got any erroneous resultCode from HMI (please see list with resultCodes below)
 
 --APPLINK-26900 Clarify info parameter in CRQ APPLINK-25043
 
@@ -631,7 +629,7 @@ commonSteps:ActivationApp()
 
 -- List of erroneous resultCodes (success:false)
 local TestData = {
-	
+
 	{resultCode = "UNSUPPORTED_REQUEST", 		info = "VR is not supported by system"},
 	{resultCode = "DISALLOWED", 				info = "VR is not supported by system"},
 	{resultCode = "USER_DISALLOWED", 			info = "VR is not supported by system"},
@@ -655,13 +653,13 @@ local TestData = {
 }
 
 
--- AddCommand		
+-- AddCommand
 commonFunctions:newTestCasesGroup("AddCommand_UNSUPPORTED_RESOURCE_true_Other_Interfaces_Responds_ERROR")
 for i = 1, #TestData do
 	Test["AddCommand_UNSUPPORTED_RESOURCE_true_Incase_UI_responds_" .. TestData[i].resultCode] = function(self)
-		
+
 		commonTestCases:DelayedExp(iTimeout)
-		
+
 		--mobile side: sending AddCommand request
 		local cid = self.mobileSession:SendRPC("AddCommand",
 		{
@@ -669,26 +667,26 @@ for i = 1, #TestData do
 			vrCommands = { "vrCommands_" .. tostring(i) },
 			menuParams = {position = 1, menuName = "Command " .. tostring(i)}
 		})
-		
-		--hmi side: expect UI.AddCommand request 
-		EXPECT_HMICALL("UI.AddCommand", 
-		{ 
-			cmdID = i,		
+
+		--hmi side: expect UI.AddCommand request
+		EXPECT_HMICALL("UI.AddCommand",
+		{
+			cmdID = i,
 			menuParams = {position = 1, menuName ="Command "..tostring(i)}
 		})
 		:Do(function(_,data)
-			--hmi side: sending UI.AddCommand response 
+			--hmi side: sending UI.AddCommand response
 			if TestData[i].resultCode == "NOT_RESPOND" then
 				--UI does not respond
 			else
 				self.hmiConnection:SendError(data.id, data.method, TestData[i].resultCode, "Error Messages")
 			end
-		end)	
-		
+		end)
+
 		--hmi side: expect VR.AddCommand request
 		EXPECT_HMICALL("VR.AddCommand", {})
 		:Times(0)
-		
+
 		--mobile side: expect AddCommand response
 		if TestData[i].resultCode == "NOT_RESPOND" then
 			EXPECT_RESPONSE(cid, {success = false, resultCode = "GENERIC_ERROR"})
@@ -696,15 +694,15 @@ for i = 1, #TestData do
 		else
 			EXPECT_RESPONSE(cid, {success = false, resultCode = TestData[i].resultCode, info = "Error Messages"})
 		end
-		
+
 		--mobile side: expect OnHashChange notification
 		EXPECT_NOTIFICATION("OnHashChange")
 		:Times(0)
-		
+
 	end
 end
 
--- DeleteCommand	
+-- DeleteCommand
 commonFunctions:newTestCasesGroup("DeleteCommand_UNSUPPORTED_RESOURCE_true_Other_Interfaces_Responds_ERROR")
 
 --Precondition: AddCommand 1000
@@ -718,69 +716,69 @@ Test["Precondition_AddCommand_1000"] = function(self)
 		vrCommands = {"vrCommands_1000"},
 		menuParams = {position = 1, menuName = "Command 1000"}
 	})
-		
 
-	--hmi side: expect UI.AddCommand request 
-	EXPECT_HMICALL("UI.AddCommand", 
-	{ 
-		cmdID = 1000,		
+
+	--hmi side: expect UI.AddCommand request
+	EXPECT_HMICALL("UI.AddCommand",
+	{
+		cmdID = 1000,
 		menuParams = {position = 1, menuName ="Command 1000"}
 	})
 	:Do(function(_,data)
 		--hmi side: sending UI.AddCommand response
 		self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 	end)
-	
+
 	--hmi side: expect VR.AddCommand request
 	EXPECT_HMICALL("VR.AddCommand", {})
 	:Times(0)
-		
+
 	--mobile side: expect AddCommand response
 	EXPECT_RESPONSE(cid, {success = true, resultCode = "UNSUPPORTED_RESOURCE", info = "VR is not supported by system"})
 
 	--mobile side: expect OnHashChange notification
 	EXPECT_NOTIFICATION("OnHashChange")
-		
+
 end
 
 for i = 1, #TestData do
 
 
 	Test["DeleteCommand_UNSUPPORTED_RESOURCE_true_Incase_UI_responds_" .. TestData[i].resultCode] = function(self)
-		
+
 		commonTestCases:DelayedExp(iTimeout)
-		
+
 		--mobile side: sending DeleteCommand request
 		local cid = self.mobileSession:SendRPC("DeleteCommand", {cmdID = 1000})
-		
+
 		--hmi side: expect UI.DeleteCommand request
 		EXPECT_HMICALL("UI.DeleteCommand", {})
 		:Do(function(_,data)
-			--hmi side: sending UI.AddCommand response 
+			--hmi side: sending UI.AddCommand response
 			if TestData[i].resultCode == "NOT_RESPOND" then
 				--UI does not respond
 			else
 				self.hmiConnection:SendError(data.id, data.method, TestData[i].resultCode, "Error Messages")
 			end
-		end)	
-		
+		end)
+
 		--hmi side: expect VR.DeleteCommand request
 		EXPECT_HMICALL("VR.DeleteCommand", {})
 		:Times(0)
-		
-		--mobile side: expect DeleteCommand response 
+
+		--mobile side: expect DeleteCommand response
 		if TestData[i].resultCode == "NOT_RESPOND" then
 			EXPECT_RESPONSE(cid, {success = false, resultCode = "GENERIC_ERROR"})
 			:Timeout(12000)
 		else
 			EXPECT_RESPONSE(cid, {success = false, resultCode = TestData[i].resultCode, info = "Error Messages"})
-		end			
-		
+		end
+
 		EXPECT_NOTIFICATION("OnHashChange")
 		:Times(0)
-		
-	end		
-	
+
+	end
+
 end
 
 -- CreateInteractionChoiceSet: It can be removed due to not applicable
