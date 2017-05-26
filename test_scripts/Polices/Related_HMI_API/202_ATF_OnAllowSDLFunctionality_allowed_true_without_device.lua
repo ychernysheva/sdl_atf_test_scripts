@@ -42,7 +42,7 @@ function Test:TestStep_RegisterApp_allowed_true_without_device()
       :Do(function(_,_)
 
           self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality",
-            {allowed = true, source = "GUI"})
+            {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = "127.0.0.1"}})
         end)
 
       EXPECT_HMICALL("BasicCommunication.PolicyUpdate",{})
