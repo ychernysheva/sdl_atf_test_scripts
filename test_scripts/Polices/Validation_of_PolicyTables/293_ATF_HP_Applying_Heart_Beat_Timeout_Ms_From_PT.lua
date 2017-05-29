@@ -32,6 +32,7 @@ local commonPreconditions = require ('user_modules/shared_testcases/commonPrecon
 --[[ Local Variables ]]
 local HBTime_max = 0
 local HBTime_min = 0
+local eventHB
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
@@ -57,99 +58,105 @@ local function DelayedExp(time)
   RUN_AFTER(function()
       RAISE_EVENT(event, event)
       end, time)
+end
+
+function Test:Precondition_ConnectMobile_FirstLifeCycle()
+  self:connectMobile()
+end
+
+function Test:Precondition_StartSession()
+  self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
+  self.mobileSession.sendHeartbeatToSDL = false
+  self.mobileSession.answerHeartbeatFromSDL = true
+
+  eventHB = events.Event()
+  eventHB.matches = function(_, data)
+    return data.frameType == 0 and
+    (data.serviceType == 0) and
+    (data.frameInfo == 0) --HeartBeat
   end
+  self.mobileSession:StartRPC(function ()
+      self.mobileSession:ExpectEvent(eventHB, "Heartbeat")
+      :Do(function()
 
-  function Test:Precondition_ConnectMobile_FirstLifeCycle()
-    self:connectMobile()
-  end
-
-  function Test:Precondition_StartSession()
-    self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
-    self.mobileSession.sendHeartbeatToSDL = false
-    self.mobileSession.answerHeartbeatFromSDL = true
-    self.mobileSession:StartService(7)
-  end
-
-  function Test:Precondition_Register_App_With_heart_beat_timeout_ms_Param()
-    local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
-    EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
-    :Do(function(_,data)
-        self.HMIAppID = data.params.application.appID
-      end)
-    self.mobileSession:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS" })
-    self.mobileSession:ExpectNotification("OnHMIStatus", {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
-  end
-
-  --[[ Test ]]
-  function Test:TestStep_Get_HeartBeat_Time()
-    local function getHB()
-      local time_prev = 0
-      local time_now = 0
-
-      local event = events.Event()
-      event.matches = function(_, data)
-        return data.frameType == 0 and
-        (data.serviceType == 0) and
-        (data.frameInfo == 0) --HeartBeat
-      end
-
-      self.mobileSession:ExpectEvent(event, "Heartbeat")
-      :ValidIf(function()
-          print("Heartbeat = "..timestamp().."ms")
           self.mobileSession:Send(
             { frameType = constants.FRAME_TYPE.CONTROL_FRAME,
               serviceType = constants.SERVICE_TYPE.CONTROL,
-              frameInfo = constants.FRAME_INFO.HEARTBEAT_ACK
-            })
-          if time_now ~= 0 then
-            time_prev = time_now
-            time_now = timestamp()
-            local diff = time_now - time_prev
-
-            if(HBTime_max == 0) then
-              HBTime_max = diff
-              HBTime_min = diff
-            else
-              if HBTime_max < diff then HBTime_max = diff end
-              if HBTime_min > diff then HBTime_min = diff end
-            end
-          else
-            time_now = timestamp()
-          end
-          return true
-
+              frameInfo = constants.FRAME_INFO.HEARTBEAT_ACK } )
           end):Times(AnyNumber())
-        DelayedExp(60000)
+      end)
+  end
+
+function Test:Precondition_Register_App_With_heart_beat_timeout_ms_Param()
+  local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
+  :Do(function(_,data)
+      self.HMIAppID = data.params.application.appID
+    end)
+  self.mobileSession:ExpectResponse(correlationId, { success = true, resultCode = "SUCCESS" })
+  self.mobileSession:ExpectNotification("OnHMIStatus", {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
+end
+
+--[[ Test ]]
+function Test:TestStep_Get_HeartBeat_Time()
+  local time_prev = 0
+  local time_now = 0
+
+  self.mobileSession:ExpectEvent(eventHB, "Heartbeat")
+  :ValidIf(function()
+       print("HeartBeat received in "..atf_logger.formated_time(true))
+      self.mobileSession:Send(
+        { frameType = constants.FRAME_TYPE.CONTROL_FRAME,
+          serviceType = constants.SERVICE_TYPE.CONTROL,
+          frameInfo = constants.FRAME_INFO.HEARTBEAT_ACK
+        })
+      if time_now ~= 0 then
+        time_prev = time_now
+        time_now = timestamp()
+        local diff = time_now - time_prev
+
+        if(HBTime_max == 0) then
+          HBTime_max = diff
+          HBTime_min = diff
+        else
+          if HBTime_max < diff then HBTime_max = diff end
+          if HBTime_min > diff then HBTime_min = diff end
+        end
+      else
+        time_now = timestamp()
       end
-      getHB()
+      return true
 
-    end
+      end):Times(AnyNumber())
+    DelayedExp(60000)
 
-    function Test:TestStep_Check_HB_Time()
-      -- Send request to bind ValidIf for HB time validation
-      self.mobileSession:SendRPC("UnregisterAppInterface", {})
-      EXPECT_RESPONSE("UnregisterAppInterface", {success = true , resultCode = "SUCCESS"})
-      :ValidIf(function()
-          if ( (HBTime_min < 3850) or (HBTime_max > 4150) ) then
-            print("Wrong HearBeat time! Expected: 4000ms, Actual: ["..HBTime_min.." ; "..HBTime_max.."]ms ")
-            return false
-          else
-            print(" HearBeat is in range ["..HBTime_min.." ; "..HBTime_max.."]ms ")
-            return true
-          end
-        end)
-    end
+  end
 
-    --[[ Postconditions ]]
-    commonFunctions:newTestCasesGroup("Postconditions")
-    testCasesForPolicyTable:Restore_preloaded_pt()
+function Test:TestStep_Check_HB_Time()
+  -- Send request to bind ValidIf for HB time validation
+  self.mobileSession:SendRPC("UnregisterAppInterface", {})
+  EXPECT_RESPONSE("UnregisterAppInterface", {success = true , resultCode = "SUCCESS"})
+  :ValidIf(function()
+      if ( (HBTime_min < 3850) or (HBTime_max > 4150) ) then
+        print("Wrong HearBeat time! Expected: 4000ms, Actual: ["..HBTime_min.." ; "..HBTime_max.."]ms ")
+        return false
+      else
+        print(" HearBeat is in range ["..HBTime_min.." ; "..HBTime_max.."]ms ")
+        return true
+      end
+    end)
+end
 
-    function Test.Postcondition_Restore_INI_file()
-      commonPreconditions:RestoreFile("smartDeviceLink.ini")
-    end
+--[[ Postconditions ]]
+commonFunctions:newTestCasesGroup("Postconditions")
+testCasesForPolicyTable:Restore_preloaded_pt()
 
-    function Test.Postcondition_StopSDL()
-      StopSDL()
-    end
+function Test.Postcondition_Restore_INI_file()
+  commonPreconditions:RestoreFile("smartDeviceLink.ini")
+end
 
-    return Test
+function Test.Postcondition_StopSDL()
+  StopSDL()
+end
+
+return Test
