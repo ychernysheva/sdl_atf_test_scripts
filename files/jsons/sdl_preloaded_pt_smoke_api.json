@@ -2371,8 +2371,8 @@
         },
         "app_policies": {
             "default": {
-                "keep_context": false,
-                "steal_focus": false,
+                "keep_context": true,
+                "steal_focus": true,
                 "priority": "NONE",
                 "default_hmi": "NONE",
                 "groups": ["Base-4", "SendLocation", "Igor", "Navigation-1", "PropriataryData-1"]
