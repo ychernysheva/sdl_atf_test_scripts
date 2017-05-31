@@ -527,25 +527,6 @@ local function setVrHelp(size, character, outChar)
 		end
 	end
 
--- local function setExChoiseSet(choiceIDValues)
--- 		local exChoiceSet = {}
--- 		for i = 1, #choiceIDValues do
--- 			exChoiceSet[i] =  {
--- 				choiceID = choiceIDValues[i],
--- 				image =
--- 				{
--- 					value = "icon.png",
--- 					imageType = "STATIC",
--- 				},
--- 				menuName = Choice100
--- 			}
--- 			if (choiceIDValues[i] == 2000000000) then
--- 				exChoiceSet[i].choiceID = 65535
--- 			end
--- 		end
--- 		return exChoiceSet
--- 	end
-
 local	function performInteractionAllParams()
 		local temp = {
 					initialText = "StartPerformInteraction",
