@@ -7098,9 +7098,8 @@ local	function performInteractionAllParams()
 
 
 	      -- mobile waits for responce OnAudioPassThru notification
-	      --[[TODO:uncomment after implementation from APPLINK-22712 will be available
 	         EXPECT_NOTIFICATION ("OnAudioPassThru")
-	         :Times (Between(1,2))]]
+	         :Times(Between(1,2))
 
 	        EXPECT_RESPONSE(CorId1,
 	          { success = true, resultCode = "SUCCESS"})
