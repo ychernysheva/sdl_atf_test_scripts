@@ -1252,11 +1252,10 @@ local	function performInteractionAllParams()
 						sentParam.keyboardProperties = {
 											 keyboardLayout = "QWERTY",
 											 keypressMode = "SINGLE_KEYPRESS",
-													--[=[ TODO: update after resolving APPLINK-16047
 													limitedCharacterList =
 														{
 															"a"
-														},]=]
+														},
 											 language = "EN-US",
 											 autoCompleteText = "Daemon, Freedom"
 											}
@@ -1618,11 +1617,10 @@ local	function performInteractionAllParams()
 					sentParam.keyboardProperties = {
 										 keyboardLayout = "QWERTY",
 										 keypressMode = "SINGLE_KEYPRESS",
-												--[=[ TODO: update after resolving APPLINK-16047
 												limitedCharacterList =
 													{
 														"a"
-													},]=]
+													},
 										 language = "EN-US",
 										 autoCompleteText = "Daemon, Freedom"
 										}
@@ -1682,11 +1680,10 @@ local	function performInteractionAllParams()
 					sentParam.keyboardProperties = {
 										 keyboardLayout = "QWERTY",
 										 keypressMode = "SINGLE_KEYPRESS",
-												--[=[ TODO: update after resolving APPLINK-16047
 												limitedCharacterList =
 													{
 														"a"
-													},]=]
+													},
 										 language = "EN-US",
 										 autoCompleteText = "Daemon, Freedom"
 										}
@@ -1736,11 +1733,10 @@ local	function performInteractionAllParams()
 					sentParam.keyboardProperties = {
 										 keyboardLayout = "QWERTY",
 										 keypressMode = "SINGLE_KEYPRESS",
-												--[=[ TODO: update after resolving APPLINK-16047
 												limitedCharacterList =
 													{
 														"a"
-													},]=]
+													},
 										 language = "EN-US",
 										 autoCompleteText = "Daemon, Freedom"
 										}
@@ -1820,11 +1816,10 @@ local	function performInteractionAllParams()
 										keyboardProperties = {
 															 keyboardLayout = KeyboardLayoutArray[i],
 															 keypressMode = "SINGLE_KEYPRESS",
-																	--[=[ TODO: update after resolving APPLINK-16047
 																	limitedCharacterList =
 																		{
 																			"a"
-																		},]=]
+																		},
 															 language = "EN-US",
 															 autoCompleteText = "Daemon, Freedom"
 															}
@@ -1854,11 +1849,10 @@ local	function performInteractionAllParams()
 												keyboardProperties = {
 																	 keyboardLayout = KeyboardLayoutArray[i],
 																	 keypressMode = "SINGLE_KEYPRESS",
-																			--[=[ TODO: update after resolving APPLINK-16047
 																			limitedCharacterList =
 																				{
 																					"a"
-																				},]=]
+																				},
 																	 language = "EN-US",
 																	 autoCompleteText = "Daemon, Freedom"
 																	}
@@ -11016,8 +11010,7 @@ local	function performInteractionAllParams()
 		                    "CLOCKTEXT4"
 		                    },
 		           graphicSupported = true,
-		            --[[ TODO: update after resolving APPLINK-16047
-		           templatesAvailable = { "ONSCREEN_PRESETS" },]]
+		           templatesAvailable = { "ONSCREEN_PRESETS" },
 		           screenParams =
 		             {
 		              resolution =
