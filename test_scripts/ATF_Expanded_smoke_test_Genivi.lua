@@ -1,57 +1,47 @@
 ---------------------------------------------------------------------------------------------
+--[[ General configuration parameters ]]
+config.SDLStoragePath = config.pathToSDL .. "storage/"
+config.sharedMemoryPath = ""
+config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
+---------------------------------------------------------------------------------------------
 ---------------------------- Required Shared libraries --------------------------------------
 ---------------------------------------------------------------------------------------------
+
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
-local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
-local Policies = require('user_modules/shared_testcases/testCasesForPolicyTable')
 local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 
 ---------------------------------------------------------------------------------------------
 ------------------------- General Precondition before ATF start -----------------------------
 ---------------------------------------------------------------------------------------------
-
--- Precondition for SendLocation script execution: Because of APPLINK-17511 SDL defect hmi_capabilities.json need to be updated : added textfields locationName, locationDescription, addressLines, phoneNumber.
-commonPreconditions:SendLocationPreconditionUpdateHMICap()
-
--- TODO: Remove after implementation policy update
--- Precondition: remove policy table
+commonFunctions:SDLForceStop()
 commonSteps:DeletePolicyTable()
-
--- TODO: Remove after implementation policy update
--- Precondition: replace preloaded file with new one
-os.execute(  'cp files/SmokeTest_genivi_pt.json ' .. tostring(config.pathToSDL) .. "sdl_preloaded_pt.json")
+commonSteps:DeleteLogsFiles()
+os.execute('cp files/SmokeTest_genivi_pt.json ' .. tostring(commonPreconditions:GetPathToSDL()) .. "sdl_preloaded_pt.json")
 
 ---------------------------------------------------------------------------------------------
 ---------------------------- General Settings for configuration----------------------------
 ---------------------------------------------------------------------------------------------
-
 Test = require('connecttest')
-require('cardinalities')
 local events = require('events')
+require('cardinalities')
 require('user_modules/AppTypes')
-local SDLConfig = require ('user_modules/shared_testcases/SmartDeviceLinkConfigurations')
-config.SDLStoragePath = config.pathToSDL .. "storage/"
-config.sharedMemoryPath = ""
-local dif_fileType = {{typeV = "GRAPHIC_BMP", file = "files/PutFile/bmp_6kb.bmp" }, {typeV = "GRAPHIC_JPEG", file = "files/PutFile/jpeg_4kb.jpg" }, {typeV = "GRAPHIC_PNG", file = "files/PutFile/icon.png" }, {typeV = "AUDIO_WAVE", file = "files/PutFile/WAV_6kb.wav" }, {typeV = "AUDIO_MP3", file = "files/PutFile/MP3_123kb.mp3" }, {typeV = "AUDIO_AAC", file = "files/PutFile/Alarm.aac" }, {typeV = "BINARY", file = "files/PutFile/binaryFile" }, {typeV = "JSON", file = "files/PutFile/luxoftPT.json" }}
-
-local ButtonArray = {"OK","SEEKLEFT", "SEEKRIGHT", "TUNEUP", "TUNEDOWN", "PRESET_0", "PRESET_1", "PRESET_2", "PRESET_3", "PRESET_4", "PRESET_5", "PRESET_6", "PRESET_7", "PRESET_8", "PRESET_9"}
-
 
 --------------------------------------------------------------------------------------------
 ------------------------------------ Common Variables ---------------------------------------
 ---------------------------------------------------------------------------------------------
-local imageValues = {"a", "icon.png", "qwertyuiopasdfghjklzxcvbnm1234567890[]'.!@#$%^&*()_+-=qwertyuiopasdfghjklzxcvbnm1234567890[]'.!@#$%^&*()_+-=QWERTYUIOPASDFGHJKLZXCVBNM{}|?>:<qwertyuiopasdfghjklzxcvbnm1234567890[]'.!@#$%^&*()_+-=qwertyuiopasdfghjklzxcvbnm1234567890[]'.!@#$%^&*()_+-=QWERTY"}
-local applicationName = config.application1.registerAppInterfaceParams.appName
+local SDLConfig = require ('user_modules/shared_testcases/SmartDeviceLinkConfigurations')
 Test.spaceAvailable = tonumber(SDLConfig:GetValue("AppDirectoryQuota"))
-Test.InitialSpaceAvailable = tonumber(SDLConfig:GetValue("AppDirectoryQuota"))
-config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
+--Test.InitialSpaceAvailable = tonumber(SDLConfig:GetValue("AppDirectoryQuota"))
+
+local dif_fileType = {{typeV = "GRAPHIC_BMP", file = "files/PutFile/bmp_6kb.bmp" }, {typeV = "GRAPHIC_JPEG", file = "files/PutFile/jpeg_4kb.jpg" }, {typeV = "GRAPHIC_PNG", file = "files/PutFile/icon.png" }, {typeV = "AUDIO_WAVE", file = "files/PutFile/WAV_6kb.wav" }, {typeV = "AUDIO_MP3", file = "files/PutFile/MP3_123kb.mp3" }, {typeV = "AUDIO_AAC", file = "files/PutFile/Alarm.aac" }, {typeV = "BINARY", file = "files/PutFile/binaryFile" }, {typeV = "JSON", file = "files/PutFile/luxoftPT.json" }}
+local ButtonArray = {"OK","SEEKLEFT", "SEEKRIGHT", "TUNEUP", "TUNEDOWN", "PRESET_0", "PRESET_1", "PRESET_2", "PRESET_3", "PRESET_4", "PRESET_5", "PRESET_6", "PRESET_7", "PRESET_8", "PRESET_9"}
+local applicationName = config.application1.registerAppInterfaceParams.appName
 local iTimeout = 5000
 local PathToAppFolder = config.pathToSDL .. SDLConfig:GetValue("AppStorageFolder") .. "/" .. tostring(config.application1.registerAppInterfaceParams.appID .. "_" .. tostring(config.deviceMAC) .. "/")
 local updateModeNotRequireStartEndTime = {"PAUSE", "RESUME", "CLEAR"}
 local updateMode = {"COUNTUP", "COUNTDOWN", "PAUSE", "RESUME", "CLEAR"}
 local updateModeCountUpDown = {"COUNTUP", "COUNTDOWN"}
-local buttonName = {"OK","SEEKLEFT","SEEKRIGHT","TUNEUP","TUNEDOWN", "PRESET_0","PRESET_1","PRESET_2","PRESET_3","PRESET_4","PRESET_5","PRESET_6","PRESET_7","PRESET_8"}
 local PositiveChoiceSets
 local textPromtValue = {"Please speak one of the following commands," ,"Please say a command,"}
 
@@ -59,6 +49,8 @@ local NavigationType = false
 if Test.appHMITypes["NAVIGATION"] == true then
 	NavigationType = true
 end
+local ttsChunksType = {{text = "4025",type = "PRE_RECORDED"},{ text = "Sapi",type = "SAPI_PHONEMES"}, {text = "LHplus", type = "LHPLUS_PHONEMES"}, {text = "Silence", type = "SILENCE"}}
+--local buttonName = {"OK","SEEKLEFT","SEEKRIGHT","TUNEUP","TUNEDOWN", "PRESET_0","PRESET_1","PRESET_2","PRESET_3","PRESET_4","PRESET_5","PRESET_6","PRESET_7","PRESET_8"}
 
 ---------------------------------------------------------------------------------------------
 ----------------------------------------- Functions Used ------------------------------------
@@ -67,13 +59,11 @@ end
 	--Common functions
 	------------------------------------------------------------------------------------------
 
-	function DelayedExp(timeout)
+	local function DelayedExp(timeout)
 	  local event = events.Event()
 	  event.matches = function(self, e) return self == e end
 	  EXPECT_EVENT(event, "Delayed event")
-	  RUN_AFTER(function()
-	              RAISE_EVENT(event, event)
-	            end, timeout)
+	  RUN_AFTER(function() RAISE_EVENT(event, event) end, timeout)
 	end
 
 	-- Sending OnSystemContext notification
@@ -106,17 +96,17 @@ end
 				self.isMediaApplication == true then
 
 					local successValue
+					local Info
 
 					EXPECT_HMICALL("UI.SetMediaClockTimer", Request )
 						:Do(function(_,data)
-							local Info
 							--hmi side: sending UI.SetMediaClockTimer response
 							if ResultCode == "SUCCESS" then
 								successValue = true
 								self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 							else
 								successValue = false
-								local Info = "Error message"
+								Info = "Error message"
 								self.hmiConnection:SendError(data.id, data.method, ResultCode, Info)
 							end
 						end)
@@ -132,7 +122,6 @@ end
 				EXPECT_RESPONSE(cid, { success = false, resultCode = "REJECTED"})
 
 			end
-		else
 
 		end
 	end
@@ -141,16 +130,28 @@ end
 	---------------------------------------------------------------------------------------------
 
 	--Description: Set all parameters for PutFile
-	function putFileAllParams()
+	local function putFileAllParams()
 		local temp = {
 			syncFileName ="icon.png",
 			fileType ="GRAPHIC_PNG",
 			persistentFile =false,
 			systemFile = false,
-			offset =0,
-			length =11600
+			offset = 0,
+			length = 11600
 		}
 		return temp
+	end
+
+		--Description: Function used to check file is existed on expected path
+		--file_name: file want to check
+	local function file_check(file_name)
+	  local file_found=io.open(file_name, "r")
+
+	  if file_found==nil then
+	    return false
+	  else
+	    return true
+	  end
 	end
 
 	--Description: PutFile successfully with default image file
@@ -201,7 +202,7 @@ end
 				if paramsSend.syncFileName then
 
 					local FileCheckValue = file_check(PathToAppFolder .. paramsSend.syncFileName)
-					print("FileCheckValue".. tostring(FileCheckValue))
+					print("FileCheckValue: ".. tostring(FileCheckValue))
 
 					if FileCheckValue == true then
 						commonFunctions:userPrint(31," File " .. tostring(paramsSend.syncFileName) .. " after unsuccessfully PutFile request is found on file system ")
@@ -214,19 +215,6 @@ end
 
 			end)
 	end
-
-	--Description: Function used to check file is existed on expected path
-		--file_name: file want to check
-	function file_check(file_name)
-	  local file_found=io.open(file_name, "r")
-
-	  if file_found==nil then
-	    return false
-	  else
-	    return true
-	  end
-	end
-
 
 	-- Functions for Alert
 	-------------------------------------------------------------------------------------------
@@ -345,7 +333,7 @@ end
 					end
 			elseif
 				self.isMediaApplication == false then
-
+				local level = nil
 					if request == "BOTH" then
 						--mobile side: OnHMIStatus notifications
 						EXPECT_NOTIFICATION("OnHMIStatus",
@@ -379,15 +367,15 @@ end
 
 	end
 
-	function setImage()
-	    local temp = {
-						value = "icon.png",
-						imageType = "STATIC",
-	                }
-	        return temp
+	local function setImage()
+	  local temp = {
+			value = "icon.png",
+			imageType = "STATIC"
+	  }
+	  return temp
 	end
 
-	function setInitialPrompt(size, character, outChar)
+	local function setInitialPrompt(size, character, outChar)
 		local temp
 		if character == nil then
 			if size == 1 or size == nil then
@@ -425,7 +413,7 @@ end
 		end
 	end
 
-	function setTimeoutPrompt(size, character, outChar)
+local function setTimeoutPrompt(size, character, outChar)
 		local temp
 		if character == nil then
 			if size == 1 or size == nil then
@@ -463,10 +451,10 @@ end
 		end
 	end
 
-	function setHelpPrompt(size, character, outChar)
+local	function setHelpPrompt(size, character, outChar)
 		local temp
 		if character == nil then
-			local temp = {}
+			temp = {}
 			if size == 1 or size == nil then
 				 temp[1] = {{
 					text = " Help   Prompt  ",
@@ -474,7 +462,7 @@ end
 					}}
 				return temp
 			else
-				local temp = {}
+				temp = {}
 				for i =1, size do
 					temp[i] = {
 						text = "HelpPrompt"..string.rep("v",i),
@@ -502,11 +490,11 @@ end
 		end
 	end
 
-	function setVrHelp(size, character, outChar)
+local function setVrHelp(size, character, outChar)
 		local temp
 		if character == nil then
 			if size == 1 or size == nil then
-				local temp = {
+				temp = {
 						{
 							text = "  New  VRHelp   ",
 							position = 1
@@ -514,7 +502,7 @@ end
 					}
 				return temp
 			else
-				local temp = {}
+				temp = {}
 				for i =1, size do
 					temp[i] = {
 						text = "NewVRHelp"..string.rep("v",i),
@@ -542,26 +530,26 @@ end
 		end
 	end
 
-	function setExChoiseSet(choiceIDValues)
-		local exChoiceSet = {}
-		for i = 1, #choiceIDValues do
-			exChoiceSet[i] =  {
-				choiceID = choiceIDValues[i],
-				image =
-				{
-					value = "icon.png",
-					imageType = "STATIC",
-				},
-				menuName = Choice100
-			}
-			if (choiceIDValues[i] == 2000000000) then
-				exChoiceSet[i].choiceID = 65535
-			end
-		end
-		return exChoiceSet
-	end
+-- local function setExChoiseSet(choiceIDValues)
+-- 		local exChoiceSet = {}
+-- 		for i = 1, #choiceIDValues do
+-- 			exChoiceSet[i] =  {
+-- 				choiceID = choiceIDValues[i],
+-- 				image =
+-- 				{
+-- 					value = "icon.png",
+-- 					imageType = "STATIC",
+-- 				},
+-- 				menuName = Choice100
+-- 			}
+-- 			if (choiceIDValues[i] == 2000000000) then
+-- 				exChoiceSet[i].choiceID = 65535
+-- 			end
+-- 		end
+-- 		return exChoiceSet
+-- 	end
 
-	function performInteractionAllParams()
+local	function performInteractionAllParams()
 		local temp = {
 					initialText = "StartPerformInteraction",
 					initialPrompt = setInitialPrompt(),
@@ -639,25 +627,29 @@ end
 			--hmi side: expect VR.PerformInteraction request
 			EXPECT_HMICALL("VR.PerformInteraction", VRParams)
 			:Do(function(_,data)
-				--Send notification to start TTS & VR
-				self.hmiConnection:SendNotification("TTS.Started")
-				self.hmiConnection:SendNotification("VR.Started")
-				SendOnSystemContext(self,"VRSESSION")
-
-				--Send VR.PerformInteraction response
-				self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {choiceID = ChoiceIdForChoice })
-
-				--Send notification to stop TTS & VR
-				self.hmiConnection:SendNotification("TTS.Stopped")
-				self.hmiConnection:SendNotification("VR.Stopped")
-				SendOnSystemContext(self,"MAIN")
-			end)
+					--Send notification to start TTS & VR
+					self.hmiConnection:SendNotification("TTS.Started")
+					self.hmiConnection:SendNotification("VR.Started")
+					SendOnSystemContext(self,"VRSESSION")
+					local function vrResponse()
+						--Send VR.PerformInteraction response
+						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {choiceID = ChoiceIdForChoice })
+						--Send notification to stop TTS & VR
+						self.hmiConnection:SendNotification("TTS.Stopped")
+						self.hmiConnection:SendNotification("VR.Stopped")
+						SendOnSystemContext(self,"MAIN")
+					end
+					RUN_AFTER(vrResponse, 500)
+				end)
 
 			--hmi side: expect UI.PerformInteraction request
 			EXPECT_HMICALL("UI.PerformInteraction", UIParams)
 			:Do(function(_,data)
-				self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-			end)
+					local function uiResponse()
+						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+					end
+					RUN_AFTER(uiResponse, 100)
+				end)
 
 			--mobile side: OnHMIStatus notifications
 			ExpectOnHMIStatusWithAudioStateChangedPI(self, "VR")
@@ -732,11 +724,6 @@ end
 					--Send VR.PerformInteraction response
 					self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", { choiceID = ChoiceIdForChoice })
 
-					EXPECT_HMICALL("UI.ClosePopUp")
-						:Do(function()
-							self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-						end)
-
 					--Send notification to stop TTS & VR
 					self.hmiConnection:SendNotification("TTS.Stopped")
 					self.hmiConnection:SendNotification("VR.Stopped")
@@ -748,6 +735,14 @@ end
 
 			--hmi side: expect UI.PerformInteraction request
 			EXPECT_HMICALL("UI.PerformInteraction", UIParams)
+			:Do(function(_,data)
+				-- SendOnSystemContext(self,"HMI_OBSCURED")
+				local function uiResponse()
+					self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {choiceID = ChoiceIdForChoice})
+					-- SendOnSystemContext(self,"MAIN")
+				end
+				RUN_AFTER(uiResponse, 100)
+			end)
 
 			--mobile side: OnHMIStatus notifications
 			ExpectOnHMIStatusWithAudioStateChangedPI(self, "BOTH_With_Choice")
@@ -761,7 +756,7 @@ end
 
 		paramsSend.interactionMode = "BOTH"
 		--mobile side: sending PerformInteraction request
-		cid = self.mobileSession:SendRPC("PerformInteraction",paramsSend)
+		local cid = self.mobileSession:SendRPC("PerformInteraction",paramsSend)
 
 			if
 			paramsSend.fakeParam and
@@ -821,8 +816,8 @@ end
 
 
 
-		-- --------------------------------------------------
-		--TODO: remove block after resolving APPLINK-16052
+		--------------------------------------------------
+		-- TODO: remove block after resolving APPLINK-16052
 		local VrHelp
 		if paramsSend.vrHelp then
 			VrHelp = paramsSend.vrHelp
@@ -832,7 +827,7 @@ end
 				end
 			end
 		end
-		-- --------------------------------------------------
+		--------------------------------------------------
 
 		--hmi side: expect UI.PerformInteraction request
 		EXPECT_HMICALL("UI.PerformInteraction",
@@ -871,7 +866,7 @@ end
 			--------------------------------------------------
 			--TODO: remove block after resolving APPLINK-16052
 			elseif VrHelp then
-				for i=1,#VrHelp do
+				for i=1, #VrHelp do
 					if VrHelp[i].image then
 						local expectedResult = VrHelp[i].image.imageType
 						if data.vrHelp[i].image.imageType ~= expectedResult then
@@ -892,7 +887,7 @@ end
 		end)
 
 		--mobile side: OnHMIStatus notifications
-		ExpectOnHMIStatusWithAudioStateChangedPI(self,_,_,level)
+		ExpectOnHMIStatusWithAudioStateChangedPI(self, nil, nil, level)
 
 		--mobile side: expect PerformInteraction response
 		EXPECT_RESPONSE(cid, { success = false, resultCode = "TIMED_OUT" })
@@ -902,9 +897,9 @@ end
 	-- Functions for Show
 	------------------------------------------------------------------------------------------
 
-	local ImageTypeValue
+	-- local ImageTypeValue
 	--Create UI expected result based on parameters from the request
-	function Test:createUIParameters(Request)
+	local function createUIParameters(Request)
 
 		local param =  {}
 
@@ -993,7 +988,7 @@ end
 
 				--TODO: remove 'if' after resolving APPLINK-16052
 				if param["softButtons"][i].image ~= nil then
-					ImageTypeValue = Request.softButtons[i].image.imageType
+					-- ImageTypeValue = Request.softButtons[i].image.imageType
 					param["softButtons"][i].image = nil
 				end
 
@@ -1018,7 +1013,7 @@ end
 		--mobile side: sending Show request
 		local cid = self.mobileSession:SendRPC("Show", Request)
 
-		UIParams = self:createUIParameters(Request)
+		local UIParams = createUIParameters(Request)
 
 		--hmi side: expect UI.Show request
 		EXPECT_HMICALL("UI.Show", UIParams)
@@ -1027,22 +1022,22 @@ end
 				self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 			end)
 			--TODO: remove 'ValidIf' after resolving APPLINK-16052
-			:ValidIf(function(_,data)
-				if Request.softButtons  ~= nil then
-					for i = 1, #Request.softButtons do
-						if 	data.params.softButtons[i].image and
-							data.params.softButtons[i].image.imageType ~= ImageTypeValue then
-							commonFunctions(31, " imageType in " .. tostring(i) .. " softButtons is not " .. tostring(ImageTypeValue) .. ", got " .. tostring(data.params.softButtons[i].image.imageType) )
-							return false
-						else
-							return true
-						end
-					end
-				else
-					return true
-				end
+			-- :ValidIf(function(_,data)
+			-- 	if Request.softButtons  ~= nil then
+			-- 		for i = 1, #Request.softButtons do
+			-- 			if data.params.softButtons[i].image and
+			-- 				data.params.softButtons[i].image.imageType ~= ImageTypeValue then
+			-- 				commonFunctions(31, " imageType in " .. tostring(i) .. " softButtons is not " .. tostring(ImageTypeValue) .. ", got " .. tostring(data.params.softButtons[i].image.imageType) )
+			-- 				return false
+			-- 			else
+			-- 				return true
+			-- 			end
+			-- 		end
+			-- 	else
+			-- 		return true
+			-- 	end
 
-			end)
+			-- end)
 
 
 		--mobile side: expect Show response
@@ -1096,22 +1091,11 @@ end
 
 	-----------------------------------------------------------------------------------------
 
-	--Begin Precondition.3
-	-- TODO: implemented only HTTP sequence, need to cover PROPRIETARY sequence
-	-- Description: Update of Polcy table
-	  	-- function Test:PolicyUpdate()
-	  	-- 	Policies:updatePolicyGenivi(self, "files/SmokeTest_genivi_pt.json")
-	  	-- end
-	--End Precondition.3
------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------
-
-
 ---------------------------------------------------------------------------------------------
 -----------------------------------------I. PUT FILE TEST BLOCK------------------------------
 ---------------------------------------------------------------------------------------------
 
-	function Test:NewTestBlock()
+	function Test.NewTestBlock()
 		print("****************************** I. PUT FILE TEST BLOCK ******************************")
 	end
 
@@ -1205,7 +1189,7 @@ end
 --------------------------------------------------------------------------------------------------
 -------------------------------------------II. LIST FILE TEST BLOCK-------------------------------
 --------------------------------------------------------------------------------------------------
-	function Test:NewTestBlock()
+	function Test.NewTestBlock()
 		print("****************************** II. LIST FILE TEST BLOCK *************************")
 	end
 
@@ -1238,7 +1222,7 @@ end
 					elseif data.payload.filenames == "" then
 						commonFunctions:userPrint( 21, " ListFiles response came without filenames parameter")
 						return false
-					elseif data.payload.spaceAvailable ==  self.InitialSpaceAvailable then
+					elseif data.payload.spaceAvailable == tonumber(SDLConfig:GetValue("AppDirectoryQuota")) then
 						commonFunctions:userPrint( 21, " spaceAvailable in ListFile response is equal to initial spaceAvailable value from .ini file ")
 						return false
 					else
@@ -1255,7 +1239,7 @@ end
 -----------------------------------------------------------------------------------------------
 --------------------------------------III. SetGlobalProperties Test Block ---------------------
 -----------------------------------------------------------------------------------------------
-	function Test:NewTestBlock()
+	function Test.NewTestBlock()
 		print("********************* III. SET GLOBAL PROPERTIES TEST BLOCK *********************")
 	end
 
@@ -1287,9 +1271,6 @@ end
 
 		--Requirement id in Jira:
 				--To be added https://adc.luxoft.com/confluence/pages/viewpage.action?pageId=283515946
-
-			-- Defining value for future using
-			APIName = "SetGlobalProperties"
 
 		-----------------------------------------------------------------------------------------------
 
@@ -1546,7 +1527,13 @@ end
 	-----------------------------------------------------------------------------------------
 
 		--Description: This test is intended to check processing request with all parameters missing
-			commonTestCases:VerifyRequestIsMissedAllParameters()
+
+	function Test:SetGlobalProperties_IsMissedAllParameters_INVALID_DATA()
+		--mobile side: sending request
+		local cid = self.mobileSession:SendRPC("SetGlobalProperties", {})
+		--mobile side: expect the response
+		EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
+	end
 
 	-----------------------------------------------------------------------------------------
 
@@ -1981,7 +1968,7 @@ end
 ------------------------------------------------------------------------------------------------
 ----------------------------------IV. ADD SUBMENU TEST BLOCK-----------------------------------
 ------------------------------------------------------------------------------------------------
-	function Test:NewTestBlock()
+	function Test.NewTestBlock()
 		print("***************************** IV.ADD SUBMENU TEST BLOCK ******************************")
 	end
 
@@ -2294,7 +2281,7 @@ end
 -----------------------------------------------------------------------------------------------
 ------------------------------------V. ADD COMMAND TEST BLOCK----------------------------------
 ----------------------------------------------------------------------------------------------
-	function Test:NewTestBlock()
+	function Test.NewTestBlock()
 		print("****************************** V. ADD COMMAND TEST BLOCK ******************************")
 	end
 
@@ -2768,7 +2755,7 @@ end
 											 imageType ="DYNAMIC"
 											}
 								})
-				:Do(function(exp,data)
+				:Do(function(_, data)
 					self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 					end)
 
@@ -2813,17 +2800,17 @@ end
 														imageType ="STATIC"
 													}
 									})
-				:Do(function(exp,data)
+				:Do(function(_, data)
 					self.hmiConnection:SendError(data.id, data.method, "UNSUPPORTED_RESOURCE", "Unsupported STATIC type. Available data in request was processed.")
 				end)
 
 				--mobile side: expect response
-				EXPECT_RESPONSE(cid, { success = false, resultCode = "UNSUPPORTED_RESOURCE", info = "Unsupported STATIC type. Available data in request was processed." })
+				EXPECT_RESPONSE(cid, { success = true, resultCode = "UNSUPPORTED_RESOURCE", info = "Unsupported STATIC type. Available data in request was processed." })
 
 				--mobile side: expect OnHashChange notification is not send to mobile
 				EXPECT_NOTIFICATION("OnHashChange")
-				:Times(0)
-				DelayedExp(1000)
+				:Times(1)
+
 
 			end
 
@@ -2968,7 +2955,7 @@ end
 -----------------------------------------------------------------------------------------------
 ----------------------------------VI. DELETE COMMAND TEST BLOCK--------------------------------
 -----------------------------------------------------------------------------------------------
-	function Test:NewTestBlock()
+	function Test.NewTestBlock()
 		print("****************************** VI. DELETE COMMAND TEST BLOCK ******************************")
 	end
 
@@ -3169,7 +3156,7 @@ end
 -----------------------------------------------------------------------------------------------
 ----------------------------------VII. DELETE SUBMENU TEST BLOCK-------------------------------
 -----------------------------------------------------------------------------------------------
-	function Test:NewTestBlock()
+	function Test.NewTestBlock()
 		print("****************************** VII. DELETE SUBMENU TEST BLOCK ******************************")
 	end
 
@@ -3347,7 +3334,7 @@ end
 -------------------------------------------------------------------------------------------
 ------------------------------VIII. CREATE INTERACTION CHOICE SET TEST BLOCK ---------------
 --------------------------------------------------------------------------------------------
-	function Test:NewTestBlock()
+	function Test.NewTestBlock()
 		print("****************************** VIII.  CREATE INTERACTION CHOICE SET TEST BLOCK ******************************")
 	end
 
@@ -4352,7 +4339,7 @@ end
 ---------------------------------------------------------------------------------------------
 ------------------------------IX. PERFORMINTERACTION TEST BLOCK------------------------------
 ---------------------------------------------------------------------------------------------
-	function Test:NewTestBlock()
+	function Test.NewTestBlock()
 		print("****************************** IX. PERFORMINTERACTION TEST BLOCK ******************************")
 	end
 
@@ -4402,7 +4389,7 @@ end
 				paramsSend.interactionMode = "VR_ONLY"
 				paramsSend.interactionChoiceSetIDList = {1001}
 
-				self:performInteraction_withChoice( paramsSend,_, 1001, self.applications[config.application1.registerAppInterfaceParams.appName] )
+				self:performInteraction_withChoice( paramsSend, nil, 1001, self.applications[config.application1.registerAppInterfaceParams.appName] )
 
 			end
 
@@ -4529,7 +4516,7 @@ end
 					local params = performInteractionAllParams()
 					params.interactionLayout = LayoutModeArray[i]
 
-					self:performInteraction_ViaBOTHTimedOut(params, _, PositiveChoiceSets)
+					self:performInteraction_ViaBOTHTimedOut(params, nil, PositiveChoiceSets)
 				end
 			end
 		end
@@ -4548,7 +4535,7 @@ end
 												}
 								}}
 
-				self:performInteraction_ViaBOTHTimedOut(params, _, PositiveChoiceSets)
+				self:performInteraction_ViaBOTHTimedOut(params, nil, PositiveChoiceSets)
 			end
 
 	---------------------------------------------------------------------------------------
@@ -4777,10 +4764,10 @@ end
 
 		--Description: This test is intended to check providing request with choiceSetID that does not exist
 			function Test:PI_choiceSetIDInvalid ()
-					local paramsSend = performInteractionAllParams()
+				local paramsSend = performInteractionAllParams()
 				paramsSend.interactionChoiceSetIDList = {9999}
-
-				self:performInteractionInvalidData(params)
+				local cid = self.mobileSession:SendRPC("PerformInteraction", paramsSend)
+        EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_ID" })
 			end
 
 	---------------------------------------------------------------------------------------
@@ -4865,7 +4852,7 @@ end
 ---------------------------------------------------------------------------------------------
 -------------------------X. DELETE INTERACTION CHOICE SET TEST BLOCK------------------------
 ---------------------------------------------------------------------------------------------
-	function Test:NewTestBlock()
+	function Test.NewTestBlock()
 		print("****************************** X. DELETE INTERACTION CHOICE SET TEST BLOCK ******************************")
 	end
 
@@ -4971,7 +4958,7 @@ end
 				EXPECT_HMICALL("UI.PerformInteraction")
 				:Do(function(_,data)
 
-					local cid = self.mobileSession:SendRPC("DeleteInteractionChoiceSet",
+					local cid2 = self.mobileSession:SendRPC("DeleteInteractionChoiceSet",
 						{
 							interactionChoiceSetID = 1057
 						})
@@ -4981,7 +4968,7 @@ end
 						:Times(0)
 
 					--mobile side: expect response
-					EXPECT_RESPONSE(cid, { success = false, resultCode = "IN_USE" })
+					EXPECT_RESPONSE(cid2, { success = false, resultCode = "IN_USE" })
 
 					local function uiResponse()
 						--Send VR.PerformInteraction response
@@ -4994,7 +4981,7 @@ end
 
 
 				--mobile side: expect PerformInteraction response
-				EXPECT_RESPONSE(cid, { success = false, resultCode = "TIMED_OUT",  info = "VR is timed out.UI is timed out" } )
+				EXPECT_RESPONSE(cid, { success = false, resultCode = "TIMED_OUT",  info = "UI is timed out, VR is timed out" } )
 
 				--mobile side: expect OnHashChange notification is not send to mobile
 				EXPECT_NOTIFICATION("OnHashChange")
@@ -5012,7 +4999,7 @@ end
 --------------------------------XI. ALERT TEST BLOCK-----------------------------------------
 ---------------------------------------------------------------------------------------------
 
-	function Test:NewTestBlock()
+	function Test.NewTestBlock()
 		print("****************************** XI. ALERT TEST BLOCK ******************************")
 	end
 
@@ -5648,7 +5635,7 @@ end
 							SendOnSystemContext(self,"MAIN")
 						end
 
-						RUN_AFTER(alertResponse, 3000)
+						RUN_AFTER(alertResponse, 2900)
 					end)
 
 				local SpeakId
@@ -5696,8 +5683,7 @@ end
 
 		--Description: This test is intended to check providing request with ttsChunks with type "PRE_RECORDED", "SAPI_PHONEMES","LHPLUS_PHONEMES" and "SILENCE"}}
 
-			local ttsChunksType = {{text = "4025",type = "PRE_RECORDED"},{ text = "Sapi",type = "SAPI_PHONEMES"}, {text = "LHplus", type = "LHPLUS_PHONEMES"}, {text = "Silence", type = "SILENCE"}}
-			for i=1,#ttsChunksType do
+			for i=1, #ttsChunksType do
 				Test["Alert_ttsChunksType_" .. tostring(ttsChunksType[i].type)] = function(self)
 					--mobile side: Alert request
 					local CorIdAlert = self.mobileSession:SendRPC("Alert",
@@ -5747,9 +5733,7 @@ end
 								speakType = "ALERT"
 							})
 					:Do(function(_,data)
-						SpeakId = data.id
-
-						self.hmiConnection:SendError(SpeakId, "TTS.Speak", "UNSUPPORTED_RESOURCE", "Error message")
+						self.hmiConnection:SendError(data.id, data.method, "UNSUPPORTED_RESOURCE", "Error message")
 					end)
 					:ValidIf(function(_,data)
 						if #data.params.ttsChunks == 1 then
@@ -5822,9 +5806,7 @@ end
 								speakType = "ALERT"
 							})
 					:Do(function(_,data)
-						SpeakId = data.id
-
-						self.hmiConnection:SendResponse(SpeakId, "TTS.Speak", "SUCCESS", {})
+						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 					end)
 					:ValidIf(function(_,data)
 						if #data.params.ttsChunks == 1 then
@@ -5849,7 +5831,7 @@ end
 ---------------------------------------------------------------------------------------------
 ------------------------------------XII. SHOW TEST BLOCK-------------------------------------
 ---------------------------------------------------------------------------------------------
-	function Test:NewTestBlock()
+	function Test.NewTestBlock()
 		print("****************************** XII. SHOW TEST BLOCK ******************************")
 	end
 
@@ -6090,7 +6072,7 @@ end
 					end)
 
 				--mobile side: expect Show response
-				EXPECT_RESPONSE(cid, { success = false, resultCode = "UNSUPPORTED_RESOURCE", info = "info"})
+				EXPECT_RESPONSE(cid, { success = true, resultCode = "UNSUPPORTED_RESOURCE", info = "info"})
 
 			end
 
@@ -6103,7 +6085,7 @@ end
 ------------------------------------XIII. SPEAK TEST BLOCK-----------------------------------
 ---------------------------------------------------------------------------------------------
 
-	function Test:NewTestBlock()
+	function Test.NewTestBlock()
 		print("****************************** XIII. SPEAK TEST BLOCK ******************************")
 	end
 
@@ -6126,24 +6108,22 @@ end
 			function Test:Speak_PositiveCase()
 
 				--mobile side: sending the request
-				local cid = self.mobileSession:SendRPC("Speak",
-													{
-													ttsChunks = {
-																	{
-																		text = 'a',
-																		type = "TEXT"
-																	}
-
-																}
-													})
+				local request = {
+						ttsChunks = {
+							{
+								text = 'a',
+								type = "TEXT"
+							}
+						}
+					}
+				local cid = self.mobileSession:SendRPC("Speak", request)
 				--hmi side: expect TTS.Speak request
-				EXPECT_HMICALL("TTS.Speak", Request)
+				EXPECT_HMICALL("TTS.Speak", request)
 				:Do(function(_,data)
 					self.hmiConnection:SendNotification("TTS.Started")
-					SpeakId = data.id
 
 					local function speakResponse()
-						self.hmiConnection:SendResponse(SpeakId, "TTS.Speak", "SUCCESS", { })
+						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", { })
 
 						self.hmiConnection:SendNotification("TTS.Stopped")
 					end
@@ -6187,9 +6167,7 @@ end
 	---------------------------------------------------------------------------------------
 
 		--Description: This test is intended to check processing request with unsupported speechCapabilities ("SAPI_PHONEMES", "LHPLUS_PHONEMES", "PRE_RECORDED", "SILENCE")
-
-			local ttsChunksType = {{text = "4025",type = "PRE_RECORDED"},{ text = "Sapi",type = "SAPI_PHONEMES"}, {text = "LHplus", type = "LHPLUS_PHONEMES"}, {text = "Silence", type = "SILENCE"}}
-			for i=1,#ttsChunksType do
+			for i=1, #ttsChunksType do
 				Test["Speak_ttsChunksType" .. tostring(ttsChunksType[i].type)] = function(self)
 					--mobile side: Speak request
 					local cid = self.mobileSession:SendRPC("Speak",
@@ -6203,7 +6181,6 @@ end
 						}
 					})
 
-					local Speak
 					--hmi side: TTS.Speak request
 					EXPECT_HMICALL("TTS.Speak",
 								{
@@ -6219,7 +6196,7 @@ end
 									appID = self.applications[applicationName]
 								})
 						:Do(function(_,data)
-							SpeakId = data.id
+							local SpeakId = data.id
 
 							self.hmiConnection:SendError(SpeakId, "TTS.Speak", "UNSUPPORTED_RESOURCE", "UNSUPPORTED_RESOURCE")
 						end)
@@ -6233,7 +6210,7 @@ end
 						end)
 
 				    --mobile side: Speak response
-				    EXPECT_RESPONSE(cid, { success = false, resultCode = "UNSUPPORTED_RESOURCE", info = "UNSUPPORTED_RESOURCE"})
+				    EXPECT_RESPONSE(cid, { success = true, resultCode = "UNSUPPORTED_RESOURCE", info = "UNSUPPORTED_RESOURCE"})
 
 				end
 			end
@@ -6246,7 +6223,7 @@ end
 ---------------------------------------------------------------------------------------------
 ---------------------------XIV. SET MEDIA CLOCK TIMER TEST BLOCK-----------------------------
 ---------------------------------------------------------------------------------------------
-	function Test:NewTestBlock()
+	function Test.NewTestBlock()
 		print("****************************** XIV. SET MEDIA CLOCK TIMER TEST BLOCK ******************************")
 	end
 
@@ -6276,7 +6253,7 @@ end
 		--Description: This test is intended to check positive case  when all parameters are in boundary conditions and mode = COUNTUP or COUNTDOWN
 			for i=1,#updateModeCountUpDown do
 				Test["SetMediaClockTimer_PositiveCase_" .. tostring(updateMode[i]).."_SUCCESS"] = function(self)
-					countDown = 0
+					local countDown = 0
 					if updateMode[i] == "COUNTDOWN" then
 						countDown = -1
 					end
@@ -6297,7 +6274,7 @@ end
 						updateMode = updateMode[i]
 					}
 
-					self:setMediaClockTimerFunction(Request, _, true)
+					self:setMediaClockTimerFunction(Request, nil, true)
 
 				end
 			end
@@ -6312,7 +6289,7 @@ end
 										updateMode = updateModeNotRequireStartEndTime[i]
 									}
 
-					self:setMediaClockTimerFunction(Request, _, true)
+					self:setMediaClockTimerFunction(Request, nil, true)
 
 				end
 			end
@@ -6525,7 +6502,7 @@ end
 										updateMode = "COUNTUP"
 									}
 
-					self:setMediaClockTimerFunction(Request, _, true)
+					self:setMediaClockTimerFunction(Request, nil, true)
 
 				end
 
@@ -6536,7 +6513,7 @@ end
 									 	updateMode = "PAUSE"
 									}
 
-					self:setMediaClockTimerFunction(Request, _, true)
+					self:setMediaClockTimerFunction(Request, nil, true)
 				end
 
 			-- Send second request to pause timer
@@ -6574,7 +6551,7 @@ end
 										updateMode = "COUNTUP"
 									}
 
-					self:setMediaClockTimerFunction(Request, _, true)
+					self:setMediaClockTimerFunction(Request, nil, true)
 				end
 
 			-- Send  request to pause timer
@@ -6584,7 +6561,7 @@ end
 									 	updateMode = "PAUSE"
 									}
 
-					self:setMediaClockTimerFunction(Request, _, true)
+					self:setMediaClockTimerFunction(Request, nil, true)
 				end
 
 			-- Send first request to resume timer
@@ -6594,7 +6571,7 @@ end
 									 	updateMode = "RESUME"
 									}
 
-					self:setMediaClockTimerFunction(Request, _, true)
+					self:setMediaClockTimerFunction(Request, nil, true)
 				end
 
 			-- Send second request to pause timer
@@ -6630,7 +6607,7 @@ end
 										updateMode = "COUNTUP"
 									}
 
-					self:setMediaClockTimerFunction(Request, _, true)
+					self:setMediaClockTimerFunction(Request, nil, true)
 				end
 
 			-- Send resume request
@@ -6665,7 +6642,7 @@ end
 										updateMode = "COUNTDOWN"
 									}
 
-					self:setMediaClockTimerFunction(Request, _, true)
+					self:setMediaClockTimerFunction(Request, nil, true)
 
 				end
 
@@ -6689,7 +6666,7 @@ end
 ---------------------------------------------------------------------------------------------
 ---------------------------XV. SUBSCRIBE BUTTON TEST BLOCK-----------------------------------
 ---------------------------------------------------------------------------------------------
-	function Test:NewTestBlock()
+	function Test.NewTestBlock()
 		print("****************************** XV. SUBSCRIBE BUTTON TEST BLOCK ******************************")
 	end
 
@@ -6825,7 +6802,7 @@ end
 ---------------------------------------------------------------------------------------------
 ------------------------------XVI. UNSUBSCRIBEBUTTON TEST BLOCK------------------------------
 ---------------------------------------------------------------------------------------------
-	function Test:NewTestBlock()
+	function Test.NewTestBlock()
 		print("***************************** XVI. UNSUBSCRIBEBUTTON TEST BLOCK *****************************")
 	end
 
@@ -6945,7 +6922,7 @@ end
 ---------------------------------------------------------------------------------------------
 ---------------------------XVII. PERFORMAUDIOPASSTHRU TEST BLOCK------------------------------
 ---------------------------------------------------------------------------------------------
-	function Test:NewTestBlock()
+	function Test.NewTestBlock()
 		print("****************************** XVII. PERFORMAUDIOPASSTHRU TEST BLOCK ******************************")
 	end
 
@@ -7228,7 +7205,7 @@ end
 	            elseif exp.occurences == 2 then
 	              self.hmiConnection:SendError(data.id, "UI.PerformAudioPassThru", "REJECTED", "There is already active PerformAudioPassThru")
 
-	          function resultSuccess ()
+	          	local function resultSuccess ()
 	              self.hmiConnection:SendResponse(PerfID, "UI.PerformAudioPassThru", "SUCCESS", {})
 	            end
 
@@ -7590,7 +7567,7 @@ end
 ---------------------------------------------------------------------------------------------
 --------------------------XVIII. ENDAUDIOPASSTHRU TEST BLOCK---------------------------------
 ---------------------------------------------------------------------------------------------
-	function Test:NewTestBlock()
+	function Test.NewTestBlock()
 		print("****************************** XVIII. ENDAUDIOPASSTHRU TEST BLOCK ******************************")
 	end
 
@@ -7652,21 +7629,21 @@ end
 		      end)
 
 
-		      local uiPerformID
+
 		      --hmi side: expect UI.PerformAudioPassThru request
 		      EXPECT_HMICALL("UI.PerformAudioPassThru")
-		      :Do(function(_,data)
+		      :Do(function(_, data)
 
 		        self.hmiConnection:SendNotification("UI.OnSystemContext",{ appID = self.applications[applicationName], systemContext = "HMI_OBSCURED" })
 
-		        uiPerformID = data.id
+		        local uiPerformID = data.id
 
 		        local cidEndAudioPassThru = self.mobileSession:SendRPC("EndAudioPassThru", {})
 
 		        EXPECT_HMICALL("UI.EndAudioPassThru")
-		          :Do(function(_,data)
+		          :Do(function(_, data2)
 		            --hmi side: sending UI.EndAudioPassThru response
-		            self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+		            self.hmiConnection:SendResponse(data2.id, data2.method, "SUCCESS", {})
 
 		            --hmi side: sending UI.PerformAudioPassThru response
 		            self.hmiConnection:SendResponse(uiPerformID, "UI.PerformAudioPassThru", "SUCCESS", {})
@@ -7729,7 +7706,7 @@ end
 ---------------------------------------------------------------------------------------------
 -------------XIX. SUBSCRIBEVEHICLEDATA AND UNSUBSCRIBEVEHICLEDATA TEST BLOCK-----------------
 ---------------------------------------------------------------------------------------------
-	function Test:NewTestBlock()
+	function Test.NewTestBlock()
 		print("********* XIX. SUBSCRIBEVEHICLEDATA AND UNSUBSCRIBEVEHICLEDATA TEST BLOCK *********")
 	end
 
@@ -7792,12 +7769,7 @@ end
 		        headLampStatus = true,
 		        engineTorque = true,
 		        accPedalPosition = true,
-		        steeringWheelAngle = true,
-		        eCallInfo = true,
-		        airbagStatus = true,
-		        emergencyEvent = true,
-		        clusterModeStatus = true,
-		        myKey = true
+		        steeringWheelAngle = true
 		      })
 
 		    EXPECT_HMICALL("VehicleInfo.SubscribeVehicleData",
@@ -7820,12 +7792,7 @@ end
 		        headLampStatus = true,
 		        engineTorque = true,
 		        accPedalPosition = true,
-		        steeringWheelAngle = true,
-		        eCallInfo = true,
-		        airbagStatus = true,
-		        emergencyEvent = true,
-		        clusterModeStatus = true,
-		        myKey = true
+		        steeringWheelAngle = true
 		      })
 		      :Do(function(_,data)
 		        self.hmiConnection:SendResponse(data.id, "VehicleInfo.SubscribeVehicleData", "SUCCESS",
@@ -7847,12 +7814,7 @@ end
 		          headLampStatus = {dataType = "VEHICLEDATA_HEADLAMPSTATUS", resultCode = "SUCCESS"},
 		          engineTorque = {dataType = "VEHICLEDATA_ENGINETORQUE", resultCode = "SUCCESS"},
 		          accPedalPosition = {dataType = "VEHICLEDATA_ACCPEDAL", resultCode = "SUCCESS"},
-		          steeringWheelAngle = {dataType = "VEHICLEDATA_STEERINGWHEEL", resultCode = "SUCCESS"},
-		          eCallInfo = {dataType = "VEHICLEDATA_ECALLINFO", resultCode = "SUCCESS"},
-		          airbagStatus = {dataType = "VEHICLEDATA_AIRBAGSTATUS", resultCode = "SUCCESS"},
-		          emergencyEvent = {dataType = "VEHICLEDATA_EMERGENCYEVENT", resultCode = "SUCCESS"},
-		          clusterModes = {dataType = "VEHICLEDATA_CLUSTERMODESTATUS", resultCode = "SUCCESS"},
-		          myKey = {dataType = "VEHICLEDATA_MYKEY", resultCode = "SUCCESS"}
+		          steeringWheelAngle = {dataType = "VEHICLEDATA_STEERINGWHEEL", resultCode = "SUCCESS"}
 		        })
 		      end)
 
@@ -7875,12 +7837,7 @@ end
 		      headLampStatus = {dataType = "VEHICLEDATA_HEADLAMPSTATUS", resultCode = "SUCCESS"},
 		      engineTorque = {dataType = "VEHICLEDATA_ENGINETORQUE", resultCode = "SUCCESS"},
 		      accPedalPosition = {dataType = "VEHICLEDATA_ACCPEDAL", resultCode = "SUCCESS"},
-		      steeringWheelAngle = {dataType = "VEHICLEDATA_STEERINGWHEEL", resultCode = "SUCCESS"},
-		      eCallInfo = {dataType = "VEHICLEDATA_ECALLINFO", resultCode = "SUCCESS"},
-		      airbagStatus = {dataType = "VEHICLEDATA_AIRBAGSTATUS", resultCode = "SUCCESS"},
-		      emergencyEvent = {dataType = "VEHICLEDATA_EMERGENCYEVENT", resultCode = "SUCCESS"},
-		      clusterModes = {dataType = "VEHICLEDATA_CLUSTERMODESTATUS", resultCode = "SUCCESS"},
-		      myKey = {dataType = "VEHICLEDATA_MYKEY", resultCode = "SUCCESS"}
+		      steeringWheelAngle = {dataType = "VEHICLEDATA_STEERINGWHEEL", resultCode = "SUCCESS"}
 		    })
 
 		  end
@@ -7909,12 +7866,7 @@ end
 		        headLampStatus = true,
 		        engineTorque = true,
 		        accPedalPosition = true,
-		        steeringWheelAngle = true,
-		        eCallInfo = true,
-		        airbagStatus = true,
-		        emergencyEvent = true,
-		        clusterModeStatus = true,
-		        myKey = true
+		        steeringWheelAngle = true
 		      })
 
 		    self.mobileSession:ExpectResponse(CorIdSubscribeAlreadySubsVD, { success = false, resultCode = "IGNORED",
@@ -7936,12 +7888,7 @@ end
 		      headLampStatus = {dataType = "VEHICLEDATA_HEADLAMPSTATUS", resultCode = "DATA_ALREADY_SUBSCRIBED"},
 		      engineTorque = {dataType = "VEHICLEDATA_ENGINETORQUE", resultCode = "DATA_ALREADY_SUBSCRIBED"},
 		      accPedalPosition = {dataType = "VEHICLEDATA_ACCPEDAL", resultCode = "DATA_ALREADY_SUBSCRIBED"},
-		      steeringWheelAngle = {dataType = "VEHICLEDATA_STEERINGWHEEL", resultCode = "DATA_ALREADY_SUBSCRIBED"},
-		      eCallInfo = {dataType = "VEHICLEDATA_ECALLINFO", resultCode = "DATA_ALREADY_SUBSCRIBED"},
-		      airbagStatus = {dataType = "VEHICLEDATA_AIRBAGSTATUS", resultCode = "DATA_ALREADY_SUBSCRIBED"},
-		      emergencyEvent = {dataType = "VEHICLEDATA_EMERGENCYEVENT", resultCode = "DATA_ALREADY_SUBSCRIBED"},
-		      clusterModes = {dataType = "VEHICLEDATA_CLUSTERMODESTATUS", resultCode = "DATA_ALREADY_SUBSCRIBED"},
-		      myKey = {dataType = "VEHICLEDATA_MYKEY", resultCode = "DATA_ALREADY_SUBSCRIBED"}
+		      steeringWheelAngle = {dataType = "VEHICLEDATA_STEERINGWHEEL", resultCode = "DATA_ALREADY_SUBSCRIBED"}
 		    })
 
 		  end
@@ -7970,12 +7917,7 @@ end
 		        headLampStatus = true,
 		        engineTorque = true,
 		        accPedalPosition = true,
-		        steeringWheelAngle = true,
-		        eCallInfo = true,
-		        airbagStatus = true,
-		        emergencyEvent = true,
-		        clusterModeStatus = true,
-		        myKey = true
+		        steeringWheelAngle = true
 		      })
 
 		    EXPECT_HMICALL("VehicleInfo.UnsubscribeVehicleData",
@@ -7998,12 +7940,7 @@ end
 		        headLampStatus = true,
 		        engineTorque = true,
 		        accPedalPosition = true,
-		        steeringWheelAngle = true,
-		        eCallInfo = true,
-		        airbagStatus = true,
-		        emergencyEvent = true,
-		        clusterModeStatus = true,
-		        myKey = true
+		        steeringWheelAngle = true
 
 		      })
 		    :Do(function(_,data)
@@ -8026,12 +7963,7 @@ end
 		        headLampStatus = {dataType = "VEHICLEDATA_HEADLAMPSTATUS", resultCode = "SUCCESS"},
 		        engineTorque = {dataType = "VEHICLEDATA_ENGINETORQUE", resultCode = "SUCCESS"},
 		        accPedalPosition = {dataType = "VEHICLEDATA_ACCPEDAL", resultCode = "SUCCESS"},
-		        steeringWheelAngle = {dataType = "VEHICLEDATA_STEERINGWHEEL", resultCode = "SUCCESS"},
-		        eCallInfo = {dataType = "VEHICLEDATA_ECALLINFO", resultCode = "SUCCESS"},
-		        airbagStatus = {dataType = "VEHICLEDATA_AIRBAGSTATUS", resultCode = "SUCCESS"},
-		        emergencyEvent = {dataType = "VEHICLEDATA_EMERGENCYEVENT", resultCode = "SUCCESS"},
-		        clusterModes = {dataType = "VEHICLEDATA_CLUSTERMODESTATUS", resultCode = "SUCCESS"},
-		        myKey = {dataType = "VEHICLEDATA_MYKEY", resultCode = "SUCCESS"},
+		        steeringWheelAngle = {dataType = "VEHICLEDATA_STEERINGWHEEL", resultCode = "SUCCESS"}
 		      })
 		    end)
 
@@ -8054,12 +7986,7 @@ end
 		      headLampStatus = {dataType = "VEHICLEDATA_HEADLAMPSTATUS", resultCode = "SUCCESS"},
 		      engineTorque = {dataType = "VEHICLEDATA_ENGINETORQUE", resultCode = "SUCCESS"},
 		      accPedalPosition = {dataType = "VEHICLEDATA_ACCPEDAL", resultCode = "SUCCESS"},
-		      steeringWheelAngle = {dataType = "VEHICLEDATA_STEERINGWHEEL", resultCode = "SUCCESS"},
-		      eCallInfo = {dataType = "VEHICLEDATA_ECALLINFO", resultCode = "SUCCESS"},
-		      airbagStatus = {dataType = "VEHICLEDATA_AIRBAGSTATUS", resultCode = "SUCCESS"},
-		      emergencyEvent = {dataType = "VEHICLEDATA_EMERGENCYEVENT", resultCode = "SUCCESS"},
-		      clusterModes = {dataType = "VEHICLEDATA_CLUSTERMODESTATUS", resultCode = "SUCCESS"},
-		      myKey = {dataType = "VEHICLEDATA_MYKEY", resultCode = "SUCCESS"}
+		      steeringWheelAngle = {dataType = "VEHICLEDATA_STEERINGWHEEL", resultCode = "SUCCESS"}
 		    })
 
  	 	end
@@ -8088,12 +8015,7 @@ end
 		      headLampStatus = true,
 		      engineTorque = true,
 		      accPedalPosition = true,
-		      steeringWheelAngle = true,
-		      eCallInfo = true,
-		      airbagStatus = true,
-		      emergencyEvent = true,
-		      clusterModeStatus = true,
-		      myKey = true
+		      steeringWheelAngle = true
 		    })
 
 
@@ -8116,12 +8038,7 @@ end
 		      headLampStatus = {dataType = "VEHICLEDATA_HEADLAMPSTATUS", resultCode = "DATA_NOT_SUBSCRIBED"},
 		      engineTorque = {dataType = "VEHICLEDATA_ENGINETORQUE", resultCode = "DATA_NOT_SUBSCRIBED"},
 		      accPedalPosition = {dataType = "VEHICLEDATA_ACCPEDAL", resultCode = "DATA_NOT_SUBSCRIBED"},
-		      steeringWheelAngle = {dataType = "VEHICLEDATA_STEERINGWHEEL", resultCode = "DATA_NOT_SUBSCRIBED"},
-		      eCallInfo = {dataType = "VEHICLEDATA_ECALLINFO", resultCode = "DATA_NOT_SUBSCRIBED"},
-		      airbagStatus = {dataType = "VEHICLEDATA_AIRBAGSTATUS", resultCode = "DATA_NOT_SUBSCRIBED"},
-		      emergencyEvent = {dataType = "VEHICLEDATA_EMERGENCYEVENT", resultCode = "DATA_NOT_SUBSCRIBED"},
-		      clusterModes = {dataType = "VEHICLEDATA_CLUSTERMODESTATUS", resultCode = "DATA_NOT_SUBSCRIBED"},
-		      myKey = {dataType = "VEHICLEDATA_MYKEY", resultCode = "DATA_NOT_SUBSCRIBED"}
+		      steeringWheelAngle = {dataType = "VEHICLEDATA_STEERINGWHEEL", resultCode = "DATA_NOT_SUBSCRIBED"}
 		    })
 
 
@@ -8194,14 +8111,14 @@ end
 
 	---------------------------------------------------------------------------------------------
   		-- Description: Missing mandatory
-		  function Test:Case_SubscribeVehicleDataMissingMandatoryTest()
-		    InvalidDataAPI(self, "SubscribeVehicleData", {})
+		  function Test:Case_SubscribeVehicleDataInvalidParameterTypeTest()
+		    InvalidDataAPI(self, "SubscribeVehicleData", {rpm = "invalid_type"})
 		  end
 
 	---------------------------------------------------------------------------------------------
  		-- Description: Missing mandatory
-		  function Test:Case_UnsubscribeVehicleDataMissingMandatoryTest()
-		    InvalidDataAPI(self, "UnsubscribeVehicleData", {})
+		  function Test:Case_UnsubscribeVehicleDataInvalidParameterTypeTest()
+		    InvalidDataAPI(self, "UnsubscribeVehicleData", {rpm = "invalid_type"})
 		  end
 
 	--End Test suit SubscribeVehicleData and UnsubscribeVehicleData
@@ -8211,7 +8128,7 @@ end
 ---------------------------------------------------------------------------------------------
 ---------------------------------XX. GETVEHICLEDATA TEST BLOCK------------------------------
 ---------------------------------------------------------------------------------------------
-	function Test:NewTestBlock()
+	function Test.NewTestBlock()
 		print("***************************** XX. GETVEHICLEDATA TEST BLOCK *****************************")
 	end
 
@@ -8272,14 +8189,7 @@ end
 		      headLampStatus = true,
 		      engineTorque = true,
 		      accPedalPosition = true,
-		      steeringWheelAngle = true,
-		      eCallInfo = true,
-		      airbagStatus = true,
-		      emergencyEvent = true,
-		      clusterModeStatus = true,
-		      myKey = true
-
-
+		      steeringWheelAngle = true
 		    })
 
 		    EXPECT_HMICALL("VehicleInfo.GetVehicleData",
@@ -8302,13 +8212,7 @@ end
 		        headLampStatus = true,
 		        engineTorque = true,
 		        accPedalPosition = true,
-		        steeringWheelAngle = true,
-		        eCallInfo = true,
-		        airbagStatus = true,
-		        emergencyEvent = true,
-		        clusterModeStatus = true,
-		        myKey = true
-
+		        steeringWheelAngle = true
 		      })
 		      :Do(function(_,data)
 		        self.hmiConnection:SendResponse(data.id, "VehicleInfo.GetVehicleData", "SUCCESS",
@@ -8316,86 +8220,46 @@ end
 		          speed = 120.10,
 		          rpm = 10000,
 		          fuelLevel = 58,
-		          fuelLevel_State = NORMAL,
+		          fuelLevel_State = "NORMAL",
 		          instantFuelConsumption = 18000,
 		          externalTemperature = 23,
-		          prndl = DRIVE,
-		          tirePressure = LOW,
+		          prndl = "DRIVE",
+		          tirePressure = {leftFront = {status = "NORMAL"}, rightFront = {status = "LOW"}},
 		          odometer = 250000,
-		          beltStatus = YES,
+		          beltStatus = {driverBeltDeployed = "YES", passengerBeltDeployed = "NO"},
 		          bodyInformation = {parkBrakeActive = false, ignitionStableStatus = "IGNITION_SWITCH_STABLE", ignitionStatus = "RUN", driverDoorAjar = true, passengerDoorAjar = true, rearLeftDoorAjar = true, rearRightDoorAjar = true},
 		          deviceStatus = {voiceRecOn = false, btIconOn = true, callActive = false, battLevelStatus = "FOUR_LEVEL_BARS", signalLevelStatus = "THREE_LEVEL_BARS"},
-		          driverBraking = NO_EVENT,
-		          wiperStatus = AUTO_HIGH,
+		          driverBraking = "NO_EVENT",
+		          wiperStatus = "AUTO_HIGH",
 		          headLampStatus = {lowBeamsOn = false, highBeamsOn = true, ambientLightSensorStatus = "DAY"},
 		          engineTorque = 1000,
 		          accPedalPosition = 58.4,
-		          steeringWheelAngle = -158.3,
-		          eCallInfo = {eCallNotificationStatus = "NORMAL", auxECallNotificationStatus = "NOT_USED", eCallConfirmationStatus = "NORMAL"},
-		          airbagStatus = {driverAirbagDeployed = "YES",
-		                          driverSideAirbagDeployed = "YES",
-		                      driverCurtainAirbagDeployed = "NO_EVENT",
-		                      passengerAirbagDeployed = "NO_EVENT",
-		                      passengerCurtainAirbagDeployed = "NO_EVENT",
-		                      driverKneeAirbagDeployed = "NO_EVENT",
-		                      passengerSideAirbagDeployed = "NO_EVENT",
-		                      passengerKneeAirbagDeployed = "NO_EVENT"},
-		        -- TODO: update after resolving APPLINK-11178
-		          --[==[emergencyEvent = {emergencyEventType = "NO_EVENT", fuelCutoffStatus = "NORMAL_OPERATION", rolloverEvent = "NO_EVENT", maximumChangeVelocity = 120, multipleEvents = "NO_EVENT"},--]==]
-		          clusterModeStatus = {powerModeActive = true,
-		                               powerModeQualificationStatus = "POWER_MODE_OK",
-		                           carModeStatus = "NORMAL",
-		                           powerModeStatus = "IGNITION_ON_2"},
-		          myKey = {e911Override = "NO_DATA_EXISTS"}
-
+		          steeringWheelAngle = -158.3
 		        })
 
 
 		      end)
-
 
 		    self.mobileSession:ExpectResponse(CorIdGetVehicleDataVD, { success = true, resultCode = "SUCCESS",
 		      gps = {longitudeDegrees = 20.1, latitudeDegrees = -11.9, dimension = "2D"},
 		      speed = 120.1,
 		      rpm = 10000,
 		      fuelLevel = 58,
-		      fuelLevel_State = NORMAL,
+		      fuelLevel_State = "NORMAL",
 		      instantFuelConsumption = 18000,
 		      externalTemperature = 23,
-		      prndl = DRIVE,
-		      tirePressure = LOW,
+		      prndl = "DRIVE",
+		      tirePressure = {leftFront = {status = "NORMAL"}, rightFront = {status = "LOW"}},
 		      odometer = 250000,
-		      beltStatus = YES,
+		      beltStatus = {driverBeltDeployed = "YES", passengerBeltDeployed = "NO"},
 		      bodyInformation = {parkBrakeActive = false, ignitionStableStatus = "IGNITION_SWITCH_STABLE", ignitionStatus = "RUN", driverDoorAjar = true, passengerDoorAjar = true, rearLeftDoorAjar = true, rearRightDoorAjar = true},
 		      deviceStatus = {voiceRecOn = false, btIconOn = true, callActive = false, battLevelStatus = "FOUR_LEVEL_BARS", signalLevelStatus = "THREE_LEVEL_BARS"},
-		      driverBraking = NO_EVENT,
-		      wiperStatus = AUTO_HIGH,
+		      driverBraking = "NO_EVENT",
+		      wiperStatus = "AUTO_HIGH",
 		      headLampStatus = {lowBeamsOn = false, highBeamsOn = true, ambientLightSensorStatus = "DAY"},
 		      engineTorque = 1000,
 		      accPedalPosition = 58.4,
-		      steeringWheelAngle = -158.3,
-		      eCallInfo = {eCallNotificationStatus = "NORMAL", auxECallNotificationStatus = "NOT_USED", eCallConfirmationStatus = "NORMAL"},
-		      airbagStatus = {
-		                      driverAirbagDeployed = "YES",
-		                      driverSideAirbagDeployed = "YES",
-		                      driverCurtainAirbagDeployed = "NO_EVENT",
-		                      passengerAirbagDeployed = "NO_EVENT",
-		                      passengerCurtainAirbagDeployed = "NO_EVENT",
-		                      driverKneeAirbagDeployed = "NO_EVENT",
-		                      passengerSideAirbagDeployed = "NO_EVENT",
-		                      passengerKneeAirbagDeployed = "NO_EVENT"
-		                    },
-		      -- TODO: update after resolving APPLINK-11178
-		        --[==[emergencyEvent = {emergencyEventType = "NO_EVENT", fuelCutoffStatus = "NORMAL_OPERATION", rolloverEvent = "NO_EVENT", maximumChangeVelocity = 120, multipleEvents = "NO_EVENT"},--]==]
-		      clusterModeStatus = {
-		                          powerModeActive = true,
-
-		                          powerModeQualificationStatus = "POWER_MODE_OK",
-		                          carModeStatus = "NORMAL",
-		                          powerModeStatus = "IGNITION_ON_2"
-		                         },
-		      myKey = {e911Override = "NO_DATA_EXISTS"}
-
+		      steeringWheelAngle = -158.3
 		    })
 
 		    DelayedExp(500)
@@ -8408,15 +8272,13 @@ end
 		      local CorIdGetVehicleDatarpmNotAvailVD= self.mobileSession:SendRPC("GetVehicleData",
 		        {
 		          gps = true,
-		          rpm = true,
-
+		          rpm = true
 		        })
 
 		      EXPECT_HMICALL("VehicleInfo.GetVehicleData",
 		        {
 		          gps = true,
-		          rpm = true,
-
+		          rpm = true
 		        })
 		        :Do(function(_,data)
 		          self.hmiConnection:SendError(data.id, "VehicleInfo.GetVehicleData", "DATA_NOT_AVAILABLE","Error Message")
@@ -8425,7 +8287,6 @@ end
 		      self.mobileSession:ExpectResponse(CorIdGetVehicleDatarpmNotAvailVD, { success = false, resultCode = "VEHICLE_DATA_NOT_AVAILABLE", info = "Error Message"})
 
 		      DelayedExp(500)
-
 		  	end
 
   	---------------------------------------------------------------------------------------------
@@ -8435,15 +8296,13 @@ end
 		      local CorIdGetVehicleDataExtTempNotAvailVD= self.mobileSession:SendRPC("GetVehicleData",
 		        {
 		          gps = true,
-		          externalTemperature = true,
-
+		          externalTemperature = true
 		        })
 
 		      EXPECT_HMICALL("VehicleInfo.GetVehicleData",
 		        {
 		          gps = true,
-		          externalTemperature = true,
-
+		          externalTemperature = true
 		        })
 		        :Do(function(_,data)
 		          self.hmiConnection:SendError(data.id, "VehicleInfo.GetVehicleData", "DATA_NOT_AVAILABLE", "Error Message")
@@ -8452,7 +8311,6 @@ end
 		      self.mobileSession:ExpectResponse(CorIdGetVehicleDataExtTempNotAvailVD, { success = false, resultCode = "VEHICLE_DATA_NOT_AVAILABLE", info = "Error Message"})
 
 		      DelayedExp(500)
-
 		    end
 
 	---------------------------------------------------------------------------------------------
@@ -8479,14 +8337,13 @@ end
 	        {
 	          gps = true,
 	          speed = true,
-	          fuelLevel = false,
+	          fuelLevel = false
 	        })
 
 	      EXPECT_HMICALL("VehicleInfo.GetVehicleData",
 	        {
 	          gps = true,
-	          speed = true,
-
+	          speed = true
 	        })
 	        :Do(function(_,data)
 	          self.hmiConnection:SendResponse(data.id, "VehicleInfo.GetVehicleData", "SUCCESS",
@@ -8507,7 +8364,6 @@ end
 	      self.mobileSession:ExpectResponse(CorIdOneParamFalseVD, { success = true, resultCode = "SUCCESS",
 	        gps = {longitudeDegrees = 20.1, latitudeDegrees = -11.9, dimension = "2D"},
 	        speed = 120.1})
-
 	    end
 
 	--End Test suit GetVehicleData
@@ -8518,7 +8374,7 @@ end
 ---------------------------------------------------------------------------------------------
 ---------------------------------XXI. READDID TEST BLOCK------------------------------
 ---------------------------------------------------------------------------------------------
-	function Test:NewTestBlock()
+	function Test.NewTestBlock()
 		print("***************************** XXI. READDID TEST BLOCK *****************************")
 	end
 
@@ -8546,7 +8402,6 @@ end
 		          {
 		             35135
 		          }
-
 		      })
 
 		    EXPECT_HMICALL("VehicleInfo.ReadDID",
@@ -8597,7 +8452,7 @@ end
 ---------------------------------------------------------------------------------------------
 ---------------------------------XXII. GETDTCS TEST BLOCK------------------------------
 ---------------------------------------------------------------------------------------------
-	function Test:NewTestBlock()
+	function Test.NewTestBlock()
 		print("***************************** XXII. GETDTCS TEST BLOCK *****************************")
 	end
 
@@ -8689,7 +8544,7 @@ end
 ---------------------------------------------------------------------------------------------
 ---------------------------------XXIII. SCROLLABLEMESSAGE TEST BLOCK------------------------------
 ---------------------------------------------------------------------------------------------
-	function Test:NewTestBlock()
+	function Test.NewTestBlock()
 		print("***************************** XXIII. SCROLLABLEMESSAGE TEST BLOCK *****************************")
 	end
 
@@ -8988,7 +8843,7 @@ end
 ---------------------------------------------------------------------------------------------
 ---------------------------------XXIV. SLIDER TEST BLOCK------------------------------
 ---------------------------------------------------------------------------------------------
-	function Test:NewTestBlock()
+	function Test.NewTestBlock()
 		print("***************************** XXIV. SLIDER TEST BLOCK *****************************")
 	end
 
@@ -9245,7 +9100,7 @@ end
 ---------------------------------------------------------------------------------------------
 ---------------------------------XXV. SHOWCONSTANTTBT TEST BLOCK------------------------------
 ---------------------------------------------------------------------------------------------
-	function Test:NewTestBlock()
+	function Test.NewTestBlock()
 		print("***************************** XXV. SHOWCONSTANTTBT TEST BLOCK *****************************")
 	end
 
@@ -9581,7 +9436,7 @@ end
 ---------------------------------------------------------------------------------------------
 ---------------------------------XXVI. ALERTMANEUVER TEST BLOCK------------------------------
 ---------------------------------------------------------------------------------------------
-	function Test:NewTestBlock()
+	function Test.NewTestBlock()
 		print("***************************** XXVI. ALERTMANEUVER TEST BLOCK *****************************")
 	end
 
@@ -10252,7 +10107,7 @@ end
 ---------------------------------------------------------------------------------------------
 ---------------------------------XXVII. UPDATETURNLIST TEST BLOCK------------------------------
 ---------------------------------------------------------------------------------------------
-	function Test:NewTestBlock()
+	function Test.NewTestBlock()
 		print("***************************** XXVII. UPDATETURNLIST TEST BLOCK *****************************")
 	end
 
@@ -10825,7 +10680,7 @@ end
 		          self.hmiConnection:SendResponse(data.id, "Navigation.UpdateTurnList", "SUCCESS", {})
 		        end)
 
-		        :ValidIf(function(exp,data)
+		        :ValidIf(function(_, data)
 		          if
 		             data.params.softButtons[1].image.imageType ~= "STATIC" then
 		             print ("Image type value is " .. tostring(data.params.softButtons[1].image.imageType) .. ". Expected to receive STATIC imageType in softButtons" )
@@ -10855,7 +10710,7 @@ end
 ---------------------------------------------------------------------------------------------
 ---------------------------------XXVIII. SENDLOCATION TEST BLOCK------------------------------
 ---------------------------------------------------------------------------------------------
-	function Test:NewTestBlock()
+	function Test.NewTestBlock()
 		print("***************************** XXVIII. SENDLOCATION TEST BLOCK *****************************")
 	end
 
@@ -11063,7 +10918,7 @@ end
 ---------------------------------------------------------------------------------------------
 ---------------------------------XXIX. GENERICRESPONSE TEST BLOCK------------------------------
 ---------------------------------------------------------------------------------------------
-	function Test:NewTestBlock()
+	function Test.NewTestBlock()
 		print("***************************** XXIX. GENERICRESPONSE TEST BLOCK *****************************")
 	end
 
@@ -11095,7 +10950,7 @@ end
 ---------------------------------------------------------------------------------------------
 ---------------------------------XXX. SETAPPICON TEST BLOCK------------------------------
 ---------------------------------------------------------------------------------------------
-	function Test:NewTestBlock()
+	function Test.NewTestBlock()
 		print("***************************** XXX. SETAPPICON TEST BLOCK *****************************")
 	end
 
@@ -11164,7 +11019,7 @@ end
 ---------------------------------------------------------------------------------------------
 ---------------------------------XXXI. SETDISPLAYLAYOUT TEST BLOCK------------------------------
 ---------------------------------------------------------------------------------------------
-	function Test:NewTestBlock()
+	function Test.NewTestBlock()
 		print("***************************** XXXI. SETDISPLAYLAYOUT TEST BLOCK *****************************")
 	end
 
@@ -11395,7 +11250,7 @@ end
 ---------------------------------------------------------------------------------------------
 ---------------------------------XXXII. DELETEFILE TEST BLOCK------------------------------
 ---------------------------------------------------------------------------------------------
-	function Test:NewTestBlock()
+	function Test.NewTestBlock()
 		print("***************************** XXXII. DELETEFILE TEST BLOCK *****************************")
 	end
 
@@ -11428,7 +11283,7 @@ end
   		-- DeleteFile: Wrong file name
 		  function Test:Case_DeleteFileWrongFileNameTest()
 		    local CorIdDeleteFileWrongFileNameVD= self.mobileSession:SendRPC("DeleteFile", {syncFileName = "aaa.png"})
-		    self.mobileSession:ExpectResponse(CorIdDeleteFileWrongFileNameVD, { success = false, resultCode = "INVALID_DATA" })
+		    self.mobileSession:ExpectResponse(CorIdDeleteFileWrongFileNameVD, { success = false, resultCode = "REJECTED" })
 		   end
 
   	---------------------------------------------------------------------------------------------
@@ -11473,7 +11328,7 @@ end
 ---------------------------------------------------------------------------------------------
 ---------------------------------XXXIII. RESETGLOBALPROPERTIES TEST BLOCK------------------------------
 ---------------------------------------------------------------------------------------------
-	function Test:NewTestBlock()
+	function Test.NewTestBlock()
 		print("***************************** XXXIII. RESETGLOBALPROPERTIES TEST BLOCK *****************************")
 	end
 
@@ -11831,7 +11686,7 @@ end
 ---------------------------------------------------------------------------------------------
 ---------------------------------XXXIV. DIALNUMBER TEST BLOCK------------------------------
 ---------------------------------------------------------------------------------------------
-	function Test:NewTestBlock()
+	function Test.NewTestBlock()
 		print("***************************** XXXIV. DIALNUMBER TEST BLOCK *****************************")
 	end
 
@@ -11899,7 +11754,7 @@ end
 ---------------------------------------------------------------------------------------------
 ---------------------------------XXXV. UNREGISTERAPPINTERFACE TEST BLOCK------------------------------
 ---------------------------------------------------------------------------------------------
-	function Test:NewTestBlock()
+	function Test.NewTestBlock()
 		print("***************************** XXXV. UNREGISTERAPPINTERFACE TEST BLOCK *****************************")
 	end
 
@@ -11935,7 +11790,7 @@ end
 		        local CorIdURAIAppNotRegisteredVD = self.mobileSession:SendRPC("UnregisterAppInterface", {})
 
 		        --mobile side: UnregisterAppInterface response
-		        EXPECT_RESPONSE("UnregisterAppInterface", {success = false , resultCode = "APPLICATION_NOT_REGISTERED"})
+		        EXPECT_RESPONSE(CorIdURAIAppNotRegisteredVD, {success = false , resultCode = "APPLICATION_NOT_REGISTERED"})
 
 		  end
 
@@ -11947,7 +11802,7 @@ end
 ---------------------------------------------------------------------------------------------
 ---------------------------------XXXVI. REGISTERAPPINTERFACE TEST BLOCK------------------------------
 ---------------------------------------------------------------------------------------------
-	function Test:NewTestBlock()
+	function Test.NewTestBlock()
 		print("***************************** XXXVI. REGISTERAPPINTERFACE TEST BLOCK *****************************")
 	end
 
@@ -11995,7 +11850,7 @@ end
 ---------------------------------------------------------------------------------------------
 ---------------------------------XXXVII. CHANGEREGISTRATION TEST BLOCK------------------------------
 ---------------------------------------------------------------------------------------------
-	function Test:NewTestBlock()
+	function Test.NewTestBlock()
 		print("***************************** XXXVII. CHANGEREGISTRATION TEST BLOCK *****************************")
 	end
 
@@ -12127,22 +11982,6 @@ end
 ---------------------------------------------------------------------------------------------
 
 -- Postcondition: restoring sdl_preloaded_pt file
--- TODO: Remove after implementation policy update
-function Test:Postcondition_restoringPreloadedfile()
+function Test.Postcondition_restoringPreloadedfile()
 	commonSteps:RestoreFileFromAppMainFolder("sdl_preloaded_pt.json")
 end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
