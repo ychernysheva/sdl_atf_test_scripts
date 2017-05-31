@@ -35,7 +35,7 @@ local dif_fileType = {{typeV = "GRAPHIC_BMP", file = "files/PutFile/bmp_6kb.bmp"
 local ButtonArray = {"OK","SEEKLEFT", "SEEKRIGHT", "TUNEUP", "TUNEDOWN", "PRESET_0", "PRESET_1", "PRESET_2", "PRESET_3", "PRESET_4", "PRESET_5", "PRESET_6", "PRESET_7", "PRESET_8", "PRESET_9"}
 local applicationName = config.application1.registerAppInterfaceParams.appName
 local iTimeout = 5000
-local PathToAppFolder = config.pathToSDL .. SDLConfig:GetValue("AppStorageFolder") .. "/" .. tostring(config.application1.registerAppInterfaceParams.appID .. "_" .. tostring(config.deviceMAC) .. "/")
+local PathToAppFolder = commonPreconditions:GetPathToSDL() .. SDLConfig:GetValue("AppStorageFolder") .. "/" .. tostring(config.application1.registerAppInterfaceParams.appID .. "_" .. tostring(config.deviceMAC) .. "/")
 local updateModeNotRequireStartEndTime = {"PAUSE", "RESUME", "CLEAR"}
 local updateMode = {"COUNTUP", "COUNTDOWN", "PAUSE", "RESUME", "CLEAR"}
 local updateModeCountUpDown = {"COUNTUP", "COUNTDOWN"}
@@ -792,21 +792,6 @@ local	function performInteractionAllParams()
 			end
 		end)
 
-
-
-		--------------------------------------------------
-		-- TODO: remove block after resolving APPLINK-16052
-		local VrHelp
-		if paramsSend.vrHelp then
-			VrHelp = paramsSend.vrHelp
-			for i=1,#paramsSend.vrHelp do
-				if paramsSend.vrHelp[i].image then
-					paramsSend.vrHelp[i].image = nil
-				end
-			end
-		end
-		--------------------------------------------------
-
 		--hmi side: expect UI.PerformInteraction request
 		EXPECT_HMICALL("UI.PerformInteraction",
 		{
@@ -841,21 +826,6 @@ local	function performInteractionAllParams()
 				data.params.ttsChunks then
 					print(" \27[36m SDL re-sends fakeParam parameters to HMI in UI.PerformInteraction request \27[0m ")
 					return false
-			--------------------------------------------------
-			--TODO: remove block after resolving APPLINK-16052
-			elseif VrHelp then
-					if VrHelp[1].image then
-						local expectedResult = VrHelp[1].image.imageType
-						if data.vrHelp[1].image.imageType ~= expectedResult then
-							commonFunctions:userPrint( 31, " imageType value in vrHelp item is not " .. tostring(expectedResult) .. ", got " .. tostring(data.vrHelp[1].image.imageType))
-							return false
-						else
-							return true
-						end
-					else
-						return true
-					end
-			--------------------------------------------------
 			else
 				return true
 			end
@@ -962,12 +932,6 @@ local	function performInteractionAllParams()
 					param["softButtons"][i].text =  nil
 				end
 
-				--TODO: remove 'if' after resolving APPLINK-16052
-				if param["softButtons"][i].image ~= nil then
-					-- ImageTypeValue = Request.softButtons[i].image.imageType
-					param["softButtons"][i].image = nil
-				end
-
 				--if image.imageType ~=STATIC, add app folder to image value
 				if param["softButtons"][i].image ~= nil and
 					param["softButtons"][i].image.imageType ~= "STATIC" then
@@ -997,24 +961,6 @@ local	function performInteractionAllParams()
 				--hmi side: sending UI.Show response
 				self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 			end)
-			--TODO: remove 'ValidIf' after resolving APPLINK-16052
-			-- :ValidIf(function(_,data)
-			-- 	if Request.softButtons  ~= nil then
-			-- 		for i = 1, #Request.softButtons do
-			-- 			if data.params.softButtons[i].image and
-			-- 				data.params.softButtons[i].image.imageType ~= ImageTypeValue then
-			-- 				commonFunctions(31, " imageType in " .. tostring(i) .. " softButtons is not " .. tostring(ImageTypeValue) .. ", got " .. tostring(data.params.softButtons[i].image.imageType) )
-			-- 				return false
-			-- 			else
-			-- 				return true
-			-- 			end
-			-- 		end
-			-- 	else
-			-- 		return true
-			-- 	end
-
-			-- end)
-
 
 		--mobile side: expect Show response
 		EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
@@ -1287,12 +1233,11 @@ local	function performInteractionAllParams()
 											{
 												{
 												 position = 1,
-													--[[ TODO: update after resolving APPLINK-16052
 												image =
 														{
 														imageType = "DYNAMIC",
 														value = PathToAppFolder .. "icon.png"
-														},]]
+														},
 												 text = "VR help item"
 												}
 											},
@@ -1478,12 +1423,11 @@ local	function performInteractionAllParams()
 									{
 										{
 										 position = 1,
-										--[[ TODO: update after resolving APPLINK-16052
 										 image =
 											{
 											 imageType = "DYNAMIC",
-											 value = "icon.png"
-											},]]
+											 value = PathToAppFolder .. "icon.png"
+											},
 										 text = "VR help item"
 										}
 									},
@@ -1812,12 +1756,11 @@ local	function performInteractionAllParams()
 										 	vrHelp = {
 											 			{
 														 	position = 1,
-																--[[ TODO: update after resolving APPLINK-16052
-																-- image =
-																-- 	{
-																-- 	 imageType = "STATIC",
-																-- 	 value = "icon.png"
-																-- 	},}]]
+																image =
+																	{
+																	 imageType = "STATIC",
+																	 value = "icon.png"
+																	},
 														 	text = "VR help item Static"
 														}
 													},
@@ -1895,12 +1838,11 @@ local	function performInteractionAllParams()
 													{
 														{
 														 position = 1,
-														--[[ TODO: update after resolving APPLINK-16052
 														 image =
 															{
 															 imageType = "DYNAMIC",
-															 value = "icon.png"
-															},]]
+															 value = PathToAppFolder .. "icon.png"
+															},
 														 text = "VR help item"
 														}
 													},
@@ -3393,32 +3335,29 @@ local	function performInteractionAllParams()
 									{
 									choiceID = 1001,
 									menuName ="Choice1001",
-									--[[ TODO: Update test after APPLINK-16052 will be fixed
 									image =
 											{
 											value = PathToAppFolder .. "icon.png",
 											imageType ="DYNAMIC",
-											}]]
+											}
 									},
 									{
 									choiceID = 1002,
 									menuName ="Choice1002",
-									--[[ TODO: Update test after APPLINK-16052 will be fixed
 									image =
 											{
 											value = PathToAppFolder .. "icon.png",
 											imageType ="DYNAMIC",
-											}]]
+											}
 									},
 									{
 									choiceID = 103,
 									menuName ="Choice103",
-									--[[ TODO: Update test after APPLINK-16052 will be fixed
 									image =
 											{
 											value = PathToAppFolder .. "icon.png",
 											imageType ="DYNAMIC",
-											}]]
+											}
 									}
 								}
 
@@ -3435,9 +3374,10 @@ local	function performInteractionAllParams()
 						PositiveChoiceSets[i].secondaryText = sentParam.choiceSet[i].secondaryText
 						PositiveChoiceSets[i].tertiaryText = sentParam.choiceSet[i].tertiaryText
 
-						-- TODO: Update test after APPLINK-16052 will be fixed
-						-- PositiveChoiceSets[i].secondaryImage = sentParam.choiceSet[i].secondaryImage
-
+						PositiveChoiceSets[i].secondaryImage = {
+																	value = PathToAppFolder .. "icon.png",
+																	imageType ="DYNAMIC",
+																}
 					end
 				end
 
@@ -4506,7 +4446,7 @@ local	function performInteractionAllParams()
 									text = "New VR Help",
 									position = 1,
 									image = 	{
-													value = "icon.png",
+													value = PathToAppFolder .. "icon.png",
 													imageType = "DYNAMIC",
 												}
 								}}
@@ -4536,15 +4476,6 @@ local	function performInteractionAllParams()
 					self.hmiConnection:SendError(data.id, data.method, "ABORTED"," VR is Aborted")
 				end)
 
-				--TODO: remove 'if' after resolving APPLINK-16052
-				if paramsSend.vrHelp then
-					for i=1,#paramsSend.vrHelp do
-						if paramsSend.vrHelp[i].image then
-							paramsSend.vrHelp[i].image = nil
-						end
-					end
-				end
-
 				--hmi side: expect UI.PerformInteraction request
 				EXPECT_HMICALL("UI.PerformInteraction",
 								{
@@ -4554,32 +4485,29 @@ local	function performInteractionAllParams()
 										{
 										choiceID = 1001,
 										menuName ="Choice1001",
-										--[[ TODO: Update test after APPLINK-16052 will be fixed
 										image =
 												{
 												value = PathToAppFolder .. "icon.png",
 												imageType ="DYNAMIC",
-												}]]
+												}
 										},
 										{
 										choiceID = 1002,
 										menuName ="Choice1002",
-										--[[ TODO: Update test after APPLINK-16052 will be fixed
 										image =
 												{
 												value = PathToAppFolder .. "icon.png",
 												imageType ="DYNAMIC",
-												}]]
+												}
 										},
 										{
 										choiceID = 103,
 										menuName ="Choice103",
-										--[[ TODO: Update test after APPLINK-16052 will be fixed
 										image =
 												{
 												value = PathToAppFolder .. "icon.png",
 												imageType ="DYNAMIC",
-												}]]
+												}
 										}
 									},
 									initialText =
@@ -4647,15 +4575,6 @@ local	function performInteractionAllParams()
 					self.hmiConnection:SendError(data.id, data.method, "UNSUPPORTED_RESOURCE","")
 				end)
 
-				--TODO: remove 'if' after resolving APPLINK-16052
-				if paramsSend.vrHelp then
-					for i=1,#paramsSend.vrHelp do
-						if paramsSend.vrHelp[i].image then
-							paramsSend.vrHelp[i].image = nil
-						end
-					end
-				end
-
 				--hmi side: expect UI.PerformInteraction request
 				EXPECT_HMICALL("UI.PerformInteraction",
 				{
@@ -4665,32 +4584,29 @@ local	function performInteractionAllParams()
 										{
 										choiceID = 1001,
 										menuName ="Choice1001",
-										--[[ TODO: Update test after APPLINK-16052 will be fixed
 										image =
 												{
 												value = PathToAppFolder .. "icon.png",
 												imageType ="DYNAMIC",
-												}]]
+												}
 										},
 										{
 										choiceID = 1002,
 										menuName ="Choice1002",
-										--[[ TODO: Update test after APPLINK-16052 will be fixed
 										image =
 												{
 												value = PathToAppFolder .. "icon.png",
 												imageType ="DYNAMIC",
-												}]]
+												}
 										},
 										{
 										choiceID = 103,
 										menuName ="Choice103",
-										--[[ TODO: Update test after APPLINK-16052 will be fixed
 										image =
 												{
 												value = PathToAppFolder .. "icon.png",
 												imageType ="DYNAMIC",
-												}]]
+												}
 										}
 									},
 					initialText =
@@ -5033,7 +4949,6 @@ local	function performInteractionAllParams()
 												type = "BOTH",
 												text = "Close",
 												 image =
-
 												{
 													value = "icon.png",
 													imageType = "DYNAMIC",
@@ -5054,7 +4969,6 @@ local	function performInteractionAllParams()
 											{
 												type = "IMAGE",
 												 image =
-
 												{
 													value = "icon.png",
 													imageType = "DYNAMIC",
@@ -5082,16 +4996,14 @@ local	function performInteractionAllParams()
 								progressIndicator = true,
 								softButtons =
 								{
-
 									{
 										type = "BOTH",
 										text = "Close",
-										--[[ TODO: update after resolving APPLINK-16052
 										image =
 										{
-											value = "icon.png",
-											imageType = "STATIC",
-										},]]
+											value = PathToAppFolder .. "icon.png",
+											imageType = "DYNAMIC",
+										},
 										isHighlighted = true,
 										softButtonID = 3,
 										systemAction = "DEFAULT_ACTION",
@@ -5107,12 +5019,11 @@ local	function performInteractionAllParams()
 
 									{
 										type = "IMAGE",
-										 --[[ TODO: update after resolving APPLINK-16052
 										image =
 										{
-											value = "icon.png",
-											imageType = "STATIC",
-										},]]
+											value = PathToAppFolder .. "icon.png",
+											imageType = "DYNAMIC",
+										},
 										softButtonID = 5,
 										systemAction = "STEAL_FOCUS",
 									},
@@ -5389,12 +5300,11 @@ local	function performInteractionAllParams()
 						{
 							{
 								type = "BOTH",
-								--[[TODO: Update test after APPLINK-16052 will be fixed
 								image =
 									{
 										value = PathToAppFolder .. "icon.png",
 										imageType = "DYNAMIC",
-									}, ]]
+									},
 								isHighlighted = true,
 								softButtonID = 3,
 								systemAction = "DEFAULT_ACTION",
@@ -5498,13 +5408,11 @@ local	function performInteractionAllParams()
 					{
 						{
 							type = "BOTH",
-							--[[TODO: Update test after APPLINK-16052 will be fixed
-							 image =
-
+							image =
 							{
 								value = "icon.png",
 								imageType = "STATIC",
-							}, ]]
+							},
 							isHighlighted = true,
 							softButtonID = 3,
 							systemAction = "DEFAULT_ACTION",
@@ -5523,7 +5431,6 @@ local	function performInteractionAllParams()
 
 					RUN_AFTER(alertResponse, 30000)
 				end)
-				--TODO: Remove ValifIf after APPLINK-16052 will be fixed
 				:ValidIf(function(_,data)
 					if data.params.softButtons[1].image.imageType ~= "STATIC" then
 						commonFunctions:userPrint(31, " imageType is softButtons is not STATIC - " .. tostring(data.params.softButtons[1].image.imageType))
@@ -6025,12 +5932,11 @@ local	function performInteractionAllParams()
 	 									type = "BOTH",
 	 									isHighlighted = true,
 	 									softButtonID = 1,
-	 									--[[ TODO: update after resolving APPLINK-16052
 	 									image =
 	 											{
 	 											   imageType = "STATIC",
 	 											   value = "icon.png"
-	 											}]]
+	 											}
  								 	}
  								}
 							})
@@ -8587,17 +8493,11 @@ local	function performInteractionAllParams()
 		              {
 		                type = "BOTH",
 		                text = "Close",
-
-
-		                --TODO: Update test after APPLINK-16052 will be fixed
-		                -- image =
-		                --   {
-
-
-		                --     value = PathToAppFolder .."icon.png",
-		                --     imageType = "DYNAMIC"
-		                --   },
-
+		                image =
+		                  {
+		                    value = PathToAppFolder .."icon.png",
+		                    imageType = "DYNAMIC"
+		                  },
 		                isHighlighted = true,
 		                softButtonID = 33,
 		                systemAction = "DEFAULT_ACTION"
@@ -8606,15 +8506,11 @@ local	function performInteractionAllParams()
 		              {
 		                type = "BOTH",
 		                text = "Keep",
-		                --TODO: Update test after APPLINK-16052 will be fixed
-		                -- image =
-		                --   {
-
-
-		                --     value = PathToAppFolder .."icon.png",
-		                --     imageType = "DYNAMIC"
-		                --   },
-
+		                image =
+		                  {
+		                    value = PathToAppFolder .."icon.png",
+		                    imageType = "DYNAMIC"
+		                  },
 		                isHighlighted = true,
 		                softButtonID = 33,
 		                systemAction = "KEEP_CONTEXT"
@@ -8709,15 +8605,11 @@ local	function performInteractionAllParams()
 		                {
 		                  type = "BOTH",
 		                  text = "Close",
-		                  --TODO: Update test after APPLINK-16052 will be fixed
-		                  -- image =
-		                  --   {
-
-
-		                  --     value = PathToAppFolder .."icon.png",
-		                  --     imageType = "DYNAMIC"
-		                  --   },
-
+		                  image =
+		                    {
+		                      value = PathToAppFolder .."icon.png",
+		                      imageType = "DYNAMIC"
+		                    },
 		                  isHighlighted = true,
 		                  softButtonID = 33,
 		                  systemAction = "DEFAULT_ACTION"
@@ -8779,12 +8671,11 @@ local	function performInteractionAllParams()
 		                {
 		                  type = "BOTH",
 		                  text = "Close",
-		                  --TODO: Update test after APPLINK-16052 will be fixed
-		                  -- image =
-		                  --   {
-		                  --     value = PathToAppFolder .."icon.png",
-		                  --     imageType = "STATIC"
-		                  --   },
+		                  image =
+		                    {
+		                      value = "icon.png",
+		                      imageType = "STATIC"
+		                    },
 
 		                  isHighlighted = true,
 		                  softButtonID = 33,
@@ -9130,7 +9021,6 @@ local	function performInteractionAllParams()
 		                    value = "icon.png",
 		                    imageType = "DYNAMIC"
 		                  },
-
 		                isHighlighted = true,
 		                softButtonID = 44,
 		                systemAction = "DEFAULT_ACTION"
@@ -9158,13 +9048,11 @@ local	function performInteractionAllParams()
 			            {
 			              type = "BOTH",
 			              text = "Close",
-			              --TODO: Update test after APPLINK-16052 will be fixed
-			              -- image =
-			              --   {
-			              --     value = PathToAppFolder .."icon.png",
-			              --     imageType = "DYNAMIC"
-			              --   },
-
+			              image =
+			                {
+			                  value = PathToAppFolder .."icon.png",
+			                  imageType = "DYNAMIC"
+			                },
 			              isHighlighted = true,
 			              softButtonID = 44,
 			              systemAction = "DEFAULT_ACTION"
@@ -9268,13 +9156,11 @@ local	function performInteractionAllParams()
 			             {
 			               type = "BOTH",
 			               text = "Close",
-			               --TODO: Update test after APPLINK-16052 will be fixed
-			               -- image =
-			               --   {
-			               --     value = PathToAppFolder .."icon.png",
-			               --     imageType = "DYNAMIC"
-			               --   },
-
+			               image =
+			                 {
+			                   value = PathToAppFolder .."icon.png",
+			                   imageType = "DYNAMIC"
+			                 },
 			               isHighlighted = true,
 			               softButtonID = 44,
 			               systemAction = "DEFAULT_ACTION"
@@ -9361,13 +9247,11 @@ local	function performInteractionAllParams()
 			              {
 			                type = "BOTH",
 			                text = "Close",
-			                --TODO: Update test after APPLINK-16052 will be fixed
-			                -- image =
-			                --   {
-			                --     value = PathToAppFolder .."icon.png",
-			                --     imageType = "STATIC"
-			                --   },
-
+			                image =
+			                  {
+			                    value = PathToAppFolder .."icon.png",
+			                    imageType = "STATIC"
+			                  },
 			                isHighlighted = true,
 			                softButtonID = 44,
 			                systemAction = "DEFAULT_ACTION"
@@ -9477,13 +9361,11 @@ local	function performInteractionAllParams()
 		            {
 		              type = "BOTH",
 		              text = "Close",
-		              --TODO: Update test after APPLINK-16052 will be fixed
-		              -- image =
-		              --   {
-		              --     value = PathToAppFolder .."icon.png",
-		              --     imageType = "DYNAMIC"
-		              --   },
-
+		              image =
+		                {
+		                  value = PathToAppFolder .."icon.png",
+		                  imageType = "DYNAMIC"
+		                },
 		              isHighlighted = true,
 		              softButtonID = 44,
 		              systemAction = "DEFAULT_ACTION"
@@ -9627,13 +9509,11 @@ local	function performInteractionAllParams()
 		            {
 		              type = "BOTH",
 		              text = "Close",
-		              --TODO: Update test after APPLINK-16052 will be fixed
-		              -- image =
-		              --   {
-		              --     value = PathToAppFolder .."icon.png",
-		              --     imageType = "DYNAMIC"
-		              --   },
-
+		              image =
+		                {
+		                  value = PathToAppFolder .."icon.png",
+		                  imageType = "DYNAMIC"
+		                },
 		              isHighlighted = true,
 		              softButtonID = 44,
 		              systemAction = "DEFAULT_ACTION"
@@ -9688,13 +9568,11 @@ local	function performInteractionAllParams()
 		              {
 		                type = "BOTH",
 		                text = "Close",
-		                --TODO: Update test after APPLINK-16052 will be fixed
-		                -- image =
-		                --   {
-		                --     value = PathToAppFolder .."icon.png",
-		                --     imageType = "DYNAMIC"
-		                --   },
-
+		                image =
+		                  {
+		                    value = PathToAppFolder .."icon.png",
+		                    imageType = "DYNAMIC"
+		                  },
 		                isHighlighted = true,
 		                softButtonID = 44,
 		                systemAction = "DEFAULT_ACTION"
@@ -9749,13 +9627,11 @@ local	function performInteractionAllParams()
 		              {
 		                type = "BOTH",
 		                text = "Close",
-		                --TODO: Update test after APPLINK-16052 will be fixed
-		                -- image =
-		                --   {
-		                --     value = "icon.png",
-		                --     imageType = "STATIC"
-		                --   },
-
+		                image =
+		                  {
+		                    value = "icon.png",
+		                    imageType = "STATIC"
+		                  },
 		                isHighlighted = true,
 		                softButtonID = 44,
 		                systemAction = "DEFAULT_ACTION"
@@ -9814,16 +9690,11 @@ local	function performInteractionAllParams()
 		              {
 		                type = "BOTH",
 		                text = "Close",
-		                --TODO: Update test after APPLINK-16052 will be fixed
-
-
-		                -- image =
-		                --   {
-		                --     value = "icon.png",
-		                --     imageType = "STATIC"
-
-		                --   },
-
+		                image =
+		                  {
+		                    value = "icon.png",
+		                    imageType = "STATIC"
+		                  },
 		                isHighlighted = true,
 		                softButtonID = 44,
 		                systemAction = "DEFAULT_ACTION"
@@ -10140,8 +10011,7 @@ local	function performInteractionAllParams()
 
 			     EXPECT_HMICALL("Navigation.UpdateTurnList",
 			      {
-			        --TODO: Update test after APPLINK-16052 will be fixed
-			        --[==[turnList ={
+			        turnList = {
 			           {
 			              navigationText = {fieldName = "navigationText", fieldText = "Text"},
 
@@ -10150,20 +10020,17 @@ local	function performInteractionAllParams()
 			                         imageType = "DYNAMIC"
 			                          },
 			            }
-			        },--]==]
+			        },
 			        softButtons =
 			        {
 			          {
 			            type = "BOTH",
 			            text = "Close",
-			            --TODO: Update test after APPLINK-16052 will be fixed
-			            -- image =
-			            --   {
-
-			            --     value = PathToAppFolder .. "icon.png",
-			            --     imageType = "DYNAMIC"
-			            --   },
-
+			            image =
+			              {
+			                value = PathToAppFolder .. "icon.png",
+			                imageType = "DYNAMIC"
+			              },
 			            isHighlighted = true,
 			            softButtonID = 111,
 			            systemAction = "DEFAULT_ACTION"
@@ -10236,8 +10103,7 @@ local	function performInteractionAllParams()
 
 		      EXPECT_HMICALL("Navigation.UpdateTurnList",
 		        {
-		      --TODO: Update test after APPLINK-16052 will be fixed
-		      --[==[turnList =
+		      turnList =
 		        {
 		           {
 		              turnIcon =
@@ -10253,19 +10119,17 @@ local	function performInteractionAllParams()
 		                           imageType = "DYNAMIC"
 		                         },
 		          },
-		        },--]==]
-
+		        },
 		        softButtons =
 		        {
 		          {
 		              type = "BOTH",
 		              text = "Close",
-		              --TODO: Update test after APPLINK-16052 will be fixed
-		              -- image =
-		              --   {
-		              --     value = PathToAppFolder .."icon.png",
-		              --     imageType = "DYNAMIC"
-		              --   },
+		              image =
+		                {
+		                  value = PathToAppFolder .."icon.png",
+		                  imageType = "DYNAMIC"
+		                },
 		              isHighlighted = true,
 		              softButtonID = 111,
 		              systemAction = "DEFAULT_ACTION"
@@ -10314,24 +10178,22 @@ local	function performInteractionAllParams()
 
 		      EXPECT_HMICALL("Navigation.UpdateTurnList",
 		        {
-		        --TODO: Update test after APPLINK-16052 will be fixed
-		        --turnList =
-		        --{
-		        --      {fieldName = "navigationText", fieldText = "Text"},
-		        --      {fieldName = "navigationText", fieldText = "Text2"},
-		        --},
+		        turnList =
+		        {
+		             { navigationText = {fieldName = "navigationText", fieldText = "Text"} },
+		             { navigationText = {fieldName = "navigationText", fieldText = "Text2"} }
+		        },
 
 		        softButtons =
 		        {
 		          {
 		              type = "BOTH",
 		              text = "Close",
-		              --TODO: Update test after APPLINK-16052 will be fixed
-		              -- image =
-		              --   {
-		              --     value = "icon.png",
-		              --     imageType = "DYNAMIC"
-		              --   },
+		              image =
+		                {
+		                  value = PathToAppFolder .. "icon.png",
+		                  imageType = "DYNAMIC"
+		                },
 		              isHighlighted = true,
 		              softButtonID = 111,
 		              systemAction = "DEFAULT_ACTION"
@@ -10377,12 +10239,11 @@ local	function performInteractionAllParams()
 		          {
 		              type = "BOTH",
 		              text = "Close",
-		              --TODO: Update test after APPLINK-16052 will be fixed
-		              -- image =
-		              --   {
-		              --     value = "icon.png",
-		              --     imageType = "DYNAMIC"
-		              --   },
+		              image =
+		                {
+		                  value = PathToAppFolder .. "icon.png",
+		                  imageType = "DYNAMIC"
+		                },
 		              isHighlighted = true,
 		              softButtonID = 111,
 		              systemAction = "DEFAULT_ACTION"
@@ -10426,24 +10287,24 @@ local	function performInteractionAllParams()
 
 		      EXPECT_HMICALL("Navigation.UpdateTurnList",
 		        {
-		        --TODO: Update test after APPLINK-16052 will be fixed
-		        --turnList =
-		        --{
-		        --   {
-		        --      {fieldName = "navigationText", fieldText = "Text"},
-		        --      turnIcon =
-		        --                 {
-		        --                   value = PathToAppFolder .."icon.png",
-		        --                   imageType = "DYNAMIC"
-		        --                 },
-		        --    },
-
-		        --      {fieldName = "navigationText", fieldText = "Text2"},
-		        --      turnIcon = {
-		        --                   value = PathToAppFolder .."icon.png",
-		        --                   imageType = "DYNAMIC"
-		        --                 },
-
+		        turnList =
+		        {
+		          {
+		             navigationText = {fieldName = "navigationText", fieldText = "Text"},
+		             turnIcon =
+		                        {
+		                          value = PathToAppFolder .."icon.png",
+		                          imageType = "DYNAMIC"
+		                        }
+		           },
+		           {
+		             navigationText = {fieldName = "navigationText", fieldText = "Text2"},
+		             turnIcon = {
+		                          value = PathToAppFolder .."icon.png",
+		                          imageType = "DYNAMIC"
+		                        }
+		         		}
+		         },
 		        appID = self.applications[applicationName]
 		      })
 
@@ -10509,38 +10370,34 @@ local	function performInteractionAllParams()
 
 		      EXPECT_HMICALL("Navigation.UpdateTurnList",
 		        {
-		        --TODO: Update test after APPLINK-16052 will be fixed
-		        --turnList =
-		        --{
-		        --   {
-		        --      {fieldName = "navigationText", fieldText = "Text"},
-		        --      turnIcon =
-		        --                 {
-		        --                   value = PathToAppFolder .."icon.png",
-		        --                   imageType = "DYNAMIC"
-		        --                 },
-		        --    },
-		        --
-		        --   {
-		        --      {fieldName = "navigationText", fieldText = "Text2"},
-		        --      turnIcon = {
-		        --                   value = PathToAppFolder .."icon.png",
-		        --                   imageType = "DYNAMIC"
-		        --                 },
-		        --  },
-		        --},
-
+		        turnList =
+		        {
+		          {
+		             navigationText = {fieldName = "navigationText", fieldText = "Text"},
+		             turnIcon =
+		                        {
+		                          value = PathToAppFolder .."icon.png",
+		                          imageType = "DYNAMIC"
+		                        }
+		           },
+		          {
+		             navigationText = {fieldName = "navigationText", fieldText = "Text2"},
+		             turnIcon = {
+		                          value = PathToAppFolder .."icon.png",
+		                          imageType = "DYNAMIC"
+		                        }
+		         }
+		        },
 		        softButtons =
 		        {
 		          {
 		              type = "BOTH",
 		              text = "Close",
-		              --TODO: Update test after APPLINK-16052 will be fixed
-		              -- image =
-		              --   {
-		              --     value = "icon.png",
-		              --     imageType = "DYNAMIC"
-		              --   },
+		              image =
+		                {
+		                  value = PathToAppFolder .. "icon.png",
+		                  imageType = "DYNAMIC"
+		                },
 		              isHighlighted = true,
 		              softButtonID = 111,
 		              systemAction = "DEFAULT_ACTION"
@@ -10614,37 +10471,34 @@ local	function performInteractionAllParams()
 		              })
 		      EXPECT_HMICALL("Navigation.UpdateTurnList",
 		        {
-		            --TODO: Update test after APPLINK-16052 will be fixed
-		            --turnList =
-		            --{
-		            --   {
-		            --      {fieldName = "navigationText", fieldText = "Text"},
-		            --      turnIcon =
-		            --                 {
-		            --                   value = PathToAppFolder .."icon.png",
-		            --                   imageType = "STATIC"
-		            --                 },
-		            --    },
-		            --
-		            --   {
-		            --      {fieldName = "navigationText", fieldText = "Text2"},
-		            --      turnIcon = {
-		            --                   value = PathToAppFolder .."icon.png",
-		            --                   imageType = "STATIC"
-		            --                 },
-		            --  },
-		            --},
+		            turnList =
+		            {
+		              {
+		                 navigationText = {fieldName = "navigationText", fieldText = "Text"},
+		                 turnIcon =
+		                            {
+		                              value = "icon.png",
+		                              imageType = "STATIC"
+		                            }
+		               },
+		              {
+		                 navigationText = {fieldName = "navigationText", fieldText = "Text2"},
+		                 turnIcon = {
+		                              value = "icon.png",
+		                              imageType = "STATIC"
+		                            }
+		             }
+		            },
 		          softButtons =
 		          {
 		            {
 		                type = "BOTH",
 		                text = "Close",
-		                --TODO: Update test after APPLINK-16052 will be fixed
-		                -- image =
-		                --   {
-		                --     value = "icon.png",
-		                --     imageType = "DYNAMIC"
-		                --   },
+		                image =
+		                  {
+		                    value = "icon.png",
+		                    imageType = "STATIC"
+		                  },
 		                isHighlighted = true,
 		                softButtonID = 111,
 		                systemAction = "DEFAULT_ACTION"
@@ -11126,7 +10980,6 @@ local	function performInteractionAllParams()
 		        displayCapabilities =
 		         {
 		           displayType = "GEN2_8_DMA",
-		           --[[ TODO: update after resolving APPLINK-16052
 		           textFields =
 		              {
 		                      {
@@ -11134,7 +10987,7 @@ local	function performInteractionAllParams()
 		                       characterSet = "TYPE2SET",
 		                       width = 500,
 		                       rows = 1
-		                      },
+		                      }
 		            },
 		           imageFields =
 		                   {
@@ -11151,9 +11004,8 @@ local	function performInteractionAllParams()
 		                                     resolutionWidth = 64,
 		                                     resolutionHeight = 64
 		                                     }
-		                      },
-
-		                    },]]
+		                      }
+		                    },
 		           mediaClockFormats =
 		                     {
 		                    "CLOCK1",
@@ -11167,7 +11019,6 @@ local	function performInteractionAllParams()
 		           graphicSupported = true,
 		            --[[ TODO: update after resolving APPLINK-16047
 		           templatesAvailable = { "ONSCREEN_PRESETS" },]]
-		            --[[ TODO: update after resolving APPLINK-16052
 		           screenParams =
 		             {
 		              resolution =
@@ -11180,8 +11031,8 @@ local	function performInteractionAllParams()
 		                 doublePressAvailable = false,
 		                 multiTouchAvailable = true,
 		                 pressAvailable = true
-		                },
-		              },]]
+		                }
+		              },
 		           numCustomPresetsAvailable = 10,
 		        },
 		        buttonCapabilities =
