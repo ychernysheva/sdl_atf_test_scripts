@@ -866,11 +866,10 @@ local	function performInteractionAllParams()
 			--------------------------------------------------
 			--TODO: remove block after resolving APPLINK-16052
 			elseif VrHelp then
-				for i=1, #VrHelp do
-					if VrHelp[i].image then
-						local expectedResult = VrHelp[i].image.imageType
-						if data.vrHelp[i].image.imageType ~= expectedResult then
-							commonFunctions:userPrint( 31, " imageType value in " .. tostring(i) .. " vrHelp item is not " .. tostring(expectedResult) .. ", got " .. tostring(data.vrHelp[i].image.imageType))
+					if VrHelp[1].image then
+						local expectedResult = VrHelp[1].image.imageType
+						if data.vrHelp[1].image.imageType ~= expectedResult then
+							commonFunctions:userPrint( 31, " imageType value in vrHelp item is not " .. tostring(expectedResult) .. ", got " .. tostring(data.vrHelp[1].image.imageType))
 							return false
 						else
 							return true
@@ -878,7 +877,6 @@ local	function performInteractionAllParams()
 					else
 						return true
 					end
-				end
 			--------------------------------------------------
 			else
 				return true
