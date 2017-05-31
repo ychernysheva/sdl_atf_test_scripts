@@ -15,7 +15,7 @@ local commonPreconditions = require('user_modules/shared_testcases/commonPrecond
 commonFunctions:SDLForceStop()
 commonSteps:DeletePolicyTable()
 commonSteps:DeleteLogsFiles()
-os.execute('cp files/SmokeTest_genivi_pt.json ' .. tostring(commonPreconditions:GetPathToSDL()) .. "sdl_preloaded_pt.json")
+os.execute('cp files/SmokeTest_genivi_pt.json ' .. commonPreconditions:GetPathToSDL() .. "sdl_preloaded_pt.json")
 
 ---------------------------------------------------------------------------------------------
 ---------------------------- General Settings for configuration----------------------------
@@ -47,7 +47,6 @@ if Test.appHMITypes["NAVIGATION"] == true then
 	NavigationType = true
 end
 local ttsChunksType = {{text = "4025",type = "PRE_RECORDED"},{ text = "Sapi",type = "SAPI_PHONEMES"}, {text = "LHplus", type = "LHPLUS_PHONEMES"}, {text = "Silence", type = "SILENCE"}}
---local buttonName = {"OK","SEEKLEFT","SEEKRIGHT","TUNEUP","TUNEDOWN", "PRESET_0","PRESET_1","PRESET_2","PRESET_3","PRESET_4","PRESET_5","PRESET_6","PRESET_7","PRESET_8"}
 
 ---------------------------------------------------------------------------------------------
 ----------------------------------------- Functions Used ------------------------------------
