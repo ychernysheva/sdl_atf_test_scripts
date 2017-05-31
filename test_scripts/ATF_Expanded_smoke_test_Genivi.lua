@@ -1,7 +1,5 @@
 ---------------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
-config.SDLStoragePath = config.pathToSDL .. "storage/"
-config.sharedMemoryPath = ""
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 ---------------------------------------------------------------------------------------------
 ---------------------------- Required Shared libraries --------------------------------------
@@ -32,7 +30,6 @@ require('user_modules/AppTypes')
 ---------------------------------------------------------------------------------------------
 local SDLConfig = require ('user_modules/shared_testcases/SmartDeviceLinkConfigurations')
 Test.spaceAvailable = tonumber(SDLConfig:GetValue("AppDirectoryQuota"))
---Test.InitialSpaceAvailable = tonumber(SDLConfig:GetValue("AppDirectoryQuota"))
 
 local dif_fileType = {{typeV = "GRAPHIC_BMP", file = "files/PutFile/bmp_6kb.bmp" }, {typeV = "GRAPHIC_JPEG", file = "files/PutFile/jpeg_4kb.jpg" }, {typeV = "GRAPHIC_PNG", file = "files/PutFile/icon.png" }, {typeV = "AUDIO_WAVE", file = "files/PutFile/WAV_6kb.wav" }, {typeV = "AUDIO_MP3", file = "files/PutFile/MP3_123kb.mp3" }, {typeV = "AUDIO_AAC", file = "files/PutFile/Alarm.aac" }, {typeV = "BINARY", file = "files/PutFile/binaryFile" }, {typeV = "JSON", file = "files/PutFile/luxoftPT.json" }}
 local ButtonArray = {"OK","SEEKLEFT", "SEEKRIGHT", "TUNEUP", "TUNEDOWN", "PRESET_0", "PRESET_1", "PRESET_2", "PRESET_3", "PRESET_4", "PRESET_5", "PRESET_6", "PRESET_7", "PRESET_8", "PRESET_9"}
@@ -84,7 +81,7 @@ local ttsChunksType = {{text = "4025",type = "PRE_RECORDED"},{ text = "Sapi",typ
 	-- Functions for SetMediaClockTimer
 	---------------------------------------------------------------------------------------------
 
-	function Test:setMediaClockTimerFunction(Request, ResultCode, HMIrequest)
+	local function setMediaClockTimerFunction(self, Request, ResultCode, HMIrequest)
 
 		ResultCode = ResultCode or "SUCCESS"
 
@@ -156,7 +153,7 @@ local ttsChunksType = {{text = "4025",type = "PRE_RECORDED"},{ text = "Sapi",typ
 
 	--Description: PutFile successfully with default image file
 	--paramsSend: Parameters will be sent to SDL
-	function Test:putFileSuccess(paramsSend, file)
+	local function putFileSuccess(self, paramsSend, file)
 
 		file = file or "files/icon.png"
 
@@ -195,7 +192,7 @@ local ttsChunksType = {{text = "4025",type = "PRE_RECORDED"},{ text = "Sapi",typ
 	end
 
 	--Description: Used to check PutFile with invalid data
-	function Test:putFileInvalidData(paramsSend)
+	local function putFileInvalidData(self, paramsSend)
 		local cid = self.mobileSession:SendRPC("PutFile",paramsSend, "files/icon.png")
 		EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 			:ValidIf(function()
@@ -565,13 +562,13 @@ local	function performInteractionAllParams()
 	end
 
 
-	function Test:performInteractionInvalidData(paramsSend)
+	local function performInteractionInvalidData(self, paramsSend)
         local cid = self.mobileSession:SendRPC("PerformInteraction",paramsSend)
         EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 	end
 
 
-	function Test:performInteraction_withChoice( paramsSend, ChoiceParams, ChoiceIdForChoice, AppId )
+	local function performInteraction_withChoice(self, paramsSend, ChoiceParams, ChoiceIdForChoice, AppId)
 
 		local VRParams = {}
 		local UIParams = {}
@@ -751,7 +748,7 @@ local	function performInteractionAllParams()
 		end
 	end
 
-	function Test:performInteraction_ViaBOTHTimedOut(paramsSend, level, ChoiceSets)
+	local function performInteraction_ViaBOTHTimedOut(self, paramsSend, level, ChoiceSets)
 		if level == nil then  level = "FULL" end
 
 		paramsSend.interactionMode = "BOTH"
@@ -1006,7 +1003,7 @@ local	function performInteractionAllParams()
 	end
 
 	--This function sends a request from mobile and verify result on HMI and mobile for SUCCESS resultCode cases.
-	function Test:verify_SUCCESS_Case(Request)
+	local function verify_SUCCESS_Case(self, Request)
 
 		--mobile side: sending Show request
 		local cid = self.mobileSession:SendRPC("Show", Request)
@@ -1125,7 +1122,7 @@ local	function performInteractionAllParams()
 				paramsSend.syncFileName = "persistantFalse"
 				paramsSend.persistentFile = false
 
-				self:putFileSuccess(paramsSend)
+				putFileSuccess(self, paramsSend)
 				DelayedExp(500)
 			end
 
@@ -1137,7 +1134,7 @@ local	function performInteractionAllParams()
 				paramsSend.syncFileName = "persistantTrue"
 				paramsSend.persistentFile = true
 
-				self:putFileSuccess(paramsSend)
+				putFileSuccess(self, paramsSend)
 				DelayedExp(500)
 			end
 
@@ -1151,7 +1148,7 @@ local	function performInteractionAllParams()
 										 fileType = dif_fileType[i].typeV,
 										}
 
-					self:putFileSuccess(paramsSend, dif_fileType[i].file)
+					putFileSuccess(self, paramsSend, dif_fileType[i].file)
 
 					DelayedExp(500)
 				end
@@ -1164,7 +1161,7 @@ local	function performInteractionAllParams()
 				local paramsSend = putFileAllParams()
 				paramsSend.syncFileName = nil
 
-				self:putFileInvalidData(paramsSend)
+				putFileInvalidData(self, paramsSend)
 				DelayedExp(500)
 			end
 
@@ -1176,7 +1173,7 @@ local	function performInteractionAllParams()
 				paramsSend.syncFileName = "fileTypeMissing"
 				paramsSend.fileType = nil
 
-				self:putFileInvalidData(paramsSend)
+				putFileInvalidData(self, paramsSend)
 			end
 
 	--End Test suit PutFile
@@ -4387,7 +4384,7 @@ local	function performInteractionAllParams()
 				paramsSend.interactionMode = "VR_ONLY"
 				paramsSend.interactionChoiceSetIDList = {1001}
 
-				self:performInteraction_withChoice( paramsSend, nil, 1001, self.applications[config.application1.registerAppInterfaceParams.appName] )
+				performInteraction_withChoice(self, paramsSend, nil, 1001, self.applications[config.application1.registerAppInterfaceParams.appName] )
 
 			end
 
@@ -4401,7 +4398,7 @@ local	function performInteractionAllParams()
 				paramsSend.interactionChoiceSetIDList = {1001}
 
 
-				self:performInteraction_withChoice( paramsSend, PositiveChoiceSets, 1001, self.applications[config.application1.registerAppInterfaceParams.appName] )
+				performInteraction_withChoice(self, paramsSend, PositiveChoiceSets, 1001, self.applications[config.application1.registerAppInterfaceParams.appName] )
 
 			end
 
@@ -4414,7 +4411,7 @@ local	function performInteractionAllParams()
 				paramsSend.interactionMode = "BOTH"
 				paramsSend.interactionChoiceSetIDList = {1001}
 
-				self:performInteraction_withChoice( paramsSend, PositiveChoiceSets, 1001, self.applications[config.application1.registerAppInterfaceParams.appName] )
+				performInteraction_withChoice(self, paramsSend, PositiveChoiceSets, 1001, self.applications[config.application1.registerAppInterfaceParams.appName] )
 
 			end
 
@@ -4429,7 +4426,7 @@ local	function performInteractionAllParams()
 									 	interactionChoiceSetIDList = {1001}
 									}
 
-				self:performInteraction_withChoice( paramsSend, PositiveChoiceSets, 1001, self.applications[config.application1.registerAppInterfaceParams.appName] )
+				performInteraction_withChoice(self, paramsSend, PositiveChoiceSets, 1001, self.applications[config.application1.registerAppInterfaceParams.appName] )
 
 			end
 	---------------------------------------------------------------------------------------
@@ -4443,7 +4440,7 @@ local	function performInteractionAllParams()
 									 	interactionChoiceSetIDList = {1001}
 									}
 
-				self:performInteraction_withChoice( paramsSend, PositiveChoiceSets, 1001, self.applications[config.application1.registerAppInterfaceParams.appName] )
+				performInteraction_withChoice(self, paramsSend, PositiveChoiceSets, 1001, self.applications[config.application1.registerAppInterfaceParams.appName] )
 
 			end
 
@@ -4458,7 +4455,7 @@ local	function performInteractionAllParams()
 									 	interactionChoiceSetIDList = {1001}
 									}
 
-				self:performInteraction_withChoice( paramsSend, PositiveChoiceSets, 1001, self.applications[config.application1.registerAppInterfaceParams.appName] )
+				performInteraction_withChoice(self, paramsSend, PositiveChoiceSets, 1001, self.applications[config.application1.registerAppInterfaceParams.appName] )
 
 			end
 
@@ -4470,7 +4467,7 @@ local	function performInteractionAllParams()
 				local params = performInteractionAllParams()
 				params["initialText"] = nil
 
-				self:performInteractionInvalidData(params)
+				performInteractionInvalidData(self, params)
 			end
 
 	-----------------------------------------------------------------------------------------
@@ -4480,7 +4477,7 @@ local	function performInteractionAllParams()
 				local params = performInteractionAllParams()
 				params["interactionMode"] = nil
 
-				self:performInteractionInvalidData(params)
+				performInteractionInvalidData(self, params)
 			end
 
 	-----------------------------------------------------------------------------------------
@@ -4490,7 +4487,7 @@ local	function performInteractionAllParams()
 				local params = performInteractionAllParams()
 				params["interactionChoiceSetIDList"] = nil
 
-				self:performInteractionInvalidData(params)
+				performInteractionInvalidData(self, params)
 			end
 
 	-----------------------------------------------------------------------------------------
@@ -4499,7 +4496,7 @@ local	function performInteractionAllParams()
 			function Test:PI_AllParamsMissing()
 				local params = {}
 
-				self:performInteractionInvalidData(params)
+				performInteractionInvalidData(self, params)
 			end
 
 	-----------------------------------------------------------------------------------------
@@ -4514,7 +4511,7 @@ local	function performInteractionAllParams()
 					local params = performInteractionAllParams()
 					params.interactionLayout = LayoutModeArray[i]
 
-					self:performInteraction_ViaBOTHTimedOut(params, nil, PositiveChoiceSets)
+					performInteraction_ViaBOTHTimedOut(self, params, nil, PositiveChoiceSets)
 				end
 			end
 		end
@@ -4533,7 +4530,7 @@ local	function performInteractionAllParams()
 												}
 								}}
 
-				self:performInteraction_ViaBOTHTimedOut(params, nil, PositiveChoiceSets)
+				performInteraction_ViaBOTHTimedOut(self, params, nil, PositiveChoiceSets)
 			end
 
 	---------------------------------------------------------------------------------------
@@ -5921,7 +5918,7 @@ local	function performInteractionAllParams()
 					}
 				}
 
-				self:verify_SUCCESS_Case(RequestParams)
+				verify_SUCCESS_Case(self, RequestParams)
 
 			end
 
@@ -5954,7 +5951,7 @@ local	function performInteractionAllParams()
 
 				}
 
-			self:verify_SUCCESS_Case(RequestParams)
+			verify_SUCCESS_Case(self, RequestParams)
 		end
 
 	-----------------------------------------------------------------------------------------
@@ -5996,7 +5993,7 @@ local	function performInteractionAllParams()
 
 				}
 
-				self:verify_SUCCESS_Case(RequestParams)
+				verify_SUCCESS_Case(self, RequestParams)
 
 			end
 
@@ -6272,7 +6269,7 @@ local	function performInteractionAllParams()
 						updateMode = updateMode[i]
 					}
 
-					self:setMediaClockTimerFunction(Request, nil, true)
+					setMediaClockTimerFunction(self, Request, nil, true)
 
 				end
 			end
@@ -6287,7 +6284,7 @@ local	function performInteractionAllParams()
 										updateMode = updateModeNotRequireStartEndTime[i]
 									}
 
-					self:setMediaClockTimerFunction(Request, nil, true)
+					setMediaClockTimerFunction(self, Request, nil, true)
 
 				end
 			end
@@ -6300,7 +6297,7 @@ local	function performInteractionAllParams()
 									updateMode = "COUNTUP"
 								}
 
-				self:setMediaClockTimerFunction(Request, "INVALID_DATA")
+				setMediaClockTimerFunction(self, Request, "INVALID_DATA")
 			end
 
 	-----------------------------------------------------------------------------------------
@@ -6312,7 +6309,7 @@ local	function performInteractionAllParams()
 									updateMode = "COUNTDOWN"
 								}
 
-				self:setMediaClockTimerFunction(Request, "INVALID_DATA")
+				setMediaClockTimerFunction(self, Request, "INVALID_DATA")
 			end
 	---------------------------------------------------------------------------------------
 
@@ -6321,7 +6318,7 @@ local	function performInteractionAllParams()
 			function Test:SetMediaClockTimer_AllParameterAreMissed_INVALID_DATA()
 				local Request = {}
 
-				self:setMediaClockTimerFunction(Request, "INVALID_DATA")
+				setMediaClockTimerFunction(self, Request, "INVALID_DATA")
 			end
 	---------------------------------------------------------------------------------------
 
@@ -6342,7 +6339,7 @@ local	function performInteractionAllParams()
 									}
 								}
 
-				self:setMediaClockTimerFunction(Request, "INVALID_DATA")
+				setMediaClockTimerFunction(self, Request, "INVALID_DATA")
 			end
 
 	---------------------------------------------------------------------------------------
@@ -6364,7 +6361,7 @@ local	function performInteractionAllParams()
 									updateMode = "COUNTUP"
 								}
 
-				self:setMediaClockTimerFunction(Request, "INVALID_DATA")
+				setMediaClockTimerFunction(self, Request, "INVALID_DATA")
 			end
 
 	---------------------------------------------------------------------------------------
@@ -6386,7 +6383,7 @@ local	function performInteractionAllParams()
 									updateMode = "COUNTUP"
 								}
 
-				self:setMediaClockTimerFunction(Request, "INVALID_DATA")
+				setMediaClockTimerFunction(self, Request, "INVALID_DATA")
 			end
 
 	---------------------------------------------------------------------------------------
@@ -6408,7 +6405,7 @@ local	function performInteractionAllParams()
 									updateMode = "COUNTUP"
 								}
 
-				self:setMediaClockTimerFunction(Request, "INVALID_DATA")
+				setMediaClockTimerFunction(self, Request, "INVALID_DATA")
 			end
 
 	---------------------------------------------------------------------------------------
@@ -6430,7 +6427,7 @@ local	function performInteractionAllParams()
 									updateMode = "COUNTUP"
 								}
 
-				self:setMediaClockTimerFunction(Request, "INVALID_DATA")
+				setMediaClockTimerFunction(self, Request, "INVALID_DATA")
 			end
 
 	---------------------------------------------------------------------------------------
@@ -6452,7 +6449,7 @@ local	function performInteractionAllParams()
 									updateMode = "COUNTUP"
 								}
 
-				self:setMediaClockTimerFunction(Request, "INVALID_DATA")
+				setMediaClockTimerFunction(self, Request, "INVALID_DATA")
 			end
 
 	---------------------------------------------------------------------------------------
@@ -6474,7 +6471,7 @@ local	function performInteractionAllParams()
 									updateMode = "COUNTUP"
 								}
 
-				self:setMediaClockTimerFunction(Request, "INVALID_DATA")
+				setMediaClockTimerFunction(self, Request, "INVALID_DATA")
 			end
 
 	---------------------------------------------------------------------------------------
@@ -6500,7 +6497,7 @@ local	function performInteractionAllParams()
 										updateMode = "COUNTUP"
 									}
 
-					self:setMediaClockTimerFunction(Request, nil, true)
+					setMediaClockTimerFunction(self, Request, nil, true)
 
 				end
 
@@ -6511,7 +6508,7 @@ local	function performInteractionAllParams()
 									 	updateMode = "PAUSE"
 									}
 
-					self:setMediaClockTimerFunction(Request, nil, true)
+					setMediaClockTimerFunction(self, Request, nil, true)
 				end
 
 			-- Send second request to pause timer
@@ -6521,7 +6518,7 @@ local	function performInteractionAllParams()
 									 	updateMode = "PAUSE"
 									}
 
-					self:setMediaClockTimerFunction(Request, "IGNORED", true)
+					setMediaClockTimerFunction(self, Request, "IGNORED", true)
 				end
 
 	---------------------------------------------------------------------------------------
@@ -6549,7 +6546,7 @@ local	function performInteractionAllParams()
 										updateMode = "COUNTUP"
 									}
 
-					self:setMediaClockTimerFunction(Request, nil, true)
+					setMediaClockTimerFunction(self, Request, nil, true)
 				end
 
 			-- Send  request to pause timer
@@ -6559,7 +6556,7 @@ local	function performInteractionAllParams()
 									 	updateMode = "PAUSE"
 									}
 
-					self:setMediaClockTimerFunction(Request, nil, true)
+					setMediaClockTimerFunction(self, Request, nil, true)
 				end
 
 			-- Send first request to resume timer
@@ -6569,7 +6566,7 @@ local	function performInteractionAllParams()
 									 	updateMode = "RESUME"
 									}
 
-					self:setMediaClockTimerFunction(Request, nil, true)
+					setMediaClockTimerFunction(self, Request, nil, true)
 				end
 
 			-- Send second request to pause timer
@@ -6579,7 +6576,7 @@ local	function performInteractionAllParams()
 									 	updateMode = "RESUME"
 									}
 
-					self:setMediaClockTimerFunction(Request, "IGNORED", true)
+					setMediaClockTimerFunction(self, Request, "IGNORED", true)
 				end
 
 	---------------------------------------------------------------------------------------
@@ -6605,7 +6602,7 @@ local	function performInteractionAllParams()
 										updateMode = "COUNTUP"
 									}
 
-					self:setMediaClockTimerFunction(Request, nil, true)
+					setMediaClockTimerFunction(self, Request, nil, true)
 				end
 
 			-- Send resume request
@@ -6615,7 +6612,7 @@ local	function performInteractionAllParams()
 									 	updateMode = "RESUME"
 									}
 
-					self:setMediaClockTimerFunction(Request, "IGNORED", true)
+					setMediaClockTimerFunction(self, Request, "IGNORED", true)
 				end
 
 	--------------------------------------------------------------------------------------
@@ -6640,7 +6637,7 @@ local	function performInteractionAllParams()
 										updateMode = "COUNTDOWN"
 									}
 
-					self:setMediaClockTimerFunction(Request, nil, true)
+					setMediaClockTimerFunction(self, Request, nil, true)
 
 				end
 
@@ -6652,7 +6649,7 @@ local	function performInteractionAllParams()
 									 	updateMode = "RESUME"
 									}
 
-					self:setMediaClockTimerFunction(Request, "IGNORED", true)
+					setMediaClockTimerFunction(self, Request, "IGNORED", true)
 
 				end
 
