@@ -1,73 +1,67 @@
----------------------------------------------------------------------------------------------
---[[ General configuration parameters ]]
+-----------------------------------------------------------------------------------------------------------------------
+--[[ General configuration parameters ]]-------------------------------------------------------------------------------
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
----------------------------------------------------------------------------------------------
----------------------------- Required Shared libraries --------------------------------------
----------------------------------------------------------------------------------------------
 
+--[[ Required Shared libraries ]]
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
+local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
+local SDLConfig = require ('user_modules/shared_testcases/SmartDeviceLinkConfigurations')
 
----------------------------------------------------------------------------------------------
-------------------------- General Precondition before ATF start -----------------------------
----------------------------------------------------------------------------------------------
+--[[ General Precondition before ATF start ]]--------------------------------------------------------------------------
 commonFunctions:SDLForceStop()
 commonSteps:DeletePolicyTable()
 commonSteps:DeleteLogsFiles()
-os.execute('cp files/SmokeTest_genivi_pt.json ' .. commonPreconditions:GetPathToSDL() .. "sdl_preloaded_pt.json")
+commonPreconditions:BackupFile("sdl_preloaded_pt.json")
+os.execute("cp -f files/SmokeTest_genivi_pt.json " .. commonPreconditions:GetPathToSDL() .. "sdl_preloaded_pt.json")
 
----------------------------------------------------------------------------------------------
----------------------------- General Settings for configuration----------------------------
----------------------------------------------------------------------------------------------
+--[[ General Settings for configuration ]]-----------------------------------------------------------------------------
 Test = require('connecttest')
-local events = require('events')
 require('cardinalities')
 require('user_modules/AppTypes')
 
---------------------------------------------------------------------------------------------
------------------------------------- Common Variables ---------------------------------------
----------------------------------------------------------------------------------------------
-local SDLConfig = require ('user_modules/shared_testcases/SmartDeviceLinkConfigurations')
-Test.spaceAvailable = tonumber(SDLConfig:GetValue("AppDirectoryQuota"))
-
-local dif_fileType = {{typeV = "GRAPHIC_BMP", file = "files/PutFile/bmp_6kb.bmp" }, {typeV = "GRAPHIC_JPEG", file = "files/PutFile/jpeg_4kb.jpg" }, {typeV = "GRAPHIC_PNG", file = "files/PutFile/icon.png" }, {typeV = "AUDIO_WAVE", file = "files/PutFile/WAV_6kb.wav" }, {typeV = "AUDIO_MP3", file = "files/PutFile/MP3_123kb.mp3" }, {typeV = "AUDIO_AAC", file = "files/PutFile/Alarm.aac" }, {typeV = "BINARY", file = "files/PutFile/binaryFile" }, {typeV = "JSON", file = "files/PutFile/luxoftPT.json" }}
-local ButtonArray = {"OK","SEEKLEFT", "SEEKRIGHT", "TUNEUP", "TUNEDOWN", "PRESET_0", "PRESET_1", "PRESET_2", "PRESET_3", "PRESET_4", "PRESET_5", "PRESET_6", "PRESET_7", "PRESET_8", "PRESET_9"}
+--[[ Local Variables ]]------------------------------------------------------------------------------------------------
 local applicationName = config.application1.registerAppInterfaceParams.appName
-local iTimeout = 5000
-local PathToAppFolder = commonPreconditions:GetPathToSDL() .. SDLConfig:GetValue("AppStorageFolder") .. "/" .. tostring(config.application1.registerAppInterfaceParams.appID .. "_" .. tostring(config.deviceMAC) .. "/")
-local updateModeNotRequireStartEndTime = {"PAUSE", "RESUME", "CLEAR"}
-local updateMode = {"COUNTUP", "COUNTDOWN", "PAUSE", "RESUME", "CLEAR"}
-local updateModeCountUpDown = {"COUNTUP", "COUNTDOWN"}
-local PositiveChoiceSets
-local textPromtValue = {"Please speak one of the following commands," ,"Please say a command,"}
+local pathToAppFolder = commonPreconditions:GetPathToSDL() .. SDLConfig:GetValue("AppStorageFolder") .. "/"
+	.. tostring(config.application1.registerAppInterfaceParams.appID .. "_" .. tostring(config.deviceMAC) .. "/")
+local spaceAvailable = tonumber(SDLConfig:GetValue("AppDirectoryQuota"))
+local fileTypes = {
+		{ typeV = "GRAPHIC_BMP", file = "files/PutFile/bmp_6kb.bmp" },
+		{ typeV = "GRAPHIC_JPEG", file = "files/PutFile/jpeg_4kb.jpg" },
+		{ typeV = "GRAPHIC_PNG", file = "files/PutFile/icon.png" },
+		{ typeV = "AUDIO_WAVE", file = "files/PutFile/WAV_6kb.wav" },
+		{ typeV = "AUDIO_MP3", file = "files/PutFile/MP3_123kb.mp3" },
+		{ typeV = "AUDIO_AAC", file = "files/PutFile/Alarm.aac" },
+		{ typeV = "BINARY", file = "files/PutFile/binaryFile" },
+		{ typeV = "JSON", file = "files/PutFile/luxoftPT.json" }
+	}
+local buttonArray = { "OK", "SEEKLEFT", "SEEKRIGHT", "TUNEUP", "TUNEDOWN", "PRESET_0", "PRESET_1", "PRESET_2", "PRESET_3",
+	"PRESET_4", "PRESET_5", "PRESET_6", "PRESET_7", "PRESET_8", "PRESET_9" }
+local updateModeNotRequireStartEndTime = { "PAUSE", "RESUME", "CLEAR" }
+local updateMode = { "COUNTUP", "COUNTDOWN", "PAUSE", "RESUME", "CLEAR" }
+local updateModeCountUpDown = { "COUNTUP", "COUNTDOWN" }
+local textPromtValue = { "Please speak one of the following commands,", "Please say a command," }
+local ttsChunksType = {
+		{ text = "4025", type = "PRE_RECORDED" },
+		{ text = "Sapi", type = "SAPI_PHONEMES" },
+		{ text = "LHplus", type = "LHPLUS_PHONEMES" },
+		{ text = "Silence", type = "SILENCE" }
+	}
+local positiveChoiceSets = {
+		{	choiceID = 1001, menuName ="Choice1001", image = { value = pathToAppFolder .. "icon.png",	imageType ="DYNAMIC" } },
+		{	choiceID = 1002, menuName ="Choice1002", image = { value = pathToAppFolder .. "icon.png",	imageType ="DYNAMIC" } },
+		{	choiceID = 103,	menuName ="Choice103", image = { value = pathToAppFolder .. "icon.png",	imageType ="DYNAMIC" } }
+	}
 
-local NavigationType = false
-if Test.appHMITypes["NAVIGATION"] == true then
-	NavigationType = true
-end
-local ttsChunksType = {{text = "4025",type = "PRE_RECORDED"},{ text = "Sapi",type = "SAPI_PHONEMES"}, {text = "LHplus", type = "LHPLUS_PHONEMES"}, {text = "Silence", type = "SILENCE"}}
-
----------------------------------------------------------------------------------------------
------------------------------------------ Functions Used ------------------------------------
----------------------------------------------------------------------------------------------
-
-	--Common functions
-	------------------------------------------------------------------------------------------
-
-	local function DelayedExp(timeout)
-	  local event = events.Event()
-	  event.matches = function(self, e) return self == e end
-	  EXPECT_EVENT(event, "Delayed event")
-	  RUN_AFTER(function() RAISE_EVENT(event, event) end, timeout)
-	end
+--[[ Local Functions ]]------------------------------------------------------------------------------------------------
 
 	-- Sending OnSystemContext notification
-	local function SendOnSystemContext(self, ctx)
+	local function sendOnSystemContext(self, ctx)
 	  self.hmiConnection:SendNotification("UI.OnSystemContext",{ appID = self.applications[applicationName], systemContext = ctx })
 	end
 
-	local function InvalidDataAPI(self, APIName, SentParams)
+	local function invalidDataAPI(self, APIName, SentParams)
 
 	  --mobile side: sending request
 	  local CorId = self.mobileSession:SendRPC(APIName, SentParams)
@@ -169,14 +163,14 @@ local ttsChunksType = {{text = "4025",type = "PRE_RECORDED"},{ text = "Sapi",typ
 			:ValidIf(function(_,data)
 				local CurrentSpaceAvailable = tostring(data.payload.spaceAvailable)
 
-				if CurrentSpaceAvailable == self.spaceAvailable then
+				if CurrentSpaceAvailable == spaceAvailable then
 					ErrorMessage = ErrorMessage .." Available space value is not changed after successfully PutFile request \n"
 
 				end
 
-				self.spaceAvailable = CurrentSpaceAvailable
+				spaceAvailable = CurrentSpaceAvailable
 
-				local FileCheckValue = file_check(PathToAppFolder .. paramsSend.syncFileName)
+				local FileCheckValue = file_check(pathToAppFolder .. paramsSend.syncFileName)
 				if FileCheckValue == false then
 					ErrorMessage = ErrorMessage .. " Added via PutFile request file " .. tostring(paramsSend.syncFileName) .. " is not found on file system "
 				end
@@ -197,7 +191,7 @@ local ttsChunksType = {{text = "4025",type = "PRE_RECORDED"},{ text = "Sapi",typ
 			:ValidIf(function()
 				if paramsSend.syncFileName then
 
-					local FileCheckValue = file_check(PathToAppFolder .. paramsSend.syncFileName)
+					local FileCheckValue = file_check(pathToAppFolder .. paramsSend.syncFileName)
 					print("FileCheckValue: ".. tostring(FileCheckValue))
 
 					if FileCheckValue == true then
@@ -215,14 +209,14 @@ local ttsChunksType = {{text = "4025",type = "PRE_RECORDED"},{ text = "Sapi",typ
 	-- Functions for Alert
 	-------------------------------------------------------------------------------------------
 
-	local function ExpectOnHMIStatusWithAudioStateChangedAlert(self, request, timeout)
+	local function expectOnHMIStatusWithAudioStateChangedAlert(self, request, timeout)
 
 		request = request or "BOTH"
 		timeout = timeout or 10000
 
 		if
 			self.isMediaApplication == true or
-			NavigationType == true then
+			Test.appHMITypes["NAVIGATION"] == true then
 
 				if request == "BOTH" then
 					--mobile side: OnHMIStatus notifications
@@ -279,14 +273,14 @@ local ttsChunksType = {{text = "4025",type = "PRE_RECORDED"},{ text = "Sapi",typ
 	-- Functions for PI
 	-------------------------------------------------------------------------------------------
 
-	local function ExpectOnHMIStatusWithAudioStateChangedPI(self, request, timeout)
+	local function expectOnHMIStatusWithAudioStateChangedPI(self, request, timeout)
 
 		if request == nil then  request = "BOTH" end
 		if timeout == nil then timeout = 10000 end
 
 			if
 				self.isMediaApplication == true or
-				NavigationType == true then
+				Test.appHMITypes["NAVIGATION"] == true then
 
 					if request == "BOTH" then
 						--mobile side: OnHMIStatus notifications
@@ -409,7 +403,7 @@ local ttsChunksType = {{text = "4025",type = "PRE_RECORDED"},{ text = "Sapi",typ
 		end
 	end
 
-local function setTimeoutPrompt(size, character, outChar)
+	local function setTimeoutPrompt(size, character, outChar)
 		local temp
 		if character == nil then
 			if size == 1 or size == nil then
@@ -447,7 +441,7 @@ local function setTimeoutPrompt(size, character, outChar)
 		end
 	end
 
-local	function setHelpPrompt(size, character, outChar)
+	local	function setHelpPrompt(size, character, outChar)
 		local temp
 		if character == nil then
 			temp = {}
@@ -486,7 +480,7 @@ local	function setHelpPrompt(size, character, outChar)
 		end
 	end
 
-local function setVrHelp(size, character, outChar)
+	local function setVrHelp(size, character, outChar)
 		local temp
 		if character == nil then
 			if size == 1 or size == nil then
@@ -526,7 +520,7 @@ local function setVrHelp(size, character, outChar)
 		end
 	end
 
-local	function performInteractionAllParams()
+	local	function performInteractionAllParams()
 		local temp = {
 					initialText = "StartPerformInteraction",
 					initialPrompt = setInitialPrompt(),
@@ -607,14 +601,14 @@ local	function performInteractionAllParams()
 					--Send notification to start TTS & VR
 					self.hmiConnection:SendNotification("TTS.Started")
 					self.hmiConnection:SendNotification("VR.Started")
-					SendOnSystemContext(self,"VRSESSION")
+					sendOnSystemContext(self,"VRSESSION")
 					local function vrResponse()
 						--Send VR.PerformInteraction response
 						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {choiceID = ChoiceIdForChoice })
 						--Send notification to stop TTS & VR
 						self.hmiConnection:SendNotification("TTS.Stopped")
 						self.hmiConnection:SendNotification("VR.Stopped")
-						SendOnSystemContext(self,"MAIN")
+						sendOnSystemContext(self,"MAIN")
 					end
 					RUN_AFTER(vrResponse, 500)
 				end)
@@ -629,7 +623,7 @@ local	function performInteractionAllParams()
 				end)
 
 			--mobile side: OnHMIStatus notifications
-			ExpectOnHMIStatusWithAudioStateChangedPI(self, "VR")
+			expectOnHMIStatusWithAudioStateChangedPI(self, "VR")
 
 			--mobile side: expect PerformInteraction response
 			EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS", choiceID = ChoiceIdForChoice, triggerSource = "VR" } )
@@ -660,19 +654,19 @@ local	function performInteractionAllParams()
 			--hmi side: expect UI.PerformInteraction request
 			EXPECT_HMICALL("UI.PerformInteraction", UIParams)
 			:Do(function(_,data)
-				SendOnSystemContext(self,"HMI_OBSCURED")
+				sendOnSystemContext(self,"HMI_OBSCURED")
 
 				local function uiResponse()
 
 					self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {choiceID = ChoiceIdForChoice })
 
-					SendOnSystemContext(self,"MAIN")
+					sendOnSystemContext(self,"MAIN")
 				end
 				RUN_AFTER(uiResponse, 10)
 			end)
 
 			--mobile side: OnHMIStatus notifications
-			ExpectOnHMIStatusWithAudioStateChangedPI(self, "MANUAL")
+			expectOnHMIStatusWithAudioStateChangedPI(self, "MANUAL")
 
 			--mobile side: expect PerformInteraction response
 			EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS", choiceID = ChoiceIdForChoice, triggerSource = "MENU" } )
@@ -695,7 +689,7 @@ local	function performInteractionAllParams()
 				--Send notification to start TTS & VR
 				self.hmiConnection:SendNotification("TTS.Started")
 				self.hmiConnection:SendNotification("VR.Started")
-				SendOnSystemContext(self,"VRSESSION")
+				sendOnSystemContext(self,"VRSESSION")
 
 				local function VRResponse()
 					--Send VR.PerformInteraction response
@@ -704,7 +698,7 @@ local	function performInteractionAllParams()
 					--Send notification to stop TTS & VR
 					self.hmiConnection:SendNotification("TTS.Stopped")
 					self.hmiConnection:SendNotification("VR.Stopped")
-					SendOnSystemContext(self,"MAIN")
+					sendOnSystemContext(self,"MAIN")
 				end
 
 				RUN_AFTER(VRResponse, 500)
@@ -713,16 +707,16 @@ local	function performInteractionAllParams()
 			--hmi side: expect UI.PerformInteraction request
 			EXPECT_HMICALL("UI.PerformInteraction", UIParams)
 			:Do(function(_,data)
-				-- SendOnSystemContext(self,"HMI_OBSCURED")
+				-- sendOnSystemContext(self,"HMI_OBSCURED")
 				local function uiResponse()
 					self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {choiceID = ChoiceIdForChoice})
-					-- SendOnSystemContext(self,"MAIN")
+					-- sendOnSystemContext(self,"MAIN")
 				end
 				RUN_AFTER(uiResponse, 100)
 			end)
 
 			--mobile side: OnHMIStatus notifications
-			ExpectOnHMIStatusWithAudioStateChangedPI(self, "BOTH_With_Choice")
+			expectOnHMIStatusWithAudioStateChangedPI(self, "BOTH_With_Choice")
 			--mobile side: expect PerformInteraction response
 			EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS", choiceID = ChoiceIdForChoice, triggerSource = "VR" } )
 		end
@@ -762,7 +756,7 @@ local	function performInteractionAllParams()
 			--Send notification to start TTS & VR
 			self.hmiConnection:SendNotification("VR.Started")
 			self.hmiConnection:SendNotification("TTS.Started")
-			SendOnSystemContext(self,"VRSESSION")
+			sendOnSystemContext(self,"VRSESSION")
 
 			--First speak timeout and second speak started
 			local function firstSpeakTimeOut()
@@ -807,7 +801,7 @@ local	function performInteractionAllParams()
 		:Do(function(_,data)
 			--Choice icon list is displayed
 			local function choiceIconDisplayed()
-				SendOnSystemContext(self,"HMI_OBSCURED")
+				sendOnSystemContext(self,"HMI_OBSCURED")
 			end
 			RUN_AFTER(choiceIconDisplayed, 25)
 
@@ -815,7 +809,7 @@ local	function performInteractionAllParams()
 			local function uiResponse()
 				self.hmiConnection:SendNotification("TTS.Stopped")
 				self.hmiConnection:SendError(data.id, data.method, "TIMED_OUT", "Perform Interaction error response.")
-				SendOnSystemContext(self,"MAIN")
+				sendOnSystemContext(self,"MAIN")
 			end
 			RUN_AFTER(uiResponse, 30)
 		end)
@@ -832,7 +826,7 @@ local	function performInteractionAllParams()
 		end)
 
 		--mobile side: OnHMIStatus notifications
-		ExpectOnHMIStatusWithAudioStateChangedPI(self, nil, nil, level)
+		expectOnHMIStatusWithAudioStateChangedPI(self, nil, nil, level)
 
 		--mobile side: expect PerformInteraction response
 		EXPECT_RESPONSE(cid, { success = false, resultCode = "TIMED_OUT" })
@@ -907,7 +901,7 @@ local	function performInteractionAllParams()
 			param["graphic"].imageType ~= "STATIC" and
 			param["graphic"].value ~= nil and
 			param["graphic"].value ~= "" then
-				param["graphic"].value = PathToAppFolder ..param["graphic"].value
+				param["graphic"].value = pathToAppFolder ..param["graphic"].value
 		end
 
 		param["secondaryGraphic"] =  Request["secondaryGraphic"]
@@ -915,7 +909,7 @@ local	function performInteractionAllParams()
 			param["secondaryGraphic"].imageType ~= "STATIC" and
 			param["secondaryGraphic"].value ~= nil and
 			param["secondaryGraphic"].value ~= "" then
-				param["secondaryGraphic"].value = PathToAppFolder ..param["secondaryGraphic"].value
+				param["secondaryGraphic"].value = pathToAppFolder ..param["secondaryGraphic"].value
 		end
 
 		--softButtons
@@ -935,7 +929,7 @@ local	function performInteractionAllParams()
 				if param["softButtons"][i].image ~= nil and
 					param["softButtons"][i].image.imageType ~= "STATIC" then
 
-					param["softButtons"][i].image.value = PathToAppFolder ..param["softButtons"][i].image.value
+					param["softButtons"][i].image.value = pathToAppFolder ..param["softButtons"][i].image.value
 				end
 
 
@@ -967,8 +961,8 @@ local	function performInteractionAllParams()
 	end
 
 
------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------
 
 ---------------------------------------------------------------------------------------------
 ---------------------------------------General Preconditions---------------------------------
@@ -1003,10 +997,10 @@ local	function performInteractionAllParams()
 
 		  self.mobileSession:ExpectResponse("PutFile", { success = true, resultCode = "SUCCESS", info = "File was downloaded" })
 		  	:Do(function(_,data)
-		  		self.spaceAvailable = data.payload.spaceAvailable
+		  		spaceAvailable = data.payload.spaceAvailable
 		  	end)
 
-		  DelayedExp(1000)
+		  commonTestCases:DelayedExp(1000)
 		end
 	--End Precondition.2
 
@@ -1049,7 +1043,7 @@ local	function performInteractionAllParams()
 				paramsSend.persistentFile = false
 
 				putFileSuccess(self, paramsSend)
-				DelayedExp(500)
+				commonTestCases:DelayedExp(500)
 			end
 
 	-----------------------------------------------------------------------------------------
@@ -1061,22 +1055,22 @@ local	function performInteractionAllParams()
 				paramsSend.persistentFile = true
 
 				putFileSuccess(self, paramsSend)
-				DelayedExp(500)
+				commonTestCases:DelayedExp(500)
 			end
 
 	-----------------------------------------------------------------------------------------
 
 		--Description: With mandatory parameter only
-			for i=1, #dif_fileType do
-				Test["PutFile_MandatoryOnly_" .. tostring(dif_fileType[i].typeV) ] = function(self)
+			for i=1, #fileTypes do
+				Test["PutFile_MandatoryOnly_" .. tostring(fileTypes[i].typeV) ] = function(self)
 					local paramsSend = {
-										 syncFileName ="file_" .. tostring(dif_fileType[i].typeV),
-										 fileType = dif_fileType[i].typeV,
+										 syncFileName ="file_" .. tostring(fileTypes[i].typeV),
+										 fileType = fileTypes[i].typeV,
 										}
 
-					putFileSuccess(self, paramsSend, dif_fileType[i].file)
+					putFileSuccess(self, paramsSend, fileTypes[i].file)
 
-					DelayedExp(500)
+					commonTestCases:DelayedExp(500)
 				end
 			end
 
@@ -1088,7 +1082,7 @@ local	function performInteractionAllParams()
 				paramsSend.syncFileName = nil
 
 				putFileInvalidData(self, paramsSend)
-				DelayedExp(500)
+				commonTestCases:DelayedExp(500)
 			end
 
 	-----------------------------------------------------------------------------------------
@@ -1133,7 +1127,7 @@ local	function performInteractionAllParams()
 							{
 							 success = true,
 							 resultCode = "SUCCESS",
-							 spaceAvailable = tonumber(self.spaceAvailable)
+							 spaceAvailable = tonumber(spaceAvailable)
 							})
 				:ValidIf(function(_,data)
 
@@ -1235,7 +1229,7 @@ local	function performInteractionAllParams()
 												image =
 														{
 														imageType = "DYNAMIC",
-														value = PathToAppFolder .. "icon.png"
+														value = pathToAppFolder .. "icon.png"
 														},
 												 text = "VR help item"
 												}
@@ -1264,7 +1258,7 @@ local	function performInteractionAllParams()
 						UIParam.menuTitle = sentParam.menuTitle
 						UIParam.menuIcon = 	{
 												imageType = "DYNAMIC",
-												value = PathToAppFolder .. "icon.png"
+												value = pathToAppFolder .. "icon.png"
 											}
 						UIParam.keyboardProperties = sentParam.keyboardProperties
 					end
@@ -1384,7 +1378,7 @@ local	function performInteractionAllParams()
 
 				--mobile side: expect SetGlobalProperties response
 				EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})
-					:Timeout(iTimeout)
+					:Timeout(5000)
 
 				--mobile side: expect OnHashChange notification
 				EXPECT_NOTIFICATION("OnHashChange")
@@ -1405,7 +1399,7 @@ local	function performInteractionAllParams()
 											 	position = 1,
 												image =
 													{
-													 value = PathToAppFolder .. "icon.png",
+													 value = pathToAppFolder .. "icon.png",
 													 imageType = "DYNAMIC"
 													},
 											 	text = "VR help item"
@@ -1424,7 +1418,7 @@ local	function performInteractionAllParams()
 										 image =
 											{
 											 imageType = "DYNAMIC",
-											 value = PathToAppFolder .. "icon.png"
+											 value = pathToAppFolder .. "icon.png"
 											},
 										 text = "VR help item"
 										}
@@ -1494,7 +1488,7 @@ local	function performInteractionAllParams()
 				--mobile side: expect OnHashChange notification is not send to mobile
 				EXPECT_NOTIFICATION("OnHashChange")
 				:Times(0)
-				DelayedExp(1000)
+				commonTestCases:DelayedExp(1000)
 			end
 
 	-----------------------------------------------------------------------------------------
@@ -1528,7 +1522,7 @@ local	function performInteractionAllParams()
 				--mobile side: expect OnHashChange notification is not send to mobile
 				EXPECT_NOTIFICATION("OnHashChange")
 				:Times(0)
-				DelayedExp(1000)
+				commonTestCases:DelayedExp(1000)
 
 			end
 
@@ -1637,7 +1631,7 @@ local	function performInteractionAllParams()
 				EXPECT_NOTIFICATION("OnHashChange")
 					:Times(0)
 
-				DelayedExp(1000)
+				commonTestCases:DelayedExp(1000)
 		end
 
 	-----------------------------------------------------------------------------------------
@@ -1700,7 +1694,7 @@ local	function performInteractionAllParams()
 				EXPECT_NOTIFICATION("OnHashChange")
 				:Times(0)
 
-				DelayedExp(1000)
+				commonTestCases:DelayedExp(1000)
 			end
 
 	-----------------------------------------------------------------------------------------
@@ -1783,7 +1777,7 @@ local	function performInteractionAllParams()
 
 	-----------------------------------------------------------------------------------------
 
-		if NavigationType == true then
+		if Test.appHMITypes["NAVIGATION"] == true then
 		-- Test cases in only for navigation app
 		-- Description: Different keyboardLayout:  QWERTY, QWERTZ, AZERTY
 			local KeyboardLayoutArray = {"QWERTY", "QWERTZ", "AZERTY"}
@@ -1801,7 +1795,7 @@ local	function performInteractionAllParams()
 												 	position = 1,
 													image =
 														{
-														 value = PathToAppFolder .. "icon.png",
+														 value = pathToAppFolder .. "icon.png",
 														 imageType = "DYNAMIC"
 														},
 												 	text = "VR help item"
@@ -1835,7 +1829,7 @@ local	function performInteractionAllParams()
 														 image =
 															{
 															 imageType = "DYNAMIC",
-															 value = PathToAppFolder .. "icon.png"
+															 value = pathToAppFolder .. "icon.png"
 															},
 														 text = "VR help item"
 														}
@@ -1843,7 +1837,7 @@ local	function performInteractionAllParams()
 												vrHelpTitle = "VR help title",
 												menuTitle = "Menu Title",
 												menuIcon = 	{
-																value =  PathToAppFolder .. "icon.png",
+																value =  pathToAppFolder .. "icon.png",
 																imageType = "DYNAMIC"
 															},
 												keyboardProperties = {
@@ -2050,7 +2044,7 @@ local	function performInteractionAllParams()
 				--mobile side: expect OnHashChange notification is not send to mobile
 				EXPECT_NOTIFICATION("OnHashChange")
 				:Times(0)
-				DelayedExp(1000)
+				commonTestCases:DelayedExp(1000)
 			end
 
 	-----------------------------------------------------------------------------------------
@@ -2070,7 +2064,7 @@ local	function performInteractionAllParams()
 				--mobile side: expect OnHashChange notification is not send to mobile
 				EXPECT_NOTIFICATION("OnHashChange")
 				:Times(0)
-				DelayedExp(1000)
+				commonTestCases:DelayedExp(1000)
 			end
 
 	-----------------------------------------------------------------------------------------
@@ -2089,7 +2083,7 @@ local	function performInteractionAllParams()
 				--mobile side: expect OnHashChange notification is not send to mobile
 				EXPECT_NOTIFICATION("OnHashChange")
 				:Times(0)
-				DelayedExp(1000)
+				commonTestCases:DelayedExp(1000)
 			end
 
 	-----------------------------------------------------------------------------------------
@@ -2106,7 +2100,7 @@ local	function performInteractionAllParams()
 				EXPECT_NOTIFICATION("OnHashChange")
 				:Times(0)
 
-				DelayedExp(1000)
+				commonTestCases:DelayedExp(1000)
 			end
 
 	-----------------------------------------------------------------------------------------
@@ -2127,7 +2121,7 @@ local	function performInteractionAllParams()
 				--mobile side: expect OnHashChange notification is not send to mobile
 				EXPECT_NOTIFICATION("OnHashChange")
 				:Times(0)
-				DelayedExp(1000)
+				commonTestCases:DelayedExp(1000)
 			end
 	-----------------------------------------------------------------------------------------
 
@@ -2147,7 +2141,7 @@ local	function performInteractionAllParams()
 				--mobile side: expect OnHashChange notification is not send to mobile
 				EXPECT_NOTIFICATION("OnHashChange")
 				:Times(0)
-				DelayedExp(1000)
+				commonTestCases:DelayedExp(1000)
 			end
 	-----------------------------------------------------------------------------------------
 
@@ -2253,7 +2247,7 @@ local	function performInteractionAllParams()
 								 cmdID = 11,
 								 cmdIcon =
 										{
-										 value = PathToAppFolder.."icon.png",
+										 value = pathToAppFolder.."icon.png",
 										 imageType = "DYNAMIC"
 										},
 								menuParams =
@@ -2322,7 +2316,7 @@ local	function performInteractionAllParams()
 								cmdID = 0,
 								cmdIcon =
 									{
-									 value = PathToAppFolder.."icon.png",
+									 value = pathToAppFolder.."icon.png",
 									 imageType = "DYNAMIC",
 									},
 								menuParams =
@@ -2385,7 +2379,7 @@ local	function performInteractionAllParams()
 									cmdID = 2000000000,
 									cmdIcon =
 										{
-										 value = PathToAppFolder.."icon.png",
+										 value = pathToAppFolder.."icon.png",
 										 imageType ="DYNAMIC"
 										},
 									menuParams =
@@ -2451,7 +2445,7 @@ local	function performInteractionAllParams()
 				EXPECT_HMICALL("UI.AddCommand")
 				:Times(0)
 
-				DelayedExp(1000)
+				commonTestCases:DelayedExp(1000)
 
 			    EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
 
@@ -2492,7 +2486,7 @@ local	function performInteractionAllParams()
                  	--hmi side: expect VR.AddCommand request is not sent
 				EXPECT_HMICALL("VR.AddCommand")
 				:Times(0)
-				DelayedExp(1000)
+				commonTestCases:DelayedExp(1000)
 
 				--mobile side: expect AddCommand response
 				EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
@@ -2563,7 +2557,7 @@ local	function performInteractionAllParams()
 				--mobile side: expect OnHashChange notification is not send to mobile
 				EXPECT_NOTIFICATION("OnHashChange")
 				:Times(0)
-				DelayedExp(1000)
+				commonTestCases:DelayedExp(1000)
 			end
 
 	-----------------------------------------------------------------------------------------
@@ -2586,7 +2580,7 @@ local	function performInteractionAllParams()
 				--mobile side: expect OnHashChange notification is not send to mobile
 				EXPECT_NOTIFICATION("OnHashChange")
 				:Times(0)
-				DelayedExp(1000)
+				commonTestCases:DelayedExp(1000)
 			end
 
 	-----------------------------------------------------------------------------------------
@@ -2614,7 +2608,7 @@ local	function performInteractionAllParams()
 				--mobile side: expect OnHashChange notification is not send to mobile
 				EXPECT_NOTIFICATION("OnHashChange")
 				:Times(0)
-				DelayedExp(1000)
+				commonTestCases:DelayedExp(1000)
 			end
 
 	---------------------------------------------------------------------------------------
@@ -2629,7 +2623,7 @@ local	function performInteractionAllParams()
 				--mobile side: expect OnHashChange notification is not send to mobile
 				EXPECT_NOTIFICATION("OnHashChange")
 				:Times(0)
-				DelayedExp(1000)
+				commonTestCases:DelayedExp(1000)
 			end
 
 
@@ -2662,7 +2656,7 @@ local	function performInteractionAllParams()
 											},
 								cmdIcon =
 											{
-											 value = PathToAppFolder.."icon.png",
+											 value = pathToAppFolder.."icon.png",
 											 imageType ="DYNAMIC"
 											}
 								})
@@ -2750,7 +2744,7 @@ local	function performInteractionAllParams()
 				--mobile side: expect OnHashChange notification is not send to mobile
 				EXPECT_NOTIFICATION("OnHashChange")
 				:Times(0)
-				DelayedExp(1000)
+				commonTestCases:DelayedExp(1000)
 			end
 
 	-----------------------------------------------------------------------------------------
@@ -2773,7 +2767,7 @@ local	function performInteractionAllParams()
 				--mobile side: expect OnHashChange notification
 				EXPECT_NOTIFICATION("OnHashChange")
 				:Times(0)
-				DelayedExp(1000)
+				commonTestCases:DelayedExp(1000)
 			end
 
 	-----------------------------------------------------------------------------------------
@@ -2796,7 +2790,7 @@ local	function performInteractionAllParams()
 				--mobile side: expect OnHashChange notification
 				EXPECT_NOTIFICATION("OnHashChange")
 				:Times(0)
-				DelayedExp(1000)
+				commonTestCases:DelayedExp(1000)
 			end
 
 	-----------------------------------------------------------------------------------------
@@ -3037,7 +3031,7 @@ local	function performInteractionAllParams()
 				--mobile side: expect OnHashChange notification is not send to mobile
 				EXPECT_NOTIFICATION("OnHashChange")
 				:Times(0)
-				DelayedExp(1000)
+				commonTestCases:DelayedExp(1000)
 			end
 
 	---------------------------------------------------------------------------------------
@@ -3056,7 +3050,7 @@ local	function performInteractionAllParams()
 				--mobile side: expect OnHashChange notification is not send to mobile
 				EXPECT_NOTIFICATION("OnHashChange")
 				:Times(0)
-				DelayedExp(1000)
+				commonTestCases:DelayedExp(1000)
 			end
 
 	--End Test suit DeleteCommand
@@ -3214,7 +3208,7 @@ local	function performInteractionAllParams()
 				--mobile side: expect OnHashChange notification is not send to mobile
 				 EXPECT_NOTIFICATION("OnHashChange")
 				 :Times(0)
-				 DelayedExp(1000)
+				 commonTestCases:DelayedExp(1000)
 		    end
 
 	-----------------------------------------------------------------------------------------
@@ -3232,7 +3226,7 @@ local	function performInteractionAllParams()
 				--mobile side: expect OnHashChange notification is not send to mobile
 				EXPECT_NOTIFICATION("OnHashChange")
 				:Times(0)
-				DelayedExp(1000)
+				commonTestCases:DelayedExp(1000)
 
 			end
 
@@ -3323,39 +3317,7 @@ local	function performInteractionAllParams()
 										}
 									}
 
-				PositiveChoiceSets = {
-
-									{
-									choiceID = 1001,
-									menuName ="Choice1001",
-									image =
-											{
-											value = PathToAppFolder .. "icon.png",
-											imageType ="DYNAMIC",
-											}
-									},
-									{
-									choiceID = 1002,
-									menuName ="Choice1002",
-									image =
-											{
-											value = PathToAppFolder .. "icon.png",
-											imageType ="DYNAMIC",
-											}
-									},
-									{
-									choiceID = 103,
-									menuName ="Choice103",
-									image =
-											{
-											value = PathToAppFolder .. "icon.png",
-											imageType ="DYNAMIC",
-											}
-									}
-								}
-
-
-				if NavigationType then
+				if Test.appHMITypes["NAVIGATION"] then
 					for i=1, #sentParam.choiceSet do
 						sentParam.choiceSet[i].secondaryText = "secondaryText" ..tostring(i)
 						sentParam.choiceSet[i].tertiaryText = "tertiaryText" .. tostring(i)
@@ -3364,11 +3326,11 @@ local	function performInteractionAllParams()
 																	imageType = "DYNAMIC"
 																}
 
-						PositiveChoiceSets[i].secondaryText = sentParam.choiceSet[i].secondaryText
-						PositiveChoiceSets[i].tertiaryText = sentParam.choiceSet[i].tertiaryText
+						positiveChoiceSets[i].secondaryText = sentParam.choiceSet[i].secondaryText
+						positiveChoiceSets[i].tertiaryText = sentParam.choiceSet[i].tertiaryText
 
-						PositiveChoiceSets[i].secondaryImage = {
-																	value = PathToAppFolder .. "icon.png",
+						positiveChoiceSets[i].secondaryImage = {
+																	value = pathToAppFolder .. "icon.png",
 																	imageType ="DYNAMIC",
 																}
 					end
@@ -3496,7 +3458,7 @@ local	function performInteractionAllParams()
 									}
 								}
 
-				if NavigationType then
+				if Test.appHMITypes["NAVIGATION"] then
 					for i=1, #sentParam.choiceSet do
 						sentParam.choiceSet[i].secondaryText = "secondaryText_ChoiceSetIDMissing" ..tostring(i)
 						sentParam.choiceSet[i].tertiaryText = "tertiaryText_ChoiceSetIDMissing" .. tostring(i)
@@ -3516,7 +3478,7 @@ local	function performInteractionAllParams()
 				--mobile side: expect OnHashChange notification is not send to mobile
 				EXPECT_NOTIFICATION("OnHashChange")
 				:Times(0)
-				DelayedExp(1000)
+				commonTestCases:DelayedExp(1000)
 
 			end
 	---------------------------------------------------------------------------------------
@@ -3535,7 +3497,7 @@ local	function performInteractionAllParams()
 				--mobile side: expect OnHashChange notification is not sent to mobile
 				EXPECT_NOTIFICATION("OnHashChange")
 				:Times(0)
-				DelayedExp(1000)
+				commonTestCases:DelayedExp(1000)
 			end
 
 	-----------------------------------------------------------------------------------------
@@ -3563,7 +3525,7 @@ local	function performInteractionAllParams()
 									}
 								}
 
-				if NavigationType then
+				if Test.appHMITypes["NAVIGATION"] then
 					for i=1, #sentParam.choiceSet do
 						sentParam.choiceSet[i].secondaryText = "secondaryText_ChoiceIDMissing" ..tostring(i)
 						sentParam.choiceSet[i].tertiaryText = "tertiaryText_ChoiceIDMissing" .. tostring(i)
@@ -3583,7 +3545,7 @@ local	function performInteractionAllParams()
 				--mobile side: expect OnHashChange notification is not send to mobile
 				EXPECT_NOTIFICATION("OnHashChange")
 				:Times(0)
-				DelayedExp(1000)
+				commonTestCases:DelayedExp(1000)
 			end
 
 	-----------------------------------------------------------------------------------------
@@ -3611,7 +3573,7 @@ local	function performInteractionAllParams()
 									}
 								}
 
-				if NavigationType then
+				if Test.appHMITypes["NAVIGATION"] then
 					for i=1, #sentParam.choiceSet do
 						sentParam.choiceSet[i].secondaryText = "secondaryText_menuNameDMissing" ..tostring(i)
 						sentParam.choiceSet[i].tertiaryText = "tertiaryText_menuNameMissing" .. tostring(i)
@@ -3631,7 +3593,7 @@ local	function performInteractionAllParams()
 				--mobile side: expect OnHashChange notification is not send to mobile
 				EXPECT_NOTIFICATION("OnHashChange")
 				:Times(0)
-				DelayedExp(1000)
+				commonTestCases:DelayedExp(1000)
 			end
 
 	---------------------------------------------------------------------------------------
@@ -3659,7 +3621,7 @@ local	function performInteractionAllParams()
 				--mobile side: expect OnHashChange notification is not send to mobile
 				EXPECT_NOTIFICATION("OnHashChange")
 				:Times(0)
-				DelayedExp(1000)
+				commonTestCases:DelayedExp(1000)
 
 		    end
 
@@ -3676,7 +3638,7 @@ local	function performInteractionAllParams()
 				--mobile side: expect OnHashChange notification is not send to mobile
 				EXPECT_NOTIFICATION("OnHashChange")
 				:Times(0)
-				DelayedExp(1000)
+				commonTestCases:DelayedExp(1000)
 			end
 
 
@@ -3706,7 +3668,7 @@ local	function performInteractionAllParams()
 									}
 								}
 
-				if NavigationType then
+				if Test.appHMITypes["NAVIGATION"] then
 					for i=1, #sentParam.choiceSet do
 						sentParam.choiceSet[i].secondaryText = "secondaryText_Dynamic" ..tostring(i)
 						sentParam.choiceSet[i].tertiaryText = "tertiaryText_Dynamic" .. tostring(i)
@@ -3775,7 +3737,7 @@ local	function performInteractionAllParams()
 										}
 									}
 
-				if NavigationType then
+				if Test.appHMITypes["NAVIGATION"] then
 					for i=1, #sentParam.choiceSet do
 						sentParam.choiceSet[i].secondaryText = "secondaryText_Static" ..tostring(i)
 						sentParam.choiceSet[i].tertiaryText = "tertiaryText_Static" .. tostring(i)
@@ -3851,7 +3813,7 @@ local	function performInteractionAllParams()
 					--mobile side: expect OnHashChange notification is not send to mobile
 					EXPECT_NOTIFICATION("OnHashChange")
 					:Times(0)
-					DelayedExp(1000)
+					commonTestCases:DelayedExp(1000)
 				end
 
 	-----------------------------------------------------------------------------------------
@@ -3947,7 +3909,7 @@ local	function performInteractionAllParams()
 											}
 										}
 
-				if NavigationType then
+				if Test.appHMITypes["NAVIGATION"] then
 					for i=1, #sentParam.choiceSet do
 						sentParam.choiceSet[i].secondaryText = "secondaryText_ChoiceIDAlreadyExistinChoiceSet" ..tostring(i)
 						sentParam.choiceSet[i].tertiaryText = "tertiaryText_ChoiceIDAlreadyExistinChoiceSet" .. tostring(i)
@@ -3968,7 +3930,7 @@ local	function performInteractionAllParams()
 				--mobile side: expect OnHashChange notification is not send to mobile
 				EXPECT_NOTIFICATION("OnHashChange")
 				:Times(0)
-				DelayedExp(1000)
+				commonTestCases:DelayedExp(1000)
 			end
 
 	---------------------------------------------------------------------------------------
@@ -4024,7 +3986,7 @@ local	function performInteractionAllParams()
 								}
 
 
-				if NavigationType then
+				if Test.appHMITypes["NAVIGATION"] then
 					for i=1, #sentParam.choiceSet do
 						sentParam.choiceSet[i].secondaryText = "secondaryText_menuNameAlreadyExistWithinOneChoiceSet" ..tostring(i)
 						sentParam.choiceSet[i].tertiaryText = "tertiaryText_menuNameAlreadyExistWithinOneChoiceSet" .. tostring(i)
@@ -4045,7 +4007,7 @@ local	function performInteractionAllParams()
 				--mobile side: expect OnHashChange notification is not send to mobile
 				EXPECT_NOTIFICATION("OnHashChange")
 				:Times(0)
-                DelayedExp(1000)
+                commonTestCases:DelayedExp(1000)
 			end
 
 	---------------------------------------------------------------------------------------
@@ -4070,7 +4032,7 @@ local	function performInteractionAllParams()
 									}
 
 
-				if NavigationType then
+				if Test.appHMITypes["NAVIGATION"] then
 					for i=1, #sentParam.choiceSet do
 						sentParam.choiceSet[i].secondaryText = "secondaryText_menuNameAlreadyExistWithinDifferenChoiceSets" ..tostring(i)
 						sentParam.choiceSet[i].tertiaryText = "tertiaryText_menuNameAlreadyExistWithinDifferenChoiceSets" .. tostring(i)
@@ -4152,7 +4114,7 @@ local	function performInteractionAllParams()
 								}
 
 
-				if NavigationType then
+				if Test.appHMITypes["NAVIGATION"] then
 					for i=1, #sentParam.choiceSet do
 						sentParam.choiceSet[i].secondaryText = "secondaryText_vrCommandsDuplicateInsideChoiceSet" ..tostring(i)
 						sentParam.choiceSet[i].tertiaryText = "tertiaryText_vrCommandsDuplicateInsideChoiceSet" .. tostring(i)
@@ -4173,7 +4135,7 @@ local	function performInteractionAllParams()
 				EXPECT_NOTIFICATION("OnHashChange")
 					:Times(0)
 
-				DelayedExp(1000)
+				commonTestCases:DelayedExp(1000)
 			end
 	---------------------------------------------------------------------------------------
 
@@ -4197,7 +4159,7 @@ local	function performInteractionAllParams()
 								}
 
 
-				if NavigationType then
+				if Test.appHMITypes["NAVIGATION"] then
 					for i=1, #sentParam.choiceSet do
 						sentParam.choiceSet[i].secondaryText = "secondaryText_vrCommandsDuplicateWithinDifferenChoiceSets" ..tostring(i)
 						sentParam.choiceSet[i].tertiaryText = "tertiaryText_vrCommandsDuplicateWithinDifferenChoiceSets" .. tostring(i)
@@ -4312,7 +4274,7 @@ local	function performInteractionAllParams()
 				paramsSend.interactionChoiceSetIDList = {1001}
 
 
-				performInteraction_withChoice(self, paramsSend, PositiveChoiceSets, 1001, self.applications[config.application1.registerAppInterfaceParams.appName] )
+				performInteraction_withChoice(self, paramsSend, positiveChoiceSets, 1001, self.applications[config.application1.registerAppInterfaceParams.appName] )
 
 			end
 
@@ -4325,7 +4287,7 @@ local	function performInteractionAllParams()
 				paramsSend.interactionMode = "BOTH"
 				paramsSend.interactionChoiceSetIDList = {1001}
 
-				performInteraction_withChoice(self, paramsSend, PositiveChoiceSets, 1001, self.applications[config.application1.registerAppInterfaceParams.appName] )
+				performInteraction_withChoice(self, paramsSend, positiveChoiceSets, 1001, self.applications[config.application1.registerAppInterfaceParams.appName] )
 
 			end
 
@@ -4340,7 +4302,7 @@ local	function performInteractionAllParams()
 									 	interactionChoiceSetIDList = {1001}
 									}
 
-				performInteraction_withChoice(self, paramsSend, PositiveChoiceSets, 1001, self.applications[config.application1.registerAppInterfaceParams.appName] )
+				performInteraction_withChoice(self, paramsSend, positiveChoiceSets, 1001, self.applications[config.application1.registerAppInterfaceParams.appName] )
 
 			end
 	---------------------------------------------------------------------------------------
@@ -4354,7 +4316,7 @@ local	function performInteractionAllParams()
 									 	interactionChoiceSetIDList = {1001}
 									}
 
-				performInteraction_withChoice(self, paramsSend, PositiveChoiceSets, 1001, self.applications[config.application1.registerAppInterfaceParams.appName] )
+				performInteraction_withChoice(self, paramsSend, positiveChoiceSets, 1001, self.applications[config.application1.registerAppInterfaceParams.appName] )
 
 			end
 
@@ -4369,7 +4331,7 @@ local	function performInteractionAllParams()
 									 	interactionChoiceSetIDList = {1001}
 									}
 
-				performInteraction_withChoice(self, paramsSend, PositiveChoiceSets, 1001, self.applications[config.application1.registerAppInterfaceParams.appName] )
+				performInteraction_withChoice(self, paramsSend, positiveChoiceSets, 1001, self.applications[config.application1.registerAppInterfaceParams.appName] )
 
 			end
 
@@ -4415,7 +4377,7 @@ local	function performInteractionAllParams()
 
 	-----------------------------------------------------------------------------------------
 
-		if NavigationType then
+		if Test.appHMITypes["NAVIGATION"] then
 		--Test case is for navigation app only
 		--Description: Different interactionLayout : ICON_ONLY, ICON_WITH_SEARCH, LIST_ONLY, LIST_WITH_SEARCH, KEYBOARD
 		-- "ICON_ONLY" SKIPPED, already covered
@@ -4425,7 +4387,7 @@ local	function performInteractionAllParams()
 					local params = performInteractionAllParams()
 					params.interactionLayout = LayoutModeArray[i]
 
-					performInteraction_ViaBOTHTimedOut(self, params, nil, PositiveChoiceSets)
+					performInteraction_ViaBOTHTimedOut(self, params, nil, positiveChoiceSets)
 				end
 			end
 		end
@@ -4439,12 +4401,12 @@ local	function performInteractionAllParams()
 									text = "New VR Help",
 									position = 1,
 									image = 	{
-													value = PathToAppFolder .. "icon.png",
+													value = pathToAppFolder .. "icon.png",
 													imageType = "DYNAMIC",
 												}
 								}}
 
-				performInteraction_ViaBOTHTimedOut(self, params, nil, PositiveChoiceSets)
+				performInteraction_ViaBOTHTimedOut(self, params, nil, positiveChoiceSets)
 			end
 
 	---------------------------------------------------------------------------------------
@@ -4480,7 +4442,7 @@ local	function performInteractionAllParams()
 										menuName ="Choice1001",
 										image =
 												{
-												value = PathToAppFolder .. "icon.png",
+												value = pathToAppFolder .. "icon.png",
 												imageType ="DYNAMIC",
 												}
 										},
@@ -4489,7 +4451,7 @@ local	function performInteractionAllParams()
 										menuName ="Choice1002",
 										image =
 												{
-												value = PathToAppFolder .. "icon.png",
+												value = pathToAppFolder .. "icon.png",
 												imageType ="DYNAMIC",
 												}
 										},
@@ -4498,7 +4460,7 @@ local	function performInteractionAllParams()
 										menuName ="Choice103",
 										image =
 												{
-												value = PathToAppFolder .. "icon.png",
+												value = pathToAppFolder .. "icon.png",
 												imageType ="DYNAMIC",
 												}
 										}
@@ -4513,12 +4475,12 @@ local	function performInteractionAllParams()
 								})
 				:Do(function(_,data)
 					--Choice icon list is displayed
-					SendOnSystemContext(self,"HMI_OBSCURED")
+					sendOnSystemContext(self,"HMI_OBSCURED")
 
 					--hmi side: send UI.PerformInteraction response
 					local function uiResponse()
 						self.hmiConnection:SendError(data.id, data.method, "UNSUPPORTED_RESOURCE", " Image is not supported")
-						SendOnSystemContext(self,"MAIN")
+						sendOnSystemContext(self,"MAIN")
 					end
 					RUN_AFTER(uiResponse, 20)
 				end)
@@ -4527,7 +4489,7 @@ local	function performInteractionAllParams()
 				local audioStreamingStateValue
 				if
 					self.isMediaApplication == true or
-					NavigationType == true then
+					Test.appHMITypes["NAVIGATION"] == true then
 						audioStreamingStateValue = "AUDIBLE"
 
 				elseif
@@ -4579,7 +4541,7 @@ local	function performInteractionAllParams()
 										menuName ="Choice1001",
 										image =
 												{
-												value = PathToAppFolder .. "icon.png",
+												value = pathToAppFolder .. "icon.png",
 												imageType ="DYNAMIC",
 												}
 										},
@@ -4588,7 +4550,7 @@ local	function performInteractionAllParams()
 										menuName ="Choice1002",
 										image =
 												{
-												value = PathToAppFolder .. "icon.png",
+												value = pathToAppFolder .. "icon.png",
 												imageType ="DYNAMIC",
 												}
 										},
@@ -4597,7 +4559,7 @@ local	function performInteractionAllParams()
 										menuName ="Choice103",
 										image =
 												{
-												value = PathToAppFolder .. "icon.png",
+												value = pathToAppFolder .. "icon.png",
 												imageType ="DYNAMIC",
 												}
 										}
@@ -4612,12 +4574,12 @@ local	function performInteractionAllParams()
 				})
 				:Do(function(_,data)
 					--Choice icon list is displayed
-					SendOnSystemContext(self,"HMI_OBSCURED")
+					sendOnSystemContext(self,"HMI_OBSCURED")
 
 					--hmi side: send UI.PerformInteraction response
 					local function uiResponse()
 						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", { choiceID = 1001 })
-						SendOnSystemContext(self,"MAIN")
+						sendOnSystemContext(self,"MAIN")
 					end
 					RUN_AFTER(uiResponse, 20)
 				end)
@@ -4626,7 +4588,7 @@ local	function performInteractionAllParams()
 				local audioStreamingStateValue
 				if
 					self.isMediaApplication == true or
-					NavigationType == true then
+					Test.appHMITypes["NAVIGATION"] == true then
 						audioStreamingStateValue = "AUDIBLE"
 
 				elseif
@@ -4796,7 +4758,7 @@ local	function performInteractionAllParams()
 				--mobile side: expect OnHashChange notification is not send to mobile
 				EXPECT_NOTIFICATION("OnHashChange")
 				:Times(0)
-				DelayedExp(1000)
+				commonTestCases:DelayedExp(1000)
 			end
 
 	-----------------------------------------------------------------------------------------
@@ -4815,7 +4777,7 @@ local	function performInteractionAllParams()
 				--mobile side: expect OnHashChange notification is not send to mobile
 				EXPECT_NOTIFICATION("OnHashChange")
 				:Times(0)
-				DelayedExp(1000)
+				commonTestCases:DelayedExp(1000)
 			end
 	---------------------------------------------------------------------------------------
 
@@ -4872,7 +4834,7 @@ local	function performInteractionAllParams()
 				EXPECT_NOTIFICATION("OnHashChange")
 					:Times(0)
 
-				DelayedExp(1000)
+				commonTestCases:DelayedExp(1000)
 			end
 
 	--Begin Test suit DeleteInteractionChoiceSet
@@ -4994,7 +4956,7 @@ local	function performInteractionAllParams()
 										text = "Close",
 										image =
 										{
-											value = PathToAppFolder .. "icon.png",
+											value = pathToAppFolder .. "icon.png",
 											imageType = "DYNAMIC",
 										},
 										isHighlighted = true,
@@ -5014,7 +4976,7 @@ local	function performInteractionAllParams()
 										type = "IMAGE",
 										image =
 										{
-											value = PathToAppFolder .. "icon.png",
+											value = pathToAppFolder .. "icon.png",
 											imageType = "DYNAMIC",
 										},
 										softButtonID = 5,
@@ -5023,13 +4985,13 @@ local	function performInteractionAllParams()
 								}
 							})
 					:Do(function(_,data)
-						SendOnSystemContext(self,"ALERT")
+						sendOnSystemContext(self,"ALERT")
 						AlertId = data.id
 
 						local function alertResponse()
 							self.hmiConnection:SendResponse(AlertId, "UI.Alert", "SUCCESS", { })
 
-							SendOnSystemContext(self,"MAIN")
+							sendOnSystemContext(self,"MAIN")
 						end
 
 						RUN_AFTER(alertResponse, 3000)
@@ -5077,12 +5039,12 @@ local	function performInteractionAllParams()
 					:Times(0)
 
 				--mobile side: OnHMIStatus notification
-				ExpectOnHMIStatusWithAudioStateChangedAlert(self)
+				expectOnHMIStatusWithAudioStateChangedAlert(self)
 
 			    --mobile side: Alert response
 			    EXPECT_RESPONSE(CorIdAlert, { success = true, resultCode = "SUCCESS" })
 
-			    DelayedExp(1000)
+			    commonTestCases:DelayedExp(1000)
 
 		end
 
@@ -5119,13 +5081,13 @@ local	function performInteractionAllParams()
 							duration = 5000,
 						})
 				:Do(function(_,data)
-					SendOnSystemContext(self,"ALERT")
+					sendOnSystemContext(self,"ALERT")
 					AlertId = data.id
 
 					local function alertResponse()
 						self.hmiConnection:SendResponse(AlertId, "UI.Alert", "SUCCESS", { })
 
-						SendOnSystemContext(self,"MAIN")
+						sendOnSystemContext(self,"MAIN")
 					end
 
 					RUN_AFTER(alertResponse, 3000)
@@ -5167,12 +5129,12 @@ local	function performInteractionAllParams()
 				end)
 
 				--mobile side: OnHMIStatus notifications
-				ExpectOnHMIStatusWithAudioStateChangedAlert(self)
+				expectOnHMIStatusWithAudioStateChangedAlert(self)
 
 			    --mobile side: Alert response
 			    EXPECT_RESPONSE(CorIdAlert, { success = true, resultCode = "SUCCESS" })
 
-			    DelayedExp(1000)
+			    commonTestCases:DelayedExp(1000)
 			end
 
 	-----------------------------------------------------------------------------------------
@@ -5295,7 +5257,7 @@ local	function performInteractionAllParams()
 								type = "BOTH",
 								image =
 									{
-										value = PathToAppFolder .. "icon.png",
+										value = pathToAppFolder .. "icon.png",
 										imageType = "DYNAMIC",
 									},
 								isHighlighted = true,
@@ -5305,13 +5267,13 @@ local	function performInteractionAllParams()
 						}
 					})
 					:Do(function(_,data)
-						SendOnSystemContext(self,"ALERT")
+						sendOnSystemContext(self,"ALERT")
 						AlertId = data.id
 
 						local function alertResponse()
 							self.hmiConnection:SendError(AlertId, "UI.Alert", "ABORTED", "Alert is aborted")
 
-							SendOnSystemContext(self,"MAIN")
+							sendOnSystemContext(self,"MAIN")
 						end
 
 						RUN_AFTER(alertResponse, 30000)
@@ -5413,13 +5375,13 @@ local	function performInteractionAllParams()
 					}
 				})
 				:Do(function(_,data)
-					SendOnSystemContext(self,"ALERT")
+					sendOnSystemContext(self,"ALERT")
 					AlertId = data.id
 
 					local function alertResponse()
 						self.hmiConnection:SendError(AlertId, "UI.Alert", "ABORTED", "Alert is aborted")
 
-						SendOnSystemContext(self,"MAIN")
+						sendOnSystemContext(self,"MAIN")
 					end
 
 					RUN_AFTER(alertResponse, 30000)
@@ -5502,13 +5464,13 @@ local	function performInteractionAllParams()
 							}
 							)
 					:Do(function(_,data)
-						SendOnSystemContext(self,"ALERT")
+						sendOnSystemContext(self,"ALERT")
 						AlertId = data.id
 
 						local function alertResponse()
 							self.hmiConnection:SendResponse(AlertId, "UI.Alert", "SUCCESS", { })
 
-							SendOnSystemContext(self,"MAIN")
+							sendOnSystemContext(self,"MAIN")
 						end
 
 						RUN_AFTER(alertResponse, 2900)
@@ -5583,13 +5545,13 @@ local	function performInteractionAllParams()
 					--hmi side: UI.Alert request
 					EXPECT_HMICALL("UI.Alert", {})
 					:Do(function(_,data)
-						SendOnSystemContext(self,"ALERT")
+						sendOnSystemContext(self,"ALERT")
 						AlertId = data.id
 
 						local function alertResponse()
 							self.hmiConnection:SendResponse(AlertId, "UI.Alert", "SUCCESS", { })
 
-							SendOnSystemContext(self,"MAIN")
+							sendOnSystemContext(self,"MAIN")
 						end
 
 						RUN_AFTER(alertResponse, 2000)
@@ -5656,13 +5618,13 @@ local	function performInteractionAllParams()
 							progressIndicator = progressIndicatorValue[i]
 						})
 					:Do(function(_,data)
-						SendOnSystemContext(self,"ALERT")
+						sendOnSystemContext(self,"ALERT")
 						AlertId = data.id
 
 						local function alertResponse()
 							self.hmiConnection:SendResponse(AlertId, "UI.Alert", "SUCCESS", { })
 
-							SendOnSystemContext(self,"MAIN")
+							sendOnSystemContext(self,"MAIN")
 						end
 
 						RUN_AFTER(alertResponse, 2000)
@@ -6018,7 +5980,7 @@ local	function performInteractionAllParams()
 		          EXPECT_NOTIFICATION("OnHMIStatus")
 		            :Times(0)
 
-		          DelayedExp()
+		          commonTestCases:DelayedExp()
 		        end
 
 				--mobile side: expect the response
@@ -6563,17 +6525,17 @@ local	function performInteractionAllParams()
 	---------------------------------------------------------------------------------------------
 
 		-- Description: SubscribeButton: All parameters
-		  	for i=1,#ButtonArray do
-			    Test["Case_SubscribeButtonAllPAramsTest_" .. tostring(ButtonArray[i])] = function(self)
+		  	for i=1,#buttonArray do
+			    Test["Case_SubscribeButtonAllPAramsTest_" .. tostring(buttonArray[i])] = function(self)
 			      local CorIdSubscribeButtonAllPAramsVD = self.mobileSession:SendRPC("SubscribeButton",
 			        {
-			          buttonName = ButtonArray[i]
+			          buttonName = buttonArray[i]
 			        })
 
 
 			      if self.isMediaApplication == true then
 				      	--expect Buttons.OnButtonSubscription
-				      	EXPECT_HMINOTIFICATION("Buttons.OnButtonSubscription", {name = ButtonArray[i], isSubscribed = true, appID = self.applications[applicationName]})
+				      	EXPECT_HMINOTIFICATION("Buttons.OnButtonSubscription", {name = buttonArray[i], isSubscribed = true, appID = self.applications[applicationName]})
 
 				      	--mobile side: expect SubscribeButton response
 				      	self.mobileSession:ExpectResponse(CorIdSubscribeButtonAllPAramsVD, { success = true, resultCode = "SUCCESS"})
@@ -6581,10 +6543,10 @@ local	function performInteractionAllParams()
 				      	EXPECT_NOTIFICATION("OnHashChange")
 				  else
 				  	if
-				  		ButtonArray[i] == "SEEKLEFT" or
-				  		ButtonArray[i] == "SEEKRIGHT" or
-				  		ButtonArray[i] == "TUNEUP" or
-				  		ButtonArray[i] == "TUNEDOWN" then
+				  		buttonArray[i] == "SEEKLEFT" or
+				  		buttonArray[i] == "SEEKRIGHT" or
+				  		buttonArray[i] == "TUNEUP" or
+				  		buttonArray[i] == "TUNEDOWN" then
 				  			--mobile side: expect SubscribeButton response
 				      		self.mobileSession:ExpectResponse(CorIdSubscribeButtonAllPAramsVD, { success = false, resultCode = "REJECTED"})
 
@@ -6595,10 +6557,10 @@ local	function performInteractionAllParams()
 				      		EXPECT_HMINOTIFICATION("Buttons.OnButtonSubscription")
 				      			:Times(0)
 
-				      		DelayedExp(1000)
+				      		commonTestCases:DelayedExp(1000)
 				  	else
 				  		--expect Buttons.OnButtonSubscription
-				      	EXPECT_HMINOTIFICATION("Buttons.OnButtonSubscription", {name = ButtonArray[i], isSubscribed = true, appID = self.applications[applicationName]})
+				      	EXPECT_HMINOTIFICATION("Buttons.OnButtonSubscription", {name = buttonArray[i], isSubscribed = true, appID = self.applications[applicationName]})
 
 				  		--mobile side: expect SubscribeButton response
 				      	self.mobileSession:ExpectResponse(CorIdSubscribeButtonAllPAramsVD, { success = true, resultCode = "SUCCESS"})
@@ -6624,18 +6586,18 @@ local	function performInteractionAllParams()
 		      EXPECT_NOTIFICATION("OnHashChange")
 		      :Times(0)
 
-			  DelayedExp(1000)
+			  commonTestCases:DelayedExp(1000)
 		    end
 	---------------------------------------------------------------------------------------------
 
 		-- Description:SubscribeButton: Subscribe already subscribed
-			for i=1,#ButtonArray do
-		        Test["SubscribeButton_Alreadysubscribed_" .. tostring(ButtonArray[i])..""] = function(self)
+			for i=1,#buttonArray do
+		        Test["SubscribeButton_Alreadysubscribed_" .. tostring(buttonArray[i])..""] = function(self)
 
 		          --mobile side: sending SubscribeButton request
 		          local cid = self.mobileSession:SendRPC("SubscribeButton",
 		            {
-		              buttonName = ButtonArray[i]
+		              buttonName = buttonArray[i]
 		            }
 		          )
 
@@ -6649,10 +6611,10 @@ local	function performInteractionAllParams()
 				      	self.mobileSession:ExpectResponse(cid, { success = false, resultCode = "IGNORED"})
 				  else
 				  	if
-				  		ButtonArray[i] == "SEEKLEFT" or
-				  		ButtonArray[i] == "SEEKRIGHT" or
-				  		ButtonArray[i] == "TUNEUP" or
-				  		ButtonArray[i] == "TUNEDOWN" then
+				  		buttonArray[i] == "SEEKLEFT" or
+				  		buttonArray[i] == "SEEKRIGHT" or
+				  		buttonArray[i] == "TUNEUP" or
+				  		buttonArray[i] == "TUNEDOWN" then
 				  			--mobile side: expect SubscribeButton response
 				      		self.mobileSession:ExpectResponse(cid, { success = false, resultCode = "REJECTED"})
 				  	else
@@ -6664,7 +6626,7 @@ local	function performInteractionAllParams()
 		          EXPECT_NOTIFICATION("OnHashChange")
 		          :Times(0)
 
-		          DelayedExp(1000)
+		          commonTestCases:DelayedExp(1000)
 		        end
 
 		      end
@@ -6698,17 +6660,17 @@ local	function performInteractionAllParams()
 	---------------------------------------------------------------------------------------------
 		-- Description: UnsubscribeButton: All parameters
 
-		  	for i=1,#ButtonArray do
-			    Test["Case_UnsubscribeButtonAllPAramsTest_" .. tostring(ButtonArray[i])] = function(self)
+		  	for i=1,#buttonArray do
+			    Test["Case_UnsubscribeButtonAllPAramsTest_" .. tostring(buttonArray[i])] = function(self)
 			      local CorIdUnSubscribeButton = self.mobileSession:SendRPC("UnsubscribeButton",
 			        {
-			          buttonName = ButtonArray[i]
+			          buttonName = buttonArray[i]
 			        })
 
 
 			       if self.isMediaApplication == true then
 				      	--expect Buttons.OnButtonSubscription
-				      	EXPECT_HMINOTIFICATION("Buttons.OnButtonSubscription", {name = ButtonArray[i], isSubscribed = false, appID = self.applications[applicationName]})
+				      	EXPECT_HMINOTIFICATION("Buttons.OnButtonSubscription", {name = buttonArray[i], isSubscribed = false, appID = self.applications[applicationName]})
 
 				      	--mobile side: expect SubscribeButton response
 				      	self.mobileSession:ExpectResponse(CorIdUnSubscribeButton, { success = true, resultCode = "SUCCESS"})
@@ -6716,10 +6678,10 @@ local	function performInteractionAllParams()
 				      	EXPECT_NOTIFICATION("OnHashChange")
 				  else
 				  	if
-				  		ButtonArray[i] == "SEEKLEFT" or
-				  		ButtonArray[i] == "SEEKRIGHT" or
-				  		ButtonArray[i] == "TUNEUP" or
-				  		ButtonArray[i] == "TUNEDOWN" then
+				  		buttonArray[i] == "SEEKLEFT" or
+				  		buttonArray[i] == "SEEKRIGHT" or
+				  		buttonArray[i] == "TUNEUP" or
+				  		buttonArray[i] == "TUNEDOWN" then
 					  		--mobile side: expect SubscribeButton response
 					      	self.mobileSession:ExpectResponse(CorIdUnSubscribeButton, { success = false, resultCode = "IGNORED"})
 
@@ -6730,10 +6692,10 @@ local	function performInteractionAllParams()
 					      	EXPECT_HMINOTIFICATION("Buttons.OnButtonSubscription")
 					      		:Times(0)
 
-					      	DelayedExp(1000)
+					      	commonTestCases:DelayedExp(1000)
 				  	else
 				  		--expect Buttons.OnButtonSubscription
-				      	EXPECT_HMINOTIFICATION("Buttons.OnButtonSubscription", {name = ButtonArray[i], isSubscribed = false, appID = self.applications[applicationName]})
+				      	EXPECT_HMINOTIFICATION("Buttons.OnButtonSubscription", {name = buttonArray[i], isSubscribed = false, appID = self.applications[applicationName]})
 
 				  		--mobile side: expect SubscribeButton response
 				      	self.mobileSession:ExpectResponse(CorIdUnSubscribeButton, { success = true, resultCode = "SUCCESS"})
@@ -6759,18 +6721,18 @@ local	function performInteractionAllParams()
 		      EXPECT_NOTIFICATION("OnHashChange")
 		      :Times(0)
 
-			  DelayedExp(1000)
+			  commonTestCases:DelayedExp(1000)
 		    end
 	---------------------------------------------------------------------------------------------
 
 		-- Description:UnsubscribeButton: Unsubscribe not subscribed
-			for i=1,#ButtonArray do
-		        Test["UnsubscribeButton_resultCode_IGNORED_" .. tostring(ButtonArray[i]).."_IGNORED"] = function(self)
+			for i=1,#buttonArray do
+		        Test["UnsubscribeButton_resultCode_IGNORED_" .. tostring(buttonArray[i]).."_IGNORED"] = function(self)
 
 		          --mobile side: sending UnsubscribeButton request
 		          local cid = self.mobileSession:SendRPC("UnsubscribeButton",
 		            {
-		              buttonName = ButtonArray[i]
+		              buttonName = buttonArray[i]
 		            }
 		          )
 
@@ -6784,7 +6746,7 @@ local	function performInteractionAllParams()
 		          EXPECT_NOTIFICATION("OnHashChange")
 		          :Times(0)
 
-		          DelayedExp(1000)
+		          commonTestCases:DelayedExp(1000)
 		        end
 
 		      end
@@ -6905,7 +6867,7 @@ local	function performInteractionAllParams()
 	        self.mobileSession:ExpectResponse(CorIdPerformAudioPassThruAppParVD, { success = true, resultCode = "SUCCESS",
 	           })
 
-	        DelayedExp(1500)
+	        commonTestCases:DelayedExp(1500)
 
 	      end
 
@@ -6958,7 +6920,7 @@ local	function performInteractionAllParams()
 
 	        }
 
-	        InvalidDataAPI(self, "PerformAudioPassThru", SentParams)
+	        invalidDataAPI(self, "PerformAudioPassThru", SentParams)
 
 	      end
 
@@ -6981,7 +6943,7 @@ local	function performInteractionAllParams()
 
 	          }
 
-	          InvalidDataAPI(self, "PerformAudioPassThru", SentParams)
+	          invalidDataAPI(self, "PerformAudioPassThru", SentParams)
 
 	      end
 
@@ -7007,7 +6969,7 @@ local	function performInteractionAllParams()
 
         }
 
-        InvalidDataAPI(self, "PerformAudioPassThru", SentParams)
+        invalidDataAPI(self, "PerformAudioPassThru", SentParams)
 
       end
 
@@ -7032,7 +6994,7 @@ local	function performInteractionAllParams()
 
         }
 
-        InvalidDataAPI(self, "PerformAudioPassThru", SentParams)
+        invalidDataAPI(self, "PerformAudioPassThru", SentParams)
 
       end
 
@@ -7183,7 +7145,7 @@ local	function performInteractionAllParams()
 
 	        self.mobileSession:ExpectResponse(CorIdPerformAudioPassThruTEXTVD, { success = true, resultCode = "SUCCESS"})
 
-	        DelayedExp(1500)
+	        commonTestCases:DelayedExp(1500)
 
 	     end
 
@@ -7547,7 +7509,7 @@ local	function performInteractionAllParams()
 		          {hmiLevel = "FULL", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
 		        :Times(2)
 
-		      DelayedExp(1000)
+		      commonTestCases:DelayedExp(1000)
 		    end
 		    --mobile side: expect EndAudioPassThru response
 
@@ -7986,13 +7948,13 @@ local	function performInteractionAllParams()
 	---------------------------------------------------------------------------------------------
   		-- Description: Missing mandatory
 		  function Test:Case_SubscribeVehicleDataInvalidParameterTypeTest()
-		    InvalidDataAPI(self, "SubscribeVehicleData", {rpm = "invalid_type"})
+		    invalidDataAPI(self, "SubscribeVehicleData", {rpm = "invalid_type"})
 		  end
 
 	---------------------------------------------------------------------------------------------
  		-- Description: Missing mandatory
 		  function Test:Case_UnsubscribeVehicleDataInvalidParameterTypeTest()
-		    InvalidDataAPI(self, "UnsubscribeVehicleData", {rpm = "invalid_type"})
+		    invalidDataAPI(self, "UnsubscribeVehicleData", {rpm = "invalid_type"})
 		  end
 
 	--End Test suit SubscribeVehicleData and UnsubscribeVehicleData
@@ -8136,7 +8098,7 @@ local	function performInteractionAllParams()
 		      steeringWheelAngle = -158.3
 		    })
 
-		    DelayedExp(500)
+		    commonTestCases:DelayedExp(500)
 		  end
 
 	---------------------------------------------------------------------------------------------
@@ -8160,7 +8122,7 @@ local	function performInteractionAllParams()
 
 		      self.mobileSession:ExpectResponse(CorIdGetVehicleDatarpmNotAvailVD, { success = false, resultCode = "VEHICLE_DATA_NOT_AVAILABLE", info = "Error Message"})
 
-		      DelayedExp(500)
+		      commonTestCases:DelayedExp(500)
 		  	end
 
   	---------------------------------------------------------------------------------------------
@@ -8184,23 +8146,23 @@ local	function performInteractionAllParams()
 
 		      self.mobileSession:ExpectResponse(CorIdGetVehicleDataExtTempNotAvailVD, { success = false, resultCode = "VEHICLE_DATA_NOT_AVAILABLE", info = "Error Message"})
 
-		      DelayedExp(500)
+		      commonTestCases:DelayedExp(500)
 		    end
 
 	---------------------------------------------------------------------------------------------
 
 	 	-- Description: Missing parameters
 		    function Test:Case_GetVehicleDataMissingParamsTest()
-		      InvalidDataAPI(self,"GetVehicleData", {} )
-		      DelayedExp(500)
+		      invalidDataAPI(self,"GetVehicleData", {} )
+		      commonTestCases:DelayedExp(500)
 		    end
 
 	---------------------------------------------------------------------------------------------
 
   		-- Description: Parameter value = false. Only one sent parameter
 		    function Test:Case_GetVehicleDataOneParamSentTest()
-		      InvalidDataAPI(self,"GetVehicleData", { fuelLevel = false } )
-		      DelayedExp(500)
+		      invalidDataAPI(self,"GetVehicleData", { fuelLevel = false } )
+		      commonTestCases:DelayedExp(500)
 		    end
 
   ---------------------------------------------------------------------------------------------
@@ -8300,7 +8262,7 @@ local	function performInteractionAllParams()
   		-- Description: Missing mandatory : Missing ecuName
 		    function Test:Case_ReadDIDMissingecuNameTest()
 		      local SentParams = {didLocation = {35135}}
-		      InvalidDataAPI(self, "ReadDID", SentParams )
+		      invalidDataAPI(self, "ReadDID", SentParams )
 		    end
 
   	---------------------------------------------------------------------------------------------
@@ -8308,14 +8270,14 @@ local	function performInteractionAllParams()
   		-- Description: Missing mandatory : Missing didLocation
 		    function Test:Case_ReadDIDMissingdidLocationTest()
 		      local SentParams = {ecuName = 2000}
-		      InvalidDataAPI(self, "ReadDID", SentParams )
+		      invalidDataAPI(self, "ReadDID", SentParams )
 		    end
 
   	---------------------------------------------------------------------------------------------
 
   		-- Description: Missing mandatory : Missing all
 		    function Test:Case_ReadDIDAllMissingTest()
-		      InvalidDataAPI(self, "ReadDID", {} )
+		      invalidDataAPI(self, "ReadDID", {} )
 		    end
 
 	--End Test suit ReadDID
@@ -8402,13 +8364,13 @@ local	function performInteractionAllParams()
 	---------------------------------------------------------------------------------------------
   		-- Description: Missing mandatory: Missing ecuName
 		    function Test:Case_GetDTCsMissingecuNameTest()
-		      InvalidDataAPI(self, "GetDTCs", {dtcMask = 125})
+		      invalidDataAPI(self, "GetDTCs", {dtcMask = 125})
 		    end
 
   	---------------------------------------------------------------------------------------------
   		-- Description: Missing mandatory: Missing all
     		function Test:Case_GetDTCsMissingAllTest()
-      			InvalidDataAPI(self, "GetDTCs", {})
+      			invalidDataAPI(self, "GetDTCs", {})
 			end
 
 	--End Test suit GetDTCs
@@ -8487,7 +8449,7 @@ local	function performInteractionAllParams()
 		                text = "Close",
 		                image =
 		                  {
-		                    value = PathToAppFolder .."icon.png",
+		                    value = pathToAppFolder .."icon.png",
 		                    imageType = "DYNAMIC"
 		                  },
 		                isHighlighted = true,
@@ -8500,7 +8462,7 @@ local	function performInteractionAllParams()
 		                text = "Keep",
 		                image =
 		                  {
-		                    value = PathToAppFolder .."icon.png",
+		                    value = pathToAppFolder .."icon.png",
 		                    imageType = "DYNAMIC"
 		                  },
 		                isHighlighted = true,
@@ -8550,14 +8512,14 @@ local	function performInteractionAllParams()
 
   		-- Description: Missing mandatory: scrollableMessageBody
 		   function Test:Case_ScrollableMessageMissingTest()
-		    InvalidDataAPI(self, "ScrollableMessage", { timeout = 3000 })
+		    invalidDataAPI(self, "ScrollableMessage", { timeout = 3000 })
 		   end
 
   	---------------------------------------------------------------------------------------------
 
   		-- Description: Missing mandatory:  All
 		    function Test:Case_ScrollableMessageMissingMandatoryTest()
-		      InvalidDataAPI(self, "ScrollableMessage", {})
+		      invalidDataAPI(self, "ScrollableMessage", {})
 		    end
 
 	---------------------------------------------------------------------------------------------
@@ -8599,7 +8561,7 @@ local	function performInteractionAllParams()
 		                  text = "Close",
 		                  image =
 		                    {
-		                      value = PathToAppFolder .."icon.png",
+		                      value = pathToAppFolder .."icon.png",
 		                      imageType = "DYNAMIC"
 		                    },
 		                  isHighlighted = true,
@@ -8818,7 +8780,7 @@ local	function performInteractionAllParams()
 		          timeout = 3000
 		        }
 
-		        InvalidDataAPI(self, "Slider",  SentParams)
+		        invalidDataAPI(self, "Slider",  SentParams)
 
 		    end
 
@@ -8841,7 +8803,7 @@ local	function performInteractionAllParams()
 		        timeout = 3000
 		      }
 
-		      InvalidDataAPI(self, "Slider",  SentParams)
+		      invalidDataAPI(self, "Slider",  SentParams)
 
 		    end
 
@@ -8866,7 +8828,7 @@ local	function performInteractionAllParams()
 		      }
 
 
-		      InvalidDataAPI(self, "Slider",  SentParams)
+		      invalidDataAPI(self, "Slider",  SentParams)
 
 		    end
 
@@ -8874,7 +8836,7 @@ local	function performInteractionAllParams()
 
   		-- Description: Missing mandatory - all
 		    function Test:Case_SliderMissingAllTest()
-		      InvalidDataAPI(self, "Slider",  {})
+		      invalidDataAPI(self, "Slider",  {})
 	    	end
 
 
@@ -9029,7 +8991,7 @@ local	function performInteractionAllParams()
 			          {fieldName = "totalDistance", fieldText = "500miles"},
 			        },
 			        turnIcon = {
-			                    value = PathToAppFolder .."icon.png",
+			                    value = pathToAppFolder .."icon.png",
 			                    imageType = "DYNAMIC"
 			                   },
 			        distanceToManeuver = 50.5,
@@ -9042,7 +9004,7 @@ local	function performInteractionAllParams()
 			              text = "Close",
 			              image =
 			                {
-			                  value = PathToAppFolder .."icon.png",
+			                  value = pathToAppFolder .."icon.png",
 			                  imageType = "DYNAMIC"
 			                },
 			              isHighlighted = true,
@@ -9053,7 +9015,7 @@ local	function performInteractionAllParams()
 			        appID = self.applications["Test Application"]
 			      }
 
-			if NavigationType then
+			if Test.appHMITypes["NAVIGATION"] then
 				sentParam.timeToDestination = "3hoursleft"
 				sentParam.nextTurnIcon = {
 					                        value = "icon.png",
@@ -9068,7 +9030,7 @@ local	function performInteractionAllParams()
 									          {fieldName = "timeToDestination", fieldText = "3hoursleft"}
 									        }
 				UIParams.nextTurnIcon = {
-					                        value = PathToAppFolder .."icon.png",
+					                        value = pathToAppFolder .."icon.png",
 					                        imageType = "DYNAMIC"
 				                        }
 
@@ -9089,7 +9051,7 @@ local	function performInteractionAllParams()
 
 	  	-- Description: Without parameters
 		  function Test:Case_ShowConstantTBTWithoutParamsTest()
-		    InvalidDataAPI(self, "ShowConstantTBT", {})
+		    invalidDataAPI(self, "ShowConstantTBT", {})
 		  end
 
 	---------------------------------------------------------------------------------------------
@@ -9136,11 +9098,11 @@ local	function performInteractionAllParams()
 			         {fieldName = "totalDistance", fieldText = ""},
 			      },
 			       turnIcon = {
-			                   value = PathToAppFolder .. "icon.png",
+			                   value = pathToAppFolder .. "icon.png",
 			                   imageType = "DYNAMIC"
 			                  },
 			       nextTurnIcon = {
-			                       value = PathToAppFolder .. "icon.png",
+			                       value = pathToAppFolder .. "icon.png",
 			                       imageType = "DYNAMIC"
 			                       },
 			       softButtons =
@@ -9150,7 +9112,7 @@ local	function performInteractionAllParams()
 			               text = "Close",
 			               image =
 			                 {
-			                   value = PathToAppFolder .."icon.png",
+			                   value = pathToAppFolder .."icon.png",
 			                   imageType = "DYNAMIC"
 			                 },
 			               isHighlighted = true,
@@ -9161,7 +9123,7 @@ local	function performInteractionAllParams()
 			       appID = self.applications["Test Application"]
 			      }
 
-			if NavigationType then
+			if Test.appHMITypes["NAVIGATION"] then
 				sentParam.timeToDestination = ""
 				UIParams.navigationTexts = {
 									          {fieldName = "navigationText1", fieldText = ""},
@@ -9206,7 +9168,7 @@ local	function performInteractionAllParams()
 			                text = "Close",
 			                image =
 			                  {
-			                    value = PathToAppFolder .."icon.png",
+			                    value = pathToAppFolder .."icon.png",
 			                    imageType = "STATIC"
 			                  },
 
@@ -9241,7 +9203,7 @@ local	function performInteractionAllParams()
 			                text = "Close",
 			                image =
 			                  {
-			                    value = PathToAppFolder .."icon.png",
+			                    value = pathToAppFolder .."icon.png",
 			                    imageType = "STATIC"
 			                  },
 			                isHighlighted = true,
@@ -9252,7 +9214,7 @@ local	function performInteractionAllParams()
 			        appID = self.applications[applicationName]
 			      }
 
-			if NavigationType then
+			if Test.appHMITypes["NAVIGATION"] then
 				sentParam.timeToDestination = "3hoursleft"
 				sentParam.nextTurnIcon = {
 					                        value = "icon.png",
@@ -9355,7 +9317,7 @@ local	function performInteractionAllParams()
 		              text = "Close",
 		              image =
 		                {
-		                  value = PathToAppFolder .."icon.png",
+		                  value = pathToAppFolder .."icon.png",
 		                  imageType = "DYNAMIC"
 		                },
 		              isHighlighted = true,
@@ -9399,7 +9361,7 @@ local	function performInteractionAllParams()
 		      EXPECT_NOTIFICATION("OnHMIStatus")
 		        :Times(0)
 
-		        DelayedExp(1000)
+		        commonTestCases:DelayedExp(1000)
 		    end
 
 		    self.mobileSession:ExpectResponse(CorIdAlertManeuverAllParamsVD, { success = true, resultCode = "SUCCESS"})
@@ -9459,7 +9421,7 @@ local	function performInteractionAllParams()
 		      EXPECT_NOTIFICATION("OnHMIStatus")
 		        :Times(0)
 
-		        DelayedExp(1000)
+		        commonTestCases:DelayedExp(1000)
 		    end
 
 		    self.mobileSession:ExpectResponse(CorIdAlertManeuverTTSChunksVD, { success = true, resultCode = "SUCCESS"})
@@ -9503,7 +9465,7 @@ local	function performInteractionAllParams()
 		              text = "Close",
 		              image =
 		                {
-		                  value = PathToAppFolder .."icon.png",
+		                  value = pathToAppFolder .."icon.png",
 		                  imageType = "DYNAMIC"
 		                },
 		              isHighlighted = true,
@@ -9524,7 +9486,7 @@ local	function performInteractionAllParams()
 
   		-- Description: Missing parameters
 		  function Test:Case_AlertManeuverMissingParamsTest()
-		    InvalidDataAPI(self, "AlertManeuver", {})
+		    invalidDataAPI(self, "AlertManeuver", {})
 		  end
 
 	---------------------------------------------------------------------------------------------
@@ -9562,7 +9524,7 @@ local	function performInteractionAllParams()
 		                text = "Close",
 		                image =
 		                  {
-		                    value = PathToAppFolder .."icon.png",
+		                    value = pathToAppFolder .."icon.png",
 		                    imageType = "DYNAMIC"
 		                  },
 		                isHighlighted = true,
@@ -10008,7 +9970,7 @@ local	function performInteractionAllParams()
 			              navigationText = {fieldName = "navigationText", fieldText = "Text"},
 
 			              turnIcon = {
-			                         value = PathToAppFolder .."icon.png",
+			                         value = pathToAppFolder .."icon.png",
 			                         imageType = "DYNAMIC"
 			                          },
 			            }
@@ -10020,7 +9982,7 @@ local	function performInteractionAllParams()
 			            text = "Close",
 			            image =
 			              {
-			                value = PathToAppFolder .. "icon.png",
+			                value = pathToAppFolder .. "icon.png",
 			                imageType = "DYNAMIC"
 			              },
 			            isHighlighted = true,
@@ -10100,14 +10062,14 @@ local	function performInteractionAllParams()
 		           {
 		              turnIcon =
 		                         {
-		                           value = PathToAppFolder .."icon.png",
+		                           value = pathToAppFolder .."icon.png",
 		                           imageType = "DYNAMIC"
 		                         },
 		            },
 
 		           {
 		              turnIcon = {
-		                           value = PathToAppFolder .."icon.png",
+		                           value = pathToAppFolder .."icon.png",
 		                           imageType = "DYNAMIC"
 		                         },
 		          },
@@ -10119,7 +10081,7 @@ local	function performInteractionAllParams()
 		              text = "Close",
 		              image =
 		                {
-		                  value = PathToAppFolder .."icon.png",
+		                  value = pathToAppFolder .."icon.png",
 		                  imageType = "DYNAMIC"
 		                },
 		              isHighlighted = true,
@@ -10183,7 +10145,7 @@ local	function performInteractionAllParams()
 		              text = "Close",
 		              image =
 		                {
-		                  value = PathToAppFolder .. "icon.png",
+		                  value = pathToAppFolder .. "icon.png",
 		                  imageType = "DYNAMIC"
 		                },
 		              isHighlighted = true,
@@ -10233,7 +10195,7 @@ local	function performInteractionAllParams()
 		              text = "Close",
 		              image =
 		                {
-		                  value = PathToAppFolder .. "icon.png",
+		                  value = pathToAppFolder .. "icon.png",
 		                  imageType = "DYNAMIC"
 		                },
 		              isHighlighted = true,
@@ -10285,14 +10247,14 @@ local	function performInteractionAllParams()
 		             navigationText = {fieldName = "navigationText", fieldText = "Text"},
 		             turnIcon =
 		                        {
-		                          value = PathToAppFolder .."icon.png",
+		                          value = pathToAppFolder .."icon.png",
 		                          imageType = "DYNAMIC"
 		                        }
 		           },
 		           {
 		             navigationText = {fieldName = "navigationText", fieldText = "Text2"},
 		             turnIcon = {
-		                          value = PathToAppFolder .."icon.png",
+		                          value = pathToAppFolder .."icon.png",
 		                          imageType = "DYNAMIC"
 		                        }
 		         		}
@@ -10368,14 +10330,14 @@ local	function performInteractionAllParams()
 		             navigationText = {fieldName = "navigationText", fieldText = "Text"},
 		             turnIcon =
 		                        {
-		                          value = PathToAppFolder .."icon.png",
+		                          value = pathToAppFolder .."icon.png",
 		                          imageType = "DYNAMIC"
 		                        }
 		           },
 		          {
 		             navigationText = {fieldName = "navigationText", fieldText = "Text2"},
 		             turnIcon = {
-		                          value = PathToAppFolder .."icon.png",
+		                          value = pathToAppFolder .."icon.png",
 		                          imageType = "DYNAMIC"
 		                        }
 		         }
@@ -10387,7 +10349,7 @@ local	function performInteractionAllParams()
 		              text = "Close",
 		              image =
 		                {
-		                  value = PathToAppFolder .. "icon.png",
+		                  value = pathToAppFolder .. "icon.png",
 		                  imageType = "DYNAMIC"
 		                },
 		              isHighlighted = true,
@@ -10597,7 +10559,7 @@ local	function performInteractionAllParams()
 		      phoneNumber = "phone Number",
 		      locationImage =
 		                     {
-		                      value = PathToAppFolder .."icon.png",
+		                      value = pathToAppFolder .."icon.png",
 		                      imageType = "DYNAMIC"
 		                    }
 		    })
@@ -10683,7 +10645,7 @@ local	function performInteractionAllParams()
 		        latitudeDegrees = 1.1,
 		        locationImage =
 		                       {
-		                        value = PathToAppFolder .."icon.png",
+		                        value = pathToAppFolder .."icon.png",
 		                        imageType = "DYNAMIC"
 		                      }
 		      })
@@ -10800,7 +10762,7 @@ local	function performInteractionAllParams()
 		    EXPECT_HMICALL("UI.SetAppIcon",
 		     {syncFileName =
 		         {
-		           value = PathToAppFolder .."icon.png",
+		           value = pathToAppFolder .."icon.png",
 		           imageType = "DYNAMIC"
 		          },
 		      })
@@ -11114,7 +11076,7 @@ local	function performInteractionAllParams()
 		       --hmi side: expect BasicCommunication.OnFileRemoved request
 		      EXPECT_HMINOTIFICATION("BasicCommunication.OnFileRemoved",
 		      {
-		        fileName = PathToAppFolder .. "icon.png",
+		        fileName = pathToAppFolder .. "icon.png",
 		        fileType = "GRAPHIC_PNG",
 		        appID = self.applications[applicationName],
 		      })
@@ -11126,7 +11088,7 @@ local	function performInteractionAllParams()
 		          print (" \27[31m spaceAvailable parameter is missed \27[0m ")
 		          return false
 		        else
-		          if file_check(PathToAppFolder .. "icon.png") == true then
+		          if file_check(pathToAppFolder .. "icon.png") == true then
 		            print(" \27[31m File is not deleted from storage \27[0m ")
 		            return false
 		          else
@@ -11418,7 +11380,7 @@ local	function performInteractionAllParams()
 		  end
 
 	---------------------------------------------------------------------------------------------
-		if NavigationType then
+		if Test.appHMITypes["NAVIGATION"] then
 
 		-- Test case is executed only for navi application
   		-- Description: Reset KEYBOARDPROPERTIES
@@ -11757,7 +11719,12 @@ local	function performInteractionAllParams()
 ---------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------
 
--- Postcondition: restoring sdl_preloaded_pt file
-function Test.Postcondition_restoringPreloadedfile()
-	commonSteps:RestoreFileFromAppMainFolder("sdl_preloaded_pt.json")
-end
+--[[ Postconditions ]]-------------------------------------------------------------------------------------------------
+	function Test.Postcondition_stopSDL()
+	  StopSDL()
+	end
+
+	function Test.Postcondition_restoringPreloadedfile()
+		commonPreconditions:RestoreFile("sdl_preloaded_pt.json")
+	end
+-----------------------------------------------------------------------------------------------------------------------
