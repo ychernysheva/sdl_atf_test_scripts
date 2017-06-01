@@ -11181,12 +11181,7 @@ local	function performInteractionAllParams()
 			        }
 			      }
 
-			     local UIParam = {
-					        vrHelpTitle = applicationName,
-					--TODO: test should be updated after resolving of CRQ APPLINK-19215
-					        vrHelp = nil
-
-					       }
+			     local UIParam = { vrHelpTitle = applicationName }
 
 					-- TODO: should be updated after resolving APPLINK-14894
 					UIParam.keyboardProperties = {
@@ -11333,12 +11328,7 @@ local	function performInteractionAllParams()
 		      })
 
 		      --hmi side: expect UI.SetGlobalProperties request
-		      EXPECT_HMICALL("UI.SetGlobalProperties",
-		      {
-		        vrHelpTitle = applicationName,
-		-- TODO: should be updated after resolving question APPLINK-19215
-		        vrHelp = nil
-		      })
+		      EXPECT_HMICALL("UI.SetGlobalProperties", { vrHelpTitle = applicationName })
 
 		      :Do(function(_,data)
 		        self.hmiConnection:SendResponse(data.id, "UI.SetGlobalProperties", "SUCCESS", {})
@@ -11367,12 +11357,7 @@ local	function performInteractionAllParams()
 
 
 		      --hmi side: expect UI.SetGlobalProperties request
-		      EXPECT_HMICALL("UI.SetGlobalProperties",
-		      {
-		        vrHelpTitle = applicationName,
-		-- TODO: should be updated after resolving question APPLINK-19215
-		        vrHelp = nil
-		      })
+		      EXPECT_HMICALL("UI.SetGlobalProperties", { vrHelpTitle = applicationName })
 
 		      :Do(function(_,data)
 		         self.hmiConnection:SendResponse(data.id, "UI.SetGlobalProperties", "SUCCESS", {})
