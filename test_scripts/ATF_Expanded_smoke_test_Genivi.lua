@@ -11177,35 +11177,22 @@ local	function performInteractionAllParams()
 			        "VRHELPITEMS",
 			        "MENUNAME",
 			        "MENUICON",
+			        "KEYBOARDPROPERTIES"
 			        }
 			      }
 
 			     local UIParam = {
-					-- TODO: should be updated after resolving CRQ APPLINK-15645
-					        menuTitle = "",
 					        vrHelpTitle = applicationName,
 					--TODO: test should be updated after resolving of CRQ APPLINK-19215
 					        vrHelp = nil
 
 					       }
-				 if NavigationType then
-				 	sentParam.sentParam = {
-									        "HELPPROMPT",
-									        "TIMEOUTPROMPT",
-									        "VRHELPTITLE",
-									        "VRHELPITEMS",
-									        "MENUNAME",
-									        "MENUICON",
-									        "KEYBOARDPROPERTIES"
-									        }
 
 					-- TODO: should be updated after resolving APPLINK-14894
 					UIParam.keyboardProperties = {
 									              language = "EN-US",
 									              keyboardLayout = "QWERTY"
 									            }
-				 end
-
 
 			      local CorIdResetGlobalPropertiesAllParamsVD = self.mobileSession:SendRPC("ResetGlobalProperties", sentParam)
 			      --hmi side: expect TTS.SetGlobalProperties request
@@ -11413,15 +11400,10 @@ local	function performInteractionAllParams()
 		      }
 		    })
 		    --hmi side: expect UI.SetGlobalProperties request
-		    EXPECT_HMICALL("UI.SetGlobalProperties",
-		    {
-		-- TODO: should be updated after resolving CRQ APPLINK-15645
-		      menuTitle = ""
-		    })
-		    :Do(function(_,data)
-		      self.hmiConnection:SendResponse(data.id, "UI.SetGlobalProperties", "SUCCESS", {})
-
-		    end)
+		    EXPECT_HMICALL("UI.SetGlobalProperties", {})
+		    :Do(function(_, data)
+		      	self.hmiConnection:SendResponse(data.id, "UI.SetGlobalProperties", "SUCCESS", {})
+		    	end)
 
 		    --mobile side: expect SetGlobalProperties response
 		    EXPECT_RESPONSE(CorIdResetGlobalPropertiesMENUNAMEVD, { success = true, resultCode = "SUCCESS"})
@@ -11442,14 +11424,11 @@ local	function performInteractionAllParams()
 		        "MENUICON"
 		      }
 		    })
-		-- TODO: should be updated after resolving CRQ APPLINK-15645
 		    --hmi side: expect UI.SetGlobalProperties request
-		    EXPECT_HMICALL("UI.SetGlobalProperties",
-		    {
-		    })
-		     :Do(function(_,data)
-		      self.hmiConnection:SendResponse(data.id, "UI.SetGlobalProperties", "SUCCESS", {})
-		    end)
+		    EXPECT_HMICALL("UI.SetGlobalProperties", {})
+		    :Do(function(_,data)
+		      	self.hmiConnection:SendResponse(data.id, "UI.SetGlobalProperties", "SUCCESS", {})
+		    	end)
 
 		      --mobile side: expect SetGlobalProperties response
 
