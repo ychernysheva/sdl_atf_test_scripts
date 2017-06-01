@@ -11181,9 +11181,8 @@ local	function performInteractionAllParams()
 			        }
 			      }
 
-			     local UIParam = { vrHelpTitle = applicationName }
+          local UIParam = { vrHelpTitle = applicationName }
 
-					-- TODO: should be updated after resolving APPLINK-14894
 					UIParam.keyboardProperties = {
 									              language = "EN-US",
 									              keyboardLayout = "QWERTY"
@@ -11436,7 +11435,6 @@ local	function performInteractionAllParams()
 		        }
 		      })
 
-		-- TODO: update after resolving APPLINK-14894
 		      EXPECT_HMICALL("UI.SetGlobalProperties",
 		      {
 		        keyboardProperties =
