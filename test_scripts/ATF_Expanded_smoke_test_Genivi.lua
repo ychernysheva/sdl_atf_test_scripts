@@ -53,8 +53,19 @@ local positiveChoiceSets = {
 		{	choiceID = 1002, menuName ="Choice1002", image = { value = pathToAppFolder .. "icon.png",	imageType ="DYNAMIC" } },
 		{	choiceID = 103,	menuName ="Choice103", image = { value = pathToAppFolder .. "icon.png",	imageType ="DYNAMIC" } }
 	}
+local blockId = 1
 
 --[[ Local Functions ]]------------------------------------------------------------------------------------------------
+
+	-- Print test block
+	local function testBlock(desc)
+		local strLen = 85
+		local filler = "_"
+		local name = "Block: " .. string.format("%02d", blockId) .. ". " .. desc .. " "
+		name = name .. string.rep(filler, strLen - string.len(name))
+		Test[name] = function() end
+		blockId = blockId + 1
+	end
 
 	-- Sending OnSystemContext notification
 	local function sendOnSystemContext(self, ctx)
@@ -62,57 +73,35 @@ local positiveChoiceSets = {
 	end
 
 	local function invalidDataAPI(self, APIName, SentParams)
-
-	  --mobile side: sending request
 	  local CorId = self.mobileSession:SendRPC(APIName, SentParams)
-
-	  --mobile side: expect response
 	  EXPECT_RESPONSE(CorId, { success = false, resultCode = "INVALID_DATA"})
-
 	end
 
 	-- Functions for SetMediaClockTimer
-	---------------------------------------------------------------------------------------------
-
 	local function setMediaClockTimerFunction(self, Request, ResultCode, HMIrequest)
-
 		ResultCode = ResultCode or "SUCCESS"
-
 		local cid = self.mobileSession:SendRPC("SetMediaClockTimer", Request)
-
 		if HMIrequest == true then
-
-			if
-				self.isMediaApplication == true then
-
-					local successValue
-					local Info
-
-					EXPECT_HMICALL("UI.SetMediaClockTimer", Request )
-						:Do(function(_,data)
-							--hmi side: sending UI.SetMediaClockTimer response
-							if ResultCode == "SUCCESS" then
-								successValue = true
-								self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-							else
-								successValue = false
-								Info = "Error message"
-								self.hmiConnection:SendError(data.id, data.method, ResultCode, Info)
-							end
-						end)
-
-					--mobile side: expect SetMediaClockTimer response
+			if self.isMediaApplication == true then
+				local successValue
+				local Info
+				EXPECT_HMICALL("UI.SetMediaClockTimer", Request)
+				:Do(function(_, data)
+					  if ResultCode == "SUCCESS" then
+							successValue = true
+							self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+						else
+							successValue = false
+							Info = "Error message"
+							self.hmiConnection:SendError(data.id, data.method, ResultCode, Info)
+						end
+					end)
 					EXPECT_RESPONSE(cid, { success = successValue, resultCode = ResultCode, info = Info})
-
 			else
-				EXPECT_HMICALL("UI.SetMediaClockTimer", Request )
-					:Times(0)
-
-				--mobile side: expect SetMediaClockTimer response
+				EXPECT_HMICALL("UI.SetMediaClockTimer", Request)
+				:Times(0)
 				EXPECT_RESPONSE(cid, { success = false, resultCode = "REJECTED"})
-
 			end
-
 		end
 	end
 
@@ -121,23 +110,21 @@ local positiveChoiceSets = {
 
 	--Description: Set all parameters for PutFile
 	local function putFileAllParams()
-		local temp = {
-			syncFileName ="icon.png",
-			fileType ="GRAPHIC_PNG",
-			persistentFile =false,
-			systemFile = false,
-			offset = 0,
-			length = 11600
-		}
-		return temp
+		return {
+				syncFileName ="icon.png",
+				fileType ="GRAPHIC_PNG",
+				persistentFile =false,
+				systemFile = false,
+				offset = 0,
+				length = 11600
+			}
 	end
 
 		--Description: Function used to check file is existed on expected path
 		--file_name: file want to check
 	local function file_check(file_name)
-	  local file_found=io.open(file_name, "r")
-
-	  if file_found==nil then
+	  local file_found = io.open(file_name, "r")
+	  if file_found == nil then
 	    return false
 	  else
 	    return true
@@ -145,15 +132,10 @@ local positiveChoiceSets = {
 	end
 
 	--Description: PutFile successfully with default image file
-	--paramsSend: Parameters will be sent to SDL
 	local function putFileSuccess(self, paramsSend, file)
-
 		file = file or "files/icon.png"
-
 		local cid = self.mobileSession:SendRPC("PutFile",paramsSend, file)
-
 		local ErrorMessage = ""
-
 		EXPECT_RESPONSE(cid,
 			{
 				success = true,
@@ -162,19 +144,14 @@ local positiveChoiceSets = {
 			})
 			:ValidIf(function(_,data)
 				local CurrentSpaceAvailable = tostring(data.payload.spaceAvailable)
-
 				if CurrentSpaceAvailable == spaceAvailable then
 					ErrorMessage = ErrorMessage .." Available space value is not changed after successfully PutFile request \n"
-
 				end
-
 				spaceAvailable = CurrentSpaceAvailable
-
 				local FileCheckValue = file_check(pathToAppFolder .. paramsSend.syncFileName)
 				if FileCheckValue == false then
 					ErrorMessage = ErrorMessage .. " Added via PutFile request file " .. tostring(paramsSend.syncFileName) .. " is not found on file system "
 				end
-
 				if ErrorMessage ~= "" then
 					commonFunctions:userPrint(31,ErrorMessage)
 					return false
@@ -190,10 +167,8 @@ local positiveChoiceSets = {
 		EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 			:ValidIf(function()
 				if paramsSend.syncFileName then
-
 					local FileCheckValue = file_check(pathToAppFolder .. paramsSend.syncFileName)
 					print("FileCheckValue: ".. tostring(FileCheckValue))
-
 					if FileCheckValue == true then
 						commonFunctions:userPrint(31," File " .. tostring(paramsSend.syncFileName) .. " after unsuccessfully PutFile request is found on file system ")
 						return false
@@ -208,16 +183,10 @@ local positiveChoiceSets = {
 
 	-- Functions for Alert
 	-------------------------------------------------------------------------------------------
-
 	local function expectOnHMIStatusWithAudioStateChangedAlert(self, request, timeout)
-
 		request = request or "BOTH"
 		timeout = timeout or 10000
-
-		if
-			self.isMediaApplication == true or
-			Test.appHMITypes["NAVIGATION"] == true then
-
+		if self.isMediaApplication == true or	Test.appHMITypes["NAVIGATION"] == true then
 				if request == "BOTH" then
 					--mobile side: OnHMIStatus notifications
 					EXPECT_NOTIFICATION("OnHMIStatus",
@@ -244,7 +213,6 @@ local positiveChoiceSets = {
 				end
 		elseif
 			self.isMediaApplication == false then
-
 				if request == "BOTH" then
 					--mobile side: OnHMIStatus notifications
 					EXPECT_NOTIFICATION("OnHMIStatus",
@@ -266,22 +234,15 @@ local positiveChoiceSets = {
 					    :Timeout(timeout)
 				end
 		end
-
 	end
 
 
 	-- Functions for PI
 	-------------------------------------------------------------------------------------------
-
 	local function expectOnHMIStatusWithAudioStateChangedPI(self, request, timeout)
-
 		if request == nil then  request = "BOTH" end
 		if timeout == nil then timeout = 10000 end
-
-			if
-				self.isMediaApplication == true or
-				Test.appHMITypes["NAVIGATION"] == true then
-
+			if self.isMediaApplication == true or	Test.appHMITypes["NAVIGATION"] == true then
 					if request == "BOTH" then
 						--mobile side: OnHMIStatus notifications
 						EXPECT_NOTIFICATION("OnHMIStatus",
@@ -354,7 +315,6 @@ local positiveChoiceSets = {
 							:Times(2)
 					end
 			end
-
 	end
 
 	local function setImage()
@@ -521,91 +481,65 @@ local positiveChoiceSets = {
 	end
 
 	local	function performInteractionAllParams()
-		local temp = {
-					initialText = "StartPerformInteraction",
-					initialPrompt = setInitialPrompt(),
-					interactionMode = "BOTH",
-					interactionChoiceSetIDList = { 1001 },
-					helpPrompt = setHelpPrompt(2),
-					timeoutPrompt = setTimeoutPrompt(2),
-					timeout = 5000,
-					vrHelp = setVrHelp(3),
-					interactionLayout = "ICON_ONLY"
-				}
-		return temp
+		return {
+				initialText = "StartPerformInteraction",
+				initialPrompt = setInitialPrompt(),
+				interactionMode = "BOTH",
+				interactionChoiceSetIDList = { 1001 },
+				helpPrompt = setHelpPrompt(2),
+				timeoutPrompt = setTimeoutPrompt(2),
+				timeout = 5000,
+				vrHelp = setVrHelp(3),
+				interactionLayout = "ICON_ONLY"
+			}
 	end
 
 
 	local function performInteractionInvalidData(self, paramsSend)
-        local cid = self.mobileSession:SendRPC("PerformInteraction",paramsSend)
-        EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
+    local cid = self.mobileSession:SendRPC("PerformInteraction",paramsSend)
+    EXPECT_RESPONSE(cid, { success = false, resultCode = "INVALID_DATA" })
 	end
 
-
 	local function performInteraction_withChoice(self, paramsSend, ChoiceParams, ChoiceIdForChoice, AppId)
-
 		local VRParams = {}
 		local UIParams = {}
-
 		UIParams.appID = AppId
 		VRParams.appID = AppId
-
 		if paramsSend.timeout then
 			UIParams.timeout = paramsSend.timeout
 			VRParams.timeout = paramsSend.timeout
 		end
-
-		if
-			paramsSend.interactionMode == "VR_ONLY" or
-			paramsSend.interactionMode == "BOTH" then
-
-				if paramsSend.vrHelp then
-					UIParams.vrHelp = paramsSend.vrHelp
-				end
-		end
-
-
-		if
-			paramsSend.interactionMode == "MANUAL_ONLY" or
-			paramsSend.interactionMode == "BOTH" then
-
-				UIParams.choiceSet = ChoiceParams
-		end
-
-
-		if paramsSend.initialPrompt then
-				VRParams.initialPrompt = paramsSend.initialPrompt
+		if paramsSend.interactionMode == "VR_ONLY" or	paramsSend.interactionMode == "BOTH" then
+			if paramsSend.vrHelp then
+				UIParams.vrHelp = paramsSend.vrHelp
 			end
-
+		end
+		if paramsSend.interactionMode == "MANUAL_ONLY" or	paramsSend.interactionMode == "BOTH" then
+			UIParams.choiceSet = ChoiceParams
+		end
+		if paramsSend.initialPrompt then
+			VRParams.initialPrompt = paramsSend.initialPrompt
+		end
 		if paramsSend.helpPrompt then
 			VRParams.helpPrompt = paramsSend.helpPrompt
 		end
-
 		if paramsSend.timeoutPrompt then
 			VRParams.timeoutPrompt = paramsSend.timeoutPrompt
 		end
 
-
-		--mobile side: sending PerformInteraction request
 		local cid = self.mobileSession:SendRPC("PerformInteraction", paramsSend)
 
 		if paramsSend.interactionMode == "VR_ONLY" then
-
 			if paramsSend.initialText then
 				UIParams.vrHelpTitle = paramsSend.initialText
 			end
-
-			--hmi side: expect VR.PerformInteraction request
 			EXPECT_HMICALL("VR.PerformInteraction", VRParams)
-			:Do(function(_,data)
-					--Send notification to start TTS & VR
+			:Do(function(_, data)
 					self.hmiConnection:SendNotification("TTS.Started")
 					self.hmiConnection:SendNotification("VR.Started")
 					sendOnSystemContext(self,"VRSESSION")
 					local function vrResponse()
-						--Send VR.PerformInteraction response
 						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {choiceID = ChoiceIdForChoice })
-						--Send notification to stop TTS & VR
 						self.hmiConnection:SendNotification("TTS.Stopped")
 						self.hmiConnection:SendNotification("VR.Stopped")
 						sendOnSystemContext(self,"MAIN")
@@ -613,7 +547,6 @@ local positiveChoiceSets = {
 					RUN_AFTER(vrResponse, 500)
 				end)
 
-			--hmi side: expect UI.PerformInteraction request
 			EXPECT_HMICALL("UI.PerformInteraction", UIParams)
 			:Do(function(_,data)
 					local function uiResponse()
@@ -622,53 +555,37 @@ local positiveChoiceSets = {
 					RUN_AFTER(uiResponse, 100)
 				end)
 
-			--mobile side: OnHMIStatus notifications
 			expectOnHMIStatusWithAudioStateChangedPI(self, "VR")
 
-			--mobile side: expect PerformInteraction response
 			EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS", choiceID = ChoiceIdForChoice, triggerSource = "VR" } )
 
 		elseif paramsSend.interactionMode == "MANUAL_ONLY" then
-
 			if paramsSend.initialText then
 				UIParams.initialText = { fieldName = "initialInteractionText", fieldText = paramsSend.initialText}
 			end
-
 			if paramsSend.interactionLayout then
 				UIParams.interactionLayout = paramsSend.interactionLayout
 			end
 
-			--hmi side: expect VR.PerformInteraction request
 			EXPECT_HMICALL("VR.PerformInteraction", VRParams)
-			:Do(function(_,data)
-				--Send notification to start TTS
-				self.hmiConnection:SendNotification("TTS.Started")
+			:Do(function(_, data)
+					self.hmiConnection:SendNotification("TTS.Started")
+					self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {} )
+					self.hmiConnection:SendNotification("TTS.Stopped")
+				end)
 
-				--Send VR.PerformInteraction response
-				self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {} )
-
-				--Send notification to stop TTS
-				self.hmiConnection:SendNotification("TTS.Stopped")
-			end)
-
-			--hmi side: expect UI.PerformInteraction request
 			EXPECT_HMICALL("UI.PerformInteraction", UIParams)
-			:Do(function(_,data)
-				sendOnSystemContext(self,"HMI_OBSCURED")
+			:Do(function(_, data)
+					sendOnSystemContext(self,"HMI_OBSCURED")
+					local function uiResponse()
+						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {choiceID = ChoiceIdForChoice })
+						sendOnSystemContext(self, "MAIN")
+					end
+					RUN_AFTER(uiResponse, 10)
+				end)
 
-				local function uiResponse()
-
-					self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {choiceID = ChoiceIdForChoice })
-
-					sendOnSystemContext(self,"MAIN")
-				end
-				RUN_AFTER(uiResponse, 10)
-			end)
-
-			--mobile side: OnHMIStatus notifications
 			expectOnHMIStatusWithAudioStateChangedPI(self, "MANUAL")
 
-			--mobile side: expect PerformInteraction response
 			EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS", choiceID = ChoiceIdForChoice, triggerSource = "MENU" } )
 
 		else
@@ -685,50 +602,39 @@ local positiveChoiceSets = {
 
 			--hmi side: expect VR.PerformInteraction request
 			EXPECT_HMICALL("VR.PerformInteraction", VRParams)
-			:Do(function(_,data)
-				--Send notification to start TTS & VR
-				self.hmiConnection:SendNotification("TTS.Started")
-				self.hmiConnection:SendNotification("VR.Started")
-				sendOnSystemContext(self,"VRSESSION")
-
-				local function VRResponse()
-					--Send VR.PerformInteraction response
-					self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", { choiceID = ChoiceIdForChoice })
-
-					--Send notification to stop TTS & VR
-					self.hmiConnection:SendNotification("TTS.Stopped")
-					self.hmiConnection:SendNotification("VR.Stopped")
-					sendOnSystemContext(self,"MAIN")
-				end
-
-				RUN_AFTER(VRResponse, 500)
-			end)
+			:Do(function(_, data)
+					self.hmiConnection:SendNotification("TTS.Started")
+					self.hmiConnection:SendNotification("VR.Started")
+					sendOnSystemContext(self,"VRSESSION")
+					local function vrResponse()
+						self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", { choiceID = ChoiceIdForChoice })
+						self.hmiConnection:SendNotification("TTS.Stopped")
+						self.hmiConnection:SendNotification("VR.Stopped")
+						sendOnSystemContext(self,"MAIN")
+					end
+					RUN_AFTER(vrResponse, 500)
+				end)
 
 			--hmi side: expect UI.PerformInteraction request
 			EXPECT_HMICALL("UI.PerformInteraction", UIParams)
-			:Do(function(_,data)
-				-- sendOnSystemContext(self,"HMI_OBSCURED")
+			:Do(function(_, data)
 				local function uiResponse()
 					self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {choiceID = ChoiceIdForChoice})
-					-- sendOnSystemContext(self,"MAIN")
 				end
 				RUN_AFTER(uiResponse, 100)
 			end)
 
-			--mobile side: OnHMIStatus notifications
 			expectOnHMIStatusWithAudioStateChangedPI(self, "BOTH_With_Choice")
-			--mobile side: expect PerformInteraction response
+
 			EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS", choiceID = ChoiceIdForChoice, triggerSource = "VR" } )
 		end
 	end
 
 	local function performInteraction_ViaBOTHTimedOut(self, paramsSend, level, ChoiceSets)
-		if level == nil then  level = "FULL" end
-
+		if level == nil then level = "FULL" end
 		paramsSend.interactionMode = "BOTH"
-		--mobile side: sending PerformInteraction request
-		local cid = self.mobileSession:SendRPC("PerformInteraction",paramsSend)
 
+		local cid = self.mobileSession:SendRPC("PerformInteraction",paramsSend)
 			if
 			paramsSend.fakeParam and
 			paramsSend.initialPrompt[1].fakeParam and
@@ -738,12 +644,10 @@ local positiveChoiceSets = {
 				paramsSend.initialPrompt[1].fakeParam = nil
 				paramsSend.helpPrompt[1].fakeParam = nil
 				paramsSend.timeoutPrompt[1].fakeParam = nil
-			elseif
-			paramsSend.ttsChunks then
+			elseif paramsSend.ttsChunks then
 				paramsSend.ttsChunks = nil
 			end
 
-		--hmi side: expect VR.PerformInteraction request
 		EXPECT_HMICALL("VR.PerformInteraction",
 		{
 			appID = self.applications[applicationName],
@@ -752,27 +656,22 @@ local positiveChoiceSets = {
 			timeout = paramsSend.timeout,
 			timeoutPrompt = paramsSend.timeoutPrompt
 		})
-		:Do(function(_,data)
-			--Send notification to start TTS & VR
+		:Do(function(_, data)
 			self.hmiConnection:SendNotification("VR.Started")
 			self.hmiConnection:SendNotification("TTS.Started")
 			sendOnSystemContext(self,"VRSESSION")
-
-			--First speak timeout and second speak started
 			local function firstSpeakTimeOut()
 				self.hmiConnection:SendNotification("TTS.Stopped")
 				self.hmiConnection:SendNotification("TTS.Started")
 			end
 			RUN_AFTER(firstSpeakTimeOut, 5)
-
 			local function vrResponse()
-				--hmi side: send VR.PerformInteraction response
 				self.hmiConnection:SendError(data.id, data.method, "TIMED_OUT", "Perform Interaction error response.")
 				self.hmiConnection:SendNotification("VR.Stopped")
 			end
 			RUN_AFTER(vrResponse, 20)
 		end)
-		:ValidIf(function(_,data)
+		:ValidIf(function(_, data)
 			if data.params.fakeParam or
 				data.params.helpPrompt[1].fakeParam or
 				data.params.initialPrompt[1].fakeParam or
@@ -785,7 +684,6 @@ local positiveChoiceSets = {
 			end
 		end)
 
-		--hmi side: expect UI.PerformInteraction request
 		EXPECT_HMICALL("UI.PerformInteraction",
 		{
 			timeout = paramsSend.timeout,
@@ -798,37 +696,31 @@ local positiveChoiceSets = {
 			vrHelp = paramsSend.vrHelp,
 			vrHelpTitle = paramsSend.initialText
 		})
-		:Do(function(_,data)
-			--Choice icon list is displayed
-			local function choiceIconDisplayed()
-				sendOnSystemContext(self,"HMI_OBSCURED")
-			end
-			RUN_AFTER(choiceIconDisplayed, 25)
-
-			--hmi side: send UI.PerformInteraction response
-			local function uiResponse()
-				self.hmiConnection:SendNotification("TTS.Stopped")
-				self.hmiConnection:SendError(data.id, data.method, "TIMED_OUT", "Perform Interaction error response.")
-				sendOnSystemContext(self,"MAIN")
-			end
-			RUN_AFTER(uiResponse, 30)
-		end)
+		:Do(function(_, data)
+				local function choiceIconDisplayed()
+					sendOnSystemContext(self,"HMI_OBSCURED")
+				end
+				RUN_AFTER(choiceIconDisplayed, 25)
+				local function uiResponse()
+					self.hmiConnection:SendNotification("TTS.Stopped")
+					self.hmiConnection:SendError(data.id, data.method, "TIMED_OUT", "Perform Interaction error response.")
+					sendOnSystemContext(self,"MAIN")
+				end
+				RUN_AFTER(uiResponse, 30)
+			end)
 		:ValidIf(function(_,data)
-			if data.params.fakeParam or
-				data.params.vrHelp[1].fakeParam or
-				data.params.ttsChunks then
-					print(" \27[36m SDL re-sends fakeParam parameters to HMI in UI.PerformInteraction request \27[0m ")
-					return false
-			else
-				return true
-			end
+				if data.params.fakeParam or
+					data.params.vrHelp[1].fakeParam or
+					data.params.ttsChunks then
+						print(" \27[36m SDL re-sends fakeParam parameters to HMI in UI.PerformInteraction request \27[0m ")
+						return false
+				else
+					return true
+				end
+			end)
 
-		end)
-
-		--mobile side: OnHMIStatus notifications
 		expectOnHMIStatusWithAudioStateChangedPI(self, nil, nil, level)
 
-		--mobile side: expect PerformInteraction response
 		EXPECT_RESPONSE(cid, { success = false, resultCode = "TIMED_OUT" })
 	end
 
@@ -839,13 +731,10 @@ local positiveChoiceSets = {
 	-- local ImageTypeValue
 	--Create UI expected result based on parameters from the request
 	local function createUIParameters(Request)
-
 		local param =  {}
-
-		param["alignment"] =  Request["alignment"]
-		param["customPresets"] =  Request["customPresets"]
-
-		--Convert showStrings parameter
+		param["alignment"] = Request["alignment"]
+		param["customPresets"] = Request["customPresets"]
+		-- Convert showStrings parameter
 		local j = 0
 		for i = 1, 4 do
 			if Request["mainField" .. i] ~= nil then
@@ -860,7 +749,7 @@ local positiveChoiceSets = {
 			end
 		end
 
-		--mediaClock
+		-- mediaClock
 		if Request["mediaClock"] ~= nil then
 			j = j + 1
 			if param["showStrings"] == nil then
@@ -872,7 +761,7 @@ local positiveChoiceSets = {
 			}
 		end
 
-		--mediaTrack
+		-- mediaTrack
 		if Request["mediaTrack"] ~= nil then
 			j = j + 1
 			if param["showStrings"] == nil then
@@ -884,7 +773,7 @@ local positiveChoiceSets = {
 			}
 		end
 
-		--statusBar
+		-- statusBar
 		if Request["statusBar"] ~= nil then
 			j = j + 1
 			if param["showStrings"] == nil then
@@ -896,7 +785,7 @@ local positiveChoiceSets = {
 			}
 		end
 
-		param["graphic"] =  Request["graphic"]
+		param["graphic"] = Request["graphic"]
 		if param["graphic"] ~= nil and
 			param["graphic"].imageType ~= "STATIC" and
 			param["graphic"].value ~= nil and
@@ -904,7 +793,7 @@ local positiveChoiceSets = {
 				param["graphic"].value = pathToAppFolder ..param["graphic"].value
 		end
 
-		param["secondaryGraphic"] =  Request["secondaryGraphic"]
+		param["secondaryGraphic"] = Request["secondaryGraphic"]
 		if param["secondaryGraphic"] ~= nil and
 			param["secondaryGraphic"].imageType ~= "STATIC" and
 			param["secondaryGraphic"].value ~= nil and
@@ -912,52 +801,34 @@ local positiveChoiceSets = {
 				param["secondaryGraphic"].value = pathToAppFolder ..param["secondaryGraphic"].value
 		end
 
-		--softButtons
+		-- softButtons
 		if Request["softButtons"]  ~= nil then
 			param["softButtons"] =  Request["softButtons"]
 			for i = 1, #param["softButtons"] do
-
-				--if type = TEXT, image = nil, else type = IMAGE, text = nil
 				if param["softButtons"][i].type == "TEXT" then
 					param["softButtons"][i].image =  nil
-
 				elseif param["softButtons"][i].type == "IMAGE" then
 					param["softButtons"][i].text =  nil
 				end
-
-				--if image.imageType ~=STATIC, add app folder to image value
 				if param["softButtons"][i].image ~= nil and
 					param["softButtons"][i].image.imageType ~= "STATIC" then
-
-					param["softButtons"][i].image.value = pathToAppFolder ..param["softButtons"][i].image.value
+					param["softButtons"][i].image.value = pathToAppFolder .. param["softButtons"][i].image.value
 				end
-
 
 			end
 		end
-
 		return param
-
 	end
 
 	--This function sends a request from mobile and verify result on HMI and mobile for SUCCESS resultCode cases.
-	local function verify_SUCCESS_Case(self, Request)
-
-		--mobile side: sending Show request
-		local cid = self.mobileSession:SendRPC("Show", Request)
-
-		local UIParams = createUIParameters(Request)
-
-		--hmi side: expect UI.Show request
+	local function verify_SUCCESS_Case(self, request)
+		local cid = self.mobileSession:SendRPC("Show", request)
+		local UIParams = createUIParameters(request)
 		EXPECT_HMICALL("UI.Show", UIParams)
-			:Do(function(_,data)
-				--hmi side: sending UI.Show response
+		:Do(function(_,data)
 				self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 			end)
-
-		--mobile side: expect Show response
 		EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS" })
-
 	end
 
 
@@ -1009,10 +880,7 @@ local positiveChoiceSets = {
 ---------------------------------------------------------------------------------------------
 -----------------------------------------I. PUT FILE TEST BLOCK------------------------------
 ---------------------------------------------------------------------------------------------
-
-	function Test.NewTestBlock()
-		print("****************************** I. PUT FILE TEST BLOCK ******************************")
-	end
+  testBlock("PUT FILE")
 
 	--Begin Test suit PutFile
 	--Description:
@@ -1104,9 +972,7 @@ local positiveChoiceSets = {
 --------------------------------------------------------------------------------------------------
 -------------------------------------------II. LIST FILE TEST BLOCK-------------------------------
 --------------------------------------------------------------------------------------------------
-	function Test.NewTestBlock()
-		print("****************************** II. LIST FILE TEST BLOCK *************************")
-	end
+  testBlock("LIST FILE")
 
 	--Begin Test Suit ListFile
 
@@ -1154,9 +1020,7 @@ local positiveChoiceSets = {
 -----------------------------------------------------------------------------------------------
 --------------------------------------III. SetGlobalProperties Test Block ---------------------
 -----------------------------------------------------------------------------------------------
-	function Test.NewTestBlock()
-		print("********************* III. SET GLOBAL PROPERTIES TEST BLOCK *********************")
-	end
+  testBlock("SET GLOBAL PROPERTIES")
 
     --Begin Test suit SetGlobalProperties
 
@@ -1873,9 +1737,7 @@ local positiveChoiceSets = {
 ------------------------------------------------------------------------------------------------
 ----------------------------------IV. ADD SUBMENU TEST BLOCK-----------------------------------
 ------------------------------------------------------------------------------------------------
-	function Test.NewTestBlock()
-		print("***************************** IV.ADD SUBMENU TEST BLOCK ******************************")
-	end
+  testBlock("ADD SUBMENU")
 
 	--Begin Test suit AddSubmenu
 
@@ -2186,9 +2048,7 @@ local positiveChoiceSets = {
 -----------------------------------------------------------------------------------------------
 ------------------------------------V. ADD COMMAND TEST BLOCK----------------------------------
 ----------------------------------------------------------------------------------------------
-	function Test.NewTestBlock()
-		print("****************************** V. ADD COMMAND TEST BLOCK ******************************")
-	end
+  testBlock("ADD COMMAND")
 
 	--Begin Test suit AddCommand
 
@@ -2860,9 +2720,7 @@ local positiveChoiceSets = {
 -----------------------------------------------------------------------------------------------
 ----------------------------------VI. DELETE COMMAND TEST BLOCK--------------------------------
 -----------------------------------------------------------------------------------------------
-	function Test.NewTestBlock()
-		print("****************************** VI. DELETE COMMAND TEST BLOCK ******************************")
-	end
+  testBlock("DELETE COMMAND")
 
 	--Begin Test suit DeleteCommand
 
@@ -3061,9 +2919,7 @@ local positiveChoiceSets = {
 -----------------------------------------------------------------------------------------------
 ----------------------------------VII. DELETE SUBMENU TEST BLOCK-------------------------------
 -----------------------------------------------------------------------------------------------
-	function Test.NewTestBlock()
-		print("****************************** VII. DELETE SUBMENU TEST BLOCK ******************************")
-	end
+  testBlock("DELETE SUBMENU")
 
 	--Begin Test suit DeleteSubmenu
 
@@ -3239,9 +3095,7 @@ local positiveChoiceSets = {
 -------------------------------------------------------------------------------------------
 ------------------------------VIII. CREATE INTERACTION CHOICE SET TEST BLOCK ---------------
 --------------------------------------------------------------------------------------------
-	function Test.NewTestBlock()
-		print("****************************** VIII.  CREATE INTERACTION CHOICE SET TEST BLOCK ******************************")
-	end
+  testBlock("CREATE INTERACTION CHOICE SET")
 
 	--Begin Test suit CreateInteractionChoiceSet
 
@@ -4210,9 +4064,7 @@ local positiveChoiceSets = {
 ---------------------------------------------------------------------------------------------
 ------------------------------IX. PERFORMINTERACTION TEST BLOCK------------------------------
 ---------------------------------------------------------------------------------------------
-	function Test.NewTestBlock()
-		print("****************************** IX. PERFORMINTERACTION TEST BLOCK ******************************")
-	end
+  testBlock("PERFORMINTERACTION")
 
 	--Begin Test suit PerformInteraction
 
@@ -4699,9 +4551,7 @@ local positiveChoiceSets = {
 ---------------------------------------------------------------------------------------------
 -------------------------X. DELETE INTERACTION CHOICE SET TEST BLOCK------------------------
 ---------------------------------------------------------------------------------------------
-	function Test.NewTestBlock()
-		print("****************************** X. DELETE INTERACTION CHOICE SET TEST BLOCK ******************************")
-	end
+  testBlock("DELETE INTERACTION CHOICE SET")
 
 	--Begin Test suit DeleteInteractionChoiceSet
 
@@ -4845,10 +4695,7 @@ local positiveChoiceSets = {
 ---------------------------------------------------------------------------------------------
 --------------------------------XI. ALERT TEST BLOCK-----------------------------------------
 ---------------------------------------------------------------------------------------------
-
-	function Test.NewTestBlock()
-		print("****************************** XI. ALERT TEST BLOCK ******************************")
-	end
+  testBlock("ALERT")
 
 	--Begin Test suit Alert
 
@@ -5669,9 +5516,7 @@ local positiveChoiceSets = {
 ---------------------------------------------------------------------------------------------
 ------------------------------------XII. SHOW TEST BLOCK-------------------------------------
 ---------------------------------------------------------------------------------------------
-	function Test.NewTestBlock()
-		print("****************************** XII. SHOW TEST BLOCK ******************************")
-	end
+  testBlock("SHOW")
 
 	--Begin Test suit Show
 
@@ -5921,10 +5766,7 @@ local positiveChoiceSets = {
 ---------------------------------------------------------------------------------------------
 ------------------------------------XIII. SPEAK TEST BLOCK-----------------------------------
 ---------------------------------------------------------------------------------------------
-
-	function Test.NewTestBlock()
-		print("****************************** XIII. SPEAK TEST BLOCK ******************************")
-	end
+  testBlock("SPEAK")
 
 	-- Begin Test suit Speak
 
@@ -6060,9 +5902,7 @@ local positiveChoiceSets = {
 ---------------------------------------------------------------------------------------------
 ---------------------------XIV. SET MEDIA CLOCK TIMER TEST BLOCK-----------------------------
 ---------------------------------------------------------------------------------------------
-	function Test.NewTestBlock()
-		print("****************************** XIV. SET MEDIA CLOCK TIMER TEST BLOCK ******************************")
-	end
+  testBlock("SET MEDIA CLOCK TIMER")
 
 	--Begin Test suit SetMediaClockTimer
 
@@ -6503,9 +6343,7 @@ local positiveChoiceSets = {
 ---------------------------------------------------------------------------------------------
 ---------------------------XV. SUBSCRIBE BUTTON TEST BLOCK-----------------------------------
 ---------------------------------------------------------------------------------------------
-	function Test.NewTestBlock()
-		print("****************************** XV. SUBSCRIBE BUTTON TEST BLOCK ******************************")
-	end
+  testBlock("SUBSCRIBE BUTTON")
 
 	--Begin Test suit SubscribeButton
 
@@ -6639,9 +6477,7 @@ local positiveChoiceSets = {
 ---------------------------------------------------------------------------------------------
 ------------------------------XVI. UNSUBSCRIBEBUTTON TEST BLOCK------------------------------
 ---------------------------------------------------------------------------------------------
-	function Test.NewTestBlock()
-		print("***************************** XVI. UNSUBSCRIBEBUTTON TEST BLOCK *****************************")
-	end
+  testBlock("UNSUBSCRIBEBUTTON")
 
 	--Begin Test suit UnsubscribeButton
 
@@ -6759,9 +6595,7 @@ local positiveChoiceSets = {
 ---------------------------------------------------------------------------------------------
 ---------------------------XVII. PERFORMAUDIOPASSTHRU TEST BLOCK------------------------------
 ---------------------------------------------------------------------------------------------
-	function Test.NewTestBlock()
-		print("****************************** XVII. PERFORMAUDIOPASSTHRU TEST BLOCK ******************************")
-	end
+  testBlock("PERFORMAUDIOPASSTHRU")
 
 	--Begin Test suit PerformAudioPassThru
 
@@ -7403,9 +7237,7 @@ local positiveChoiceSets = {
 ---------------------------------------------------------------------------------------------
 --------------------------XVIII. ENDAUDIOPASSTHRU TEST BLOCK---------------------------------
 ---------------------------------------------------------------------------------------------
-	function Test.NewTestBlock()
-		print("****************************** XVIII. ENDAUDIOPASSTHRU TEST BLOCK ******************************")
-	end
+  testBlock("ENDAUDIOPASSTHRU")
 
 	--Begin Test suit EndAudioPassThru
 
@@ -7542,9 +7374,7 @@ local positiveChoiceSets = {
 ---------------------------------------------------------------------------------------------
 -------------XIX. SUBSCRIBEVEHICLEDATA AND UNSUBSCRIBEVEHICLEDATA TEST BLOCK-----------------
 ---------------------------------------------------------------------------------------------
-	function Test.NewTestBlock()
-		print("********* XIX. SUBSCRIBEVEHICLEDATA AND UNSUBSCRIBEVEHICLEDATA TEST BLOCK *********")
-	end
+  testBlock("SUBSCRIBEVEHICLEDATA AND UNSUBSCRIBEVEHICLEDATA")
 
 	--Begin Test suit SubscribeVehicleData and UnsubscribeVehicleData
 
@@ -7964,9 +7794,7 @@ local positiveChoiceSets = {
 ---------------------------------------------------------------------------------------------
 ---------------------------------XX. GETVEHICLEDATA TEST BLOCK------------------------------
 ---------------------------------------------------------------------------------------------
-	function Test.NewTestBlock()
-		print("***************************** XX. GETVEHICLEDATA TEST BLOCK *****************************")
-	end
+  testBlock("GETVEHICLEDATA")
 
 	--Begin Test suit GetVehicleData
 
@@ -8210,9 +8038,7 @@ local positiveChoiceSets = {
 ---------------------------------------------------------------------------------------------
 ---------------------------------XXI. READDID TEST BLOCK------------------------------
 ---------------------------------------------------------------------------------------------
-	function Test.NewTestBlock()
-		print("***************************** XXI. READDID TEST BLOCK *****************************")
-	end
+  testBlock("READDID")
 
 	--Begin Test suit ReadDID
 
@@ -8288,9 +8114,7 @@ local positiveChoiceSets = {
 ---------------------------------------------------------------------------------------------
 ---------------------------------XXII. GETDTCS TEST BLOCK------------------------------
 ---------------------------------------------------------------------------------------------
-	function Test.NewTestBlock()
-		print("***************************** XXII. GETDTCS TEST BLOCK *****************************")
-	end
+  testBlock("GETDTCS")
 
 	--Begin Test suit GetDTCs
 
@@ -8380,9 +8204,7 @@ local positiveChoiceSets = {
 ---------------------------------------------------------------------------------------------
 ---------------------------------XXIII. SCROLLABLEMESSAGE TEST BLOCK------------------------------
 ---------------------------------------------------------------------------------------------
-	function Test.NewTestBlock()
-		print("***************************** XXIII. SCROLLABLEMESSAGE TEST BLOCK *****************************")
-	end
+  testBlock("SCROLLABLEMESSAGE")
 
 	--Begin Test suit ScrollableMessage
 
@@ -8664,9 +8486,7 @@ local positiveChoiceSets = {
 ---------------------------------------------------------------------------------------------
 ---------------------------------XXIV. SLIDER TEST BLOCK------------------------------
 ---------------------------------------------------------------------------------------------
-	function Test.NewTestBlock()
-		print("***************************** XXIV. SLIDER TEST BLOCK *****************************")
-	end
+  testBlock("SLIDER")
 
 	--Begin Test suit Slider
 
@@ -8921,9 +8741,7 @@ local positiveChoiceSets = {
 ---------------------------------------------------------------------------------------------
 ---------------------------------XXV. SHOWCONSTANTTBT TEST BLOCK------------------------------
 ---------------------------------------------------------------------------------------------
-	function Test.NewTestBlock()
-		print("***************************** XXV. SHOWCONSTANTTBT TEST BLOCK *****************************")
-	end
+  testBlock("SHOWCONSTANTTBT")
 
 	--Begin Test suit ShowConstantTBT
 
@@ -9250,9 +9068,7 @@ local positiveChoiceSets = {
 ---------------------------------------------------------------------------------------------
 ---------------------------------XXVI. ALERTMANEUVER TEST BLOCK------------------------------
 ---------------------------------------------------------------------------------------------
-	function Test.NewTestBlock()
-		print("***************************** XXVI. ALERTMANEUVER TEST BLOCK *****************************")
-	end
+  testBlock("ALERTMANEUVER")
 
 	--Begin Test suit AlertManeuver
 
@@ -9908,9 +9724,7 @@ local positiveChoiceSets = {
 ---------------------------------------------------------------------------------------------
 ---------------------------------XXVII. UPDATETURNLIST TEST BLOCK------------------------------
 ---------------------------------------------------------------------------------------------
-	function Test.NewTestBlock()
-		print("***************************** XXVII. UPDATETURNLIST TEST BLOCK *****************************")
-	end
+  testBlock("UPDATETURNLIST")
 
 	--Begin Test suit UpdateTurnList
 
@@ -10494,9 +10308,7 @@ local positiveChoiceSets = {
 ---------------------------------------------------------------------------------------------
 ---------------------------------XXVIII. SENDLOCATION TEST BLOCK------------------------------
 ---------------------------------------------------------------------------------------------
-	function Test.NewTestBlock()
-		print("***************************** XXVIII. SENDLOCATION TEST BLOCK *****************************")
-	end
+  testBlock("SENDLOCATION")
 
 	--Begin Test suit SendLocation
 
@@ -10700,9 +10512,7 @@ local positiveChoiceSets = {
 ---------------------------------------------------------------------------------------------
 ---------------------------------XXIX. GENERICRESPONSE TEST BLOCK------------------------------
 ---------------------------------------------------------------------------------------------
-	function Test.NewTestBlock()
-		print("***************************** XXIX. GENERICRESPONSE TEST BLOCK *****************************")
-	end
+  testBlock("GENERICRESPONSE")
 
 	--Begin Test suit GenericResponse
 
@@ -10732,9 +10542,7 @@ local positiveChoiceSets = {
 ---------------------------------------------------------------------------------------------
 ---------------------------------XXX. SETAPPICON TEST BLOCK------------------------------
 ---------------------------------------------------------------------------------------------
-	function Test.NewTestBlock()
-		print("***************************** XXX. SETAPPICON TEST BLOCK *****************************")
-	end
+  testBlock("SETAPPICON")
 
 	--Begin Test suit SetAppIcon
 
@@ -10801,9 +10609,7 @@ local positiveChoiceSets = {
 ---------------------------------------------------------------------------------------------
 ---------------------------------XXXI. SETDISPLAYLAYOUT TEST BLOCK------------------------------
 ---------------------------------------------------------------------------------------------
-	function Test.NewTestBlock()
-		print("***************************** XXXI. SETDISPLAYLAYOUT TEST BLOCK *****************************")
-	end
+  testBlock("SETDISPLAYLAYOUT")
 
 	--Begin Test suit SetDisplayLayout
 
@@ -11028,9 +10834,7 @@ local positiveChoiceSets = {
 ---------------------------------------------------------------------------------------------
 ---------------------------------XXXII. DELETEFILE TEST BLOCK------------------------------
 ---------------------------------------------------------------------------------------------
-	function Test.NewTestBlock()
-		print("***************************** XXXII. DELETEFILE TEST BLOCK *****************************")
-	end
+  testBlock("DELETEFILE")
 
 	--Begin Test suit DeleteFile
 
@@ -11106,9 +10910,7 @@ local positiveChoiceSets = {
 ---------------------------------------------------------------------------------------------
 ---------------------------------XXXIII. RESETGLOBALPROPERTIES TEST BLOCK------------------------------
 ---------------------------------------------------------------------------------------------
-	function Test.NewTestBlock()
-		print("***************************** XXXIII. RESETGLOBALPROPERTIES TEST BLOCK *****************************")
-	end
+  testBlock("RESETGLOBALPROPERTIES")
 
 	--Begin Test suit ResetGlobalProperties
 
@@ -11424,9 +11226,7 @@ local positiveChoiceSets = {
 ---------------------------------------------------------------------------------------------
 ---------------------------------XXXIV. DIALNUMBER TEST BLOCK------------------------------
 ---------------------------------------------------------------------------------------------
-	function Test.NewTestBlock()
-		print("***************************** XXXIV. DIALNUMBER TEST BLOCK *****************************")
-	end
+  testBlock("DIALNUMBER")
 
 	--Begin Test suit DialNumber
 
@@ -11492,9 +11292,7 @@ local positiveChoiceSets = {
 ---------------------------------------------------------------------------------------------
 ---------------------------------XXXV. UNREGISTERAPPINTERFACE TEST BLOCK------------------------------
 ---------------------------------------------------------------------------------------------
-	function Test.NewTestBlock()
-		print("***************************** XXXV. UNREGISTERAPPINTERFACE TEST BLOCK *****************************")
-	end
+  testBlock("UNREGISTERAPPINTERFACE")
 
 	--Begin Test suit UnregisterAppInterface
 
@@ -11540,9 +11338,7 @@ local positiveChoiceSets = {
 ---------------------------------------------------------------------------------------------
 ---------------------------------XXXVI. REGISTERAPPINTERFACE TEST BLOCK------------------------------
 ---------------------------------------------------------------------------------------------
-	function Test.NewTestBlock()
-		print("***************************** XXXVI. REGISTERAPPINTERFACE TEST BLOCK *****************************")
-	end
+  testBlock("REGISTERAPPINTERFACE")
 
 	--Begin Test suit RegisterAppInterface
 
@@ -11588,9 +11384,7 @@ local positiveChoiceSets = {
 ---------------------------------------------------------------------------------------------
 ---------------------------------XXXVII. CHANGEREGISTRATION TEST BLOCK------------------------------
 ---------------------------------------------------------------------------------------------
-	function Test.NewTestBlock()
-		print("***************************** XXXVII. CHANGEREGISTRATION TEST BLOCK *****************************")
-	end
+  testBlock("CHANGEREGISTRATION")
 
 	--Begin Test suit ChangeRegistration
 
