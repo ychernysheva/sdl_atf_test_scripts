@@ -840,17 +840,26 @@ local blockId = 1
 	--Begin Precondition.1
 	--Description: Activation of application by sending SDL.ActivateApp
 
-		function Test:ActivateApp()
-			-- hmi side: sending SDL.ActivateApp request
-		  	local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.applications[applicationName]})
-
-		  	-- hmi side: expect SDL.ActivateApp response
-			EXPECT_HMIRESPONSE(RequestId)
-
-			--mobile side: expect OnHMIStatus notification
-		  	EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"})
-
-			end
+	function Test:ActivateApp()
+	  local requestId1 = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.applications["Test Application"] })
+	  EXPECT_HMIRESPONSE(requestId1)
+	  :Do(function(_, data1)
+	      if data1.result.isSDLAllowed ~= true then
+	        local requestId2 = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage",
+	          { language = "EN-US", messageCodes = { "DataConsent" } })
+	        EXPECT_HMIRESPONSE(requestId2)
+	        :Do(function(_, _)
+	            self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality",
+	              { allowed = true, source = "GUI", device = { id = config.deviceMAC, name = "127.0.0.1" } })
+	            EXPECT_HMICALL("BasicCommunication.ActivateApp")
+	            :Do(function(_, data2)
+	                self.hmiConnection:SendResponse(data2.id,"BasicCommunication.ActivateApp", "SUCCESS", { })
+	              end)
+	            :Times(1)
+	          end)
+	      end
+	    end)
+	end
 
 	--End Precondition.1
 
