@@ -10558,8 +10558,6 @@ local	function performInteractionAllParams()
 		--Requirement id in Jira
 				-- https://adc.luxoft.com/confluence/pages/viewpage.action?pageId=286824228
 
-		-- TODO: test should be updated after resolving APPLINK-21336
-
 	---------------------------------------------------------------------------------------------
 
   		-- Description: All parameters
