@@ -11252,8 +11252,6 @@ local	function performInteractionAllParams()
 		    --hmi side: expect TTS.SetGlobalProperties request
 		    EXPECT_HMICALL("TTS.SetGlobalProperties",
 		            {
-		              --TODO: test should be updated after resolving APPLINK-9734
-		              --[==[
 		              helpPrompt =
 		              {
 		                {
@@ -11264,7 +11262,7 @@ local	function performInteractionAllParams()
 		                  type = "TEXT",
 		                  text = textPromtValue[2]
 		                }
-		              }--]==]
+		              }
 		            })
 		      :Do(function(_,data)
 		        self.hmiConnection:SendResponse(data.id, "TTS.SetGlobalProperties", "SUCCESS", {})
