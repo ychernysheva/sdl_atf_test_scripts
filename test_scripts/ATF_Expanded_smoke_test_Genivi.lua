@@ -635,8 +635,7 @@ local blockId = 1
 		paramsSend.interactionMode = "BOTH"
 
 		local cid = self.mobileSession:SendRPC("PerformInteraction",paramsSend)
-			if
-			paramsSend.fakeParam and
+			if paramsSend.fakeParam and
 			paramsSend.initialPrompt[1].fakeParam and
 			paramsSend.helpPrompt[1].fakeParam and
 			paramsSend.timeoutPrompt[1].fakeParam then
