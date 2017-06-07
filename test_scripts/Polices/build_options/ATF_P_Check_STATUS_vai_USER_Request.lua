@@ -26,10 +26,6 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 
-
---[[ Local Variables ]]
---NewTestSuiteNumber = 0
-
 --[[ General Precondition before ATF start]]
 commonSteps:DeleteLogsFileAndPolicyTable()
 
@@ -98,7 +94,7 @@ function Test:Preconditions_ActivateApplication()
     end)
   EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", audioStreamingState = "AUDIBLE", systemContext = "MAIN"})
 end
- 
+
 function Test:Preconditions_MoveSystem_UP_TO_DATE()
   policyUpdate(self)
 end
@@ -107,7 +103,12 @@ end
 commonFunctions:newTestCasesGroup ("Test")
 function Test:TestStep_Check_User_Request_UpdateSDL()
   local RequestIdUpdateSDL = self.hmiConnection:SendRequest("SDL.UpdateSDL")
-    EXPECT_HMIRESPONSE(RequestIdUpdateSDL,{result = {code = 0, method = "SDL.UpdateSDL", result = "UPDATING" }})
+  EXPECT_HMIRESPONSE(RequestIdUpdateSDL,{result = {code = 0, method = "SDL.UpdateSDL", result = "UPDATE_NEEDED" }})
+
+  EXPECT_HMICALL("BasicCommunication.PolicyUpdate", {file = "/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json"})
+  :Do(function(_,data) self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {}) end)
+
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"}, {status = "UPDATING"}):Times(2)
 end
 
 --[[ Postconditions ]]
