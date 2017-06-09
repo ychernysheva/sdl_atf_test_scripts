@@ -81,7 +81,7 @@ function Test:TestStep_PTU_validation_failure()
   :Do(function(_,_)
       if(#endpoints == 0) then endpoints[1].url = "http://policies.telematics.ford.com/api/policies" end
       self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",{ fileName = "PolicyTableUpdate", requestType = "PROPRIETARY", url = endpoints[1].url})
-      EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY", fileType = "JSON", url = endpoints[1].url,appID = config.application1.registerAppInterfaceParams.appID })
+      EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY", fileType = "JSON", url = endpoints[1].url })
       :Do(function(_,_)
           local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", {requestType = "PROPRIETARY", fileName = "PolicyTableUpdate"},
           "files/jsons/Policies/PTU_ValidationRules/invalid_PTU_missing_seconds_between_retries.json")

@@ -78,7 +78,6 @@ function Test:TestStep_User_consent_on_activate_app()
                     allowed = true}
                 end
               end
-
               self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent", { consentedFunctions = groups, source = "GUI"})
               EXPECT_NOTIFICATION("OnPermissionsChange")
               :Do(function(_,_)
@@ -94,7 +93,7 @@ end
 
 function Test:TestStep_check_LocalPT_for_updates()
   local is_test_fail = false
-  self.hmiConnection:SendNotification("SDL.OnPolicyUpdate", {} )
+  self.hmiConnection:SendRequest("SDL.UpdateSDL", {} )
 
   EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
 
