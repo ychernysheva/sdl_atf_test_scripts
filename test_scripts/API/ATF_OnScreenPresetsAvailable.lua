@@ -36,7 +36,7 @@ local resultCodes = {
 			{resultCode = "DISALLOWED", success =  false},
 			{resultCode = "UNSUPPORTED_RESOURCE", success =  false},
 			{resultCode = "ABORTED", success =  false}
-		}
+		}		
 
 ---------------------------------------------------------------------------------------------
 --------------------------------------- Common functions ------------------------------------
@@ -50,7 +50,7 @@ function DelayedExp(timeout)
               RAISE_EVENT(event, event)
             end, timeout)
 end
-
+ 
 function Test:initHMI_onReady(bOnScreenPresetsAvailable)
 	local function ExpectRequest(name, mandatory, params)
 	local event = events.Event()
@@ -392,7 +392,7 @@ function Test:initHMI_onReady(bOnScreenPresetsAvailable)
 		self.applications[app.appName] = app.appID
 		end
 	end)
-
+	
 	self.hmiConnection:SendNotification("BasicCommunication.OnReady")
 end
 
@@ -406,7 +406,7 @@ function Test:connectMobileStartSession()
 	event_dispatcher:AddConnection(self.mobileConnection)
 	self.mobileSession:ExpectEvent(events.connectedEvent, "Connection started")
 	self.mobileConnection:Connect()
-	self.mobileSession:StartService(7)
+	self.mobileSession:StartService(7)	
 end
 
 --Create UI expected result based on parameters from the request
@@ -416,14 +416,14 @@ function Test:createUIParameters(Request)
 
 	param["alignment"] =  Request["alignment"]
 	param["customPresets"] =  Request["customPresets"]
-
+	
 	--Convert showStrings parameter
 	local j = 0
-	for i = 1, 4 do
+	for i = 1, 4 do	
 		if Request["mainField" .. i] ~= nil then
 			j = j + 1
 			if param["showStrings"] == nil then
-				param["showStrings"] = {}
+				param["showStrings"] = {}			
 			end
 			param["showStrings"][j] = {
 				fieldName = "mainField" .. i,
@@ -431,94 +431,94 @@ function Test:createUIParameters(Request)
 			}
 		end
 	end
-
+	
 	--mediaClock
 	if Request["mediaClock"] ~= nil then
 		j = j + 1
 		if param["showStrings"] == nil then
-			param["showStrings"] = {}
-		end
+			param["showStrings"] = {}			
+		end		
 		param["showStrings"][j] = {
 			fieldName = "mediaClock",
 			fieldText = Request["mediaClock"]
 		}
 	end
-
+	
 	--mediaTrack
 	if Request["mediaTrack"] ~= nil then
 		j = j + 1
 		if param["showStrings"] == nil then
-			param["showStrings"] = {}
-		end
+			param["showStrings"] = {}			
+		end				
 		param["showStrings"][j] = {
 			fieldName = "mediaTrack",
 			fieldText = Request["mediaTrack"]
 		}
 	end
-
+	
 	--statusBar
 	if Request["statusBar"] ~= nil then
 		j = j + 1
 		if param["showStrings"] == nil then
-			param["showStrings"] = {}
-		end
+			param["showStrings"] = {}			
+		end				
 		param["showStrings"][j] = {
 			fieldName = "statusBar",
 			fieldText = Request["statusBar"]
 		}
 	end
 
-
+	
 
 	param["graphic"] =  Request["graphic"]
-	if param["graphic"] ~= nil and
+	if param["graphic"] ~= nil and 
 		param["graphic"].imageType ~= "STATIC" and
 		param["graphic"].value ~= nil and
 		param["graphic"].value ~= "" then
 			param["graphic"].value = storagePath ..param["graphic"].value
-	end
-
+	end	
+	
 	param["secondaryGraphic"] =  Request["secondaryGraphic"]
-	if param["secondaryGraphic"] ~= nil and
+	if param["secondaryGraphic"] ~= nil and 
 		param["secondaryGraphic"].imageType ~= "STATIC" and
 		param["secondaryGraphic"].value ~= nil and
 		param["secondaryGraphic"].value ~= "" then
 			param["secondaryGraphic"].value = storagePath ..param["secondaryGraphic"].value
-	end
-
+	end	
+	
 	--softButtons
 	if Request["softButtons"]  ~= nil then
 		param["softButtons"] =  Request["softButtons"]
 		for i = 1, #param["softButtons"] do
-
+		
 			--if type = TEXT, image = nil, else type = IMAGE, text = nil
-			if param["softButtons"][i].type == "TEXT" then
+			if param["softButtons"][i].type == "TEXT" then			
 				param["softButtons"][i].image =  nil
 
-			elseif param["softButtons"][i].type == "IMAGE" then
+			elseif param["softButtons"][i].type == "IMAGE" then			
 				param["softButtons"][i].text =  nil
 			end
-
-
-
-			--if image.imageType ~=STATIC, add app folder to image value
-			if param["softButtons"][i].image ~= nil and
+			
+			
+			
+			--if image.imageType ~=STATIC, add app folder to image value 
+			if param["softButtons"][i].image ~= nil and 
 				param["softButtons"][i].image.imageType ~= "STATIC" then
-
+				
 				param["softButtons"][i].image.value = storagePath ..param["softButtons"][i].image.value
 			end
-
+			
 		end
 	end
-
-
+	
+		
 	return param
-
-
+	
+	
 
 end
 
-local function ActivationApp(self, appID, session)
+local function ActivationApp(self, appID, session)			
 	--hmi side: sending SDL.ActivateApp request
 	local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = appID})
 	EXPECT_HMIRESPONSE(RequestId)
@@ -526,10 +526,10 @@ local function ActivationApp(self, appID, session)
 		if
 			data.result.isSDLAllowed ~= true then
 			local RequestId = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
-
+			
 			--hmi side: expect SDL.GetUserFriendlyMessage message response
 			EXPECT_HMIRESPONSE(RequestId,{result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
-			:Do(function(_,data)
+			:Do(function(_,data)						
 				--hmi side: send request SDL.OnAllowSDLFunctionality
 				self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = "127.0.0.1"}})
 
@@ -544,15 +544,15 @@ local function ActivationApp(self, appID, session)
 
 		end
 	end)
-
+	
 	--mobile side: expect notification
-	session:ExpectNotification("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"})
+	session:ExpectNotification("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"}) 
 end
 
-function Test:show(successValue, resultCodeValue)
+function Test:show(successValue, resultCodeValue)	
 	--mobile side: request parameters
-	local RequestParams =
-	{
+	local RequestParams = 
+	{				
 		mainField1 ="Show1",
 		mainField2 ="Show2",
 		mainField3 ="Show3",
@@ -560,20 +560,20 @@ function Test:show(successValue, resultCodeValue)
 		alignment ="CENTERED",
 		statusBar ="statusBar",
 		mediaClock ="00:00:01",
-		mediaTrack ="mediaTrack",
-		customPresets =
-		{
+		mediaTrack ="mediaTrack",								
+		customPresets = 
+		{ 
 			"Preset1",
 			"Preset2",
 			"Preset3",
-		},
-	}
+		}, 
+	}			
 
 	--mobile side: sending Show request
 	local cid = self.mobileSession:SendRPC("Show", RequestParams)
 
 	UIParams = self:createUIParameters(RequestParams)
-
+	
 	--hmi side: expect UI.Show request
 	EXPECT_HMICALL("UI.Show", UIParams)
 	:Do(function(_,data)
@@ -587,7 +587,7 @@ function Test:show(successValue, resultCodeValue)
 	end)
 
 	--mobile side: expect Show response
-	EXPECT_RESPONSE(cid, { success = successValue, resultCode = resultCodeValue })
+	EXPECT_RESPONSE(cid, { success = successValue, resultCode = resultCodeValue })				
 end
 
 -- Precondition: removing user_modules/connecttest_onScreen_Presets_Available.lua
@@ -598,22 +598,22 @@ end
 -----------------------------------------------------------------------------------------
 
 --Begin Test case suite
---Description:
+--Description: 
 			--Custom presets availability should be sent by HMI during start up as a parameter PresetBankCapabilities.
 			--PresetBankCapabilities should contain information about on-screen preset availability for use.
 
 	--Requirement id in JAMA: SDLAQ-CRS-910, SDLAQ-CRS-2678
 
-    --Verification criteria:
+    --Verification criteria: 
 		--PresetCapabilities data is obtained as "onScreenPresetsAvailable: true" from HMI by SDL during SDL starting in case HMI supports custom presets.
 		--PresetCapabilities data is obtained as "onScreenPresetsAvailable: false" from HMI by SDL during SDL starting in case HMI supports custom presets.
 		--In case SDL does not receive the value of 'presetBankCapabilities' via GetCapabilities_response from HMI -> SDL must use the default value from HMI_capabilities.json file
 
 	--Print new line to separate new test cases
 	commonFunctions:newTestCasesGroup("Test case: PresetCapabilities data is obtained as onScreenPresetsAvailable: true")
-
+	
 	--Begin Test case 01
-	--Description: PresetCapabilities data is obtained as "onScreenPresetsAvailable: true"
+	--Description: PresetCapabilities data is obtained as "onScreenPresetsAvailable: true"	
 		function Test:InitHMI_onReady()
 		  self:initHMI_onReady(bOnScreenPresetsAvailable)
 
@@ -625,14 +625,14 @@ end
 		end
 
 		function Test:RegisterAppInterface_OnScreenPresetsAvailableTrue()
-			--mobile side: RegisterAppInterface request
+			--mobile side: RegisterAppInterface request 
 			local CorIdRAI = self.mobileSession:SendRPC("RegisterAppInterface",config.application1.registerAppInterfaceParams)
-
+			
 
 			--hmi side: expected  BasicCommunication.OnAppRegistered
-			EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered",
+			EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", 
 			{
-				application =
+				application = 
 				{
 					appName = config.application1.registerAppInterfaceParams.appName
 				}
@@ -640,31 +640,31 @@ end
 			:Do(function(_,data)
 				self.applications[config.application1.registerAppInterfaceParams.appName] = data.params.application.appID
 			end)
-
-			--mobile side: RegisterAppInterface response
+			
+			--mobile side: RegisterAppInterface response 
 			EXPECT_RESPONSE(CorIdRAI, { success = true, resultCode = "SUCCESS", presetBankCapabilities = {onScreenPresetsAvailable = bOnScreenPresetsAvailable}})
 			:Timeout(2000)
 
 			--mobile side: expect notification
-			EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "NONE", systemContext = "MAIN", audioStreamingState = "NOT_AUDIBLE"})
+			EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "NONE", systemContext = "MAIN", audioStreamingState = "NOT_AUDIBLE"}) 
 
 		end
-
-		function Test:Precondition_ActivateApp()
+		
+		function Test:Precondition_ActivateApp()			
 			ActivationApp(self, self.applications[config.application1.registerAppInterfaceParams.appName], self.mobileSession)
 		end
-
+		
 		for i =1, #resultCodes do
 			Test["Show_resultCode_" .. resultCodes[i].resultCode] = function(self)
 				self:show(resultCodes[i].success, resultCodes[i].resultCode)
 			end
 		end
 	--End Test case 01
-
+	
 	-----------------------------------------------------------------------------------------
 	--Print new line to separate new test cases
 	commonFunctions:newTestCasesGroup("Test case: PresetCapabilities data is obtained as onScreenPresetsAvailable: false")
-
+		
 	--Begin Test case 02
 	--Description: PresetCapabilities data is obtained as "onScreenPresetsAvailable: false"
 		function Test:StopSDL()
@@ -690,16 +690,16 @@ end
 			self:connectMobileStartSession()
 		end
 
-		function Test:RegisterAppInterface_OnScreenPresetsAvailableFalse()
+		function Test:RegisterAppInterface_OnScreenPresetsAvailableFalse() 
 
-			--mobile side: RegisterAppInterface request
+			--mobile side: RegisterAppInterface request 
 			local CorIdRAI = self.mobileSession:SendRPC("RegisterAppInterface",config.application1.registerAppInterfaceParams)
-
+			
 
 			--hmi side: expected  BasicCommunication.OnAppRegistered
-			EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered",
+			EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", 
 			{
-				application =
+				application = 
 				{
 					appName = config.application1.registerAppInterfaceParams.appName
 				}
@@ -707,30 +707,30 @@ end
 			:Do(function(_,data)
 				self.applications[config.application1.registerAppInterfaceParams.appName] = data.params.application.appID
 			end)
-
-			--mobile side: RegisterAppInterface response
+			
+			--mobile side: RegisterAppInterface response 
 			EXPECT_RESPONSE(CorIdRAI, { success = true, resultCode = "SUCCESS", presetBankCapabilities = { onScreenPresetsAvailable = bOnScreenPresetsAvailable}})
 			:Timeout(2000)
 
 			--mobile side: expect notification
-			EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "NONE", systemContext = "MAIN", audioStreamingState = "NOT_AUDIBLE"})
+			EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "NONE", systemContext = "MAIN", audioStreamingState = "NOT_AUDIBLE"}) 
 		end
-
-		function Test:Precondition_ActivateApp()
+		
+		function Test:Precondition_ActivateApp()			
 			ActivationApp(self, self.applications[config.application1.registerAppInterfaceParams.appName], self.mobileSession)
 		end
-
+		
 		for i =1, #resultCodes do
 			Test["Show_resultCode_" .. resultCodes[i].resultCode] = function(self)
 				self:show(resultCodes[i].success, resultCodes[i].resultCode)
 			end
 		end
 	--End Test case 02
-
+	
 	-----------------------------------------------------------------------------------------
 	--Print new line to separate new test cases
-	commonFunctions:newTestCasesGroup("Test case: OnScreenPresetsAvailable data is not send")
-
+	commonFunctions:newTestCasesGroup("Test case: OnScreenPresetsAvailable data is not send")    
+	
 	--Begin Test case 03
 	--Description: OnScreenPresetsAvailable data is not send
 		function Test:StopSDL()
@@ -817,6 +817,7 @@ end
 					trim = "SE"
 				}
 			}):Pin()
+			ExpectRequest("VehicleInfo.GetVehicleData", true, { vin = "52-452-52-752" })
 
 			local function button_capability(name, shortPressAvailable, longPressAvailable, upDownAvailable)
 			return
@@ -846,7 +847,7 @@ end
 					button_capability("SEEKRIGHT"),
 					button_capability("TUNEUP"),
 					button_capability("TUNEDOWN")
-				},
+				},			
 			}
 			ExpectRequest("Buttons.GetCapabilities", true, buttons_capabilities):Pin()
 			ExpectRequest("VR.GetCapabilities", true, { vrCapabilities = { "TEXT" } }):Pin()
@@ -1009,14 +1010,14 @@ end
 		end
 
 		function Test:RegisterAppInterface_OnScreenPresetsAvailableDefault()
-			--mobile side: RegisterAppInterface request
+			--mobile side: RegisterAppInterface request 
 			local CorIdRAI = self.mobileSession:SendRPC("RegisterAppInterface",config.application1.registerAppInterfaceParams)
-
+			
 
 			--hmi side: expected  BasicCommunication.OnAppRegistered
-			EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered",
+			EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", 
 			{
-				application =
+				application = 
 				{
 					appName = config.application1.registerAppInterfaceParams.appName
 				}
@@ -1024,28 +1025,28 @@ end
 			:Do(function(_,data)
 				self.applications[config.application1.registerAppInterfaceParams.appName] = data.params.application.appID
 			end)
-
-			--mobile side: RegisterAppInterface response
+			
+			--mobile side: RegisterAppInterface response 
 			EXPECT_RESPONSE(CorIdRAI, { success = true, resultCode = "SUCCESS", presetBankCapabilities = {onScreenPresetsAvailable = true} })
 			:Timeout(2000)
 
 			--mobile side: expect notification
-			EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "NONE", systemContext = "MAIN", audioStreamingState = "NOT_AUDIBLE"})
+			EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "NONE", systemContext = "MAIN", audioStreamingState = "NOT_AUDIBLE"}) 
 
 		end
-
-		function Test:Precondition_ActivateApp()
+		
+		function Test:Precondition_ActivateApp()			
 			ActivationApp(self, self.applications[config.application1.registerAppInterfaceParams.appName], self.mobileSession)
 		end
-
+		
 		for i =1, #resultCodes do
 			Test["Show_resultCode_" .. resultCodes[i].resultCode] = function(self)
 				self:show(resultCodes[i].success, resultCodes[i].resultCode)
 			end
 		end
-
+		
 		function Test:StopSDL()
 		  StopSDL()
 		end
-	--End Test case 03
+	--End Test case 03	
 --End Test case suite

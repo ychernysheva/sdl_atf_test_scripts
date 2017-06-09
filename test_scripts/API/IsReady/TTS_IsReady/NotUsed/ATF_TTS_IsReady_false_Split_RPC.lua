@@ -39,9 +39,9 @@ local function update_sdl_preloaded_pt_json()
 	local file = io.open(pathToFile, "r")
 	local json_data = file:read("*all") -- may be abbreviated to "*a";
 	file:close()
-
+	
 	local json = require("modules/json")
-
+	
 	local data = json.decode(json_data)
 	for k,v in pairs(data.policy_table.functional_groupings) do
 		if (data.policy_table.functional_groupings[k].rpcs == nil) then
@@ -58,7 +58,7 @@ local function update_sdl_preloaded_pt_json()
 		end
 	end
 	data.policy_table.functional_groupings["Base-4"]["rpcs"]["Speak"] = {}
-	data.policy_table.functional_groupings["Base-4"]["rpcs"]["Speak"]["hmi_levels"] = {"BACKGROUND", "FULL","LIMITED"}
+	data.policy_table.functional_groupings["Base-4"]["rpcs"]["Speak"]["hmi_levels"] = {"BACKGROUND", "FULL","LIMITED"} 
 	data.policy_table.functional_groupings["Base-4"]["rpcs"]["ChangeRegistration"] = {}
 	data.policy_table.functional_groupings["Base-4"]["rpcs"]["ChangeRegistration"]["hmi_levels"] = {"BACKGROUND", "FULL","LIMITED"}
 	data.policy_table.functional_groupings["Base-4"]["rpcs"]["SetGlobalProperties"] = {}
@@ -82,7 +82,7 @@ commonSteps:DeleteLogsFileAndPolicyTable()
 ---------------------------------------------------------------------------------------------
 Test = require('user_modules/connecttest_TTS_Isready')
 require('cardinalities')
-local events = require('events')
+local events = require('events') 
 local mobile_session = require('mobile_session')
 require('user_modules/AppTypes')
 
@@ -106,54 +106,54 @@ function Test:initHMI_onReady_TTS_IsReady(case)
 		:Do(function(_, data)
 			--APPLINK-25117: [HMI_API] TTS.IsReady
 			if (name == "TTS.IsReady") then
-
+				
 				--On the view of JSON message, TTS.IsReady response has colerationidID, code/resultCode, method and message parameters. Below are tests to verify all invalid cases of the response.
-
+				
 				--caseID 1-3: Check special cases
 				--0. available_false
 				--1. HMI_Does_Not_Repond
 				--2. MissedAllParamaters
 				--3. Invalid_Json
-
+				
 				if (case == 0) then -- responds {available = false}
-					self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {available = false})
+					self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {available = false}) 
 				elseif (case == 1) then -- does not respond
-					--self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", params)
+					--self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", params) 
 				elseif (case == 2) then --MissedAllParamaters
 					self.hmiConnection:Send('{}')
 				elseif (case == 3) then --Invalid_Json
-
-					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsReady", "code":0}}')
-					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc";"2.0","result":{"available":true,"method":"TTS.IsReady", "code":0}}')
-
+					
+					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsReady", "code":0}}')	
+					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc";"2.0","result":{"available":true,"method":"TTS.IsReady", "code":0}}')	
+					
 					--*****************************************************************************************************************************
-
+					
 					--caseID 11-14 are used to checking "collerationID" parameter
 					--11. collerationID_IsMissed
 					--12. collerationID_IsNonexistent
 					--13. collerationID_IsWrongType
-					--14. collerationID_IsNegative
-
+					--14. collerationID_IsNegative 	
+					
 				elseif (case == 11) then --collerationID_IsMissed
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsReady", "code":0}}')
 					self.hmiConnection:Send('{"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsReady", "code":0}}')
-
+					
 				elseif (case == 12) then --collerationID_IsNonexistent
-
+					
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsReady", "code":0}}')
 					self.hmiConnection:Send('{"id":'..tostring(data.id + 10)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsReady", "code":0}}')
-
+					
 				elseif (case == 13) then --collerationID_IsWrongType
-
+					
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsReady", "code":0}}')
 					self.hmiConnection:Send('{"id":"'..tostring(data.id)..'","jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsReady", "code":0}}')
-
+					
 				elseif (case == 14) then --collerationID_IsNegative
-
+					
 					self.hmiConnection:Send('{"id":'..tostring(-1)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsReady", "code":0}}')
-
+					
 					--*****************************************************************************************************************************
-
+					
 					--caseID 21-27 are used to checking "method" parameter
 					--21. method_IsMissed
 					--22. method_IsNotValid
@@ -163,46 +163,46 @@ function Test:initHMI_onReady_TTS_IsReady(case)
 					--26. method_IsInvalidCharacter_Newline
 					--27. method_IsInvalidCharacter_OnlySpaces
 					--28. method_IsInvalidCharacter_Tab
-
+					
 				elseif (case == 21) then --method_IsMissed
-
+					
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsReady", "code":0}}')
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"code":0}}')
-
+					
 				elseif (case == 22) then --method_IsNotValid
-
+					
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsReady", "code":0}}')
-					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsRea", "code":0}}')
-
+					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsRea", "code":0}}')				
+					
 				elseif (case == 23) then --method_IsOtherResponse
-
+					
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsReady", "code":0}}')
-					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"VR.IsReady", "code":0}}')
-
+					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"VR.IsReady", "code":0}}')			
+					
 				elseif (case == 24) then --method_IsEmpty
-
+					
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsReady", "code":0}}')
-					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"", "code":0}}')
-
+					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"", "code":0}}')							 
+					
 				elseif (case == 25) then --method_IsWrongType
-
+					
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsReady", "code":0}}')
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":123456789, "code":0}}')
-
+					
 				elseif (case == 26) then --method_IsInvalidCharacter_Newline
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsReady", "code":0}}')
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsR\neady", "code":0}}')
-
+					
 				elseif (case == 27) then --method_IsInvalidCharacter_OnlySpaces
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsReady", "code":0}}')
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":" ", "code":0}}')
-
+					
 				elseif (case == 28) then --method_IsInvalidCharacter_Tab
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsReady", "code":0}}')
-					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsRe\tady", "code":0}}')
-
+					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsRe\tady", "code":0}}')		
+					
 					--*****************************************************************************************************************************
-
+					
 					--caseID 31-35 are used to checking "resultCode" parameter
 					--31. resultCode_IsMissed
 					--32. resultCode_IsNotExist
@@ -210,34 +210,34 @@ function Test:initHMI_onReady_TTS_IsReady(case)
 					--34. resultCode_INVALID_DATA (code = 11)
 					--35. resultCode_DATA_NOT_AVAILABLE (code = 9)
 					--36. resultCode_GENERIC_ERROR (code = 22)
-
+					
 				elseif (case == 31) then --resultCode_IsMissed
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsReady", "code":0}}')
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsReady"}}')
-
+					
 				elseif (case == 32) then --resultCode_IsNotExist
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsReady", "code":0}}')
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsReady", "code":123}}')
-
+					
 				elseif (case == 33) then --resultCode_IsWrongType
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsReady", "code":0}}')
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsReady", "code":"0"}}')
-
+					
 				elseif (case == 34) then --resultCode_INVALID_DATA
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsReady", "code":0}}')
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsReady", "code":11}}')
-
+					
 				elseif (case == 35) then --resultCode_DATA_NOT_AVAILABLE
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsReady", "code":0}}')
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsReady", "code":9}}')
-
+					
 				elseif (case == 36) then --resultCode_GENERIC_ERROR
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsReady", "code":0}}')
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsReady", "code":22}}')
-
-
+					
+					
 					--*****************************************************************************************************************************
-
+					
 					--caseID 41-45 are used to checking "message" parameter
 					--41. message_IsMissed
 					--42. message_IsLowerBound
@@ -248,71 +248,71 @@ function Test:initHMI_onReady_TTS_IsReady(case)
 					--47. message_IsInvalidCharacter_Tab
 					--48. message_IsInvalidCharacter_OnlySpaces
 					--49. message_IsInvalidCharacter_Newline
-
+					
 				elseif (case == 41) then --message_IsMissed
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"TTS.IsReady"}, "message":"The data sent is invalid","code":11}}') --INVALID_DATA
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"TTS.IsReady"}, "code":11}}')
-
+					
 				elseif (case == 42) then --message_IsLowerBound
 					local messageValue = "a"
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"TTS.IsReady"}, "message":"The data sent is invalid","code":11}}') --INVALID_DATA
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"TTS.IsReady"}, "message":"' .. messageValue ..'","code":11}}')
-
+					
 				elseif (case == 43) then --message_IsUpperBound
 					local messageValue = string.rep("a", 1000)
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"TTS.IsReady"}, "message":"The data sent is invalid","code":11}}') --INVALID_DATA
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"TTS.IsReady"}, "message":"' .. messageValue ..'","code":11}}')
-
+					
 				elseif (case == 44) then --message_IsOutUpperBound
 					local messageValue = string.rep("a", 1001)
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"TTS.IsReady"}, "message":"The data sent is invalid","code":11}}') --INVALID_DATA
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"TTS.IsReady"}, "message":"' .. messageValue ..'","code":11}}')
-
+					
 				elseif (case == 45) then --message_IsEmpty_IsOutLowerBound
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"TTS.IsReady"}, "message":"The data sent is invalid","code":11}}') --INVALID_DATA
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"TTS.IsReady"}, "message":"","code":11}}')
-
+					
 				elseif (case == 46) then --message_IsWrongType
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"TTS.IsReady"}, "message":"The data sent is invalid","code":11}}') --INVALID_DATA
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"TTS.IsReady"}, "message":123,"code":11}}')
-
+					
 				elseif (case == 47) then --message_IsInvalidCharacter_Tab
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"TTS.IsReady"}, "message":"The data sent is invalid","code":11}}') --INVALID_DATA
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"TTS.IsReady"}, "message":"a\tb","code":11}}')
-
+					
 				elseif (case == 48) then --message_IsInvalidCharacter_OnlySpaces
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"TTS.IsReady"}, "message":"The data sent is invalid","code":11}}') --INVALID_DATA
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"TTS.IsReady"}, "message":" ","code":11}}')
-
+					
 				elseif (case == 49) then --message_IsInvalidCharacter_Newline
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"TTS.IsReady"}, "message":"The data sent is invalid","code":11}}') --INVALID_DATA
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"TTS.IsReady"}, "message":"a\n\b","code":11}}')
-
+					
 					--*****************************************************************************************************************************
-
+					
 					--caseID 51-55 are used to checking "available" parameter
 					--51. available_IsMissed
 					--52. available_IsWrongType
-
+					
 				elseif (case == 51) then --available_IsMissed
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsReady", "code":0}}')
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"TTS.IsReady", "code":"0"}}')
-
+					
 				elseif (case == 52) then --available_IsWrongType
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsReady", "code":0}}')
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":"true","method":"TTS.IsReady", "code":"0"}}')
-
+					
 				else
 					print("***************************Error: TTS.IsReady: Input value is not correct ***************************")
 				end
 			else
-				self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", params)
+				self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", params) 			
 			end
-
+			
 		end)
-
+		
 	end
-
+	
 	ExpectRequest("BasicCommunication.MixingAudioSupported",
 	true,
 	{ attenuatedSupported = true })
@@ -324,15 +324,15 @@ function Test:initHMI_onReady_TTS_IsReady(case)
 	})
 	ExpectRequest("UI.GetLanguage", true, { language = "EN-US" })
 	ExpectRequest("VR.GetLanguage", true, { language = "EN-US" })
-
+	
 	ExpectRequest("TTS.GetLanguage", true, { language = "EN-US" })
 	:Times(0)
 	ExpectRequest("UI.ChangeRegistration", false, { }):Pin()
 	ExpectRequest("TTS.SetGlobalProperties", false, { }):Pin()
-
+	
 	ExpectRequest("BasicCommunication.UpdateDeviceList", false, { }):Pin()
 	ExpectRequest("VR.ChangeRegistration", false, { }):Pin()
-
+	
 	ExpectRequest("TTS.ChangeRegistration", false, { }):Pin()
 	ExpectRequest("VR.GetSupportedLanguages", true, {
 		languages =
@@ -368,7 +368,8 @@ function Test:initHMI_onReady_TTS_IsReady(case)
 			trim = "SE"
 		}
 	})
-
+	ExpectRequest("VehicleInfo.GetVehicleData", true, { vin = "52-452-52-752" })
+	
 	local function button_capability(name, shortPressAvailable, longPressAvailable, upDownAvailable)
 		xmlReporter.AddMessage(debug.getinfo(1, "n").name, tostring(name))
 		return
@@ -406,7 +407,7 @@ function Test:initHMI_onReady_TTS_IsReady(case)
 	ExpectRequest("VR.GetCapabilities", true, { vrCapabilities = { "TEXT" } })
 	ExpectRequest("TTS.GetCapabilities", true, speech_capabilities)
 	:Times(0)
-
+	
 	ExpectRequest("TTS.GetCapabilities", true, {
 		speechCapabilities = { "TEXT", "SAPI_PHONEMES", "LHPLUS_PHONEMES", "PRE_RECORDED", "SILENCE" },
 		prerecordedSpeechCapabilities =
@@ -417,7 +418,7 @@ function Test:initHMI_onReady_TTS_IsReady(case)
 			"POSITIVE_JINGLE",
 			"NEGATIVE_JINGLE"
 		}
-	})
+	}) 
 	:Times(0)
 	local function text_field(name, characterSet, width, rows)
 		xmlReporter.AddMessage(debug.getinfo(1, "n").name, tostring(name))
@@ -446,9 +447,9 @@ function Test:initHMI_onReady_TTS_IsReady(case)
 				resolutionHeight = height or 64
 			}
 		}
-
+		
 	end
-
+	
 	ExpectRequest("UI.GetCapabilities", true, {
 		displayCapabilities =
 		{
@@ -541,7 +542,7 @@ function Test:initHMI_onReady_TTS_IsReady(case)
 	ExpectRequest("UI.IsReady", true, { available = true })
 	ExpectRequest("Navigation.IsReady", true, { available = true })
 	ExpectRequest("VehicleInfo.IsReady", true, { available = true })
-
+	
 	self.applications = { }
 	ExpectRequest("BasicCommunication.UpdateAppList", false, { })
 	:Pin()
@@ -552,14 +553,14 @@ function Test:initHMI_onReady_TTS_IsReady(case)
 			self.applications[app.appName] = app.appID
 		end
 	end)
-
+	
 	self.hmiConnection:SendNotification("BasicCommunication.OnReady")
-end
+end 
 
 local function UpdatePolicy()
-
-	local PermissionForSetGlobalProperties =
-	[[
+	
+	local PermissionForSetGlobalProperties = 
+	[[				
 	"SetGlobalProperties": {
 		"hmi_levels": [
 		"BACKGROUND",
@@ -568,8 +569,8 @@ local function UpdatePolicy()
 		]
 	}
 	]].. ", \n"
-	local PermissionForChangeRegistration =
-	[[
+	local PermissionForChangeRegistration = 
+	[[				
 	"ChangeRegistration": {
 		"hmi_levels": [
 		"BACKGROUND",
@@ -578,8 +579,8 @@ local function UpdatePolicy()
 		]
 	}
 	]].. ", \n"
-	local PermissionForAlertManeuver =
-	[[
+	local PermissionForAlertManeuver = 
+	[[				
 	"AlertManeuver": {
 		"hmi_levels": [
 		"BACKGROUND",
@@ -588,9 +589,9 @@ local function UpdatePolicy()
 		]
 	}
 	]].. ", \n"
-
+					
 	local PermissionLinesForBase4 = PermissionForSetGlobalProperties..PermissionForChangeRegistration..PermissionForAlertManeuver
-	local PTName = testCasesForPolicyTable:createPolicyTableFile_temp(PermissionLinesForBase4, nil, nil, {"SetGlobalProperties","ChangeRegistration","AlertManeuver"})
+	local PTName = testCasesForPolicyTable:createPolicyTableFile_temp(PermissionLinesForBase4, nil, nil, {"SetGlobalProperties","ChangeRegistration","AlertManeuver"})	
 	testCasesForPolicyTable:Precondition_updatePolicy_By_overwriting_preloaded_pt(PTName)
 end
 
@@ -641,19 +642,19 @@ commonSteps:DeleteLogsFileAndPolicyTable()
 
 --List of parameters in TTS.IsReady response:
 --Parameter 1: correlationID: type=Integer, mandatory="true"
---Parameter 2: method: type=String, mandatory="true" (method = "TTS.IsReady")
---Parameter 3: resultCode: type=String Enumeration(Integer), mandatory="true"
---Parameter 4: info/message: type=String, minlength="1" maxlength="1000" mandatory="false"
+--Parameter 2: method: type=String, mandatory="true" (method = "TTS.IsReady") 
+--Parameter 3: resultCode: type=String Enumeration(Integer), mandatory="true" 
+--Parameter 4: info/message: type=String, minlength="1" maxlength="1000" mandatory="false" 
 --Parameter 5: available: type=Boolean, mandatory="true"
 -----------------------------------------------------------------------------------------------
 
 
 
------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------				
 -- Cases 1: HMI sends TTS.IsReady response (available = false)
 -----------------------------------------------------------------------------------------------
---List of CRQs:
---CRQ #1) APPLINK-25046: [RegisterAppInterface] SDL behavior in case <Interface> is not supported by system => omit <Interface>-related parameters from response to mobile app (meaning: SDL must NOT retrieve the default values from 'HMI_capabilities.json' file and provide via response to mobile app)
+--List of CRQs:	
+--CRQ #1) APPLINK-25046: [RegisterAppInterface] SDL behavior in case <Interface> is not supported by system => omit <Interface>-related parameters from response to mobile app (meaning: SDL must NOT retrieve the default values from 'HMI_capabilities.json' file and provide via response to mobile app)		
 --CRQ #2) APPLINK-25140: [TTS Interface] Conditions for SDL to respond 'UNSUPPORTED_RESOURCE, success:false' to mobile app (single TTS-related RPC)
 --CRQ #3) APPLINK-25133: [TTS Interface] TTS.IsReady(false) -> HMI respond with successful resultCode to spitted RPC
 --CRQ #4) APPLINK-25134: [TTS Interface] TTS.IsReady(false) -> HMI respond with errorCode to spitted RPC
@@ -665,54 +666,54 @@ local TestCaseName = "TTS_IsReady_response_available_false"
 commonFunctions:newTestCasesGroup(TestCaseName)
 
 local function StopStartSDL_HMI_MOBILE()
-
+	
 	--Stop SDL
 	Test[tostring(TestCaseName) .. "_Precondition_StopSDL"] = function(self)
 		StopSDL()
 	end
-
+	
 	--Start SDL
 	Test[tostring(TestCaseName) .. "_Precondition_StartSDL"] = function(self)
 		StartSDL(config.pathToSDL, config.ExitOnCrash)
 	end
-
+	
 	--InitHMI
 	Test[tostring(TestCaseName) .. "_Precondition_InitHMI"] = function(self)
 		self:initHMI()
 	end
-
-
+	
+	
 	--InitHMIonReady: Cover APPLINK-25117: [HMI_API] TTS.IsReady
 	Test[tostring(TestCaseName) .. "_initHMI_onReady_TTS_IsReady_" .. tostring(description)] = function(self)
 		self:initHMI_onReady_TTS_IsReady(0)	--	available = false
 	end
-
-
+	
+	
 	--ConnectMobile
 	Test[tostring(TestCaseName) .. "_ConnectMobile"] = function(self)
 		self:connectMobile()
 	end
-
+	
 	--StartSession
 	Test[tostring(TestCaseName) .. "_StartSession"] = function(self)
 		self.mobileSession= mobile_session.MobileSession(self, self.mobileConnection)
 		self.mobileSession:StartService(7)
 	end
-
+	
 end
 
 
 --ToDo: Due to problem with stop and start SDL (APPLINK-25898), this step is skipped and update user_modules/connecttest_TTS_Isready.lua to send TTS.IsReady(available = false) response manually.
 StopStartSDL_HMI_MOBILE()
 Test[TestCaseName .. "_RegisterApplication_Check_TTS_Parameters_IsOmitted_resultCode_SUCCESS"] = function(self)
-
+	
 	commonTestCases:DelayedExp(iTimeout)
-
+	
 	--mobile side: RegisterAppInterface request
 	local CorIdRegister=self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
-
+	
 	--hmi side: expect BasicCommunication.OnAppRegistered request
-	EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered",
+	EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", 
 	{
 		application=
 		{
@@ -723,10 +724,10 @@ Test[TestCaseName .. "_RegisterApplication_Check_TTS_Parameters_IsOmitted_result
 		self.appName=data.params.application.appName
 		self.applications[config.application1.registerAppInterfaceParams.appName]=data.params.application.appID
 	end)
-
-
+	
+	
 	--mobile side: expect response
-	-- SDL does not send TTS-related param to mobile app
+	-- SDL does not send TTS-related param to mobile app	
 	self.mobileSession:ExpectResponse(CorIdRegister, {success=true,resultCode="SUCCESS"})
 	:ValidIf (function(_,data)
 		local errorMessage = ""
@@ -735,22 +736,22 @@ Test[TestCaseName .. "_RegisterApplication_Check_TTS_Parameters_IsOmitted_result
 		end
 		if data.payload.language then
 			errorMessage = errorMessage .. "SDL resends 'language' parameter to mobile app"
-		end
+		end	
 		if data.payload.prerecordedSpeech then
 			errorMessage = errorMessage .. "SDL resends 'prerecordedSpeech' parameter to mobile app"
-		end
+		end	
 		if errorMessage == "" then
-			return true
+			return true					
 		else
 			commonFunctions:printError(errorMessage)
 			return false
 		end
 	end)
-
+	
 	--mobile side: expect notification
 	self.mobileSession:ExpectNotification("OnHMIStatus", { systemContext="MAIN", hmiLevel="NONE", audioStreamingState="NOT_AUDIBLE"})
-
-end
+	
+end	
 -- Description: Activation app for precondition
 commonSteps:ActivationApp()
 commonSteps:PutFile("Precondition_PutFile", "action.png")
@@ -777,28 +778,28 @@ local function APPLINK_25133_checksplit_TTS_Responds_false_Other_Interfaces_Resp
 		{resultCode = "RETRY", 			info = "TTS is not supported by system"},
 		{resultCode = "SAVED", 			info = "TTS is not supported by system"},
 	}
-
-	--1. SetGlobalProperties
+	
+	--1. SetGlobalProperties		
 	for i = 1, #TestData do
 		Test[TestCaseName .. "_SetGlobalProperties_UNSUPPORTED_RESOURCE_true_Incase_UI_responds_" .. TestData[i].resultCode] = function(self)
-
-			commonTestCases:DelayedExp(iTimeout)
+			
+			commonTestCases:DelayedExp(iTimeout)		
 			--mobile side: sending SetGlobalProperties request
 			local cid = self.mobileSession:SendRPC("SetGlobalProperties",
 			{
 				menuTitle = "Menu Title",
-				timeoutPrompt =
+				timeoutPrompt = 
 				{
 					{
 						text = "Timeout prompt",
 						type = "TEXT"
 					}
 				},
-				vrHelp =
+				vrHelp = 
 				{
 					{
 						position = 1,
-						image =
+						image = 
 						{
 							value = "action.png",
 							imageType = "DYNAMIC"
@@ -806,12 +807,12 @@ local function APPLINK_25133_checksplit_TTS_Responds_false_Other_Interfaces_Resp
 						text = "VR help item"
 					}
 				},
-				menuIcon =
+				menuIcon = 
 				{
 					value = "action.png",
 					imageType = "DYNAMIC"
 				},
-				helpPrompt =
+				helpPrompt = 
 				{
 					{
 						text = "Help prompt",
@@ -819,11 +820,11 @@ local function APPLINK_25133_checksplit_TTS_Responds_false_Other_Interfaces_Resp
 					}
 				},
 				vrHelpTitle = "VR help title",
-				keyboardProperties =
+				keyboardProperties = 
 				{
 					keyboardLayout = "QWERTY",
 					keypressMode = "SINGLE_KEYPRESS",
-					limitedCharacterList =
+					limitedCharacterList = 
 					{
 						"a"
 					},
@@ -831,17 +832,17 @@ local function APPLINK_25133_checksplit_TTS_Responds_false_Other_Interfaces_Resp
 					autoCompleteText = "Daemon, Freedom"
 				}
 			})
-
-
+			
+			
 			--hmi side: expect TTS.SetGlobalProperties request
 			EXPECT_HMICALL("TTS.SetGlobalProperties", {})
 			:Times(0)
-
+			
 			--hmi side: expect UI.SetGlobalProperties request
 			EXPECT_HMICALL("UI.SetGlobalProperties",
 			{
 				menuTitle = "Menu Title",
-				vrHelp =
+				vrHelp = 
 				{
 					{
 						position = 1,
@@ -849,7 +850,7 @@ local function APPLINK_25133_checksplit_TTS_Responds_false_Other_Interfaces_Resp
 					}
 				},
 				vrHelpTitle = "VR help title",
-				keyboardProperties =
+				keyboardProperties = 
 				{
 					keyboardLayout = "QWERTY",
 					keypressMode = "SINGLE_KEYPRESS",
@@ -865,32 +866,32 @@ local function APPLINK_25133_checksplit_TTS_Responds_false_Other_Interfaces_Resp
 				--hmi side: sending UI.SetGlobalProperties response
 				self.hmiConnection:SendResponse(data.id, data.method, TestData[i].resultCode, {})
 			end)
-
+			
 			--mobile side: expect SetGlobalProperties response
 			EXPECT_RESPONSE(cid, {success = true, resultCode = "UNSUPPORTED_RESOURCE", info = TestData[i].info})
 			:Timeout(iTimeout)
-
+			
 			EXPECT_NOTIFICATION("OnHashChange")
 			:Timeout(iTimeout)
 		end
 	end
-
+	
 	--2. ChangeRegistration
 	for i = 1, #TestData do
 		Test[TestCaseName .. "_ChangeRegistration_UNSUPPORTED_RESOURCE_true_Incase_UI_responds_" .. TestData[i].resultCode] = function(self)
-
+			
 			commonTestCases:DelayedExp(iTimeout)
-
+			
 			local request = {	language ="EN-US",
 				hmiDisplayLanguage ="EN-US",
 				appName ="SyncProxyTester_" .. tostring(i),
 				ttsName = {{text ="SyncProxyTester", type ="TEXT"}},
 				ngnMediaScreenAppName ="SPT",
 			vrSynonyms = {"VRSyncProxyTester"}}
-
+			
 			--mobile side: send ChangeRegistration request
 			local cid = self.mobileSession:SendRPC("ChangeRegistration", request)
-
+			
 			--hmi side: expect UI.ChangeRegistration request
 			EXPECT_HMICALL("UI.ChangeRegistration",
 			{
@@ -902,7 +903,7 @@ local function APPLINK_25133_checksplit_TTS_Responds_false_Other_Interfaces_Resp
 				--hmi side: send UI.ChangeRegistration response
 				self.hmiConnection:SendResponse(data.id, data.method, TestData[i].resultCode, {})
 			end)
-
+			
 			--hmi side: expect there is no VR.ChangeRegistration request
 			EXPECT_HMICALL("VR.ChangeRegistration",
 			{
@@ -913,44 +914,44 @@ local function APPLINK_25133_checksplit_TTS_Responds_false_Other_Interfaces_Resp
 				--hmi side: send VR.ChangeRegistration response
 				self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS",{})
 			end)
-
+			
 			--hmi side: expect TTS.ChangeRegistration request
 			EXPECT_HMICALL("TTS.ChangeRegistration",{})
 			:Times(0)
-
-			--mobile side: expect ChangeRegistration response
+			
+			--mobile side: expect ChangeRegistration response					
 			EXPECT_RESPONSE(cid, {success = true, resultCode = "UNSUPPORTED_RESOURCE", info = TestData[i].info})
 			:Timeout(iTimeout)
-
+			
 		end
 	end
-
+	
 	--3. AlertManeuver
 	for i = 1, #TestData do
 		Test[TestCaseName .. "_AlertManeuver_UNSUPPORTED_RESOURCE_true_Incase_UI_responds_" .. TestData[i].resultCode] = function(self)
-
-			--mobile side: AlertManeuver request
+			
+			--mobile side: AlertManeuver request 
 			local CorIdAlertM = self.mobileSession:SendRPC("AlertManeuver",
 			{
-
-				ttsChunks =
-				{
-
-					{
+				
+				ttsChunks = 
+				{ 
+					
+					{ 
 						text ="FirstAlert",
 						type ="TEXT",
-					},
-
-					{
+					}, 
+					
+					{ 
 						text ="SecondAlert",
 						type ="TEXT",
-					},
+					}, 
 				}
-
+				
 			})
 			local AlertId
-			--hmi side: Navigation.AlertManeuver request
-			EXPECT_HMICALL("Navigation.AlertManeuver",
+			--hmi side: Navigation.AlertManeuver request 
+			EXPECT_HMICALL("Navigation.AlertManeuver", 
 			{
 				appID = self.applications[ config.application1.registerAppInterfaceParams.appName]
 			})
@@ -959,18 +960,18 @@ local function APPLINK_25133_checksplit_TTS_Responds_false_Other_Interfaces_Resp
 				local function alertResponse()
 					self.hmiConnection:SendResponse(AlertId, "Navigation.AlertManeuver", "SUCCESS", {})
 				end
-
+				
 				RUN_AFTER(alertResponse, 2000)
 			end)
-
+			
 			local SpeakId
-			--hmi side: TTS.Speak request
+			--hmi side: TTS.Speak request 
 			EXPECT_HMICALL("TTS.Speak",{})
 			:Times(0)
-			--mobile side: expect ChangeRegistration response
+			--mobile side: expect ChangeRegistration response					
 			EXPECT_RESPONSE(CorIdAlertM, {success = true, resultCode = "UNSUPPORTED_RESOURCE", info = TestData[i].info})
 			:Timeout(iTimeout)
-		end
+		end	
 	end
 end
 APPLINK_25133_checksplit_TTS_Responds_false_Other_Interfaces_Responds_SUCCESS(TestCaseName)
@@ -984,30 +985,30 @@ APPLINK_25133_checksplit_TTS_Responds_false_Other_Interfaces_Responds_SUCCESS(Te
 -- -> any other <Interface>.RPC (<Interface> - TTS, VR)
 -- SDL must:
 -- transfer only <Interface>.RPC to HMI (in case <Interface> is supported by system)
--- respond with 'GENERIC_ERROR, success:false' to mobile app IN CASE <Interface>.RPC does not process by HMI
+-- respond with 'GENERIC_ERROR, success:false' to mobile app IN CASE <Interface>.RPC does not process by HMI 
 
 -----------------------------------------------------------------------------------------------
 local function APPLINK_25133_checksplit_TTS_Responds_false_Other_Interfaces_Not_Respond(TestCaseName)
-	--1. SetGlobalProperties
+	--1. SetGlobalProperties		
 	Test[TestCaseName .. "_SetGlobalProperties_GENERIC_ERROR_false_Incase_Other_Interface_Not_respond"] = function(self)
-
-		commonTestCases:DelayedExp(iTimeout)
+		
+		commonTestCases:DelayedExp(iTimeout)		
 		--mobile side: sending SetGlobalProperties request
 		local cid = self.mobileSession:SendRPC("SetGlobalProperties",
 		{
 			menuTitle = "Menu Title",
-			timeoutPrompt =
+			timeoutPrompt = 
 			{
 				{
 					text = "Timeout prompt",
 					type = "TEXT"
 				}
 			},
-			vrHelp =
+			vrHelp = 
 			{
 				{
 					position = 1,
-					image =
+					image = 
 					{
 						value = "action.png",
 						imageType = "DYNAMIC"
@@ -1015,12 +1016,12 @@ local function APPLINK_25133_checksplit_TTS_Responds_false_Other_Interfaces_Not_
 					text = "VR help item"
 				}
 			},
-			menuIcon =
+			menuIcon = 
 			{
 				value = "action.png",
 				imageType = "DYNAMIC"
 			},
-			helpPrompt =
+			helpPrompt = 
 			{
 				{
 					text = "Help prompt",
@@ -1028,11 +1029,11 @@ local function APPLINK_25133_checksplit_TTS_Responds_false_Other_Interfaces_Not_
 				}
 			},
 			vrHelpTitle = "VR help title",
-			keyboardProperties =
+			keyboardProperties = 
 			{
 				keyboardLayout = "QWERTY",
 				keypressMode = "SINGLE_KEYPRESS",
-				limitedCharacterList =
+				limitedCharacterList = 
 				{
 					"a"
 				},
@@ -1040,17 +1041,17 @@ local function APPLINK_25133_checksplit_TTS_Responds_false_Other_Interfaces_Not_
 				autoCompleteText = "Daemon, Freedom"
 			}
 		})
-
-
+		
+		
 		--hmi side: expect TTS.SetGlobalProperties request
 		EXPECT_HMICALL("TTS.SetGlobalProperties", {})
 		:Times(0)
-
+		
 		--hmi side: expect UI.SetGlobalProperties request
 		EXPECT_HMICALL("UI.SetGlobalProperties",
 		{
 			menuTitle = "Menu Title",
-			vrHelp =
+			vrHelp = 
 			{
 				{
 					position = 1,
@@ -1058,7 +1059,7 @@ local function APPLINK_25133_checksplit_TTS_Responds_false_Other_Interfaces_Not_
 				}
 			},
 			vrHelpTitle = "VR help title",
-			keyboardProperties =
+			keyboardProperties = 
 			{
 				keyboardLayout = "QWERTY",
 				keypressMode = "SINGLE_KEYPRESS",
@@ -1072,30 +1073,30 @@ local function APPLINK_25133_checksplit_TTS_Responds_false_Other_Interfaces_Not_
 		:Timeout(iTimeout)
 		:Do(function(_,data)
 			--hmi side: hmi does not respond
-
+			
 		end)
-
+		
 		--mobile side: expect SetGlobalProperties response
 		EXPECT_RESPONSE(cid, {success = false, resultCode = "GENERIC_ERROR", info = "UI is not supported by system"})
 		:Timeout(iTimeout)
 	end
-
-
+	
+	
 	--2. ChangeRegistration
 	Test[TestCaseName .. "_ChangeRegistration_GENERIC_ERROR_false_Incase_Other_Interface_Not_respond"] = function(self)
-
+		
 		commonTestCases:DelayedExp(iTimeout)
-
+		
 		local request = {	language ="EN-US",
 			hmiDisplayLanguage ="EN-US",
 			appName ="SyncProxyTester_" .. tostring(i),
 			ttsName = {{text ="SyncProxyTester", type ="TEXT"}},
 			ngnMediaScreenAppName ="SPT",
 		vrSynonyms = {"VRSyncProxyTester"}}
-
+		
 		--mobile side: send ChangeRegistration request
 		local cid = self.mobileSession:SendRPC("ChangeRegistration", request)
-
+		
 		--hmi side: expect UI.ChangeRegistration request
 		EXPECT_HMICALL("UI.ChangeRegistration",
 		{
@@ -1105,9 +1106,9 @@ local function APPLINK_25133_checksplit_TTS_Responds_false_Other_Interfaces_Not_
 		})
 		:Do(function(_,data)
 			--hmi side: hmi does not respond
-
+			
 		end)
-
+		
 		--hmi side: expect there is no VR.ChangeRegistration request
 		EXPECT_HMICALL("VR.ChangeRegistration",
 		{
@@ -1116,61 +1117,61 @@ local function APPLINK_25133_checksplit_TTS_Responds_false_Other_Interfaces_Not_
 		})
 		:Do(function(_,data)
 			--hmi side: hmi does not respond
-
+			
 		end)
-
+		
 		--hmi side: expect TTS.ChangeRegistration request
 		EXPECT_HMICALL("TTS.ChangeRegistration",{})
 		:Times(0)
-
-		--mobile side: expect ChangeRegistration response
+		
+		--mobile side: expect ChangeRegistration response					
 		EXPECT_RESPONSE(cid, {success = false, resultCode = "GENERIC_ERROR", info = "VR is not supported by system"})
 		:Timeout(iTimeout)
-
+		
 	end
-
-
+	
+	
 	--3. AlertManeuver
 	Test[TestCaseName .. "_AlertManeuver_GENERIC_ERROR_false_Other_Interface_Not_respond"] = function(self)
-
-		--mobile side: AlertManeuver request
+		
+		--mobile side: AlertManeuver request 
 		local CorIdAlertM = self.mobileSession:SendRPC("AlertManeuver",
 		{
-
-			ttsChunks =
-			{
-
-				{
+			
+			ttsChunks = 
+			{ 
+				
+				{ 
 					text ="FirstAlert",
 					type ="TEXT",
-				},
-
-				{
+				}, 
+				
+				{ 
 					text ="SecondAlert",
 					type ="TEXT",
-				},
+				}, 
 			}
-
+			
 		})
 		local AlertId
-		--hmi side: Navigation.AlertManeuver request
-		EXPECT_HMICALL("Navigation.AlertManeuver",
+		--hmi side: Navigation.AlertManeuver request 
+		EXPECT_HMICALL("Navigation.AlertManeuver", 
 		{
 			appID = self.applications[ config.application1.registerAppInterfaceParams.appName]
 		})
 		:Do(function(_,data)
 			--hmi does not respond
 		end)
-
+		
 		local SpeakId
-		--hmi side: TTS.Speak request
+		--hmi side: TTS.Speak request 
 		EXPECT_HMICALL("TTS.Speak",{})
 		:Times(0)
-		--mobile side: expect ChangeRegistration response
+		--mobile side: expect ChangeRegistration response					
 		EXPECT_RESPONSE(CorIdAlertM, {success = false, resultCode = "GENERIC_ERROR", info = "Navigation is not supported by system"})
 		:Timeout(iTimeout)
-	end
-
+	end	
+	
 end
 APPLINK_25133_checksplit_TTS_Responds_false_Other_Interfaces_Not_Respond(TestCaseName)
 -----------------------------------------------------------------------------------------------
@@ -1210,28 +1211,28 @@ local function APPLINK_25134_checksplit_TTS_Responds_false_Other_Interfaces_Resp
 		{resultCode = "TRUNCATED_DATA"},
 		{resultCode = "UNSUPPORTED_RESOURCE"}
 	}
-
-	--1. SetGlobalProperties
+	
+	--1. SetGlobalProperties		
 	for i = 1, #TestData do
 		Test[TestCaseName .. "_SetGlobalProperties_ERROR_false_Incase_Other_Interface_responds_Error_" .. TestData[i].resultCode] = function(self)
-
-			commonTestCases:DelayedExp(iTimeout)
+			
+			commonTestCases:DelayedExp(iTimeout)		
 			--mobile side: sending SetGlobalProperties request
 			local cid = self.mobileSession:SendRPC("SetGlobalProperties",
 			{
 				menuTitle = "Menu Title",
-				timeoutPrompt =
+				timeoutPrompt = 
 				{
 					{
 						text = "Timeout prompt",
 						type = "TEXT"
 					}
 				},
-				vrHelp =
+				vrHelp = 
 				{
 					{
 						position = 1,
-						image =
+						image = 
 						{
 							value = "action.png",
 							imageType = "DYNAMIC"
@@ -1239,12 +1240,12 @@ local function APPLINK_25134_checksplit_TTS_Responds_false_Other_Interfaces_Resp
 						text = "VR help item"
 					}
 				},
-				menuIcon =
+				menuIcon = 
 				{
 					value = "action.png",
 					imageType = "DYNAMIC"
 				},
-				helpPrompt =
+				helpPrompt = 
 				{
 					{
 						text = "Help prompt",
@@ -1252,11 +1253,11 @@ local function APPLINK_25134_checksplit_TTS_Responds_false_Other_Interfaces_Resp
 					}
 				},
 				vrHelpTitle = "VR help title",
-				keyboardProperties =
+				keyboardProperties = 
 				{
 					keyboardLayout = "QWERTY",
 					keypressMode = "SINGLE_KEYPRESS",
-					limitedCharacterList =
+					limitedCharacterList = 
 					{
 						"a"
 					},
@@ -1264,17 +1265,17 @@ local function APPLINK_25134_checksplit_TTS_Responds_false_Other_Interfaces_Resp
 					autoCompleteText = "Daemon, Freedom"
 				}
 			})
-
-
+			
+			
 			--hmi side: expect TTS.SetGlobalProperties request
 			EXPECT_HMICALL("TTS.SetGlobalProperties", {})
 			:Times(0)
-
+			
 			--hmi side: expect UI.SetGlobalProperties request
 			EXPECT_HMICALL("UI.SetGlobalProperties",
 			{
 				menuTitle = "Menu Title",
-				vrHelp =
+				vrHelp = 
 				{
 					{
 						position = 1,
@@ -1282,7 +1283,7 @@ local function APPLINK_25134_checksplit_TTS_Responds_false_Other_Interfaces_Resp
 					}
 				},
 				vrHelpTitle = "VR help title",
-				keyboardProperties =
+				keyboardProperties = 
 				{
 					keyboardLayout = "QWERTY",
 					keypressMode = "SINGLE_KEYPRESS",
@@ -1298,29 +1299,29 @@ local function APPLINK_25134_checksplit_TTS_Responds_false_Other_Interfaces_Resp
 				--hmi side: sending UI.SetGlobalProperties response
 				self.hmiConnection:SendError(data.id, data.method, TestData[i].resultCode, "error message")
 			end)
-
+			
 			--mobile side: expect SetGlobalProperties response
 			EXPECT_RESPONSE(cid, {success = false, resultCode = TestData[i].resultCode, info = "error message"})
 			:Timeout(iTimeout)
 		end
 	end
-
+	
 	--2. ChangeRegistration
 	for i = 1, #TestData do
 		Test[TestCaseName .. "_ChangeRegistration_ERROR_false_Incase_Other_Interface_respond_Error_" .. TestData[i].resultCode] = function(self)
-
+			
 			commonTestCases:DelayedExp(iTimeout)
-
+			
 			local request = {	language ="EN-US",
 				hmiDisplayLanguage ="EN-US",
 				appName ="SyncProxyTester_" .. tostring(i),
 				ttsName = {{text ="SyncProxyTester", type ="TEXT"}},
 				ngnMediaScreenAppName ="SPT",
 			vrSynonyms = {"VRSyncProxyTester"}}
-
+			
 			--mobile side: send ChangeRegistration request
 			local cid = self.mobileSession:SendRPC("ChangeRegistration", request)
-
+			
 			--hmi side: expect UI.ChangeRegistration request
 			EXPECT_HMICALL("UI.ChangeRegistration",
 			{
@@ -1332,7 +1333,7 @@ local function APPLINK_25134_checksplit_TTS_Responds_false_Other_Interfaces_Resp
 				--hmi side: send UI.ChangeRegistration response
 				self.hmiConnection:SendError(data.id, data.method, TestData[i].resultCode, "error message")
 			end)
-
+			
 			--hmi side: expect there is no VR.ChangeRegistration request
 			EXPECT_HMICALL("VR.ChangeRegistration",
 			{
@@ -1343,44 +1344,44 @@ local function APPLINK_25134_checksplit_TTS_Responds_false_Other_Interfaces_Resp
 				--hmi side: send VR.ChangeRegistration response
 				self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS",{})
 			end)
-
+			
 			--hmi side: expect TTS.ChangeRegistration request
 			EXPECT_HMICALL("TTS.ChangeRegistration",{})
 			:Times(0)
-
-			--mobile side: expect ChangeRegistration response
+			
+			--mobile side: expect ChangeRegistration response					
 			EXPECT_RESPONSE(cid, {success = false, resultCode = TestData[i].resultCode, info = "error message"})
 			:Timeout(iTimeout)
-
+			
 		end
 	end
-
+	
 	--3. AlertManeuver
 	for i = 1, #TestData do
 		Test[TestCaseName .. "_AlertManeuver_ERROR_false_Incase_Other_Interface_responds_Error_" .. TestData[i].resultCode] = function(self)
-
-			--mobile side: AlertManeuver request
+			
+			--mobile side: AlertManeuver request 
 			local CorIdAlertM = self.mobileSession:SendRPC("AlertManeuver",
 			{
-
-				ttsChunks =
-				{
-
-					{
+				
+				ttsChunks = 
+				{ 
+					
+					{ 
 						text ="FirstAlert",
 						type ="TEXT",
-					},
-
-					{
+					}, 
+					
+					{ 
 						text ="SecondAlert",
 						type ="TEXT",
-					},
+					}, 
 				}
-
+				
 			})
 			local AlertId
-			--hmi side: Navigation.AlertManeuver request
-			EXPECT_HMICALL("Navigation.AlertManeuver",
+			--hmi side: Navigation.AlertManeuver request 
+			EXPECT_HMICALL("Navigation.AlertManeuver", 
 			{
 				appID = self.applications[ config.application1.registerAppInterfaceParams.appName]
 			})
@@ -1389,18 +1390,18 @@ local function APPLINK_25134_checksplit_TTS_Responds_false_Other_Interfaces_Resp
 				local function alertResponse()
 					self.hmiConnection:SendError(AlertId, "Navigation.AlertManeuver", TestData[i].resultCode, "error message")
 				end
-
+				
 				RUN_AFTER(alertResponse, 2000)
 			end)
-
+			
 			local SpeakId
-			--hmi side: TTS.Speak request
+			--hmi side: TTS.Speak request 
 			EXPECT_HMICALL("TTS.Speak",{})
 			:Times(0)
-			--mobile side: expect ChangeRegistration response
+			--mobile side: expect ChangeRegistration response					
 			EXPECT_RESPONSE(CorIdAlertM, {success = false, resultCode = TestData[i].resultCode, info = "error message"})
 			:Timeout(iTimeout)
-		end
+		end	
 	end
 end
 APPLINK_25134_checksplit_TTS_Responds_false_Other_Interfaces_Responds_ERROR(TestCaseName)

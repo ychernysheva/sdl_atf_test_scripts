@@ -24,34 +24,34 @@ local infoMsgUnsupported = "Navi is not supported by system"
 Test = require('connecttest')
 
 require('cardinalities')
-local events = require('events')
+local events = require('events') 
 local mobile_session = require('mobile_session')
 require('user_modules/AppTypes')
 
 --TODO: waiting for confirm from APPLINK-28100 to update list of cases (HMI invalid response)
 local TestCases = {
-
+	
 	{caseID = 1, description = ": HMI_Response_false"},
-
+	
 	{caseID = 2, description = ": HMI_does_not_response_request"},
-
-
+	
+	
 	-- TCs from here check for invalid HMI response
 	--caseID 3-4 are used to checking special cases
 	{caseID = 3, description = ": InvalidHMIResponse_MissedAllParamaters"},
 	{caseID = 4, description = ": InvalidHMIResponse_Invalid_Json"},
-
-
+	
+	
 	--caseID 11-14 are used to checking "collerationID" parameter
 	--11. IsMissed
 	--12. IsNonexistent
 	--13. IsWrongType
-	--14. IsNegative
+	--14. IsNegative 	
 	{caseID = 11, description = ": InvalidHMIResponse_collerationID_IsMissed"},
 	{caseID = 12, description = ": InvalidHMIResponse_collerationID_IsNonexistent"},
 	{caseID = 13, description = ": InvalidHMIResponse_collerationID_IsWrongType"},
 	{caseID = 14, description = ": InvalidHMIResponse_collerationID_IsNegative"},
-
+	
 	--caseID 21-27 are used to checking "method" parameter
 	--21. IsMissed
 	--22. IsNotValid
@@ -67,7 +67,7 @@ local TestCases = {
 	{caseID = 26, description = ": InvalidHMIResponse_method_IsInvalidCharacter_Splace"},
 	{caseID = 26, description = ": InvalidHMIResponse_method_IsInvalidCharacter_Tab"},
 	{caseID = 26, description = ": InvalidHMIResponse_method_IsInvalidCharacter_NewLine"},
-
+	
 	-- --caseID 31-35 are used to checking "resultCode" parameter
 	-- --31. IsMissed
 	-- --32. IsNotExist
@@ -79,8 +79,8 @@ local TestCases = {
 	{caseID = 34, description = ": InvalidHMIResponse_resultCode_INVALID_DATA"},
 	{caseID = 35, description = ": InvalidHMIResponse_resultCode_DATA_NOT_AVAILABLE"},
 	{caseID = 36, description = ": InvalidHMIResponse_resultCode_GENERIC_ERROR"},
-
-
+	
+	
 	--caseID 41-45 are used to checking "message" parameter
 	--41. IsMissed
 	--42. IsLowerBound
@@ -89,7 +89,7 @@ local TestCases = {
 	--45. IsEmpty/IsOutLowerBound
 	--46. IsWrongType
 	--47. IsInvalidCharacter - \n, \t, only spaces
-	--TODO: waiting for confirm from APPLINK-28100 to update list of cases below
+	--TODO: waiting for confirm from APPLINK-28100 to update list of cases below	
 --	{caseID = 41, description = ": InvalidHMIResponse_message_IsMissed"},
 --	{caseID = 42, description = ": InvalidHMIResponse_message_IsLowerBound"},
 --	{caseID = 43, description = ": InvalidHMIResponse_message_IsUpperBound"},
@@ -99,14 +99,14 @@ local TestCases = {
 --	{caseID = 47, description = ": InvalidHMIResponse_message_IsInvalidCharacter_Tab"},
 --	{caseID = 48, description = ": InvalidHMIResponse_message_IsInvalidCharacter_OnlySpaces"},
 --	{caseID = 49, description = ": InvalidHMIResponse_message_IsInvalidCharacter_Newline"},
-
-
+	
+	
 	--caseID 51-55 are used to checking "available" parameter
 	--51. IsMissed
 	--52. IsWrongType
 	{caseID = 51, description = ": InvalidHMIResponse_available_IsMissed"},
 	{caseID = 52, description = ": InvalidHMIResponse_available_IsWrongType"}
-
+	
 }
 
 -- List all resultCodes
@@ -116,10 +116,10 @@ local allResultCodes = {
 	{success = true, resultCode = "WRONG_LANGUAGE", 		expected_resultCode = "WRONG_LANGUAGE"}, --16
 	{success = true, resultCode = "RETRY", 				expected_resultCode = "RETRY"}, --7
 	{success = true, resultCode = "SAVED", 				expected_resultCode = "SAVED"}, --25
-
+	
 	{success = false, resultCode = "", 		expected_resultCode = "GENERIC_ERROR"}, --not respond
 	{success = false, resultCode = "ABC", 	expected_resultCode = "GENERIC_ERROR"},
-
+	
 	{success = false, resultCode = "UNSUPPORTED_REQUEST", 	expected_resultCode = "UNSUPPORTED_REQUEST"}, --1
 	{success = false, resultCode = "UNSUPPORTED_RESOURCE", 	expected_resultCode = "UNSUPPORTED_RESOURCE"}, --2
 	{success = false, resultCode = "DISALLOWED", 			expected_resultCode = "DISALLOWED"}, --3
@@ -128,7 +128,7 @@ local allResultCodes = {
 	{success = false, resultCode = "ABORTED", 				expected_resultCode = "ABORTED"}, --5
 	{success = false, resultCode = "IGNORED", 				expected_resultCode = "IGNORED"}, --6
 	{success = false, resultCode = "IN_USE", 				expected_resultCode = "IN_USE"}, --8
-	{success = false, resultCode = "DATA_NOT_AVAILABLE", expected_resultCode = "VEHICLE_DATA_NOT_AVAILABLE"}, --9
+	{success = false, resultCode = "DATA_NOT_AVAILABLE", expected_resultCode = "VEHICLE_DATA_NOT_AVAILABLE"}, --9	
 	{success = false, resultCode = "TIMED_OUT", 					expected_resultCode = "TIMED_OUT"}, --10
 	{success = false, resultCode = "INVALID_DATA", 				expected_resultCode = "INVALID_DATA"}, --11
 	{success = false, resultCode = "CHAR_LIMIT_EXCEEDED", 		expected_resultCode = "CHAR_LIMIT_EXCEEDED"}, --12
@@ -146,19 +146,19 @@ local successResultCodes = {
 	{success = true, resultCode = "WARNINGS"},
 	{success = true, resultCode = "WRONG_LANGUAGE"},
 	{success = true, resultCode = "RETRY"},
-	{success = true, resultCode = "SAVED"}
+	{success = true, resultCode = "SAVED"}							
 }
 
-local erroneousResultCodes = {
+local erroneousResultCodes = {				
 	{success = false, resultCode = "UNSUPPORTED_REQUEST"},
-	{success = false, resultCode = "UNSUPPORTED_RESOURCE"},
+	{success = false, resultCode = "UNSUPPORTED_RESOURCE"},				
 	{success = false, resultCode = "DISALLOWED"},
 	{success = false, resultCode = "USER_DISALLOWED"},
 	{success = false, resultCode = "REJECTED"},
 	{success = false, resultCode = "ABORTED"},
 	{success = false, resultCode = "IGNORED"},
 	{success = false, resultCode = "IN_USE"},
-	{success = false, resultCode = "DATA_NOT_AVAILABLE"},
+	{success = false, resultCode = "DATA_NOT_AVAILABLE"},	
 	{success = false, resultCode = "TIMED_OUT"},
 	{success = false, resultCode = "INVALID_DATA"},
 	{success = false, resultCode = "CHAR_LIMIT_EXCEEDED"},
@@ -192,52 +192,52 @@ function Test:initHMI_onReady_Navi_IsReady(case)
 		:Do(function(_, data)
 			--if ( data.method == "Navigation.IsReady" ) then
 			if (name == "Navigation.IsReady") then
-
+				
 				--response { available = false }
-				if (case == 1) then
+				if (case == 1) then 
 					self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", { available = false })
-
+					
 					--*****************************************************************************************************************************
-
-					--timeout + not response
+					
+					--timeout + not response			
 				elseif (case == 2) then
 					--response nothing
-
+					
 					--*****************************************************************************************************************************
-
+					
 					--invalid responses:
 				elseif (case == 3) then --MissedAllParamaters
 					self.hmiConnection:Send('{}')
-
+					
 				elseif (case == 4) then --Invalid_Json
-					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"Navigation.IsReady", "code":0}}')
-					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc";"2.0","result":{"available":true,"method":"Navigation.IsReady", "code":0}}')
-
+					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"Navigation.IsReady", "code":0}}')	
+					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc";"2.0","result":{"available":true,"method":"Navigation.IsReady", "code":0}}')				
+					
 					--*****************************************************************************************************************************
-
+					
 					--invalid responses: caseID 11-14 are used to checking "collerationID" parameter
 					--11. collerationID_IsMissed
 					--12. collerationID_IsNonexistent
 					--13. collerationID_IsWrongType
-					--14. collerationID_IsNegative
-
+					--14. collerationID_IsNegative 	
+					
 				elseif (case == 11) then --collerationID_IsMissed
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"Navigation.IsReady", "code":0}}')
 					self.hmiConnection:Send('{"jsonrpc":"2.0","result":{"available":true,"method":"Navigation.IsReady", "code":0}}')
-
+					
 				elseif (case == 12) then --collerationID_IsNonexistent
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"Navigation.IsReady", "code":0}}')
 					self.hmiConnection:Send('{"id":'..tostring(data.id + 10)..',"jsonrpc":"2.0","result":{"available":true,"method":"Navigation.IsReady", "code":0}}')
-
+					
 				elseif (case == 13) then --collerationID_IsWrongType
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"Navigation.IsReady", "code":0}}')
 					self.hmiConnection:Send('{"id":"'..tostring(data.id)..'","jsonrpc":"2.0","result":{"available":true,"method":"Navigation.IsReady", "code":0}}')
-
+					
 				elseif (case == 14) then --collerationID_IsNegative
 					self.hmiConnection:Send('{"id":'..tostring(-1)..',"jsonrpc":"2.0","result":{"available":true,"method":"Navigation.IsReady", "code":0}}')
-
+					
 					--*****************************************************************************************************************************
-
+					
 					--invalid responses: caseID 21-27 are used to checking "method" parameter
 					--21. method_IsMissed
 					--22. method_IsNotValid
@@ -247,41 +247,41 @@ function Test:initHMI_onReady_Navi_IsReady(case)
 					--26. method_IsInvalidCharacter_Newline
 					--27. method_IsInvalidCharacter_OnlySpaces
 					--28. method_IsInvalidCharacter_Tab
-
+					
 				elseif (case == 21) then --method_IsMissed
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"Navigation.IsReady", "code":0}}')
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"code":0}}')
-
+					
 				elseif (case == 22) then --method_IsNotValid
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"Navigation.IsReady", "code":0}}')
-					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"Navigation.IsRea", "code":0}}')
-
+					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"Navigation.IsRea", "code":0}}')				
+					
 				elseif (case == 23) then --method_IsOtherResponse
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"Navigation.IsReady", "code":0}}')
-					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"UI.IsReady", "code":0}}')
-
+					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"UI.IsReady", "code":0}}')			
+					
 				elseif (case == 24) then --method_IsEmpty
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"Navigation.IsReady", "code":0}}')
-					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"", "code":0}}')
-
+					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"", "code":0}}')							 
+					
 				elseif (case == 25) then --method_IsWrongType
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"Navigation.IsReady", "code":0}}')
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":123456789, "code":0}}')
-
+					
 				elseif (case == 26) then --method_IsInvalidCharacter_Newline
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"Navigation.IsReady", "code":0}}')
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"Navigation.IsR\neady", "code":0}}')
-
+					
 				elseif (case == 27) then --method_IsInvalidCharacter_OnlySpaces
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"Navigation.IsReady", "code":0}}')
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":" ", "code":0}}')
-
+					
 				elseif (case == 28) then --method_IsInvalidCharacter_Tab
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"Navigation.IsReady", "code":0}}')
-					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"Navigation.IsRe\tady", "code":0}}')
-
+					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"Navigation.IsRe\tady", "code":0}}')		
+					
 					--*****************************************************************************************************************************
-
+					
 					--invalid responses: caseID 31-35 are used to checking "resultCode" parameter
 					--31. resultCode_IsMissed
 					--32. resultCode_IsNotExist
@@ -289,34 +289,34 @@ function Test:initHMI_onReady_Navi_IsReady(case)
 					--34. resultCode_INVALID_DATA (code = 11)
 					--35. resultCode_DATA_NOT_AVAILABLE (code = 9)
 					--36. resultCode_GENERIC_ERROR (code = 22)
-
+					
 				elseif (case == 31) then --resultCode_IsMissed
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"Navigation.IsReady", "code":0}}')
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"Navigation.IsReady"}}')
-
+					
 				elseif (case == 32) then --resultCode_IsNotExist
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"Navigation.IsReady", "code":0}}')
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"Navigation.IsReady", "code":123}}')
-
+					
 				elseif (case == 33) then --resultCode_IsWrongType
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"Navigation.IsReady", "code":0}}')
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"Navigation.IsReady", "code":"0"}}')
-
+					
 				elseif (case == 34) then --resultCode_INVALID_DATA
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"Navigation.IsReady", "code":0}}')
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"Navigation.IsReady", "code":11}}')
-
+					
 				elseif (case == 35) then --resultCode_DATA_NOT_AVAILABLE
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"Navigation.IsReady", "code":0}}')
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"Navigation.IsReady", "code":9}}')
-
+					
 				elseif (case == 36) then --resultCode_GENERIC_ERROR
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"Navigation.IsReady", "code":0}}')
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"Navigation.IsReady", "code":22}}')
-
-
+					
+					
 					--*****************************************************************************************************************************
-
+					
 					--invalid responses: caseID 41-45 are used to checking "message" parameter
 					--41. message_IsMissed
 					--42. message_IsLowerBound
@@ -327,56 +327,56 @@ function Test:initHMI_onReady_Navi_IsReady(case)
 					--47. message_IsInvalidCharacter_Tab
 					--48. message_IsInvalidCharacter_OnlySpaces
 					--49. message_IsInvalidCharacter_Newline
-					--TODO: waiting for confirm from APPLINK-28100 to update list of cases below
+					--TODO: waiting for confirm from APPLINK-28100 to update list of cases below						
 				-- elseif (case == 41) then --message_IsMissed
 					----self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"Navigation.IsReady"}, "message":"The data sent is invalid","code":11}}') --INVALID_DATA
 					-- self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"Navigation.IsReady"}, "code":11}}')
-
+					
 				-- elseif (case == 42) then --message_IsLowerBound
 					-- local messageValue = "a"
 					----self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"Navigation.IsReady"}, "message":"The data sent is invalid","code":11}}') --INVALID_DATA
 					-- self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"Navigation.IsReady"}, "message":"' .. messageValue ..'","code":11}}')
-
+					
 				-- elseif (case == 43) then --message_IsUpperBound
 					-- local messageValue = string.rep("a", 1000)
 					----self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"Navigation.IsReady"}, "message":"The data sent is invalid","code":11}}') --INVALID_DATA
 					-- self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"Navigation.IsReady"}, "message":"' .. messageValue ..'","code":11}}')
-
+					
 				-- elseif (case == 44) then --message_IsOutUpperBound
 					-- local messageValue = string.rep("a", 1001)
 					----self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"Navigation.IsReady"}, "message":"The data sent is invalid","code":11}}') --INVALID_DATA
 					-- self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"Navigation.IsReady"}, "message":"' .. messageValue ..'","code":11}}')
-
+					
 				-- elseif (case == 45) then --message_IsEmpty_IsOutLowerBound
 					----self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"Navigation.IsReady"}, "message":"The data sent is invalid","code":11}}') --INVALID_DATA
 					-- self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"Navigation.IsReady"}, "message":"","code":11}}')
-
+					
 				-- elseif (case == 46) then --message_IsWrongType
 					----self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"Navigation.IsReady"}, "message":"The data sent is invalid","code":11}}') --INVALID_DATA
 					-- self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"Navigation.IsReady"}, "message":123,"code":11}}')
-
+					
 				-- elseif (case == 47) then --message_IsInvalidCharacter_Tab
 					----self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"Navigation.IsReady"}, "message":"The data sent is invalid","code":11}}') --INVALID_DATA
 					-- self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"Navigation.IsReady"}, "message":"a\tb","code":11}}')
-
+					
 				-- elseif (case == 48) then --message_IsInvalidCharacter_OnlySpaces
 					----self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"Navigation.IsReady"}, "message":"The data sent is invalid","code":11}}') --INVALID_DATA
 					-- self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"Navigation.IsReady"}, "message":" ","code":11}}')
-
+					
 				-- elseif (case == 49) then --message_IsInvalidCharacter_Newline
 					----self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"Navigation.IsReady"}, "message":"The data sent is invalid","code":11}}') --INVALID_DATA
 					-- self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"Navigation.IsReady"}, "message":"a\n\b","code":11}}')
-
+					
 					--*****************************************************************************************************************************
-
+					
 					--invalid responses: caseID 51-55 are used to checking "available" parameter
 					--51. available_IsMissed
 					--52. available_IsWrongType
-
+					
 				elseif (case == 51) then --available_IsMissed
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"Navigation.IsReady", "code":0}}')
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"Navigation.IsReady", "code":"0"}}')
-
+					
 				elseif (case == 52) then --available_IsWrongType
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"Navigation.IsReady", "code":0}}')
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":"true","method":"Navigation.IsReady", "code":"0"}}')
@@ -384,12 +384,12 @@ function Test:initHMI_onReady_Navi_IsReady(case)
 					print("***************************Error: Navigation.IsReady: Input value is not correct ***************************")
 				end
 			else
-				self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", params)
+				self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", params) 			
 			end
 		end)
-
+		
 	end
-
+	
 	local function ExpectNotification(name, mandatory)
 		xmlReporter.AddMessage(debug.getinfo(1, "n").name, tostring(name))
 		local event = events.Event()
@@ -399,7 +399,7 @@ function Test:initHMI_onReady_Navi_IsReady(case)
 		EXPECT_HMIEVENT(event, name)
 		:Times(mandatory and 1 or AnyNumber())
 	end
-
+	
 	ExpectRequest("BasicCommunication.MixingAudioSupported",
 	true,
 	{ attenuatedSupported = true })
@@ -450,8 +450,10 @@ function Test:initHMI_onReady_Navi_IsReady(case)
 			trim = "SE"
 		}
 	})
+	:Times(0) 
+	ExpectRequest("VehicleInfo.GetVehicleData", true, { vin = "52-452-52-752" })
 	:Times(0)
-
+	
 	local function button_capability(name, shortPressAvailable, longPressAvailable, upDownAvailable)
 		xmlReporter.AddMessage(debug.getinfo(1, "n").name, tostring(name))
 		return
@@ -498,7 +500,7 @@ function Test:initHMI_onReady_Navi_IsReady(case)
 		}
 	})
 	--:Times(0)
-
+	
 	local function text_field(name, characterSet, width, rows)
 		xmlReporter.AddMessage(debug.getinfo(1, "n").name, tostring(name))
 		return
@@ -526,9 +528,9 @@ function Test:initHMI_onReady_Navi_IsReady(case)
 				resolutionHeight = height or 64
 			}
 		}
-
+		
 	end
-
+	
 	ExpectRequest("UI.GetCapabilities", true, {
 		displayCapabilities =
 		{
@@ -616,13 +618,13 @@ function Test:initHMI_onReady_Navi_IsReady(case)
 			imageSupported = true
 		}
 	})
-
+	
 	ExpectRequest("VR.IsReady", true, { available = true })
 	ExpectRequest("TTS.IsReady", true, { available = true })
 	ExpectRequest("UI.IsReady", true, { available = true })
 	ExpectRequest("Navigation.IsReady", true, { available = true })
 	ExpectRequest("VehicleInfo.IsReady", true, { available = true })
-
+	
 	self.applications = { }
 	ExpectRequest("BasicCommunication.UpdateAppList", false, { })
 	:Pin()
@@ -633,9 +635,9 @@ function Test:initHMI_onReady_Navi_IsReady(case)
 			self.applications[app.appName] = app.appID
 		end
 	end)
-
+	
 	self.hmiConnection:SendNotification("BasicCommunication.OnReady")
-
+	
 end
 
 local function StopStartSDL_StartMobileSession(caseid)
@@ -643,27 +645,27 @@ local function StopStartSDL_StartMobileSession(caseid)
 	Test[APIName .. TestCases[caseid].description .."_Precondition_StopSDL"] = function(self)
 		StopSDL()
 	end
-
+	
 	--Start SDL
 	Test[APIName.. TestCases[caseid].description .. "_Precondition_StartSDL"] = function(self)
 		StartSDL(config.pathToSDL, config.ExitOnCrash)
 	end
-
+	
 	--InitHMI
 	Test[APIName.. TestCases[caseid].description .. "_Precondition_InitHMI"] = function(self)
 		self:initHMI()
 	end
-
+	
 	Test[APIName .. TestCases[caseid].description .. "_initHMI_OnReady"] = function(self)
-		self:initHMI_onReady_Navi_IsReady(caseid)
+		self:initHMI_onReady_Navi_IsReady(caseid)	
 	end
-
+	
 	if (caseid > 1) then -- Wait for timeout (HMI does not response Navigation.IsReady)
 		Test[APIName .. TestCases[caseid].description .. "_DefaultTimeout"] = function(self)
 			sleep(DefaultTimeout)
 		end
-	end
-
+	end	
+	
 	--ConnectMobile
 	Test[APIName .. TestCases[caseid].description .. "_ConnectMobile"] = function(self)
 		self:connectMobile()
@@ -675,13 +677,13 @@ local function StopStartSDL_StartMobileSession(caseid)
 		self.mobileConnection)
 		self.mobileSession:StartService(7)
 	end
-
+	
 end
 
 local function UpdatePolicy()
-
-	local PermissionForSendLocation =
-	[[
+	
+	local PermissionForSendLocation = 
+	[[				
 	"SendLocation": {
 		"hmi_levels": [
 		"BACKGROUND",
@@ -690,8 +692,8 @@ local function UpdatePolicy()
 		]
 	}
 	]].. ", \n"
-	local PermissionForShowConstantTBT =
-	[[
+	local PermissionForShowConstantTBT = 
+	[[				
 	"ShowConstantTBT": {
 		"hmi_levels": [
 		"BACKGROUND",
@@ -700,8 +702,8 @@ local function UpdatePolicy()
 		]
 	}
 	]].. ", \n"
-	local PermissionForAlertManeuver =
-	[[
+	local PermissionForAlertManeuver = 
+	[[				
 	"AlertManeuver": {
 		"hmi_levels": [
 		"BACKGROUND",
@@ -710,8 +712,8 @@ local function UpdatePolicy()
 		]
 	}
 	]].. ", \n"
-	local PermissionForUpdateTurnList =
-	[[
+	local PermissionForUpdateTurnList = 
+	[[				
 	"UpdateTurnList": {
 		"hmi_levels": [
 		"BACKGROUND",
@@ -720,8 +722,8 @@ local function UpdatePolicy()
 		]
 	}
 	]].. ", \n"
-	local PermissionForGetWayPoints =
-	[[
+	local PermissionForGetWayPoints = 
+	[[				
 	"GetWayPoints": {
 		"hmi_levels": [
 		"BACKGROUND",
@@ -730,8 +732,8 @@ local function UpdatePolicy()
 		]
 	}
 	]].. ", \n"
-	local PermissionForSubscribeWayPoints =
-	[[
+	local PermissionForSubscribeWayPoints = 
+	[[				
 	"SubscribeWayPoints": {
 		"hmi_levels": [
 		"BACKGROUND",
@@ -739,9 +741,9 @@ local function UpdatePolicy()
 		"LIMITED"
 		]
 	}
-	]].. ", \n"
-	local PermissionForUnsubscribeWayPoints =
-	[[
+	]].. ", \n"		
+	local PermissionForUnsubscribeWayPoints = 
+	[[				
 	"UnsubscribeWayPoints": {
 		"hmi_levels": [
 		"BACKGROUND",
@@ -749,9 +751,9 @@ local function UpdatePolicy()
 		"LIMITED"
 		]
 	}
-	]].. ", \n"
-	local PermissionForOnWayPointChange =
-	[[
+	]].. ", \n"	
+	local PermissionForOnWayPointChange = 
+	[[				
 	"OnWayPointChange": {
 		"hmi_levels": [
 		"BACKGROUND",
@@ -759,9 +761,9 @@ local function UpdatePolicy()
 		"LIMITED"
 		]
 	}
-	]].. ", \n"
-	local PermissionForOnTBTClientState =
-	[[
+	]].. ", \n"	
+	local PermissionForOnTBTClientState = 
+	[[				
 	"OnTBTClientState": {
 		"hmi_levels": [
 		"BACKGROUND",
@@ -769,11 +771,11 @@ local function UpdatePolicy()
 		"LIMITED"
 		]
 	}
-	]].. ", \n"
+	]].. ", \n"					
 	local PermissionLinesForBase4 = PermissionForSendLocation..PermissionForShowConstantTBT..PermissionForAlertManeuver..PermissionForUpdateTurnList..PermissionForGetWayPoints..PermissionForSubscribeWayPoints..PermissionForUnsubscribeWayPoints..PermissionForOnWayPointChange..PermissionForOnTBTClientState
-	local PTName = testCasesForPolicyTable:createPolicyTableFile_temp(PermissionLinesForBase4, nil, nil, {"SendLocation","ShowConstantTBT","AlertManeuver","UpdateTurnList","GetWayPoints","SubscribeWayPoints","UnsubscribeWayPoints","OnWayPointChange","OnTBTClientState"})
+	local PTName = testCasesForPolicyTable:createPolicyTableFile_temp(PermissionLinesForBase4, nil, nil, {"SendLocation","ShowConstantTBT","AlertManeuver","UpdateTurnList","GetWayPoints","SubscribeWayPoints","UnsubscribeWayPoints","OnWayPointChange","OnTBTClientState"})	
 	-- TODO: Remove after implementation policy update
-	--testCasesForPolicyTable:updatePolicy(PTName)
+	--testCasesForPolicyTable:updatePolicy(PTName)	
 	testCasesForPolicyTable:Precondition_updatePolicy_By_overwriting_preloaded_pt(PTName)
 end
 
@@ -828,7 +830,7 @@ commonSteps:DeleteLogsFileAndPolicyTable()
 -- Functional Requirement: APPLINK-25185 [Navigation Interface] SDL behavior in case HMI does not respond to Navi.IsReady_request
 -- Description:
 -- In case
--- SDL does NOT receive Navi.IsReady_response during <DefaultTimeout> from HMI
+-- SDL does NOT receive Navi.IsReady_response during <DefaultTimeout> from HMI 
 -- and mobile app sends any Navi-related RPC
 -- SDL must:
 -- transfer this Navi-related RPC to HMI
@@ -839,39 +841,39 @@ commonSteps:DeleteLogsFileAndPolicyTable()
 -- Note: Incase AlertManeuver, refer to APPLINK-25117 for split RPC requirement (according to: APPLINK-27829)
 
 local function sequence_check_single_RPC_no_reponse()
-	------------1. SendLocation
+	------------1. SendLocation		
 	Test[APIName .. "_SendLocation_no_response"] = function(self)
 		local cid = self.mobileSession:SendRPC("SendLocation",
-		{
+		{ 
 			longitudeDegrees = 1.1,
 			latitudeDegrees = 1.1
 		})
-
+		
 		EXPECT_HMICALL("Navigation.SendLocation")
 		:Do(function(_,data)
 			--self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-		end)
-
+		end)				
+		
 		EXPECT_RESPONSE(cid, { success = false, resultCode = "GENERIC_ERROR", info =  "Navigation component does not respond"})
-		:Timeout(TimeoutValue)
+		:Timeout(TimeoutValue)		
 	end
-
+	
 	------------2. ShowConstantTBT
 	Test[APIName .. "_ShowConstantTBT_no_response"] = function(self)
 		local cid = self.mobileSession:SendRPC("ShowConstantTBT",
-		{
+		{ 
 			navigationText1 = "NavigationText1"
 		})
-
+		
 		EXPECT_HMICALL("Navigation.ShowConstantTBT")
 		:Do(function(_,data)
 			--self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 		end)
-
+		
 		EXPECT_RESPONSE(cid, { success = false, resultCode = "GENERIC_ERROR", info =  "Navigation component does not respond"})
-		:Timeout(TimeoutValue)
+		:Timeout(TimeoutValue)								
 	end
-
+	
 	------------4. UpdateTurnList
 	Test[APIName .. "_UpdateTurnList_no_response"] = function(self)
 		local cid = self.mobileSession:SendRPC("UpdateTurnList",
@@ -905,103 +907,103 @@ local function sequence_check_single_RPC_no_reponse()
 				}
 			--}
 		})
-
+		
 		EXPECT_HMICALL("Navigation.UpdateTurnList")
 		:Do(function(_,data)
 			--self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 		end)
-
+		
 		EXPECT_RESPONSE(cid, { success = false, resultCode = "GENERIC_ERROR", info =  "Navigation component does not respond"})
-		:Timeout(TimeoutValue)
+		:Timeout(TimeoutValue)					
 	end
-
+	
 	------------5. GetWayPoints
 	Test[APIName .. "_GetWayPoints_no_response"] = function(self)
 		local cid = self.mobileSession:SendRPC("GetWayPoints",
 		{
 			wayPointType = "ALL"
 		})
-
+		
 		EXPECT_HMICALL("Navigation.GetWayPoints")
 		:Do(function(_,data)
 			--self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 		end)
-
+		
 		EXPECT_RESPONSE(cid, { success = false, resultCode = "GENERIC_ERROR", info =  "Navigation component does not respond"})
-		:Timeout(TimeoutValue)
-
+		:Timeout(TimeoutValue)	
+		
 	end
-
+	
 	------------6. SubscribeWayPoints
 	Test[APIName .. "_SubscribeWayPoints_no_response"] = function(self)
 		local cid = self.mobileSession:SendRPC("SubscribeWayPoints",
 		{
 		})
-
+		
 		EXPECT_HMICALL("Navigation.SubscribeWayPoints")
 		:Do(function(_,data)
 			--self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 		end)
-
+		
 		EXPECT_RESPONSE(cid, { success = false, resultCode = "GENERIC_ERROR", info =  "Navigation component does not respond"})
-		:Timeout(TimeoutValue)
-
+		:Timeout(TimeoutValue)	
+		
 		EXPECT_NOTIFICATION("OnHashChange")
         :Times(0)
-		:Timeout(TimeoutValue)
-	end
-
+		:Timeout(TimeoutValue)			
+	end	
+	
 	------------7. UnsubscribeWayPoints
 	------------Precondition: SubscribeWayPoints
 	Test[APIName .. "_Precondition_SubscribeWayPoints_SUCCESS"] = function(self)
 		local cid = self.mobileSession:SendRPC("SubscribeWayPoints",
 		{
 		})
-
+		
 		EXPECT_HMICALL("Navigation.SubscribeWayPoints")
 		:Do(function(_,data)
 			self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 		end)
-
+		
 		EXPECT_RESPONSE(cid, { success = false, resultCode = "GENERIC_ERROR", info =  "Navigation component does not respond"})
-		:Timeout(TimeoutValue)
-
+		:Timeout(TimeoutValue)	
+		
 		EXPECT_NOTIFICATION("OnHashChange")
-		:Timeout(TimeoutValue)
+		:Timeout(TimeoutValue)			
 	end
-	------------end Precondition
+	------------end Precondition	
 	Test[APIName .. "_UnsubscribeWayPoints_no_response"] = function(self)
-
+		
 		local cid = self.mobileSession:SendRPC("UnsubscribeWayPoints",
 		{
 		})
-
+		
 		EXPECT_HMICALL("Navigation.UnsubscribeWayPoints")
 		:Do(function(_,data)
 			--self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 		end)
-
+		
 		EXPECT_RESPONSE(cid, { success = false, resultCode = "GENERIC_ERROR", info =  "Navigation component does not respond"})
-		:Timeout(TimeoutValue)
+		:Timeout(TimeoutValue)	
 
 		EXPECT_NOTIFICATION("OnHashChange")
         :Times(0)
-		:Timeout(TimeoutValue)
+		:Timeout(TimeoutValue)			
 	end
 end
 
---for i= 2, #TestCases do
+--for i= 2, #TestCases do 
 for i= 2, 2 do --TODO: Remove this row and use the row above after APPLINK-25898 closed. Currently, replace numbers "2" by value of TestCases.caseID you want to test.
 	commonFunctions:newTestCasesGroup(APIName .. "_Test_suite: " .. TestCases[i].description)
-
+	
 	StopStartSDL_StartMobileSession(i)
 	commonSteps:RegisterAppInterface(APIName .. TestCases[i].description .. "_RegisterAppInterface")
 	commonSteps:ActivationAppGenivi(_,APIName .. TestCases[i].description .. "_ActivationApp")
 	commonSteps:PutFile("Precondition_PutFile", "icon.png")
-
+	
 	sequence_check_single_RPC_no_reponse()
-
-	commonSteps:UnregisterApplication(APIName .. TestCases[i].description .. "_UnregisterAppInterface")
+	
+	commonSteps:UnregisterApplication(APIName .. TestCases[i].description .. "_UnregisterAppInterface")	
 end
 --End of SpecialHMIResponse.2.1
 

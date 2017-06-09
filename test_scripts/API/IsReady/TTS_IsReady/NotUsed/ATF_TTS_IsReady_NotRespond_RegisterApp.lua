@@ -39,9 +39,9 @@ local function update_sdl_preloaded_pt_json()
 	local file = io.open(pathToFile, "r")
 	local json_data = file:read("*all") -- may be abbreviated to "*a";
 	file:close()
-
+	
 	local json = require("modules/json")
-
+	
 	local data = json.decode(json_data)
 	for k,v in pairs(data.policy_table.functional_groupings) do
 		if (data.policy_table.functional_groupings[k].rpcs == nil) then
@@ -58,7 +58,7 @@ local function update_sdl_preloaded_pt_json()
 		end
 	end
 	data.policy_table.functional_groupings["Base-4"]["rpcs"]["Speak"] = {}
-	data.policy_table.functional_groupings["Base-4"]["rpcs"]["Speak"]["hmi_levels"] = {"BACKGROUND", "FULL","LIMITED"}
+	data.policy_table.functional_groupings["Base-4"]["rpcs"]["Speak"]["hmi_levels"] = {"BACKGROUND", "FULL","LIMITED"} 
 	data.policy_table.functional_groupings["Base-4"]["rpcs"]["ChangeRegistration"] = {}
 	data.policy_table.functional_groupings["Base-4"]["rpcs"]["ChangeRegistration"]["hmi_levels"] = {"BACKGROUND", "FULL","LIMITED"}
 	data.policy_table.functional_groupings["Base-4"]["rpcs"]["SetGlobalProperties"] = {}
@@ -82,7 +82,7 @@ commonSteps:DeleteLogsFileAndPolicyTable()
 ---------------------------------------------------------------------------------------------
 Test = require('user_modules/connecttest_TTS_Isready')
 require('cardinalities')
-local events = require('events')
+local events = require('events') 
 local mobile_session = require('mobile_session')
 require('user_modules/AppTypes')
 
@@ -107,54 +107,54 @@ function Test:initHMI_onReady_TTS_IsReady(case)
 			--APPLINK-25117: [HMI_API] TTS.IsReady
 
 			if (name == "TTS.IsReady") then
-
+				
 				--On the view of JSON message, TTS.IsReady response has colerationidID, code/resultCode, method and message parameters. Below are tests to verify all invalid cases of the response.
-
+				
 				--caseID 1-3: Check special cases
 				--0. available_false
 				--1. HMI_Does_Not_Repond
 				--2. MissedAllParamaters
 				--3. Invalid_Json
 				if (case == 0) then -- responds {available = false}
-					self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {available = false})
+					self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {available = false}) 
 				elseif (case == 1) then -- does not respond
 					print("case = "..case)
-					--self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", params)
+					--self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", params) 
 				elseif (case == 2) then --MissedAllParamaters
 					self.hmiConnection:Send('{}')
 				elseif (case == 3) then --Invalid_Json
-					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsReady", "code":0}}')
-					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc";"2.0","result":{"available":true,"method":"TTS.IsReady", "code":0}}')
-
+					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsReady", "code":0}}')	
+					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc";"2.0","result":{"available":true,"method":"TTS.IsReady", "code":0}}')	
+					
 					--*****************************************************************************************************************************
-
+					
 					--caseID 11-14 are used to checking "collerationID" parameter
 					--11. collerationID_IsMissed
 					--12. collerationID_IsNonexistent
 					--13. collerationID_IsWrongType
-					--14. collerationID_IsNegative
-
+					--14. collerationID_IsNegative 	
+					
 				elseif (case == 11) then --collerationID_IsMissed
-
+					
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsReady", "code":0}}')
 					self.hmiConnection:Send('{"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsReady", "code":0}}')
-
+					
 				elseif (case == 12) then --collerationID_IsNonexistent
-
+					
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsReady", "code":0}}')
 					self.hmiConnection:Send('{"id":'..tostring(data.id + 10)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsReady", "code":0}}')
-
+					
 				elseif (case == 13) then --collerationID_IsWrongType
-
+					
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsReady", "code":0}}')
 					self.hmiConnection:Send('{"id":"'..tostring(data.id)..'","jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsReady", "code":0}}')
-
+					
 				elseif (case == 14) then --collerationID_IsNegative
-
+					
 					self.hmiConnection:Send('{"id":'..tostring(-1)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsReady", "code":0}}')
-
+					
 					--*****************************************************************************************************************************
-
+					
 					--caseID 21-27 are used to checking "method" parameter
 					--21. method_IsMissed
 					--22. method_IsNotValid
@@ -164,46 +164,46 @@ function Test:initHMI_onReady_TTS_IsReady(case)
 					--26. method_IsInvalidCharacter_Newline
 					--27. method_IsInvalidCharacter_OnlySpaces
 					--28. method_IsInvalidCharacter_Tab
-
+					
 				elseif (case == 21) then --method_IsMissed
-
+					
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsReady", "code":0}}')
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"code":0}}')
-
+					
 				elseif (case == 22) then --method_IsNotValid
-
+					
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsReady", "code":0}}')
-					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsRea", "code":0}}')
-
+					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsRea", "code":0}}')				
+					
 				elseif (case == 23) then --method_IsOtherResponse
-
+					
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsReady", "code":0}}')
-					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"VR.IsReady", "code":0}}')
-
+					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"VR.IsReady", "code":0}}')			
+					
 				elseif (case == 24) then --method_IsEmpty
-
+					
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsReady", "code":0}}')
-					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"", "code":0}}')
-
+					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"", "code":0}}')							 
+					
 				elseif (case == 25) then --method_IsWrongType
-
+					
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsReady", "code":0}}')
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":123456789, "code":0}}')
-
+					
 				elseif (case == 26) then --method_IsInvalidCharacter_Newline
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsReady", "code":0}}')
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsR\neady", "code":0}}')
-
+					
 				elseif (case == 27) then --method_IsInvalidCharacter_OnlySpaces
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsReady", "code":0}}')
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":" ", "code":0}}')
-
+					
 				elseif (case == 28) then --method_IsInvalidCharacter_Tab
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsReady", "code":0}}')
-					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsRe\tady", "code":0}}')
-
+					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsRe\tady", "code":0}}')		
+					
 					--*****************************************************************************************************************************
-
+					
 					--caseID 31-35 are used to checking "resultCode" parameter
 					--31. resultCode_IsMissed
 					--32. resultCode_IsNotExist
@@ -211,34 +211,34 @@ function Test:initHMI_onReady_TTS_IsReady(case)
 					--34. resultCode_INVALID_DATA (code = 11)
 					--35. resultCode_DATA_NOT_AVAILABLE (code = 9)
 					--36. resultCode_GENERIC_ERROR (code = 22)
-
+					
 				elseif (case == 31) then --resultCode_IsMissed
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsReady", "code":0}}')
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsReady"}}')
-
+					
 				elseif (case == 32) then --resultCode_IsNotExist
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsReady", "code":0}}')
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsReady", "code":123}}')
-
+					
 				elseif (case == 33) then --resultCode_IsWrongType
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsReady", "code":0}}')
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsReady", "code":"0"}}')
-
+					
 				elseif (case == 34) then --resultCode_INVALID_DATA
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsReady", "code":0}}')
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsReady", "code":11}}')
-
+					
 				elseif (case == 35) then --resultCode_DATA_NOT_AVAILABLE
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsReady", "code":0}}')
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsReady", "code":9}}')
-
+					
 				elseif (case == 36) then --resultCode_GENERIC_ERROR
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsReady", "code":0}}')
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsReady", "code":22}}')
-
-
+					
+					
 					--*****************************************************************************************************************************
-
+					
 					--caseID 41-45 are used to checking "message" parameter
 					--41. message_IsMissed
 					--42. message_IsLowerBound
@@ -249,71 +249,71 @@ function Test:initHMI_onReady_TTS_IsReady(case)
 					--47. message_IsInvalidCharacter_Tab
 					--48. message_IsInvalidCharacter_OnlySpaces
 					--49. message_IsInvalidCharacter_Newline
-				--TODO: This case is skipped till APPLINK-28100	is resolved.
+				--TODO: This case is skipped till APPLINK-28100	is resolved.	
 				-- elseif (case == 41) then --message_IsMissed
 					-- --self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"TTS.IsReady"}, "message":"The data sent is invalid","code":11}}') --INVALID_DATA
 					-- self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"TTS.IsReady"},"code":11}}')
-
+					
 				elseif (case == 42) then --message_IsLowerBound
 					local messageValue = "a"
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"TTS.IsReady"}, "message":"The data sent is invalid","code":11}}') --INVALID_DATA
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"TTS.IsReady"}, "message":"' .. messageValue ..'","code":11}}')
-
+					
 				elseif (case == 43) then --message_IsUpperBound
 					local messageValue = string.rep("a", 1000)
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"TTS.IsReady"}, "message":"The data sent is invalid","code":11}}') --INVALID_DATA
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"TTS.IsReady"}, "message":"' .. messageValue ..'","code":11}}')
-
+					
 				elseif (case == 44) then --message_IsOutUpperBound
 					local messageValue = string.rep("a", 1001)
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"TTS.IsReady"}, "message":"The data sent is invalid","code":11}}') --INVALID_DATA
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"TTS.IsReady"}, "message":"' .. messageValue ..'","code":11}}')
-
+					
 				elseif (case == 45) then --message_IsEmpty_IsOutLowerBound
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"TTS.IsReady"}, "message":"The data sent is invalid","code":11}}') --INVALID_DATA
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"TTS.IsReady"}, "message":"","code":11}}')
-
+					
 				elseif (case == 46) then --message_IsWrongType
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"TTS.IsReady"}, "message":"The data sent is invalid","code":11}}') --INVALID_DATA
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"TTS.IsReady"}, "message":123,"code":11}}')
-
+					
 				elseif (case == 47) then --message_IsInvalidCharacter_Tab
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"TTS.IsReady"}, "message":"The data sent is invalid","code":11}}') --INVALID_DATA
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"TTS.IsReady"}, "message":"a\tb","code":11}}')
-
+					
 				elseif (case == 48) then --message_IsInvalidCharacter_OnlySpaces
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"TTS.IsReady"}, "message":"The data sent is invalid","code":11}}') --INVALID_DATA
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"TTS.IsReady"}, "message":" ","code":11}}')
-
+					
 				elseif (case == 49) then --message_IsInvalidCharacter_Newline
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"TTS.IsReady"}, "message":"The data sent is invalid","code":11}}') --INVALID_DATA
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","error":{"data":{"method":"TTS.IsReady"}, "message":"a\n\b","code":11}}')
-
+					
 					--*****************************************************************************************************************************
-
+					
 					-- caseID 51-55 are used to checking "available" parameter
 					-- 51. available_IsMissed
 					-- 52. available_IsWrongType
-
+					
 				elseif (case == 51) then --available_IsMissed
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsReady", "code":0}}')
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"method":"TTS.IsReady", "code":"0"}}')
-
+					
 				elseif (case == 52) then --available_IsWrongType
 					--self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":true,"method":"TTS.IsReady", "code":0}}')
 					self.hmiConnection:Send('{"id":'..tostring(data.id)..',"jsonrpc":"2.0","result":{"available":"true","method":"TTS.IsReady", "code":"0"}}')
-
+					
 				else
 					print("***************************Error: TTS.IsReady: Input value is not correct ***************************")
 				end
 			else
-				self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", params)
+				self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", params) 			
 			end
-
+			
 		end)
-
+		
 	end
-
+	
 	ExpectRequest("BasicCommunication.MixingAudioSupported",
 	true,
 	{ attenuatedSupported = true })
@@ -325,8 +325,8 @@ function Test:initHMI_onReady_TTS_IsReady(case)
 	})
 	ExpectRequest("UI.GetLanguage", true, { language = "EN-US" })
 	ExpectRequest("VR.GetLanguage", true, { language = "EN-US" })
-
-
+	
+	
 	ExpectRequest("TTS.GetLanguage", true, { language = "EN-US" })
 	--UPDATED
 	:Times(1)
@@ -334,10 +334,10 @@ function Test:initHMI_onReady_TTS_IsReady(case)
 
 	ExpectRequest("UI.ChangeRegistration", false, { }):Pin()
 	ExpectRequest("TTS.SetGlobalProperties", false, { }):Pin()
-
+	
 	ExpectRequest("BasicCommunication.UpdateDeviceList", false, { }):Pin()
 	ExpectRequest("VR.ChangeRegistration", false, { }):Pin()
-
+	
 	ExpectRequest("TTS.ChangeRegistration", false, { }):Pin()
 	ExpectRequest("VR.GetSupportedLanguages", true, {
 		languages =
@@ -359,7 +359,7 @@ function Test:initHMI_onReady_TTS_IsReady(case)
 	--UPDATED
 	:Times(1)
 	:Timeout(20000)
-
+	
 	ExpectRequest("UI.GetSupportedLanguages", true, {
 		languages =
 		{
@@ -377,7 +377,8 @@ function Test:initHMI_onReady_TTS_IsReady(case)
 			trim = "SE"
 		}
 	})
-
+	ExpectRequest("VehicleInfo.GetVehicleData", true, { vin = "52-452-52-752" })
+	
 	local function button_capability(name, shortPressAvailable, longPressAvailable, upDownAvailable)
 		xmlReporter.AddMessage(debug.getinfo(1, "n").name, tostring(name))
 		return
@@ -416,7 +417,7 @@ function Test:initHMI_onReady_TTS_IsReady(case)
 	--UPDATED
 	-- ExpectRequest("TTS.GetCapabilities", true, speech_capabilities)
 	-- :Times(1)
-
+	
 	--UPDATED
 	ExpectRequest("TTS.GetCapabilities", true, {
 		speechCapabilities = { "TEXT", "SAPI_PHONEMES", "LHPLUS_PHONEMES", "PRE_RECORDED", "SILENCE" },
@@ -428,7 +429,7 @@ function Test:initHMI_onReady_TTS_IsReady(case)
 			"POSITIVE_JINGLE",
 			"NEGATIVE_JINGLE"
 		}
-	})
+	}) 
 	--UPDATED
 	:Times(1)
 	:Timeout(20000)
@@ -460,9 +461,9 @@ function Test:initHMI_onReady_TTS_IsReady(case)
 				resolutionHeight = height or 64
 			}
 		}
-
+		
 	end
-
+	
 	ExpectRequest("UI.GetCapabilities", true, {
 		displayCapabilities =
 		{
@@ -555,7 +556,7 @@ function Test:initHMI_onReady_TTS_IsReady(case)
 	ExpectRequest("UI.IsReady", true, { available = true })
 	ExpectRequest("Navigation.IsReady", true, { available = true })
 	ExpectRequest("VehicleInfo.IsReady", true, { available = true })
-
+	
 	self.applications = { }
 	ExpectRequest("BasicCommunication.UpdateAppList", false, { })
 	:Pin()
@@ -566,9 +567,9 @@ function Test:initHMI_onReady_TTS_IsReady(case)
 			self.applications[app.appName] = app.appID
 		end
 	end)
-
+	
 	self.hmiConnection:SendNotification("BasicCommunication.OnReady")
-end
+end 
 
 ---------------------------------------------------------------------------------------------
 -------------------------------------------Preconditions-------------------------------------
@@ -605,22 +606,22 @@ end
 
 --List of parameters in TTS.IsReady response:
 --Parameter 1: correlationID: type=Integer, mandatory="true"
---Parameter 2: method: type=String, mandatory="true" (method = "TTS.IsReady")
---Parameter 3: resultCode: type=String Enumeration(Integer), mandatory="true"
---Parameter 4: info/message: type=String, minlength="1" maxlength="1000" mandatory="false"
+--Parameter 2: method: type=String, mandatory="true" (method = "TTS.IsReady") 
+--Parameter 3: resultCode: type=String Enumeration(Integer), mandatory="true" 
+--Parameter 4: info/message: type=String, minlength="1" maxlength="1000" mandatory="false" 
 --Parameter 5: available: type=Boolean, mandatory="true"
 -----------------------------------------------------------------------------------------------
 -- Cases 2: HMI does not sends TTS.IsReady response or send invalid response
 -----------------------------------------------------------------------------------------------
 
---List of CRQs:
+--List of CRQs:	
 --CRQ #1: APPLINK-25064: [RegisterAppInterface] SDL behavior in case HMI does NOT respond to IsReady request
 --CRQ #2: APPLINK-25131: [TTS Interface] SDL behavior in case HMI does not respond to TTS.IsReady_request (any single TTS-related RPC)
 --CRQ #3: APPLINK-26092, APPLINK-25139: [TTS Interface] HMI does NOT respond to IsReady and mobile app sends RPC that must be split
 
 -----------------------------------------------------------------------------------------------
 --CRQ #1: APPLINK-25064: [RegisterAppInterface] SDL behavior in case HMI does NOT respond to IsReady request
---Verification criteria:
+--Verification criteria:	
 -- In case HMI does NOT respond to <Interface>.IsReady_request to SDL (<Interface>: VehicleInfo, TTS, UI, TTS)
 -- and mobile app sends RegisterAppInterface_request to SDL
 -- and SDL successfully registers this application (see req-s # APPLINK-16420, APPLINK-16251, APPLINK-16250, APPLINK-16249, APPLINK-16320, APPLINK-15686, APPLINK-16307)
@@ -629,16 +630,16 @@ end
 -- a. either received from HMI via <Interface>.GetCapabilities response (please see APPLINK-24325, APPLINK-24102, APPLINK-24100, APPLINK-23626)
 -- b. either retrieved from 'HMI_capabilities.json' file
 local function RegisterApplication_Check_TTS_Parameters_From_HMI_capabilities_json(TestCaseName)
-
+	
 	Test[TestCaseName .. "_RegisterApplication_Check_TTS_Parameters_From_HMI_capabilities_json_resultCode_SUCCESS"] = function(self)
-
+		
 		commonTestCases:DelayedExp(iTimeout)
-
+		
 		--mobile side: RegisterAppInterface request
 		local CorIdRegister=self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
-
+		
 		--hmi side: expect BasicCommunication.OnAppRegistered request
-		EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered",
+		EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", 
 		{
 			application=
 			{
@@ -649,17 +650,17 @@ local function RegisterApplication_Check_TTS_Parameters_From_HMI_capabilities_js
 			self.appName=data.params.application.appName
 			self.applications[config.application1.registerAppInterfaceParams.appName]=data.params.application.appID
 		end)
-
-
+		
+		
 		-- Read TTS parameters from hmi_capabilities.json
 		local HmiCapabilities_file = config.pathToSDL .. "hmi_capabilities.json"
 		f = assert(io.open(HmiCapabilities_file, "r"))
 		fileContent = f:read("*all")
 		f:close()
-
+		
 		local json = require("modules/json")
 		local HmiCapabilities = json.decode(fileContent)
-
+		
 		-- As TTS.GetCapabilities is received:
 		GetCapabilities_language = "EN-US"
 		--
@@ -672,12 +673,12 @@ local function RegisterApplication_Check_TTS_Parameters_From_HMI_capabilities_js
 			"POSITIVE_JINGLE",
 			"NEGATIVE_JINGLE"
 		}
-
+		
 		--mobile side: expect response
 		-- SDL sends TTS-related parameters to mobile app with value from HMI_capabilities_json
-		self.mobileSession:ExpectResponse(CorIdRegister,
+		self.mobileSession:ExpectResponse(CorIdRegister, 
 		{
-			success = true,
+			success = true, 
 			--UPDATED: Please check result codes. As not in scope of SCR I will comment them
 			--resultCode = "RESUME_FAILED",
 			speechCapabilities = GetCapabilities_speech_capabilities,
@@ -687,31 +688,31 @@ local function RegisterApplication_Check_TTS_Parameters_From_HMI_capabilities_js
 			--language = HmiCapabilities.TTS.language
 		}
 		)
-
+		
 		--mobile side: expect notification
 		self.mobileSession:ExpectNotification("OnHMIStatus", { systemContext="MAIN", hmiLevel="NONE", audioStreamingState="NOT_AUDIBLE"})
-
-	end
-
+		
+	end	
+	
 	commonSteps:UnregisterApplication("Postcondition_UnregisterApplication_SUCCESS")
-
+	
 	-- APPLINK-16320 UNSUPPORTED_RESOURCE unavailable/not supported component: It is not applicable for RegisterAppInterface because RegisterAppInterface is not split able request
-
+	
 	-- APPLINK-16251 WRONG_LANGUAGE
 	-- APPLINK-16250 WRONG_LANGUAGE languageDesired
 	Test[TestCaseName .. "_RegisterApplication_Check_TTS_Parameters_From_HMI_capabilities_json_resultCode_WRONG_LANGUAGE"] = function(self)
-
+		
 		commonTestCases:DelayedExp(iTimeout)
-
+		
 		--Set language = "RU-RU"
 		local parameters = commonFunctions:cloneTable(config.application1.registerAppInterfaceParams)
 		parameters.languageDesired = "RU-RU"
-
+		
 		--mobile side: RegisterAppInterface request
 		local CorIdRegister=self.mobileSession:SendRPC("RegisterAppInterface", parameters)
-
+		
 		--hmi side: expect BasicCommunication.OnAppRegistered request
-		EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered",
+		EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", 
 		{
 			application=
 			{
@@ -722,17 +723,17 @@ local function RegisterApplication_Check_TTS_Parameters_From_HMI_capabilities_js
 			self.appName=data.params.application.appName
 			self.applications[config.application1.registerAppInterfaceParams.appName]=data.params.application.appID
 		end)
-
-
+		
+		
 		-- Read TTS parameters from hmi_capabilities.json
 		local HmiCapabilities_file = config.pathToSDL .. "hmi_capabilities.json"
 		f = assert(io.open(HmiCapabilities_file, "r"))
 		fileContent = f:read("*all")
 		f:close()
-
+		
 		local json = require("modules/json")
 		local HmiCapabilities = json.decode(fileContent)
-
+		
 		-- As TTS.GetCapabilities is received:
 		GetCapabilities_language = "EN-US"
 		--
@@ -745,12 +746,12 @@ local function RegisterApplication_Check_TTS_Parameters_From_HMI_capabilities_js
 			"POSITIVE_JINGLE",
 			"NEGATIVE_JINGLE"
 		}
-
+		
 		--mobile side: expect response
 		-- SDL sends TTS-related parameters to mobile app with value from HMI_capabilities_json
-		self.mobileSession:ExpectResponse(CorIdRegister,
+		self.mobileSession:ExpectResponse(CorIdRegister, 
 		{
-			success = true,
+			success = true, 
 			--UPDATED: Please check result codes. As not in scope of SCR I will comment them
 			--resultCode = "RESUME_FAILED",
 			speechCapabilities = GetCapabilities_speech_capabilities,
@@ -760,28 +761,28 @@ local function RegisterApplication_Check_TTS_Parameters_From_HMI_capabilities_js
 			--language = HmiCapabilities.TTS.language
 		}
 		)
-
+		
 		--mobile side: expect notification
 		self.mobileSession:ExpectNotification("OnHMIStatus", { systemContext="MAIN", hmiLevel="NONE", audioStreamingState="NOT_AUDIBLE"})
-
-	end
-
+		
+	end	
+	
 	--APPLINK-16249 WRONG_LANGUAGE hmiDisplayLanguageDesired: It is for UI interface only.
 	-- APPLINK-16307 WARNINGS, true
 	commonSteps:UnregisterApplication(TestCaseName .. "_Precondition_UnregisterApplication_for_checking_WARNINGS")
-
+	
 	Test[TestCaseName .. "_RegisterApplication_Check_TTS_Parameters_From_HMI_capabilities_json_resultCode_WARNINGS"] = function(self)
-
+		
 		commonTestCases:DelayedExp(iTimeout)
-
+		
 		local parameters = commonFunctions:cloneTable(config.application1.registerAppInterfaceParams)
 		parameters.appHMIType = {"MEDIA"}
-
+		
 		--mobile side: RegisterAppInterface request
 		local CorIdRegister=self.mobileSession:SendRPC("RegisterAppInterface", parameters)
-
+		
 		--hmi side: expect BasicCommunication.OnAppRegistered request
-		EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered",
+		EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", 
 		{
 			application=
 			{
@@ -792,17 +793,17 @@ local function RegisterApplication_Check_TTS_Parameters_From_HMI_capabilities_js
 			self.appName=data.params.application.appName
 			self.applications[config.application1.registerAppInterfaceParams.appName]=data.params.application.appID
 		end)
-
-
+		
+		
 		-- Read TTS parameters from hmi_capabilities.json
 		local HmiCapabilities_file = config.pathToSDL .. "hmi_capabilities.json"
 		f = assert(io.open(HmiCapabilities_file, "r"))
 		fileContent = f:read("*all")
 		f:close()
-
+		
 		local json = require("modules/json")
 		local HmiCapabilities = json.decode(fileContent)
-
+		
 		-- As TTS.GetCapabilities is received:
 		GetCapabilities_language = "EN-US"
 		--
@@ -815,12 +816,12 @@ local function RegisterApplication_Check_TTS_Parameters_From_HMI_capabilities_js
 			"POSITIVE_JINGLE",
 			"NEGATIVE_JINGLE"
 		}
-
+		
 		--mobile side: expect response
 		-- SDL sends TTS-related parameters to mobile app with value from HMI_capabilities_json
-		self.mobileSession:ExpectResponse(CorIdRegister,
+		self.mobileSession:ExpectResponse(CorIdRegister, 
 		{
-			success = true,
+			success = true, 
 			--UPDATED: Please check result codes. As not in scope of SCR I will comment them
 			--resultCode = "RESUME_FAILED",
 			speechCapabilities = GetCapabilities_speech_capabilities,
@@ -830,44 +831,44 @@ local function RegisterApplication_Check_TTS_Parameters_From_HMI_capabilities_js
 			--language = HmiCapabilities.TTS.language
 		}
 		)
-
+		
 		--mobile side: expect notification
 		self.mobileSession:ExpectNotification("OnHMIStatus", { systemContext="MAIN", hmiLevel="NONE", audioStreamingState="NOT_AUDIBLE"})
-
-	end
-
-
-
+		
+	end	
+	
+	
+	
 	-- APPLINK-15686 RESUME_FAILED
 	--////////////////////////////////////////////////////////////////////////////////////////////--
 	-- Check absence of resumption in case HashID in RAI is not match
 	--////////////////////////////////////////////////////////////////////////////////////////////--
-
+	
 	--Precondition:
 	commonSteps:UnregisterApplication(TestCaseName .. "_Precondition_for_checking_RESUME_FAILED_UnregisterApp")
 	commonSteps:RegisterAppInterface(TestCaseName .. "_Precondition_for_checking_RESUME_FAILED_RegisterApp")
-	commonSteps:ActivationApp(_, TestCaseName .. "_Precondition_for_checking_RESUME_FAILED_ActivateApp")
+	commonSteps:ActivationApp(_, TestCaseName .. "_Precondition_for_checking_RESUME_FAILED_ActivateApp")	
 	function Test:Precondition_for_checking_RESUME_FAILED_AddResumptionData_SetGlobalProperites()
-
+		
 		--mobile side: sending SetGlobalProperties request
 		local cid = self.mobileSession:SendRPC("SetGlobalProperties",
 		{
 			menuTitle = "Menu Title",
-			timeoutPrompt =
+			timeoutPrompt = 
 			{
 				{
 					text = "Timeout prompt",
 					type = "TEXT"
 				}
 			},
-			vrHelp =
+			vrHelp = 
 			{
 				{
 					position = 1,
 					text = "VR help item"
 				}
 			},
-			helpPrompt =
+			helpPrompt = 
 			{
 				{
 					text = "Help prompt",
@@ -876,20 +877,20 @@ local function RegisterApplication_Check_TTS_Parameters_From_HMI_capabilities_js
 			},
 			vrHelpTitle = "VR help title",
 		})
-
-
+		
+		
 		--hmi side: expect TTS.SetGlobalProperties request
 		EXPECT_HMICALL("TTS.SetGlobalProperties",{})
 		:Do(function(_,data)
 			--hmi side: sending TTS.SetGlobalProperties response
 			self.hmiConnection:SendResponse(data.id, data.method, "UNSUPPORTED_RESOURCE", {})
 		end)
-
+		
 		--hmi side: expect UI.SetGlobalProperties request
 		EXPECT_HMICALL("UI.SetGlobalProperties",
 		{
 			menuTitle = "Menu Title",
-			vrHelp =
+			vrHelp = 
 			{
 				{
 					position = 1,
@@ -902,7 +903,7 @@ local function RegisterApplication_Check_TTS_Parameters_From_HMI_capabilities_js
 			--hmi side: sending UI.SetGlobalProperties response
 			self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 		end)
-
+		
 		--mobile side: expect SetGlobalProperties response
 		EXPECT_RESPONSE(cid, { success = true, resultCode = "UNSUPPORTED_RESOURCE", info = {}})
 		:Do(function(_,data)
@@ -914,36 +915,36 @@ local function RegisterApplication_Check_TTS_Parameters_From_HMI_capabilities_js
 			end)
 		end)
 	end
-
+	
 	function Test:Precondition_for_checking_RESUME_FAILED_CloseConnection()
-		self.mobileConnection:Close()
+		self.mobileConnection:Close() 
 	end
-
+	
 	function Test:Precondition_for_checking_RESUME_FAILED_ConnectMobile()
 		self:connectMobile()
 	end
-
+	
 	function Test:Precondition_for_checking_RESUME_FAILED_StartSession()
 		self.mobileSession = mobile_session.MobileSession(
 		self,
 		self.mobileConnection,
 		config.application1.registerAppInterfaceParams)
-
+		
 		self.mobileSession:StartService(7)
 	end
-
+	
 	Test[TestCaseName .. "_RegisterApplication_Check_TTS_Parameters_From_HMI_capabilities_json_resultCode_RESUME_FAILED"] = function(self)
-
+		
 		commonTestCases:DelayedExp(iTimeout)
-
+		
 		local parameters = commonFunctions:cloneTable(config.application1.registerAppInterfaceParams)
 		parameters.hashID = "sdfgTYWRTdfhsdfgh"
-
+		
 		--mobile side: RegisterAppInterface request
 		local CorIdRegister=self.mobileSession:SendRPC("RegisterAppInterface", parameters)
-
+		
 		--hmi side: expect BasicCommunication.OnAppRegistered request
-		EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered",
+		EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", 
 		{
 			application=
 			{
@@ -954,14 +955,14 @@ local function RegisterApplication_Check_TTS_Parameters_From_HMI_capabilities_js
 			self.appName=data.params.application.appName
 			self.applications[config.application1.registerAppInterfaceParams.appName]=data.params.application.appID
 		end)
-
-
+		
+		
 		-- Read TTS parameters from hmi_capabilities.json
 		local HmiCapabilities_file = config.pathToSDL .. "hmi_capabilities.json"
 		f = assert(io.open(HmiCapabilities_file, "r"))
 		fileContent = f:read("*all")
 		f:close()
-
+		
 		local json = require("modules/json")
 		local HmiCapabilities = json.decode(fileContent)
 
@@ -977,12 +978,12 @@ local function RegisterApplication_Check_TTS_Parameters_From_HMI_capabilities_js
 			"POSITIVE_JINGLE",
 			"NEGATIVE_JINGLE"
 		}
-
+		
 		--mobile side: expect response
 		-- SDL sends TTS-related parameters to mobile app with value from HMI_capabilities_json
-		self.mobileSession:ExpectResponse(CorIdRegister,
+		self.mobileSession:ExpectResponse(CorIdRegister, 
 		{
-			success = true,
+			success = true, 
 			--UPDATED: Please check result codes. As not in scope of SCR I will comment them
 			--resultCode = "RESUME_FAILED",
 			speechCapabilities = GetCapabilities_speech_capabilities,
@@ -992,19 +993,19 @@ local function RegisterApplication_Check_TTS_Parameters_From_HMI_capabilities_js
 			--language = HmiCapabilities.TTS.language
 		}
 		)
-
+		
 		--mobile side: expect notification
-		self.mobileSession:ExpectNotification("OnHMIStatus",
-		{systemContext="MAIN", hmiLevel="NONE", audioStreamingState="NOT_AUDIBLE"},
+		self.mobileSession:ExpectNotification("OnHMIStatus", 
+		{systemContext="MAIN", hmiLevel="NONE", audioStreamingState="NOT_AUDIBLE"}, 
 		{systemContext="MAIN", hmiLevel="FULL", audioStreamingState="AUDIBLE"}
 		)
 		:Times(2)
-
-
+		
+		
 		--APPLINK-9532: Sending TTS.SetGlobalProperties to VCA in case no obtained from mobile app
 		--Description: When registering the app as soon as the app gets HMI Level NONE, SDL sends TTS.SetGlobalProperties(helpPrompt[]) with an empty array of helpPrompts (just helpPrompts, no timeoutPrompt).
 		--hmi side: expect TTS.SetGlobalProperties request
-
+	
 		--Iliyana: SetGlobalProperties will be sent in case of resumption! Please check!
 		-- EXPECT_HMICALL("UI.SetGlobalProperties")
 		-- :Times(0)
@@ -1015,26 +1016,26 @@ local function RegisterApplication_Check_TTS_Parameters_From_HMI_capabilities_js
 		-- :Times(0)
 
 		DelayedExp(1000)
-	end
-end
+	end	
+end	
 local TestData = {
-
+	
 	--caseID 1-3 are used to checking special cases
 	{caseID = 1, description = "HMI_Does_Not_Repond"},
 	{caseID = 2, description = "MissedAllParamaters"},
 	{caseID = 3, description = "Invalid_Json"},
-
-
+	
+	
 	--caseID 11-14 are used to checking "collerationID" parameter
 	--11. IsMissed
 	--12. IsNonexistent
 	--13. IsWrongType
-	--14. IsNegative
+	--14. IsNegative 	
 	{caseID = 11, description = "collerationID_IsMissed"},
 	{caseID = 12, description = "collerationID_IsNonexistent"},
 	{caseID = 13, description = "collerationID_IsWrongType"},
 	{caseID = 14, description = "collerationID_IsNegative"},
-
+	
 	--caseID 21-27 are used to checking "method" parameter
 	--21. IsMissed
 	--22. IsNotValid
@@ -1050,7 +1051,7 @@ local TestData = {
 	{caseID = 26, description = "method_IsInvalidCharacter_Splace"},
 	{caseID = 26, description = "method_IsInvalidCharacter_Tab"},
 	{caseID = 26, description = "method_IsInvalidCharacter_NewLine"},
-
+	
 	-- --caseID 31-35 are used to checking "resultCode" parameter
 	-- --31. IsMissed
 	-- --32. IsNotExist
@@ -1062,8 +1063,8 @@ local TestData = {
 	{caseID = 34, description = "resultCode_INVALID_DATA"},
 	{caseID = 35, description = "resultCode_DATA_NOT_AVAILABLE"},
 	{caseID = 36, description = "resultCode_GENERIC_ERROR"},
-
-
+	
+	
 	--caseID 41-45 are used to checking "message" parameter
 	--41. IsMissed
 	--42. IsLowerBound
@@ -1081,32 +1082,32 @@ local TestData = {
 	{caseID = 47, description = "message_IsInvalidCharacter_Tab"},
 	{caseID = 48, description = "message_IsInvalidCharacter_OnlySpaces"},
 	{caseID = 49, description = "message_IsInvalidCharacter_Newline"},
-
-
+	
+	
 	--caseID 51-55 are used to checking "available" parameter
 	--51. IsMissed
 	--52. IsWrongType
 	{caseID = 51, description = "available_IsMissed"},
 	{caseID = 52, description = "available_IsWrongType"},
-
+	
 }
 
 for i=1, #TestData do
-
+	
 	local TestCaseName = "Case_" .. TestData[i].caseID .. "_IsReady_" ..TestData[i].description
-
-
+	
+	
 	--Print new line to separate new test cases group
 	commonFunctions:newTestCasesGroup(TestCaseName)
-
+	
 	local function StopStartSDL_HMI_MOBILE(case, TestCaseName)
-
+		
 		--Stop SDL
 		Test[tostring(TestCaseName) .. "_Precondition_StopSDL"] = function(self)
 			StopSDL()
 		end
 
-
+		
 		Test["ForceKill" .. tostring(i)] = function (self)
 			-- body
 			os.execute("ps aux | grep smart | awk \'{print $2}\' | xargs kill -9")
@@ -1114,44 +1115,44 @@ for i=1, #TestData do
 		end
 
 		--UPDATED
-		Test[tostring(TestCaseName) .. "_UpdatePolicy"] = function(self)
+		Test[tostring(TestCaseName) .. "_UpdatePolicy"] = function(self)					
 			update_sdl_preloaded_pt_json()
 			commonSteps:DeletePolicyTable()
 		end
-
+		
 		--Start SDL
 		Test[tostring(TestCaseName) .. "_Precondition_StartSDL"] = function(self)
 			StartSDL(config.pathToSDL, config.ExitOnCrash)
 		end
-
+		
 		--InitHMI
 		Test[tostring(TestCaseName) .. "_Precondition_InitHMI"] = function(self)
 			self:initHMI()
 		end
-
-
+		
+		
 		--InitHMIonReady
 		Test[tostring(TestCaseName) .. "_initHMI_onReady_TTS_InReady_" .. tostring(description)] = function(self)
 			self:initHMI_onReady_TTS_IsReady(case)
 		end
-
-
+		
+		
 		--ConnectMobile
 		Test[tostring(TestCaseName) .. "_ConnectMobile"] = function(self)
 			self:connectMobile()
 		end
-
+		
 		--StartSession
 		Test[tostring(TestCaseName) .. "_StartSession"] = function(self)
 			self.mobileSession= mobile_session.MobileSession(self, self.mobileConnection)
 			self.mobileSession:StartService(7)
 		end
-
+		
 	end
-
+	
 	StopStartSDL_HMI_MOBILE(TestData[i].caseID, TestCaseName)
 	RegisterApplication_Check_TTS_Parameters_From_HMI_capabilities_json(TestCaseName)
-
+	
 end
 ----------------------------------------------------------------------------------------------
 -----------------------------------------TEST BLOCK IV----------------------------------------
