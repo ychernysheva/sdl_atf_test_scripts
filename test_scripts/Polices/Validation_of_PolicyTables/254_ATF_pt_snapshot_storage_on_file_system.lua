@@ -183,6 +183,7 @@ function Test:Precondition_ActivateApp()
         maxNumberRFCOMMPorts = 1
       }
     })
+  EXPECT_RESPONSE(CorIdRAI, { success = true, resultCode = "SUCCESS"})
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered",
     {
       application =
@@ -202,8 +203,6 @@ function Test:Precondition_ActivateApp()
     })
   :Do(function(_,data)
       self.applications["SPT"] = data.params.application.appID
-      EXPECT_RESPONSE(CorIdRAI, { success = true, resultCode = "SUCCESS"})
-
       local RequestId = self.hmiConnection:SendRequest("SDL.ActivateApp", {appID = self.applications["SPT"]})
       EXPECT_HMIRESPONSE(RequestId, { result = {
             code = 0,

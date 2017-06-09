@@ -37,13 +37,12 @@ local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
 local json = require('json')
+local mobile_session = require('mobile_session')
 
 --[[ Local Variables ]]
 local HMIAppID
--- Basic PTU file
-local basic_ptu_file = "files/ptu.json"
--- PTU for registered app
-local ptu_app_registered = "files/ptu_app.json"
+local basic_ptu_file = "files/ptu.json" -- Basic PTU file
+local ptu_app_registered = "files/ptu_app.json" -- PTU for registered app
 
 -- Prepare parameters for app to save it in json file
 local function PrepareJsonPTU1(name, new_ptufile)
@@ -64,61 +63,41 @@ end
 commonSteps:DeleteLogsFileAndPolicyTable()
 
 --[[ General Settings for configuration ]]
-Test = require('connecttest')
-local mobile_session = require('mobile_session')
+Test = require('user_modules/connecttest_resumption')
 require('cardinalities')
 require('user_modules/AppTypes')
 
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
 
-function Test.Precondition_StopSDL()
-  StopSDL()
-end
-
-function Test.Precondition_StartSDL()
-  StartSDL(config.pathToSDL, config.ExitOnCrash)
-end
-
-function Test:Precondition_initHMI()
-  self:initHMI()
-end
-
-function Test:Precondition_initHMI_onReady()
-  self:initHMI_onReady()
-end
-
-function Test:Precondition_ConnectMobile()
-  self:connectMobile()
-end
-
-function Test:Precondition_StartSession()
-  self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
-end
-
 function Test.Precondition_PreparePTData()
   PrepareJsonPTU1(config.application1.registerAppInterfaceParams.appID, ptu_app_registered)
 end
---[[ end of Preconditions ]]
+
+function Test:ConnectMobile()
+  self:connectMobile()
+end
+
+function Test:StartSession()
+  self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
+  self.mobileSession:StartService(7)
+end
 
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
-function Test:RegisterApp()
-  self.mobileSession:StartService(7)
-  :Do(function (_,_)
-      local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
 
-      EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
-      :Do(function(_,data)
-          HMIAppID = data.params.application.appID
-        end)
-      EXPECT_RESPONSE(correlationId, { success = true })
-      EXPECT_NOTIFICATION("OnPermissionsChange")
+function Test:RegisterApp()
+  local correlationId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
+  :Do(function(_,data)
+      HMIAppID = data.params.application.appID
     end)
+  EXPECT_RESPONSE(correlationId, { success = true })
+  EXPECT_NOTIFICATION("OnPermissionsChange")
 end
 
 function Test:ActivateAppInFull()
-  commonSteps:ActivateAppInSpecificLevel(self,HMIAppID,"FULL")
+  commonSteps:ActivateAppInSpecificLevel(self, HMIAppID, "FULL")
 end
 
 function Test:UpdatePolicy_ExpectOnAppPermissionChangedWithAppID()
@@ -147,6 +126,7 @@ commonFunctions:newTestCasesGroup("Postconditions")
 function Test.Postcondition_RemovePTUfiles()
   os.remove(ptu_app_registered)
 end
+
 function Test.Postcondition_Stop_SDL()
   StopSDL()
 end
