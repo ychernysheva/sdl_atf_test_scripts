@@ -208,6 +208,7 @@ function Test:TestStep_User_Consents_New_Permissions_After_App_Activation()
         { appID = self.applications["SPT"], source = "GUI", consentedFunctions = {{name = "New_permissions", allowed = false, id = functionalGroupID} }})
     end)
   EXPECT_NOTIFICATION("OnPermissionsChange", {}):Times(0)
+  commonTestCases:DelayedExp(5000)
 end
 
 function Test:TestStep_Check_RPC_Disallowed_By_User()
