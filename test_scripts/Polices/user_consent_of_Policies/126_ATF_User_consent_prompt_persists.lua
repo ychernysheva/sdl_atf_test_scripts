@@ -176,7 +176,7 @@ function Test:Precondition_IsPermissionsConsentNeeded_false_on_app_activation()
   EXPECT_HMICALL("BasicCommunication.PolicyUpdate", {file = "/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json"})
   :Do(function()
       local app_permission = testCasesForPolicyTableSnapshot:get_data_from_PTS("device_data."..config.deviceMAC..".user_consent_records."..config.application1.registerAppInterfaceParams.appID)
-      if(app_permission ~= nil) then
+      if(app_permission ~= 0) then
         self:FailTestCase("Consented gropus are assigned to application")
       end
     end)

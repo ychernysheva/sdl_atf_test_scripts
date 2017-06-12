@@ -22,10 +22,19 @@ local commonPreconditions = require('user_modules/shared_testcases/commonPrecond
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
 local testCasesForPolicySDLErrorsStops = require('user_modules/shared_testcases/testCasesForPolicySDLErrorsStops')
 local sdl = require('modules/SDL')
-local testCasesForExternalUCS = require('user_modules/shared_testcases/testCasesForExternalUCS')
 
 --[[ Local Variables ]]
 local PRELOADED_PT_FILE_NAME = "sdl_preloaded_pt.json"
+
+--[[ Local Functions ]]
+local function checkSDLStatus(test, expStatus)
+  local actStatus = sdl:CheckStatusSDL()
+  print("SDL status: " .. tostring(actStatus))
+  if actStatus ~= expStatus then
+    local msg = "Expected SDL status: " .. expStatus .. ", actual: " .. actStatus
+    test:FailTestCase(msg)
+  end
+end
 
 --[[ General Precondition before ATF start ]]
 config.defaultProtocolVersion = 2
@@ -41,7 +50,7 @@ function Test:Precondition_stop_sdl()
 end
 
 function Test:CheckSDLStatus()
-  testCasesForExternalUCS.checkSDLStatus(self, sdl.STOPPED)
+  checkSDLStatus(self, sdl.STOPPED)
 end
 
 function Test.Precondition()
@@ -59,7 +68,7 @@ function Test.TestStep_start_sdl()
 end
 
 function Test:CheckSDLStatus()
-  testCasesForExternalUCS.checkSDLStatus(self, sdl.STOPPED)
+  checkSDLStatus(self, sdl.STOPPED)
 end
 
 function Test:TestStep_CheckSDLLogError()
