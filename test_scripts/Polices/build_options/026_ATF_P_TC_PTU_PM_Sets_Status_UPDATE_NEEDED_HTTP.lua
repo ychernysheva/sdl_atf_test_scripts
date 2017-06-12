@@ -98,6 +98,7 @@ function Test:RAI_PTU()
           end
         end)
       :Times(4)
+      :Timeout(65000)
 
       local onSystemRequestRecieved = false
       self.mobileSession:ExpectNotification("OnSystemRequest")
@@ -111,6 +112,7 @@ function Test:RAI_PTU()
           end
         end)
       :Times(3) -- LOCK_SCREEN_ICON_URL, HTTP, HTTP
+      :Timeout(65000)
 
     end)
   self.mobileSession:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
