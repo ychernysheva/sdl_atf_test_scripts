@@ -25,7 +25,16 @@ local commonSteps = require ('user_modules/shared_testcases/commonSteps')
 local testCasesForPolicyTable = require ('user_modules/shared_testcases/testCasesForPolicyTable')
 local commonPreconditions = require ('user_modules/shared_testcases/commonPreconditions')
 local sdl = require('modules/SDL')
-local testCasesForExternalUCS = require('user_modules/shared_testcases/testCasesForExternalUCS')
+
+--[[ Local Functions ]]
+local function checkSDLStatus(test, expStatus)
+  local actStatus = sdl:CheckStatusSDL()
+  print("SDL status: " .. tostring(actStatus))
+  if actStatus ~= expStatus then
+    local msg = "Expected SDL status: " .. expStatus .. ", actual: " .. actStatus
+    test:FailTestCase(msg)
+  end
+end
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
@@ -102,7 +111,7 @@ function Test.TestStep_start_sdl()
 end
 
 function Test:TestStep_VerifySDL_Stops()
-  testCasesForExternalUCS.checkSDLStatus(self, sdl.STOPPED)
+  checkSDLStatus(self, sdl.STOPPED)
   -- Errors for SDL can't be checked in log, because SDL stops imediatelly because of incorrect path.
 end
 

@@ -22,8 +22,17 @@ local commonPreconditions = require ('user_modules/shared_testcases/commonPrecon
 local testCasesForPolicySDLErrorsStops = require ('user_modules/shared_testcases/testCasesForPolicySDLErrorsStops')
 local testCasesForPolicyTable = require ('user_modules/shared_testcases/testCasesForPolicyTable')
 local sdl = require('modules/SDL')
-local testCasesForExternalUCS = require('user_modules/shared_testcases/testCasesForExternalUCS')
 local json = require("modules/json")
+
+--[[ Local Functions ]]
+local function checkSDLStatus(test, expStatus)
+  local actStatus = sdl:CheckStatusSDL()
+  print("SDL status: " .. tostring(actStatus))
+  if actStatus ~= expStatus then
+    local msg = "Expected SDL status: " .. expStatus .. ", actual: " .. actStatus
+    test:FailTestCase(msg)
+  end
+end
 
 --[[ General configuration parameters ]]
 config.defaultProtocolVersion = 2
@@ -72,7 +81,7 @@ function Test.TestStep_start_sdl()
 end
 
 function Test:TestStep_checkSdl_Stopped()
-  testCasesForExternalUCS.checkSDLStatus(self, sdl.STOPPED)
+  checkSDLStatus(self, sdl.STOPPED)
 end
 
 function Test:TestStep_CheckSDLLogError()

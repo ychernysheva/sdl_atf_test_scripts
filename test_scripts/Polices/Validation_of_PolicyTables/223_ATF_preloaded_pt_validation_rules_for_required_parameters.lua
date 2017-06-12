@@ -23,8 +23,17 @@ local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local testCasesForPolicySDLErrorsStops = require('user_modules/shared_testcases/testCasesForPolicySDLErrorsStops')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
 local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
-local testCasesForExternalUCS = require('user_modules/shared_testcases/testCasesForExternalUCS')
 local sdl = require('modules/SDL')
+
+--[[ Local Functions ]]
+local function checkSDLStatus(test, expStatus)
+  local actStatus = sdl:CheckStatusSDL()
+  print("SDL status: " .. tostring(actStatus))
+  if actStatus ~= expStatus then
+    local msg = "Expected SDL status: " .. expStatus .. ", actual: " .. actStatus
+    test:FailTestCase(msg)
+  end
+end
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
@@ -75,7 +84,7 @@ function Test.Test_StartSdl()
 end
 
 function Test:CheckSDLStatus()
-  testCasesForExternalUCS.checkSDLStatus(self, sdl.STOPPED)
+  checkSDLStatus(self, sdl.STOPPED)
 end
 
 function Test:TestStep_CheckSDLLogError()
