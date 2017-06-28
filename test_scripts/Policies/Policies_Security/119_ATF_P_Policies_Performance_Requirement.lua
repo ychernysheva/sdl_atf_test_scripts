@@ -27,6 +27,7 @@ local json = require("modules/json")
 local app_id = config.application1.registerAppInterfaceParams.appID
 local sequence = { }
 local ptu_table
+local HMIAppId
 
 --[[ Local Functions ]]
 local function timestamp()
@@ -93,13 +94,6 @@ local function ptu(self)
       log("HMI->SDL: N: BC.OnSystemRequest")
       updatePTU(ptu_table)
       storePTUInFile(ptu_table, ptu_file_name)
-      --
-      EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", { status = "UPDATING" }, {status = "UP_TO_DATE" })
-      :Do(
-        function(_, d)
-          log("SDL->HMI: N: SDL.OnStatusUpdate", d.params.status)
-        end)
-      :Times(2)
 
       self.mobileSession:ExpectNotification("OnSystemRequest", { requestType = "PROPRIETARY" })
       :Do(
@@ -171,12 +165,7 @@ function Test:RAI()
   :Do(
     function(_, d1)
       log("SDL->HMI: N: BC.OnAppRegistered")
-      self.applications[config.application1.registerAppInterfaceParams.appID] = d1.params.application.appID
-      EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", { status = "UPDATE_NEEDED" })
-      :Do(
-        function(_, d2)
-          log("SDL->HMI: N: SDL.OnStatusUpdate", d2.params.status)
-        end)
+      HMIAppId = d1.params.application.appID
       EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
       :Times(0)
     end)
@@ -199,7 +188,12 @@ function Test:RAI()
 end
 
 function Test:Activate_App()
-  local requestId1 = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = self.applications[config.application1.registerAppInterfaceParams.appID] })
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", { status = "UPDATE_NEEDED" }, { status = "UPDATING" }, { status = "UP_TO_DATE" })
+  :Do(function(_, d2)
+      log("SDL->HMI: N: SDL.OnStatusUpdate", d2.params.status)
+    end)
+  :Times(3)
+  local requestId1 = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = HMIAppId })
   log("HMI->SDL: RQ: SDL.ActivateApp")
   EXPECT_HMIRESPONSE(requestId1)
   :Do(
