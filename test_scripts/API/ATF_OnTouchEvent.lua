@@ -1202,7 +1202,7 @@ end
 		--1.1. Click and cancel on navigation
 		function Test:OnTouchEvent_type_BEGIN()
 			print()
-			print("Step 1.1. Click and cancel on navigation area"
+			print("Step 1.1. Click and cancel on navigation area")
 
 			local parameter = {
 							type = "BEGIN",
