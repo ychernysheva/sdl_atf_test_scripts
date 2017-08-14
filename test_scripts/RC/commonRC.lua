@@ -12,8 +12,10 @@ config.application2.registerAppInterfaceParams.appHMIType = { "REMOTE_CONTROL" }
 local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
 local commonSteps = require("user_modules/shared_testcases/commonSteps")
 local commonTestCases = require("user_modules/shared_testcases/commonTestCases")
+local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 local mobile_session = require("mobile_session")
 local json = require("modules/json")
+local hmi_values = require("user_modules/hmi_values")
 
 --[[ Local Variables ]]
 local ptu_table = {}
@@ -22,57 +24,8 @@ local hmiAppIds = {}
 local commonRC = {}
 
 commonRC.timeout = 2000
-
-local function initHMI(self)
-  local exp_waiter = commonFunctions:createMultipleExpectationsWaiter(self, "HMI initialization")
-  local function registerComponent(name, subscriptions)
-    local rid = self.hmiConnection:SendRequest("MB.registerComponent", { componentName = name })
-    local exp = EXPECT_HMIRESPONSE(rid)
-    exp_waiter:AddExpectation(exp)
-    if subscriptions then
-      for _, s in ipairs(subscriptions) do
-        exp:Do(function()
-            rid = self.hmiConnection:SendRequest("MB.subscribeTo", { propertyName = s })
-            exp = EXPECT_HMIRESPONSE(rid)
-            exp_waiter:AddExpectation(exp)
-          end)
-      end
-    end
-  end
-
-  local web_socket_connected_event = EXPECT_HMIEVENT(events.connectedEvent, "Connected websocket")
-  :Do(function()
-      registerComponent("Buttons", {"Buttons.OnButtonSubscription"})
-      registerComponent("TTS")
-      registerComponent("VR")
-      registerComponent("BasicCommunication", {
-          "BasicCommunication.OnPutFile",
-          "SDL.OnStatusUpdate",
-          "SDL.OnAppPermissionChanged",
-          "BasicCommunication.OnSDLPersistenceComplete",
-          "BasicCommunication.OnFileRemoved",
-          "BasicCommunication.OnAppRegistered",
-          "BasicCommunication.OnAppUnregistered",
-          "BasicCommunication.PlayTone",
-          "BasicCommunication.OnSDLClose",
-          "SDL.OnSDLConsentNeeded",
-          "BasicCommunication.OnResumeAudioSource"
-        })
-      registerComponent("UI", {
-          "UI.OnRecordStart"
-        })
-      registerComponent("VehicleInfo")
-      registerComponent("RC")
-      registerComponent("Navigation", {
-          "Navigation.OnAudioDataStreaming",
-          "Navigation.OnVideoDataStreaming"
-        })
-    end)
-  exp_waiter:AddExpectation(web_socket_connected_event)
-
-  self.hmiConnection:Connect()
-  return exp_waiter.expectation
-end
+commonRC.DEFAULT = "Default"
+commonRC.buttons = { climate = "FAN_UP", radio = "VOLUME_UP" }
 
 local function getPTUFromPTS(tbl)
   tbl.policy_table.consumer_friendly_messages.messages = nil
@@ -156,14 +109,15 @@ function commonRC.preconditions()
   commonSteps:DeleteLogsFiles()
 end
 
-function commonRC.start(self)
+function commonRC.start(pHMIParams, self)
+  self, pHMIParams = commonRC.getSelfAndParams(pHMIParams, self)
   self:runSDL()
   commonFunctions:waitForSDLStart(self)
   :Do(function()
-      initHMI(self)
+      self:initHMI(self)
       :Do(function()
           commonFunctions:userPrint(35, "HMI initialized")
-          self:initHMI_onReady()
+          self:initHMI_onReady(pHMIParams)
           :Do(function()
               commonFunctions:userPrint(35, "HMI is ready")
               self:connectMobile()
@@ -365,11 +319,7 @@ function commonRC.getAnotherModuleControlData(module_type)
 end
 
 function commonRC.getButtonNameByModule(pModuleType)
-  if pModuleType == "CLIMATE" then
-    return "FAN_UP"
-  elseif pModuleType == "RADIO" then
-    return "VOLUME_UP"
-  end
+  return commonRC.buttons[string.lower(pModuleType)]
 end
 
 function commonRC.getReadOnlyParamsByModule(pModuleType)
@@ -476,6 +426,13 @@ local rcRPCs = {
       return {
         moduleData = commonRC.getSettableModuleControlData(pModuleType)
       }
+    end,
+    responseParams = function(success, resultCode, pModuleType)
+      return {
+        success = success,
+        resultCode = resultCode,
+        moduleData = commonRC.getSettableModuleControlData(pModuleType)
+      }
     end
   },
   ButtonPress = {
@@ -498,6 +455,12 @@ local rcRPCs = {
     end,
     hmiResponseParams = function()
       return {}
+    end,
+    responseParams = function(success, resultCode)
+      return {
+        success = success,
+        resultCode = resultCode
+      }
     end
   },
   GetInteriorVehicleDataConsent = {
@@ -681,6 +644,74 @@ function commonRC.rpcRejectWithoutConsent(pModuleType, pAppId, pRPC, self)
   EXPECT_HMICALL(commonRC.getHMIEventName(pRPC)):Times(0)
   mobSession:ExpectResponse(cid, { success = false, resultCode = "REJECTED" })
   commonTestCases:DelayedExp(commonRC.timeout)
+end
+
+function commonRC.buildButtonCapability(name, shortPressAvailable, longPressAvailable, upDownAvailable)
+  return hmi_values.createButtonCapability(name, shortPressAvailable, longPressAvailable, upDownAvailable)
+end
+
+function commonRC.buildHmiRcCapabilities(pClimateCapabilities, pRadioCapabilities, pButtonCapabilities)
+  local hmiParams = hmi_values.getDefaultHMITable()
+  local capParams = hmiParams.RC.GetCapabilities.params.remoteControlCapability
+
+  hmiParams.RC.IsReady.params.available = true
+
+  if pClimateCapabilities then
+    if pClimateCapabilities ~= commonRC.DEFAULT then
+      capParams.climateControlCapabilities = pClimateCapabilities
+    end
+  else
+    capParams.climateControlCapabilities = nil
+  end
+
+  if pRadioCapabilities then
+    if pRadioCapabilities ~= commonRC.DEFAULT then
+      capParams.radioControlCapabilities = pRadioCapabilities
+    end
+  else
+    capParams.radioControlCapabilities = nil
+  end
+
+  if pButtonCapabilities then
+    if pButtonCapabilities ~= commonRC.DEFAULT then
+      capParams.buttonCapabilities = pButtonCapabilities
+    end
+  else
+    capParams.buttonCapabilities = nil
+  end
+
+  return hmiParams
+end
+
+function commonRC.backupHMICapabilities()
+  local hmiCapabilitiesFile = commonFunctions:read_parameter_from_smart_device_link_ini("HMICapabilities")
+  commonPreconditions:BackupFile(hmiCapabilitiesFile)
+end
+
+function commonRC.restoreHMICapabilities()
+  local hmiCapabilitiesFile = commonFunctions:read_parameter_from_smart_device_link_ini("HMICapabilities")
+  commonPreconditions:RestoreFile(hmiCapabilitiesFile)
+end
+
+function commonRC.getButtonIdByName(pArray, pButtonName)
+  for id, buttonData in pairs(pArray) do
+    if buttonData.name == pButtonName then
+      return id
+    end
+  end
+end
+
+function commonRC.updateDefaultCapabilities(pDisabledModuleTypes)
+  local hmiCapabilitiesFile = commonPreconditions:GetPathToSDL()
+    .. commonFunctions:read_parameter_from_smart_device_link_ini("HMICapabilities")
+  local hmiCapTbl = jsonFileToTable(hmiCapabilitiesFile)
+  local rcCapTbl = hmiCapTbl.UI.systemCapabilities.remoteControlCapability
+  for _, pDisabledModuleType in pairs(pDisabledModuleTypes) do
+    local buttonId = commonRC.getButtonIdByName(rcCapTbl.buttonCapabilities, commonRC.getButtonNameByModule(pDisabledModuleType))
+    table.remove(rcCapTbl.buttonCapabilities, buttonId)
+    rcCapTbl[string.lower(pDisabledModuleType) .. "ControlCapabilities"] = nil
+  end
+  tableToJsonFile(hmiCapTbl, hmiCapabilitiesFile)
 end
 
 return commonRC
