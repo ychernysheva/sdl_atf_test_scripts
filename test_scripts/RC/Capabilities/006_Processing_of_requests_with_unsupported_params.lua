@@ -16,6 +16,7 @@
 local runner = require('user_modules/script_runner')
 local commonRC = require('test_scripts/RC/commonRC')
 local commonTestCases = require("user_modules/shared_testcases/commonTestCases")
+local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
 
 --[[ Local Variables ]]
 local moduleWithUnsupportedParams = "CLIMATE"
@@ -52,6 +53,8 @@ local params1ok2nok = { -- resultCode: UNSUPPORTED_RESOURCE, success: true
     climateControlData =
     {
       acEnable = true, -- OK
+      -- acMaxEnable = true, -- NOK
+      -- autoModeEnable = true  -- NOK
     }
   },
   hmiResponse = {
@@ -235,10 +238,10 @@ local function rpcUnsupportedResourceTrue(pRPC, pParams, self)
   local pAppId = 1
   local mobSession = commonRC.getMobileSession(self, pAppId)
   local cid = mobSession:SendRPC(commonRC.getAppEventName(pRPC), {moduleData = pParams.mobileRequest})
-  EXPECT_HMICALL(commonRC.getHMIEventName(pRPC), {appID = commonRC.getHMIAppId(pAppId), moduleData = pParams.hmiRequest})
+  EXPECT_HMICALL(commonRC.getHMIEventName(pRPC), {--[[appID = commonRC.getHMIAppId(pAppId), moduleData = pParams.hmiRequest]]})
     :ValidIf(function(_, data) -- no unsupported parameters exists in request
-      for k, _ in pairs(data.payload.moduleData) do
-        if not pParams.hmiRequest[k] then
+      for k, _ in pairs(data.params.moduleData.climateControlData) do
+        if not pParams.hmiRequest.climateControlData[k] then
           return false, 'Parameter ' .. k .. ' is transfered to HMI with value: ' .. tostring(k)
         end
       end
@@ -247,10 +250,10 @@ local function rpcUnsupportedResourceTrue(pRPC, pParams, self)
   :Do(function(_, data)
     self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {moduleData = pParams.hmiResponse})
     end)
-  mobSession:ExpectResponse(cid,{ success = true, resultCode = "UNSUPPORTED_RESOURCE", info = pParams.info, moduleData = pParams.mobileResponse })
+  mobSession:ExpectResponse(cid, { success = true, resultCode = "UNSUPPORTED_RESOURCE", info = pParams.info, moduleData = pParams.mobileResponse })
   :ValidIf(function(_, data) -- no unsupported parameters exists in request
-      for k, _ in pairs(data.payload.moduleData) do
-        if not pParams.mobileResponse[k] then
+      for k, _ in pairs(data.payload.moduleData.climateControlData) do
+        if not pParams.mobileResponse.climateControlData[k] then
           return false, 'Parameter ' .. k .. ' is transfered to App with value: ' .. tostring(k)
         end
       end
