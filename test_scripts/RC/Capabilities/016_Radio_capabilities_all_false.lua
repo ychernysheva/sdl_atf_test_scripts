@@ -13,6 +13,7 @@
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
 local commonRC = require('test_scripts/RC/commonRC')
+local commonTestCases = require("user_modules/shared_testcases/commonTestCases")
 
 --[[ Local Variables ]]
 local disabledModule = "RADIO"
@@ -55,6 +56,7 @@ local function rpcUnsupportedResource(pModuleType, pRPC, self)
   local cid = mobSession:SendRPC(commonRC.getAppEventName(pRPC), commonRC.getAppRequestParams(pRPC, pModuleType))
   EXPECT_HMICALL(commonRC.getHMIEventName(pRPC), {}):Times(0)
   mobSession:ExpectResponse(cid, { success = false, resultCode = "UNSUPPORTED_RESOURCE" })
+  commonTestCases:DelayedExp(commonRC.timeout)
 end
 
 local function rpcSuccess(pModuleType, pRPC, self)

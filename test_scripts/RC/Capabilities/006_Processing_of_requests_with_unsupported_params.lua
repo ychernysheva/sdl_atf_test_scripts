@@ -15,10 +15,11 @@
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
 local commonRC = require('test_scripts/RC/commonRC')
+local commonTestCases = require("user_modules/shared_testcases/commonTestCases")
 
 --[[ Local Variables ]]
-local disabledModule = "CLIMATE"
-local enabledModule = "RADIO"
+local moduleWithUnsupportedParams = "CLIMATE"
+local fullSupportedModule = "RADIO"
 
 local capabilities =  {
   {
@@ -30,9 +31,9 @@ local capabilities =  {
     currentTemperatureAvailable = true,
     dualModeEnableAvailable = true,
     -- defrostZoneAvailable = true,
-    -- desiredTemperatureAvailable = false,
-    -- fanSpeedAvailable = false,
-    -- ventilationModeAvailable = false
+    -- desiredTemperatureAvailable = true,
+    -- fanSpeedAvailable = true,
+    -- ventilationModeAvailable = true
   }
 }
 
@@ -51,8 +52,6 @@ local params1ok2nok = { -- resultCode: UNSUPPORTED_RESOURCE, success: true
     climateControlData =
     {
       acEnable = true, -- OK
-      -- acMaxEnable = true, -- NOK
-      -- autoModeEnable = true  -- NOK
     }
   },
   hmiResponse = {
@@ -210,15 +209,15 @@ local param1ok1nok1dis = { -- resultCode: UNSUPPORTED_RESOURCE, success: true
 --[[ Local Functions ]]
 local function getHMIParams()
   local function getHMICapsParams()
-    if enabledModule == "CLIMATE" then
+    if fullSupportedModule == "CLIMATE" then
       return { commonRC.DEFAULT, capabilities, commonRC.DEFAULT }
-    elseif enabledModule == "RADIO" then
+    elseif fullSupportedModule == "RADIO" then
       return { capabilities, commonRC.DEFAULT, commonRC.DEFAULT }
     end
   end
   local hmiCaps = commonRC.buildHmiRcCapabilities(unpack(getHMICapsParams()))
   local buttonCaps = hmiCaps.RC.GetCapabilities.params.remoteControlCapability.buttonCapabilities
-  local buttonId = commonRC.getButtonIdByName(buttonCaps, commonRC.getButtonNameByModule(disabledModule))
+  local buttonId = commonRC.getButtonIdByName(buttonCaps, commonRC.getButtonNameByModule(moduleWithUnsupportedParams))
   table.remove(buttonCaps, buttonId)
   return hmiCaps
 end
@@ -229,6 +228,7 @@ local function rpcUnsupportedResourceFalse(pRPC, pParams, self)
   local cid = mobSession:SendRPC(commonRC.getAppEventName(pRPC), {moduleData = pParams.mobileRequest})
   EXPECT_HMICALL(commonRC.getHMIEventName(pRPC), {}):Times(0)
   mobSession:ExpectResponse(cid, { success = false, resultCode = "UNSUPPORTED_RESOURCE" })
+  commonTestCases:DelayedExp(commonRC.timeout)
 end
 
 local function rpcUnsupportedResourceTrue(pRPC, pParams, self)
@@ -236,10 +236,26 @@ local function rpcUnsupportedResourceTrue(pRPC, pParams, self)
   local mobSession = commonRC.getMobileSession(self, pAppId)
   local cid = mobSession:SendRPC(commonRC.getAppEventName(pRPC), {moduleData = pParams.mobileRequest})
   EXPECT_HMICALL(commonRC.getHMIEventName(pRPC), {appID = commonRC.getHMIAppId(pAppId), moduleData = pParams.hmiRequest})
+    :ValidIf(function(_, data) -- no unsupported parameters exists in request
+      for k, _ in pairs(data.payload.moduleData) do
+        if not pParams.hmiRequest[k] then
+          return false, 'Parameter ' .. k .. ' is transfered to HMI with value: ' .. tostring(k)
+        end
+      end
+      return true
+    end)
   :Do(function(_, data)
     self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {moduleData = pParams.hmiResponse})
     end)
-  mobSession:ExpectResponse(cid, { success = true, resultCode = "UNSUPPORTED_RESOURCE", info = pParams.info, moduleData = pParams.mobileResponse })
+  mobSession:ExpectResponse(cid,{ success = true, resultCode = "UNSUPPORTED_RESOURCE", info = pParams.info, moduleData = pParams.mobileResponse })
+  :ValidIf(function(_, data) -- no unsupported parameters exists in request
+      for k, _ in pairs(data.payload.moduleData) do
+        if not pParams.mobileResponse[k] then
+          return false, 'Parameter ' .. k .. ' is transfered to App with value: ' .. tostring(k)
+        end
+      end
+      return true
+    end)
 end
 
 local function rpcGenericError(pRPC, pParams,  self)
@@ -267,7 +283,7 @@ end
 --[[ Scenario ]]
 runner.Title("Preconditions")
 runner.Step("Backup HMI capabilities file", commonRC.backupHMICapabilities)
-runner.Step("Update HMI capabilities file", commonRC.updateDefaultCapabilities, { { enabledModule } })
+runner.Step("Update HMI capabilities file", commonRC.updateDefaultCapabilities, { { fullSupportedModule } })
 runner.Step("Clean environment", commonRC.preconditions)
 runner.Step("Start SDL, HMI, connect Mobile, start Session", commonRC.start, { getHMIParams() })
 runner.Step("RAI, PTU", commonRC.rai_ptu)
