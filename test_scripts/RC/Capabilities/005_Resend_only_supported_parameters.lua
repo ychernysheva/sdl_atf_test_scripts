@@ -23,26 +23,29 @@ local available_params =
     moduleType = "RADIO",
     radioControlData = {frequencyInteger = 1, frequencyFraction = 2, band = "AM"}
 }
-local absent_params = {moduleType = "RADIO", radioControlData = {frequencyInteger = 1, frequencyFraction = 2}}
+local absent_params = {moduleType = "RADIO", radioControlData = {signalStrength = 60}}
 
 --[[ Local Functions ]]
-local function setVehicleData(params, self)
-	local cid = self.mobileSession:SendRPC("SetInteriorVehicleData", {moduleData = params})
+local function rpcIsAllowed(params, self)
+    local cid = self.mobileSession:SendRPC("SetInteriorVehicleData", {moduleData = params})
 
-	if params.radioControlData.frequencyInteger then
-		EXPECT_HMICALL("RC.SetInteriorVehicleData",	{
-            appID = commonRC.getHMIAppId(1),
-			moduleData = params})
-		:Do(function(_, data)
-				self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {
-					moduleData = params})
-			end)
-		self.mobileSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
-	else
-		EXPECT_HMICALL("RC.SetInteriorVehicleData"):Times(0)
-		self.mobileSession:ExpectResponse(cid, { success = false, resultCode = "UNSUPPORTED_RESOURCE" })
-        common_functions.DelayedExp(commonRC.timeout)
-	end
+    EXPECT_HMICALL("RC.SetInteriorVehicleData",	{
+        appID = commonRC.getHMIAppId(1),
+        moduleData = params})
+    :Do(function(_, data)
+        self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {
+            moduleData = params})
+    end)
+    self.mobileSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
+end
+
+--[[ Local Functions ]]
+local function rpcIsDisallowed(params, self)
+    local cid = self.mobileSession:SendRPC("SetInteriorVehicleData", {moduleData = params})
+
+    EXPECT_HMICALL("RC.SetInteriorVehicleData"):Times(0)
+    self.mobileSession:ExpectResponse(cid, { success = false, resultCode = "UNSUPPORTED_RESOURCE" })
+    common_functions:DelayedExp(commonRC.timeout)
 end
 
 --[[ Scenario ]]
@@ -57,8 +60,8 @@ for _, module_name in pairs({"CLIMATE", "RADIO"}) do
     runner.Step("GetInteriorVehicleData for " .. module_name, commonRC.subscribeToModule, {module_name, 1})
     runner.Step("ButtonPress for " .. module_name, commonRC.rpcAllowed, {module_name, 1, "ButtonPress"})
 end
-runner.Step("SetInteriorVehicleData processed for several supported params", setVehicleData, { available_params })
-runner.Step("SetInteriorVehicleData rejected with unsupported parameter", setVehicleData, { absent_params })
+runner.Step("SetInteriorVehicleData processed for several supported params", rpcIsAllowed, { available_params })
+runner.Step("SetInteriorVehicleData rejected with unsupported parameter", rpcIsDisallowed, { absent_params })
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", commonRC.postconditions)
