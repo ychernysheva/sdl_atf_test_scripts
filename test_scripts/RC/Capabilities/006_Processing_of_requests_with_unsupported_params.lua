@@ -8,15 +8,16 @@
 -- and HMI respond on this request with CLIMATE capabilities with part of parameters are false or absent
 --
 -- SDL must:
--- Respond resultCode: UNSUPPORTED_RESOURCE, success: true on all requests for module CLIMATE that contains supported and unsupported parameters
+-- Respond resultCode: UNSUPPORTED_RESOURCE, success: true
+-- on all requests for module CLIMATE that contains supported and unsupported parameters
 -- with info parameter apply template "%capability% is not available on HMI"
--- and resultCode: UNSUPPORTED_RESOURCE, success: false on all requests for module CLIMATE that contains only unsupported parameters
+-- and resultCode: UNSUPPORTED_RESOURCE, success: false on all requests for module CLIMATE
+ -- that contains only unsupported parameters
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
 local commonRC = require('test_scripts/RC/commonRC')
 local commonTestCases = require("user_modules/shared_testcases/commonTestCases")
-local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
 
 --[[ Local Variables ]]
 local moduleWithUnsupportedParams = "CLIMATE"
@@ -38,7 +39,7 @@ local capabilities =  {
   }
 }
 
-local params1ok2nok = { -- resultCode: UNSUPPORTED_RESOURCE, success: true
+local params_true_params_false = { -- resultCode: UNSUPPORTED_RESOURCE, success: true
   mobileRequest = {
     moduleType = "CLIMATE",
     climateControlData =
@@ -78,7 +79,7 @@ local params1ok2nok = { -- resultCode: UNSUPPORTED_RESOURCE, success: true
   info = "acMaxEnableAvailable, autoModeEnableAvailable is not available on HMI"
 }
 
-local params2ok1dis = { -- resultCode: UNSUPPORTED_RESOURCE, success: true
+local params_true_params_absent = { -- resultCode: UNSUPPORTED_RESOURCE, success: true
   mobileRequest = {
     moduleType = "CLIMATE",
     climateControlData =
@@ -118,7 +119,7 @@ local params2ok1dis = { -- resultCode: UNSUPPORTED_RESOURCE, success: true
   info = "fanSpeedAvailable is not available on HMI"
 }
 
-local param2ok0nok = { -- resultCode: SUCCESS, success: true
+local params_true = { -- resultCode: SUCCESS, success: true
   mobileRequest = {
     moduleType = "CLIMATE",
     climateControlData =
@@ -154,7 +155,7 @@ local param2ok0nok = { -- resultCode: SUCCESS, success: true
   info = nil
 }
 
-local param0ok1nok1dis = { -- resultCode: UNSUPPORTED_RESOURCE, success: false
+local params_false_params_absent = { -- resultCode: UNSUPPORTED_RESOURCE, success: false
   mobileRequest = {
     moduleType = "CLIMATE",
     climateControlData =
@@ -169,7 +170,7 @@ local param0ok1nok1dis = { -- resultCode: UNSUPPORTED_RESOURCE, success: false
   info = nil
 }
 
-local param1ok1nok1dis = { -- resultCode: UNSUPPORTED_RESOURCE, success: true
+local params_true_params_false_params_absent = { -- resultCode: UNSUPPORTED_RESOURCE, success: true
   mobileRequest = {
     moduleType = "CLIMATE",
     climateControlData =
@@ -238,7 +239,8 @@ local function rpcUnsupportedResourceTrue(pRPC, pParams, self)
   local pAppId = 1
   local mobSession = commonRC.getMobileSession(self, pAppId)
   local cid = mobSession:SendRPC(commonRC.getAppEventName(pRPC), {moduleData = pParams.mobileRequest})
-  EXPECT_HMICALL(commonRC.getHMIEventName(pRPC), {--[[appID = commonRC.getHMIAppId(pAppId), moduleData = pParams.hmiRequest]]})
+  EXPECT_HMICALL(commonRC.getHMIEventName(pRPC),
+    {appID = commonRC.getHMIAppId(pAppId), moduleData = pParams.hmiRequest})
     :ValidIf(function(_, data) -- no unsupported parameters exists in request
       for k, _ in pairs(data.params.moduleData.climateControlData) do
         if not pParams.hmiRequest.climateControlData[k] then
@@ -250,7 +252,8 @@ local function rpcUnsupportedResourceTrue(pRPC, pParams, self)
   :Do(function(_, data)
     self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {moduleData = pParams.hmiResponse})
     end)
-  mobSession:ExpectResponse(cid, { success = true, resultCode = "UNSUPPORTED_RESOURCE", info = pParams.info, moduleData = pParams.mobileResponse })
+  mobSession:ExpectResponse(cid,
+    { success = true, resultCode = "UNSUPPORTED_RESOURCE", info = pParams.info, moduleData = pParams.mobileResponse })
   :ValidIf(function(_, data) -- no unsupported parameters exists in request
       for k, _ in pairs(data.payload.moduleData.climateControlData) do
         if not pParams.mobileResponse.climateControlData[k] then
@@ -265,7 +268,8 @@ local function rpcGenericError(pRPC, pParams,  self)
   local pAppId = 1
   local mobSession = commonRC.getMobileSession(self, pAppId)
   local cid = mobSession:SendRPC(commonRC.getAppEventName(pRPC), {moduleData = pParams.mobileRequest})
-  EXPECT_HMICALL(commonRC.getHMIEventName(pRPC), {appID = commonRC.getHMIAppId(pAppId), moduleData = pParams.hmiRequest})
+  EXPECT_HMICALL(commonRC.getHMIEventName(pRPC),
+    {appID = commonRC.getHMIAppId(pAppId), moduleData = pParams.hmiRequest})
   :Do(function(_, _)
     -- no response from HMI
     end)
@@ -276,7 +280,8 @@ local function rpcSuccess(pRPC, pParams, self)
   local pAppId = 1
   local mobSession = commonRC.getMobileSession(self, pAppId)
   local cid = mobSession:SendRPC(commonRC.getAppEventName(pRPC), {moduleData = pParams.mobileRequest})
-  EXPECT_HMICALL(commonRC.getHMIEventName(pRPC), {appID = commonRC.getHMIAppId(pAppId), moduleData = pParams.hmiRequest})
+  EXPECT_HMICALL(commonRC.getHMIEventName(pRPC),
+    {appID = commonRC.getHMIAppId(pAppId), moduleData = pParams.hmiRequest})
   :Do(function(_, data)
     self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {moduleData = pParams.hmiResponse})
     end)
@@ -296,41 +301,41 @@ runner.Title("Test UNSUPPORTED_RESOURCE")
 runner.Step(
   "SetInteriorVehicleData with 1 supported and 2 unsupported params",
   rpcUnsupportedResourceTrue,
-  { "SetInteriorVehicleData", params1ok2nok })
+  { "SetInteriorVehicleData", params_true_params_false })
 runner.Step(
   "SetInteriorVehicleData with 2 supported and 1 absent params",
   rpcUnsupportedResourceTrue,
-  { "SetInteriorVehicleData", params2ok1dis })
+  { "SetInteriorVehicleData", params_true_params_absent })
 runner.Step("SetInteriorVehicleData with 2 supported params",
   rpcSuccess,
-  { "SetInteriorVehicleData", param2ok0nok })
+  { "SetInteriorVehicleData", params_true })
 runner.Step("SetInteriorVehicleData with no supported and 1 absent and 1 unsupported params",
   rpcUnsupportedResourceFalse,
-  { "SetInteriorVehicleData", param0ok1nok1dis })
+  { "SetInteriorVehicleData", params_false_params_absent })
 runner.Step("SetInteriorVehicleData with 1 supported and 1 absent and 1 unsupported params",
   rpcUnsupportedResourceTrue,
-  { "SetInteriorVehicleData", param1ok1nok1dis })
+  { "SetInteriorVehicleData", params_true_params_false_params_absent })
 
 runner.Title("Test no response from HMI")
 runner.Step(
   "SetInteriorVehicleData with 1 supported and 2 unsupported params no response from HMI",
   rpcGenericError,
-  { "SetInteriorVehicleData", params1ok2nok })
+  { "SetInteriorVehicleData", params_true_params_false })
 runner.Step(
   "SetInteriorVehicleData with 2 supported and 1 absent params no response from HMI",
   rpcGenericError,
-  { "SetInteriorVehicleData", params2ok1dis })
+  { "SetInteriorVehicleData", params_true_params_absent })
 runner.Step(
   "SetInteriorVehicleData with 2 supported params no response from HMI",
   rpcGenericError,
-  { "SetInteriorVehicleData", param2ok0nok })
+  { "SetInteriorVehicleData", params_true })
 runner.Step(
   "SetInteriorVehicleData with no supported and 1 absent and 1 unsupported params no response from HMI",
   rpcUnsupportedResourceFalse,
-  { "SetInteriorVehicleData", param0ok1nok1dis })
+  { "SetInteriorVehicleData", params_false_params_absent })
 runner.Step("SetInteriorVehicleData with 1 supported and 1 absent and 1 unsupported params no response from HMI",
   rpcGenericError,
-  { "SetInteriorVehicleData", param1ok1nok1dis })
+  { "SetInteriorVehicleData", params_true_params_false_params_absent })
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", commonRC.postconditions)
