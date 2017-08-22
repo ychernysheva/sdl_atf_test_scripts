@@ -371,7 +371,7 @@ end
 --! @example: self:initHMI_onReady(local_hmi_table) ]]
 function module:initHMI_onReady(hmi_table)
   local exp_waiter = commonFunctions:createMultipleExpectationsWaiter(module, "HMI on ready")
-
+  local delayValue = 0
   local function ExpectRequest(name, hmi_table_element)
     local event = events.Event()
     event.level = 2
@@ -391,9 +391,13 @@ function module:initHMI_onReady(hmi_table)
         self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", hmi_table_element.params)
       end
     end)
-    if hmi_table_element.occurrence == 0 then
-      commonTestCases:DelayedExp(3000)
-    else
+
+    if hmi_table_element.wait and delayValue < hmi_table_element.wait then
+      delayValue = hmi_table_element.wait
+      commonTestCases:DelayedExp(delayValue)
+    end
+
+    if hmi_table_element.occurrence ~= 0 then
       if hmi_table_element.mandatory then
       exp_waiter:AddExpectation(exp)
       end
