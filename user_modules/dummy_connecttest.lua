@@ -381,7 +381,7 @@ function module:initHMI_onReady(hmi_table)
     local exp = EXPECT_HMIEVENT(event, name)
     :Times(hmi_table_element.occurrence or hmi_table_element.mandatory and 1 or AnyNumber())
     :Do(function(_, data)
-      if hmi_table_element.occurrence ~= 0 then
+      if hmi_table_element.occurrence ~= 0 and hmi_table_element.params then
         xmlReporter.AddMessage("hmi_connection","SendResponse",
         {
           ["methodName"] = tostring(name),
