@@ -24,6 +24,7 @@ local hmiAppIds = {}
 local commonRC = {}
 
 commonRC.timeout = 2000
+commonRC.minTimeout = 500
 commonRC.DEFAULT = "Default"
 commonRC.buttons = { climate = "FAN_UP", radio = "VOLUME_UP" }
 
@@ -44,8 +45,7 @@ function commonRC.getRCAppConfig()
     priority = "NONE",
     default_hmi = "NONE",
     moduleType = { "RADIO", "CLIMATE" },
-    groups = { "Base-4" },
-    groups_primaryRC = { "Base-4", "RemoteControl" },
+    groups = { "Base-4", "RemoteControl" },
     AppHMIType = { "REMOTE_CONTROL" }
   }
 end
@@ -158,6 +158,32 @@ function commonRC.rai_ptu(ptu_update_func, self)
     end)
 end
 
+function commonRC.rai_ptu_n(ptu_update_func, id, self)
+  self["mobileSession" .. id] = mobile_session.MobileSession(self, self.mobileConnection)
+  self["mobileSession" .. id]:StartService(7)
+  :Do(function()
+      local corId = self["mobileSession" .. id]:SendRPC("RegisterAppInterface", config["application" .. id].registerAppInterfaceParams)
+      EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config["application" .. id].registerAppInterfaceParams.appName } })
+      :Do(function(_, d1)
+          hmiAppIds[config["application" .. id].registerAppInterfaceParams.appID] = d1.params.application.appID
+          EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", { status = "UPDATE_NEEDED" }, { status = "UPDATING" }, { status = "UP_TO_DATE" })
+          :Times(3)
+          EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
+          :Do(function(_, d2)
+              self.hmiConnection:SendResponse(d2.id, d2.method, "SUCCESS", { })
+              ptu_table = jsonFileToTable(d2.params.file)
+              ptu(self, ptu_update_func)
+            end)
+        end)
+      self["mobileSession" .. id]:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
+      :Do(function()
+          self["mobileSession" .. id]:ExpectNotification("OnHMIStatus", { hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN" })
+          :Times(AtLeast(1)) -- issue with SDL --> notification is sent twice
+          self["mobileSession" .. id]:ExpectNotification("OnPermissionsChange")
+        end)
+    end)
+end
+
 function commonRC.rai_n(id, self)
   self["mobileSession" .. id] = mobile_session.MobileSession(self, self.mobileConnection)
   self["mobileSession" .. id]:StartService(7)
@@ -211,6 +237,7 @@ function commonRC.activate_app(pAppId, self)
       end
     end)
   mobSession:ExpectNotification("OnHMIStatus", { hmiLevel = "FULL", audioStreamingState = "AUDIBLE", systemContext = "MAIN" })
+  commonTestCases:DelayedExp(commonRC.minTimeout)
 end
 
 function commonRC.postconditions()
@@ -587,7 +614,7 @@ function commonRC.defineRAMode(pAllowed, pAccessMode, self)
   self, pAccessMode = commonRC.getSelfAndParams(pAccessMode, self)
   local rpc = "OnRemoteControlSettings"
   self.hmiConnection:SendNotification(commonRC.getHMIEventName(rpc), commonRC.getHMIResponseParams(rpc, pAllowed, pAccessMode))
-  commonTestCases:DelayedExp(500) -- workaround due to issue with SDL -> redundant OnHMIStatus notification is sent
+  commonTestCases:DelayedExp(commonRC.minTimeout) -- workaround due to issue with SDL -> redundant OnHMIStatus notification is sent
 end
 
 function commonRC.rpcDenied(pModuleType, pAppId, pRPC, pResultCode, self)
