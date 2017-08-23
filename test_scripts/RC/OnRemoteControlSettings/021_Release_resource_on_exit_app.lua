@@ -52,6 +52,7 @@ for _, reason in pairs(exitAppReasons) do
 	runner.Step("Exit App1 with reason " .. reason, exitApp, { reason, 1})
 	-- App1: NONE, App2: BACKGROUND
 	runner.Step("Module CLIMATE App2 SetInteriorVehicleData allowed", commonRC.rpcAllowed, { "CLIMATE", 2, "SetInteriorVehicleData"})
+	runner.Step("Exit App2 with reason " .. reason, exitApp, { reason, 2})
 end
 
 runner.Title("Postconditions")
