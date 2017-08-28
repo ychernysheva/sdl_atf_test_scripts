@@ -23,6 +23,7 @@ local exitAppReasons = {"USER_EXIT", "DRIVER_DISTRACTION_VIOLATION"}
 --[[ Local Functions ]]
 local function ptu_update_func(tbl)
   tbl.policy_table.app_policies[config.application2.registerAppInterfaceParams.appID] = commonRC.getRCAppConfig()
+  table.insert(tbl.policy_table.functional_groupings.RemoteControl.rpcs.OnInteriorVehicleData.hmi_levels, "NONE")
 end
 
 local function exitApp(pReason, pAppId, self)
@@ -44,6 +45,7 @@ runner.Step("RAI2", commonRC.rai_n, { 2 })
 runner.Title("Test")
 runner.Step("Enable RC from HMI with AUTO_DENY access mode", commonRC.defineRAMode, { true, "AUTO_DENY"})
 for _, reason in pairs(exitAppReasons) do
+	runner.Title("Exit reason " .. reason)
 	runner.Step("Activate App2", commonRC.activate_app, { 2 })
 	runner.Step("Activate App1", commonRC.activate_app)
 	-- App1: FULL, App2: BACKGROUND

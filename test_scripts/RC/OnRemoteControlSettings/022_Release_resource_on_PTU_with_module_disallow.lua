@@ -28,6 +28,7 @@ local function ptu_update_func(tbl)
     groups = { "Base-4", "RemoteControl" },
     AppHMIType = { "REMOTE_CONTROL" }
   }
+  table.insert(tbl.policy_table.functional_groupings.RemoteControl.rpcs.OnInteriorVehicleData.hmi_levels, "NONE")
 end
 
 --[[ Scenario ]]
