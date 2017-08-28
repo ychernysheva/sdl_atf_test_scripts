@@ -47,11 +47,14 @@ runner.Step("Activate App1", commonRC.activate_app)
 runner.Step("Activate App2", commonRC.activate_app, { 2 })
 	-- App1: BACKGROUND, App2: FULL
 runner.Step("Module CLIMATE App1 ButtonPress allowed", commonRC.rpcAllowed, { "CLIMATE", 1, "ButtonPress" })
+runner.Step("Subscribe App1 to CLIMATE", commonRC.subscribeToModule, { "CLIMATE", 1 })
+runner.Step("Send notification OnInteriorVehicleData CLIMATE. App1 is subscribed", commonRC.isSubscribed, { "CLIMATE", 1 })
 runner.Step("Module CLIMATE App2 SetInteriorVehicleData denied", commonRC.rpcDenied, { "CLIMATE", 2, "SetInteriorVehicleData", "IN_USE" })
 runner.Step("Disallow SDL functionality", setSDLFunctionality, { { 1, 2 }, false })
 runner.Step("Allow SDL functionality", setSDLFunctionality, { {}, true })
 runner.Step("Activate App2", commonRC.activate_app, { 2 })
 -- App1: NONE, App2: FULL
+runner.Step("Send notification OnInteriorVehicleData CLIMATE. App1 is unsubscribed", commonRC.isUnsubscribed, { "CLIMATE", 1 })
 runner.Step("Module CLIMATE App2 SetInteriorVehicleData allowed", commonRC.rpcAllowed, { "CLIMATE", 2, "SetInteriorVehicleData"})
 
 runner.Title("Postconditions")

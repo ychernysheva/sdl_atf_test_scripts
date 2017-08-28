@@ -48,9 +48,12 @@ for _, reason in pairs(exitAppReasons) do
 	runner.Step("Activate App1", commonRC.activate_app)
 	-- App1: FULL, App2: BACKGROUND
 	runner.Step("Module CLIMATE App1 ButtonPress allowed", commonRC.rpcAllowed, { "CLIMATE", 1, "ButtonPress" })
+	runner.Step("Subscribe App1 to CLIMATE", commonRC.subscribeToModule, { "CLIMATE", 1 })
+	runner.Step("Send notification OnInteriorVehicleData CLIMATE. App1 is subscribed", commonRC.isSubscribed, { "CLIMATE", 1 })
 	runner.Step("Module CLIMATE App2 SetInteriorVehicleData denied", commonRC.rpcDenied, { "CLIMATE", 2, "SetInteriorVehicleData", "REJECTED" })
 	runner.Step("Exit App1 with reason " .. reason, exitApp, { reason, 1})
 	-- App1: NONE, App2: BACKGROUND
+	runner.Step("Send notification OnInteriorVehicleData CLIMATE. App1 is unsubscribed", commonRC.isUnsubscribed, { "CLIMATE", 1 })
 	runner.Step("Module CLIMATE App2 SetInteriorVehicleData allowed", commonRC.rpcAllowed, { "CLIMATE", 2, "SetInteriorVehicleData"})
 	runner.Step("Exit App2 with reason " .. reason, exitApp, { reason, 2})
 end

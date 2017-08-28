@@ -35,10 +35,13 @@ runner.Step("Enable RC from HMI with AUTO_DENY access mode", commonRC.defineRAMo
 runner.Step("Activate App1", commonRC.activate_app)
 -- App1: FULL
 runner.Step("Module RADIO App1 ButtonPress allowed", commonRC.rpcAllowed, { "RADIO", 1, "ButtonPress" })
+runner.Step("Subscribe App1 to RADIO", commonRC.subscribeToModule, { "RADIO", 1 })
+runner.Step("Send notification OnInteriorVehicleData RADIO. App1 is subscribed", commonRC.isSubscribed, { "RADIO", 1 })
 runner.Step("RAI2, PTU without RADIO for App1", commonRC.rai_ptu_n, { ptu_update_func, 2 })
 runner.Step("Module RADIO App1 SetInteriorVehicleData disallowed", commonRC.rpcDenied, { "RADIO", 2, "SetInteriorVehicleData", "DISALLOWED"})
 runner.Step("Activate App2", commonRC.activate_app, { 2 })
 -- App1: BACKGROUND, App2: FULL
+runner.Step("Send notification OnInteriorVehicleData RADIO. App1 is unsubscribed", commonRC.isUnsubscribed, { "RADIO", 1 })
 runner.Step("Module RADIO App2 SetInteriorVehicleData allowed", commonRC.rpcAllowed, { "RADIO", 2, "SetInteriorVehicleData"})
 
 runner.Title("Postconditions")
