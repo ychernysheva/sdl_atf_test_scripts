@@ -378,6 +378,7 @@ function module:initHMI_onReady(hmi_table)
     event.matches = function(self, data)
       return data.method == name
     end
+
     local exp = EXPECT_HMIEVENT(event, name)
     :Times(hmi_table_element.occurrence or hmi_table_element.mandatory and 1 or AnyNumber())
     :Do(function(_, data)
@@ -392,18 +393,23 @@ function module:initHMI_onReady(hmi_table)
       end
     end)
 
-    if hmi_table_element.wait and delayValue < hmi_table_element.wait then
-      delayValue = hmi_table_element.wait
-      commonTestCases:DelayedExp(delayValue)
-    end
-
     if hmi_table_element.occurrence ~= 0 then
+      if hmi_table_element.wait then
+        exp = exp:Timeout(hmi_table_element.wait)
+      end
+
       if hmi_table_element.mandatory then
       exp_waiter:AddExpectation(exp)
       end
 
       if hmi_table_element.pinned then
         exp:Pin()
+      end
+    else
+      local waitTime = hmi_table_element.wait or 0
+      if delayValue < waitTime then
+        delayValue = waitTime
+        commonTestCases:DelayedExp(delayValue)
       end
     end
     return exp
