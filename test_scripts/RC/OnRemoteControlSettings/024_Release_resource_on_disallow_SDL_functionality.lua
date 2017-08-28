@@ -51,6 +51,10 @@ runner.Step("Subscribe App1 to CLIMATE", commonRC.subscribeToModule, { "CLIMATE"
 runner.Step("Send notification OnInteriorVehicleData CLIMATE. App1 is subscribed", commonRC.isSubscribed, { "CLIMATE", 1 })
 runner.Step("Module CLIMATE App2 SetInteriorVehicleData denied", commonRC.rpcDenied, { "CLIMATE", 2, "SetInteriorVehicleData", "IN_USE" })
 runner.Step("Disallow SDL functionality", setSDLFunctionality, { { 1, 2 }, false })
+runner.Step("Module RADIO App1 SetInteriorVehicleData disallowed", commonRC.rpcDenied, { "RADIO", 1, "SetInteriorVehicleData", "DISALLOWED"})
+runner.Step("Module CLIMATE App1 SetInteriorVehicleData disallowed", commonRC.rpcDenied, { "CLIMATE", 1, "SetInteriorVehicleData", "DISALLOWED"})
+runner.Step("Module RADIO App2 SetInteriorVehicleData disallowed", commonRC.rpcDenied, { "RADIO", 2, "SetInteriorVehicleData", "DISALLOWED"})
+runner.Step("Module CLIMATE App2 SetInteriorVehicleData disallowed", commonRC.rpcDenied, { "CLIMATE", 2, "SetInteriorVehicleData", "DISALLOWED"})
 runner.Step("Allow SDL functionality", setSDLFunctionality, { {}, true })
 runner.Step("Activate App2", commonRC.activate_app, { 2 })
 -- App1: NONE, App2: FULL

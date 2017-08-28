@@ -24,7 +24,7 @@ local function ptu_update_func(tbl)
     steal_focus = false,
     priority = "NONE",
     default_hmi = "NONE",
-    moduleType = {"CLIMATE" },
+    moduleType = { "CLIMATE" },
     groups = { "Base-4", "RemoteControl" },
     AppHMIType = { "REMOTE_CONTROL" }
   }
@@ -44,7 +44,8 @@ runner.Step("Module RADIO App1 ButtonPress allowed", commonRC.rpcAllowed, { "RAD
 runner.Step("Subscribe App1 to RADIO", commonRC.subscribeToModule, { "RADIO", 1 })
 runner.Step("Send notification OnInteriorVehicleData RADIO. App1 is subscribed", commonRC.isSubscribed, { "RADIO", 1 })
 runner.Step("RAI2, PTU without RADIO for App1", commonRC.rai_ptu_n, { ptu_update_func, 2 })
-runner.Step("Module RADIO App1 SetInteriorVehicleData disallowed", commonRC.rpcDenied, { "RADIO", 2, "SetInteriorVehicleData", "DISALLOWED"})
+runner.Step("Module RADIO App1 SetInteriorVehicleData disallowed", commonRC.rpcDenied, { "RADIO", 1, "SetInteriorVehicleData", "DISALLOWED"})
+runner.Step("Module CLIMATE App1 SetInteriorVehicleData allowed", commonRC.rpcAllowed, { "CLIMATE", 1, "SetInteriorVehicleData"})
 runner.Step("Activate App2", commonRC.activate_app, { 2 })
 -- App1: BACKGROUND, App2: FULL
 runner.Step("Send notification OnInteriorVehicleData RADIO. App1 is unsubscribed", commonRC.isUnsubscribed, { "RADIO", 1 })
