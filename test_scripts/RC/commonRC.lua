@@ -74,6 +74,14 @@ local function checkIfPTSIsSentAsBinary(bin_data)
 end
 
 local function ptu(self, ptu_update_func)
+  local function getAppsCount()
+    local count = 0
+    for _, _ in pairs(hmiAppIds) do
+      count = count + 1
+    end
+    return count
+  end
+
   local policy_file_name = "PolicyTableUpdate"
   local policy_file_path = commonFunctions:read_parameter_from_smart_device_link_ini("SystemFilesPath")
   local pts_file_name = commonFunctions:read_parameter_from_smart_device_link_ini("PathToSnapshot")
@@ -88,36 +96,28 @@ local function ptu(self, ptu_update_func)
         ptu_update_func(ptu_table)
       end
       tableToJsonFile(ptu_table, ptu_file_name)
-      local function getAppIds()
-        local out = { }
-        local i = 1
-        for _ in pairs(hmiAppIds) do
-          table.insert(out, i)
-          i = i + 1
-        end
-        return out
-      end
-      local appIdOSR = nil
-      for _, appId in pairs(getAppIds()) do
-        local mobSession = commonRC.getMobileSession(self, appId)
-        mobSession:ExpectNotification("OnSystemRequest")
+
+      local event = events.Event()
+      event.matches = function(self, e) return self == e end
+      EXPECT_EVENT(event, "PTU event")
+      :Timeout(11000)
+
+      for id = 1, getAppsCount() do
+        local mobileSession = commonRC.getMobileSession(self, id)
+        mobileSession:ExpectNotification("OnSystemRequest", { requestType = "PROPRIETARY" })
         :Do(function(_, d2)
-            if d2.payload.requestType == "PROPRIETARY" then
-              appIdOSR = appId
-              local mobSessionOSR = commonRC.getMobileSession(self, appIdOSR)
-              checkIfPTSIsSentAsBinary(d2.binaryData)
-                  local corIdSystemRequest = mobSessionOSR:SendRPC("SystemRequest",
-                    { requestType = "PROPRIETARY", fileName = policy_file_name }, ptu_file_name)
-                  EXPECT_HMICALL("BasicCommunication.SystemRequest")
-                  :Do(function(_, d3)
-                      self.hmiConnection:SendResponse(d3.id, "BasicCommunication.SystemRequest", "SUCCESS", { })
-                      self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate",
-                        { policyfile = policy_file_path .. "/" .. policy_file_name })
-                    end)
-                  mobSessionOSR:ExpectResponse(corIdSystemRequest, { success = true, resultCode = "SUCCESS" })
-            end
+            print("App ".. id .. " was used for PTU")
+            RAISE_EVENT(event, event, "PTU event")
+            checkIfPTSIsSentAsBinary(d2.binaryData)
+            local corIdSystemRequest = mobileSession:SendRPC("SystemRequest", { requestType = "PROPRIETARY", fileName = policy_file_name }, ptu_file_name)
+            EXPECT_HMICALL("BasicCommunication.SystemRequest")
+            :Do(function(_, d3)
+                self.hmiConnection:SendResponse(d3.id, "BasicCommunication.SystemRequest", "SUCCESS", { })
+                self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate", { policyfile = policy_file_path .. "/" .. policy_file_name })
+              end)
+            mobileSession:ExpectResponse(corIdSystemRequest, { success = true, resultCode = "SUCCESS" })
           end)
-        :Times(Between(0,1))
+        :Times(AtMost(1))
       end
     end)
   os.remove(ptu_file_name)
