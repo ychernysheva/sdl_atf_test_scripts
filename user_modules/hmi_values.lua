@@ -1,3 +1,4 @@
+local SDL = require('SDL')
 local module = { }
 
 --[[ Functions for Values' Creation ]]
@@ -58,8 +59,7 @@ function module.getDefaultHMITable()
     TTS = { },
     VehicleInfo = { },
     Buttons = { },
-    Navigation = { },
-    RC = { }
+    Navigation = { }
   }
   -- "params" subtables contain values to be passed for creating expectations in
   -- initHMI_onReady() function of "connecttest"/"dummy_connecttest" file.
@@ -308,63 +308,73 @@ function module.getDefaultHMITable()
     pinned = false
   }
 
-  hmi_table.RC.GetCapabilities = {
-    params = {
-      remoteControlCapability = {
-        climateControlCapabilities = {
-            {
-              moduleName = "Climate",
-              currentTemperatureAvailable = true,
-              fanSpeedAvailable = true,
-              desiredTemperatureAvailable = true,
-              acEnableAvailable = true,
-              acMaxEnableAvailable = true,
-              circulateAirEnableAvailable = true,
-              autoModeEnableAvailable = true,
-              dualModeEnableAvailable = true,
-              defrostZoneAvailable = true,
-              defrostZone = {
-                "FRONT", "REAR", "ALL", "NONE"
-              },
-              ventilationModeAvailable = true,
-              ventilationMode = {
-                "UPPER", "LOWER", "BOTH", "NONE"
+  if SDL.buildOptions.remoteControl == "ON" then
+    hmi_table.RC = { }
+    hmi_table.RC.GetCapabilities = {
+      params = {
+        remoteControlCapability = {
+          climateControlCapabilities = {
+              {
+                moduleName = "Climate",
+                currentTemperatureAvailable = true,
+                fanSpeedAvailable = true,
+                desiredTemperatureAvailable = true,
+                acEnableAvailable = true,
+                acMaxEnableAvailable = true,
+                circulateAirEnableAvailable = true,
+                autoModeEnableAvailable = true,
+                dualModeEnableAvailable = true,
+                defrostZoneAvailable = true,
+                defrostZone = {
+                  "FRONT", "REAR", "ALL", "NONE"
+                },
+                ventilationModeAvailable = true,
+                ventilationMode = {
+                  "UPPER", "LOWER", "BOTH", "NONE"
+                }
               }
+            },
+          radioControlCapabilities = {
+              {
+                moduleName = "Radio",
+                radioEnableAvailable = true,
+                radioBandAvailable = true,
+                radioFrequencyAvailable = true,
+                hdChannelAvailable = true,
+                rdsDataAvailable = true,
+                availableHDsAvailable = true,
+                stateAvailable = true,
+                signalStrengthAvailable = true,
+                signalChangeThresholdAvailable = true
+              }
+            },
+          buttonCapabilities = (function()
+            local buttons = {
+              -- climate
+              "AC_MAX", "AC", "RECIRCULATE", "FAN_UP", "FAN_DOWN", "TEMP_UP", "TEMP_DOWN", "DEFROST_MAX", "DEFROST",
+              "DEFROST_REAR", "UPPER_VENT", "LOWER_VENT",
+              -- radio
+              "VOLUME_UP", "VOLUME_DOWN", "EJECT", "SOURCE", "SHUFFLE", "REPEAT"
             }
-          },
-        radioControlCapabilities = {
-            {
-              moduleName = "Radio",
-              radioEnableAvailable = true,
-              radioBandAvailable = true,
-              radioFrequencyAvailable = true,
-              hdChannelAvailable = true,
-              rdsDataAvailable = true,
-              availableHDsAvailable = true,
-              stateAvailable = true,
-              signalStrengthAvailable = true,
-              signalChangeThresholdAvailable = true
-            }
-          },
-        buttonCapabilities = (function()
-          local buttons = {
-            -- climate
-            "AC_MAX", "AC", "RECIRCULATE", "FAN_UP", "FAN_DOWN", "TEMP_UP", "TEMP_DOWN", "DEFROST_MAX", "DEFROST",
-            "DEFROST_REAR", "UPPER_VENT", "LOWER_VENT",
-            -- radio
-            "VOLUME_UP", "VOLUME_DOWN", "EJECT", "SOURCE", "SHUFFLE", "REPEAT"
-          }
-          local out = { }
-          for _, button in pairs(buttons) do
-            table.insert(out, module.createButtonCapability(button, true, true, true))
-          end
-          return out
-        end)()
-      }
-    },
-    mandatory = true,
-    pinned = false
-  }
+            local out = { }
+            for _, button in pairs(buttons) do
+              table.insert(out, module.createButtonCapability(button, true, true, true))
+            end
+            return out
+          end)()
+        }
+      },
+      mandatory = true,
+      pinned = false
+    }
+    hmi_table.RC.IsReady = {
+      params = {
+        available = true
+      },
+      mandatory = true,
+      pinned = false
+    }
+  end
 
   hmi_table.UI.IsReady = {
     params = {
@@ -399,14 +409,6 @@ function module.getDefaultHMITable()
   }
 
   hmi_table.Navigation.IsReady = {
-    params = {
-      available = true
-    },
-    mandatory = true,
-    pinned = false
-  }
-
-  hmi_table.RC.IsReady = {
     params = {
       available = true
     },
