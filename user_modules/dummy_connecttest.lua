@@ -31,6 +31,7 @@ module.mobileConnection = mobile.MobileConnection(fileConnection)
 event_dispatcher:AddConnection(module.hmiConnection)
 event_dispatcher:AddConnection(module.mobileConnection)
 module.notification_counter = 1
+module.sdlBuildOptions = SDL.buildOptions
 
 function module.hmiConnection:EXPECT_HMIRESPONSE(id, args)
   local event = events.Event()
