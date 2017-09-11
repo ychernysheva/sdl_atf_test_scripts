@@ -371,22 +371,18 @@ end
 --! @example: self:initHMI_onReady(local_hmi_table) ]]
 function module:initHMI_onReady(hmi_table)
   local exp_waiter = commonFunctions:createMultipleExpectationsWaiter(module, "HMI on ready")
-
+  local delayValue = 0
   local function ExpectRequest(name, hmi_table_element)
-    if hmi_table_element.occurrence == 0 then
-      EXPECT_HMICALL(name, hmi_table_element.params)
-      :Times(0)
-      commonTestCases:DelayedExp(3000)
-      return
-    end
     local event = events.Event()
     event.level = 2
     event.matches = function(self, data)
       return data.method == name
     end
+
     local exp = EXPECT_HMIEVENT(event, name)
-    :Times(hmi_table_element.mandatory and 1 or AnyNumber())
+    :Times(hmi_table_element.occurrence or (hmi_table_element.mandatory and 1) or AnyNumber())
     :Do(function(_, data)
+      if hmi_table_element.occurrence ~= 0 and hmi_table_element.params then
         xmlReporter.AddMessage("hmi_connection","SendResponse",
         {
           ["methodName"] = tostring(name),
@@ -394,14 +390,29 @@ function module:initHMI_onReady(hmi_table)
           ["params"] = hmi_table_element.params
         })
         self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", hmi_table_element.params)
-      end)
-    if hmi_table_element.mandatory then
+      end
+    end)
+
+    if hmi_table_element.occurrence ~= 0 then
+      if hmi_table_element.wait then
+        exp = exp:Timeout(hmi_table_element.wait)
+      end
+
+      if hmi_table_element.mandatory then
       exp_waiter:AddExpectation(exp)
+      end
+
+      if hmi_table_element.pinned then
+        exp:Pin()
+      end
+    else
+      local waitTime = hmi_table_element.wait or 0
+      if delayValue < waitTime then
+        delayValue = waitTime
+        commonTestCases:DelayedExp(delayValue)
+      end
     end
-    if hmi_table_element.pinned then
-      exp:Pin()
-    end
-   return exp
+    return exp
   end
 
   local hmi_table_internal
