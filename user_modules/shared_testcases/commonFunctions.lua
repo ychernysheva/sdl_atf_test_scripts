@@ -130,11 +130,6 @@ function commonFunctions:createMultipleExpectationsWaiter(test, name)
   return exp_waiter
 end
 
-function commonFunctions:userPrint( color, message, delimeter)
-  delimeter = delimeter or "\n"
-  io.write("\27[" .. tostring(color) .. "m" .. tostring(message) .. "\27[0m", delimeter)
-end
-
 --1. Functions for String
 ---------------------------------------------------------------------------------------------
 function commonFunctions:createString(length)
@@ -170,6 +165,18 @@ function commonFunctions:createArrayInteger(size, value)
   end
   return temp
 
+end
+
+function commonFunctions:buildColoredString(color, message)
+  if config.color then
+    return "\27[" .. tostring(color) .. "m" .. tostring(message) .. "\27[0m"
+  end
+  return message
+end
+
+function commonFunctions:userPrint( color, message, delimeter)
+  delimeter = delimeter or "\n"
+  io.write(commonFunctions:buildColoredString(color, message), delimeter)
 end
 ---------------------------------------------------------------------------------------------
 
