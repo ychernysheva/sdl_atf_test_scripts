@@ -12,6 +12,7 @@ local json = require("modules/json")
 local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
 local commonSteps = require("user_modules/shared_testcases/commonSteps")
 local commonTestCases = require("user_modules/shared_testcases/commonTestCases")
+local SDL = require('SDL')
 
 --[[ Local Variables ]]
 local ptu_table = {}
@@ -258,6 +259,30 @@ function commonLastMileNavigation.raiN(pAppId, self)
     end)
 end
 
+function commonLastMileNavigation.registerAppWithTheSameHashId(pAppId, self)
+  self, pAppId = commonLastMileNavigation.getSelfAndParams(pAppId, self)
+  if not pAppId then pAppId = 1 end
+  self["mobileSession" .. pAppId] = mobile_session.MobileSession(self, self.mobileConnection)
+  self["mobileSession" .. pAppId]:StartService(7)
+  :Do(function()
+      config["application" .. pAppId].registerAppInterfaceParams.hashID = self.currentHashID
+      local corId = self["mobileSession" .. pAppId]:SendRPC("RegisterAppInterface",
+        config["application" .. pAppId].registerAppInterfaceParams)
+      EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered",
+        { application = { appName = config["application" .. pAppId].registerAppInterfaceParams.appName } })
+      :Do(function(_, d1)
+          hmiAppIds[config["application" .. pAppId].registerAppInterfaceParams.appID] = d1.params.application.appID
+        end)
+      self["mobileSession" .. pAppId]:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
+      :Do(function()
+          self["mobileSession" .. pAppId]:ExpectNotification("OnHMIStatus",
+            { hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN" })
+          :Times(1)
+          self["mobileSession" .. pAppId]:ExpectNotification("OnPermissionsChange")
+        end)
+    end)
+end
+
 local function allowSDL(self)
   self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality",
     { allowed = true, source = "GUI", device = { id = config.deviceMAC, name = "127.0.0.1" } })
@@ -303,6 +328,9 @@ function commonLastMileNavigation.subscribeOnWayPointChange(pAppId, self)
   end
   mobSession:ExpectResponse(cid, { success = true , resultCode = "SUCCESS" })
   mobSession:ExpectNotification("OnHashChange")
+  :Do(function(_, data)
+      self.currentHashID = data.payload.hashID
+    end)
 end
 
 function commonLastMileNavigation.unsubscribeOnWayPointChange(pAppId, self)
@@ -316,6 +344,24 @@ function commonLastMileNavigation.unsubscribeOnWayPointChange(pAppId, self)
   end
   mobSession:ExpectResponse(cid, { success = true , resultCode = "SUCCESS" })
   mobSession:ExpectNotification("OnHashChange")
+  :Do(function(_, data)
+      self.currentHashID = data.payload.hashID
+    end)
+end
+
+function commonLastMileNavigation.IGNITION_OFF(self)
+  self.hmiConnection:SendNotification("BasicCommunication.OnExitAllApplications",
+    { reason = "SUSPEND" })
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnSDLPersistenceComplete")
+  :Do(function()
+      self.hmiConnection:SendNotification("BasicCommunication.OnExitAllApplications",
+        { reason = "IGNITION_OFF" })
+      self.mobileSession1:ExpectNotification("OnAppInterfaceUnregistered",
+        { reason = "IGNITION_OFF" })
+      SDL:DeleteFile()
+      EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered", { unexpectedDisconnect = false })
+      EXPECT_HMINOTIFICATION("BasicCommunication.OnSDLClose")
+    end)
 end
 
 return commonLastMileNavigation
