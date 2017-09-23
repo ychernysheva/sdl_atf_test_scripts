@@ -167,6 +167,16 @@ function commonFunctions:createArrayInteger(size, value)
 
 end
 
+function commonFunctions:createArrayEnum(size, value)
+
+  local temp = {}
+  for i = 1, size do
+    table.insert(temp, value)
+  end
+  return temp
+
+end
+
 function commonFunctions:buildColoredString(color, message)
   if config.color then
     return "\27[" .. tostring(color) .. "m" .. tostring(message) .. "\27[0m"
