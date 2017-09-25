@@ -1786,7 +1786,6 @@ end
 --End Test case PositiveRequestCheck
 
 --end	
-]===]--
         --Begin Test case Show_MetadataTags_withNoFieldsProvided 
 	--Description: metadataTag parameter is provided, but no corresponding "mainField" is provided -> the request will receive a WARNINGS result code
 
