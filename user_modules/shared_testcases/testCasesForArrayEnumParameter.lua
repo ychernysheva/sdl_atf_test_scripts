@@ -48,7 +48,7 @@ function testCasesForArrayEnumParameter:verify_Array_Enum_Parameter_Only(Request
 		
 		commonFunctions:TestCase(self, Request, Parameter, "IsMissed", nil, resultCode)		
 
-        local defaultEnumValue = ElementExistentValues[i]
+		local defaultEnumValue = ElementExistentValues[i]
 		
 		--2. IsLowerBound
 		local verification = "IsLowerBound"
@@ -100,7 +100,7 @@ function testCasesForArrayEnumParameter:verify_Array_Enum_Parameter(Request, Par
 		
 		
 		--Verify an element in array		
-        local TestingRequest = commonFunctions:cloneTable(Request)
+		local TestingRequest = commonFunctions:cloneTable(Request)
 		commonFunctions:setValueForParameter(TestingRequest, Parameter, {})	
 
 		local parameter_arrayElement = commonFunctions:BuildChildParameter(Parameter, 1)--ElementExistentValues[1])

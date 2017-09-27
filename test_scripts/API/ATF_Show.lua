@@ -90,17 +90,17 @@ function Test:createUIParameters(Request)
 				fieldName = "mainField" .. i,
 				fieldText = Request["mainField" .. i]
 			}
-            if (Request["metadataTags"] ~= nil and
-                Request["metadataTags"]["mainField" .. i] ~= nil) then
-                if param["showStrings"][j]["fieldTypes"] == nil then
-                    param["showStrings"][j]["fieldTypes"] = {}
-                end
-                local numTypes = #Request["metadataTags"]["mainField" .. i]
-                local k = 0
-                for k = 1, numTypes do
-                    param["showStrings"][j]["fieldTypes"][k] = Request["metadataTags"]["mainField" .. i][k]
-                end
-            end
+			if (Request["metadataTags"] ~= nil and
+				Request["metadataTags"]["mainField" .. i] ~= nil) then
+				if param["showStrings"][j]["fieldTypes"] == nil then
+					param["showStrings"][j]["fieldTypes"] = {}
+				end
+				local numTypes = #Request["metadataTags"]["mainField" .. i]
+				local k = 0
+				for k = 1, numTypes do
+					param["showStrings"][j]["fieldTypes"][k] = Request["metadataTags"]["mainField" .. i][k]
+				end
+			end
 		end
 	end
 	
@@ -355,14 +355,14 @@ end
 			},
 			softButtons = {},
 			customPresets = {},
-            metadataTags =
-            {
-                mainField1 = {},
-                mainField2 = {},
-                mainField3 = {},
-                mainField4 = {}
-            }
-        }
+			metadataTags =
+			{
+				mainField1 = {},
+				mainField2 = {},
+				mainField3 = {},
+				mainField4 = {}
+			}
+		}
 		
 		self:verify_SUCCESS_Case(RequestParams)
 		
@@ -504,41 +504,41 @@ end
 				"7" .. string499Characters,
 				"8" .. string499Characters,
 			},	
-            metadataTags =
-            {
-                mainField1 = 
-                {
-                    "mediaTitle",
-                    "mediaArtist",
-                    "mediaAlbum",
-                    "mediaYear",
-                    "mediaGenre"
-                },
-                mainField2 = 
-                {
-                    "mediaTitle",
-                    "mediaArtist",
-                    "mediaAlbum",
-                    "mediaYear",
-                    "mediaGenre"
-                },
-                mainField3 =
-                {
-                    "mediaTitle",
-                    "mediaArtist",
-                    "mediaAlbum",
-                    "mediaYear",
-                    "mediaGenre"
-                },
-                mainField4 =
-                {
-                    "mediaTitle",
-                    "mediaArtist",
-                    "mediaAlbum",
-                    "mediaYear",
-                    "mediaGenre"
-                }
-             }
+			metadataTags =
+			{
+				mainField1 =
+				{
+					"mediaTitle",
+					"mediaArtist",
+					"mediaAlbum",
+					"mediaYear",
+					"mediaGenre"
+				},
+				mainField2 =
+				{
+					"mediaTitle",
+					"mediaArtist",
+					"mediaAlbum",
+					"mediaYear",
+					"mediaGenre"
+				},
+				mainField3 =
+				{
+					"mediaTitle",
+					"mediaArtist",
+					"mediaAlbum",
+					"mediaYear",
+					"mediaGenre"
+				},
+				mainField4 =
+				{
+					"mediaTitle",
+					"mediaArtist",
+					"mediaAlbum",
+					"mediaYear",
+					"mediaGenre"
+				}
+			 }
 		}
 		
 		self:verify_SUCCESS_Case(RequestParams)
@@ -664,12 +664,12 @@ end
 -----------------------------------------------------------------------------------------------
 
 	local Request = Test:createRequest()
-    Request.mainField1 = "mainField1"
-    Request.mainField2 = "mainField2"
-    Request.mainField3 = "mainField3"
-    Request.mainField4 = "mainField4"
+	Request.mainField1 = "mainField1"
+	Request.mainField2 = "mainField2"
+	Request.mainField3 = "mainField3"
+	Request.mainField4 = "mainField4"
 
-    metadataTagsParameter:verify_MetadataTags_Parameter(Request, {"metadataTags"}, false)
+	metadataTagsParameter:verify_MetadataTags_Parameter(Request, {"metadataTags"}, false)
 
 
 ----------------------------------------------------------------------------------------------
@@ -1786,7 +1786,7 @@ end
 --End Test case PositiveRequestCheck
 
 --end	
-        --Begin Test case Show_MetadataTags_withNoFieldsProvided 
+		--Begin Test case Show_MetadataTags_withNoFieldsProvided
 	--Description: metadataTag parameter is provided, but no corresponding "mainField" is provided -> the request will receive a WARNINGS result code
 
 		function Test:Show_MetadataTags_withNoFieldsProvided()
@@ -1794,26 +1794,25 @@ end
 				--mobile side: sending the request
 
 				local Request = {
-                                    metadataTags = {
-                                       mainField1 = {"mediaTitle"}
-                                    }
-                                }
+									metadataTags = {
+										mainField1 = {"mediaTitle"}
+									}
+								}
 				local cid = self.mobileSession:SendRPC("Show", Request)
 									
 				--hmi side: expect the request
 				local UIParams = self:createUIParameters(Request)
 				EXPECT_HMICALL("UI.Show", UIParams)
-                                :Times(1)		
+								:Times(1)
 							
-    			:Do(function(_,data)
-			    	--hmi side: sending the response
-		    		self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-	    		end)
+				:Do(function(_,data)
+					--hmi side: sending the response
+					self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+				end)
 
 				--mobile side: expect response 
 				EXPECT_RESPONSE(cid, {  success = true, resultCode = "WARNINGS"})
 
-         
 		end
 	--End Test case Show_MetadataTags_withNoFieldsProvided
 
