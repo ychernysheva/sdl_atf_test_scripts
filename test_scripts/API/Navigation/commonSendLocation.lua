@@ -25,33 +25,35 @@ commonSendLocation.minTimeout = 500
 commonSendLocation.DEFAULT = "Default"
 commonSendLocation.successResultCodes = {
   "SUCCESS",
-  "RETRY",
-  "WARNINGS",
   "SAVED"
 }
 
 commonSendLocation.failureResultCodes = {
-  "UNSUPPORTED_REQUEST",
   "UNSUPPORTED_RESOURCE",
   "DISALLOWED",
   "REJECTED",
   "ABORTED",
-  "IGNORED",
+  "INVALID_DATA",
+  "APPLICATION_NOT_REGISTERED",
+  "NO_APPS_REGISTERED",   -- this code is equal to APPLICATION_NOT_REGISTERED in mobile API
+  "NO_DEVICES_CONNECTED", -- this code is equal to APPLICATION_NOT_REGISTERED in mobile API
+  "OUT_OF_MEMORY",
+  "TOO_MANY_PENDING_REQUESTS",
+  "GENERIC_ERROR",
+  "USER_DISALLOWED"
+}
+
+commonSendLocation.unexpectedResultCodes = {
+  "WARNINGS",
+  "RETRY",
+  "UNSUPPORTED_REQUEST",
   "IN_USE" ,
   "DATA_NOT_AVAILABLE",
   "TIMED_OUT",
-  "INVALID_DATA",
   "CHAR_LIMIT_EXCEEDED",
   "INVALID_ID",
   "DUPLICATE_NAME",
-  "APPLICATION_NOT_REGISTERED",
   "WRONG_LANGUAGE",
-  "OUT_OF_MEMORY",
-  "TOO_MANY_PENDING_REQUESTS",
-  "NO_APPS_REGISTERED",
-  "NO_DEVICES_CONNECTED",
-  "GENERIC_ERROR",
-  "USER_DISALLOWED",
   "TRUNCATED_DATA",
   "READ_ONLY"
 }
@@ -110,7 +112,8 @@ local function ptu(self, id, pUpdateFunction)
   local requestId = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
   EXPECT_HMIRESPONSE(requestId)
   :Do(function()
-      self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest", { requestType = "PROPRIETARY", fileName = pts_file_name })
+      self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",
+        { requestType = "PROPRIETARY", fileName = pts_file_name })
       getPTUFromPTS(ptu_table)
       local function updatePTU(tbl)
         tbl.policy_table.functional_groupings.SendLocation.rpcs.SendLocation.parameters = {}
@@ -145,7 +148,8 @@ local function ptu(self, id, pUpdateFunction)
             EXPECT_HMICALL("BasicCommunication.SystemRequest")
             :Do(function(_, d3)
                 self.hmiConnection:SendResponse(d3.id, "BasicCommunication.SystemRequest", "SUCCESS", { })
-                self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate", { policyfile = policy_file_path .. "/" .. policy_file_name })
+                self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate",
+                  { policyfile = policy_file_path .. "/" .. policy_file_name })
               end)
             mobileSession:ExpectResponse(corIdSystemRequest, { success = true, resultCode = "SUCCESS" })
           end)
@@ -170,13 +174,19 @@ function commonSendLocation.activateApp(pAppId, self)
   local mobSession = commonSendLocation.getMobileSession(pAppId, self)
   local requestId = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = pHMIAppId })
   EXPECT_HMIRESPONSE(requestId)
-  mobSession:ExpectNotification("OnHMIStatus", { hmiLevel = "FULL", audioStreamingState = "AUDIBLE", systemContext = "MAIN" })
+  mobSession:ExpectNotification("OnHMIStatus",
+    {hmiLevel = "FULL", audioStreamingState = "AUDIBLE", systemContext = "MAIN"})
   commonTestCases:DelayedExp(commonSendLocation.minTimeout)
 end
 
 function commonSendLocation.backupHMICapabilities()
   local hmiCapabilitiesFile = commonFunctions:read_parameter_from_smart_device_link_ini("HMICapabilities")
   commonPreconditions:BackupFile(hmiCapabilitiesFile)
+end
+
+function commonSendLocation.delayedExp(timeout)
+  if not timeout then timeout = commonSendLocation.timeout end
+  commonTestCases:DelayedExp(timeout)
 end
 
 function commonSendLocation.getDeviceMAC()
@@ -227,17 +237,30 @@ function commonSendLocation.postconditions()
   StopSDL()
 end
 
+function commonSendLocation.putFile(pFileName, self)
+  self, pFileName = commonSendLocation.getSelfAndParams(pFileName, self)
+  local cid = self.mobileSession1:SendRPC(
+    "PutFile",
+    {syncFileName = pFileName, fileType = "GRAPHIC_PNG", persistentFile = false, systemFile = false},
+    "files/icon.png")
+
+  self.mobileSession1:ExpectResponse(cid, { success = true, resultCode = "SUCCESS"})
+end
+
 function commonSendLocation.registerApplicationWithPTU(pAppId, pUpdateFunction, self)
   self, pAppId, pUpdateFunction = commonSendLocation.getSelfAndParams(pAppId, pUpdateFunction, self)
   if not pAppId then pAppId = 1 end
   self["mobileSession" .. pAppId] = mobile_session.MobileSession(self, self.mobileConnection)
   self["mobileSession" .. pAppId]:StartService(7)
   :Do(function()
-      local corId = self["mobileSession" .. pAppId]:SendRPC("RegisterAppInterface", config["application" .. pAppId].registerAppInterfaceParams)
-      EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config["application" .. pAppId].registerAppInterfaceParams.appName } })
+      local corId = self["mobileSession" .. pAppId]:SendRPC("RegisterAppInterface",
+        config["application" .. pAppId].registerAppInterfaceParams)
+      EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered",
+        { application = { appName = config["application" .. pAppId].registerAppInterfaceParams.appName } })
       :Do(function(_, d1)
           hmiAppIds[config["application" .. pAppId].registerAppInterfaceParams.appID] = d1.params.application.appID
-          EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", { status = "UPDATE_NEEDED" }, { status = "UPDATING" }, { status = "UP_TO_DATE" })
+          EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",
+            {status = "UPDATE_NEEDED"}, {status = "UPDATING"}, {status = "UP_TO_DATE" })
           :Times(3)
           EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
           :Do(function(_, d2)
@@ -248,9 +271,11 @@ function commonSendLocation.registerApplicationWithPTU(pAppId, pUpdateFunction, 
         end)
       self["mobileSession" .. pAppId]:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
       :Do(function()
-          self["mobileSession" .. pAppId]:ExpectNotification("OnHMIStatus", { hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN" })
-          :Times(AtLeast(1)) -- issue with SDL --> notification is sent twice
+          self["mobileSession" .. pAppId]:ExpectNotification("OnHMIStatus",
+            {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
+          :Times(1)
           self["mobileSession" .. pAppId]:ExpectNotification("OnPermissionsChange")
+          :Times(AtLeast(1)) -- todo: issue with SDL --> notification is sent twice
         end)
     end)
 end
@@ -261,14 +286,17 @@ function commonSendLocation.registerApplication(id, self)
   self["mobileSession" .. id] = mobile_session.MobileSession(self, self.mobileConnection)
   self["mobileSession" .. id]:StartService(7)
   :Do(function()
-      local corId = self["mobileSession" .. id]:SendRPC("RegisterAppInterface", config["application" .. id].registerAppInterfaceParams)
-      EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config["application" .. id].registerAppInterfaceParams.appName } })
+      local corId = self["mobileSession" .. id]:SendRPC("RegisterAppInterface",
+        config["application" .. id].registerAppInterfaceParams)
+      EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered",
+        {application = {appName = config["application" .. id].registerAppInterfaceParams.appName}})
       :Do(function(_, d1)
           hmiAppIds[config["application" .. id].registerAppInterfaceParams.appID] = d1.params.application.appID
         end)
       self["mobileSession" .. id]:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
       :Do(function()
-          self["mobileSession" .. id]:ExpectNotification("OnHMIStatus", { hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN" })
+          self["mobileSession" .. id]:ExpectNotification("OnHMIStatus",
+            { hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN" })
           :Times(AtLeast(1)) -- issue with SDL --> notification is sent twice
           self["mobileSession" .. id]:ExpectNotification("OnPermissionsChange")
         end)

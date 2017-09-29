@@ -1,13 +1,14 @@
 ---------------------------------------------------------------------------------------------------
 -- User story: https://github.com/smartdevicelink/sdl_requirements/issues/24
 -- Use case: https://github.com/smartdevicelink/sdl_requirements/blob/master/detailed_docs/TRS/embedded_navi/SendLocation_TRS.md
--- Item: Use Case 1: Main Flow
+-- Item: Use Case 1: Main Flow (Alternative flow 2)
 --
 -- Requirement summary:
--- SendLocation with address, longitudeDegrees, latitudeDegrees, deliveryMode and other parameters
+-- App requests SendLocation without address and with longitudeDegrees, latitudeDegrees, deliveryMode
+-- and other valid and allowed parameters
 --
 -- Description:
--- App sends SendLocation will all available parameters.
+-- SDL transfers the SendLocation requests without address to HMI
 
 -- Pre-conditions:
 -- a. HMI and SDL are started
@@ -28,28 +29,12 @@
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
-local commonSendLocation = require('test_scripts/API/SendLocation/commonSendLocation')
+local commonSendLocation = require('test_scripts/API/Navigation/commonSendLocation')
 
 --[[ Local Variables ]]
-local request_params = {
+local requestParams = {
     longitudeDegrees = 1.1,
     latitudeDegrees = 1.1,
-    addressLines = 
-    { 
-        "line1",
-        "line2",
-    }, 
-    address = {
-        countryName = "countryName",
-        countryCode = "countryName",
-        postalCode = "postalCode",
-        administrativeArea = "administrativeArea",
-        subAdministrativeArea = "subAdministrativeArea",
-        locality = "locality",
-        subLocality = "subLocality",
-        thoroughfare = "thoroughfare",
-        subThoroughfare = "subThoroughfare"
-    },
     timeStamp = {
         millisecond = 0,
         second = 40,
@@ -65,15 +50,15 @@ local request_params = {
     locationDescription = "location Description",
     phoneNumber = "phone Number",
     deliveryMode = "PROMPT",
-    locationImage = 
-    { 
+    locationImage =
+    {
         value = "icon.png",
         imageType = "DYNAMIC",
     }
 }
 
 --[[ Local Functions ]]
-local function send_location(params, self)
+local function sendLocation(params, self)
     local cid = self.mobileSession1:SendRPC("SendLocation", params)
 
     params.appID = commonSendLocation.getHMIAppId()
@@ -81,31 +66,19 @@ local function send_location(params, self)
     params.locationImage.value = commonSendLocation.getPathToSDL() .. "storage/"
         .. commonSendLocation.getMobileAppId(1) .. "_" .. deviceID .. "/icon.png"
 
-
     EXPECT_HMICALL("Navigation.SendLocation", params)
     :Do(function(_,data)
-        --hmi side: sending Navigation.SendLocation response
         self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
     end)
 
     self.mobileSession1:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
     :ValidIf (function(_,data)
         if data.payload.info then
-            print("SDL sent redundant info parameter to mobile App ")
-            return false
-        else 
+            return false, "SDL sent redundant info parameter to mobile App "
+        else
             return true
         end
     end)
-end
-
-local function put_file(self)
-    local CorIdPutFile = self.mobileSession1:SendRPC(
-      "PutFile",
-      {syncFileName = "icon.png", fileType = "GRAPHIC_PNG", persistentFile = false, systemFile = false},
-      "files/icon.png")
-
-    self.mobileSession1:ExpectResponse(CorIdPutFile, { success = true, resultCode = "SUCCESS"})
 end
 
 --[[ Scenario ]]
@@ -114,10 +87,10 @@ runner.Step("Clean environment", commonSendLocation.preconditions)
 runner.Step("Start SDL, HMI, connect Mobile, start Session", commonSendLocation.start)
 runner.Step("RAI, PTU", commonSendLocation.registerApplicationWithPTU)
 runner.Step("Activate App", commonSendLocation.activateApp)
-runner.Step("Upload file", put_file)
+runner.Step("Upload file", commonSendLocation.putFile, {"icon.png"})
 
 runner.Title("Test")
-runner.Step("SendLocation - all params", send_location, { request_params })
+runner.Step("SendLocation without address parameter", sendLocation, {requestParams})
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", commonSendLocation.postconditions)

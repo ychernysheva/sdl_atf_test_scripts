@@ -7,7 +7,7 @@
 -- SendLocation with address, longitudeDegrees, latitudeDegrees, deliveryMode and other parameters
 --
 -- Description:
--- App sends SendLocation will all available parameters.
+-- App sends SendLocation with all available parameters.
 
 -- Pre-conditions:
 -- a. HMI and SDL are started
@@ -28,40 +28,69 @@
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
-local commonSendLocation = require('test_scripts/API/SendLocation/commonSendLocation')
+local commonSendLocation = require('test_scripts/API/Navigation/commonSendLocation')
 
 --[[ Local Variables ]]
-local request_params = {
+local requestParams = {
     longitudeDegrees = 1.1,
-    latitudeDegrees = 1.1
+    latitudeDegrees = 1.1,
+    addressLines =
+    {
+        "line1",
+        "line2",
+    },
+    address = {
+        countryName = "countryName",
+        countryCode = "countryName",
+        postalCode = "postalCode",
+        administrativeArea = "administrativeArea",
+        subAdministrativeArea = "subAdministrativeArea",
+        locality = "locality",
+        subLocality = "subLocality",
+        thoroughfare = "thoroughfare",
+        subThoroughfare = "subThoroughfare"
+    },
+    timeStamp = {
+        millisecond = 0,
+        second = 40,
+        minute = 30,
+        hour = 14,
+        day = 25,
+        month = 5,
+        year = 2017,
+        tz_hour = 5,
+        tz_minute = 30
+    },
+    locationName = "location Name",
+    locationDescription = "location Description",
+    phoneNumber = "phone Number",
+    deliveryMode = "PROMPT",
+    locationImage =
+    {
+        value = "icon.png",
+        imageType = "DYNAMIC",
+    }
 }
 
 --[[ Local Functions ]]
-local function sendLocationSuccess(params, resultCodeValue, self)
+local function sendLocation(params, self)
     local cid = self.mobileSession1:SendRPC("SendLocation", params)
+
+    params.appID = commonSendLocation.getHMIAppId()
+    local deviceID = commonSendLocation.getDeviceMAC()
+    params.locationImage.value = commonSendLocation.getPathToSDL() .. "storage/"
+        .. commonSendLocation.getMobileAppId(1) .. "_" .. deviceID .. "/icon.png"
 
     EXPECT_HMICALL("Navigation.SendLocation", params)
     :Do(function(_,data)
-        self.hmiConnection:SendResponse(data.id, data.method, resultCodeValue, {})
+        self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
     end)
 
-    self.mobileSession1:ExpectResponse(cid, { success = true, resultCode = resultCodeValue })
-end
-
-local function sendLocationFailure(params, resultCodeValue, self)
-    local cid = self.mobileSession1:SendRPC("SendLocation", params)
-
-    EXPECT_HMICALL("Navigation.SendLocation", params)
-    :Do(function(_,data)
-        self.hmiConnection:SendError(data.id, data.method, resultCodeValue, resultCodeValue)
-    end)
-
-    self.mobileSession1:ExpectResponse(cid, { success = false, resultCode = resultCodeValue })
+    self.mobileSession1:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
     :ValidIf (function(_,data)
         if data.payload.info then
-            return true
-        else 
-            print("SDL doesn't resend info parameter to mobile App.")
+            return false, "SDL sent redundant info parameter to mobile App "
+        else
             return true
         end
     end)
@@ -73,16 +102,10 @@ runner.Step("Clean environment", commonSendLocation.preconditions)
 runner.Step("Start SDL, HMI, connect Mobile, start Session", commonSendLocation.start)
 runner.Step("RAI, PTU", commonSendLocation.registerApplicationWithPTU)
 runner.Step("Activate App", commonSendLocation.activateApp)
--- runner.Step("Upload file", put_file)
+runner.Step("Upload file", commonSendLocation.putFile, {"icon.png"})
 
 runner.Title("Test")
-for _, resultCodeValue in pairs(commonSendLocation.successResultCodes) do
-    runner.Step("SendLocation - " .. resultCodeValue, sendLocationSuccess, {request_params, resultCodeValue})
-end
-
-for _, resultCodeValue in pairs(commonSendLocation.failureResultCodes) do
-    runner.Step("SendLocation - " .. resultCodeValue, sendLocationFailure, {request_params, resultCodeValue})
-end
+runner.Step("SendLocation - all params", sendLocation, {requestParams})
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", commonSendLocation.postconditions)
