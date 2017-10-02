@@ -29,9 +29,9 @@ local function processRPCSuccess(self)
   local cid = mobileSession:SendRPC(rpc.name, rpc.params)
   EXPECT_HMICALL("VehicleInfo." .. rpc.name, rpc.params)
   :Do(function(_, data)
-      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", { engineOilLife = 52.3 })
+      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {engineOilLife = 50.30})
     end)
-  mobileSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
+  mobileSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS", engineOilLife = 50.30})
 end
 
 --[[ Scenario ]]

@@ -66,14 +66,14 @@ end
 local function checkNotificationSuccess(self)
   local mobileSession = common.getMobileSession(self, 1)
   self.hmiConnection:SendNotification("VehicleInfo." .. rpc2.name, rpc2.params)
-  --mobile side: expected SubscribeVehicleData response
+  --mobile side: expected OnVehicleData notification
   mobileSession:ExpectNotification("OnVehicleData", rpc2.params)
 end
 
 local function checkNotificationIgnored(self)
   local mobileSession = common.getMobileSession(self, 1)
   self.hmiConnection:SendNotification("VehicleInfo." .. rpc2.name, rpc2.params)
-  --mobile side: expected SubscribeVehicleData response
+  --mobile side: OnVehicleData notification not expected
   mobileSession:ExpectNotification("OnVehicleData", rpc2.params):Times(0)
 end
 

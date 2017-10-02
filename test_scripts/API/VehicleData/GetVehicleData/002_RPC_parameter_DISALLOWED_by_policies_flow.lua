@@ -32,10 +32,6 @@ local function ptu_update_func(tbl)
   end
 end
 
-local function delayExp()
-  commonTestCases:DelayedExp(2000)
-end
-
 local function processRPCSuccess(self)
   local mobileSession = common.getMobileSession(self, 1)
   local cid = mobileSession:SendRPC(rpc.name, rpc.params)
