@@ -6,17 +6,19 @@
 --
 -- Description:
 -- In case:
--- 1) mobile application sends valid SubscribeVehicleData to SDL and this request
---    is allowed by Policies but app is already subscribed for specified parameter
+-- Mobile application sends valid SubscribeVehicleData to SDL and this request
+-- is allowed by Policies but app is already subscribed for specified parameter
 -- SDL must:
--- 1) SDL responds IGNORED, success:true and info: "Already subscribed on some provided VehicleData."
---    to mobile application and doesn't transfer this request to HMI
+-- SDL responds IGNORED, success:false and info: "Already subscribed on some provided VehicleData."
+-- to mobile application and doesn't transfer this request to HMI
+---------------------------------------------------------------------------------------------------
 
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
 local common = require('test_scripts/API/VehicleData/commonVehicleData')
---[[ Local Variables ]]
+local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 
+--[[ Local Variables ]]
 local rpc = {
     name = "SubscribeVehicleData",
     params = {
@@ -24,6 +26,7 @@ local rpc = {
     }
 }
 
+--[[ Local Functions ]]
 local function processRPCSuccess(self)
   local mobileSession = common.getMobileSession(self, 1)
   local cid = mobileSession:SendRPC(rpc.name, rpc.params)
@@ -36,11 +39,11 @@ local function processRPCSuccess(self)
     engineOilLife = {dataType = "VEHICLEDATA_ENGINEOILLIFE", resultCode = "SUCCESS"} })
 end
 
-
 local function processRPCIgnored(self)
   local mobileSession = common.getMobileSession(self, 1)
   local cid = mobileSession:SendRPC(rpc.name, rpc.params)
   EXPECT_HMICALL("VehicleInfo." .. rpc.name, rpc.params):Times(0)
+  commonTestCases:DelayedExp(common.timeout)
   mobileSession:ExpectResponse(cid, { success = false, resultCode = "IGNORED",
     info = "Already subscribed on some provided VehicleData.",
     engineOilLife = {dataType = "VEHICLEDATA_ENGINEOILLIFE", resultCode = "DATA_ALREADY_SUBSCRIBED"} })
@@ -54,7 +57,6 @@ runner.Step("RAI with PTU", common.registerAppWithPTU)
 runner.Step("Activate App", common.activateApp)
 
 runner.Title("Test")
-
 runner.Step("RPC " .. rpc.name .. " 1st time" , processRPCSuccess)
 runner.Step("RPC " .. rpc.name .. " 2nd time" , processRPCIgnored)
 

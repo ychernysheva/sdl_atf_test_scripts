@@ -1,23 +1,27 @@
 ---------------------------------------------------------------------------------------------------
+-- User story: TO ADD !!!
+-- Use case: TO ADD !!!
 -- Item: Use Case: request is allowed by Policies
 --
 -- Requirement summary:
--- [UnsubscribeVehicleData] As a mobile app wants to send a request to unsubscribe
---  for already subscribed specified parameter
+-- [UnsubscribeVehicleData] Mobile app wants to send a request to unsubscribe
+--  for already unsubscribed specified parameter
 --
 -- Description:
 -- In case:
--- 1) mobile application sends valid UnsubscribeVehicleData to SDL and this request is allowed by Policies
+-- 1) Mobile application sends valid UnsubscribeVehicleData to SDL and this request is allowed by Policies
+-- 2) Mobile app is already unsubscribed from this parameter
 -- SDL must:
 -- Transfer this request to HMI and after successful response from hmi
 -- Respond SUCCESS, success:true to mobile application
+---------------------------------------------------------------------------------------------------
 
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
 local common = require('test_scripts/API/VehicleData/commonVehicleData')
+local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 
 --[[ Local Variables ]]
-
 local rpc_subscribe = {
   name = "SubscribeVehicleData",
   params = {
@@ -32,14 +36,17 @@ local rpc_unsubscribe = {
   }
 }
 
+--[[ Local Functions ]]
 local function processRPCSubscribeSuccess(self)
   local mobileSession = common.getMobileSession(self, 1)
   local cid = mobileSession:SendRPC(rpc_subscribe.name, rpc_subscribe.params)
   EXPECT_HMICALL("VehicleInfo." .. rpc_subscribe.name, rpc_subscribe.params)
   :Do(function(_, data)
-      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {engineOilLife = {dataType = "VEHICLEDATA_ENGINEOILLIFE", resultCode = "SUCCESS"}})
+      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS",
+        { engineOilLife = { dataType = "VEHICLEDATA_ENGINEOILLIFE", resultCode = "SUCCESS" } })
     end)
-  mobileSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS", engineOilLife = {dataType = "VEHICLEDATA_ENGINEOILLIFE", resultCode = "SUCCESS"} })
+  mobileSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS",
+    engineOilLife = { dataType = "VEHICLEDATA_ENGINEOILLIFE", resultCode = "SUCCESS" } })
 end
 
 local function processRPCUnsubscribeSuccess(self)
@@ -47,15 +54,18 @@ local function processRPCUnsubscribeSuccess(self)
   local cid = mobileSession:SendRPC(rpc_unsubscribe.name, rpc_unsubscribe.params)
   EXPECT_HMICALL("VehicleInfo." .. rpc_unsubscribe.name, rpc_unsubscribe.params)
   :Do(function(_, data)
-      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {engineOilLife = {dataType = "VEHICLEDATA_ENGINEOILLIFE", resultCode = "SUCCESS"}})
+      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS",
+        { engineOilLife = { dataType = "VEHICLEDATA_ENGINEOILLIFE", resultCode = "SUCCESS" } })
     end)
-  mobileSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS", engineOilLife = {dataType = "VEHICLEDATA_ENGINEOILLIFE", resultCode = "SUCCESS"} })
+  mobileSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS",
+    engineOilLife = { dataType = "VEHICLEDATA_ENGINEOILLIFE", resultCode = "SUCCESS"} })
 end
 
 local function processRPCUnsubscribeIgnored(self)
   local mobileSession = common.getMobileSession(self, 1)
   local cid = mobileSession:SendRPC(rpc_unsubscribe.name, rpc_unsubscribe.params)
   EXPECT_HMICALL("VehicleInfo." .. rpc_unsubscribe.name, rpc_unsubscribe.params):Times(0)
+  commonTestCases:DelayedExp(common.timeout)
   mobileSession:ExpectResponse(cid, { success = false, resultCode = "IGNORED",
     engineOilLife = {dataType = "VEHICLEDATA_ENGINEOILLIFE",
     resultCode = "DATA_NOT_SUBSCRIBED"} })
@@ -69,7 +79,6 @@ runner.Step("RAI with PTU", common.registerAppWithPTU)
 runner.Step("Activate App", common.activateApp)
 
 runner.Title("Test")
-
 runner.Step("RPC " .. rpc_subscribe.name, processRPCSubscribeSuccess)
 runner.Step("RPC " .. rpc_unsubscribe.name, processRPCUnsubscribeSuccess)
 runner.Title("Trying to unsubscribe from already unsubscribed parameter...")

@@ -1,4 +1,6 @@
 ---------------------------------------------------------------------------------------------------
+-- User story: TO ADD !!!
+-- Use case: TO ADD !!!
 -- Item: Use Case: request is allowed by Policies
 --
 -- Requirement summary:
@@ -10,13 +12,13 @@
 -- SDL must:
 -- Transfer this request to HMI and after successful response from hmi
 -- Respond SUCCESS, success:true to mobile application
+---------------------------------------------------------------------------------------------------
 
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
 local common = require('test_scripts/API/VehicleData/commonVehicleData')
 
 --[[ Local Variables ]]
-
 local rpc = {
   name = "SubscribeVehicleData",
   params = {
@@ -24,17 +26,18 @@ local rpc = {
   }
 }
 
+--[[ Local Functions ]]
 local function processRPCSuccess(self)
   local mobileSession = common.getMobileSession(self, 1)
   local cid = mobileSession:SendRPC(rpc.name, rpc.params)
   EXPECT_HMICALL("VehicleInfo." .. rpc.name, rpc.params)
   :Do(function(_, data)
-      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {engineOilLife = {dataType = "VEHICLEDATA_ENGINEOILLIFE", resultCode = "SUCCESS"}})
+      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS",
+        {engineOilLife = {dataType = "VEHICLEDATA_ENGINEOILLIFE", resultCode = "SUCCESS"}})
     end)
-  mobileSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS", engineOilLife = {dataType = "VEHICLEDATA_ENGINEOILLIFE", resultCode = "SUCCESS"} })
+  mobileSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS",
+    engineOilLife = {dataType = "VEHICLEDATA_ENGINEOILLIFE", resultCode = "SUCCESS"} })
 end
-
-
 
 --[[ Scenario ]]
 runner.Title("Preconditions")
@@ -44,7 +47,6 @@ runner.Step("RAI with PTU", common.registerAppWithPTU)
 runner.Step("Activate App", common.activateApp)
 
 runner.Title("Test")
-
 runner.Step("RPC " .. rpc.name, processRPCSuccess)
 
 runner.Title("Postconditions")

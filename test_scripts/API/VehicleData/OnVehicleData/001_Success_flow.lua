@@ -1,26 +1,25 @@
 ---------------------------------------------------------------------------------------------------
--- Item: Use Case: request is allowed by Policies
+-- User story: TO ADD !!!
+-- Use case: TO ADD !!!
+-- Item: Use Case 1: TO ADD!!!
 --
 -- Requirement summary:
--- [SubscribeVehicleData] As a mobile app wants to send a request to subscribe for specified parameter
+-- [OnVehicleData] As a mobile app is subscribed for VI parameter
+-- and received notification about this parameter change from hmi
 --
 -- Description:
 -- In case:
--- 1) hmi application sends valid SubscribeVehicleData to SDL and this request is allowed by Policies
--- SDL must:
--- Transfer this request to HMI and after successful response from hmi
--- Respond SUCCESS, success:true to mobile application
--- After HMI sends notification about changes in subcribed parameter
+-- 1) If application is subscribed to get vehicle data with 'engineOilLife' parameter
+-- 2) Notification about changes in subscribed parameter is received from hmi
 -- SDL must:
 -- Forward this notification to mobile application
-
+---------------------------------------------------------------------------------------------------
 
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
 local common = require('test_scripts/API/VehicleData/commonVehicleData')
 
 --[[ Local Variables ]]
-
 local rpc1 = {
   name = "SubscribeVehicleData",
   params = {
@@ -35,21 +34,22 @@ local rpc2 = {
   }
 }
 
+--[[ Local Functions ]]
 local function processRPCSubscribeSuccess(self)
   local mobileSession = common.getMobileSession(self, 1)
   local cid = mobileSession:SendRPC(rpc1.name, rpc1.params)
   EXPECT_HMICALL("VehicleInfo." .. rpc1.name, rpc1.params)
   :Do(function(_, data)
-      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {engineOilLife = {dataType = "VEHICLEDATA_ENGINEOILLIFE", resultCode = "SUCCESS"}})
+      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS",
+        {engineOilLife = {dataType = "VEHICLEDATA_ENGINEOILLIFE", resultCode = "SUCCESS"}})
     end)
-  mobileSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS", engineOilLife = {dataType = "VEHICLEDATA_ENGINEOILLIFE", resultCode = "SUCCESS"} })
+  mobileSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS", engineOilLife =
+    {dataType = "VEHICLEDATA_ENGINEOILLIFE", resultCode = "SUCCESS"} })
 end
-
 
 local function checkNotificationSuccess(self)
   local mobileSession = common.getMobileSession(self, 1)
   self.hmiConnection:SendNotification("VehicleInfo." .. rpc2.name, rpc2.params)
-  --mobile side: expected SubscribeVehicleData response
   mobileSession:ExpectNotification("OnVehicleData", rpc2.params)
 end
 
@@ -61,7 +61,6 @@ runner.Step("RAI with PTU", common.registerAppWithPTU)
 runner.Step("Activate App", common.activateApp)
 
 runner.Title("Test")
-
 runner.Step("RPC " .. rpc1.name, processRPCSubscribeSuccess)
 runner.Step("RPC " .. rpc2.name, checkNotificationSuccess)
 

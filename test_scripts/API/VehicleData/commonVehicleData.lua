@@ -85,7 +85,8 @@ local function ptu(self, app_id, ptu_update_func)
   local requestId = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
   EXPECT_HMIRESPONSE(requestId)
   :Do(function()
-      self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest", { requestType = "PROPRIETARY", fileName = pts_file_name })
+      self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",
+        { requestType = "PROPRIETARY", fileName = pts_file_name })
       getPTUFromPTS(ptu_table)
        local function updatePTU(tbl)
         for rpc in pairs(tbl.policy_table.functional_groupings["Emergency-1"].rpcs) do
@@ -116,11 +117,13 @@ local function ptu(self, app_id, ptu_update_func)
             print("App ".. id .. " was used for PTU")
             RAISE_EVENT(event, event, "PTU event")
             checkIfPTSIsSentAsBinary(d2.binaryData)
-            local corIdSystemRequest = mobileSession:SendRPC("SystemRequest", { requestType = "PROPRIETARY", fileName = policy_file_name }, ptu_file_name)
+            local corIdSystemRequest = mobileSession:SendRPC("SystemRequest",
+              { requestType = "PROPRIETARY", fileName = policy_file_name }, ptu_file_name)
             EXPECT_HMICALL("BasicCommunication.SystemRequest")
             :Do(function(_, d3)
                 self.hmiConnection:SendResponse(d3.id, "BasicCommunication.SystemRequest", "SUCCESS", { })
-                self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate", { policyfile = policy_file_path .. "/" .. policy_file_name })
+                self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate",
+                  { policyfile = policy_file_path .. "/" .. policy_file_name })
               end)
             mobileSession:ExpectResponse(corIdSystemRequest, { success = true, resultCode = "SUCCESS" })
           end)
@@ -137,7 +140,6 @@ function commonVehicleData.preconditions()
 end
 
 --[[Module functions]]
-
 function commonVehicleData.activateApp(pAppId, self)
   self, pAppId = commonVehicleData.getSelfAndParams(pAppId, self)
   if not pAppId then pAppId = 1 end
@@ -145,10 +147,10 @@ function commonVehicleData.activateApp(pAppId, self)
   local mobSession = commonVehicleData.getMobileSession(self, pAppId)
   local requestId = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = pHMIAppId })
   EXPECT_HMIRESPONSE(requestId)
-  mobSession:ExpectNotification("OnHMIStatus", { hmiLevel = "FULL", audioStreamingState = "AUDIBLE", systemContext = "MAIN" })
+  mobSession:ExpectNotification("OnHMIStatus",
+    { hmiLevel = "FULL", audioStreamingState = "AUDIBLE", systemContext = "MAIN" })
   commonTestCases:DelayedExp(commonVehicleData.minTimeout)
 end
-
 
 function commonVehicleData.getSelfAndParams(...)
   local out = { }
@@ -199,11 +201,14 @@ function commonVehicleData.registerAppWithPTU(id, ptu_update_func, self)
   self["mobileSession" .. id] = mobile_session.MobileSession(self, self.mobileConnection)
   self["mobileSession" .. id]:StartService(7)
   :Do(function()
-      local corId = self["mobileSession" .. id]:SendRPC("RegisterAppInterface", config["application" .. id].registerAppInterfaceParams)
-      EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config["application" .. id].registerAppInterfaceParams.appName } })
+      local corId = self["mobileSession" .. id]:SendRPC("RegisterAppInterface",
+        config["application" .. id].registerAppInterfaceParams)
+      EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered",
+        { application = { appName = config["application" .. id].registerAppInterfaceParams.appName } })
       :Do(function(_, d1)
           hmiAppIds[config["application" .. id].registerAppInterfaceParams.appID] = d1.params.application.appID
-          EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", { status = "UPDATE_NEEDED" }, { status = "UPDATING" }, { status = "UP_TO_DATE" })
+          EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",
+            { status = "UPDATE_NEEDED" }, { status = "UPDATING" }, { status = "UP_TO_DATE" })
           :Times(3)
           EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
           :Do(function(_, d2)
@@ -214,7 +219,8 @@ function commonVehicleData.registerAppWithPTU(id, ptu_update_func, self)
         end)
       self["mobileSession" .. id]:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
       :Do(function()
-          self["mobileSession" .. id]:ExpectNotification("OnHMIStatus", { hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN" })
+          self["mobileSession" .. id]:ExpectNotification("OnHMIStatus",
+            { hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN" })
           :Times(1)
           self["mobileSession" .. id]:ExpectNotification("OnPermissionsChange"):Times(2)
           EXPECT_HMICALL("VehicleInfo.GetVehicleData", { odometer = true})
@@ -228,14 +234,17 @@ function commonVehicleData.raiN(id, self)
   self["mobileSession" .. id] = mobile_session.MobileSession(self, self.mobileConnection)
   self["mobileSession" .. id]:StartService(7)
   :Do(function()
-      local corId = self["mobileSession" .. id]:SendRPC("RegisterAppInterface", config["application" .. id].registerAppInterfaceParams)
-      EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config["application" .. id].registerAppInterfaceParams.appName } })
+      local corId = self["mobileSession" .. id]:SendRPC("RegisterAppInterface",
+        config["application" .. id].registerAppInterfaceParams)
+      EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered",
+        { application = { appName = config["application" .. id].registerAppInterfaceParams.appName } })
       :Do(function(_, d1)
           hmiAppIds[config["application" .. id].registerAppInterfaceParams.appID] = d1.params.application.appID
         end)
       self["mobileSession" .. id]:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
       :Do(function()
-          self["mobileSession" .. id]:ExpectNotification("OnHMIStatus", { hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN" })
+          self["mobileSession" .. id]:ExpectNotification("OnHMIStatus",
+            { hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN" })
           :Times(1)
           self["mobileSession" .. id]:ExpectNotification("OnPermissionsChange")
         end)
@@ -266,24 +275,6 @@ function commonVehicleData.start(pHMIParams, self)
             end)
         end)
     end)
-end
-
-function commonVehicleData.unregisterApp(pAppId, self)
-  local mobSession = commonVehicleData.getMobileSession(self, pAppId)
-  local hmiAppId = commonVehicleData.getHMIAppId(pAppId)
-  local cid = mobSession:SendRPC("UnregisterAppInterface",{})
-  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered", { appID = hmiAppId, unexpectedDisconnect = false })
-  mobSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS"})
-end
-
-function commonVehicleData.backupHMICapabilities()
-  local hmiCapabilitiesFile = commonFunctions:read_parameter_from_smart_device_link_ini("HMICapabilities")
-  commonPreconditions:BackupFile(hmiCapabilitiesFile)
-end
-
-function commonVehicleData.restoreHMICapabilities()
-  local hmiCapabilitiesFile = commonFunctions:read_parameter_from_smart_device_link_ini("HMICapabilities")
-  commonPreconditions:RestoreFile(hmiCapabilitiesFile)
 end
 
 return commonVehicleData

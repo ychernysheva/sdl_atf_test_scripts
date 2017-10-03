@@ -1,26 +1,27 @@
 ---------------------------------------------------------------------------------------------------
+-- User story: TO ADD !!!
+-- Use case: TO ADD !!!
+-- Item: Use Case 1: Main Flow
 -- Item: Use Case: request is allowed by Policies
 --
 -- Requirement summary:
--- [SubscribeVehicleData] As a mobile app wants to send a request to subscribe for specified parameter
+-- [OnVehicleData] As a hmi sends notificarion about VI paramter change
+--  but mobile app is not subscribed for this parameter
 --
 -- Description:
 -- In case:
--- 1) hmi application sends valid SubscribeVehicleData to SDL and this request is allowed by Policies
+-- 1) Hmi sends valid OnVehicleData notification to SDL
+--    but mobile app is not subscribed for this parameter
 -- SDL must:
--- Transfer this request to HMI and after successful response from hmi
--- Respond SUCCESS, success:true to mobile application
--- After HMI sends notification about changes in subcribed parameter
--- SDL must:
--- Forward this notification to mobile application
-
+-- Ignore this request and do not forward it to mobile app
+---------------------------------------------------------------------------------------------------
 
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
 local common = require('test_scripts/API/VehicleData/commonVehicleData')
+local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 
 --[[ Local Variables ]]
-
 local rpc1 = {
   name = "SubscribeVehicleData",
   params = {
@@ -42,14 +43,17 @@ local rpc3 = {
   }
 }
 
+--[[ Local Functions ]]
 local function processRPCSubscribeSuccess(self)
   local mobileSession = common.getMobileSession(self, 1)
   local cid = mobileSession:SendRPC(rpc1.name, rpc1.params)
   EXPECT_HMICALL("VehicleInfo." .. rpc1.name, rpc1.params)
   :Do(function(_, data)
-      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {engineOilLife = {dataType = "VEHICLEDATA_ENGINEOILLIFE", resultCode = "SUCCESS"}})
+      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS",
+        {engineOilLife = {dataType = "VEHICLEDATA_ENGINEOILLIFE", resultCode = "SUCCESS"}})
     end)
-  mobileSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS", engineOilLife = {dataType = "VEHICLEDATA_ENGINEOILLIFE", resultCode = "SUCCESS"} })
+  mobileSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS",
+    engineOilLife = {dataType = "VEHICLEDATA_ENGINEOILLIFE", resultCode = "SUCCESS"} })
 end
 
 local function processRPCUnsubscribeSuccess(self)
@@ -57,24 +61,24 @@ local function processRPCUnsubscribeSuccess(self)
   local cid = mobileSession:SendRPC(rpc3.name, rpc3.params)
   EXPECT_HMICALL("VehicleInfo." .. rpc3.name, rpc3.params)
   :Do(function(_, data)
-      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {engineOilLife = {dataType = "VEHICLEDATA_ENGINEOILLIFE", resultCode = "SUCCESS"}})
+      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS",
+        {engineOilLife = {dataType = "VEHICLEDATA_ENGINEOILLIFE", resultCode = "SUCCESS"}})
     end)
-  mobileSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS", engineOilLife = {dataType = "VEHICLEDATA_ENGINEOILLIFE", resultCode = "SUCCESS"} })
+  mobileSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS",
+    engineOilLife = {dataType = "VEHICLEDATA_ENGINEOILLIFE", resultCode = "SUCCESS"} })
 end
-
 
 local function checkNotificationSuccess(self)
   local mobileSession = common.getMobileSession(self, 1)
   self.hmiConnection:SendNotification("VehicleInfo." .. rpc2.name, rpc2.params)
-  --mobile side: expected OnVehicleData notification
   mobileSession:ExpectNotification("OnVehicleData", rpc2.params)
 end
 
 local function checkNotificationIgnored(self)
   local mobileSession = common.getMobileSession(self, 1)
   self.hmiConnection:SendNotification("VehicleInfo." .. rpc2.name, rpc2.params)
-  --mobile side: OnVehicleData notification not expected
   mobileSession:ExpectNotification("OnVehicleData", rpc2.params):Times(0)
+  commonTestCases:DelayedExp(common.timeout)
 end
 
 --[[ Scenario ]]
@@ -85,7 +89,6 @@ runner.Step("RAI with PTU", common.registerAppWithPTU)
 runner.Step("Activate App", common.activateApp)
 
 runner.Title("Test")
-
 runner.Step("RPC " .. rpc1.name, processRPCSubscribeSuccess)
 runner.Step("RPC " .. rpc2.name .. " forwarded to mobile", checkNotificationSuccess)
 runner.Step("RPC " .. rpc3.name, processRPCUnsubscribeSuccess)
