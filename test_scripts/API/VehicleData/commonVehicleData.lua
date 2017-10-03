@@ -12,7 +12,6 @@ local json = require("modules/json")
 local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
 local commonSteps = require("user_modules/shared_testcases/commonSteps")
 local commonTestCases = require("user_modules/shared_testcases/commonTestCases")
-local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 
 --[[ Local Variables ]]
 local ptu_table = {}

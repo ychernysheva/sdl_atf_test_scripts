@@ -12,8 +12,8 @@
 -- 1) Mobile application sends valid UnsubscribeVehicleData to SDL and this request is allowed by Policies
 -- 2) Mobile app is already unsubscribed from this parameter
 -- SDL must:
--- Transfer this request to HMI and after successful response from hmi
--- Respond SUCCESS, success:true to mobile application
+-- Respond IGNORED, success:false {dataType = "VEHICLEDATA_ENGINEOILLIFE",
+-- resultCode = "DATA_NOT_SUBSCRIBED"} to mobile application
 ---------------------------------------------------------------------------------------------------
 
 --[[ Required Shared libraries ]]
