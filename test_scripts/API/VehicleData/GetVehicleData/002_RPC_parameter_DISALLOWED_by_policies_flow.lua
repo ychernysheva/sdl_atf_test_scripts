@@ -32,7 +32,7 @@ local rpc = {
 local function ptu_update_func(tbl)
   local params = tbl.policy_table.functional_groupings["Emergency-1"].rpcs["GetVehicleData"].parameters
   for index, value in pairs(params) do
-    if ("engineOilLife" == value) then params[index] = nil end
+    if ("engineOilLife" == value) then table.remove(params, index) end
   end
 end
 
