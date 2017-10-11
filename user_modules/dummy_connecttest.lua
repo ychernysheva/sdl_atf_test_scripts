@@ -64,8 +64,6 @@ function module.hmiConnection:EXPECT_HMIRESPONSE(id, args)
       end
       if results_args2 and results_args2.method then
         results_args2 = table.removeKey(results_args2, 'method')
-      elseif results_args2 and results_args2.data.method then
-        results_args2 = table.removeKey(results_args2.data, 'method')
       end
 
       if func_name == nil and type(data.result) == 'table' then
