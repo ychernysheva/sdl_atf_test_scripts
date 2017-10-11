@@ -205,10 +205,14 @@ function commonVehicleData.registerAppWithPTU(id, ptu_update_func, self)
             { status = "UPDATE_NEEDED" }, { status = "UPDATING" }, { status = "UP_TO_DATE" })
           :Times(3)
           EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
-          :Do(function(_, d2)
-              self.hmiConnection:SendResponse(d2.id, d2.method, "SUCCESS", { })
-              ptu_table = jsonFileToTable(d2.params.file)
-              ptu(self, id, ptu_update_func)
+          :Do(function(e, d2)
+              if e.occurences == 1 then
+                self.hmiConnection:SendResponse(d2.id, d2.method, "SUCCESS", { })
+                ptu_table = jsonFileToTable(d2.params.file)
+                ptu(self, id, ptu_update_func)
+              else
+                self:FailTestCase("BC.PolicyUpdate was sent more than once (PTU update was incorrect)")
+              end
             end)
         end)
       self["mobileSession" .. id]:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
