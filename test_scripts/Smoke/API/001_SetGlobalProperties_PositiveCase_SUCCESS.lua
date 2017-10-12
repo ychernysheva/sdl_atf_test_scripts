@@ -39,6 +39,16 @@ local runner = require('user_modules/script_runner')
 local commonSmokeApi = require('test_scripts/Smoke/commonSmokeApi')
 
 --[[ Local Variables ]]
+local putFileParams = {
+	requestParams = {
+	    syncFileName = 'icon.png',
+	    fileType = "GRAPHIC_PNG",
+	    persistentFile = false,
+	    systemFile = false
+	},
+	filePath = "files/icon.png"
+}
+
 local requestParams = {
 	helpPrompt = {
 		{
@@ -77,41 +87,40 @@ local requestParams = {
 	}
 }
 
+local responseUiParams = {
+	vrHelpTitle = requestParams.vrHelpTitle,
+	vrHelp = requestParams.vrHelp,
+	menuTitle = requestParams.menuTitle,
+	menuIcon = requestParams.menuIcon,
+	keyboardProperties = requestParams.keyboardProperties
+}
+
+local responseTtsParams = {
+	timeoutPrompt = requestParams.timeoutPrompt,
+	helpPrompt = requestParams.helpPrompt
+}
+
+local allParams = {
+	requestParams = requestParams,
+	responseUiParams = responseUiParams,
+	responseTtsParams = responseTtsParams
+}
+
 --[[ Local Functions ]]
-local function put_file(fileName, self)
-    local cid = self.mobileSession1:SendRPC("PutFile", {
-                    syncFileName = fileName,
-                    fileType = "GRAPHIC_PNG",
-                    persistentFile = false,
-                    systemFile = false},
-                "files/icon.png")
-
-    self.mobileSession1:ExpectResponse(cid, { success = true, resultCode = "SUCCESS"})
-end
-
 local function setGlobalProperties(params, self)
-	local cid = self.mobileSession1:SendRPC("SetGlobalProperties", params)
+	local cid = self.mobileSession1:SendRPC("SetGlobalProperties", params.requestParams)
 
-	local deviceID = commonSmokeApi.getDeviceMAC()
-	params.vrHelp[1].image.value = commonSmokeApi.getPathToSDL() .. "storage/"
-		.. commonSmokeApi.getMobileAppId() .. "_" .. deviceID .. "/icon.png"
-	params.menuIcon.value = params.vrHelp[1].image.value
+	params.responseUiParams.vrHelp[1].image.value = commonSmokeApi.getPathToSDL()
+		.. "storage/" .. commonSmokeApi.getMobileAppId() .. "_"
+		.. commonSmokeApi.getDeviceMAC() .. "/icon.png"
+	params.responseUiParams.menuIcon.value = params.responseUiParams.vrHelp[1].image.value
 
-	EXPECT_HMICALL("TTS.SetGlobalProperties", {
-		timeoutPrompt = params.timeoutPrompt,
-		helpPrompt = params.helpPrompt
-	})
+	EXPECT_HMICALL("UI.SetGlobalProperties", params.responseUiParams)
 	:Do(function(_,data)
 		self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 	end)
 
-	EXPECT_HMICALL("UI.SetGlobalProperties", {
-		vrHelpTitle = params.vrHelpTitle,
-		vrHelp = params.vrHelp,
-		menuTitle = params.menuTitle,
-		menuIcon = params.menuIcon,
-		keyboardProperties = params.keyboardProperties
-	})
+	EXPECT_HMICALL("TTS.SetGlobalProperties", params.responseTtsParams)
 	:Do(function(_,data)
 		self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 	end)
@@ -127,10 +136,10 @@ runner.Step("Clean environment", commonSmokeApi.preconditions)
 runner.Step("Start SDL, HMI, connect Mobile, start Session", commonSmokeApi.start)
 runner.Step("RAI, PTU", commonSmokeApi.registerApplicationWithPTU)
 runner.Step("Activate App", commonSmokeApi.activateApp)
-runner.Step("Upload icon file", put_file, {"icon.png"})
+runner.Step("Upload icon file", commonSmokeApi.putFile, {putFileParams})
 
 runner.Title("Test")
-runner.Step("SetGlobalProperties Positive Case", setGlobalProperties, {requestParams})
+runner.Step("SetGlobalProperties Positive Case", setGlobalProperties, {allParams})
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", commonSmokeApi.postconditions)

@@ -229,10 +229,17 @@ function commonSmokeApi.registerApplicationWithPTU(pAppId, pUpdateFunction, self
     end)
 end
 
+function commonSmokeApi.putFile(params, pAppId, self)
+    if not pAppId then pAppId = 1 end
+    local mobileSession = commonSmokeApi.getMobileSession(pAppId, self);
+    local cid = mobileSession:SendRPC("PutFile", params.requestParams, params.filePath)
+
+    mobileSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS"})
+end
+
+
 function commonSmokeApi.postconditions()
   StopSDL()
 end
 
 return commonSmokeApi
-
-
