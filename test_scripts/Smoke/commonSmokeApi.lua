@@ -10,6 +10,7 @@ config.defaultProtocolVersion = 2
 local mobile_session = require("mobile_session")
 local json = require("modules/json")
 
+local consts = require("user_modules/consts")
 local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
 local commonSteps = require("user_modules/shared_testcases/commonSteps")
 local commonTestCases = require("user_modules/shared_testcases/commonTestCases")
@@ -46,7 +47,8 @@ end
 
 local function checkIfPTSIsSentAsBinary(bin_data)
   if not (bin_data ~= nil and string.len(bin_data) > 0) then
-    commonFunctions:userPrint(31, "PTS was not sent to Mobile in payload of OnSystemRequest")
+    commonFunctions:userPrint(consts.color.red,
+      "PTS was not sent to Mobile in payload of OnSystemRequest")
   end
 end
 
@@ -97,14 +99,14 @@ local function ptu(self, id, pUpdateFunction)
       for id = 1, getAppsCount() do
         local mobileSession = commonSmokeApi.getMobileSession(id, self)
         mobileSession:ExpectNotification("OnSystemRequest", { requestType = "PROPRIETARY" })
-        :Do(function(_, d2)
+        :Do(function(_, data)
             print("App ".. id .. " was used for PTU")
             RAISE_EVENT(event, event, "PTU event")
-            checkIfPTSIsSentAsBinary(d2.binaryData)
+            checkIfPTSIsSentAsBinary(data.binaryData)
             local corIdSystemRequest = mobileSession:SendRPC("SystemRequest", { requestType = "PROPRIETARY", fileName = policy_file_name }, ptu_file_name)
             EXPECT_HMICALL("BasicCommunication.SystemRequest")
-            :Do(function(_, d3)
-                self.hmiConnection:SendResponse(d3.id, "BasicCommunication.SystemRequest", "SUCCESS", { })
+            :Do(function(_, data)
+                self.hmiConnection:SendResponse(data.id, "BasicCommunication.SystemRequest", "SUCCESS", { })
                 self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate",
                   { policyfile = policy_file_path .. "/" .. policy_file_name })
               end)
@@ -157,10 +159,28 @@ function commonSmokeApi.getSelfAndParams(...)
   return table.unpack(out, 1, table.maxn(out))
 end
 
+function commonSmokeApi.getPathToFileInStorage(fileName)
+  return commonSmokeApi.getPathToSDL() .. "storage/"
+    .. commonSmokeApi.getMobileAppId() .. "_"
+    .. commonSmokeApi.getDeviceMAC() .. "/"  .. fileName
+end
+
 function commonSmokeApi.getMobileSession(pAppId, self)
   self, pAppId = commonSmokeApi.getSelfAndParams(pAppId, self)
   if not pAppId then pAppId = 1 end
   return self["mobileSession" .. pAppId]
+end
+
+function commonSmokeApi.splitString(inputStr, sep)
+    if sep == nil then
+        sep = "%s"
+    end
+    local splitted = {}; i = 1
+    for str in string.gmatch(inputStr, "([^"..sep.."]+)") do
+        splitted[i] = str
+        i = i + 1
+    end
+    return splitted
 end
 
 function commonSmokeApi.activateApp(pAppId, self)
@@ -182,13 +202,13 @@ function commonSmokeApi.start(pHMIParams, self)
   :Do(function()
       self:initHMI(self)
       :Do(function()
-          commonFunctions:userPrint(35, "HMI initialized")
+          commonFunctions:userPrint(consts.color.magenta, "HMI initialized")
           self:initHMI_onReady(pHMIParams)
           :Do(function()
-              commonFunctions:userPrint(35, "HMI is ready")
+              commonFunctions:userPrint(consts.color.magenta, "HMI is ready")
               self:connectMobile()
               :Do(function()
-                  commonFunctions:userPrint(35, "Mobile connected")
+                  commonFunctions:userPrint(consts.color.magenta, "Mobile connected")
                   allowSDL(self)
                 end)
             end)
@@ -206,15 +226,15 @@ function commonSmokeApi.registerApplicationWithPTU(pAppId, pUpdateFunction, self
         config["application" .. pAppId].registerAppInterfaceParams)
       EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered",
         { application = { appName = config["application" .. pAppId].registerAppInterfaceParams.appName } })
-      :Do(function(_, d1)
-          hmiAppIds[config["application" .. pAppId].registerAppInterfaceParams.appID] = d1.params.application.appID
+      :Do(function(_, data)
+          hmiAppIds[config["application" .. pAppId].registerAppInterfaceParams.appID] = data.params.application.appID
           EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",
             {status = "UPDATE_NEEDED"}, {status = "UPDATING"}, {status = "UP_TO_DATE" })
           :Times(3)
           EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
-          :Do(function(_, d2)
-              self.hmiConnection:SendResponse(d2.id, d2.method, "SUCCESS", { })
-              ptu_table = jsonFileToTable(d2.params.file)
+          :Do(function(_, data)
+              self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", { })
+              ptu_table = jsonFileToTable(data.params.file)
               ptu(self, pAppId, pUpdateFunction)
             end)
         end)
@@ -230,13 +250,16 @@ function commonSmokeApi.registerApplicationWithPTU(pAppId, pUpdateFunction, self
 end
 
 function commonSmokeApi.putFile(params, pAppId, self)
-    if not pAppId then pAppId = 1 end
-    local mobileSession = commonSmokeApi.getMobileSession(pAppId, self);
-    local cid = mobileSession:SendRPC("PutFile", params.requestParams, params.filePath)
+  if not pAppId then pAppId = 1 end
+  local mobileSession = commonSmokeApi.getMobileSession(pAppId, self);
+  local cid = mobileSession:SendRPC("PutFile", params.requestParams, params.filePath)
 
-    mobileSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS"})
+  mobileSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS"})
 end
 
+function commonSmokeApi.readParameterFromSmartDeviceLinkIni(paramName)
+  return commonFunctions:read_parameter_from_smart_device_link_ini(paramName)
+end
 
 function commonSmokeApi.postconditions()
   StopSDL()

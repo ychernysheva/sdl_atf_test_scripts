@@ -27,7 +27,7 @@
 -- SDL checks if UI interface is available on HMI
 -- SDL checks if TTS interface is available on HMI
 -- SDL checks if SetGlobalproperties is allowed by Policies
--- SDL checks if all parameters is allowed by Policies
+-- SDL checks if all parameters are allowed by Policies
 -- SDL transfers the UI part of request with allowed parameters to HMI
 -- SDL transfers the TTS part of request with allowed parameters to HMI
 -- SDL receives UI and TTS part of response from HMI with "SUCCESS" result code
@@ -126,7 +126,6 @@ local function setGlobalProperties(params, self)
 	end)
 
 	self.mobileSession1:ExpectResponse(cid, { success = true, resultCode = "SUCCESS"})
-
 	self.mobileSession1:ExpectNotification("OnHashChange")
 end
 
