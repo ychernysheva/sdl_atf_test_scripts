@@ -523,4 +523,8 @@ function Test:SingleSpatialDataWithFloatNumber()
   end)
 end
 
+function Test:Postconditions()
+  StopSDL()
+end
+
 return Test
