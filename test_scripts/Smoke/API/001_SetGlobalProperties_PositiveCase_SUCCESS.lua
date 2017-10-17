@@ -36,7 +36,7 @@
 
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
-local commonSmokeApi = require('test_scripts/Smoke/commonSmokeApi')
+local commonSmoke = require('test_scripts/Smoke/commonSmoke')
 
 --[[ Local Variables ]]
 local putFileParams = {
@@ -110,10 +110,8 @@ local allParams = {
 local function setGlobalProperties(params, self)
 	local cid = self.mobileSession1:SendRPC("SetGlobalProperties", params.requestParams)
 
-	params.responseUiParams.vrHelp[1].image.value = commonSmokeApi.getPathToSDL()
-		.. "storage/" .. commonSmokeApi.getMobileAppId() .. "_"
-		.. commonSmokeApi.getDeviceMAC() .. "/icon.png"
-	params.responseUiParams.menuIcon.value = params.responseUiParams.vrHelp[1].image.value
+	params.responseUiParams.vrHelp[1].image.value = commonSmoke.getPathToFileInStorage("icon.png")
+	params.responseUiParams.menuIcon.value = commonSmoke.getPathToFileInStorage("icon.png")
 
 	EXPECT_HMICALL("UI.SetGlobalProperties", params.responseUiParams)
 	:Do(function(_,data)
@@ -131,14 +129,14 @@ end
 
 --[[ Scenario ]]
 runner.Title("Preconditions")
-runner.Step("Clean environment", commonSmokeApi.preconditions)
-runner.Step("Start SDL, HMI, connect Mobile, start Session", commonSmokeApi.start)
-runner.Step("RAI, PTU", commonSmokeApi.registerApplicationWithPTU)
-runner.Step("Activate App", commonSmokeApi.activateApp)
-runner.Step("Upload icon file", commonSmokeApi.putFile, {putFileParams})
+runner.Step("Clean environment", commonSmoke.preconditions)
+runner.Step("Start SDL, HMI, connect Mobile, start Session", commonSmoke.start)
+runner.Step("RAI, PTU", commonSmoke.registerApplicationWithPTU)
+runner.Step("Activate App", commonSmoke.activateApp)
+runner.Step("Upload icon file", commonSmoke.putFile, {putFileParams})
 
 runner.Title("Test")
 runner.Step("SetGlobalProperties Positive Case", setGlobalProperties, {allParams})
 
 runner.Title("Postconditions")
-runner.Step("Stop SDL", commonSmokeApi.postconditions)
+runner.Step("Stop SDL", commonSmoke.postconditions)
