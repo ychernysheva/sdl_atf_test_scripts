@@ -28,10 +28,10 @@ local commonPreconditions = require('user_modules/shared_testcases/commonPrecond
 local ptu_table = {}
 local hmiAppIds = {}
 
-local commonSmokeApi = {}
+local commonSmoke = {}
 
-commonSmokeApi.timeout = 5000
-commonSmokeApi.minTimeout = 500
+commonSmoke.timeout = 5000
+commonSmoke.minTimeout = 500
 
 local function allowSDL(self)
   self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality",
@@ -81,6 +81,10 @@ local function ptu(self, id, pUpdateFunction)
       self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",
         { requestType = "PROPRIETARY", fileName = pts_file_name })
       getPTUFromPTS(ptu_table)
+      local function updatePTU(tbl)
+        tbl.policy_table.app_policies[commonSmoke.getMobileAppId(id)] = commonSmoke.getSmokeAppPoliciesConfig()
+      end
+      updatePTU(ptu_table)
       if pUpdateFunction then
         pUpdateFunction(ptu_table)
       end
@@ -97,7 +101,7 @@ local function ptu(self, id, pUpdateFunction)
       :Timeout(11000)
 
       for id = 1, getAppsCount() do
-        local mobileSession = commonSmokeApi.getMobileSession(id, self)
+        local mobileSession = commonSmoke.getMobileSession(id, self)
         mobileSession:ExpectNotification("OnSystemRequest", { requestType = "PROPRIETARY" })
         :Do(function(_, data)
             print("App ".. id .. " was used for PTU")
@@ -120,26 +124,26 @@ end
 
 --[[Module functions]]
 
-function commonSmokeApi.preconditions()
+function commonSmoke.preconditions()
   commonFunctions:SDLForceStop()
   commonSteps:DeletePolicyTable()
   commonSteps:DeleteLogsFiles()
 end
 
-function commonSmokeApi.getDeviceMAC()
+function commonSmoke.getDeviceMAC()
   return config.deviceMAC
 end
 
-function commonSmokeApi.getPathToSDL()
+function commonSmoke.getPathToSDL()
   return config.pathToSDL
 end
 
-function commonSmokeApi.getMobileAppId(pAppId)
+function commonSmoke.getMobileAppId(pAppId)
   if not pAppId then pAppId = 1 end
   return config["application" .. pAppId].registerAppInterfaceParams.appID
 end
 
-function commonSmokeApi.getSelfAndParams(...)
+function commonSmoke.getSelfAndParams(...)
   local out = { }
   local selfIdx = nil
   for i,v in pairs({...}) do
@@ -159,23 +163,33 @@ function commonSmokeApi.getSelfAndParams(...)
   return table.unpack(out, 1, table.maxn(out))
 end
 
-function commonSmokeApi.getPathToFileInStorage(fileName)
-  return commonSmokeApi.getPathToSDL() .. "storage/"
-    .. commonSmokeApi.getMobileAppId() .. "_"
-    .. commonSmokeApi.getDeviceMAC() .. "/"  .. fileName
+function commonSmoke.getPathToFileInStorage(fileName)
+  return commonSmoke.getPathToSDL() .. "storage/"
+    .. commonSmoke.getMobileAppId() .. "_"
+    .. commonSmoke.getDeviceMAC() .. "/"  .. fileName
 end
 
-function commonSmokeApi.getMobileSession(pAppId, self)
-  self, pAppId = commonSmokeApi.getSelfAndParams(pAppId, self)
+function commonSmoke.getMobileSession(pAppId, self)
+  self, pAppId = commonSmoke.getSelfAndParams(pAppId, self)
   if not pAppId then pAppId = 1 end
   return self["mobileSession" .. pAppId]
 end
 
-function commonSmokeApi.splitString(inputStr, sep)
+function commonSmoke.getSmokeAppPoliciesConfig()
+  return {
+    keep_context = false,
+    steal_focus = false,
+    priority = "NONE",
+    default_hmi = "NONE",
+    groups = { "Base-4" }
+  }
+end
+
+function commonSmoke.splitString(inputStr, sep)
     if sep == nil then
         sep = "%s"
     end
-    local splitted = {}; i = 1
+    local splitted, i = {}, 1
     for str in string.gmatch(inputStr, "([^"..sep.."]+)") do
         splitted[i] = str
         i = i + 1
@@ -183,20 +197,20 @@ function commonSmokeApi.splitString(inputStr, sep)
     return splitted
 end
 
-function commonSmokeApi.activateApp(pAppId, self)
-  self, pAppId = commonSmokeApi.getSelfAndParams(pAppId, self)
+function commonSmoke.activateApp(pAppId, self)
+  self, pAppId = commonSmoke.getSelfAndParams(pAppId, self)
   if not pAppId then pAppId = 1 end
   local pHMIAppId = hmiAppIds[config["application" .. pAppId].registerAppInterfaceParams.appID]
-  local mobSession = commonSmokeApi.getMobileSession(pAppId, self)
+  local mobSession = commonSmoke.getMobileSession(pAppId, self)
   local requestId = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = pHMIAppId })
   EXPECT_HMIRESPONSE(requestId)
   mobSession:ExpectNotification("OnHMIStatus",
     {hmiLevel = "FULL", audioStreamingState = "AUDIBLE", systemContext = "MAIN"})
-  commonTestCases:DelayedExp(commonSmokeApi.minTimeout)
+  commonTestCases:DelayedExp(commonSmoke.minTimeout)
 end
 
-function commonSmokeApi.start(pHMIParams, self)
-  self, pHMIParams = commonSmokeApi.getSelfAndParams(pHMIParams, self)
+function commonSmoke.start(pHMIParams, self)
+  self, pHMIParams = commonSmoke.getSelfAndParams(pHMIParams, self)
   self:runSDL()
   commonFunctions:waitForSDLStart(self)
   :Do(function()
@@ -216,8 +230,8 @@ function commonSmokeApi.start(pHMIParams, self)
     end)
 end
 
-function commonSmokeApi.registerApplicationWithPTU(pAppId, pUpdateFunction, self)
-  self, pAppId, pUpdateFunction = commonSmokeApi.getSelfAndParams(pAppId, pUpdateFunction, self)
+function commonSmoke.registerApplicationWithPTU(pAppId, pUpdateFunction, self)
+  self, pAppId, pUpdateFunction = commonSmoke.getSelfAndParams(pAppId, pUpdateFunction, self)
   if not pAppId then pAppId = 1 end
   self["mobileSession" .. pAppId] = mobile_session.MobileSession(self, self.mobileConnection)
   self["mobileSession" .. pAppId]:StartService(7)
@@ -249,20 +263,20 @@ function commonSmokeApi.registerApplicationWithPTU(pAppId, pUpdateFunction, self
     end)
 end
 
-function commonSmokeApi.putFile(params, pAppId, self)
+function commonSmoke.putFile(params, pAppId, self)
   if not pAppId then pAppId = 1 end
-  local mobileSession = commonSmokeApi.getMobileSession(pAppId, self);
+  local mobileSession = commonSmoke.getMobileSession(pAppId, self);
   local cid = mobileSession:SendRPC("PutFile", params.requestParams, params.filePath)
 
   mobileSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS"})
 end
 
-function commonSmokeApi.readParameterFromSmartDeviceLinkIni(paramName)
+function commonSmoke.readParameterFromSmartDeviceLinkIni(paramName)
   return commonFunctions:read_parameter_from_smart_device_link_ini(paramName)
 end
 
-function commonSmokeApi.postconditions()
+function commonSmoke.postconditions()
   StopSDL()
 end
 
-return commonSmokeApi
+return commonSmoke
