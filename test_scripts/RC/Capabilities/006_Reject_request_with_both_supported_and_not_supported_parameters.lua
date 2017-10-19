@@ -27,22 +27,22 @@ local climate_capabilities = {{
 local rc_capabilities = commonRC.buildHmiRcCapabilities(climate_capabilities, commonRC.DEFAULT, commonRC.DEFAULT)
 local climate_params =
 {
-	moduleType = "CLIMATE",
-	climateControlData =
+  moduleType = "CLIMATE",
+  climateControlData =
   {
     fanSpeed = 30,
     acEnable = true,
     acMaxEnable = true,
-    circulateAirEnableAvailable = true -- unsupported parameter
+    circulateAirEnable = true -- unsupported parameter
   }
 }
 
 --[[ Local Functions ]]
 local function setVehicleData(params, self)
-	local cid = self.mobileSession1:SendRPC("SetInteriorVehicleData", {moduleData = params})
+  local cid = self.mobileSession1:SendRPC("SetInteriorVehicleData", {moduleData = params})
 
-		EXPECT_HMICALL("RC.SetInteriorVehicleData"):Times(0)
-		self.mobileSession1:ExpectResponse(cid, { success = false, resultCode = "UNSUPPORTED_RESOURCE" })
+    EXPECT_HMICALL("RC.SetInteriorVehicleData"):Times(0)
+    self.mobileSession1:ExpectResponse(cid, { success = false, resultCode = "UNSUPPORTED_RESOURCE" })
 end
 
 --[[ Scenario ]]
