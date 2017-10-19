@@ -19,15 +19,15 @@ local commonRC = require('test_scripts/RC/commonRC')
 local common_functions = require('user_modules/shared_testcases/commonTestCases')
 
 --[[ Local Variables ]]
-local radio_capabilities = {{moduleName = "Radio", radioFrequencyAvailable = true, radioBandAvailable = true}}
+local radio_capabilities = {{moduleName = "Radio", radioFrequencyAvailable = true}}
 
 local rc_capabilities = commonRC.buildHmiRcCapabilities(commonRC.DEFAULT, radio_capabilities, commonRC.DEFAULT)
 local available_params =
 {
     moduleType = "RADIO",
-    radioControlData = {frequencyInteger = 1, frequencyFraction = 2, band = "AM"}
+    radioControlData = {frequencyInteger = 1, frequencyFraction = 2}
 }
-local absent_params = {moduleType = "RADIO", radioControlData = {frequencyInteger = 1, frequencyFraction = 2}}
+local absent_params = {moduleType = "RADIO", radioControlData = {band = "AM"}}
 
 --[[ Local Functions ]]
 local function setVehicleData(params, self)
@@ -45,7 +45,7 @@ local function setVehicleData(params, self)
 	else
 		EXPECT_HMICALL("RC.SetInteriorVehicleData"):Times(0)
 		self.mobileSession1:ExpectResponse(cid, { success = false, resultCode = "UNSUPPORTED_RESOURCE" })
-        common_functions.DelayedExp(commonRC.timeout)
+        common_functions:DelayedExp(commonRC.timeout)
 	end
 end
 
