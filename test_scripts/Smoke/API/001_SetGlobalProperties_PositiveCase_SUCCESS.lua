@@ -15,8 +15,8 @@
 
 -- Pre-conditions:
 -- a. HMI and SDL are started
--- b. appID is registered and on SDL
--- c. appID is in Background, Full or Limited HMI level
+-- b. appID is registered and activated on SDL
+-- c. appID is currently in Background, Full or Limited HMI level
 
 -- Steps:
 -- appID requests SetGlobalproperties with timeoutPrompt, helpPrompt and other valid parameters
@@ -110,14 +110,15 @@ local allParams = {
 local function setGlobalProperties(params, self)
 	local cid = self.mobileSession1:SendRPC("SetGlobalProperties", params.requestParams)
 
+	params.responseUiParams.appID = commonSmoke.getHMIAppId()
 	params.responseUiParams.vrHelp[1].image.value = commonSmoke.getPathToFileInStorage("icon.png")
 	params.responseUiParams.menuIcon.value = commonSmoke.getPathToFileInStorage("icon.png")
-
 	EXPECT_HMICALL("UI.SetGlobalProperties", params.responseUiParams)
 	:Do(function(_,data)
 		self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 	end)
 
+	params.responseTtsParams.appID = commonSmoke.getHMIAppId()
 	EXPECT_HMICALL("TTS.SetGlobalProperties", params.responseTtsParams)
 	:Do(function(_,data)
 		self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
