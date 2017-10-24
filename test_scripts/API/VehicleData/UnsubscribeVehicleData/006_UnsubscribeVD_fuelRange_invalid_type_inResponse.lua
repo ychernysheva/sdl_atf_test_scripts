@@ -8,7 +8,7 @@
 -- Description:
 -- In case:
 -- 1) mobile application sends valid UnsubscribeVehicleData
--- 2) HMI responds to SDL with invalid types of fuelRange parameterы
+-- 2) HMI responds to SDL with invalid types of fuelRange parameter
 -- SDL must:
 -- Responds INVALID_DATA, success:false to mobile application
 ---------------------------------------------------------------------------------------------------
@@ -61,7 +61,6 @@ runner.Step("Activate App", common.activateApp)
 runner.Step("SubscribeVehicleData", SubscribeVD)
 
 runner.Title("Test")
--- runner.Step("SubscribeVehicleData_fuelRange_invaliDataType", SubscribeVDinvalidParamType)
 for k, value in pairs(fuelRangeValues) do
   runner.Step("UnsubscribeVehicleData_fuelRange_" .. k, UnsubscribeVD, { value })
   runner.Step("App_is_subcribed_still", OnVD)
