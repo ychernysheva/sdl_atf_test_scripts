@@ -163,6 +163,11 @@ function commonSmoke.getSelfAndParams(...)
   return table.unpack(out, 1, table.maxn(out))
 end
 
+function commonSmoke.getHMIAppId(pAppId)
+  if not pAppId then pAppId = 1 end
+  return hmiAppIds[config["application" .. pAppId].registerAppInterfaceParams.appID]
+end
+
 function commonSmoke.getPathToFileInStorage(fileName)
   return commonSmoke.getPathToSDL() .. "storage/"
     .. commonSmoke.getMobileAppId() .. "_"
@@ -195,6 +200,52 @@ function commonSmoke.splitString(inputStr, sep)
         i = i + 1
     end
     return splitted
+end
+
+function commonSmoke.expectOnHMIStatusWithAudioStateChanged(self, pAppId, request, level)
+  if pAppId == nil then pAppId = 1 end
+  if request == nil then  request = "BOTH" end
+  if level == nil then  level = "FULL" end
+
+  local mobSession = commonSmoke.getMobileSession(pAppId, self)
+  local appParams = config["application" .. pAppId].registerAppInterfaceParams
+
+  if appParams.isMediaApplication == true then
+    if request == "BOTH" then
+      mobSession:ExpectNotification("OnHMIStatus",
+        { systemContext = "ALERT", hmiLevel = level, audioStreamingState = "AUDIBLE"    },
+        { systemContext = "ALERT", hmiLevel = level, audioStreamingState = "ATTENUATED" },
+        { systemContext = "ALERT", hmiLevel = level, audioStreamingState = "AUDIBLE"    },
+        { systemContext = "MAIN",  hmiLevel = level, audioStreamingState = "AUDIBLE"    })
+      :Times(4)
+    elseif request == "speak" then
+      mobSession:ExpectNotification("OnHMIStatus",
+        { systemContext = "MAIN",  hmiLevel = level, audioStreamingState = "ATTENUATED" },
+        { systemContext = "MAIN",  hmiLevel = level, audioStreamingState = "AUDIBLE"    })
+      :Times(2)
+    elseif request == "alert" then
+      mobSession:ExpectNotification("OnHMIStatus",
+        { systemContext = "ALERT", hmiLevel = level, audioStreamingState = "AUDIBLE" },
+        { systemContext = "MAIN",  hmiLevel = level, audioStreamingState = "AUDIBLE" })
+      :Times(2)
+    end
+  elseif appParams.isMediaApplication == false then
+    if request == "BOTH" then
+      mobSession:ExpectNotification("OnHMIStatus",
+        { systemContext = "ALERT", hmiLevel = level, audioStreamingState = "NOT_AUDIBLE" },
+        { systemContext = "MAIN",  hmiLevel = level, audioStreamingState = "NOT_AUDIBLE" })
+      :Times(2)
+    elseif request == "speak" then
+      mobSession:ExpectNotification("OnHMIStatus")
+      :Times(0)
+    elseif request == "alert" then
+      mobSession:ExpectNotification("OnHMIStatus",
+        { systemContext = "ALERT", hmiLevel = level, audioStreamingState = "NOT_AUDIBLE" },
+        { systemContext = "MAIN",  hmiLevel = level, audioStreamingState = "NOT_AUDIBLE" })
+      :Times(2)
+    end
+  end
+
 end
 
 function commonSmoke.activateApp(pAppId, self)
