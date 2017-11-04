@@ -41,7 +41,7 @@ local function processRPCFailure(self)
   EXPECT_HMICALL("VehicleInfo." .. rpc.name, rpc.params):Times(0)
   commonTestCases:DelayedExp(common.timeout)
   mobileSession:ExpectResponse(cid, { success = false, resultCode = "DISALLOWED",
-    info = "'engineOilLife' disallowed by policies.",
+    info = "'engineOilLife' parameter is disallowed by Policies",
     engineOilLife = {dataType = "VEHICLEDATA_ENGINEOILLIFE", resultCode = "DISALLOWED"} })
 end
 
