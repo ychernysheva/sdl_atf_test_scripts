@@ -18,6 +18,7 @@
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
 local common = require('test_scripts/API/VehicleData/commonVehicleData')
+local json = require("modules/json")
 
 --[[ Local Variables ]]
 local rangeDefault = 45.5
@@ -84,7 +85,7 @@ runner.Step("OnVehicleData_fuelRange_range_lower", OnVehicleDataNotification,
     {{{ type = typeDefault, range = rangeValueTbl.lower }}})
 runner.Step("OnVehicleData_fuelRange_range_float", OnVehicleDataNotification,
     {{{ type = typeDefault, range = rangeValueTbl.float }}})
-runner.Step("OnVehicleData_fuelRange_array_lower", OnVehicleDataNotification, {{ }})
+runner.Step("OnVehicleData_fuelRange_array_lower", OnVehicleDataNotification, { json.EMPTY_ARRAY })
 runner.Step("OnVehicleData_fuelRange_array_upper", OnVehicleDataNotification,
   { fuelRangeUpperArray })
 runner.Step("OnVehicleData_fuelRange_array_value_upper", OnVehicleDataNotification,
