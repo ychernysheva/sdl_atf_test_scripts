@@ -36,6 +36,12 @@ require('user_modules/AppTypes')
 -- [[Local variables]]
 local default_app_params = config.application1.registerAppInterfaceParams
 
+-- [[Local functions]]
+local function connectMobile(self)
+  self.mobileConnection:Connect()
+  return EXPECT_EVENT(events.connectedEvent, "Connected")
+end
+
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
 commonSteps:DeletePolicyTable()
@@ -48,7 +54,7 @@ function Test:StartSDL_With_One_Activated_App()
       commonFunctions:userPrint(35, "HMI initialized")
       self:initHMI_onReady():Do(function ()
         commonFunctions:userPrint(35, "HMI is ready")
-        self:connectMobile():Do(function ()
+        connectMobile(self):Do(function ()
           commonFunctions:userPrint(35, "Mobile Connected")
           self:startSession():Do(function ()
             commonFunctions:userPrint(35, "App is registered")
@@ -81,10 +87,15 @@ function Test:Wait_20_sec()
   self.mobileSession:StopHeartbeat()
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered", {appID = self.applications[default_app_params], unexpectedDisconnect = true })
   :Timeout(20000)
+  EXPECT_EVENT(events.disconnectedEvent, "Disconnected")
+  :Do(function()
+      print("Disconnected!!!")      
+    end)
+  :Timeout(20000)
 end
 
 function Test:Connect_Mobile()
-  self:connectMobile()
+  connectMobile(self)
 end
 
 function Test:Register_And_Resume_App_And_Data()
