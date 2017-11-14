@@ -52,7 +52,7 @@ local function CheckTimeBoundaries(time)
     if exp.occurences == 2 then
       local time2 = timestamp()
       local time_to_resumption = time2 - time
-      if time_to_resumption >= timeout and time_to_resumption < (timeout + 500) then
+      if time_to_resumption >= timeout and time_to_resumption < (timeout + 1000) then
         commonFunctions:userPrint(33, "Time to HMI level resumption is " .. tostring(time_to_resumption) ..", expected ~ " .. timeout )
         return true
       else
