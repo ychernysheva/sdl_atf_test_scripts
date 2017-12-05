@@ -86,7 +86,7 @@ local function extendedAddTestStep(testStepName, testStepImplFunction, paramsTab
   table.insert(implFunctionsListWithParams, {implFunc = testStepImplFunction, params = paramsTable})
   local newTestStepImplFunction = function(self)
       for _, func in pairs(implFunctionsListWithParams) do
-        table.insert(func.params, self)
+        -- table.insert(func.params, self)
         func.implFunc(unpack(func.params, 1, table.maxn(func.params)))
       end
     end
