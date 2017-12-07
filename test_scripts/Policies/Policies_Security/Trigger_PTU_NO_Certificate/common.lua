@@ -4,8 +4,6 @@
 --[[ General configuration parameters ]]
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 config.defaultProtocolVersion = 2
-config.application1.registerAppInterfaceParams.appName = "server"
-config.application1.registerAppInterfaceParams.appID = "SPT"
 
 --[[ Required Shared libraries ]]
 local mobile_session = require("mobile_session")
@@ -78,14 +76,12 @@ end
 --! pTbl - PTU table
 --! pAppId - application number (1, 2, etc.)
 --]]
-local function updatePTU(pTbl, pAppId)
-  local appID = config["application" .. pAppId].registerAppInterfaceParams.appID
-  pTbl.policy_table.app_policies[appID] = {
+function m.updatePTU(pTbl, pAppId)
+  pTbl.policy_table.app_policies[m.getAppID(pAppId)] = {
     keep_context = false,
     steal_focus = false,
     priority = "NONE",
     default_hmi = "NONE",
-    AppHMIType = { "NAVIGATION" },
     groups = { "Base-4", "Location-1" }
   }
 end
@@ -107,7 +103,7 @@ local function ptu(pPTUpdateFunc, pAppId)
         { requestType = "PROPRIETARY", fileName = pts_file_name })
       getPTUFromPTS(ptuTable)
 
-      updatePTU(ptuTable, pAppId)
+      m.updatePTU(ptuTable, pAppId)
 
       if pPTUpdateFunc then
         pPTUpdateFunc(ptuTable)
@@ -263,6 +259,11 @@ local function registerExpectServiceEventFunc(pMobSession)
   end
 end
 
+function m.getAppID(pAppId)
+  if not pAppId then pAppId = 1 end
+  return config["application" .. pAppId].registerAppInterfaceParams.appID
+end
+
 --[[ @preconditions: precondition steps
 --! @parameters: none
 --]]
@@ -334,13 +335,13 @@ function m.registerApp(pAppId)
   :Do(function()
       local corId = mobSession:SendRPC("RegisterAppInterface",
         config["application" .. pAppId].registerAppInterfaceParams)
-      EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered",
+      test.hmiConnection:ExpectNotification("BasicCommunication.OnAppRegistered",
         { application = { appName = config["application" .. pAppId].registerAppInterfaceParams.appName } })
       :Do(function(_, d1)
           hmiAppIds[config["application" .. pAppId].registerAppInterfaceParams.appID] = d1.params.application.appID
-          EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", { status = "UPDATE_NEEDED" }, { status = "UPDATING" })
+          test.hmiConnection:ExpectNotification("SDL.OnStatusUpdate", { status = "UPDATE_NEEDED" }, { status = "UPDATING" })
           :Times(2)
-          EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
+          test.hmiConnection:ExpectRequest("BasicCommunication.PolicyUpdate")
           :Do(function(_, d2)
               test.hmiConnection:SendResponse(d2.id, d2.method, "SUCCESS", { })
               ptuTable = jsonFileToTable(d2.params.file)
@@ -355,9 +356,29 @@ function m.registerApp(pAppId)
     end)
 end
 
-function m.PolicyTableUpdate(pPTUpdateFunc, pAppId)
+function m.registerAppWOPTU(pAppId)
   if not pAppId then pAppId = 1 end
-  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", { status = "UP_TO_DATE" })
+  local mobSession = m.getMobileSession(pAppId)
+  mobSession:StartService(7)
+  :Do(function()
+      local corId = mobSession:SendRPC("RegisterAppInterface",
+        config["application" .. pAppId].registerAppInterfaceParams)
+      test.hmiConnection:ExpectNotification("BasicCommunication.OnAppRegistered",
+        { application = { appName = config["application" .. pAppId].registerAppInterfaceParams.appName } })
+      mobSession:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
+      :Do(function()
+          mobSession:ExpectNotification("OnHMIStatus",
+            { hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN" })
+          mobSession:ExpectNotification("OnPermissionsChange")
+        end)
+    end)
+end
+
+function m.PolicyTableUpdate(pPTUpdateFunc, pExpNotificationFunc, pAppId)
+  if not pAppId then pAppId = 1 end
+  if not pExpNotificationFunc then
+    test.hmiConnection:ExpectNotification("SDL.OnStatusUpdate", { status = "UP_TO_DATE" })
+  end
   -- m.getMobileSession(pAppId):ExpectNotification("OnPermissionsChange") -- SDL issue
   ptu(pPTUpdateFunc, pAppId)
 end
@@ -389,8 +410,9 @@ end
 --[[ @DelayedExp: delay test step for default timeout
 --! @parameters: none
 --]]
-function m.delayedExp()
-  commonTestCases:DelayedExp(m.timeout)
+function m.delayedExp(pTimeOut)
+  if not pTimeOut then pTimeOut = m.timeout end
+  commonTestCases:DelayedExp(pTimeOut)
 end
 
 function m.readFile(pPath)
@@ -402,13 +424,11 @@ function m.readFile(pPath)
     return content
 end
 
-function test.hmiConnection:ExpectRequest(methodName, ...)
+function test.hmiConnection:ExpectRequest(name, ...)
   local event = events.Event()
-  event.matches = function(_, data)
-    return data.method == methodName
-  end
+  event.matches = function(_, data) return data.method == name end
   local args = table.pack(...)
-  local ret = Expectation("HMI call " .. methodName, self)
+  local ret = Expectation("HMI call " .. name, self)
   if #args > 0 then
     ret:ValidIf(function(e, data)
         local arguments
@@ -426,8 +446,36 @@ function test.hmiConnection:ExpectRequest(methodName, ...)
   return ret
 end
 
+function test.hmiConnection:ExpectNotification(name, ...)
+  local event = events.Event()
+  event.matches = function(_, data) return data.method == name end
+  local args = table.pack(...)
+  local ret = Expectation("HMI notification " .. name, self)
+  if #args > 0 then
+    ret:ValidIf(function(e, data)
+        local arguments
+        if e.occurences > #args then
+          arguments = args[#args]
+        else
+          arguments = args[e.occurences]
+        end
+        test.notification_counter = test.notification_counter + 1
+        return compareValues(arguments, data.params, "params")
+      end)
+  end
+  ret.event = event
+  event_dispatcher:AddEvent(self, event, ret)
+  test:AddExpectation(ret)
+  return ret
+end
+
 function m.getHMIConnection()
   return test.hmiConnection
+end
+
+function m.setForceProtectedServiceParam(pParamValue)
+  local paramName = "ForceProtectedService"
+  commonFunctions:SetValuesInIniFile(paramName .. "%s-=%s-[%d,A-Z,a-z]-%s-\n", paramName, pParamValue)
 end
 
 --[[ @protect: make table immutable
