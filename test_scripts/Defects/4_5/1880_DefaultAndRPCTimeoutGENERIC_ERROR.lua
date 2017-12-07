@@ -304,16 +304,12 @@ local function PerformInteraction(params, self)
   local TimeBetweenReqRes
   local TimeToResponseForVR = 2000
   local RespTimeout
-  if params.interactionMode ~= "VR_ONLY" then
-    if params.timeout then
-      PIDuration = params.timeout
-      RespTimeout = DefaultTimeout + 2*PIDuration
-    else
-      PIDuration = 10000
-      RespTimeout = DefaultTimeout + 2*PIDuration
-    end
+  if params.timeout then
+    PIDuration = params.timeout
+    RespTimeout = DefaultTimeout + 2*PIDuration
   else
-    RespTimeout = params.timeout
+    PIDuration = 10000
+    RespTimeout = DefaultTimeout + 2*PIDuration
   end
   local cid = self.mobileSession1:SendRPC("PerformInteraction", params)
   EXPECT_HMICALL("VR.PerformInteraction")
@@ -327,6 +323,38 @@ local function PerformInteraction(params, self)
   EXPECT_HMICALL("UI.PerformInteraction")
   self.mobileSession1:ExpectResponse(cid, {success = false, resultCode = "GENERIC_ERROR"})
   :Timeout(RespTimeout + 3000)
+  :ValidIf(function()
+      RespTime = timestamp()
+      TimeBetweenReqRes = RespTime - RequestTime
+      if
+      TimeBetweenReqRes > RespTimeout - 1000 and
+      TimeBetweenReqRes < RespTimeout + 1000 then
+        return true
+      else
+        return false, "SDL triggers timeout earlier then expected(".. tostring(RespTimeout) .." sec), after " ..
+        tostring(TimeBetweenReqRes) .. " sec. \n SDL must use PI timeout + default timeout."
+      end
+    end)
+end
+
+local function PerformInteractionVR(params, self)
+  local RequestTime
+  local RespTime
+  local TimeBetweenReqRes
+  local TimeToResponseForVR = 2000
+  local RespTimeout = params.timeout
+  local cid = self.mobileSession1:SendRPC("PerformInteraction", params)
+  RequestTime = timestamp()
+  EXPECT_HMICALL("VR.PerformInteraction")
+  :Do(function(_,data)
+      local function RespVR()
+        self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+      end
+      RUN_AFTER(RespVR, TimeToResponseForVR)
+    end)
+  EXPECT_HMICALL("UI.PerformInteraction")
+  self.mobileSession1:ExpectResponse(cid, {success = false, resultCode = "GENERIC_ERROR"})
+  :Timeout(RespTimeout + 1000)
   :ValidIf(function()
       RespTime = timestamp()
       TimeBetweenReqRes = RespTime - RequestTime
@@ -368,7 +396,7 @@ runner.Step("PerformInteraction_default_timeout_and_PI_timeout_BOTH", PerformInt
   { PerformInteractionRequestParamsBOTH })
 runner.Step("PerformInteraction_default_timeout_and_PI_timeout_MANUAL", PerformInteraction,
   { PerformInteractionRequestParamsMANUAL })
-runner.Step("PerformInteraction_timeout_VR", PerformInteraction, { PerformInteractionRequestParamsVR })
+runner.Step("PerformInteraction_timeout_VR", PerformInteractionVR, { PerformInteractionRequestParamsVR })
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", commonDefects.postconditions)
