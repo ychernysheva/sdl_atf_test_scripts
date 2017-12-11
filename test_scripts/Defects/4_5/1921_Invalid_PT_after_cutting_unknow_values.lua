@@ -15,7 +15,9 @@ local commonDefects = require('test_scripts/Defects/4_5/commonDefects')
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 
 --[[ Local Functions ]]
-local CuttingUnknownStatus = false
+local isCuttingUnknownError = false
+local isError
+local ErrorMessage
 
 --[[ Local Functions ]]
 local function ptuUpdateFunc(tbl)
@@ -68,31 +70,33 @@ local function NotValidPtuUpdateFunc(tbl)
   {"Base-4", "NewTestCaseGroup"}
 end
 
+local function ErrorOccurred(Message)
+  isError = true
+  ErrorMessage = ErrorMessage .. Message
+end
+
 local function CheckCuttingUnknowValues(self)
   commonDefects.rai_ptu_n_without_OnPermissionsChange(1, ptuUpdateFunc,self)
   self.mobileSession1:ExpectNotification("OnPermissionsChange")
   :Times(2)
   :ValidIf(function(_,data)
-      local ErrorStatus = false
-      local ErrorMessage = ""
+      isError = false
+      ErrorMessage = ""
       if #data.payload.permissionItem ~= 0 then
         for i=1, #data.payload.permissionItem do
           if data.payload.permissionItem[i].rpcName == "UnknownAPI" then
-            ErrorStatus = true
-            CuttingUnknownStatus = true
-            ErrorMessage = ErrorMessage .. " OnPermissionsChange contains unknown_RPC value.\n"
+            isCuttingUnknownError = true
+            ErrorOccurred(" OnPermissionsChange contains unknown_RPC value.\n")
           end
           if data.payload.permissionItem[i].newParameter then
-            ErrorStatus = true
-            CuttingUnknownStatus = true
-            ErrorMessage = ErrorMessage .. " OnPermissionsChange contains unknown_parameter value.\n"
+            isCuttingUnknownError = true
+            ErrorOccurred(" OnPermissionsChange contains unknown_parameter value.\n")
           end
         end
       else
-        ErrorStatus = true
-        ErrorMessage = ErrorMessage .. "OnPermissionsChange is not contain permissionItem elements"
+        ErrorOccurred("OnPermissionsChange is not contain permissionItem elements")
       end
-      if ErrorStatus == true then
+      if isError == true then
         return false, ErrorMessage
       else
         return true
@@ -103,7 +107,7 @@ local function CheckCuttingUnknowValues(self)
 end
 
 local function InvalidPTAfterCutingUnknownValues(self)
-  if CuttingUnknownStatus == true then
+  if isCuttingUnknownError == true then
     self:FailTestCase("Unknown values are not cut from PT, so test case is not executed.")
   else
     commonDefects.UnsuccessPTU(NotValidPtuUpdateFunc,self)
