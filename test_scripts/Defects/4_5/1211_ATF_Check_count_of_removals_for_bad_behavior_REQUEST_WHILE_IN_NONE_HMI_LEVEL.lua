@@ -29,6 +29,9 @@ local function registerApp(self)
       EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
       EXPECT_RESPONSE(cid, { success = true })
       EXPECT_NOTIFICATION("OnPermissionsChange")
+      self.mobileSession:ExpectNotification("OnHMIStatus", {
+        hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"
+      })
     end)
 end
 
