@@ -185,6 +185,9 @@ function commonDefect.rai_ptu_n(id, ptu_update_func, self)
   self, id, ptu_update_func = commonDefect.getSelfAndParams(id, ptu_update_func, self)
   if not id then id = 1 end
   self["mobileSession" .. id] = mobile_session.MobileSession(self, self.mobileConnection)
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",
+    { status = "UPDATE_NEEDED" }, { status = "UPDATING" }, { status = "UP_TO_DATE" })
+  :Times(3)
   self["mobileSession" .. id]:StartService(7)
   :Do(function()
       local corId = self["mobileSession" .. id]:SendRPC
@@ -193,9 +196,6 @@ function commonDefect.rai_ptu_n(id, ptu_update_func, self)
         { application = { appName = config["application" .. id].registerAppInterfaceParams.appName } })
       :Do(function(_, d1)
           hmiAppIds[config["application" .. id].registerAppInterfaceParams.appID] = d1.params.application.appID
-          EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",
-            { status = "UPDATE_NEEDED" }, { status = "UPDATING" }, { status = "UP_TO_DATE" })
-          :Times(3)
           EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
           :Do(function(_, d2)
               self.hmiConnection:SendResponse(d2.id, d2.method, "SUCCESS", { })
@@ -255,9 +255,44 @@ function commonDefect.getMobileSession(self, pAppId)
   return self["mobileSession" .. pAppId]
 end
 
+function commonDefect.putFile(pFileName, self)
+  self, pFileName = commonDefect.getSelfAndParams(pFileName, self)
+  local cid = self.mobileSession1:SendRPC(
+    "PutFile",
+    {syncFileName = pFileName, fileType = "GRAPHIC_PNG", persistentFile = false, systemFile = false},
+  "files/icon.png")
+
+  self.mobileSession1:ExpectResponse(cid, { success = true, resultCode = "SUCCESS"})
+end
+
 function commonDefect.delayedExp(pTimeout)
   if not pTimeout then pTimeout = commonDefect.timeout end
   commonTestCases:DelayedExp(pTimeout)
+end
+
+function commonDefect.rai_n(id, self)
+  self, id = commonDefect.getSelfAndParams(id, self)
+  if not id then id = 1 end
+  self["mobileSession" .. id] = mobile_session.MobileSession(self, self.mobileConnection)
+  self["mobileSession" .. id]:StartService(7)
+  :Do(function()
+      local corId = self["mobileSession" .. id]:SendRPC("RegisterAppInterface",
+        config["application" .. id].registerAppInterfaceParams)
+      EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", {
+        application = { appName = config["application" .. id].registerAppInterfaceParams.appName }
+      })
+      :Do(function(_, d1)
+          hmiAppIds[config["application" .. id].registerAppInterfaceParams.appID] = d1.params.application.appID
+        end)
+      self["mobileSession" .. id]:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
+      :Do(function()
+          self["mobileSession" .. id]:ExpectNotification("OnHMIStatus", {
+            hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"
+          })
+          :Times(AtLeast(1))
+          self["mobileSession" .. id]:ExpectNotification("OnPermissionsChange")
+        end)
+    end)
 end
 
 return commonDefect
