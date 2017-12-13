@@ -44,8 +44,7 @@ local SliderRequetsParamsWithoutTimeout = {
 
 local ScrollableMessageRequestParamsWithSoftButtons = {
   scrollableMessageBody = "abc",
-  softButtons =
-  {
+  softButtons = {
     {
       softButtonID = 1,
       text = "Button1",
@@ -175,7 +174,7 @@ local function Alert(params, self)
   if params.duration then
     AlertDuration = params.duration
   else
-    -- deration default valur from mobile API
+    -- duration default value from mobile API
     AlertDuration = 5000
   end
   local RespTimeout = DefaultTimeout + AlertDuration
@@ -203,14 +202,12 @@ local function Alert(params, self)
   :ValidIf(function()
       RespTime = timestamp()
       TimeBetweenReqRes = RespTime - RequestTime
-      if
-      TimeBetweenReqRes > RespTimeout - 1000 and
-      TimeBetweenReqRes < RespTimeout + 1000 then
+      if TimeBetweenReqRes > RespTimeout - 1000 and TimeBetweenReqRes < RespTimeout + 1000 then
         return true
       else
-        return false, "SDL triggers timeout earlier then expected(".. tostring(RespTimeout) .." sec), after " ..
-        tostring(TimeBetweenReqRes) ..
-        " sec.\n SDL must use Alert duration + default timeout in case of absence softButtons."
+        return false, "SDL triggers timeout earlier then expected("
+          .. tostring(RespTimeout) .." sec), after " .. tostring(TimeBetweenReqRes)
+          .. " sec.\n SDL must use Alert duration + default timeout in case of absence softButtons."
       end
     end)
 end
@@ -235,13 +232,11 @@ local function Slider(params, self)
   :ValidIf(function()
       RespTime = timestamp()
       TimeBetweenReqRes = RespTime - RequestTime
-      if
-      TimeBetweenReqRes > RespTimeout - 1000 and
-      TimeBetweenReqRes < RespTimeout + 1000 then
+      if TimeBetweenReqRes > RespTimeout - 1000 and TimeBetweenReqRes < RespTimeout + 1000 then
         return true
       else
-        return false, "SDL triggers timeout earlier then expected(".. tostring(RespTimeout) .." sec), after " ..
-        tostring(TimeBetweenReqRes) .. " sec. \n SDL must use Slider timeout + default timeout."
+        return false, "SDL triggers timeout earlier then expected(".. tostring(RespTimeout) .." sec), after "
+          .. tostring(TimeBetweenReqRes) .. " sec. \n SDL must use Slider timeout + default timeout."
       end
     end)
 end
@@ -266,13 +261,11 @@ local function ScrollableMessage(params, self)
   :ValidIf(function()
       RespTime = timestamp()
       TimeBetweenReqRes = RespTime - RequestTime
-      if
-      TimeBetweenReqRes > RespTimeout - 1000 and
-      TimeBetweenReqRes < RespTimeout + 1000 then
+      if TimeBetweenReqRes > RespTimeout - 1000 and TimeBetweenReqRes < RespTimeout + 1000 then
         return true
       else
-        return false, "SDL triggers timeout earlier then expected(".. tostring(RespTimeout) .." sec), after " ..
-        tostring(TimeBetweenReqRes) .. " sec. \n SDL must use ScrollableMessage timeout + default timeout."
+        return false, "SDL triggers timeout earlier then expected(".. tostring(RespTimeout) .." sec), after "
+          .. tostring(TimeBetweenReqRes) .. " sec. \n SDL must use ScrollableMessage timeout + default timeout."
       end
     end)
 end
@@ -326,13 +319,11 @@ local function PerformInteraction(params, self)
   :ValidIf(function()
       RespTime = timestamp()
       TimeBetweenReqRes = RespTime - RequestTime
-      if
-      TimeBetweenReqRes > RespTimeout - 1000 and
-      TimeBetweenReqRes < RespTimeout + 1000 then
+      if TimeBetweenReqRes > RespTimeout - 1000 and TimeBetweenReqRes < RespTimeout + 1000 then
         return true
       else
-        return false, "SDL triggers timeout earlier then expected(".. tostring(RespTimeout) .." sec), after " ..
-        tostring(TimeBetweenReqRes) .. " sec. \n SDL must use PI timeout + default timeout."
+        return false, "SDL triggers timeout earlier then expected(".. tostring(RespTimeout) .." sec), after "
+          .. tostring(TimeBetweenReqRes) .. " sec. \n SDL must use PI timeout + default timeout."
       end
     end)
 end
@@ -358,13 +349,11 @@ local function PerformInteractionVR(params, self)
   :ValidIf(function()
       RespTime = timestamp()
       TimeBetweenReqRes = RespTime - RequestTime
-      if
-      TimeBetweenReqRes > RespTimeout - 1000 and
-      TimeBetweenReqRes < RespTimeout + 1000 then
+      if TimeBetweenReqRes > RespTimeout - 1000 and TimeBetweenReqRes < RespTimeout + 1000 then
         return true
       else
-        return false, "SDL triggers timeout earlier then expected(".. tostring(RespTimeout) .." sec), after " ..
-        tostring(TimeBetweenReqRes) .. " sec. \n SDL must use PI timeout + default timeout."
+        return false, "SDL triggers timeout earlier then expected(".. tostring(RespTimeout) .." sec), after "
+          .. tostring(TimeBetweenReqRes) .. " sec. \n SDL must use PI timeout + default timeout."
       end
     end)
 end
@@ -400,4 +389,3 @@ runner.Step("PerformInteraction_timeout_VR", PerformInteractionVR, { PerformInte
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", commonDefects.postconditions)
-
