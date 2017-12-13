@@ -1,4 +1,5 @@
 ---------------------------------------------------------------------------------------------------
+-- Script verifies issue https://github.com/SmartDeviceLink/sdl_core/issues/1395
 -- Script verifies SUSPEND -> OnSDLAwake -> SUSPEND -> IGN_OFF sequence for resumption data saving
 -- Precondition:
 -- 1. SDL and HMI are started.
@@ -15,7 +16,6 @@
 local runner = require('user_modules/script_runner')
 local mobile_session = require("mobile_session")
 local common = require('test_scripts/Defects/4_5/commonDefects')
-local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
 local SDL = require('SDL')
 
 --[[ Local Variables ]]
@@ -72,8 +72,7 @@ local function expectResumeData(self)
           if (data.params.appID == config.application1.registerAppInterfaceParams.hmi_app_id) then
             return true
           else
-            commonFunctions:userPrint(31, "Received the same notification or App is registered with wrong appID")
-            return false
+            return false, "Received the same notification or App is registered with wrong appID"
           end
         end
       end)
