@@ -255,4 +255,9 @@ function commonDefect.getMobileSession(self, pAppId)
   return self["mobileSession" .. pAppId]
 end
 
+function commonDefect.delayedExp(pTimeout)
+  if not pTimeout then pTimeout = commonDefect.timeout end
+  commonTestCases:DelayedExp(pTimeout)
+end
+
 return commonDefect
