@@ -8,6 +8,9 @@
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
 local commonDefects = require("test_scripts/Defects/4_5/commonDefects")
+local apiLoader = require("modules/api_loader")
+local api = apiLoader.init("data/MOBILE_API.xml")
+local schema = api.interface[next(api.interface)]
 
 --[[ Local Variables ]]
 local DefaultTimeout = 10000
@@ -169,13 +172,23 @@ local PerformInteractionRequestParamsVR = {
 }
 
 --[[ Local Functions ]]
+local function getDefaultValueFromAPI(pFunctionName, pParamName)
+  local defvalue = schema.type["request"].functions[pFunctionName].param[pParamName].defvalue
+  if not defvalue then
+    print("Default value was not found in API for function '" .. pFunctionName
+      .. "' and parameter '" .. pParamName .. "'")
+    defvalue = 0
+  end
+  print("Default value: " .. defvalue)
+  return defvalue
+end
+
 local function Alert(params, self)
   local AlertDuration
   if params.duration then
     AlertDuration = params.duration
   else
-    -- duration default value from mobile API
-    AlertDuration = 5000
+    AlertDuration = getDefaultValueFromAPI("Alert", "duration")
   end
   local RespTimeout = DefaultTimeout + AlertDuration
   local RequestTime
@@ -217,8 +230,7 @@ local function Slider(params, self)
   if params.timeout then
     SliderDuration = params.timeout
   else
-    -- timeout default value from mobile API
-    SliderDuration = 10000
+    SliderDuration = getDefaultValueFromAPI("Slider", "timeout")
   end
   local RespTimeout = DefaultTimeout + SliderDuration
   local RequestTime
@@ -246,8 +258,7 @@ local function ScrollableMessage(params, self)
   if params.timeout then
     ScrMesDuration = params.timeout
   else
-    -- timeout default value from mobile API
-    ScrMesDuration = 30000
+    ScrMesDuration = getDefaultValueFromAPI("ScrollableMessage", "timeout")
   end
   local RespTimeout = DefaultTimeout + ScrMesDuration
   local RequestTime
@@ -301,7 +312,7 @@ local function PerformInteraction(params, self)
     PIDuration = params.timeout
     RespTimeout = DefaultTimeout + 2*PIDuration
   else
-    PIDuration = 10000
+    PIDuration = getDefaultValueFromAPI("PerformInteraction", "timeout")
     RespTimeout = DefaultTimeout + 2*PIDuration
   end
   local cid = self.mobileSession1:SendRPC("PerformInteraction", params)
