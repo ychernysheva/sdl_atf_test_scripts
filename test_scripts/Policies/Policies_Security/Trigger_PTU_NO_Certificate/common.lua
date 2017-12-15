@@ -318,6 +318,12 @@ function m.getMobileSession(pAppId)
     test["mobileSession" .. pAppId] = session
     registerStartSecureServiceFunc(session)
     registerExpectServiceEventFunc(session)
+    if config.defaultProtocolVersion > 2 then
+      session.activateHeartbeat = true
+      session.sendHeartbeatToSDL = true
+      session.answerHeartbeatFromSDL = true
+      session.ignoreSDLHeartBeatACK = true
+    end
   else
     session = test["mobileSession" .. pAppId]
   end
@@ -365,6 +371,9 @@ function m.registerAppWOPTU(pAppId)
         config["application" .. pAppId].registerAppInterfaceParams)
       test.hmiConnection:ExpectNotification("BasicCommunication.OnAppRegistered",
         { application = { appName = config["application" .. pAppId].registerAppInterfaceParams.appName } })
+      :Do(function(_, d1)
+          hmiAppIds[config["application" .. pAppId].registerAppInterfaceParams.appID] = d1.params.application.appID
+        end)
       mobSession:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
       :Do(function()
           mobSession:ExpectNotification("OnHMIStatus",
