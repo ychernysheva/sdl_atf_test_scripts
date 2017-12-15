@@ -25,9 +25,9 @@ local runner = require('user_modules/script_runner')
 local commonDefects = require('test_scripts/Defects/4_5/commonDefects')
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require ('user_modules/shared_testcases/commonSteps')
-local testCasesForPolicyTableSnapshot = require ('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
 local sdl = require("SDL")
 local events = require('events')
+local json = require("modules/json")
 
 --[[ Local Variables ]]
 local pathToPTS = commonFunctions:read_parameter_from_smart_device_link_ini("SystemFilesPath") .. "/"
@@ -71,13 +71,20 @@ local function delayedExp(pTime, self)
   RUN_AFTER(toRun, pTime)
 end
 
+local function ptsToTable(pts_f)
+  local f = io.open(pts_f, "r")
+  local content = f:read("*all")
+  f:close()
+  return json.decode(content)
+end
+
 local function ptUpdateFunc(pTbl)
   local appId = config.application1.registerAppInterfaceParams.appID
   table.insert(pTbl.policy_table.app_policies[appId].groups, "Location-1")
 end
 
 local function removeSnapshotAndTriggerPTUFromHMI(self)
-  os.execute("rm " .. pathToPTS)
+  os.execute("rm -f " .. pathToPTS)
   EXPECT_HMICALL("BasicCommunication.PolicyUpdate", { file = pathToPTS })
   self.hmiConnection:SendNotification("SDL.OnPolicyUpdate", { })
 end
@@ -109,11 +116,12 @@ local function makeConsent(self)
         self:FailTestCase("GroupId for Location was not found")
       end
     end)
+  delayedExp(1000, self)
 end
 
 local function Check_user_consent_records_in_LPT(self)
   local is_test_fail = false
-  if( commonSteps:file_exists(pathToLPT) == false) then
+  if (commonSteps:file_exists(pathToLPT) == false) then
     self:FailTestCase(config.pathToSDL .. pathToLPT .. " is not created")
   else
     local queryCG = "select device_id from consent_group"
@@ -139,11 +147,10 @@ local function Check_user_consent_records_in_Snapshot(self)
   if (commonSteps:file_exists(pathToPTS) == false) then
     self:FailTestCase(pathToPTS .. " is not created")
   else
-    local app_consent_location = testCasesForPolicyTableSnapshot:get_data_from_PTS("device_data."
-      .. config.deviceMAC .. ".user_consent_records."
-      .. config.application1.registerAppInterfaceParams.appID .. ".consent_groups.Location-1")
-    if (app_consent_location ~= true) then
-      commonFunctions:printError("Error: user_consent_records.consent_groups.Location is not present in LPT")
+    local pts = ptsToTable(pathToPTS)
+    local ucr = pts.policy_table.device_data[config.deviceMAC].user_consent_records
+    if not (ucr[config.application1.registerAppInterfaceParams.appID]) then
+      commonFunctions:printError("Error: user_consent_records.consent_groups.Location is not present in Snapshot")
       is_test_fail = true
     end
   end
@@ -190,11 +197,10 @@ local function Check_no_user_consent_records_in_Snapshot(self)
   if (commonSteps:file_exists(pathToPTS) == false) then
     self:FailTestCase(pathToPTS .. " is not created")
   else
-    local app_consent_location = testCasesForPolicyTableSnapshot:get_data_from_PTS("device_data."
-      .. config.deviceMAC .. ".user_consent_records."
-      .. config.application1.registerAppInterfaceParams.appID .. ".consent_groups.Location-1")
-    if (app_consent_location ~= nil) then
-      commonFunctions:printError("Error: user_consent_records.consent_groups.Location was not reset in LPT")
+     local pts = ptsToTable(pathToPTS)
+    local ucr = pts.policy_table.device_data[config.deviceMAC].user_consent_records
+    if (ucr[config.application1.registerAppInterfaceParams.appID]) then
+      commonFunctions:printError("Error: user_consent_records.consent_groups.Location was not reset in Snapshot")
       is_test_fail = true
     end
   end
