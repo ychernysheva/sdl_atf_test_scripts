@@ -6,20 +6,16 @@ local common = require('test_scripts/Policies/Policies_Security/Trigger_PTU_NO_C
 local runner = require('user_modules/script_runner')
 
 --[[ Local Variables ]]
-local serviceId = 7
+local serviceId = 10
 local appHMIType = "DEFAULT"
 
 --[[ General configuration parameters ]]
+config.defaultProtocolVersion = 3
 config.application1.registerAppInterfaceParams.appHMIType = { appHMIType }
 
 --[[ Local Functions ]]
 local function ptUpdateSuccess(pTbl)
   pTbl.policy_table.app_policies[common.getAppID()].AppHMIType = { appHMIType }
-end
-
-local function ptUpdateUnssucess(pTbl)
-  pTbl.policy_table.app_policies[common.getAppID()].AppHMIType = { appHMIType }
-  pTbl.policy_table.module_config.seconds_between_retries = nil
 end
 
 local function startServiceSecured()
@@ -30,6 +26,11 @@ local function startServiceSecured()
   })
   common.getMobileSession():ExpectHandshakeMessage()
   :Times(0)
+
+  local function ptUpdateUnssucess(pTbl)
+    pTbl.policy_table.app_policies[common.getAppID()].AppHMIType = { appHMIType }
+    pTbl.policy_table.module_config.seconds_between_retries = nil
+  end
 
   local function expNotificationFunc()
     common.getHMIConnection():ExpectNotification("SDL.OnStatusUpdate",
@@ -46,12 +47,13 @@ end
 runner.SetParameters({ isSelfIncluded = false })
 runner.Title("Preconditions")
 runner.Step("Clean environment", common.preconditions)
-runner.Step("Set ForceProtectedService OFF", common.setForceProtectedServiceParam, { "Non" })
+runner.Step("Set ForceProtectedService OFF", common.setForceProtectedServiceParam, { "0x0A" })
 runner.Step("Start SDL, HMI, connect Mobile, start Session", common.start)
 
 runner.Title("Test")
 runner.Step("Register App", common.registerApp)
 runner.Step("PolicyTableUpdate", common.PolicyTableUpdate, { ptUpdateSuccess })
+runner.Step("Activate App", common.activateApp)
 runner.Step("StartService Secured, PTU started and fails, NACK, no Handshake", startServiceSecured)
 
 runner.Title("Postconditions")

@@ -186,10 +186,12 @@ function runner.Step(testStepName, testStepImplFunction, paramsTable)
   end
 end
 
-function runner.IncludeSelf(isIncluded)
-  if isIncluded == nil then return
-  elseif isIncluded == true then isSelfIncluded = true
-  elseif isIncluded == false then isSelfIncluded = false
+function runner.SetParameters(paramsTable)
+  if paramsTable == nil or type(paramsTable) ~= "table" then return end
+  for k, v in pairs(paramsTable) do
+    if k == "isSelfIncluded" then
+      isSelfIncluded = v
+    end
   end
 end
 

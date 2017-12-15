@@ -14,6 +14,7 @@ config.application1.registerAppInterfaceParams.appHMIType = { appHMIType }
 
 --[[ Local Functions ]]
 local function ptUpdate(pTbl)
+  pTbl.policy_table.module_config.certificate = nil
   pTbl.policy_table.app_policies[common.getAppID()].AppHMIType = { appHMIType }
 end
 
@@ -37,7 +38,7 @@ local function startServiceSecured()
 end
 
 --[[ Scenario ]]
-runner.IncludeSelf(false)
+runner.SetParameters({ isSelfIncluded = false })
 runner.Title("Preconditions")
 runner.Step("Clean environment", common.preconditions)
 runner.Step("Set ForceProtectedService OFF", common.setForceProtectedServiceParam, { "Non" })

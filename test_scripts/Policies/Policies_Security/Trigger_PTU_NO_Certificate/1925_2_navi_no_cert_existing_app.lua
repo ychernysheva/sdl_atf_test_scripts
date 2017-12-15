@@ -31,7 +31,7 @@ local function registerApp(pAppId)
 end
 
 --[[ Scenario ]]
-runner.IncludeSelf(false)
+runner.SetParameters({ isSelfIncluded = false })
 runner.Title("Preconditions")
 runner.Step("Clean environment", common.preconditions)
 runner.Step("Start SDL, HMI, connect Mobile, start Session", common.start)

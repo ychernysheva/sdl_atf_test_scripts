@@ -52,7 +52,7 @@ local function sendRPCAddCommandSecured()
 end
 
 --[[ Scenario ]]
-runner.IncludeSelf(false)
+runner.SetParameters({ isSelfIncluded = false })
 runner.Title("Preconditions")
 runner.Step("Clean environment", common.preconditions)
 runner.Step("Set ForceProtectedService OFF", common.setForceProtectedServiceParam, { "Non" })
