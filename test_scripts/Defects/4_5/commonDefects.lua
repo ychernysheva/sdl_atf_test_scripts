@@ -2,8 +2,11 @@
 -- RC common module
 ---------------------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
+-- define MAC address mobile device
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
+-- define 2nd version of SDL protocol by default
 config.defaultProtocolVersion = 2
+-- switch off schema validation for output messages against APIs
 config.ValidateSchema = false
 
 --[[ Required Shared libraries ]]
@@ -16,22 +19,27 @@ local mobile_session = require("mobile_session")
 local events = require("events")
 local json = require("modules/json")
 
-
 --[[ Local Variables ]]
+
+-- table with data for Policy Table Update
 local ptu_table = {}
+-- table with HMI application identifiers
 local hmiAppIds = {}
+-- table for module
 local commonDefect = {}
 
 --[[ Module Constants ]]
+
+-- default timeout
 commonDefect.timeout = 2000
+-- minimal timeout
 commonDefect.minTimeout = 500
 
-local function allowSdl(self)
-  self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", {
-    allowed = true, source = "GUI", device = { id = config.deviceMAC, name = "127.0.0.1" }
-  })
-end
-
+--[[ @getPTUFromPTS: create policy table update table (PTU)
+--! @parameters:
+--! tbl - table with policy table snapshot (PTS)
+--! @return: table with PTU
+--]]
 local function getPTUFromPTS(tbl)
   tbl.policy_table.consumer_friendly_messages.messages = nil
   tbl.policy_table.device_data = nil
@@ -42,6 +50,10 @@ local function getPTUFromPTS(tbl)
   tbl.policy_table.module_config.preloaded_date = nil
 end
 
+--[[ @DefaultStruct: provide default values for application required in PTU
+--! @parameters: none
+--! @return: table with data
+--]]
 function commonDefect.DefaultStruct()
   return {
     keep_context = false,
@@ -52,10 +64,20 @@ function commonDefect.DefaultStruct()
   }
 end
 
+--[[ @updatePTU: update PTU with application data
+--! @parameters:
+--! tbl - table with data for policy table update
+--! @return: none
+--]]
 local function updatePTU(tbl)
   tbl.policy_table.app_policies[config.application1.registerAppInterfaceParams.appID] = commonDefect.DefaultStruct()
 end
 
+--[[ @jsonFileToTable: convert .json file to table
+--! @parameters:
+--! file_name - file name
+--! @return: table
+--]]
 local function jsonFileToTable(file_name)
   local f = io.open(file_name, "r")
   local content = f:read("*all")
@@ -63,18 +85,24 @@ local function jsonFileToTable(file_name)
   return json.decode(content)
 end
 
+--[[ @tableToJsonFile: convert table to .json file
+--! @parameters:
+--! tbl - table
+--! file_name - file name
+--! @return: none
+--]]
 local function tableToJsonFile(tbl, file_name)
   local f = io.open(file_name, "w")
   f:write(json.encode(tbl))
   f:close()
 end
 
-local function checkIfPTSIsSentAsBinary(bin_data)
-  if not (bin_data ~= nil and string.len(bin_data) > 0) then
-    commonFunctions:userPrint(31, "PTS was not sent to Mobile in payload of OnSystemRequest")
-  end
-end
-
+--[[ @ptu: perform policy table update
+--! @parameters:
+--! self - test object
+--! ptu_update_func - additional function for update
+--! @return: none
+--]]
 local function ptu(self, ptu_update_func)
   local function getAppsCount()
     local count = 0
@@ -111,7 +139,6 @@ local function ptu(self, ptu_update_func)
         :Do(function(_, d2)
             print("App ".. id .. " was used for PTU")
             RAISE_EVENT(event, event, "PTU event")
-            checkIfPTSIsSentAsBinary(d2.binaryData)
             local corIdSystemRequest = mobileSession:SendRPC("SystemRequest",
               { requestType = "PROPRIETARY", fileName = policy_file_name }, ptu_file_name)
             EXPECT_HMICALL("BasicCommunication.SystemRequest")
@@ -128,18 +155,31 @@ local function ptu(self, ptu_update_func)
   os.remove(ptu_file_name)
 end
 
+--[[ @allow_sdl: sequence that allows SDL functionality
+--! @parameters:
+--! self - test object
+--! @return: none
+--]]
 local function allow_sdl(self)
   self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality",
     { allowed = true, source = "GUI", device = { id = config.deviceMAC, name = "127.0.0.1" } })
 end
 
+--[[ @preconditions: precondition steps
+--! @parameters: none
+--! @return: none
+--]]
 function commonDefect.preconditions()
   commonFunctions:SDLForceStop()
   commonSteps:DeletePolicyTable()
   commonSteps:DeleteLogsFiles()
 end
 
-
+--[[ @start: starting sequence: starting of SDL, initialization of HMI, connect mobile
+--! @parameters:
+--! self - test object
+--! @return: none
+--]]
 function commonDefect.start(self)
   self:runSDL()
   commonFunctions:waitForSDLStart(self)
@@ -160,7 +200,11 @@ function commonDefect.start(self)
     end)
 end
 
-
+--[[ @startWithoutMobile: starting sequence: starting of SDL, initialization of HMI
+--! @parameters:
+--! self - test object
+--! @return: none
+--]]
 function commonDefect.startWithoutMobile(pHMIParams, self)
   self, pHMIParams = commonDefect.getSelfAndParams(pHMIParams, self)
   self:runSDL()
@@ -177,14 +221,27 @@ function commonDefect.startWithoutMobile(pHMIParams, self)
     end)
 end
 
+--[[ @postconditions: postcondition steps
+--! @parameters: none
+--! @return: none
+--]]
 function commonDefect.postconditions()
   StopSDL()
 end
 
+--[[ @printSDLConfig: print information about SDL build options
+--! @parameters: none
+--! @return: none
+--]]
 function commonDefect.printSDLConfig()
   commonFunctions:printTable(sdl.buildOptions)
 end
 
+--[[ @ignitionOff: IGNITION_OFF sequence
+--! @parameters:
+--! self - test object
+--! @return: none
+--]]
 function commonDefect.ignitionOff(self)
   self.hmiConnection:SendNotification("BasicCommunication.OnExitAllApplications", { reason = "SUSPEND" })
   EXPECT_HMINOTIFICATION("BasicCommunication.OnSDLPersistenceComplete")
@@ -199,23 +256,47 @@ function commonDefect.ignitionOff(self)
     end)
 end
 
+--[[ @backupINIFile: backup SDL .ini file
+--! @parameters: none
+--! @return: none
+--]]
 function commonDefect.backupINIFile()
   commonPreconditions:BackupFile("smartDeviceLink.ini")
 end
 
+--[[ @restoreINIFile: restore SDL .ini file to an initial state
+--! @parameters: none
+--! @return: none
+--]]
 function commonDefect.restoreINIFile()
   commonPreconditions:RestoreFile("smartDeviceLink.ini")
 end
 
+--[[ @rai_ptu: register mobile application and perform PTU sequence for 1st application
+--! @parameters:
+--! ptu_update_func - additional function for update
+--! self - test object
+--! @return: none
+--]]
 function commonDefect.rai_ptu(ptu_update_func, self)
   self, ptu_update_func = commonDefect.getSelfAndParams(ptu_update_func, self)
   commonDefect.rai_ptu_n(1, ptu_update_func, self)
 end
 
+--[[ @rai_ptu_n: register mobile application and perform PTU sequence for N application
+--! @parameters:
+--! id - application number (1, 2, etc.)
+--! ptu_update_func - additional function for update
+--! self - test object
+--! @return: none
+--]]
 function commonDefect.rai_ptu_n(id, ptu_update_func, self)
   self, id, ptu_update_func = commonDefect.getSelfAndParams(id, ptu_update_func, self)
   if not id then id = 1 end
   self["mobileSession" .. id] = mobile_session.MobileSession(self, self.mobileConnection)
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",
+    { status = "UPDATE_NEEDED" }, { status = "UPDATING" }, { status = "UP_TO_DATE" })
+  :Times(3)
   self["mobileSession" .. id]:StartService(7)
   :Do(function()
       local corId = self["mobileSession" .. id]:SendRPC
@@ -224,9 +305,6 @@ function commonDefect.rai_ptu_n(id, ptu_update_func, self)
         { application = { appName = config["application" .. id].registerAppInterfaceParams.appName } })
       :Do(function(_, d1)
           hmiAppIds[config["application" .. id].registerAppInterfaceParams.appID] = d1.params.application.appID
-          EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",
-            { status = "UPDATE_NEEDED" }, { status = "UPDATING" }, { status = "UP_TO_DATE" })
-          :Times(3)
           EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
           :Do(function(_, d2)
               self.hmiConnection:SendResponse(d2.id, d2.method, "SUCCESS", { })
@@ -238,12 +316,20 @@ function commonDefect.rai_ptu_n(id, ptu_update_func, self)
       :Do(function()
           self["mobileSession" .. id]:ExpectNotification("OnHMIStatus",
             { hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN" })
-          :Times(AtLeast(1)) -- issue with SDL --> notification is sent twice
+          :Times(AtLeast(1))
           self["mobileSession" .. id]:ExpectNotification("OnPermissionsChange")
         end)
     end)
 end
 
+--[[ @rai_ptu_n_without_OnPermissionsChange: register mobile application and perform PTU sequence for N application
+--! 'OnPermissionsChange' notification is excluded from expectations
+--! @parameters:
+--! id - application number (1, 2, etc.)
+--! ptu_update_func - additional function for update
+--! self - test object
+--! @return: none
+--]]
 function commonDefect.rai_ptu_n_without_OnPermissionsChange(id, ptu_update_func, self)
   self, id, ptu_update_func = commonDefect.getSelfAndParams(id, ptu_update_func, self)
   if not id then id = 1 end
@@ -270,11 +356,17 @@ function commonDefect.rai_ptu_n_without_OnPermissionsChange(id, ptu_update_func,
       :Do(function()
           self["mobileSession" .. id]:ExpectNotification("OnHMIStatus",
             { hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN" })
-          :Times(AtLeast(1)) -- issue with SDL --> notification is sent twice
+          :Times(AtLeast(1))
         end)
     end)
 end
 
+--[[ @UnsuccessPTU: perform PTU sequence with failed result
+--! @parameters:
+--! ptu_update_func - additional function for update
+--! self - test object
+--! @return: none
+--]]
 function commonDefect.UnsuccessPTU(ptu_update_func, self)
   EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",
     { status = "UPDATE_NEEDED" }, { status = "UPDATING" }, { status = "UPDATE_NEEDED" })
@@ -312,10 +404,9 @@ function commonDefect.UnsuccessPTU(ptu_update_func, self)
       for id = 1, getAppsCount() do
         local mobileSession = commonDefect.getMobileSession(self, id)
         mobileSession:ExpectNotification("OnSystemRequest", { requestType = "PROPRIETARY" })
-        :Do(function(_, d2)
+        :Do(function()
             print("App ".. id .. " was used for PTU")
             RAISE_EVENT(event, event, "PTU event")
-            checkIfPTSIsSentAsBinary(d2.binaryData)
             local corIdSystemRequest = mobileSession:SendRPC("SystemRequest",
               { requestType = "PROPRIETARY", fileName = policy_file_name }, ptu_file_name)
             EXPECT_HMICALL("BasicCommunication.SystemRequest")
@@ -332,6 +423,12 @@ function commonDefect.UnsuccessPTU(ptu_update_func, self)
   os.remove(ptu_file_name)
 end
 
+--[[ @rai_n: register N mobile application without PTU sequence
+--! @parameters:
+--! id - application number (1, 2, etc.)
+--! self - test object
+--! @return: none
+--]]
 function commonDefect.rai_n(id, self)
   self, id = commonDefect.getSelfAndParams(id, self)
   if not id then id = 1 end
@@ -349,17 +446,28 @@ function commonDefect.rai_n(id, self)
       :Do(function()
           self["mobileSession" .. id]:ExpectNotification("OnHMIStatus",
             { hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN" })
-          :Times(AtLeast(1)) -- issue with SDL --> notification is sent twice
+          :Times(AtLeast(1))
           self["mobileSession" .. id]:ExpectNotification("OnPermissionsChange")
         end)
     end)
 end
 
+--[[ @delayedExp: delay test step for defined timeout
+--! @parameters:
+--! timeout - time of delay in milliseconds
+--! @return: none
+--]]
 function commonDefect.delayedExp(timeout)
   if not timeout then timeout = commonDefect.timeout end
   commonTestCases:DelayedExp(timeout)
 end
 
+--[[ @unregisterApp: unregister application
+--! @parameters:
+--! pAppId - application number (1, 2, etc.)
+--! self - test object
+--! @return: none
+--]]
 function commonDefect.unregisterApp(pAppId, self)
   local mobSession = commonDefect.getMobileSession(self, pAppId)
   local hmiAppId = commonDefect.getHMIAppId(pAppId)
@@ -368,6 +476,12 @@ function commonDefect.unregisterApp(pAppId, self)
   mobSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS"})
 end
 
+--[[ @activate_app: activate application
+--! @parameters:
+--! pAppId - application number (1, 2, etc.)
+--! self - test object
+--! @return: none
+--]]
 function commonDefect.activate_app(pAppId, self)
   self, pAppId = commonDefect.getSelfAndParams(pAppId, self)
   if not pAppId then pAppId = 1 end
@@ -380,6 +494,12 @@ function commonDefect.activate_app(pAppId, self)
   commonTestCases:DelayedExp(commonDefect.minTimeout)
 end
 
+--[[ @putFile: perform PutFile sequence
+--! @parameters:
+--! pFileName - name of the file
+--! self - test object
+--! @return: none
+--]]
 function commonDefect.putFile(pFileName, self)
   self, pFileName = commonDefect.getSelfAndParams(pFileName, self)
   local cid = self.mobileSession1:SendRPC(
@@ -390,10 +510,11 @@ function commonDefect.putFile(pFileName, self)
   self.mobileSession1:ExpectResponse(cid, { success = true, resultCode = "SUCCESS"})
 end
 
-function commonDefect.postconditions()
-  StopSDL()
-end
-
+--[[ @getSelfAndParams: shifting parameters in order to move self at 1st position
+--! @parameters:
+--! ... - various parameters and self
+--! @return: test object and other parameters
+--]]
 function commonDefect.getSelfAndParams(...)
   local out = { }
   local selfIdx = nil
@@ -414,11 +535,22 @@ function commonDefect.getSelfAndParams(...)
   return table.unpack(out, 1, table.maxn(out))
 end
 
+--[[ @getHMIAppId: get HMI application identifier
+--! @parameters:
+--! pAppId - application number (1, 2, etc.)
+--! @return: application identifier
+--]]
 function commonDefect.getHMIAppId(pAppId)
   if not pAppId then pAppId = 1 end
   return hmiAppIds[config["application" .. pAppId].registerAppInterfaceParams.appID]
 end
 
+--[[ @getMobileSession: get mobile session
+--! @parameters:
+--! pAppId - application number (1, 2, etc.)
+--! self - test object
+--! @return: mobile session
+--]]
 function commonDefect.getMobileSession(self, pAppId)
   if not pAppId then pAppId = 1 end
   return self["mobileSession" .. pAppId]
