@@ -122,18 +122,20 @@ end
 -- Check that PT is sent as binary data in OnSystem request
 -- @tparam table bin_data binary data
 -- @tparam number pFlow number of floe type from flowType
-local function checkIfPTSIsSentAsBinary(bin_data, pFlow)
+local function checkIfPTSIsSentAsBinary(bin_data, pFlow, self)
   -- decode binary data to table depending on policy flow
   local pt = nil
-  if flowType[pFlow] == flowType.PROPRIETARY then
-    pt = json.decode(bin_data).HTTPRequest.body
-  elseif flowType[pFlow] == flowType.EXTERNAL_PROPRIETARY or flowType[pFlow] == flowType.HTTP then
-    pt = bin_data
+  if bin_data ~= nil and string.len(bin_data) > 0 then
+    if flowType[pFlow] == flowType.PROPRIETARY then
+      pt = json.decode(bin_data).HTTPRequest.body
+    elseif flowType[pFlow] == flowType.EXTERNAL_PROPRIETARY or flowType[pFlow] == flowType.HTTP then
+      pt = bin_data
+    end
+    pt = json.decode(pt)
   end
-  pt = json.decode(pt)
   -- Check presence of policy_table in decoded PT
-  if not pt.policy_table then
-    commonFunctions:userPrint(31, "PTS was not sent to Mobile in payload of OnSystemRequest")
+  if pt == nil or not pt.policy_table then
+    self:FailTestCase("PTS was not sent to Mobile as binary data in payload of OnSystemRequest")
   end
 end
 
@@ -166,7 +168,7 @@ local function ptuProprietary(ptu_table, self, pFlow)
       :Do(function(_, d)
           -- After receiving OnSystemRequest notification on mobile side check that
           -- data in notification was sent as binary data
-          checkIfPTSIsSentAsBinary(d.binaryData, pFlow)
+          checkIfPTSIsSentAsBinary(d.binaryData, pFlow, self)
           log("SDL->MOB: N: OnSystemRequest")
           -- Send SystemRequest request with PT for update from mobile side
           local corIdSystemRequest = self.mobileSession:SendRPC("SystemRequest",
@@ -277,7 +279,7 @@ local function raiPTU(self)
                 if d.payload.requestType == "HTTP" then
                   if e.occurences <= 2 then -- SDL send OnSystemRequest more than once if PTU update was incorrect
                     -- Check data in receives OnSystemRequest notification on mobile side
-                    checkIfPTSIsSentAsBinary(d.binaryData, sdl.buildOptions.extendedPolicy)
+                    checkIfPTSIsSentAsBinary(d.binaryData, sdl.buildOptions.extendedPolicy, self)
                     if d.binaryData then
                       -- Create PT form binary data
                       local ptu_table = json.decode(d.binaryData)
