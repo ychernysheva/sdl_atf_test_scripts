@@ -18,6 +18,7 @@
 -- Scenario is passed.
 ---------------------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
+-- config.ExitOnCrash = false means that in case of SDL stop through script execution ATF will not stop execution
 config.ExitOnCrash = false
 
 --[[ Required Shared libraries ]]
@@ -30,11 +31,14 @@ local events = require('events')
 local json = require("modules/json")
 
 --[[ Local Variables ]]
+-- Path to policy table snapshot
 local pathToPTS = commonFunctions:read_parameter_from_smart_device_link_ini("SystemFilesPath") .. "/"
-  .. commonFunctions:read_parameter_from_smart_device_link_ini("PathToSnapshot")
+.. commonFunctions:read_parameter_from_smart_device_link_ini("PathToSnapshot")
+-- Path to local policy table
 local pathToLPT = config.pathToSDL .. "/storage/policy.sqlite"
 
 --[[ Local Functions ]]
+-- Start SDL and HMI, establish connection between SDL and HMI, open mobile connection via TCP
 local function start(self)
   self:runSDL()
   commonFunctions:waitForSDLStart(self)
@@ -54,12 +58,16 @@ local function start(self)
     end)
 end
 
+-- Allow device from HMI
 local function allowSDL(self)
+  -- sending notification OnAllowSDLFunctionality from HMI to allow connected device
   self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", {
-    allowed = true, source = "GUI", device = { id = config.deviceMAC, name = "127.0.0.1" }
-  })
+      allowed = true, source = "GUI", device = { id = config.deviceMAC, name = "127.0.0.1" }
+    })
 end
 
+-- Delay without expectation
+-- @tparam number pTime time to wait
 local function delayedExp(pTime, self)
   local event = events.Event()
   event.matches = function(e1, e2) return e1 == e2 end
@@ -71,6 +79,7 @@ local function delayedExp(pTime, self)
   RUN_AFTER(toRun, pTime)
 end
 
+-- decode snapshot from json to table
 local function ptsToTable(pts_f)
   local f = io.open(pts_f, "r")
   local content = f:read("*all")
@@ -78,19 +87,29 @@ local function ptsToTable(pts_f)
   return json.decode(content)
 end
 
+-- Prepare policy table for policy table update
+-- @tparam table tbl table to update
 local function ptUpdateFunc(pTbl)
   local appId = config.application1.registerAppInterfaceParams.appID
+  -- add to table in app_policies section record for appId with group "Location-1"
   table.insert(pTbl.policy_table.app_policies[appId].groups, "Location-1")
 end
 
+-- Remove snapshot and trigger PTU from HMI
 local function removeSnapshotAndTriggerPTUFromHMI(self)
+  -- remove Snapshot
   os.execute("rm -f " .. pathToPTS)
+  -- expect PolicyUpdate request on HMI side
   EXPECT_HMICALL("BasicCommunication.PolicyUpdate", { file = pathToPTS })
+  -- Sending OnPolicyUpdate notification form HMI
   self.hmiConnection:SendNotification("SDL.OnPolicyUpdate", { })
 end
 
+-- Perform user consent of "Location" group
 local function makeConsent(self)
+  -- Send GetListOfPermissions request from HMI side
   local request_id = self.hmiConnection:SendRequest("SDL.GetListOfPermissions")
+  -- expect GetListOfPermissions response on HMI side with "Location" group
   EXPECT_HMIRESPONSE(request_id,{
       result = {
         code = 0,
@@ -100,6 +119,7 @@ local function makeConsent(self)
       }
     })
   :Do(function(_,data)
+      -- after receiving GetListOfPermissions response on HMI side get id of "Location" group
       local groupId
       for i = 1, #data.result.allowedFunctions do
         if(data.result.allowedFunctions[i].name == "Location") then
@@ -107,29 +127,35 @@ local function makeConsent(self)
         end
       end
       if groupId then
+        -- Sending OnAppPermissionConsent notification from HMI to SDL wit info about allowed group
         self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent", {
-          appID = commonDefects.getHMIAppId(),
-          source = "GUI",
-          consentedFunctions = {{name = "Location", id = groupId, allowed = true}}
-        })
+            appID = commonDefects.getHMIAppId(),
+            source = "GUI",
+            consentedFunctions = {{name = "Location", id = groupId, allowed = true}}
+          })
       else
+        -- Fail test case in case GetListOfPermissions response from SDL does not contain id of group
         self:FailTestCase("GroupId for Location was not found")
       end
     end)
+  -- delay in 1 sec
   delayedExp(1000, self)
 end
 
 local function Check_user_consent_records_in_LPT(self)
   local is_test_fail = false
+  -- Check existence of local policy table
   if (commonSteps:file_exists(pathToLPT) == false) then
     self:FailTestCase(config.pathToSDL .. pathToLPT .. " is not created")
   else
+    -- check presence record of device_id in table consent_group, must be created after consent "Location" group
     local queryCG = "select device_id from consent_group"
     local r_actual_CG = commonFunctions:get_data_policy_sql(pathToLPT, queryCG)
     if #r_actual_CG ~= 1 then
       commonFunctions:printError("Error: consent_group does not contain 1 required records in LPT")
       is_test_fail = true
     end
+    -- check presence record of device_id in table device_consent_group, must be created after device consent
     local queryDCG = "select device_id from device_consent_group"
     local r_actualDCG = commonFunctions:get_data_policy_sql(pathToLPT, queryDCG)
     if #r_actualDCG ~= 1 then
@@ -144,9 +170,11 @@ end
 
 local function Check_user_consent_records_in_Snapshot(self)
   local is_test_fail = false
+  -- Check existence of policy table snapshot
   if (commonSteps:file_exists(pathToPTS) == false) then
     self:FailTestCase(pathToPTS .. " is not created")
   else
+    -- Check presence of consented group for registered appID
     local pts = ptsToTable(pathToPTS)
     local ucr = pts.policy_table.device_data[config.deviceMAC].user_consent_records
     if not (ucr[config.application1.registerAppInterfaceParams.appID]) then
@@ -160,26 +188,34 @@ local function Check_user_consent_records_in_Snapshot(self)
 end
 
 local function performFACTORY_DEFAULTS(self)
+  -- Send notification OnExitAllApplications(FACTORY_DEFAULTS) from HMI
   self.hmiConnection:SendNotification("BasicCommunication.OnExitAllApplications", { reason = "FACTORY_DEFAULTS" })
+  -- Expect notification OnAppInterfaceUnregistered(FACTORY_DEFAULTS) on mobile app
   self.mobileSession1:ExpectNotification("OnAppInterfaceUnregistered", { reason = "FACTORY_DEFAULTS" })
   :Do(function() sdl:DeleteFile() end)
 end
 
 local function Wait_SDL_stop(self)
+  -- Delay for SDL stop
   delayedExp(5000, self)
 end
 
 local function Check_no_user_consent_records_in_LPT(self)
   local is_test_fail = false
+  -- Check existence of local policy table
   if (commonSteps:file_exists(pathToLPT) == false) then
     self:FailTestCase(config.pathToSDL .. pathToLPT .. " is not created")
   else
+    -- check absence of record device_id in table consent_group,
+    -- must be absent because of device consent is not performed
     local queryCG = "select count(*) from consent_group"
     local r_actual_CG = commonFunctions:get_data_policy_sql(pathToLPT, queryCG)
     if r_actual_CG[1] ~= "0" then
       commonFunctions:printError("Error: consent_group contains redundant records in LPT")
       is_test_fail = true
     end
+    -- check absence of record device_id in table device_consent_group,
+    -- must be absent because of group consent is not performed
     local queryDCG = "select count(*) from device_consent_group"
     local r_actualDCG = commonFunctions:get_data_policy_sql(pathToLPT, queryDCG)
     if r_actualDCG[1] ~= "0" then
@@ -194,10 +230,12 @@ end
 
 local function Check_no_user_consent_records_in_Snapshot(self)
   local is_test_fail = false
+  -- Check existence of policy table snapshot
   if (commonSteps:file_exists(pathToPTS) == false) then
     self:FailTestCase(pathToPTS .. " is not created")
   else
-     local pts = ptsToTable(pathToPTS)
+    -- Check absence of consented group for registered appID
+    local pts = ptsToTable(pathToPTS)
     local ucr = pts.policy_table.device_data[config.deviceMAC].user_consent_records
     if (ucr[config.application1.registerAppInterfaceParams.appID]) then
       commonFunctions:printError("Error: user_consent_records.consent_groups.Location was not reset in Snapshot")
@@ -211,23 +249,39 @@ end
 
 --[[ Scenario ]]
 runner.Title("Preconditions")
+-- Stop SDL if process is still running, delete local policy table and log files
 runner.Step("Clean environment", commonDefects.preconditions)
-runner.Step("Start SDL, HMI, connect Mobile, start Session", start)
+-- Start SDL and HMI, establish connection between SDL and HMI, open mobile connection via TCP
+runner.Step("Start SDL, HMI, connect Mobile", start)
+-- Allow connected device on HMI
 runner.Step("Allow SDL for device", allowSDL)
+-- create mobile session, register application, perform PTU wit PT from ptUpdateFunc
+-- with "Location" group for registered application
 runner.Step("RAI, PTU", commonDefects.rai_ptu, { ptUpdateFunc})
+-- Consent of "Location" group
 runner.Step("Make consent for Location group", makeConsent)
 
 runner.Title("Test")
+-- Remove snapshot to make sure that SDL creates new one during PTU, trigger PTU to initiation of snapshot creation
 runner.Step("Remove Snapshot and Trigger PTU", removeSnapshotAndTriggerPTUFromHMI)
+-- Check records related to consent group and device in LPT
 runner.Step("Check_presence_of_user_consent_records_in_LPT", Check_user_consent_records_in_LPT)
+-- Check records related to consent group and device in snapshot
 runner.Step("Check_presence_of_user_consent_records_in_Snapshot", Check_user_consent_records_in_Snapshot)
+-- Perform FACTORY_DEFAULTS
 runner.Step("FACTORY_DEFAULTS", performFACTORY_DEFAULTS)
 runner.Step("Wait_SDL_stop", Wait_SDL_stop)
-runner.Step("Start SDL, HMI, connect Mobile, start Session", start)
+-- Start SDL and HMI, establish connection between SDL and HMI, open mobile connection via TCP
+runner.Step("Start SDL, HMI, connect Mobile", start)
+-- Check absence of records related to consent group and device in LPT after FACTORY_DEFAULTS
 runner.Step("Check_absence_of_user_consent_records_in_LPT", Check_no_user_consent_records_in_LPT)
+-- Make device consent
 runner.Step("Allow SDL for device", allowSDL)
+-- Create session, register application
 runner.Step("RAI", commonDefects.rai_n)
+-- Remove snapshot to make sure that SDL creates new one during PTU, trigger PTU to initiation of snapshot creation
 runner.Step("Remove Snapshot and Trigger PTU", removeSnapshotAndTriggerPTUFromHMI)
+-- Check absence of records related to consent group in Snapshot after FACTORY_DEFAULTS
 runner.Step("Check_absence_of_user_consent_records_in_Snapshot", Check_no_user_consent_records_in_Snapshot)
 
 runner.Title("Postconditions")
