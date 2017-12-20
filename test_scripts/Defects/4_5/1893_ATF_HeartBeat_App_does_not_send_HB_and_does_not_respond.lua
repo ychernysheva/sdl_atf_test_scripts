@@ -7,6 +7,7 @@ local runner = require("user_modules/script_runner")
 local common = require("test_scripts/Defects/4_5/commonDefects")
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local mobile_session = require('mobile_session')
+local events = require("events")
 
 --[[ General Precondition before ATF start ]]
 -- switch ATF to use 3rd version (with HeartBeat) of SDL protocol
@@ -15,10 +16,15 @@ config.defaultProtocolVersion = 3
 config.application1.registerAppInterfaceParams.isMediaApplication = true
 
 -- [[Local variables]]
--- define parameters for 1st application
-local default_app_params = config.application1.registerAppInterfaceParams
--- define parameters for 2nd application
-local default_app_params2 = config.application2.registerAppInterfaceParams
+-- array with default parameters for mobile applications
+local appParams = {
+  [1] = config.application1.registerAppInterfaceParams,
+  [2] = config.application2.registerAppInterfaceParams
+}
+-- array to store HMI application identifiers
+local hmiAppId = {}
+-- array to store mobile sessions
+local mobileSession = {}
 
 --[[ Local Functions ]]
 
@@ -33,128 +39,139 @@ local function updateINIFile()
   commonFunctions:write_parameter_to_smart_device_link_ini("HeartBeatTimeout", 5000)
 end
 
---[[ @Start_Session_And_Register_App: create mobile session, start RPC service and register 1st mobile application
---! @parameters: none
+--[[ @connectMobile: create mobile connection
+--! @parameters:
 --! self - test object which will be provided automatically by runner module
 --! @return: none
 --]]
-local function Start_Session_And_Register_App(self)
-  -- create 1st mobile session
-  self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
-  -- define parameters for heartbeat: 1st application shouldn't sent heartbeat neither as answer on heartbeat messages
-  -- from SDL
-  self.mobileSession.sendHeartbeatToSDL = false
-  self.mobileSession.answerHeartbeatFromSDL = false
-  self.mobileSession.ignoreSDLHeartBeatACK = false
+local function connectMobile(self)
+  -- connect mobile device
+  self.mobileConnection:Connect()
+  -- register "Connected" expectation
+  EXPECT_EVENT(events.connectedEvent, "Connected")
+end
+
+--[[ @Register_App: create mobile session, start RPC service and register mobile application
+--! @parameters: none
+--! appId - application number (1, 2, etc.)
+--! answerHeartbeatFromSDL - if 'true' ATF will answer on heartbeat messages from SDL
+--! self - test object which will be provided automatically by runner module
+--! @return: none
+--]]
+local function Register_App(appId, answerHeartbeatFromSDL, self)
+  -- create mobile session
+  mobileSession[appId] = mobile_session.MobileSession(self, self.mobileConnection)
+  -- set parameters for heartbeat
+  mobileSession[appId].activateHeartbeat = false
+  mobileSession[appId].sendHeartbeatToSDL = false
+  mobileSession[appId].answerHeartbeatFromSDL = answerHeartbeatFromSDL
+  mobileSession[appId].ignoreSDLHeartBeatACK = false
   -- start RPC service
-  self.mobileSession:StartRPC()
+  mobileSession[appId]:StartRPC()
   :Do(function()
       -- send 'RegisterAppInterface' RPC with defined parameters for mobile application
       -- and return correlation identifier
-      local correlation_id = self.mobileSession:SendRPC("RegisterAppInterface", default_app_params)
+      local correlation_id = mobileSession[appId]:SendRPC("RegisterAppInterface", appParams[appId])
       -- register expectation of 'BC.OnAppRegistered' notification on HMI connection
       EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", {
-        application = { appName = default_app_params.appName }
+        application = { appName = appParams[appId].appName }
       })
       :Do(function(_,data)
-          -- save HMI application Id into 'hmi_app_id' variable: it will be required in next steps
-          default_app_params.hmi_app_id = data.params.application.appID
+          -- save HMI application Id: it will be required in next steps
+          hmiAppId[appId] = data.params.application.appID
         end)
       -- register expectation of response for 'RegisterAppInterface' request with appropriate correlation id
       -- on Mobile connection
-      self.mobileSession:ExpectResponse(correlation_id, { success = true, resultCode = "SUCCESS" })
+      mobileSession[appId]:ExpectResponse(correlation_id, { success = true, resultCode = "SUCCESS" })
       -- register expectation of 'OnHMIStatus' notification on Mobile connection
       -- it's expected that value of 'hmiLevel' parameter will be 'NONE'
-      self.mobileSession:ExpectNotification("OnHMIStatus", {
+      mobileSession[appId]:ExpectNotification("OnHMIStatus", {
         hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"
       })
       -- register expectation of 'OnPermissionsChange' notification on Mobile connection
-      self.mobileSession:ExpectNotification("OnPermissionsChange", {})
-    end)
-end
-
---[[ @Register_Second_App_With_HeartBeat: create mobile session, start RPC service and register 2nd mobile application
---! @parameters: none
---! self - test object which will be provided automatically by runner module
---! @return: none
---]]
-local function Register_Second_App_With_HeartBeat(self)
-  -- create 2nd mobile session
-  self.mobileSession1 = mobile_session.MobileSession(self, self.mobileConnection)
-  -- define parameters for heartbeat: 2nd application shouldn't sent heartbeat, but should answer on heartbeat messages
-  -- from SDL
-  self.mobileSession1.sendHeartbeatToSDL = false
-  self.mobileSession1.answerHeartbeatFromSDL = true
-  self.mobileSession1.ignoreSDLHeartBeatACK = false
-  self.mobileSession1:StartRPC()
-  :Do(function()
-      -- send 'RegisterAppInterface' RPC with defined parameters for mobile application
-      -- and return correlation identifier
-      local correlation_id = self.mobileSession1:SendRPC("RegisterAppInterface", default_app_params2)
-      -- register expectation of 'BC.OnAppRegistered' notification on HMI connection
-      EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", {
-        application = { appName = default_app_params2.appName }
-      })
-      -- register expectation of response for 'RegisterAppInterface' request with appropriate correlation id
-      -- on Mobile connection
-      self.mobileSession1:ExpectResponse(correlation_id, { success = true, resultCode = "SUCCESS" })
-      -- register expectation of 'OnHMIStatus' notification on Mobile connection
-      -- it's expected that value of 'hmiLevel' parameter will be 'NONE'
-      self.mobileSession1:ExpectNotification("OnHMIStatus", {
-        hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"
-      })
-      -- register expectation of 'OnPermissionsChange' notification on Mobile connection
-      self.mobileSession1:ExpectNotification("OnPermissionsChange", {})
+      mobileSession[appId]:ExpectNotification("OnPermissionsChange", {})
     end)
 end
 
 --[[ @Wait_15_seconds_And_Verify_OnAppUnregistered: wait 15 sec and check if 1st application is unregistered
 --! due to heartbeat timeout
 --! @parameters: none
---! self - test object which will be provided automatically by runner module
 --! @return: none
 --]]
-local function Wait_15_seconds_And_Verify_OnAppUnregistered(self)
+local function Wait_15_seconds_And_Verify_OnAppUnregistered()
   -- register expectation of 'BC.OnAppUnregistered' notification on HMI connection
   -- it's expected that 1st application is unregistered with 'unexpectedDisconnect' = true
-  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered", {
-    appID = default_app_params.hmi_app_id, unexpectedDisconnect =  true
-  })
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered", { appID = hmiAppId[1], unexpectedDisconnect = true })
   -- increase default timeout for wait from 10s to 15s
   -- this is required in order to heartbeat timeout of SDL is run out
   -- and SDL is able to close session for 1st application
   :Timeout(15000)
   :Do(function()
       -- stop heartbeat (if it was started previously)
-      self.mobileSession:StopHeartbeat()
+      mobileSession[1]:StopHeartbeat()
     end)
 end
 
 --[[ @Verify_That_Second_App_Still_Registered: verify that 2nd application is still registered
 --! @parameters: none
+--! @return: none
+--]]
+local function Verify_That_Second_App_Still_Registered()
+  -- send 'RegisterAppInterface' RCP with defined parameters
+  local cor_id = mobileSession[2]:SendRPC("RegisterAppInterface", appParams[2])
+  -- register expectation that response will be unsuccessful with appropriate resultCode
+  -- meaning session for 2nd application is still alive
+  mobileSession[2]:ExpectResponse(cor_id, { success = false, resultCode = "APPLICATION_REGISTERED_ALREADY"})
+end
+
+--[[ @Stop_HB_2nd_App: stop heartbeat for 2nd app, wait 15 sec and check that 2nd application is unregistered
+--! due to heartbeat timeout, also verify that mobile connection is not closed
+--! @parameters: none
+--! @return: none
+--]]
+local function Stop_HB_2nd_App()
+  -- switch off heartbeat for 2nd application
+  mobileSession[2].answerHeartbeatFromSDL = false
+  mobileSession[2]:StopHeartbeat()
+  -- register expectation of 'BC.OnAppUnregistered' notification on HMI connection
+  -- it's expected that the application is unregistered with 'unexpectedDisconnect' = true
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered", { appID = hmiAppId[2], unexpectedDisconnect = true })
+  -- increase default timeout for wait from 10s to 15s
+  -- this is required in order to heartbeat timeout of SDL is run out
+  -- and SDL is able to close session for application
+  :Timeout(15000)
+  -- register expectation that mobile connection won't be closed
+  EXPECT_EVENT(events.disconnectedEvent, "Disconnected")
+  :Times(0)
+end
+
+--[[ @Verify_That_New_Session_can_be_created: verify that new mobile session can be created on existing connection
+--! @parameters:
 --! self - test object which will be provided automatically by runner module
 --! @return: none
 --]]
-local function Verify_That_Second_App_Still_Registered(self)
-  -- send 'RegisterAppInterface' RCP with defined parameters
-  local cor_id = self.mobileSession1:SendRPC("RegisterAppInterface", default_app_params2)
-  -- register expectation that response will be unsuccessful with appropriate resultCode
-  -- meaning session for 2nd application is still alive
-  self.mobileSession1:ExpectResponse(cor_id, { success = false, resultCode = "APPLICATION_REGISTERED_ALREADY"})
+local function Verify_That_New_Session_can_be_created(self)
+  -- create mobile session
+  mobileSession[3] = mobile_session.MobileSession(self, self.mobileConnection)
+  -- start RPC service
+  mobileSession[3]:StartRPC()
 end
 
 -- [[ Scenario ]]
 runner.Title("Preconditions")
 runner.Step("Clean environment", common.preconditions)
 runner.Step("Update INI file", updateINIFile)
-runner.Step("Start SDL, HMI, connect Mobile", common.start)
 runner.Step("SDL Configuration", common.printSDLConfig)
+runner.Step("Start SDL and HMI", common.startWithoutMobile)
+runner.Step("Connect Mobile", connectMobile)
 
 runner.Title("Test")
-runner.Step("Start_Session_And_Register_App", Start_Session_And_Register_App)
-runner.Step("Register_Second_App_With_HeartBeat", Register_Second_App_With_HeartBeat)
+runner.Step("Register_1st_App_without_HeartBeat", Register_App, { 1, false })
+runner.Step("Register_2nd_App_with_HeartBeat", Register_App, { 2, true })
 runner.Step("Wait_15_seconds_And_Verify_OnAppUnregistered", Wait_15_seconds_And_Verify_OnAppUnregistered)
 runner.Step("Verify_That_Second_App_Still_Registered", Verify_That_Second_App_Still_Registered)
+runner.Step("Stop_HeartBeat_for_2nd_App_and_verify_that_connection_is_alive", Stop_HB_2nd_App)
+runner.Step("Verify_That_New_Session_can_be_created", Verify_That_New_Session_can_be_created)
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", common.postconditions)
