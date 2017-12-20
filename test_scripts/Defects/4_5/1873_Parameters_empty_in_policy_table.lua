@@ -77,5 +77,13 @@ runner.Step("GEtVD_parameters_empty_in_policy_table", GetVD)
 -- Processing SubscribeVehicleData RPC with resultCode DISALLOWED
 runner.Step("SubscribeVD_parameters_empty_in_policy_table", SubscribeVD)
 
+-- Perform Ignition Off / On
+runner.Step("Ignition Off", commonDefects.ignitionOff)
+runner.Step("Start SDL, HMI, connect Mobile", commonDefects.start)
+runner.Step("RAI", commonDefects.rai_n)
+runner.Step("Activate App", commonDefects.activate_app)
+-- Processing GetVehicleData RPC with resultCode DISALLOWED
+runner.Step("GEtVD_parameters_empty_in_policy_table", GetVD)
+
 runner.Title("Postconditions")
 runner.Step("Stop SDL", commonDefects.postconditions)
