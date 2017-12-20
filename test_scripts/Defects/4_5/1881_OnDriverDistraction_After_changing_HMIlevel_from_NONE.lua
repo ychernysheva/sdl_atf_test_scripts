@@ -1,11 +1,5 @@
 ---------------------------------------------------------------------------------------------
 -- GitHub issue: https://github.com/SmartDeviceLink/sdl_core/issues/1881
--- In case
--- mobile app registers and gets NONE HMILevel
--- and SDL receives OnDriverDistraction (<state>) fom HMI
--- SDL must:
--- transfer the last known (actual) OnDriverDistraction (<state>) to this mobile app right after this mobile app
--- changes HMILevel to any other than NONE
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
