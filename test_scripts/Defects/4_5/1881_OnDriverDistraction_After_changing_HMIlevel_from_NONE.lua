@@ -190,7 +190,7 @@ runner.Step("OnDriverDistraction_after_app_activation", ActivationAppWithOnDD2Ap
 -- Close first session
 runner.Step("CloseSession", CloseSession)
 -- Change DriverDistraction status and check receiving of OnDriverDistraction notification on mobile app in FULL level
-runner.Step("OnDriverDistraction_change_in_FULL", OnDD, {2,{state = "DD_ON"}})
+runner.Step("OnDriverDistraction_change_in_FULL", OnDD, {2, {state = "DD_ON"}})
 -- Receiving OnDriverDistraction notification on mobile app in LIMITED HMI level after changing HMI status from NONE
 runner.Step("OnDriverDistraction_in_LIMITED_after_resumption", RegisterAppWithOnDDResumption, {{state = "DD_ON"}})
 
