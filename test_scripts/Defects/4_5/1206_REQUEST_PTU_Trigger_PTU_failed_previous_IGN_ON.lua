@@ -18,17 +18,17 @@ local color = require("user_modules/consts").color
 --]]
 local function registerApplicationAndWaitPTUStart(self)
   -- create mobile session
-  self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
+  self.mobileSession1 = mobile_session.MobileSession(self, self.mobileConnection)
   -- start RPC service
-  self.mobileSession:StartService(7)
+  self.mobileSession1:StartService(7)
   :Do(function()
       -- send 'RegisterAppInterface' RPC with default parameters for mobile application
       -- and return correlation identifier
-      local corId = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
+      local corId = self.mobileSession1:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
       -- register expectation of response for 'RegisterAppInterface' request with appropriate correlation id
       -- on Mobile connection
       -- it's expected that request is processed successfully
-      self.mobileSession:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
+      self.mobileSession1:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
       -- register expectation of 'BC.OnAppRegistered' notification on HMI connection
       -- it's expected that the value of 'application.appName' argument will be equal to default application name
       EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", {
