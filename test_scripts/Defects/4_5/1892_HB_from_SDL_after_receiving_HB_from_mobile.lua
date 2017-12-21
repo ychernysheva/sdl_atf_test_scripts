@@ -45,6 +45,36 @@ local function RestoreIniFile()
   commonPreconditions:RestoreFile("smartDeviceLink.ini")
 end
 
+--! @HBFromSDLEvent: Expectation of HB message from SDL
+--! @parameters:none
+--! @return: expecation
+local function HBFromSDLMsg(self)
+  local event = events.Event()
+  event.matches =
+  function(_, data)
+    return data.frameType == 0 and
+    data.serviceType == 0 and
+    data.sessionId == self.mobileSession1.sessionId and
+    data.frameInfo == 0
+  end
+  return self.mobileSession1:ExpectEvent(event, "HB")
+end
+
+--! @HBFromSDLEvent: Expectation of HB ACK message from SDL
+--! @parameters:none
+--! @return: expecation
+local function HBACKFromSDLMsg(self)
+  local event = events.Event()
+  event.matches =
+  function(_, data)
+    return data.frameType == 0 and
+    data.serviceType == 0 and
+    data.sessionId == self.mobileSession1.sessionId and
+    data.frameInfo == 255
+  end
+  return self.mobileSession1:ExpectEvent(event, "HBACK")
+end
+
 --[[ Local Functions ]]
 --! @OpenConnectionCreateSession: Creation new session via 3 protocol without heart beat
 --! @parameters:
@@ -55,9 +85,7 @@ local function OpenConnectionCreateSession(self)
   local tcpConnection = tcp.Connection(config.mobileHost, config.mobilePort)
   local fileConnection = file_connection.FileConnection("mobile.out", tcpConnection)
   self.mobileConnection = mobile.MobileConnection(fileConnection)
-  self.mobileSession1= mobile_session.MobileSession(
-    self,
-    self.mobileConnection)
+  self.mobileSession1= mobile_session.MobileSession(self, self.mobileConnection)
   event_dispatcher:AddConnection(self.mobileConnection)
   self.mobileSession1:ExpectEvent(events.connectedEvent, "Connection 1 started")
   self.mobileConnection:Connect()
@@ -66,64 +94,36 @@ local function OpenConnectionCreateSession(self)
   self.mobileSession1.answerHeartbeatFromSDL = false
   self.mobileSession1.ignoreHeartBeatAck = false
   self.mobileSession1:StartService(7)
+  HBFromSDLMsg(self):Times(0)
+  commonDefects.delayedExp(10000)
 end
 
 --[[ Local Functions ]]
---! @RegisterAppInterface: Register application
+--! @RegisterAppInterface: Register application, do not expect app unregister due to heartbeat time out
+--! do not expect HB from SDL
 --! @parameters:
 --! self - test object
 --! @return: none
 local function RegisterAppInterface(self)
+  -- define default application parameters
+  local appParams = config.application1.registerAppInterfaceParams
   -- Send RegisterAppInterface request from mobile app
-  local CorIdRegister = self.mobileSession1:SendRPC("RegisterAppInterface", {
-      syncMsgVersion ={
-        majorVersion = 4,
-        minorVersion = 3
-      },
-      appName = config.application1.registerAppInterfaceParams.appName,
-      isMediaApplication = true,
-      languageDesired = 'EN-US',
-      hmiDisplayLanguageDesired = 'EN-US',
-      appHMIType = { "DEFAULT" },
-      appID = config.application1.registerAppInterfaceParams.appID
-    })
+  local CorIdRegister = self.mobileSession1:SendRPC("RegisterAppInterface", appParams)
   -- Expect OnAppRegistered notification on HMI side
-  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered",
-    { application = {appName = config.application1.registerAppInterfaceParams.appName }})
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = appParams.appName }})
   -- Expect successful RegisterAppInterface response on mobile app
   self.mobileSession1:ExpectResponse(CorIdRegister, { success = true, resultCode = "SUCCESS" })
   -- Expect OnHMIStatus notification on mobile side
   self.mobileSession1:ExpectNotification("OnHMIStatus",
     { systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE" })
-end
-
---[[ Local Functions ]]
---! @ExpectationAfterAppRegistration: Expect absence of HB from SDL
---! @parameters:
---! self - test object
---! @return: none
-local function ExpectationAfterAppRegistration(self)
-  -- Get HMI id of first application
-  local hmiAppId = commonDefects.getHMIAppId(1)
   -- Does not expect OnAppUnregistered notification on HMI side, times 0
-  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered",
-    {unexpectedDisconnect = true, appID = hmiAppId})
-  :Times(0)
-  commonFunctions:userPrint (33,"Log: AppSession started, HB disabled")
-  commonFunctions:userPrint (33, "Log: App v.3 disconnection not expected since no HB ACK and timer" ..
-  "should be started by SDL till the HB request from app first")
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered"):Times(0)
+  commonFunctions:userPrint(33,"AppSession started, HB disabled")
+  commonFunctions:userPrint(33, "App v.3 disconnection not expected since no HB ACK and timer"
+    .. "should be started by SDL till the HB request from app first")
   -- Does not expect HB from SDL, times 0
-  local HBEvent = events.Event()
-  HBEvent.matches =
-  function(_, data)
-    return data.frameType == 0 and
-    data.serviceType == 0 and
-    (data.sessionId == self.mobileSession1.sessionId) and
-    data.frameInfo == 0
-  end
-  self.mobileSession1:ExpectEvent(HBEvent, "HB")
-  :Times(0)
-  commonDefects.delayedExp(10000)
+  HBFromSDLMsg(self):Times(0)
+  commonDefects.delayedExp(15000)
 end
 
 --[[ Local Functions ]]
@@ -132,32 +132,16 @@ end
 --! self - test object
 --! @return: none
 local function sendHBFromMobileAndReceivingFromSDL(self)
-  local HBEvent = events.Event()
-  HBEvent.matches =
-  function(_, data)
-    return data.frameType == 0 and
-    data.serviceType == 0 and
-    (data.sessionId == self.mobileSession1.sessionId) and
-    data.frameInfo == 0
-  end
-  local HBACKEvent = events.Event()
-  HBACKEvent.matches =
-  function(_, data)
-    return data.frameType == 0 and
-    data.serviceType == 0 and
-    (data.sessionId == self.mobileSession1.sessionId) and
-    data.frameInfo == 255
-  end
   -- Send HB from mobile app to SDL
   self.mobileSession1:Send({
       frameType = constants.FRAME_TYPE.CONTROL_FRAME,
       serviceType = constants.SERVICE_TYPE.CONTROL,
       frameInfo = constants.FRAME_INFO.HEARTBEAT
     })
-  -- Expect HB on mobile app from SDL
-  self.mobileSession1:ExpectEvent(HBEvent, "HB")
+  -- Expect HB from SDL on mobile app
+  HBFromSDLMsg(self)
   -- Expect HB ACK from SDL on mobile app
-  self.mobileSession1:ExpectEvent(HBACKEvent, "HB")
+  HBACKFromSDLMsg(self)
 end
 
 --[[ Local Functions ]]
@@ -165,14 +149,14 @@ end
 --! @parameters: none
 --! @return: none
 local function DisconnectDueToHeartbeat()
-  -- Get HMI id for registered app
-  local hmiAppId = commonDefects.getHMIAppId(1)
   -- Expect OnAppUnregistered notification on HMI side from SDL
-  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered", {unexpectedDisconnect = true, appID = hmiAppId})
-  commonDefects.delayedExp()
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered", {
+    unexpectedDisconnect = true, appID = commonDefects.getHMIAppId(1)
+  })
   commonFunctions:userPrint(33, "AppSession started, HB enabled")
-  commonFunctions:userPrint(33, "In DisconnectDueToHeartbeat TC disconnection is expected because HB process started" ..
-  "by SDL after app's HB request")
+  commonFunctions:userPrint(33, "In DisconnectDueToHeartbeat TC disconnection is expected because HB process started"
+    .. "by SDL after app's HB request")
+  commonDefects.delayedExp(10000)
 end
 
 --[[ Scenario ]]
@@ -184,7 +168,6 @@ runner.Step("Start SDL, HMI", commonDefects.startWithoutMobile)
 runner.Title("Test")
 runner.Step("OpenConnectionCreateSession", OpenConnectionCreateSession)
 runner.Step("RegisterApp", RegisterAppInterface)
-runner.Step("ExpectationAfterAppRegistration", ExpectationAfterAppRegistration)
 runner.Step("SendHBFromMobileAndExpectationHBFromSDL", sendHBFromMobileAndReceivingFromSDL)
 runner.Step("DisconnectDueToHeartbeat", DisconnectDueToHeartbeat)
 
