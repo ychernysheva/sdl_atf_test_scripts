@@ -153,6 +153,11 @@ end
 local function Verify_That_New_Session_can_be_created(self)
   -- create mobile session
   mobileSession[3] = mobile_session.MobileSession(self, self.mobileConnection)
+  -- set heartbeat options
+  mobileSession[3].activateHeartbeat = false
+  mobileSession[3].sendHeartbeatToSDL = false
+  mobileSession[3].answerHeartbeatFromSDL = false
+  mobileSession[3].ignoreSDLHeartBeatACK = false
   -- start RPC service
   mobileSession[3]:StartRPC()
 end
