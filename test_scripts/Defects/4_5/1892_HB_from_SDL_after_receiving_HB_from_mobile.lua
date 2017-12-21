@@ -1,4 +1,5 @@
 ---------------------------------------------------------------------------------------------------
+-- Script verifies issue https://github.com/smartdevicelink/sdl_core/issues/1892
 -- Description
 -- SDL must start heartbeat only after first Heartbeat request from mobile app
 -- Preconditions
@@ -94,6 +95,7 @@ local function OpenConnectionCreateSession(self)
   self.mobileSession1.answerHeartbeatFromSDL = false
   self.mobileSession1.ignoreHeartBeatAck = false
   self.mobileSession1:StartService(7)
+  -- Does not expect HB from SDL, times 0
   HBFromSDLMsg(self):Times(0)
   commonDefects.delayedExp(10000)
 end
