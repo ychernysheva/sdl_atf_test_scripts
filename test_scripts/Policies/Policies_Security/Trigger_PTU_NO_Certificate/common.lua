@@ -199,9 +199,10 @@ local function registerExpectServiceEventFunc(pMobSession)
   end
   function pMobSession.mobile_session_impl:ExpectControlMessage(pServiceId, pData)
     local ret = self.control_services:ExpectControlMessage(pServiceId, pData)
-    :Do(function(exp)
-        if exp.status == expectations.FAILED then return end
-        self.security:registerSecureService(pServiceId)
+    :Do(function(exp, data)
+        if exp.status ~= expectations.FAILED and data.encryption == true then
+          self.security:registerSecureService(pServiceId)
+        end
       end)
     return ret
   end
