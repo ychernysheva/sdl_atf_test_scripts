@@ -2773,6 +2773,12 @@ local function displayCap_textFields_Value()
 		},
 		{
 			characterSet = "TYPE2SET",
+			name = "turnText",
+			rows = 1,
+			width = 500
+		},
+		{
+			characterSet = "TYPE2SET",
 			name = "menuTitle",
 			rows = 1,
 			width = 500
@@ -3446,7 +3452,7 @@ local function setExTurnList(size)
 							navigationText =
 							{
 								fieldText = "Text",
-								fieldName = "navigationText"
+								fieldName = "turnText"
 							},
 							turnIcon =
 							{
@@ -3463,7 +3469,7 @@ local function setExTurnList(size)
 					navigationText =
 					{
 						fieldText = "Text"..i,
-						fieldName = "navigationText"
+						fieldName = "turnText"
 					},
 					turnIcon =
 					{
