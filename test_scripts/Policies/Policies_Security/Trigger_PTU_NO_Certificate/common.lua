@@ -5,6 +5,10 @@
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 config.defaultProtocolVersion = 2
 
+config.serverCertificatePath = "./files/Security/spt_credential.pem"
+config.serverPrivateKeyPath = "./files/Security/spt_credential.pem"
+config.serverCAChainCertPath = "./files/Security/spt_credential.pem"
+
 --[[ Required Shared libraries ]]
 local mobile_session = require("mobile_session")
 local json = require("modules/json")
@@ -16,7 +20,6 @@ local test = require("user_modules/dummy_connecttest")
 local expectations = require('expectations')
 local Expectation = expectations.Expectation
 local constants = require('protocol_handler/ford_protocol_constants')
--- local util = require("atf.util")
 
 local m = {}
 
