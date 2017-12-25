@@ -91,8 +91,8 @@ end
 
 --[[ @ptu: perform policy table update
 --! @parameters:
---! pAppId - application number (1, 2, etc.)
 --! pPTUpdateFunc - additional function for update
+--! pAppId - application number (1, 2, etc.)
 --]]
 local function ptu(pPTUpdateFunc, pAppId)
   if not pAppId then pAppId = 1 end
@@ -147,13 +147,17 @@ local function ptu(pPTUpdateFunc, pAppId)
 end
 
 --[[ @allowSDL: sequence that allows SDL functionality
---! @parameters:
+--! @parameters: none
 --]]
 local function allowSDL()
   test.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality",
     { allowed = true, source = "GUI", device = { id = config.deviceMAC, name = "127.0.0.1" } })
 end
 
+--[[ @registerStartSecureServiceFunc: register function to start secure service
+--! @parameters:
+--! pMobSession - mobile session
+--]]
 local function registerStartSecureServiceFunc(pMobSession)
   function pMobSession.mobile_session_impl.control_services:StartSecureService(pServiceId)
     local msg = {
@@ -173,6 +177,11 @@ local function registerStartSecureServiceFunc(pMobSession)
   end
 end
 
+--[[ @registerExpectServiceEventFunc: register functions for expectations of control messages:
+--! Service Start ACK/NACK and Handshake
+--! @parameters:
+--! pMobSession - mobile session
+--]]
 local function registerExpectServiceEventFunc(pMobSession)
   function pMobSession.mobile_session_impl.control_services:ExpectControlMessage(pServiceId, pData)
     local event = events.Event()
@@ -263,6 +272,11 @@ local function registerExpectServiceEventFunc(pMobSession)
   end
 end
 
+--[[ @getAppID: return 'appID' from configuration file
+--! @parameters:
+--! pAppId - application number (1, 2, etc.)
+--! @return: application identifier from configuration file
+--]]
 function m.getAppID(pAppId)
   if not pAppId then pAppId = 1 end
   return config["application" .. pAppId].registerAppInterfaceParams.appID
@@ -334,7 +348,7 @@ function m.getMobileSession(pAppId)
   return session
 end
 
---[[ @registerAppWithPTU: register mobile application and perform PTU
+--[[ @registerApp: register mobile application
 --! @parameters:
 --! pAppId - application number (1, 2, etc.)
 --]]
@@ -366,6 +380,10 @@ function m.registerApp(pAppId)
     end)
 end
 
+--[[ @registerAppWOPTU: register mobile application and do not perform PTU
+--! @parameters:
+--! pAppId - application number (1, 2, etc.)
+--]]
 function m.registerAppWOPTU(pAppId)
   if not pAppId then pAppId = 1 end
   local mobSession = m.getMobileSession(pAppId)
@@ -387,12 +405,17 @@ function m.registerAppWOPTU(pAppId)
     end)
 end
 
-function m.PolicyTableUpdate(pPTUpdateFunc, pExpNotificationFunc, pAppId)
+--[[ @policyTableUpdate: perform PTU
+--! @parameters:
+--! pPTUpdateFunc - function with additional updates
+--! pExpNotificationFunc - function with specific expectations which needs to be done during PTU
+--! pAppId - application number (1, 2, etc.)
+--]]
+function m.policyTableUpdate(pPTUpdateFunc, pExpNotificationFunc, pAppId)
   if not pAppId then pAppId = 1 end
   if not pExpNotificationFunc then
     test.hmiConnection:ExpectNotification("SDL.OnStatusUpdate", { status = "UP_TO_DATE" })
   end
-  -- m.getMobileSession(pAppId):ExpectNotification("OnPermissionsChange") -- SDL issue
   ptu(pPTUpdateFunc, pAppId)
 end
 
@@ -420,7 +443,7 @@ function m.start(pHMIParams)
     end)
 end
 
---[[ @DelayedExp: delay test step for default timeout
+--[[ @delayedExp: delay test step for specific timeout
 --! @parameters: none
 --]]
 function m.delayedExp(pTimeOut)
@@ -428,6 +451,11 @@ function m.delayedExp(pTimeOut)
   commonTestCases:DelayedExp(pTimeOut)
 end
 
+--[[ @readFile: read data from file
+--! @parameters:
+--! pPath - path to file
+-- @return: content of the file
+--]]
 function m.readFile(pPath)
     local open = io.open
     local file = open(pPath, "rb")
@@ -437,11 +465,16 @@ function m.readFile(pPath)
     return content
 end
 
-function test.hmiConnection:ExpectRequest(name, ...)
+--[[ @ExpectRequest: register expectation for request on HMI connection
+--! @parameters:
+--! pName - name of the request
+--! ... - expected data
+--]]
+function test.hmiConnection:ExpectRequest(pName, ...)
   local event = events.Event()
-  event.matches = function(_, data) return data.method == name end
+  event.matches = function(_, data) return data.method == pName end
   local args = table.pack(...)
-  local ret = Expectation("HMI call " .. name, self)
+  local ret = Expectation("HMI call " .. pName, self)
   if #args > 0 then
     ret:ValidIf(function(e, data)
         local arguments
@@ -459,11 +492,16 @@ function test.hmiConnection:ExpectRequest(name, ...)
   return ret
 end
 
-function test.hmiConnection:ExpectNotification(name, ...)
+--[[ @ExpectNotification: register expectation for notification on HMI connection
+--! @parameters:
+--! pName - name of the notification
+--! ... - expected data
+--]]
+function test.hmiConnection:ExpectNotification(pName, ...)
   local event = events.Event()
-  event.matches = function(_, data) return data.method == name end
+  event.matches = function(_, data) return data.method == pName end
   local args = table.pack(...)
-  local ret = Expectation("HMI notification " .. name, self)
+  local ret = Expectation("HMI notification " .. pName, self)
   if #args > 0 then
     ret:ValidIf(function(e, data)
         local arguments
@@ -482,10 +520,18 @@ function test.hmiConnection:ExpectNotification(name, ...)
   return ret
 end
 
+--[[ @getHMIConnection: return HMI connection object
+--! @parameters: none
+--! @return: HMI connection object
+--]]
 function m.getHMIConnection()
   return test.hmiConnection
 end
 
+--[[ @setForceProtectedServiceParam: set value of 'ForceProtectedService' parameter in SDL .ini file
+--! @parameters:
+--! pParamValue - value of the paramter
+--]]
 function m.setForceProtectedServiceParam(pParamValue)
   local paramName = "ForceProtectedService"
   commonFunctions:SetValuesInIniFile(paramName .. "%s-=%s-[%d,A-Z,a-z]-%s-\n", paramName, pParamValue)

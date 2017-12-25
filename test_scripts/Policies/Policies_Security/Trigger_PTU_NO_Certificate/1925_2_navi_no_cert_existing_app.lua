@@ -36,7 +36,7 @@ runner.Title("Preconditions")
 runner.Step("Clean environment", common.preconditions)
 runner.Step("Start SDL, HMI, connect Mobile, start Session", common.start)
 runner.Step("Register " .. appHMIType[1] .. " App", common.registerApp, { 1 })
-runner.Step("PTU 1 finished", common.PolicyTableUpdate, { ptUpdate })
+runner.Step("PTU 1 finished", common.policyTableUpdate, { ptUpdate })
 
 runner.Title("Test")
 runner.Step("Register " .. appHMIType[2] .. " App, PTU started", registerApp, { 2 })

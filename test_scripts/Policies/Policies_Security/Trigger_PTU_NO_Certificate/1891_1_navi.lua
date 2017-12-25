@@ -45,7 +45,7 @@ runner.Step("Start SDL, HMI, connect Mobile, start Session", common.start)
 
 runner.Title("Test")
 runner.Step("Register App", common.registerApp)
-runner.Step("PolicyTableUpdate fails", common.PolicyTableUpdate, { ptUpdate, expNotificationFunc })
+runner.Step("PolicyTableUpdate fails", common.policyTableUpdate, { ptUpdate, expNotificationFunc })
 runner.Step("StartService Secured NACK, no Handshake", startServiceSecured)
 
 runner.Title("Postconditions")

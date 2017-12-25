@@ -46,7 +46,7 @@ runner.Title("Test")
 runner.Step("Register App", common.registerApp)
 runner.Step("Activate App", common.activateApp)
 
-runner.Step("PolicyTableUpdate with certificate", common.PolicyTableUpdate, { ptUpdate })
+runner.Step("PolicyTableUpdate with certificate", common.policyTableUpdate, { ptUpdate })
 
 runner.Step("StartService Secured ACK", startServiceSecured, { {
   frameInfo = common.frameInfo.START_SERVICE_ACK,

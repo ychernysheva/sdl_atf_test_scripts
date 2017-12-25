@@ -39,7 +39,7 @@ local function startServiceSecured(pData)
     :Times(3)
   end
 
-  common.PolicyTableUpdate(ptUpdate, expNotificationFunc)
+  common.policyTableUpdate(ptUpdate, expNotificationFunc)
   common.delayedExp()
 end
 

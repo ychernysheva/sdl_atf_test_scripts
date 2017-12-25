@@ -38,7 +38,7 @@ local function startServiceSecured()
     :Times(4)
   end
 
-  common.PolicyTableUpdate(ptUpdateUnssucess, expNotificationFunc)
+  common.policyTableUpdate(ptUpdateUnssucess, expNotificationFunc)
   common.delayedExp()
 end
 
@@ -51,7 +51,7 @@ runner.Step("Start SDL, HMI, connect Mobile, start Session", common.start)
 
 runner.Title("Test")
 runner.Step("Register App", common.registerApp)
-runner.Step("PolicyTableUpdate", common.PolicyTableUpdate, { ptUpdateSuccess })
+runner.Step("PolicyTableUpdate", common.policyTableUpdate, { ptUpdateSuccess })
 runner.Step("StartService Secured, PTU started and fails, NACK, no Handshake", startServiceSecured)
 
 runner.Title("Postconditions")
