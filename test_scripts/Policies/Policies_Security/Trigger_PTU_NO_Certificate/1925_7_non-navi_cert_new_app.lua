@@ -1,5 +1,5 @@
 ---------------------------------------------------------------------------------------------------
--- TBA
+-- Issue: https://github.com/SmartDeviceLink/sdl_core/issues/1925
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local common = require('test_scripts/Policies/Policies_Security/Trigger_PTU_NO_Certificate/common')
