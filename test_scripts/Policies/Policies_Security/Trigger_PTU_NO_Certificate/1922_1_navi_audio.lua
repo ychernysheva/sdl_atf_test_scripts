@@ -10,7 +10,6 @@ local serviceId = 10
 local appHMIType = "NAVIGATION"
 
 --[[ General configuration parameters ]]
-config.defaultProtocolVersion = 3
 config.application1.registerAppInterfaceParams.appHMIType = { appHMIType }
 
 --[[ Local Functions ]]
