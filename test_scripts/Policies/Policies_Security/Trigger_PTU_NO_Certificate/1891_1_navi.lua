@@ -31,9 +31,8 @@ end
 
 local function expNotificationFunc()
   common.getHMIConnection():ExpectNotification("SDL.OnStatusUpdate",
-    { status = "UPDATE_NEEDED" }, { status = "UPDATING" },
     { status = "UPDATE_NEEDED" }, { status = "UPDATING" })
-  :Times(4)
+  :Times(2)
 end
 
 --[[ Scenario ]]

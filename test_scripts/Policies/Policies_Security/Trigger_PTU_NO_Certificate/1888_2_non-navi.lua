@@ -15,6 +15,11 @@ config.application1.registerAppInterfaceParams.appID = "SPT"
 config.application1.registerAppInterfaceParams.appHMIType = { appHMIType }
 
 --[[ Local Functions ]]
+local function ptUpdate(pTbl)
+  pTbl.policy_table.module_config.certificate = nil
+  pTbl.policy_table.app_policies[common.getAppID()].AppHMIType = { appHMIType }
+end
+
 local function startServiceSecured(pData)
   common.getMobileSession():StartSecureService(serviceId)
   common.getMobileSession():ExpectControlMessage(serviceId, pData)
@@ -28,7 +33,7 @@ local function startServiceSecured(pData)
   common.getMobileSession():ExpectHandshakeMessage()
   :Times(handshakeOccurences)
 
-  local function ptUpdate(pTbl)
+  local function ptUpdateCertificate(pTbl)
     pTbl.policy_table.module_config.certificate = crt
     pTbl.policy_table.app_policies[common.getAppID()].AppHMIType = { appHMIType }
   end
@@ -39,7 +44,7 @@ local function startServiceSecured(pData)
     :Times(3)
   end
 
-  common.policyTableUpdate(ptUpdate, expNotificationFunc)
+  common.policyTableUpdate(ptUpdateCertificate, expNotificationFunc)
   common.delayedExp()
 end
 
@@ -70,6 +75,7 @@ runner.Step("Start SDL, HMI, connect Mobile, start Session", common.start)
 runner.Title("Test")
 
 runner.Step("Register App", common.registerApp)
+runner.Step("PolicyTableUpdate wo cert", common.policyTableUpdate, { ptUpdate })
 runner.Step("Activate App", common.activateApp)
 
 runner.Step("StartService Secured, PTU wo cert, NACK, no Handshake", startServiceSecured, { {

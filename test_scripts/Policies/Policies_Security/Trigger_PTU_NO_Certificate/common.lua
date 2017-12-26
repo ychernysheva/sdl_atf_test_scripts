@@ -20,6 +20,7 @@ local test = require("user_modules/dummy_connecttest")
 local expectations = require('expectations')
 local Expectation = expectations.Expectation
 local constants = require('protocol_handler/ford_protocol_constants')
+local reporter = require("reporter")
 
 local m = {}
 
@@ -183,16 +184,22 @@ end
 --! pMobSession - mobile session
 --]]
 local function registerExpectServiceEventFunc(pMobSession)
-  function pMobSession.mobile_session_impl.control_services:ExpectControlMessage(pServiceId, pData)
+  function pMobSession:ExpectControlMessage(pServiceId, pData)
+    local session = self.mobile_session_impl.control_services.session
     local event = events.Event()
     event.matches = function(_, data)
     return data.frameType == constants.FRAME_TYPE.CONTROL_FRAME and
       data.serviceType == pServiceId and
-      (pServiceId == constants.SERVICE_TYPE.RPC or data.sessionId == self.session.sessionId.get()) and
+      (pServiceId == constants.SERVICE_TYPE.RPC or data.sessionId == session.sessionId.get()) and
       (data.frameInfo == constants.FRAME_INFO.START_SERVICE_ACK or
         data.frameInfo == constants.FRAME_INFO.START_SERVICE_NACK)
     end
-    local ret = self.session:ExpectEvent(event, "StartService")
+    local ret = session:ExpectEvent(event, "StartService")
+    :Do(function(_, data)
+        if data.encryption == true and data.frameInfo == constants.FRAME_INFO.START_SERVICE_ACK then
+          session.security:registerSecureService(pServiceId)
+        end
+      end)
     :ValidIf(function(_, data)
         if data.encryption ~= pData.encryption then
           return false, "Expected 'encryption' flag is '" .. tostring(pData.encryption)
@@ -209,61 +216,39 @@ local function registerExpectServiceEventFunc(pMobSession)
       end)
     return ret
   end
-  function pMobSession.mobile_session_impl:ExpectControlMessage(pServiceId, pData)
-    local ret = self.control_services:ExpectControlMessage(pServiceId, pData)
-    :Do(function(exp, data)
-        if exp.status ~= expectations.FAILED and data.encryption == true then
-          self.security:registerSecureService(pServiceId)
-        end
-      end)
-    return ret
-  end
-  function pMobSession:ExpectControlMessage(pServiceId, pData)
-    return self.mobile_session_impl:ExpectControlMessage(pServiceId, pData)
-  end
-  function pMobSession.mobile_session_impl.control_services:ExpectHandshakeMessage()
-    -- if not self.session.isSecuredSession then
-      local handshakeEvent = events.Event()
-      local handShakeExp
-      handshakeEvent.matches = function(_,data)
-          return data.frameType ~= constants.FRAME_TYPE.CONTROL_FRAME
-            and data.serviceType == constants.SERVICE_TYPE.CONTROL
-            and data.sessionId == self.session.sessionId.get()
-            and data.rpcType == constants.BINARY_RPC_TYPE.NOTIFICATION
-            and data.rpcFunctionId == constants.BINARY_RPC_FUNCTION_ID.HANDSHAKE
-        end
-      handShakeExp = self.session:ExpectEvent(handshakeEvent, "Handshake internal")
-      :Do(function(_, data)
-        local binData = data.binaryData
-          local dataToSend = self.session.security:performHandshake(binData)
-          if dataToSend then
-            local handshakeMessage = {
-              frameInfo = 0,
-              serviceType = constants.SERVICE_TYPE.CONTROL,
-              encryption = false,
-              rpcType = constants.BINARY_RPC_TYPE.NOTIFICATION,
-              rpcFunctionId = constants.BINARY_RPC_FUNCTION_ID.HANDSHAKE,
-              rpcCorrelationId = data.rpcCorrelationId,
-              binaryData = dataToSend
-            }
-            self.session:Send(handshakeMessage)
-          end
-          -- if self.session.security:isHandshakeFinished() then
-          --   self.session.test:RemoveExpectation(handShakeExp)
-          -- end
-        end)
-    -- end
-    return handShakeExp
-  end
-  function pMobSession:ExpectHandshakeMessage(service)
+
+  function pMobSession:ExpectHandshakeMessage()
+    local session = self.mobile_session_impl.control_services.session
     local event = events.Event()
     event.matches = function(e1, e2) return e1 == e2 end
     local ret = pMobSession:ExpectEvent(event, "Handshake")
-    self.mobile_session_impl.control_services:ExpectHandshakeMessage(service)
-    :Do(function(e)
-        local isHandshakeFinished = self.mobile_session_impl.control_services.session.security:isHandshakeFinished()
-        -- print(e.occurences, isHandshakeFinished)
-        if isHandshakeFinished then
+    local handshakeEvent = events.Event()
+    handshakeEvent.matches = function(_, data)
+        return data.frameType ~= constants.FRAME_TYPE.CONTROL_FRAME
+          and data.serviceType == constants.SERVICE_TYPE.CONTROL
+          and data.sessionId == session.sessionId.get()
+          and data.rpcType == constants.BINARY_RPC_TYPE.NOTIFICATION
+          and data.rpcFunctionId == constants.BINARY_RPC_FUNCTION_ID.HANDSHAKE
+      end
+    session:ExpectEvent(handshakeEvent, "Handshake internal")
+    :Do(function(_, data)
+      local binData = data.binaryData
+        local dataToSend = session.security:performHandshake(binData)
+        if dataToSend then
+          local handshakeMessage = {
+            frameInfo = 0,
+            serviceType = constants.SERVICE_TYPE.CONTROL,
+            encryption = false,
+            rpcType = constants.BINARY_RPC_TYPE.NOTIFICATION,
+            rpcFunctionId = constants.BINARY_RPC_FUNCTION_ID.HANDSHAKE,
+            rpcCorrelationId = data.rpcCorrelationId,
+            binaryData = dataToSend
+          }
+          session:Send(handshakeMessage)
+        end
+      end)
+    :Do(function()
+        if session.security:isHandshakeFinished() then
           event_dispatcher:RaiseEvent(test.mobileConnection, event)
         end
       end)
@@ -415,6 +400,8 @@ function m.policyTableUpdate(pPTUpdateFunc, pExpNotificationFunc, pAppId)
   if not pAppId then pAppId = 1 end
   if not pExpNotificationFunc then
     test.hmiConnection:ExpectNotification("SDL.OnStatusUpdate", { status = "UP_TO_DATE" })
+  else
+    pExpNotificationFunc()
   end
   ptu(pPTUpdateFunc, pAppId)
 end
@@ -483,6 +470,10 @@ function test.hmiConnection:ExpectRequest(pName, ...)
         else
           arguments = args[e.occurences]
         end
+        reporter.AddMessage("EXPECT_HMICALL",
+          { ["Id"] = data.id, ["name"] = tostring(pName),["Type"] = "EXPECTED_RESULT" }, arguments)
+        reporter.AddMessage("EXPECT_HMICALL",
+          { ["Id"] = data.id, ["name"] = tostring(pName),["Type"] = "AVAILABLE_RESULT" }, data.params)
         return compareValues(arguments, data.params, "params")
       end)
   end
@@ -510,7 +501,12 @@ function test.hmiConnection:ExpectNotification(pName, ...)
         else
           arguments = args[e.occurences]
         end
+        local cid = test.notification_counter
         test.notification_counter = test.notification_counter + 1
+        reporter.AddMessage("EXPECT_HMINOTIFICATION",
+          { ["Id"] = cid, ["name"] = tostring(pName), ["Type"] = "EXPECTED_RESULT" }, arguments)
+        reporter.AddMessage("EXPECT_HMINOTIFICATION",
+          { ["Id"] = cid, ["name"] = tostring(pName), ["Type"] = "AVAILABLE_RESULT" }, data.params)
         return compareValues(arguments, data.params, "params")
       end)
   end

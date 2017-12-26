@@ -30,13 +30,6 @@ local function startServiceSecured()
   common.delayedExp()
 end
 
-local function expNotificationFunc()
-  common.getHMIConnection():ExpectNotification("SDL.OnStatusUpdate",
-    { status = "UPDATE_NEEDED" }, { status = "UPDATING" },
-    { status = "UPDATE_NEEDED" }, { status = "UPDATING" })
-  :Times(4)
-end
-
 --[[ Scenario ]]
 runner.SetParameters({ isSelfIncluded = false })
 runner.Title("Preconditions")
@@ -46,7 +39,7 @@ runner.Step("Start SDL, HMI, connect Mobile, start Session", common.start)
 
 runner.Title("Test")
 runner.Step("Register App", common.registerApp)
-runner.Step("PolicyTableUpdate fails", common.policyTableUpdate, { ptUpdate, expNotificationFunc })
+runner.Step("PolicyTableUpdate without certificate", common.policyTableUpdate, { ptUpdate })
 runner.Step("Activate App", common.activateApp)
 runner.Step("StartService Secured NACK, no Handshake", startServiceSecured)
 
