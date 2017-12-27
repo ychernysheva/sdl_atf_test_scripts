@@ -39,7 +39,7 @@ end
 runner.SetParameters({ isSelfIncluded = false })
 runner.Title("Preconditions")
 runner.Step("Clean environment", common.preconditions)
-runner.Step("Set ForceProtectedService OFF", common.setForceProtectedServiceParam, { "0x0B" })
+runner.Step("Set ForceProtectedService ON", common.setForceProtectedServiceParam, { "0x0B" })
 runner.Step("Start SDL, HMI, connect Mobile, start Session", common.start)
 
 runner.Title("Test")
