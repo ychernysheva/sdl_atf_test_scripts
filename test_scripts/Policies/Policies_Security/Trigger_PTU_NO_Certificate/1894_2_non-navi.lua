@@ -5,6 +5,9 @@
 local common = require('test_scripts/Policies/Policies_Security/Trigger_PTU_NO_Certificate/common')
 local runner = require('user_modules/script_runner')
 
+--[[ Test Configuration ]]
+runner.testSettings.isSelfIncluded = false
+
 --[[ Local Variables ]]
 local serviceId = 7
 local appHMIType = "DEFAULT"
@@ -38,7 +41,6 @@ local function startServiceSecured()
 end
 
 --[[ Scenario ]]
-runner.SetParameters({ isSelfIncluded = false })
 runner.Title("Preconditions")
 runner.Step("Clean environment", common.preconditions)
 runner.Step("Set ForceProtectedService OFF", common.setForceProtectedServiceParam, { "Non" })

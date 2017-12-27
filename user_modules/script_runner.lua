@@ -5,10 +5,8 @@ local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 
 local isInitialStep = true
 local isPrintTitle = false
-local isSelfIncluded = true
 local title
 local runner = {}
-
 
 runner.testSettings = testSettings
 
@@ -88,7 +86,7 @@ local function extendedAddTestStep(testStepName, testStepImplFunction, paramsTab
   table.insert(implFunctionsListWithParams, {implFunc = testStepImplFunction, params = paramsTable})
   local newTestStepImplFunction = function(self)
       for _, func in pairs(implFunctionsListWithParams) do
-        if isSelfIncluded == true then
+        if runner.testSettings.isSelfIncluded == true then
           table.insert(func.params, self)
         end
         func.implFunc(unpack(func.params, 1, table.maxn(func.params)))
@@ -183,15 +181,6 @@ function runner.Step(testStepName, testStepImplFunction, paramsTable)
     end
   else
     extendedAddTestStep(testStepName, testStepImplFunction, paramsTable)
-  end
-end
-
-function runner.SetParameters(paramsTable)
-  if paramsTable == nil or type(paramsTable) ~= "table" then return end
-  for k, v in pairs(paramsTable) do
-    if k == "isSelfIncluded" then
-      isSelfIncluded = v
-    end
   end
 end
 
