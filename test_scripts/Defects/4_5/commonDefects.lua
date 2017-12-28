@@ -252,6 +252,7 @@ function commonDefect.ignitionOff(self)
       EXPECT_HMINOTIFICATION("BasicCommunication.OnSDLClose")
       :Do(function()
           sdl:DeleteFile()
+          sdl:StopSDL()
         end)
     end)
 end

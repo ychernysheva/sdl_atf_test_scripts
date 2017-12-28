@@ -192,7 +192,11 @@ local function performFACTORY_DEFAULTS(self)
   self.hmiConnection:SendNotification("BasicCommunication.OnExitAllApplications", { reason = "FACTORY_DEFAULTS" })
   -- Expect notification OnAppInterfaceUnregistered(FACTORY_DEFAULTS) on mobile app
   self.mobileSession1:ExpectNotification("OnAppInterfaceUnregistered", { reason = "FACTORY_DEFAULTS" })
-  :Do(function() sdl:DeleteFile() end)
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnSDLClose")
+  :Do(function()
+      sdl:DeleteFile()
+      sdl:StopSDL()
+    end)
 end
 
 local function Wait_SDL_stop(self)
