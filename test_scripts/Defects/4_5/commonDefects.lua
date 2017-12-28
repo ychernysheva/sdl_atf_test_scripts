@@ -148,11 +148,11 @@ local function ptu(self, ptu_update_func)
                   { policyfile = policy_file_path .. "/" .. policy_file_name })
               end)
             mobileSession:ExpectResponse(corIdSystemRequest, { success = true, resultCode = "SUCCESS" })
+            :Do(function() os.remove(ptu_file_name) end)
           end)
         :Times(AtMost(1))
       end
     end)
-  os.remove(ptu_file_name)
 end
 
 --[[ @allow_sdl: sequence that allows SDL functionality
@@ -306,7 +306,7 @@ function commonDefect.rai_ptu_n(id, ptu_update_func, self)
       :Do(function(_, d1)
           hmiAppIds[config["application" .. id].registerAppInterfaceParams.appID] = d1.params.application.appID
           EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
-          :Do(function(_, d2)
+          :DoOnce(function(_, d2)
               self.hmiConnection:SendResponse(d2.id, d2.method, "SUCCESS", { })
               ptu_table = jsonFileToTable(d2.params.file)
               ptu(self, ptu_update_func)
@@ -334,6 +334,9 @@ function commonDefect.rai_ptu_n_without_OnPermissionsChange(id, ptu_update_func,
   self, id, ptu_update_func = commonDefect.getSelfAndParams(id, ptu_update_func, self)
   if not id then id = 1 end
   self["mobileSession" .. id] = mobile_session.MobileSession(self, self.mobileConnection)
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",
+    { status = "UPDATE_NEEDED" }, { status = "UPDATING" }, { status = "UP_TO_DATE" })
+  :Times(3)
   self["mobileSession" .. id]:StartService(7)
   :Do(function()
       local corId = self["mobileSession" .. id]:SendRPC
@@ -342,11 +345,8 @@ function commonDefect.rai_ptu_n_without_OnPermissionsChange(id, ptu_update_func,
         { application = { appName = config["application" .. id].registerAppInterfaceParams.appName } })
       :Do(function(_, d1)
           hmiAppIds[config["application" .. id].registerAppInterfaceParams.appID] = d1.params.application.appID
-          EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",
-            { status = "UPDATE_NEEDED" }, { status = "UPDATING" }, { status = "UP_TO_DATE" })
-          :Times(3)
           EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
-          :Do(function(_, d2)
+          :DoOnce(function(_, d2)
               self.hmiConnection:SendResponse(d2.id, d2.method, "SUCCESS", { })
               ptu_table = jsonFileToTable(d2.params.file)
               ptu(self, ptu_update_func)
@@ -367,60 +367,10 @@ end
 --! self - test object
 --! @return: none
 --]]
-function commonDefect.UnsuccessPTU(ptu_update_func, self)
-  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",
-    { status = "UPDATE_NEEDED" }, { status = "UPDATING" }, { status = "UPDATE_NEEDED" })
-  :Times(AtLeast(1))
-
-  local function getAppsCount()
-    local count = 0
-    for _, _ in pairs(hmiAppIds) do
-      count = count + 1
-    end
-    return count
-  end
-
-  local policy_file_name = "PolicyTableUpdate"
-  local policy_file_path = commonFunctions:read_parameter_from_smart_device_link_ini("SystemFilesPath")
-  local pts_file_name = commonFunctions:read_parameter_from_smart_device_link_ini("PathToSnapshot")
-  local ptu_file_name = os.tmpname()
-  local requestId = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
-  EXPECT_HMIRESPONSE(requestId)
-  :Do(function()
-      self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",
-        { requestType = "PROPRIETARY", fileName = pts_file_name })
-      getPTUFromPTS(ptu_table)
-      updatePTU(ptu_table)
-      if ptu_update_func then
-        ptu_update_func(ptu_table)
-      end
-      tableToJsonFile(ptu_table, ptu_file_name)
-
-      local event = events.Event()
-      event.matches = function(e1, e2) return e1 == e2 end
-      EXPECT_EVENT(event, "PTU event")
-      :Timeout(11000)
-
-      for id = 1, getAppsCount() do
-        local mobileSession = commonDefect.getMobileSession(self, id)
-        mobileSession:ExpectNotification("OnSystemRequest", { requestType = "PROPRIETARY" })
-        :Do(function()
-            print("App ".. id .. " was used for PTU")
-            RAISE_EVENT(event, event, "PTU event")
-            local corIdSystemRequest = mobileSession:SendRPC("SystemRequest",
-              { requestType = "PROPRIETARY", fileName = policy_file_name }, ptu_file_name)
-            EXPECT_HMICALL("BasicCommunication.SystemRequest")
-            :Do(function(_, d3)
-                self.hmiConnection:SendResponse(d3.id, "BasicCommunication.SystemRequest", "SUCCESS", { })
-                self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate",
-                  { policyfile = policy_file_path .. "/" .. policy_file_name })
-              end)
-            mobileSession:ExpectResponse(corIdSystemRequest, { success = true, resultCode = "SUCCESS" })
-          end)
-        :Times(AtMost(1))
-      end
-    end)
-  os.remove(ptu_file_name)
+function commonDefect.unsuccessfulPTU(ptu_update_func, self)
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", { status = "UPDATE_NEEDED" }, { status = "UPDATING" })
+  :Times(2)
+  ptu(self, ptu_update_func)
 end
 
 --[[ @rai_n: register N mobile application without PTU sequence
@@ -469,6 +419,8 @@ end
 --! @return: none
 --]]
 function commonDefect.unregisterApp(pAppId, self)
+  self, pAppId = commonDefect.getSelfAndParams(pAppId, self)
+  if not pAppId then pAppId = 1 end
   local mobSession = commonDefect.getMobileSession(self, pAppId)
   local hmiAppId = commonDefect.getHMIAppId(pAppId)
   local cid = mobSession:SendRPC("UnregisterAppInterface",{})
