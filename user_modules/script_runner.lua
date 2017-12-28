@@ -86,7 +86,9 @@ local function extendedAddTestStep(testStepName, testStepImplFunction, paramsTab
   table.insert(implFunctionsListWithParams, {implFunc = testStepImplFunction, params = paramsTable})
   local newTestStepImplFunction = function(self)
       for _, func in pairs(implFunctionsListWithParams) do
-        table.insert(func.params, self)
+        if runner.testSettings.isSelfIncluded == true then
+          table.insert(func.params, self)
+        end
         func.implFunc(unpack(func.params, 1, table.maxn(func.params)))
       end
     end
