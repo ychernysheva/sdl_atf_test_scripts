@@ -2,7 +2,7 @@
 -- Issue: https://github.com/SmartDeviceLink/sdl_core/issues/1925
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
-local common = require('test_scripts/Policies/Policies_Security/Trigger_PTU_NO_Certificate/common')
+local common = require('test_scripts/Defects/4_5/Trigger_PTU_NO_Certificate/common')
 local runner = require('user_modules/script_runner')
 
 --[[ Test Configuration ]]
@@ -24,18 +24,14 @@ local function ptUpdate(pTbl)
   local filePath = "./files/Security/client_credential.pem"
   local crt = common.readFile(filePath)
   pTbl.policy_table.module_config.certificate = crt
-  common.updatePTU(pTbl, 2)
-  pTbl.policy_table.app_policies[common.getAppID(2)].AppHMIType = { appHMIType[2] }
 end
 
 local function registerApp(pAppId)
   common.getHMIConnection():ExpectNotification("SDL.OnStatusUpdate",
     { status = "UPDATE_NEEDED" }, { status = "UPDATING" })
-  :Times(0)
+  :Times(2)
   common.getHMIConnection():ExpectRequest("BasicCommunication.PolicyUpdate")
-  :Times(0)
   common.registerAppWOPTU(pAppId)
-  common.delayedExp()
 end
 
 --[[ Scenario ]]
@@ -46,7 +42,7 @@ runner.Step("Register " .. appHMIType[1] .. " App", common.registerApp, { 1 })
 runner.Step("PTU 1 finished", common.policyTableUpdate, { ptUpdate })
 
 runner.Title("Test")
-runner.Step("Register " .. appHMIType[2] .. " App, PTU not started", registerApp, { 2 })
+runner.Step("Register " .. appHMIType[2] .. " App, PTU started", registerApp, { 2 })
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", common.postconditions)

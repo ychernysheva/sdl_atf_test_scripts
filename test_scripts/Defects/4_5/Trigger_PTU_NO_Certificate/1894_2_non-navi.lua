@@ -1,24 +1,24 @@
 ---------------------------------------------------------------------------------------------------
--- Issue: https://github.com/SmartDeviceLink/sdl_core/issues/1923
+-- Issue: https://github.com/SmartDeviceLink/sdl_core/issues/1894
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
-local common = require('test_scripts/Policies/Policies_Security/Trigger_PTU_NO_Certificate/common')
+local common = require('test_scripts/Defects/4_5/Trigger_PTU_NO_Certificate/common')
 local runner = require('user_modules/script_runner')
 
 --[[ Test Configuration ]]
 runner.testSettings.isSelfIncluded = false
 
 --[[ Local Variables ]]
-local serviceId = 10
-local appHMIType = "NAVIGATION"
+local serviceId = 7
+local appHMIType = "DEFAULT"
 
 --[[ General configuration parameters ]]
 config.application1.registerAppInterfaceParams.appHMIType = { appHMIType }
 
 --[[ Local Functions ]]
 local function ptUpdate(pTbl)
+  pTbl.policy_table.module_config.certificate = nil
   pTbl.policy_table.app_policies[common.getAppID()].AppHMIType = { appHMIType }
-	pTbl.policy_table.module_config.seconds_between_retries = nil
 end
 
 local function startServiceSecured()
@@ -29,26 +29,27 @@ local function startServiceSecured()
   })
   common.getMobileSession():ExpectHandshakeMessage()
   :Times(0)
-  common.delayedExp()
-end
 
-local function expNotificationFunc()
-  common.getHMIConnection():ExpectNotification("SDL.OnStatusUpdate",
-    { status = "UPDATE_NEEDED" }, { status = "UPDATING" })
-  :Times(2)
+  local function expNotificationFunc()
+    common.getHMIConnection():ExpectNotification("SDL.OnStatusUpdate",
+      { status = "UPDATE_NEEDED" }, { status = "UPDATING" }, { status = "UP_TO_DATE" })
+    :Times(3)
+  end
+
+  common.policyTableUpdate(ptUpdate, expNotificationFunc)
+  common.delayedExp()
 end
 
 --[[ Scenario ]]
 runner.Title("Preconditions")
 runner.Step("Clean environment", common.preconditions)
-runner.Step("Set ForceProtectedService ON", common.setForceProtectedServiceParam, { "0x0A" })
+runner.Step("Set ForceProtectedService OFF", common.setForceProtectedServiceParam, { "Non" })
 runner.Step("Start SDL, HMI, connect Mobile, start Session", common.start)
 
 runner.Title("Test")
 runner.Step("Register App", common.registerApp)
-runner.Step("PolicyTableUpdate fails", common.policyTableUpdate, { ptUpdate, expNotificationFunc })
-runner.Step("Activate App", common.activateApp)
-runner.Step("StartService Secured NACK, no Handshake", startServiceSecured)
+runner.Step("PolicyTableUpdate without certificate", common.policyTableUpdate, { ptUpdate })
+runner.Step("StartService Secured, PTU started, NACK, no Handshake", startServiceSecured)
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", common.postconditions)

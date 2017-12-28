@@ -2,7 +2,7 @@
 -- Issue: https://github.com/SmartDeviceLink/sdl_core/issues/1888
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
-local common = require('test_scripts/Policies/Policies_Security/Trigger_PTU_NO_Certificate/common')
+local common = require('test_scripts/Defects/4_5/Trigger_PTU_NO_Certificate/common')
 local runner = require('user_modules/script_runner')
 
 --[[ Test Configuration ]]

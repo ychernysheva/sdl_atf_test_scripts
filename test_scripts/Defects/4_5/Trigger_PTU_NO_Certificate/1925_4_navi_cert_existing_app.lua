@@ -2,7 +2,7 @@
 -- Issue: https://github.com/SmartDeviceLink/sdl_core/issues/1925
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
-local common = require('test_scripts/Policies/Policies_Security/Trigger_PTU_NO_Certificate/common')
+local common = require('test_scripts/Defects/4_5/Trigger_PTU_NO_Certificate/common')
 local runner = require('user_modules/script_runner')
 
 --[[ Test Configuration ]]
@@ -11,7 +11,7 @@ runner.testSettings.isSelfIncluded = false
 --[[ Local Variables ]]
 local appHMIType = {
   [1] = "DEFAULT",
-  [2] = "DEFAULT"
+  [2] = "NAVIGATION"
 }
 
 --[[ General configuration parameters ]]
@@ -20,8 +20,10 @@ config.application2.registerAppInterfaceParams.appHMIType = { appHMIType[2] }
 
 --[[ Local Functions ]]
 local function ptUpdate(pTbl)
-  pTbl.policy_table.module_config.certificate = nil
   pTbl.policy_table.app_policies[common.getAppID(1)].AppHMIType = { appHMIType[1] }
+  local filePath = "./files/Security/client_credential.pem"
+  local crt = common.readFile(filePath)
+  pTbl.policy_table.module_config.certificate = crt
   common.updatePTU(pTbl, 2)
   pTbl.policy_table.app_policies[common.getAppID(2)].AppHMIType = { appHMIType[2] }
 end

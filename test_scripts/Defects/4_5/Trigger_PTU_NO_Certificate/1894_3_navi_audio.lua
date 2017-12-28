@@ -1,8 +1,8 @@
 ---------------------------------------------------------------------------------------------------
--- Issue: https://github.com/SmartDeviceLink/sdl_core/issues/1922
+-- Issue: https://github.com/SmartDeviceLink/sdl_core/issues/1894
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
-local common = require('test_scripts/Policies/Policies_Security/Trigger_PTU_NO_Certificate/common')
+local common = require('test_scripts/Defects/4_5/Trigger_PTU_NO_Certificate/common')
 local runner = require('user_modules/script_runner')
 
 --[[ Test Configuration ]]
@@ -17,14 +17,14 @@ config.application1.registerAppInterfaceParams.appHMIType = { appHMIType }
 
 --[[ Local Functions ]]
 local function ptUpdate(pTbl)
-  pTbl.policy_table.module_config.certificate = nil
+	pTbl.policy_table.module_config.certificate = nil
   pTbl.policy_table.app_policies[common.getAppID()].AppHMIType = { appHMIType }
 end
 
 local function startServiceSecured()
   common.getMobileSession():StartSecureService(serviceId)
   common.getMobileSession():ExpectControlMessage(serviceId, {
-    frameInfo = common.frameInfo.START_SERVICE_NACK,
+    frameInfo = common.frameInfo.START_SERVICE_ACK,
     encryption = false
   })
   common.getMobileSession():ExpectHandshakeMessage()
@@ -35,14 +35,14 @@ end
 --[[ Scenario ]]
 runner.Title("Preconditions")
 runner.Step("Clean environment", common.preconditions)
-runner.Step("Set ForceProtectedService ON", common.setForceProtectedServiceParam, { "0x0A" })
+runner.Step("Set ForceProtectedService OFF", common.setForceProtectedServiceParam, { "Non" })
 runner.Step("Start SDL, HMI, connect Mobile, start Session", common.start)
 
 runner.Title("Test")
 runner.Step("Register App", common.registerApp)
 runner.Step("PolicyTableUpdate without certificate", common.policyTableUpdate, { ptUpdate })
 runner.Step("Activate App", common.activateApp)
-runner.Step("StartService Secured NACK, no Handshake", startServiceSecured)
+runner.Step("StartService Secured ACK, no encryption, no Handshake", startServiceSecured)
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", common.postconditions)
