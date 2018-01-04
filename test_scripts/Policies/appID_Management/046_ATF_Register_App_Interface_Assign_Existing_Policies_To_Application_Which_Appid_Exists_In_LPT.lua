@@ -137,14 +137,10 @@ function Test:TestStep4_RegisterNewApp()
 end
 
 function Test:TestStep5_ValidateResult()
-  self.mobileSession:ExpectAny()
-  :ValidIf(function(_, _)
   if not is_table_equal(r_expected, r_actual) then
-    return false, "\nExpected RPCs:\n" .. commonFunctions:convertTableToString(r_expected, 1) .. "\nActual RPCs:\n" .. commonFunctions:convertTableToString(r_actual, 1)
+    self:FailTestCase("\nExpected RPCs:\n" .. commonFunctions:convertTableToString(r_expected, 1)
+      .. "\nActual RPCs:\n" .. commonFunctions:convertTableToString(r_actual, 1))
   end
-  return true
-  end)
-  :Times(1)
 end
 
 --[[ Postconditions ]]
