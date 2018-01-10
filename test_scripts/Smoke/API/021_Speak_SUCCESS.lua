@@ -43,6 +43,7 @@ local function getRequestParams()
 end
 
 local function speakSuccess(self)
+	print("Waiting 20s ...")
 	local cid = self.mobileSession1:SendRPC("Speak", getRequestParams())
 	EXPECT_HMICALL("TTS.Speak", getRequestParams())
 	:Do(function(_, data)
@@ -56,19 +57,17 @@ local function speakSuccess(self)
 					{ appID = commonSmoke.getHMIAppId(), methodName = "TTS.Speak" })
 			end
 			RUN_AFTER(sendOnResetTimeout, 9000)
-			RUN_AFTER(sendOnResetTimeout, 18000)
-			RUN_AFTER(sendOnResetTimeout, 24000)
-			RUN_AFTER(sendSpeakResponse, 33000)
+			RUN_AFTER(sendSpeakResponse, 18000)
 		end)
 
 		self.mobileSession1:ExpectNotification("OnHMIStatus",
 			{ systemContext = "MAIN", hmiLevel = "FULL", audioStreamingState = "ATTENUATED" },
 			{ systemContext = "MAIN", hmiLevel = "FULL", audioStreamingState = "AUDIBLE" })
 		:Times(2)
-		:Timeout(35000)
+		:Timeout(20000)
 
 	self.mobileSession1:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
-	:Timeout(35000)
+	:Timeout(20000)
 end
 
 --[[ Scenario ]]

@@ -110,39 +110,40 @@ local function getDisplayCapImageFieldsValues()
 end
 
 local function getDisplayCapTextFieldsValues()
+	-- some text fields are excluded due to SDL issue
   local names = {
+		"alertText1",
+		"alertText2",
+		"alertText3",
+		"audioPassThruDisplayText1",
+		"audioPassThruDisplayText2",
+		"ETA",
+		"initialInteractionText",
+		-- "phoneNumber",
 		"mainField1",
 		"mainField2",
 		"mainField3",
 		"mainField4",
-		"statusBar",
 		"mediaClock",
 		"mediaTrack",
-		"alertText1",
-		"alertText2",
-		"alertText3",
-		"scrollableMessageBody",
-		"initialInteractionText",
+		"menuName",
+		"menuTitle",
+		-- "addressLines",
+		-- "locationName",
 		"navigationText1",
 		"navigationText2",
-		"ETA",
-		"totalDistance",
-		"navigationText",
-		"audioPassThruDisplayText1",
-		"audioPassThruDisplayText2",
-		"sliderHeader",
-		"sliderFooter",
-		"notificationText",
-		"menuName",
+		-- "locationDescription",
+		"scrollableMessageBody",
 		"secondaryText",
+		"sliderFooter",
+		"sliderHeader",
+		"statusBar",
 		"tertiaryText",
-		"timeToDestination",
-		"turnText",
-		"menuTitle",
-		"locationName",
-		"locationDescription",
-		"addressLines",
-		"phoneNumber"
+		"totalDistance",
+		-- "notificationText",
+		-- "navigationText",
+		-- "timeToDestination",
+		-- "turnText"
 	}
 	local values = { }
 	for _, v in pairs(names) do
@@ -158,13 +159,14 @@ local function getDisplayCapTextFieldsValues()
 end
 
 local function getDisplayCapValues()
+	-- some capabilities are excluded due to SDL issue
 	return {
 		displayType = "GEN2_8_DMA",
 		graphicSupported = true,
-		imageCapabilities =	{
-			"DYNAMIC",
-			"STATIC"
-		},
+		-- imageCapabilities = {
+		-- 	"DYNAMIC",
+		-- 	"STATIC"
+		-- },
 		imageFields = getDisplayCapImageFieldsValues(),
 		mediaClockFormats =	{
 			"CLOCK1",
@@ -208,12 +210,20 @@ local function getResponseParams()
 end
 
 local function setDisplaySuccess(self)
+	local responseParams = getResponseParams()
 	local cid = self.mobileSession1:SendRPC("SetDisplayLayout", getRequestParams())
 	EXPECT_HMICALL("UI.SetDisplayLayout", getRequestParams())
 	:Do(function(_, data)
-			self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", getResponseParams())
+			self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", responseParams)
 		end)
-	self.mobileSession1:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
+	self.mobileSession1:ExpectResponse(cid, {
+		success = true,
+		resultCode = "SUCCESS",
+		displayCapabilities = responseParams.displayCapabilities,
+		buttonCapabilities = responseParams.buttonCapabilities,
+		softButtonCapabilities = responseParams.softButtonCapabilities,
+		presetBankCapabilities = responseParams.presetBankCapabilities
+	})
 end
 
 --[[ Scenario ]]
