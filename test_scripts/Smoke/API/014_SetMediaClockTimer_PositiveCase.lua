@@ -50,13 +50,11 @@ local requestParams = {
 
 --[[ Local Functions ]]
 local function SetMediaClockTimer(pParams, pMode, self)
-  local countDown = 0
-  if pMode == "COUNTDOWN" then
-    countDown = -1
-  end
   local Parameters = commonFunctions:cloneTable(pParams)
   Parameters.updateMode = pMode
-  Parameters.endTime.minutes = 1 + countDown
+  if pMode == "COUNTDOWN" then
+    Parameters.endTime.minutes = Parameters.startTime.minutes - 1
+  end
   local cid = self.mobileSession1:SendRPC("SetMediaClockTimer", Parameters)
   Parameters.appID = commonSmoke.getHMIAppId()
   EXPECT_HMICALL("UI.SetMediaClockTimer", Parameters)
