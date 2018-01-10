@@ -14,15 +14,7 @@ local consts = require("user_modules/consts")
 local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
 local commonSteps = require("user_modules/shared_testcases/commonSteps")
 local commonTestCases = require("user_modules/shared_testcases/commonTestCases")
-local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
-
--- local mobile_api_loader = require("modules/api_loader")
--- local mobile_api = mobile_api_loader.init("data/MOBILE_API.xml")
--- local mobile_api_schema = mobile_api.interface["Ford Sync RAPI"]
-
--- local hmi_api_loader = require("modules/api_loader")
--- local hmi_api = hmi_api_loader.init("data/HMI_API.xml")
--- local hmi_api_schema = hmi_api.interface["Common"]
+local events = require("events")
 
 --[[ Local Variables ]]
 local ptu_table = {}
@@ -30,6 +22,10 @@ local hmiAppIds = {}
 
 local commonSmoke = {}
 
+commonSmoke.HMITypeStatus = {
+  NAVIGATION = false,
+  COMMUNICATION = false
+}
 commonSmoke.timeout = 5000
 commonSmoke.minTimeout = 500
 
@@ -48,7 +44,7 @@ end
 local function checkIfPTSIsSentAsBinary(bin_data)
   if not (bin_data ~= nil and string.len(bin_data) > 0) then
     commonFunctions:userPrint(consts.color.red,
-      "PTS was not sent to Mobile in payload of OnSystemRequest")
+    "PTS was not sent to Mobile in payload of OnSystemRequest")
   end
 end
 
@@ -104,19 +100,20 @@ local function ptu(self, id, pUpdateFunction)
         local mobileSession = commonSmoke.getMobileSession(id, self)
         mobileSession:ExpectNotification("OnSystemRequest", { requestType = "PROPRIETARY" })
         :Do(function(_, data)
-            print("App ".. id .. " was used for PTU")
-            RAISE_EVENT(event, event, "PTU event")
-            checkIfPTSIsSentAsBinary(data.binaryData)
-            local corIdSystemRequest = mobileSession:SendRPC("SystemRequest", { requestType = "PROPRIETARY", fileName = policy_file_name }, ptu_file_name)
-            EXPECT_HMICALL("BasicCommunication.SystemRequest")
-            :Do(function(_, data)
-                self.hmiConnection:SendResponse(data.id, "BasicCommunication.SystemRequest", "SUCCESS", { })
-                self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate",
-                  { policyfile = policy_file_path .. "/" .. policy_file_name })
-              end)
-            mobileSession:ExpectResponse(corIdSystemRequest, { success = true, resultCode = "SUCCESS" })
-            :Do(function() os.remove(ptu_file_name) end)
+          print("App ".. id .. " was used for PTU")
+          RAISE_EVENT(event, event, "PTU event")
+          checkIfPTSIsSentAsBinary(data.binaryData)
+          local corIdSystemRequest = mobileSession:SendRPC("SystemRequest",
+            { requestType = "PROPRIETARY", fileName = policy_file_name }, ptu_file_name)
+          EXPECT_HMICALL("BasicCommunication.SystemRequest")
+          :Do(function(_, data)
+            self.hmiConnection:SendResponse(data.id, "BasicCommunication.SystemRequest", "SUCCESS", { })
+            self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate",
+              { policyfile = policy_file_path .. "/" .. policy_file_name })
           end)
+          mobileSession:ExpectResponse(corIdSystemRequest, { success = true, resultCode = "SUCCESS" })
+          :Do(function() os.remove(ptu_file_name) end)
+        end)
         :Times(AtMost(1))
       end
     end)
@@ -170,8 +167,8 @@ end
 
 function commonSmoke.getPathToFileInStorage(fileName)
   return commonSmoke.getPathToSDL() .. "storage/"
-    .. commonSmoke.getMobileAppId() .. "_"
-    .. commonSmoke.getDeviceMAC() .. "/"  .. fileName
+  .. commonSmoke.getMobileAppId() .. "_"
+  .. commonSmoke.getDeviceMAC() .. "/" .. fileName
 end
 
 function commonSmoke.getMobileSession(pAppId, self)
@@ -191,21 +188,21 @@ function commonSmoke.getSmokeAppPoliciesConfig()
 end
 
 function commonSmoke.splitString(inputStr, sep)
-    if sep == nil then
-        sep = "%s"
-    end
-    local splitted, i = {}, 1
-    for str in string.gmatch(inputStr, "([^"..sep.."]+)") do
-        splitted[i] = str
-        i = i + 1
-    end
-    return splitted
+  if sep == nil then
+    sep = "%s"
+  end
+  local splitted, i = {}, 1
+  for str in string.gmatch(inputStr, "([^"..sep.."]+)") do
+    splitted[i] = str
+    i = i + 1
+  end
+  return splitted
 end
 
 function commonSmoke.expectOnHMIStatusWithAudioStateChanged(self, pAppId, request, level)
   if pAppId == nil then pAppId = 1 end
-  if request == nil then  request = "BOTH" end
-  if level == nil then  level = "FULL" end
+  if request == nil then request = "BOTH" end
+  if level == nil then level = "FULL" end
 
   local mobSession = commonSmoke.getMobileSession(pAppId, self)
   local appParams = config["application" .. pAppId].registerAppInterfaceParams
@@ -213,27 +210,27 @@ function commonSmoke.expectOnHMIStatusWithAudioStateChanged(self, pAppId, reques
   if appParams.isMediaApplication == true then
     if request == "BOTH" then
       mobSession:ExpectNotification("OnHMIStatus",
-        { systemContext = "ALERT", hmiLevel = level, audioStreamingState = "AUDIBLE"    },
+        { systemContext = "ALERT", hmiLevel = level, audioStreamingState = "AUDIBLE" },
         { systemContext = "ALERT", hmiLevel = level, audioStreamingState = "ATTENUATED" },
-        { systemContext = "ALERT", hmiLevel = level, audioStreamingState = "AUDIBLE"    },
-        { systemContext = "MAIN",  hmiLevel = level, audioStreamingState = "AUDIBLE"    })
+        { systemContext = "ALERT", hmiLevel = level, audioStreamingState = "AUDIBLE" },
+        { systemContext = "MAIN", hmiLevel = level, audioStreamingState = "AUDIBLE" })
       :Times(4)
     elseif request == "speak" then
       mobSession:ExpectNotification("OnHMIStatus",
-        { systemContext = "MAIN",  hmiLevel = level, audioStreamingState = "ATTENUATED" },
-        { systemContext = "MAIN",  hmiLevel = level, audioStreamingState = "AUDIBLE"    })
+        { systemContext = "MAIN", hmiLevel = level, audioStreamingState = "ATTENUATED" },
+        { systemContext = "MAIN", hmiLevel = level, audioStreamingState = "AUDIBLE" })
       :Times(2)
     elseif request == "alert" then
       mobSession:ExpectNotification("OnHMIStatus",
         { systemContext = "ALERT", hmiLevel = level, audioStreamingState = "AUDIBLE" },
-        { systemContext = "MAIN",  hmiLevel = level, audioStreamingState = "AUDIBLE" })
+        { systemContext = "MAIN", hmiLevel = level, audioStreamingState = "AUDIBLE" })
       :Times(2)
     end
   elseif appParams.isMediaApplication == false then
     if request == "BOTH" then
       mobSession:ExpectNotification("OnHMIStatus",
         { systemContext = "ALERT", hmiLevel = level, audioStreamingState = "NOT_AUDIBLE" },
-        { systemContext = "MAIN",  hmiLevel = level, audioStreamingState = "NOT_AUDIBLE" })
+        { systemContext = "MAIN", hmiLevel = level, audioStreamingState = "NOT_AUDIBLE" })
       :Times(2)
     elseif request == "speak" then
       mobSession:ExpectNotification("OnHMIStatus")
@@ -241,7 +238,7 @@ function commonSmoke.expectOnHMIStatusWithAudioStateChanged(self, pAppId, reques
     elseif request == "alert" then
       mobSession:ExpectNotification("OnHMIStatus",
         { systemContext = "ALERT", hmiLevel = level, audioStreamingState = "NOT_AUDIBLE" },
-        { systemContext = "MAIN",  hmiLevel = level, audioStreamingState = "NOT_AUDIBLE" })
+        { systemContext = "MAIN", hmiLevel = level, audioStreamingState = "NOT_AUDIBLE" })
       :Times(2)
     end
   end
@@ -256,7 +253,7 @@ function commonSmoke.activateApp(pAppId, self)
   local requestId = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = pHMIAppId })
   EXPECT_HMIRESPONSE(requestId)
   mobSession:ExpectNotification("OnHMIStatus",
-    {hmiLevel = "FULL", audioStreamingState = "AUDIBLE", systemContext = "MAIN"})
+    {hmiLevel = "FULL", audioStreamingState = commonSmoke.GetAudibleState(pAppId), systemContext = "MAIN"})
   commonTestCases:DelayedExp(commonSmoke.minTimeout)
 end
 
@@ -265,20 +262,20 @@ function commonSmoke.start(pHMIParams, self)
   self:runSDL()
   commonFunctions:waitForSDLStart(self)
   :Do(function()
-      self:initHMI(self)
+    self:initHMI(self)
+    :Do(function()
+      commonFunctions:userPrint(consts.color.magenta, "HMI initialized")
+      self:initHMI_onReady(pHMIParams)
       :Do(function()
-          commonFunctions:userPrint(consts.color.magenta, "HMI initialized")
-          self:initHMI_onReady(pHMIParams)
-          :Do(function()
-              commonFunctions:userPrint(consts.color.magenta, "HMI is ready")
-              self:connectMobile()
-              :Do(function()
-                  commonFunctions:userPrint(consts.color.magenta, "Mobile connected")
-                  allowSDL(self)
-                end)
-            end)
+        commonFunctions:userPrint(consts.color.magenta, "HMI is ready")
+        self:connectMobile()
+        :Do(function()
+          commonFunctions:userPrint(consts.color.magenta, "Mobile connected")
+          allowSDL(self)
         end)
+      end)
     end)
+  end)
 end
 
 function commonSmoke.registerApplicationWithPTU(pAppId, pUpdateFunction, self)
@@ -287,31 +284,31 @@ function commonSmoke.registerApplicationWithPTU(pAppId, pUpdateFunction, self)
   self["mobileSession" .. pAppId] = mobile_session.MobileSession(self, self.mobileConnection)
   self["mobileSession" .. pAppId]:StartService(7)
   :Do(function()
-      local corId = self["mobileSession" .. pAppId]:SendRPC("RegisterAppInterface",
-        config["application" .. pAppId].registerAppInterfaceParams)
-      EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered",
-        { application = { appName = config["application" .. pAppId].registerAppInterfaceParams.appName } })
+    local corId = self["mobileSession" .. pAppId]:SendRPC("RegisterAppInterface",
+      config["application" .. pAppId].registerAppInterfaceParams)
+    EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered",
+      { application = { appName = config["application" .. pAppId].registerAppInterfaceParams.appName } })
+    :Do(function(_, data)
+      hmiAppIds[config["application" .. pAppId].registerAppInterfaceParams.appID] = data.params.application.appID
+      EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",
+        {status = "UPDATE_NEEDED"}, {status = "UPDATING"}, {status = "UP_TO_DATE" })
+      :Times(3)
+      EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
       :Do(function(_, data)
-          hmiAppIds[config["application" .. pAppId].registerAppInterfaceParams.appID] = data.params.application.appID
-          EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",
-            {status = "UPDATE_NEEDED"}, {status = "UPDATING"}, {status = "UP_TO_DATE" })
-          :Times(3)
-          EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
-          :Do(function(_, data)
-              self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", { })
-              ptu_table = jsonFileToTable(data.params.file)
-              ptu(self, pAppId, pUpdateFunction)
-            end)
-        end)
-      self["mobileSession" .. pAppId]:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
-      :Do(function()
-          self["mobileSession" .. pAppId]:ExpectNotification("OnHMIStatus",
-            {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
-          :Times(1)
-          self["mobileSession" .. pAppId]:ExpectNotification("OnPermissionsChange")
-          :Times(AtLeast(1)) -- todo: issue with SDL --> notification is sent twice
-        end)
+        self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", { })
+        ptu_table = jsonFileToTable(data.params.file)
+        ptu(self, pAppId, pUpdateFunction)
+      end)
     end)
+    self["mobileSession" .. pAppId]:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
+    :Do(function()
+      self["mobileSession" .. pAppId]:ExpectNotification("OnHMIStatus",
+        {hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"})
+      :Times(1)
+      self["mobileSession" .. pAppId]:ExpectNotification("OnPermissionsChange")
+      :Times(AtLeast(1)) -- todo: issue with SDL --> notification is sent twice
+    end)
+  end)
 end
 
 function commonSmoke.putFile(params, pAppId, self)
@@ -320,6 +317,35 @@ function commonSmoke.putFile(params, pAppId, self)
   local cid = mobileSession:SendRPC("PutFile", params.requestParams, params.filePath)
 
   mobileSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS"})
+end
+
+function commonSmoke.SetAppType(HMIType)
+  for _,v in pairs(HMIType) do
+    if v == "NAVIGATION" then
+      commonSmoke.HMITypeStatus["NAVIGATION"] = true
+    elseif v == "COMMUNICATION" then
+      commonSmoke.HMITypeStatus["COMMUNICATION"] = true
+    end
+  end
+end
+
+function commonSmoke.GetAudibleState(pAppId)
+  if not pAppId then pAppId = 1 end
+  commonSmoke.SetAppType(config["application" .. pAppId].registerAppInterfaceParams.appHMIType)
+  if config["application" .. pAppId].registerAppInterfaceParams.isMediaApplication == true or
+    commonSmoke.HMITypeStatus.COMMUNICATION == true or
+    commonSmoke.HMITypeStatus.NAVIGATION == true then
+    return "AUDIBLE"
+  elseif
+    config["application" .. pAppId].registerAppInterfaceParams.isMediaApplication == false then
+    return "NOT_AUDIBLE"
+  end
+end
+
+function commonSmoke.GetAppMediaStatus(pAppId)
+  if not pAppId then pAppId = 1 end
+  local isMediaApplication = config["application" .. pAppId].registerAppInterfaceParams.isMediaApplication
+  return isMediaApplication
 end
 
 function commonSmoke.readParameterFromSmartDeviceLinkIni(paramName)
