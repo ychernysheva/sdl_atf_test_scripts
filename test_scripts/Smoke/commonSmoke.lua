@@ -14,6 +14,7 @@ local consts = require("user_modules/consts")
 local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
 local commonSteps = require("user_modules/shared_testcases/commonSteps")
 local commonTestCases = require("user_modules/shared_testcases/commonTestCases")
+local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 local events = require("events")
 
 --[[ Local Variables ]]
@@ -166,7 +167,7 @@ function commonSmoke.getHMIAppId(pAppId)
 end
 
 function commonSmoke.getPathToFileInStorage(fileName)
-  return commonSmoke.getPathToSDL() .. "storage/"
+  return commonPreconditions:GetPathToSDL() .. "storage/"
   .. commonSmoke.getMobileAppId() .. "_"
   .. commonSmoke.getDeviceMAC() .. "/" .. fileName
 end
