@@ -67,7 +67,7 @@ local function ptuUpdateFuncRPC(tbl)
       }
     }
   }
-  tbl.policy_table.functional_groupings["NewTestCaseGroup"] = SLgroup
+  tbl.policy_table.functional_groupings.NewTestCaseGroup = SLgroup
   tbl.policy_table.app_policies[config.application1.registerAppInterfaceParams.appID].groups =
   { "Base-4", "NewTestCaseGroup" }
 end
@@ -77,7 +77,7 @@ local function sendLocation(params, self)
   params.appID = commonSmoke.getHMIAppId()
   params.locationImage.value = commonSmoke.getPathToFileInStorage(params.locationImage.value)
   EXPECT_HMICALL("Navigation.SendLocation", params)
-  :Do(function(_,data)
+  :Do(function(_, data)
       self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
     end)
   self.mobileSession1:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
