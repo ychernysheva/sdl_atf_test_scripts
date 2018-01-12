@@ -57,7 +57,7 @@ local VDValues = {
   airbagStatus = "VEHICLEDATA_AIRBAGSTATUS",
   emergencyEvent = "VEHICLEDATA_EMERGENCYEVENT",
   clusterModeStatus = "VEHICLEDATA_CLUSTERMODESTATUS",
-  myKey="VEHICLEDATA_MYKEY"
+  myKey = "VEHICLEDATA_MYKEY"
 }
 
 local paramsList = {}
@@ -112,7 +112,7 @@ local function subscribeVD(pParams, self)
   local cid = self.mobileSession1:SendRPC("SubscribeVehicleData", pParams.requestParams)
   pParams.responseUiParams = setVDResponse()
   EXPECT_HMICALL("VehicleInfo.SubscribeVehicleData", pParams.requestParams)
-  :Do(function(_,data)
+  :Do(function(_, data)
       self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", pParams.responseUiParams)
     end)
   local MobResp = pParams.responseUiParams
