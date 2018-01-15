@@ -44,29 +44,29 @@ local function PTUpdateFunc(tbl)
 end
 
 local function getDTCsSuccess(self)
-	local requestParams =	{
-		ecuName = 2,
-		dtcMask = 3
-	}
-	local responseParams = {
-		ecuHeader = 2,
-		dtc = { "line 0", "line 1", "line 2" }
-	}
+  local requestParams = {
+    ecuName = 2,
+    dtcMask = 3
+  }
+  local responseParams = {
+    ecuHeader = 2,
+    dtc = { "line 0", "line 1", "line 2" }
+  }
 
-	local cid = self.mobileSession1:SendRPC("GetDTCs", requestParams)
+  local cid = self.mobileSession1:SendRPC("GetDTCs", requestParams)
 
-	requestParams.appID = commonSmoke.getHMIAppId()
-	EXPECT_HMICALL("VehicleInfo.GetDTCs", requestParams)
-	:Do(function(_, data)
-			self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", responseParams)
-		end)
+  requestParams.appID = commonSmoke.getHMIAppId()
+  EXPECT_HMICALL("VehicleInfo.GetDTCs", requestParams)
+  :Do(function(_, data)
+      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", responseParams)
+    end)
 
-	self.mobileSession1:ExpectResponse(cid, {
-		success = true,
-		resultCode = "SUCCESS",
-		ecuHeader = responseParams.ecuHeader,
-		dtc = responseParams.dtc
-	})
+  self.mobileSession1:ExpectResponse(cid, {
+    success = true,
+    resultCode = "SUCCESS",
+    ecuHeader = responseParams.ecuHeader,
+    dtc = responseParams.dtc
+  })
 end
 
 --[[ Scenario ]]
