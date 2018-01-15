@@ -60,27 +60,19 @@ local VDValues = {
   myKey = "VEHICLEDATA_MYKEY"
 }
 
-local paramsList = {}
-local requestParams = { }
-for k, _ in pairs(VDValues) do
-  table.insert(paramsList, k)
-  requestParams[k] = true
-end
-
 local responseUiParams = { }
-
+local requestParams = { }
 local allParams = {
   requestParams = requestParams,
   responseUiParams = responseUiParams,
 }
 
 --[[ Local Functions ]]
-local function ptuUpdateFunc(tbl)
+local function PTUpdateFunc(tbl)
   local SVDgroup = {
     rpcs = {
       SubscribeVehicleData = {
         hmi_levels = { "BACKGROUND", "FULL", "LIMITED" },
-        parameters = paramsList
       }
     }
   }
@@ -89,32 +81,35 @@ local function ptuUpdateFunc(tbl)
   { "Base-4", "NewTestCaseGroup" }
 end
 
+local function setVDRequest()
+  local tmp = {}
+  for k, _ in pairs(VDValues) do
+    tmp[k] = true
+  end
+  return tmp
+end
+
 local function setVDResponse()
   local temp = { }
   local vehicleDataResultCodeValue = "SUCCESS"
-  for k, v in pairs(VDValues) do
-    if "clusterModeStatus" == k then
-      temp["clusterModes"] = {
+  for key, value in pairs(VDValues) do
+    local paramName = "clusterModeStatus" == key and "clusterModes" or key
+      temp[paramName] = {
         resultCode = vehicleDataResultCodeValue,
-        dataType = v
+        dataType = value
       }
-    else
-      temp[k] = {
-        resultCode = vehicleDataResultCodeValue,
-        dataType = v
-      }
-    end
   end
   return temp
 end
 
 local function subscribeVD(pParams, self)
+  pParams.requestParams = setVDRequest()
   local cid = self.mobileSession1:SendRPC("SubscribeVehicleData", pParams.requestParams)
   pParams.responseUiParams = setVDResponse()
   EXPECT_HMICALL("VehicleInfo.SubscribeVehicleData", pParams.requestParams)
   :Do(function(_, data)
-      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", pParams.responseUiParams)
-    end)
+    self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", pParams.responseUiParams)
+  end)
   local MobResp = pParams.responseUiParams
   MobResp.success = true
   MobResp.resultCode = "SUCCESS"
@@ -126,7 +121,7 @@ end
 runner.Title("Preconditions")
 runner.Step("Clean environment", commonSmoke.preconditions)
 runner.Step("Start SDL, HMI, connect Mobile, start Session", commonSmoke.start)
-runner.Step("RAI, PTU", commonSmoke.registerApplicationWithPTU, { 1, ptuUpdateFunc })
+runner.Step("RAI, PTU", commonSmoke.registerApplicationWithPTU, { 1, PTUpdateFunc })
 runner.Step("Activate App", commonSmoke.activateApp)
 
 runner.Title("Test")
