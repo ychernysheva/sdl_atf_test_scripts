@@ -150,26 +150,25 @@ local vehicleDataValues = {
   }
 }
 
-local paramsList = {}
-local requestParams = { }
-for k, _ in pairs(vehicleDataValues) do
-  table.insert(paramsList, k)
-  requestParams[k] = true
+local function setVDRequest()
+  local tmp = {}
+  for k, _ in pairs(vehicleDataValues) do
+    tmp[k] = true
+  end
+  return tmp
 end
 
 local allParams = {
-  requestParams = requestParams,
+  requestParams = setVDRequest(),
   responseUiParams = vehicleDataValues,
 }
 
 --[[ Local Functions ]]
-local function ptuUpdateFunc(tbl)
+local function PTUpdateFunc(tbl)
   local SVDgroup = {
     rpcs = {
       GetVehicleData = {
         hmi_levels = { "BACKGROUND", "FULL", "LIMITED" },
-        --For now commented because SDL does not process successfully list of parameters with more then 24 items
-        -- parameters = paramsList
       }
     }
   }
@@ -182,8 +181,8 @@ local function getVD(pParams, self)
   local cid = self.mobileSession1:SendRPC("GetVehicleData", pParams.requestParams)
   EXPECT_HMICALL("VehicleInfo.GetVehicleData", pParams.requestParams)
   :Do(function(_,data)
-    self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", pParams.responseUiParams)
-  end)
+      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", pParams.responseUiParams)
+    end)
   local MobResp = pParams.responseUiParams
   MobResp.success = true
   MobResp.resultCode = "SUCCESS"
@@ -194,7 +193,7 @@ end
 runner.Title("Preconditions")
 runner.Step("Clean environment", commonSmoke.preconditions)
 runner.Step("Start SDL, HMI, connect Mobile, start Session", commonSmoke.start)
-runner.Step("RAI, PTU", commonSmoke.registerApplicationWithPTU, { 1, ptuUpdateFunc })
+runner.Step("RAI, PTU", commonSmoke.registerApplicationWithPTU, { 1, PTUpdateFunc })
 runner.Step("Activate App", commonSmoke.activateApp)
 
 runner.Title("Test")
