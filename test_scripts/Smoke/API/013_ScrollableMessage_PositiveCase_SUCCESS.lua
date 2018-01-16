@@ -92,17 +92,18 @@ local function ScrollableMessage(params, self)
   EXPECT_HMICALL("UI.ScrollableMessage", params.responseUiParams)
   :Do(function(_,data)
 	self.hmiConnection:SendNotification("UI.OnSystemContext",
-	  { appID = self.applications["Test Application"], systemContext = "HMI_OBSCURED" })
+	  { appID = params.responseUiParams.appID, systemContext = "HMI_OBSCURED" })
 	local function uiResponse()
       self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
       self.hmiConnection:SendNotification("UI.OnSystemContext",
-        { appID = self.applications["Test Application"], systemContext = "MAIN" })
+        { appID = params.responseUiParams.appID, systemContext = "MAIN" })
     end
     RUN_AFTER(uiResponse, 1000)
   end)
+  local AudibleState = commonSmoke.GetAudibleState()
   self.mobileSession1:ExpectNotification("OnHMIStatus",
-    { systemContext = "HMI_OBSCURED", hmiLevel = "FULL", audioStreamingState = commonSmoke.GetAudibleState() },
-    { systemContext = "MAIN", hmiLevel = "FULL", audioStreamingState = commonSmoke.GetAudibleState() })
+    { systemContext = "HMI_OBSCURED", hmiLevel = "FULL", audioStreamingState = AudibleState },
+    { systemContext = "MAIN", hmiLevel = "FULL", audioStreamingState = AudibleState })
   :Times(2)
   self.mobileSession1:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 end
