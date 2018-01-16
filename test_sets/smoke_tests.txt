@@ -59,4 +59,3 @@
 ./test_scripts/Smoke/API/035_ChangeRegistration_SUCCESS.lua
 ./test_scripts/Smoke/API/036_UnregisterAppInterface_PositiveCase_SUCCESS.lua
 ./test_scripts/Smoke/API/037_RegisterAppInterface_PositiveCase_SUCCESS.lua
-
