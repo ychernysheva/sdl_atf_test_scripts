@@ -33,10 +33,8 @@
 local runner = require('user_modules/script_runner')
 local commonSmoke = require('test_scripts/Smoke/commonSmoke')
 local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
-local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 
 --[[ Local Variables ]]
-local isMediaApplication = commonSmoke.GetAppMediaStatus()
 local putFileParams = {
   requestParams = {
     syncFileName = 'icon.png',
@@ -123,7 +121,7 @@ end
 --! @return: none
 local function SendOnSystemContext(self, ctx)
   self.hmiConnection:SendNotification("UI.OnSystemContext",
-    { appID = self.applications["Test Application"], systemContext = ctx })
+    { appID = commonSmoke.getHMIAppId(), systemContext = ctx })
 end
 
 --! @setExChoiseSet: ChoiceSet structure for UI.PerformInteraction request
@@ -150,97 +148,32 @@ end
 --! @parameters:
 --! self - test object,
 --! request - interaction mode,
---! timeout - timeout value for expectation OnHMIStatus,
---! level - HMI level value,
 --! @return: none
-local function ExpectOnHMIStatusWithAudioStateChanged_PI(self, request, timeout, level)
-  if nil == request then request = "BOTH" end
-  if nil == level then level = "FULL" end
-  if nil == timeout then timeout = 10000 end
-  commonSmoke.SetAppType(config.application1.registerAppInterfaceParams.appHMIType)
-  if "FULL" == level then
-    if true == isMediaApplication or
-    true == commonSmoke.HMITypeStatus.NAVIGATION then
-      if "BOTH" == request then
-        self.mobileSession1:ExpectNotification("OnHMIStatus",
-          { hmiLevel = level, audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN" },
-          { hmiLevel = level, audioStreamingState = "NOT_AUDIBLE", systemContext = "VRSESSION" },
-          { hmiLevel = level, audioStreamingState = "ATTENUATED", systemContext = "VRSESSION" },
-          { hmiLevel = level, audioStreamingState = "ATTENUATED", systemContext = "HMI_OBSCURED" },
-          { hmiLevel = level, audioStreamingState = "AUDIBLE", systemContext = "HMI_OBSCURED" },
-          { hmiLevel = level, audioStreamingState = "AUDIBLE", systemContext = "MAIN" })
-        :Times(6)
-      elseif "VR" == request then
-        self.mobileSession1:ExpectNotification("OnHMIStatus",
-          { systemContext = "MAIN", hmiLevel = level, audioStreamingState = "ATTENUATED" },
-          { systemContext = "MAIN", hmiLevel = level, audioStreamingState = "NOT_AUDIBLE" },
-          { systemContext = "VRSESSION", hmiLevel = level, audioStreamingState = "NOT_AUDIBLE" },
-          { systemContext = "VRSESSION", hmiLevel = level, audioStreamingState = "AUDIBLE" },
-          { systemContext = "MAIN", hmiLevel = level, audioStreamingState = "AUDIBLE" })
-        :Times(5)
-        :Timeout(timeout)
-      elseif "MANUAL" == request then
-        self.mobileSession1:ExpectNotification("OnHMIStatus",
-          { systemContext = "MAIN", hmiLevel = level, audioStreamingState = "ATTENUATED" },
-          { systemContext = "HMI_OBSCURED", hmiLevel = level, audioStreamingState = "ATTENUATED" },
-          { systemContext = "HMI_OBSCURED", hmiLevel = level, audioStreamingState = "AUDIBLE" },
-          { systemContext = "MAIN", hmiLevel = level, audioStreamingState = "AUDIBLE" })
-        :Times(4)
-        :Timeout(timeout)
-      end
-    elseif false == isMediaApplication then
-      if "BOTH" == request then
-        self.mobileSession1:ExpectNotification("OnHMIStatus",
-          { hmiLevel = level, audioStreamingState = "NOT_AUDIBLE", systemContext = "VRSESSION" },
-          { hmiLevel = level, audioStreamingState = "NOT_AUDIBLE", systemContext = "HMI_OBSCURED" },
-          { hmiLevel = level, audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN" })
-        :Times(3)
-        :Timeout(timeout)
-      elseif "VR" == request then
-        self.mobileSession1:ExpectNotification("OnHMIStatus",
-          { systemContext = "VRSESSION", hmiLevel = level, audioStreamingState = "NOT_AUDIBLE" },
-          { systemContext = "MAIN", hmiLevel = level, audioStreamingState = "NOT_AUDIBLE" })
-        :Times(2)
-        :Timeout(timeout)
-      elseif "MANUAL" == request then
-        self.mobileSession1:ExpectNotification("OnHMIStatus",
-          { hmiLevel = level, audioStreamingState = "NOT_AUDIBLE", systemContext = "HMI_OBSCURED" },
-          { hmiLevel = level, audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN" })
-        :Times(2)
-      end
-    end
-  elseif "LIMITED" == level then
-    if true == isMediaApplication or
-    true == commonSmoke.HMITypeStatus.NAVIGATION then
-      if "BOTH" == request then
-        self.mobileSession1:ExpectNotification("OnHMIStatus",
-          { hmiLevel = level, audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN" },
-          { hmiLevel = level, audioStreamingState = "ATTENUATED", systemContext = "MAIN" },
-          { hmiLevel = level, audioStreamingState = "AUDIBLE", systemContext = "MAIN" })
-        :Times(3)
-      elseif "VR" == request then
-        self.mobileSession1:ExpectNotification("OnHMIStatus",
-          { systemContext = "MAIN", hmiLevel = level, audioStreamingState = "ATTENUATED" },
-          { systemContext = "MAIN", hmiLevel = level, audioStreamingState = "NOT_AUDIBLE" },
-          { systemContext = "MAIN", hmiLevel = level, audioStreamingState = "AUDIBLE" })
-        :Times(3)
-        :Timeout(timeout)
-      elseif "MANUAL" == request then
-        self.mobileSession1:ExpectNotification("OnHMIStatus",
-          { systemContext = "MAIN", hmiLevel = level, audioStreamingState = "ATTENUATED" },
-          { systemContext = "MAIN", hmiLevel = level, audioStreamingState = "AUDIBLE" })
-        :Times(2)
-        :Timeout(timeout)
-      end
-    elseif false == isMediaApplication then
-      self.mobileSession1:ExpectNotification("OnHMIStatus")
-      :Times(0)
-      commonTestCases:DelayedExp(1000)
-    end
-  elseif "BACKGROUND" == level then
-    self.mobileSession1:ExpectNotification("OnHMIStatus")
-    :Times(0)
-    commonTestCases:DelayedExp(1000)
+local function ExpectOnHMIStatusWithAudioStateChanged_PI(self, request)
+  if "BOTH" == request then
+    self.mobileSession1:ExpectNotification("OnHMIStatus",
+      { hmiLevel = "FULL", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN" },
+      { hmiLevel = "FULL", audioStreamingState = "NOT_AUDIBLE", systemContext = "VRSESSION" },
+      { hmiLevel = "FULL", audioStreamingState = "ATTENUATED", systemContext = "VRSESSION" },
+      { hmiLevel = "FULL", audioStreamingState = "ATTENUATED", systemContext = "HMI_OBSCURED" },
+      { hmiLevel = "FULL", audioStreamingState = "AUDIBLE", systemContext = "HMI_OBSCURED" },
+      { hmiLevel = "FULL", audioStreamingState = "AUDIBLE", systemContext = "MAIN" })
+    :Times(6)
+  elseif "VR" == request then
+    self.mobileSession1:ExpectNotification("OnHMIStatus",
+      { systemContext = "MAIN", hmiLevel = "FULL", audioStreamingState = "ATTENUATED" },
+      { systemContext = "MAIN", hmiLevel = "FULL", audioStreamingState = "NOT_AUDIBLE" },
+      { systemContext = "VRSESSION", hmiLevel = "FULL", audioStreamingState = "NOT_AUDIBLE" },
+      { systemContext = "VRSESSION", hmiLevel = "FULL", audioStreamingState = "AUDIBLE" },
+      { systemContext = "MAIN", hmiLevel = "FULL", audioStreamingState = "AUDIBLE" })
+    :Times(5)
+  elseif "MANUAL" == request then
+    self.mobileSession1:ExpectNotification("OnHMIStatus",
+      { systemContext = "MAIN", hmiLevel = "FULL", audioStreamingState = "ATTENUATED" },
+      { systemContext = "HMI_OBSCURED", hmiLevel = "FULL", audioStreamingState = "ATTENUATED" },
+      { systemContext = "HMI_OBSCURED", hmiLevel = "FULL", audioStreamingState = "AUDIBLE" },
+      { systemContext = "MAIN", hmiLevel = "FULL", audioStreamingState = "AUDIBLE" })
+    :Times(4)
   end
 end
 
@@ -272,7 +205,6 @@ end
 --! self - test object
 --! @return: none
 local function PI_PerformViaVR_ONLY(paramsSend, self)
-  local level = "FULL"
   paramsSend.interactionMode = "VR_ONLY"
   local cid = self.mobileSession1:SendRPC("PerformInteraction",paramsSend)
   EXPECT_HMICALL("VR.PerformInteraction", {
@@ -303,7 +235,7 @@ local function PI_PerformViaVR_ONLY(paramsSend, self)
   :Do(function(_,data)
       self.hmiConnection:SendResponse( data.id, data.method, "SUCCESS", { } )
     end)
-  ExpectOnHMIStatusWithAudioStateChanged_PI(self, "VR", nil, level)
+  ExpectOnHMIStatusWithAudioStateChanged_PI(self, "VR")
   self.mobileSession1:ExpectResponse(cid,
     { success = true, resultCode = "SUCCESS", choiceID = paramsSend.interactionChoiceSetIDList[1] })
 end
@@ -314,7 +246,6 @@ end
 --! self - test object
 --! @return: none
 local function PI_PerformViaMANUAL_ONLY(paramsSend, self)
-  local level = "FULL"
   paramsSend.interactionMode = "MANUAL_ONLY"
   local cid = self.mobileSession1:SendRPC("PerformInteraction", paramsSend)
   EXPECT_HMICALL("VR.PerformInteraction", {
@@ -345,7 +276,7 @@ local function PI_PerformViaMANUAL_ONLY(paramsSend, self)
       end
       RUN_AFTER(uiResponse, 1000)
     end)
-  ExpectOnHMIStatusWithAudioStateChanged_PI(self, "MANUAL", nil, level)
+  ExpectOnHMIStatusWithAudioStateChanged_PI(self, "MANUAL")
   self.mobileSession1:ExpectResponse(cid,
     { success = true, resultCode = "SUCCESS", choiceID = paramsSend.interactionChoiceSetIDList[1] })
 end
@@ -356,7 +287,6 @@ end
 --! self - test object
 --! @return: none
 local function PI_PerformViaBOTH(paramsSend, self)
-  local level = "FULL"
   paramsSend.interactionMode = "BOTH"
   local cid = self.mobileSession1:SendRPC("PerformInteraction",paramsSend)
   EXPECT_HMICALL("VR.PerformInteraction", {
@@ -402,7 +332,7 @@ local function PI_PerformViaBOTH(paramsSend, self)
       end
       RUN_AFTER(uiResponse, 30)
     end)
-  ExpectOnHMIStatusWithAudioStateChanged_PI(self, nil, nil, level)
+  ExpectOnHMIStatusWithAudioStateChanged_PI(self, "BOTH")
   self.mobileSession1:ExpectResponse(cid, { success = false, resultCode = "TIMED_OUT" })
 end
 
