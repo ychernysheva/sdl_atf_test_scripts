@@ -42,7 +42,7 @@
 ./test_scripts/Smoke/API/018_SendLocation_PositiveCase_SUCCESS.lua
 ./test_scripts/Smoke/API/019_SetAppIcon_PositiveCase_SUCCESS.lua
 ./test_scripts/Smoke/API/020_SetDisplayLayout_PositiveCase_SUCCESS.lua
-./test_scripts/Smoke/API/021_Speak_SUCCESS.lua
+./test_scripts/Smoke/API/021_Speak_PositiveCase_SUCCESS.lua
 ./test_scripts/Smoke/API/022_SubscribeButton_PositiveCase_SUCCESS.lua
 ./test_scripts/Smoke/API/023_UnsubscribeButton_PositiveCase_SUCCESS.lua
 ./test_scripts/Smoke/API/024_SubscribeVehicleData_PositiveCase_SUCCESS.lua
@@ -55,7 +55,7 @@
 ./test_scripts/Smoke/API/031_PerformAudioPassThru_PositiveCase_SUCCESS.lua
 ./test_scripts/Smoke/API/032_EndAudioPassThru_PositiveCase_SUCCESS.lua
 ./test_scripts/Smoke/API/033_ReadDID_PositiveCase_SUCCESS.lua
-./test_scripts/Smoke/API/034_GetDTCs_SUCCESS.lua
-./test_scripts/Smoke/API/035_ChangeRegistration_SUCCESS.lua
+./test_scripts/Smoke/API/034_GetDTCs_PositiveCase_SUCCESS.lua
+./test_scripts/Smoke/API/035_ChangeRegistration_PositiveCase_SUCCESS.lua
 ./test_scripts/Smoke/API/036_UnregisterAppInterface_PositiveCase_SUCCESS.lua
 ./test_scripts/Smoke/API/037_RegisterAppInterface_PositiveCase_SUCCESS.lua
