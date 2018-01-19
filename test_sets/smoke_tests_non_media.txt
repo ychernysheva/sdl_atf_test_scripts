@@ -1,9 +1,0 @@
-./test_scripts/Smoke/Policies/001_PTU_all_flows.lua
-./test_scripts/Smoke/API/007_Alert_Non_Media_PositiveCase_SUCCESS.lua
-./test_scripts/Smoke/API/012_PerfomInteraction_Non_Media_PositiveCase_SUCCESS.lua
-./test_scripts/Smoke/API/014_SetMediaClockTimer_Non_Media_PositiveCase_SUCCESS.lua
-./test_scripts/Smoke/API/021_Speak_Non_Media_PositiveCase_SUCCESS.lua
-./test_scripts/Smoke/API/022_SubscribeButton_Non_Media_PositiveCase_SUCCESS.lua
-./test_scripts/Smoke/API/023_UnsubscribeButton_Non_Media_PositiveCase_SUCCESS.lua
-./test_scripts/Smoke/API/028_AlertManeuver_Non_Media_PositiveCase_SUCCESS.lua
-./test_scripts/Smoke/API/031_PerformAudioPassThru_Non_Media_PositiveCase_SUCCESS.lua
