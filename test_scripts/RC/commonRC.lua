@@ -116,11 +116,11 @@ local function ptu(self, ptu_update_func)
                 self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate", { policyfile = policy_file_path .. "/" .. policy_file_name })
               end)
             mobileSession:ExpectResponse(corIdSystemRequest, { success = true, resultCode = "SUCCESS" })
+            :Do(function() os.remove(ptu_file_name) end)
           end)
         :Times(AtMost(1))
       end
     end)
-  os.remove(ptu_file_name)
 end
 
 local function allow_sdl(self)
@@ -184,6 +184,7 @@ function commonRC.rai_ptu_n(id, ptu_update_func, self)
           self["mobileSession" .. id]:ExpectNotification("OnHMIStatus", { hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN" })
           :Times(AtLeast(1)) -- issue with SDL --> notification is sent twice
           self["mobileSession" .. id]:ExpectNotification("OnPermissionsChange")
+          :Times(2)
         end)
     end)
 end
