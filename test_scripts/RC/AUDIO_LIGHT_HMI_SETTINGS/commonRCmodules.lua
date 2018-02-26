@@ -145,8 +145,8 @@ function c.getAnotherModuleControlData(pModuleType)
     struct.climateControlData.heatedMirrorsEnable = false
   elseif "RADIO" == pModuleType then
     struct.moduleType = "RADIO"
-    struct.RadioControlData = {}
-    struct.RadioControlData.sisData = {
+    struct.radioControlData = {}
+    struct.radioControlData.sisData = {
       stationShortName = "Name2",
       stationIDNumber = {
         countryCode = 200,
@@ -167,9 +167,12 @@ function c.getAnotherModuleControlData(pModuleType)
       keepContext = true,
       volume = 20,
       equalizerSettings = {
-        channelId = 20,
-        channelName = "Channel 2",
-        channelSetting = 20 }
+        {
+          channelId = 20,
+          channelName = "Channel 2",
+          channelSetting = 20
+        }
+      }
     }
   elseif "LIGHT" == pModuleType then
     struct.moduleType = "LIGHT"
