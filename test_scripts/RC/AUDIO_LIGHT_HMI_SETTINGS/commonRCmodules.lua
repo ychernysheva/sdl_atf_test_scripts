@@ -7,17 +7,31 @@ config.application2.registerAppInterfaceParams.appHMIType = { "REMOTE_CONTROL" }
 --[[ Required Shared libraries ]]
 local commonRC = require("test_scripts/RC/commonRC")
 local test = require("user_modules/dummy_connecttest")
+local hmi_values = require("user_modules/hmi_values")
+local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
+local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 
 --[[ Local Variables ]]
 local c = {}
 c.modules = { "RADIO", "CLIMATE", "AUDIO", "LIGHT", "HMI_SETTINGS" }
+c.capMap = {
+  ["RADIO"] = "radioControlCapabilities",
+  ["CLIMATE"] = "climateControlCapabilities",
+  ["AUDIO"] = "audioControlCapabilities",
+  ["LIGHT"] = "lightControlCapabilities",
+  ["HMI_SETTINGS"] = "hmiSettingsControlCapabilities"
+}
+
+c.backupHMICapabilities = commonRC.backupHMICapabilities
+c.restoreHMICapabilities = commonRC.restoreHMICapabilities
+c.DEFAULT = commonRC.DEFAULT
 
 function c.preconditions()
   commonRC.preconditions()
 end
 
-function c.start()
-  commonRC.start(nil, test)
+function c.start(pHMIParams)
+  commonRC.start(pHMIParams, test)
 end
 
 local function audibleState(pAppId)
@@ -492,6 +506,36 @@ end
 
 function c.postconditions()
   commonRC.postconditions()
+end
+
+function c.buildHmiRcCapabilities(pCapabilities)
+  local hmiParams = hmi_values.getDefaultHMITable()
+  hmiParams.RC.IsReady.params.available = true
+  local capParams = hmiParams.RC.GetCapabilities.params.remoteControlCapability
+  for k, v in pairs(c.capMap) do
+    if pCapabilities[k] then
+      if pCapabilities[k] ~= commonRC.DEFAULT then
+        capParams[v] = pCapabilities[v]
+      end
+    else
+      capParams[v] = nil
+    end
+  end
+  return hmiParams
+end
+
+function c.updateDefaultCapabilities(pDisabledModuleTypes)
+  local hmiCapabilitiesFile = commonPreconditions:GetPathToSDL()
+    .. commonFunctions:read_parameter_from_smart_device_link_ini("HMICapabilities")
+  local hmiCapTbl = commonRC.jsonFileToTable(hmiCapabilitiesFile)
+  local rcCapTbl = hmiCapTbl.UI.systemCapabilities.remoteControlCapability
+  for _, pDisabledModuleType in pairs(pDisabledModuleTypes) do
+    local buttonId = commonRC.getButtonIdByName(
+      rcCapTbl.buttonCapabilities, commonRC.getButtonNameByModule(pDisabledModuleType))
+    table.remove(rcCapTbl.buttonCapabilities, buttonId)
+    rcCapTbl[c.capMap[pDisabledModuleType]] = nil
+  end
+  commonRC.tableToJsonFile(hmiCapTbl, hmiCapabilitiesFile)
 end
 
 return c
