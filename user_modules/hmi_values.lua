@@ -354,11 +354,13 @@ function module.getDefaultHMITable()
               }
             },
           audioControlCapabilities = {
-              moduleName = "Audio",
-              sourceAvailable = true,
-              volumeAvailable = true,
-              equalizerAvailable = true,
-              equalizerMaxChannelId = 100
+              {
+                moduleName = "Audio",
+                sourceAvailable = true,
+                volumeAvailable = true,
+                equalizerAvailable = true,
+                equalizerMaxChannelId = 100
+              }
             },
           hmiSettingsControlCapabilities = {
               moduleName = "HmiSettings",
