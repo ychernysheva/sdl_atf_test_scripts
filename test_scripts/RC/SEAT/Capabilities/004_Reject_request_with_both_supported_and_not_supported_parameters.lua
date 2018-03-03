@@ -34,10 +34,10 @@ local seat_params = {
 }
 
 --[[ Local Functions ]]
-local function setVehicleData(params, self)
-	local cid = self.mobileSession1:SendRPC("SetInteriorVehicleData", {moduleData = params})
+local function setVehicleData(params)
+	local cid = commonRC.getMobileSession():SendRPC("SetInteriorVehicleData", {moduleData = params})
 	EXPECT_HMICALL("RC.SetInteriorVehicleData"):Times(0)
-	self.mobileSession1:ExpectResponse(cid, { success = false, resultCode = "UNSUPPORTED_RESOURCE" })
+	commonRC.getMobileSession():ExpectResponse(cid, { success = false, resultCode = "UNSUPPORTED_RESOURCE" })
 end
 
 --[[ Scenario ]]

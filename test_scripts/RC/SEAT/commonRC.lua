@@ -18,7 +18,7 @@ commonRC.timeout = 2000
 commonRC.minTimeout = 500
 commonRC.DEFAULT = initialCommon.DEFAULT
 
-function commonRC.getRCAppConfig()
+function initialCommon.getRCAppConfig()
   return {
     keep_context = false,
     steal_focus = false,
@@ -39,7 +39,8 @@ function commonRC.getHMIconnection()
   return test.hmiConnection
 end
 
-function commonRC.getModuleControlData(module_type)
+local origGetModuleControlData = initialCommon.getModuleControlData
+function initialCommon.getModuleControlData(module_type)
   local out = { }
   if module_type == "SEAT" then
     out.moduleType = module_type
@@ -84,11 +85,16 @@ function commonRC.getModuleControlData(module_type)
       }
     }
   else
-    out = initialCommon.getModuleControlData(module_type)
+    out = origGetModuleControlData(module_type)
   end
   return out
 end
 
+function commonRC.getModuleControlData(module_type)
+  return initialCommon.getModuleControlData(module_type)
+end
+
+local origGetAnotherModuleControlData = initialCommon.getAnotherModuleControlData
 function commonRC.getAnotherModuleControlData(module_type)
   local out = { }
   if module_type == "SEAT" then
@@ -134,20 +140,24 @@ function commonRC.getAnotherModuleControlData(module_type)
       }
     }
   else
-    out = initialCommon.getAnotherModuleControlData(module_type)
+    out = origGetAnotherModuleControlData(module_type)
   end
   return out
 end
 
-function commonRC.getModuleParams(pModuleData)
+local origGetModuleParams = initialCommon.getModuleParams
+function initialCommon.getModuleParams(pModuleData)
   if pModuleData.moduleType == "SEAT" then
     if not pModuleData.seatControlData then
       pModuleData.seatControlData = { }
     end
     return pModuleData.seatControlData
-  else
-    return initialCommon.getModuleParams(pModuleData)
   end
+  return origGetModuleParams(pModuleData)
+end
+
+function commonRC.getModuleParams(pModuleData)
+  return initialCommon.getModuleParams(pModuleData)
 end
 
 function commonRC.buildHmiRcCapabilities(pClimateCapabilities, pRadioCapabilities, pSeatCapabilities, pButtonCapabilities)

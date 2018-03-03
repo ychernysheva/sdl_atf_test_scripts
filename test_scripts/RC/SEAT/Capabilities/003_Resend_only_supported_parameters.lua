@@ -14,7 +14,6 @@
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
 local commonRC = require('test_scripts/RC/SEAT/commonRC')
-local common_functions = require('user_modules/shared_testcases/commonTestCases')
 
 --[[ Test Configuration ]]
 runner.testSettings.isSelfIncluded = false
@@ -43,7 +42,6 @@ local function setVehicleData(params)
 	else
 		EXPECT_HMICALL("RC.SetInteriorVehicleData"):Times(0)
 		mobSession:ExpectResponse(cid, { success = false, resultCode = "UNSUPPORTED_RESOURCE" })
-        common_functions.DelayedExp(commonRC.timeout)
 	end
 end
 
