@@ -11,13 +11,12 @@
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
 local commonOnRCStatus = require('test_scripts/RC/OnRCStatus/commonOnRCStatus')
-local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 
 --[[ Test Configuration ]]
 runner.testSettings.isSelfIncluded = false
 
 --[[ Local Variables ]]
-local freeModules =  commonFunctions:cloneTable(commonOnRCStatus.modules)
+local freeModules = commonOnRCStatus.getModules()
 local allocatedModules = {}
 
 --[[ Local Functions ]]
@@ -28,13 +27,15 @@ local function AlocateModule(pModuleType)
   commonOnRCStatus.getMobileSession(2):ExpectNotification("OnRCStatus", ModulesStatus)
   EXPECT_HMINOTIFICATION("RC.OnRCStatus", ModulesStatus)
   :Times(2)
+  :ValidIf(commonOnRCStatus.validateHMIAppIds)
 end
 
 local function CloseSession()
 	local ModulesStatus = commonOnRCStatus.SetModuleStatusByDeallocation(freeModules, allocatedModules, "CLIMATE")
-	commonOnRCStatus.getMobileSession(1):Stop()
+	commonOnRCStatus.closeSession(1)
 	commonOnRCStatus.getMobileSession(2):ExpectNotification("OnRCStatus", ModulesStatus)
 	EXPECT_HMINOTIFICATION("RC.OnRCStatus", ModulesStatus)
+  :ValidIf(commonOnRCStatus.validateHMIAppIds)
 	EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered",
 		{ appID = commonOnRCStatus.getHMIAppId(), unexpectedDisconnect = true })
 end

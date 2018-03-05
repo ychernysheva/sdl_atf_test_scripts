@@ -11,18 +11,16 @@
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
 local commonOnRCStatus = require('test_scripts/RC/OnRCStatus/commonOnRCStatus')
-local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 
 --[[ Test Configuration ]]
 runner.testSettings.isSelfIncluded = false
 
 --[[ Local Variables ]]
-local freeModules =  commonFunctions:cloneTable(commonOnRCStatus.modules)
+local freeModules = commonOnRCStatus.getModules()
 local allocatedModules = { }
 
 --[[ Local Functions ]]
 local function PTUfunc(tbl)
-  commonOnRCStatus.AddOnRCStatusToPT(tbl)
   local appId1 = config.application1.registerAppInterfaceParams.appID
   tbl.policy_table.app_policies[appId1] = commonOnRCStatus.getRCAppConfig()
   tbl.policy_table.app_policies[appId1].moduleType = { "RADIO" }
@@ -35,6 +33,7 @@ local function AlocateModule(pModuleType)
   commonOnRCStatus.rpcAllowed(pModuleType, 1, "SetInteriorVehicleData")
   commonOnRCStatus.getMobileSession(1):ExpectNotification("OnRCStatus", ModulesStatus)
   EXPECT_HMINOTIFICATION("RC.OnRCStatus", ModulesStatus)
+  :ValidIf(commonOnRCStatus.validateHMIAppIds)
 end
 
 local function RegistrationAppWithRevokingModule()
@@ -44,7 +43,7 @@ local function RegistrationAppWithRevokingModule()
     allocatedModules = commonOnRCStatus.ModulesArray(allocatedModules)
   }
   local NotifParamsRevoke = {
-    freeModules = commonOnRCStatus.ModulesArray(commonOnRCStatus.modules),
+    freeModules = commonOnRCStatus.ModulesArray(commonOnRCStatus.getModules()),
     allocatedModules = { }
   }
   commonOnRCStatus.getMobileSession(2):ExpectNotification("OnRCStatus", NotifParamsRegister, NotifParamsRevoke)
@@ -52,7 +51,8 @@ local function RegistrationAppWithRevokingModule()
   commonOnRCStatus.getMobileSession(1):ExpectNotification("OnRCStatus", NotifParamsRegister, NotifParamsRevoke)
   :Times(2)
   EXPECT_HMINOTIFICATION("RC.OnRCStatus", NotifParamsRegister, NotifParamsRevoke)
-  :Times(2)
+  :Times(4)
+  :ValidIf(commonOnRCStatus.validateHMIAppIds)
 end
 
 --[[ Scenario ]]

@@ -33,7 +33,7 @@ runner.Step("Activate App", commonOnRCStatus.ActivateApp)
 runner.Step("RAI, PTU for second app", commonOnRCStatus.RegisterRCapplication, { 2 })
 
 runner.Title("Test")
-for _, mod in pairs(commonOnRCStatus.modules) do
+for _, mod in pairs(commonOnRCStatus.getModules()) do
 	runner.Step("GetInteriorVehicleData " .. mod, SubscribeToModuleWOOnRCStatus, { mod })
 end
 

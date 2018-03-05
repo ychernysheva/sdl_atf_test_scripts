@@ -11,13 +11,12 @@
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
 local commonOnRCStatus = require('test_scripts/RC/OnRCStatus/commonOnRCStatus')
-local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 
 --[[ Test Configuration ]]
 runner.testSettings.isSelfIncluded = false
 
 --[[ Local Variables ]]
-local freeModules = commonFunctions:cloneTable(commonOnRCStatus.modules)
+local freeModules = commonOnRCStatus.getModules()
 local allocatedModules = {}
 
 --[[ General configuration parameters ]]
@@ -29,6 +28,7 @@ local function AlocateModule(pModuleType)
 	commonOnRCStatus.rpcAllowed(pModuleType, 1, "SetInteriorVehicleData")
 	commonOnRCStatus.getMobileSession(1):ExpectNotification("OnRCStatus", ModulesStatus)
 	EXPECT_HMINOTIFICATION("RC.OnRCStatus", ModulesStatus)
+	:ValidIf(commonOnRCStatus.validateHMIAppIds)
 	commonOnRCStatus.getMobileSession(2):ExpectNotification("OnRCStatus")
 	:Times(0)
 end
@@ -42,7 +42,7 @@ runner.Step("Activate App", commonOnRCStatus.ActivateApp)
 runner.Step("RAI, PTU for second app", commonOnRCStatus.rai_n, { 2 })
 
 runner.Title("Test")
-for _, mod in pairs(commonOnRCStatus.modules) do
+for _, mod in pairs(commonOnRCStatus.getModules()) do
 	runner.Step("Allocation of module " .. mod, AlocateModule, { mod })
 end
 

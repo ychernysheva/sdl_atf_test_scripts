@@ -11,13 +11,12 @@
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
 local commonOnRCStatus = require('test_scripts/RC/OnRCStatus/commonOnRCStatus')
-local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 
 --[[ Test Configuration ]]
 runner.testSettings.isSelfIncluded = false
 
 --[[ Local Variables ]]
-local freeModules =  commonFunctions:cloneTable(commonOnRCStatus.modules)
+local freeModules = commonOnRCStatus.getModules()
 local allocatedModules = {}
 
 local BPstructs = {
@@ -47,6 +46,7 @@ local function ButtonPress(pButVal)
 	commonOnRCStatus.getMobileSession(2):ExpectNotification("OnRCStatus", pModuleStatus)
 	EXPECT_HMINOTIFICATION("RC.OnRCStatus", pModuleStatus)
 	:Times(2)
+	:ValidIf(commonOnRCStatus.validateHMIAppIds)
 end
 
 --[[ Scenario ]]

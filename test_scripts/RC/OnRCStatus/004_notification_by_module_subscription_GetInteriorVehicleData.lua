@@ -32,7 +32,7 @@ runner.Step("Register RC application", commonOnRCStatus.RegisterRCapplication)
 runner.Step("Activate App", commonOnRCStatus.ActivateApp)
 
 runner.Title("Test")
-for _, mod in pairs(commonOnRCStatus.modules) do
+for _, mod in pairs(commonOnRCStatus.getModules()) do
 	runner.Step("GetInteriorVehicleData " .. mod, subscribeToModuleWOOnRCStatus, { mod })
 end
 

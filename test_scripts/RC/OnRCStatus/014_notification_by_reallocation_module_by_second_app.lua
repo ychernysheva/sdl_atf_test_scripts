@@ -28,6 +28,7 @@ local function AlocateModule(pModuleType, pAppId)
   commonOnRCStatus.getMobileSession(2):ExpectNotification("OnRCStatus", ModulesStatus)
   EXPECT_HMINOTIFICATION("RC.OnRCStatus", ModulesStatus)
   :Times(2)
+  :ValidIf(commonOnRCStatus.validateHMIAppIds)
 end
 
 --[[ Scenario ]]

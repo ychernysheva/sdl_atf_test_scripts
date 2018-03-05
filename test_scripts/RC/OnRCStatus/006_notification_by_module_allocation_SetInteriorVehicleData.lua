@@ -11,13 +11,12 @@
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
 local commonOnRCStatus = require('test_scripts/RC/OnRCStatus/commonOnRCStatus')
-local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 
 --[[ Test Configuration ]]
 runner.testSettings.isSelfIncluded = false
 
 --[[ Local Variables ]]
-local freeModules = commonFunctions:cloneTable(commonOnRCStatus.modules)
+local freeModules = commonOnRCStatus.getModules()
 local allocatedModules = {}
 
 --[[ Local Functions ]]
@@ -39,6 +38,7 @@ local function setVehicleData(pModuleType)
 	commonOnRCStatus.getMobileSession(1):ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 	commonOnRCStatus.getMobileSession(1):ExpectNotification("OnRCStatus", pModuleStatus)
 	EXPECT_HMINOTIFICATION("RC.OnRCStatus", pModuleStatus)
+  :ValidIf(commonOnRCStatus.validateHMIAppIds)
 end
 
 --[[ Scenario ]]
@@ -49,7 +49,7 @@ runner.Step("RAI, PTU", commonOnRCStatus.RegisterRCapplication)
 runner.Step("Activate App", commonOnRCStatus.ActivateApp)
 
 runner.Title("Test")
-for _, mod in pairs(commonOnRCStatus.modules) do
+for _, mod in pairs(commonOnRCStatus.getModules()) do
 	runner.Step("SetInteriorVehicleData " .. mod, setVehicleData, { mod })
 end
 

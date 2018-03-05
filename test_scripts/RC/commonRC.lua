@@ -757,4 +757,13 @@ function commonRC.updateDefaultCapabilities(pDisabledModuleTypes)
   commonRC.tableToJsonFile(hmiCapTbl, hmiCapabilitiesFile)
 end
 
+function commonRC.getHMIAppIds()
+  return hmiAppIds
+end
+
+function commonRC.deleteHMIAppId(pAppId)
+  hmiAppIds[config["application" .. pAppId].registerAppInterfaceParams.appID] = nil
+end
+
+
 return commonRC
