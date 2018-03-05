@@ -16,20 +16,24 @@ local commonOnRCStatus = require('test_scripts/RC/OnRCStatus/commonOnRCStatus')
 runner.testSettings.isSelfIncluded = false
 
 --[[ Local Functions ]]
-local function SubscribeToModuleWOOnRCStatus(pModuleType)
-	commonOnRCStatus.SubscribeToModuleWOOnRCStatus(pModuleType)
+local function subscribeToModuleWOOnRCStatus(pModuleType)
+  commonOnRCStatus.subscribeToModule(pModuleType)
+  commonOnRCStatus.getMobileSession():ExpectNotification("OnRCStatus")
+  :Times(0)
+  EXPECT_HMINOTIFICATION("RC.OnRCStatus")
+  :Times(0)
 end
 
 --[[ Scenario ]]
 runner.Title("Preconditions")
 runner.Step("Clean environment", commonOnRCStatus.preconditions)
 runner.Step("Start SDL, HMI, connect Mobile, start Session", commonOnRCStatus.start)
-runner.Step("RAI, PTU", commonOnRCStatus.RegisterRCapplication)
+runner.Step("Register RC application", commonOnRCStatus.RegisterRCapplication)
 runner.Step("Activate App", commonOnRCStatus.ActivateApp)
 
 runner.Title("Test")
 for _, mod in pairs(commonOnRCStatus.modules) do
-	runner.Step("GetInteriorVehicleData " .. mod, SubscribeToModuleWOOnRCStatus, { mod })
+	runner.Step("GetInteriorVehicleData " .. mod, subscribeToModuleWOOnRCStatus, { mod })
 end
 
 runner.Title("Postconditions")

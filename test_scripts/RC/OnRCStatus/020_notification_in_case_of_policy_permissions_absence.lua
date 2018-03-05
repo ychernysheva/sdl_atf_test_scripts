@@ -43,12 +43,11 @@ local function AlocateModule(pModuleType)
   commonOnRCStatus.rpcAllowed(pModuleType, 1, "SetInteriorVehicleData")
   commonOnRCStatus.getMobileSession(1):ExpectNotification("OnRCStatus")
   :Times(0)
-  ModulesStatus.appID = commonOnRCStatus.getHMIAppId()
   EXPECT_HMINOTIFICATION("RC.OnRCStatus", ModulesStatus)
 end
 
 local function RegisterApp()
-  commonOnRCStatus.rai_ptu_n(PTUfunc)
+  commonOnRCStatus.rai_ptu_n(PTUfunc, 1)
   commonOnRCStatus.getMobileSession(1):ExpectNotification("OnRCStatus")
   :Times(0)
   local ModulesStatus = {
@@ -61,7 +60,7 @@ end
 
 --[[ Scenario ]]
 runner.Title("Preconditions")
-runner.Step("Clean environment", commonOnRCStatus.preconditions)
+runner.Step("Clean environment", commonOnRCStatus.preconditions, { 0 })
 runner.Step("Start SDL, HMI, connect Mobile, start Session", commonOnRCStatus.start)
 
 runner.Title("Test")

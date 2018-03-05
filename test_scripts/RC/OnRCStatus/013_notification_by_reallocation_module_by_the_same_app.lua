@@ -33,8 +33,7 @@ local function AlocateModule(pModuleType)
   local ModulesStatus = commonOnRCStatus.SetModuleStatus(freeModules, allocatedModules, pModuleType)
   commonOnRCStatus.rpcAllowed(pModuleType, 1, "SetInteriorVehicleData")
   commonOnRCStatus.getMobileSession(1):ExpectNotification("OnRCStatus", ModulesStatus)
-  ModulesStatus.appID = commonOnRCStatus.getHMIAppId()
-  EXPECT_HMINOTIFICATION("RC.OnRCStatus", ModulesStatus )
+  EXPECT_HMINOTIFICATION("RC.OnRCStatus", ModulesStatus)
 end
 
 --[[ Scenario ]]

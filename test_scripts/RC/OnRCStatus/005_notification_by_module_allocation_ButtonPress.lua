@@ -17,7 +17,7 @@ local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 runner.testSettings.isSelfIncluded = false
 
 --[[ Local Variables ]]
-local freeModules =  commonFunctions:cloneTable(commonOnRCStatus.modules)
+local freeModules = commonFunctions:cloneTable(commonOnRCStatus.modules)
 local allocatedModules = {}
 
 local BPstructs = {
@@ -31,7 +31,6 @@ local BPstructs = {
 		buttonName = "VOLUME_UP",
 		buttonPressMode = "LONG"
 	}
-	-- TODO: add module types with button params
 }
 
 --[[ Local Functions ]]
@@ -45,20 +44,19 @@ local function ButtonPress(pButVal)
 	end)
 	commonOnRCStatus.getMobileSession(1):ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 	commonOnRCStatus.getMobileSession(1):ExpectNotification("OnRCStatus", pModuleStatus)
-	pModuleStatus.appID = commonOnRCStatus.getHMIAppId()
-	EXPECT_HMINOTIFICATION("RC.OnRCStatus", pModuleStatus )
+	EXPECT_HMINOTIFICATION("RC.OnRCStatus", pModuleStatus)
 end
 
 --[[ Scenario ]]
 runner.Title("Preconditions")
 runner.Step("Clean environment", commonOnRCStatus.preconditions)
 runner.Step("Start SDL, HMI, connect Mobile, start Session", commonOnRCStatus.start)
-runner.Step("RAI, PTU", commonOnRCStatus.RegisterRCapplication)
+runner.Step("Register RC application", commonOnRCStatus.RegisterRCapplication)
 runner.Step("Activate App", commonOnRCStatus.ActivateApp)
 
 runner.Title("Test")
-for mod, _ in pairs(BPstructs) do
-	runner.Step("ButtonPress " .. mod, ButtonPress, { BPstructs[mod] })
+for mod, params in pairs(BPstructs) do
+	runner.Step("ButtonPress " .. mod, ButtonPress, { params })
 end
 
 runner.Title("Postconditions")

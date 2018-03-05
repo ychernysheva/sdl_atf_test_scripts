@@ -18,19 +18,12 @@ runner.testSettings.isSelfIncluded = false
 config.application1.registerAppInterfaceParams.appHMIType = { "DEFAULT" }
 
 --[[ Local Functions ]]
-local function PTUfunc(tbl)
-  local appId = config.application1.registerAppInterfaceParams.appID
-  commonOnRCStatus.AddOnRCStatusToPT(tbl)
-  tbl.policy_table.app_policies[appId] = commonOnRCStatus.getRCAppConfig()
-  tbl.policy_table.app_policies[appId].AppHMIType = { "DEFAULT" }
-end
-
-local function RegistrationNotRCapp()
-	commonOnRCStatus.rai_ptu_n()
+local function registerNonRCApp()
+	commonOnRCStatus.rai_n()
 	commonOnRCStatus.getMobileSession(1):ExpectNotification("OnRCStatus")
-		:Times(0)
+	:Times(0)
 	EXPECT_HMINOTIFICATION("RC.OnRCStatus")
-		:Times(0)
+	:Times(0)
 end
 
 --[[ Scenario ]]
@@ -39,7 +32,7 @@ runner.Step("Clean environment", commonOnRCStatus.preconditions)
 runner.Step("Start SDL, HMI, connect Mobile, start Session", commonOnRCStatus.start)
 
 runner.Title("Test")
-runner.Step("Registration of not rc application", RegistrationNotRCapp, { PTUfunc })
+runner.Step("Registration non-RC application", registerNonRCApp)
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", commonOnRCStatus.postconditions)

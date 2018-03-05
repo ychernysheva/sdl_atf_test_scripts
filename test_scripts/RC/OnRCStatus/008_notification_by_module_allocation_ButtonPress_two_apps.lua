@@ -31,16 +31,9 @@ local BPstructs = {
 		buttonName = "VOLUME_UP",
 		buttonPressMode = "LONG"
 	}
-	-- TODO: add module types with button params
 }
 
 --[[ Local Functions ]]
-local function PTUfunc(tbl)
-  commonOnRCStatus.AddOnRCStatusToPT(tbl)
-  local appId = config.application2.registerAppInterfaceParams.appID
-  tbl.policy_table.app_policies[appId] = commonOnRCStatus.getRCAppConfig()
-end
-
 local function ButtonPress(pButVal)
 	local pModuleStatus = commonOnRCStatus.SetModuleStatus(freeModules, allocatedModules, pButVal.moduleType)
 	local cid = commonOnRCStatus.getMobileSession(1):SendRPC("ButtonPress",	pButVal)
@@ -52,9 +45,8 @@ local function ButtonPress(pButVal)
 	commonOnRCStatus.getMobileSession(1):ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 	commonOnRCStatus.getMobileSession(1):ExpectNotification("OnRCStatus", pModuleStatus)
 	commonOnRCStatus.getMobileSession(2):ExpectNotification("OnRCStatus", pModuleStatus)
-	-- TODO: Clarify what appID should used in case of 2 registred apps
-	pModuleStatus.appID = commonOnRCStatus.getHMIAppId()
-	EXPECT_HMINOTIFICATION("RC.OnRCStatus", pModuleStatus )
+	EXPECT_HMINOTIFICATION("RC.OnRCStatus", pModuleStatus)
+	:Times(2)
 end
 
 --[[ Scenario ]]
@@ -63,7 +55,7 @@ runner.Step("Clean environment", commonOnRCStatus.preconditions)
 runner.Step("Start SDL, HMI, connect Mobile, start Session", commonOnRCStatus.start)
 runner.Step("RAI, PTU", commonOnRCStatus.RegisterRCapplication)
 runner.Step("Activate App", commonOnRCStatus.ActivateApp)
-runner.Step("RAI, PTU for second app", commonOnRCStatus.RegisterRCapplication, { nil, PTUfunc, 2 })
+runner.Step("RAI, PTU for second app", commonOnRCStatus.RegisterRCapplication, { 2 })
 
 runner.Title("Test")
 for mod, _ in pairs(BPstructs) do

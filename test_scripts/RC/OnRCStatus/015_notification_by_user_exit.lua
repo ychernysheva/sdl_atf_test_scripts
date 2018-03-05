@@ -17,7 +17,7 @@ local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 runner.testSettings.isSelfIncluded = false
 
 --[[ Local Variables ]]
-local freeModules =  commonFunctions:cloneTable(commonOnRCStatus.modules)
+local freeModules = commonFunctions:cloneTable(commonOnRCStatus.modules)
 local allocatedModules = {}
 
 --[[ Local Functions ]]
@@ -25,20 +25,20 @@ local function AlocateModule(pModuleType)
   local ModulesStatus = commonOnRCStatus.SetModuleStatus(freeModules, allocatedModules, pModuleType)
   commonOnRCStatus.rpcAllowed(pModuleType, 1, "SetInteriorVehicleData")
   commonOnRCStatus.getMobileSession(1):ExpectNotification("OnRCStatus", ModulesStatus)
-  ModulesStatus.appID = commonOnRCStatus.getHMIAppId()
   EXPECT_HMINOTIFICATION("RC.OnRCStatus", ModulesStatus)
 end
 
 local function userExit()
   local hmiAppId = commonOnRCStatus.getHMIAppId()
   commonOnRCStatus.getHMIconnection():SendNotification("BasicCommunication.OnExitApplication",
-    {appID = hmiAppId, reason = "USER_EXIT"})
+    { appID = hmiAppId, reason = "USER_EXIT" })
   commonOnRCStatus.getMobileSession(1):ExpectNotification("OnHMIStatus",
-    { systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE"})
-  local ModulesStatus = { freeModules = commonOnRCStatus.ModulesArray(freeModules),
-    allocatedModules = commonOnRCStatus.ModulesArray(allocatedModules) }
+    { systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE" })
+  local ModulesStatus = {
+    freeModules = commonOnRCStatus.ModulesArray(freeModules),
+    allocatedModules = commonOnRCStatus.ModulesArray(allocatedModules)
+  }
   commonOnRCStatus.getMobileSession(1):ExpectNotification("OnRCStatus", ModulesStatus)
-  ModulesStatus.appID = hmiAppId
   EXPECT_HMINOTIFICATION("RC.OnRCStatus", ModulesStatus)
 end
 

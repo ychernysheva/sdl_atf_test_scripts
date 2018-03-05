@@ -17,7 +17,7 @@ local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 runner.testSettings.isSelfIncluded = false
 
 --[[ Local Variables ]]
-local freeModules =  commonFunctions:cloneTable(commonOnRCStatus.modules)
+local freeModules = commonFunctions:cloneTable(commonOnRCStatus.modules)
 local allocatedModules = {}
 
 --[[ Local Functions ]]
@@ -38,8 +38,7 @@ local function setVehicleData(pModuleType)
 	end)
 	commonOnRCStatus.getMobileSession(1):ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 	commonOnRCStatus.getMobileSession(1):ExpectNotification("OnRCStatus", pModuleStatus)
-	pModuleStatus.appID = commonOnRCStatus.getHMIAppId()
-	EXPECT_HMINOTIFICATION("RC.OnRCStatus", pModuleStatus )
+	EXPECT_HMINOTIFICATION("RC.OnRCStatus", pModuleStatus)
 end
 
 --[[ Scenario ]]

@@ -16,26 +16,26 @@ local commonOnRCStatus = require('test_scripts/RC/OnRCStatus/commonOnRCStatus')
 runner.testSettings.isSelfIncluded = false
 
 --[[ Local Functions ]]
-local function RCdiallowedFromHMI()
+local function disableRCFromHMI()
 	commonOnRCStatus.getHMIconnection():SendNotification("RC.OnRemoteControlSettings", { allowed = false })
 end
 
-local function RegistrationWithoutRCNotification()
-	commonOnRCStatus.rai_ptu_n()
+local function registerAppWithoutRCNotification()
+	commonOnRCStatus.rai_n()
 	commonOnRCStatus.getMobileSession(1):ExpectNotification("OnRCStatus")
-		:Times(0)
+	:Times(0)
 	EXPECT_HMINOTIFICATION("RC.OnRCStatus")
-		:Times(0)
+	:Times(0)
 end
 
 --[[ Scenario ]]
 runner.Title("Preconditions")
 runner.Step("Clean environment", commonOnRCStatus.preconditions)
 runner.Step("Start SDL, HMI, connect Mobile, start Session", commonOnRCStatus.start)
-runner.Step("RC functionality is disallowed from HMI", RCdiallowedFromHMI)
+runner.Step("RC functionality is disallowed from HMI", disableRCFromHMI)
 
 runner.Title("Test")
-runner.Step("RC appregistration without OnRCStatus notification", RegistrationWithoutRCNotification)
+runner.Step("Register RC application without OnRCStatus notification", registerAppWithoutRCNotification)
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", commonOnRCStatus.postconditions)

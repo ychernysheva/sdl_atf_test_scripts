@@ -9,6 +9,9 @@ config.application2.registerAppInterfaceParams.appHMIType = { "REMOTE_CONTROL" }
 --[[ Required Shared libraries ]]
 local commonRC = require('test_scripts/RC/commonRC')
 local test = require("user_modules/dummy_connecttest")
+local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
+local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
+local json = require("modules/json")
 
 --[[ Local Variables ]]
 local commonOnRCStatus = {}
@@ -16,6 +19,34 @@ commonOnRCStatus.modules = {
   "CLIMATE",
   "RADIO"
 }
+
+local function backupPreloadedPT()
+  local preloadedFile = commonFunctions:read_parameter_from_smart_device_link_ini("PreloadedPT")
+  commonPreconditions:BackupFile(preloadedFile)
+end
+
+local function updatePreloadedPT(pCountOfRCApps)
+  if not pCountOfRCApps then pCountOfRCApps = 2 end
+  local preloadedFile = commonPreconditions:GetPathToSDL()
+    .. commonFunctions:read_parameter_from_smart_device_link_ini("PreloadedPT")
+  local preloadedTable = commonRC.jsonFileToTable(preloadedFile)
+  preloadedTable.policy_table.functional_groupings["DataConsent-2"].rpcs = json.null
+  preloadedTable.policy_table.functional_groupings["RemoteControl"].rpcs.OnRCStatus = {
+    hmi_levels = { "FULL", "BACKGROUND", "LIMITED", "NONE" }
+  }
+  for i = 1, pCountOfRCApps do
+    local appId = config["application" .. i].registerAppInterfaceParams.appID
+    preloadedTable.policy_table.app_policies[appId] = commonRC.getRCAppConfig()
+    preloadedTable.policy_table.app_policies[appId].AppHMIType = nil
+  end
+
+  commonRC.tableToJsonFile(preloadedTable, preloadedFile)
+end
+
+local function restorePreloadedPT()
+  local preloadedFile = commonFunctions:read_parameter_from_smart_device_link_ini("PreloadedPT")
+  commonPreconditions:RestoreFile(preloadedFile)
+end
 
 function commonOnRCStatus.getRCAppConfig()
   local struct = commonRC.getRCAppConfig()
@@ -31,8 +62,10 @@ function commonOnRCStatus.getHMIconnection()
   return test.hmiConnection
 end
 
-function commonOnRCStatus.preconditions()
+function commonOnRCStatus.preconditions(pCountOfRCApps)
   commonRC.preconditions()
+  backupPreloadedPT()
+  updatePreloadedPT(pCountOfRCApps)
 end
 
 function commonOnRCStatus.start()
@@ -59,19 +92,18 @@ function commonOnRCStatus.ModulesArray(pModules)
   return out
 end
 
-function commonOnRCStatus.RegisterRCapplication(pModuleStatus, ptu_update_func, pAppId)
+function commonOnRCStatus.RegisterRCapplication(pAppId)
   if not pAppId then pAppId = 1 end
-  if not pModuleStatus then
-    pModuleStatus = { freeModules = commonOnRCStatus.ModulesArray(commonOnRCStatus.modules), allocatedModules = { } }
+  local pModuleStatus = {
+    freeModules = commonOnRCStatus.ModulesArray(commonOnRCStatus.modules), allocatedModules = { }
+  }
+  commonRC.rai_n(pAppId, test)
+  for i = 1, pAppId do
+    commonOnRCStatus.getMobileSession(i):ExpectNotification("OnRCStatus", pModuleStatus)
   end
-  if not ptu_update_func then
-    ptu_update_func = PTUfunc
-  end
-  commonRC.rai_ptu_n(pAppId, ptu_update_func, test)
-  local mobSession = commonOnRCStatus.getMobileSession(pAppId)
-  mobSession:ExpectNotification("OnRCStatus",pModuleStatus)
-  pModuleStatus.appID = commonRC.getHMIAppId()
-  EXPECT_HMINOTIFICATION("RC.OnRCStatus", pModuleStatus )
+  -- TODO: implement check for HMI.appID
+  EXPECT_HMINOTIFICATION("RC.OnRCStatus", pModuleStatus)
+  :Times(pAppId)
 end
 
 function commonOnRCStatus.rai_ptu_n(ptu_update_func, pAppId)
@@ -82,18 +114,13 @@ function commonOnRCStatus.rai_ptu_n(ptu_update_func, pAppId)
   commonRC.rai_ptu_n(pAppId, ptu_update_func, test)
 end
 
-function commonOnRCStatus.rai_n_rc_app(id)
-  commonRC.rai_n(id, test)
+function commonOnRCStatus.rai_n(pAppId)
+  commonRC.rai_n(pAppId, test)
 end
 
-function commonOnRCStatus.SubscribeToModuleWOOnRCStatus(pModule, pAppId)
+function commonOnRCStatus.subscribeToModule(pModule, pAppId)
   if not pAppId then pAppId = 1 end
   commonRC.subscribeToModule(pModule, pAppId, test)
-  local mobSession = commonOnRCStatus.getMobileSession(pAppId)
-  mobSession:ExpectNotification("OnRCStatus")
-  :Times(0)
-  EXPECT_HMINOTIFICATION("RC.OnRCStatus")
-  :Times(0)
 end
 
 function commonOnRCStatus.unsubscribeToModule(pModule, pModuleStatus, pAppId)
@@ -121,6 +148,7 @@ end
 
 function commonOnRCStatus.postconditions()
   commonRC.postconditions()
+  restorePreloadedPT()
 end
 
 function commonOnRCStatus.SetModuleStatus(pFreeMod, pAllocatedMod, pModule)
@@ -159,19 +187,7 @@ function commonOnRCStatus.defineRAMode(pAllowed, pAccessMode)
 end
 
 function commonOnRCStatus.rpcRejectWithConsent(pModuleType, pAppId, pRPC)
-  local info = "The resource is in use and the driver disallows this remote control RPC"
-  local consentRPC = "GetInteriorVehicleDataConsent"
-  local mobSession = commonOnRCStatus.getMobileSession(pAppId)
-  local cid = mobSession:SendRPC(commonOnRCStatus.getAppEventName(pRPC),
-    commonOnRCStatus.getAppRequestParams(pRPC, pModuleType))
-  EXPECT_HMICALL(commonOnRCStatus.getHMIEventName(consentRPC),
-    commonOnRCStatus.getHMIRequestParams(consentRPC, pModuleType, pAppId))
-  :Do(function(_, data)
-      test.hmiConnection:SendResponse(data.id, data.method, "SUCCESS",
-        commonOnRCStatus.getHMIResponseParams(consentRPC, false))
-      EXPECT_HMICALL(commonOnRCStatus.getHMIEventName(pRPC)):Times(0)
-    end)
-  mobSession:ExpectResponse(cid, { success = false, resultCode = "REJECTED", info = info })
+  commonRC.rpcRejectWithConsent(pModuleType, pAppId, pRPC, test)
 end
 
 function commonOnRCStatus.rpcAllowedWithConsent(pModuleType, pAppId, pRPC)
@@ -360,5 +376,8 @@ function commonOnRCStatus.rpcAllowed(pModuleType, pAppId, pRPC)
   mobSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 end
 
+function commonOnRCStatus.cloneTable(...)
+  commonFunctions:cloneTable(...)
+end
 
 return commonOnRCStatus
