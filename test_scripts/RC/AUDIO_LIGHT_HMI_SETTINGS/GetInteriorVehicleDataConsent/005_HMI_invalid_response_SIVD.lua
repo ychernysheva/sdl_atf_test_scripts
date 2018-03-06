@@ -37,13 +37,13 @@ local function PTUfunc(tbl)
   tbl.policy_table.app_policies[config.application2.registerAppInterfaceParams.appID] = common.getRCAppConfig()
 end
 
-local function rpcInvalidHMIResponse(pModuleType, pAppId, pRPC, self)
+local function rpcInvalidHMIResponse(pModuleType, pAppId, pRPC)
   local consentRPC = "GetInteriorVehicleDataConsent"
-  local mobSession = common.getMobileSession(self, pAppId)
+  local mobSession = common.getMobileSession(pAppId)
   local cid = mobSession:SendRPC(common.getAppEventName(pRPC), common.getAppRequestParams(pRPC, pModuleType))
   EXPECT_HMICALL(common.getHMIEventName(consentRPC), common.getHMIRequestParams(consentRPC, pModuleType, pAppId))
   :Do(function(_, data)
-      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {
+      common.getHMIconnection():SendResponse(data.id, data.method, "SUCCESS", {
           allowed = "aaa" -- invalid type of parameter
         })
       EXPECT_HMICALL(common.getHMIEventName(pRPC)):Times(0)
