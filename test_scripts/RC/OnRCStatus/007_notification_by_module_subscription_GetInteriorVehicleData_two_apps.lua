@@ -18,6 +18,8 @@ runner.testSettings.isSelfIncluded = false
 --[[ Local Functions ]]
 local function subscribeToModuleWOOnRCStatus(pModuleType)
 	common.subscribeToModule(pModuleType)
+	common.getMobileSession(1):ExpectNotification("OnRCStatus")
+	:Times(0)
 	common.getMobileSession(2):ExpectNotification("OnRCStatus")
 	:Times(0)
 	EXPECT_HMINOTIFICATION("RC.OnRCStatus")

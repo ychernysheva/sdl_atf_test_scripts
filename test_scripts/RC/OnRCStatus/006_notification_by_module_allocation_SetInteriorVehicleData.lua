@@ -16,16 +16,15 @@ local common = require('test_scripts/RC/OnRCStatus/commonOnRCStatus')
 runner.testSettings.isSelfIncluded = false
 
 --[[ Local Variables ]]
-local freeModules = common.getModules()
+local freeModules = common.getAllModules()
 local allocatedModules = {}
 
 --[[ Local Functions ]]
 local function setVehicleData(pModuleType)
 	local pModuleStatus = common.setModuleStatus(freeModules, allocatedModules, pModuleType)
   common.rpcAllowed(pModuleType, 1, "SetInteriorVehicleData")
-	common.getMobileSession(1):ExpectNotification("OnRCStatus", pModuleStatus)
-	EXPECT_HMINOTIFICATION("RC.OnRCStatus", pModuleStatus)
-  :ValidIf(common.validateHMIAppIds)
+	common.validateOnRCStatusForApp(1, pModuleStatus)
+	common.validateOnRCStatusForHMI(1, pModuleStatus)
 end
 
 --[[ Scenario ]]

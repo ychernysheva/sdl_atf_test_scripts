@@ -16,18 +16,16 @@ local common = require('test_scripts/RC/OnRCStatus/commonOnRCStatus')
 runner.testSettings.isSelfIncluded = false
 
 --[[ Local Variables ]]
-local freeModules = common.getModules()
+local freeModules = common.getAllModules()
 local allocatedModules = {}
 
 --[[ Local Functions ]]
 local function buttonPress(pModuleType)
 	local pModuleStatus = common.setModuleStatus(freeModules, allocatedModules, pModuleType)
 	common.rpcAllowed(pModuleType, 1, "ButtonPress")
-	common.getMobileSession(1):ExpectNotification("OnRCStatus", pModuleStatus)
-	common.getMobileSession(2):ExpectNotification("OnRCStatus", pModuleStatus)
-	EXPECT_HMINOTIFICATION("RC.OnRCStatus", pModuleStatus)
-	:Times(2)
-	:ValidIf(common.validateHMIAppIds)
+	common.validateOnRCStatusForApp(1, pModuleStatus)
+	common.validateOnRCStatusForApp(2, pModuleStatus)
+  common.validateOnRCStatusForHMI(2, pModuleStatus)
 end
 
 --[[ Scenario ]]

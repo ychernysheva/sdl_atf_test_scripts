@@ -20,7 +20,7 @@ config.application1.registerAppInterfaceParams.appHMIType = { "DEFAULT" }
 --[[ Local Functions ]]
 local function registerNonRCApp()
 	common.rai_n()
-	common.getMobileSession(1):ExpectNotification("OnRCStatus")
+	common.getMobileSession():ExpectNotification("OnRCStatus")
 	:Times(0)
 	EXPECT_HMINOTIFICATION("RC.OnRCStatus")
 	:Times(0)

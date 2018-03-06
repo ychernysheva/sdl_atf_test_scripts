@@ -15,9 +15,8 @@ local common = require('test_scripts/RC/OnRCStatus/commonOnRCStatus')
 --[[ Test Configuration ]]
 runner.testSettings.isSelfIncluded = false
 
---[[ Local Variables ]]
-local freeModules = common.getModules()
-local allocatedModules = { }
+--[[ General configuration parameters ]]
+config.application2.registerAppInterfaceParams.appHMIType = { "DEFAULT" }
 
 --[[ Local Functions ]]
 local function pTUfunc(tbl)
@@ -29,30 +28,20 @@ local function pTUfunc(tbl)
 end
 
 local function alocateModule(pModuleType)
-  local ModulesStatus = common.setModuleStatus(freeModules, allocatedModules, pModuleType)
+  local pModuleStatus = common.setModuleStatus(common.getAllModules(), { }, pModuleType)
   common.rpcAllowed(pModuleType, 1, "SetInteriorVehicleData")
-  common.getMobileSession(1):ExpectNotification("OnRCStatus", ModulesStatus)
-  EXPECT_HMINOTIFICATION("RC.OnRCStatus", ModulesStatus)
-  :ValidIf(common.validateHMIAppIds)
+  common.validateOnRCStatusForApp(1, pModuleStatus)
+  common.validateOnRCStatusForHMI(1, pModuleStatus)
 end
 
 local function registrationAppWithRevokingModule()
   common.raiPTU_n(pTUfunc, 2)
-  local NotifParamsRegister = {
-    freeModules = common.getModulesArray(freeModules),
-    allocatedModules = common.getModulesArray(allocatedModules)
-  }
-  local NotifParamsRevoke = {
-    freeModules = common.getModulesArray(common.getModules()),
+  local pModuleStatus = {
+    freeModules = common.getModulesArray(common.getAllModules()),
     allocatedModules = { }
   }
-  common.getMobileSession(2):ExpectNotification("OnRCStatus", NotifParamsRegister, NotifParamsRevoke)
-  :Times(2)
-  common.getMobileSession(1):ExpectNotification("OnRCStatus", NotifParamsRegister, NotifParamsRevoke)
-  :Times(2)
-  EXPECT_HMINOTIFICATION("RC.OnRCStatus", NotifParamsRegister, NotifParamsRevoke)
-  :Times(4)
-  :ValidIf(common.validateHMIAppIds)
+  common.validateOnRCStatusForApp(1, pModuleStatus)
+  common.validateOnRCStatusForHMI(1, pModuleStatus)
 end
 
 --[[ Scenario ]]

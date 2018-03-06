@@ -16,26 +16,23 @@ local common = require('test_scripts/RC/OnRCStatus/commonOnRCStatus')
 runner.testSettings.isSelfIncluded = false
 
 --[[ Local Variables ]]
-local freeModules = common.getModules()
+local freeModules = common.getAllModules()
 local allocatedModules = {}
 
 --[[ Local Functions ]]
 local function alocateModule(pModuleType)
-  local ModulesStatus = common.setModuleStatus(freeModules, allocatedModules, pModuleType)
+  local pModuleStatus = common.setModuleStatus(freeModules, allocatedModules, pModuleType)
   common.rpcAllowed(pModuleType, 1, "SetInteriorVehicleData")
-  common.getMobileSession(1):ExpectNotification("OnRCStatus", ModulesStatus)
-  common.getMobileSession(2):ExpectNotification("OnRCStatus", ModulesStatus)
-  EXPECT_HMINOTIFICATION("RC.OnRCStatus", ModulesStatus)
-  :Times(2)
-  :ValidIf(common.validateHMIAppIds)
+  common.validateOnRCStatusForApp(1, pModuleStatus)
+  common.validateOnRCStatusForApp(2, pModuleStatus)
+  common.validateOnRCStatusForHMI(2, pModuleStatus)
 end
 
 local function closeSession()
-	local ModulesStatus = common.setModuleStatusByDeallocation(freeModules, allocatedModules, "CLIMATE")
+	local pModuleStatus = common.setModuleStatusByDeallocation(freeModules, allocatedModules, "CLIMATE")
 	common.closeSession(1)
-	common.getMobileSession(2):ExpectNotification("OnRCStatus", ModulesStatus)
-	EXPECT_HMINOTIFICATION("RC.OnRCStatus", ModulesStatus)
-  :ValidIf(common.validateHMIAppIds)
+  common.validateOnRCStatusForApp(2, pModuleStatus)
+  common.validateOnRCStatusForHMI(1, pModuleStatus)
 	EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered",
 		{ appID = common.getHMIAppId(), unexpectedDisconnect = true })
 end

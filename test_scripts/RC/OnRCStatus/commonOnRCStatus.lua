@@ -17,9 +17,6 @@ local json = require("modules/json")
 --[[ Module ]]
 local m = {}
 
---[[ Variables ]]
-local usedHmiAppIds = {}
-
 --[[ Functions ]]
 local function backupPreloadedPT()
   local preloadedFile = commonFunctions:read_parameter_from_smart_device_link_ini("PreloadedPT")
@@ -49,7 +46,11 @@ local function restorePreloadedPT()
 end
 
 function m.getModules()
-  return commonFunctions:cloneTable({ "CLIMATE", "RADIO" })
+  return commonFunctions:cloneTable({ "RADIO", "CLIMATE" })
+end
+
+function m.getAllModules()
+  return commonFunctions:cloneTable({ "RADIO", "CLIMATE", "AUDIO", "LIGHT", "HMI_SETTINGS", "SEAT" })
 end
 
 function m.getRCAppConfig()
@@ -95,42 +96,17 @@ function m.getHMIAppIdsRC()
   return out
 end
 
-function m.validateHMIAppIds(exp, data)
-  if exp.occurences == 1 then
-    usedHmiAppIds = {}
-  end
-  local avlHmiAppIds = {}
-  for _, appId in pairs(m.getHMIAppIdsRC()) do
-    avlHmiAppIds[appId] = true
-  end
-  local actAppId = data.params.appID
-  if avlHmiAppIds[actAppId] and not usedHmiAppIds[actAppId] then
-    usedHmiAppIds[actAppId] = true
-    return true
-  end
-  local expAppIds = {}
-  for appId in pairs(avlHmiAppIds) do
-    if not usedHmiAppIds[appId] then
-      table.insert(expAppIds, appId)
-    end
-  end
-  return false, " Occurence: " .. exp.occurences .. ", "
-    .. "expected appID: [" .. table.concat(expAppIds, ", ") .. "], " .. "actual: " .. tostring(actAppId)
-end
-
 function m.registerRCApplication(pAppId)
   if not pAppId then pAppId = 1 end
   local pModuleStatus = {
-    freeModules = m.getModulesArray(m.getModules()),
+    freeModules = m.getModulesArray(m.getAllModules()),
     allocatedModules = { }
   }
   commonRC.rai_n(pAppId, test)
   for i = 1, pAppId do
-    m.getMobileSession(i):ExpectNotification("OnRCStatus", pModuleStatus)
+    m.validateOnRCStatusForApp(i, pModuleStatus)
   end
-  EXPECT_HMINOTIFICATION("RC.OnRCStatus", pModuleStatus)
-  :Times(pAppId)
-  :ValidIf(m.validateHMIAppIds)
+  m.validateOnRCStatusForHMI(pAppId, pModuleStatus)
 end
 
 function m.raiPTU_n(ptu_update_func, pAppId)
@@ -227,6 +203,64 @@ end
 
 function m.cloneTable(...)
   commonFunctions:cloneTable(...)
+end
+
+function m.sortModules(pModulesArray)
+  local function f(a, b)
+    if a.moduleType and b.moduleType then
+      return a.moduleType < b.moduleType
+    elseif a and b then
+      return a < b
+    end
+    return 0
+  end
+  table.sort(pModulesArray, f)
+end
+
+function m.validateOnRCStatusForApp(pAppId, pExpData)
+  m.getMobileSession(pAppId):ExpectNotification("OnRCStatus")
+  :ValidIf(function(_, d)
+      m.sortModules(pExpData.freeModules)
+      m.sortModules(pExpData.allocatedModules)
+      m.sortModules(d.payload.freeModules)
+      m.sortModules(d.payload.allocatedModules)
+      return compareValues(pExpData, d.payload, "payload")
+    end)
+end
+
+function m.validateOnRCStatusForHMI(pCountOfRCApps, pExpData)
+  local usedHmiAppIds = { }
+  EXPECT_HMINOTIFICATION("RC.OnRCStatus")
+  :ValidIf(function(_, d)
+      m.sortModules(pExpData.freeModules)
+      m.sortModules(pExpData.allocatedModules)
+      m.sortModules(d.params.freeModules)
+      m.sortModules(d.params.allocatedModules)
+      return compareValues(pExpData, d.params, "params")
+    end)
+  :ValidIf(function(e, d)
+      if e.occurences == 1 then
+        usedHmiAppIds = {}
+      end
+      local avlHmiAppIds = {}
+      for _, appId in pairs(m.getHMIAppIdsRC()) do
+        avlHmiAppIds[appId] = true
+      end
+      local actAppId = d.params.appID
+      if avlHmiAppIds[actAppId] and not usedHmiAppIds[actAppId] then
+        usedHmiAppIds[actAppId] = true
+        return true
+      end
+      local expAppIds = {}
+      for appId in pairs(avlHmiAppIds) do
+        if not usedHmiAppIds[appId] then
+          table.insert(expAppIds, appId)
+        end
+      end
+      return false, " Occurence: " .. e.occurences .. ", "
+        .. "expected appID: [" .. table.concat(expAppIds, ", ") .. "], " .. "actual: " .. tostring(actAppId)
+    end)
+  :Times(pCountOfRCApps)
 end
 
 return m
