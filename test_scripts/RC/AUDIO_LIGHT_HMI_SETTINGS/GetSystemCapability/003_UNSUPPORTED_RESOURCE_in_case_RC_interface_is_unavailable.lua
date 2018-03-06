@@ -38,8 +38,8 @@ local function rpcUnsupportedResource()
   local cid = common.getMobileSession():SendRPC("GetSystemCapability", { systemCapabilityType = "REMOTE_CONTROL" })
   common.getMobileSession():ExpectResponse(cid, { success = false, resultCode = "UNSUPPORTED_RESOURCE" })
   :ValidIf(function(_, data)
-      if data.payload.systemCapability.remoteControlCapability then
-        return false, "RC capabilities are transferred to mobile application"
+      if data.payload.systemCapability then
+        return false, "Capabilities are transferred to mobile application"
       end
       return true
     end)
