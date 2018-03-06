@@ -41,15 +41,14 @@ local audioSources = {
 --[[ Local Functions ]]
 local function setVehicleData(pSource)
   audioData.audioControlData.source = pSource
-  local cid = common.getMobileSession():SendRPC("SetInteriorVehicleData", {
-      moduleData = audioData
-    })
+  local cid = common.getMobileSession():SendRPC("SetInteriorVehicleData", { moduleData = audioData })
 
-  EXPECT_HMICALL("RC.SetInteriorVehicleData")
-  :Times(0)
+  EXPECT_HMICALL("RC.SetInteriorVehicleData", { appID = common.getHMIAppId(), moduleData = audioData })
+  :Do(function(_, data)
+      common.getHMIconnection():SendError(data.id, data.method, "REJECTED", "Error")
+    end)
 
-  -- Confirmation nedded, not clear what resultCode must be
-  common.getMobileSession():ExpectResponse(cid, { success = false, resultCode = "REJECTED" })
+  common.getMobileSession():ExpectResponse(cid, { success = false, resultCode = "REJECTED", info = "Error" })
 end
 
 local function BringAppToBACKGROUND()
