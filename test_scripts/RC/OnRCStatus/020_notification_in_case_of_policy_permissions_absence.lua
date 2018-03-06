@@ -10,19 +10,19 @@
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
-local commonOnRCStatus = require('test_scripts/RC/OnRCStatus/commonOnRCStatus')
+local common = require('test_scripts/RC/OnRCStatus/commonOnRCStatus')
 
 --[[ Test Configuration ]]
 runner.testSettings.isSelfIncluded = false
 
 --[[ Local Variables ]]
-local freeModules = commonOnRCStatus.getModules()
+local freeModules = common.getModules()
 local allocatedModules = {}
 
 --[[ Local Functions ]]
-local function PTUfunc(tbl)
+local function pTUfunc(tbl)
   local appId = config.application1.registerAppInterfaceParams.appID
-  tbl.policy_table.app_policies[appId] = commonOnRCStatus.getRCAppConfig()
+  tbl.policy_table.app_policies[appId] = common.getRCAppConfig()
   local HMILevels = { "NONE", "BACKGROUND", "FULL", "LIMITED" }
   local RCgroup = {
     rpcs = {
@@ -37,37 +37,37 @@ local function PTUfunc(tbl)
   tbl.policy_table.app_policies[appId].groups = { "Base-4", "NewTestCaseGroup1" }
 end
 
-local function AlocateModule(pModuleType)
-  local ModulesStatus = commonOnRCStatus.SetModuleStatus(freeModules, allocatedModules, pModuleType)
-  commonOnRCStatus.rpcAllowed(pModuleType, 1, "SetInteriorVehicleData")
-  commonOnRCStatus.getMobileSession(1):ExpectNotification("OnRCStatus")
+local function alocateModule(pModuleType)
+  local ModulesStatus = common.setModuleStatus(freeModules, allocatedModules, pModuleType)
+  common.rpcAllowed(pModuleType, 1, "SetInteriorVehicleData")
+  common.getMobileSession(1):ExpectNotification("OnRCStatus")
   :Times(0)
   EXPECT_HMINOTIFICATION("RC.OnRCStatus", ModulesStatus)
-  :ValidIf(commonOnRCStatus.validateHMIAppIds)
+  :ValidIf(common.validateHMIAppIds)
 end
 
-local function RegisterApp()
-  commonOnRCStatus.rai_ptu_n(PTUfunc, 1)
-  commonOnRCStatus.getMobileSession(1):ExpectNotification("OnRCStatus")
+local function registerApp()
+  common.raiPTU_n(pTUfunc, 1)
+  common.getMobileSession(1):ExpectNotification("OnRCStatus")
   :Times(0)
   local ModulesStatus = {
-	appID = commonOnRCStatus.getHMIAppId(),
-	  freeModules = commonOnRCStatus.ModulesArray(freeModules),
-	  allocatedModules = commonOnRCStatus.ModulesArray(allocatedModules)
+	appID = common.getHMIAppId(),
+	  freeModules = common.getModulesArray(freeModules),
+	  allocatedModules = common.getModulesArray(allocatedModules)
   }
   EXPECT_HMINOTIFICATION("RC.OnRCStatus", ModulesStatus)
-  :ValidIf(commonOnRCStatus.validateHMIAppIds)
+  :ValidIf(common.validateHMIAppIds)
 end
 
 --[[ Scenario ]]
 runner.Title("Preconditions")
-runner.Step("Clean environment", commonOnRCStatus.preconditions, { 0 })
-runner.Step("Start SDL, HMI, connect Mobile, start Session", commonOnRCStatus.start)
+runner.Step("Clean environment", common.preconditions, { 0 })
+runner.Step("Start SDL, HMI, connect Mobile, start Session", common.start)
 
 runner.Title("Test")
-runner.Step("RAI, PTU", RegisterApp)
-runner.Step("Activate App", commonOnRCStatus.ActivateApp)
-runner.Step("Allocation of module CLIMATE", AlocateModule, { "CLIMATE" })
+runner.Step("Register RC application", registerApp)
+runner.Step("Activate App", common.activateApp)
+runner.Step("Allocation of module CLIMATE", alocateModule, { "CLIMATE" })
 
 runner.Title("Postconditions")
-runner.Step("Stop SDL", commonOnRCStatus.postconditions)
+runner.Step("Stop SDL", common.postconditions)

@@ -14,13 +14,13 @@ local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
 local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 local json = require("modules/json")
 
---[[ Local Variables ]]
-local commonOnRCStatus = {}
+--[[ Module ]]
+local m = {}
 
-function commonOnRCStatus.getModules()
-  return commonFunctions:cloneTable({ "CLIMATE", "RADIO" })
-end
+--[[ Variables ]]
+local usedHmiAppIds = {}
 
+--[[ Functions ]]
 local function backupPreloadedPT()
   local preloadedFile = commonFunctions:read_parameter_from_smart_device_link_ini("PreloadedPT")
   commonPreconditions:BackupFile(preloadedFile)
@@ -48,29 +48,33 @@ local function restorePreloadedPT()
   commonPreconditions:RestoreFile(preloadedFile)
 end
 
-function commonOnRCStatus.getRCAppConfig()
+function m.getModules()
+  return commonFunctions:cloneTable({ "CLIMATE", "RADIO" })
+end
+
+function m.getRCAppConfig()
   return commonRC.getRCAppConfig()
 end
 
-function commonOnRCStatus.getMobileSession(pAppId)
+function m.getMobileSession(pAppId)
   return commonRC.getMobileSession(test, pAppId)
 end
 
-function commonOnRCStatus.getHMIconnection()
+function m.getHMIconnection()
   return test.hmiConnection
 end
 
-function commonOnRCStatus.preconditions(pCountOfRCApps)
+function m.preconditions(pCountOfRCApps)
   commonRC.preconditions()
   backupPreloadedPT()
   updatePreloadedPT(pCountOfRCApps)
 end
 
-function commonOnRCStatus.start()
+function m.start()
   commonRC.start(nil, test)
 end
 
-function commonOnRCStatus.ModulesArray(pModules)
+function m.getModulesArray(pModules)
   local out = {}
   for _, mod in pairs(pModules) do
     table.insert(out, { moduleType = mod })
@@ -78,7 +82,7 @@ function commonOnRCStatus.ModulesArray(pModules)
   return out
 end
 
-function commonOnRCStatus.getHMIAppIdsRC()
+function m.getHMIAppIdsRC()
   local out = {}
   for appID, hmiAppId in pairs(commonRC.getHMIAppIds()) do
     for i = 1, 5 do
@@ -91,13 +95,12 @@ function commonOnRCStatus.getHMIAppIdsRC()
   return out
 end
 
-local usedHmiAppIds = {}
-function commonOnRCStatus.validateHMIAppIds(exp, data)
+function m.validateHMIAppIds(exp, data)
   if exp.occurences == 1 then
     usedHmiAppIds = {}
   end
   local avlHmiAppIds = {}
-  for _, appId in pairs(commonOnRCStatus.getHMIAppIdsRC()) do
+  for _, appId in pairs(m.getHMIAppIdsRC()) do
     avlHmiAppIds[appId] = true
   end
   local actAppId = data.params.appID
@@ -115,53 +118,53 @@ function commonOnRCStatus.validateHMIAppIds(exp, data)
     .. "expected appID: [" .. table.concat(expAppIds, ", ") .. "], " .. "actual: " .. tostring(actAppId)
 end
 
-function commonOnRCStatus.RegisterRCapplication(pAppId)
+function m.registerRCApplication(pAppId)
   if not pAppId then pAppId = 1 end
   local pModuleStatus = {
-    freeModules = commonOnRCStatus.ModulesArray(commonOnRCStatus.getModules()),
+    freeModules = m.getModulesArray(m.getModules()),
     allocatedModules = { }
   }
   commonRC.rai_n(pAppId, test)
   for i = 1, pAppId do
-    commonOnRCStatus.getMobileSession(i):ExpectNotification("OnRCStatus", pModuleStatus)
+    m.getMobileSession(i):ExpectNotification("OnRCStatus", pModuleStatus)
   end
   EXPECT_HMINOTIFICATION("RC.OnRCStatus", pModuleStatus)
   :Times(pAppId)
-  :ValidIf(commonOnRCStatus.validateHMIAppIds)
+  :ValidIf(m.validateHMIAppIds)
 end
 
-function commonOnRCStatus.rai_ptu_n(ptu_update_func, pAppId)
+function m.raiPTU_n(ptu_update_func, pAppId)
   if not pAppId then pAppId = 1 end
   commonRC.rai_ptu_n(pAppId, ptu_update_func, test)
 end
 
-function commonOnRCStatus.rai_n(pAppId)
+function m.rai_n(pAppId)
   commonRC.rai_n(pAppId, test)
 end
 
-function commonOnRCStatus.subscribeToModule(pModule, pAppId)
+function m.subscribeToModule(pModule, pAppId)
   if not pAppId then pAppId = 1 end
   commonRC.subscribeToModule(pModule, pAppId, test)
 end
 
-function commonOnRCStatus.ActivateApp(pAppId)
+function m.activateApp(pAppId)
   commonRC.activate_app(pAppId, test)
 end
 
-function commonOnRCStatus.getHMIAppId(pAppId)
+function m.getHMIAppId(pAppId)
   return commonRC.getHMIAppId(pAppId)
 end
 
-function commonOnRCStatus.getSettableModuleControlData(pModuleType)
+function m.getSettableModuleControlData(pModuleType)
   return commonRC.getSettableModuleControlData(pModuleType)
 end
 
-function commonOnRCStatus.postconditions()
+function m.postconditions()
   commonRC.postconditions()
   restorePreloadedPT()
 end
 
-function commonOnRCStatus.SetModuleStatus(pFreeMod, pAllocatedMod, pModule)
+function m.setModuleStatus(pFreeMod, pAllocatedMod, pModule)
   local ModulesStatus = { }
   table.insert(pAllocatedMod, pModule)
   for key, value in pairs(pFreeMod) do
@@ -169,12 +172,12 @@ function commonOnRCStatus.SetModuleStatus(pFreeMod, pAllocatedMod, pModule)
       table.remove(pFreeMod, key)
     end
   end
-  ModulesStatus.freeModules = commonOnRCStatus.ModulesArray(pFreeMod)
-  ModulesStatus.allocatedModules = commonOnRCStatus.ModulesArray(pAllocatedMod)
+  ModulesStatus.freeModules = m.getModulesArray(pFreeMod)
+  ModulesStatus.allocatedModules = m.getModulesArray(pAllocatedMod)
   return ModulesStatus
 end
 
-function commonOnRCStatus.SetModuleStatusByDeallocation(pFreeMod, pAllocatedMod, pModule)
+function m.setModuleStatusByDeallocation(pFreeMod, pAllocatedMod, pModule)
   local ModulesStatus = { }
   table.insert(pFreeMod, pModule)
   for key, value in pairs(pAllocatedMod) do
@@ -182,75 +185,48 @@ function commonOnRCStatus.SetModuleStatusByDeallocation(pFreeMod, pAllocatedMod,
       table.remove(pAllocatedMod, key)
     end
   end
-  ModulesStatus.freeModules = commonOnRCStatus.ModulesArray(pFreeMod)
-  ModulesStatus.allocatedModules = commonOnRCStatus.ModulesArray(pAllocatedMod)
+  ModulesStatus.freeModules = m.getModulesArray(pFreeMod)
+  ModulesStatus.allocatedModules = m.getModulesArray(pAllocatedMod)
   return ModulesStatus
 end
 
-function commonOnRCStatus.unregisterApp(pAppId)
+function m.unregisterApp(pAppId)
   if not pAppId then pAppId = 1 end
   commonRC.deleteHMIAppId(pAppId)
   commonRC.unregisterApp(pAppId, test)
 end
 
-function commonOnRCStatus.closeSession(pAppId)
+function m.closeSession(pAppId)
   if not pAppId then pAppId = 1 end
   commonRC.deleteHMIAppId(pAppId)
-  commonOnRCStatus.getMobileSession(pAppId):Stop()
+  m.getMobileSession(pAppId):Stop()
 end
 
-function commonOnRCStatus.defineRAMode(pAllowed, pAccessMode)
+function m.defineRAMode(pAllowed, pAccessMode)
   commonRC.defineRAMode(pAllowed, pAccessMode, test)
 end
 
-function commonOnRCStatus.rpcRejectWithConsent(pModuleType, pAppId, pRPC)
+function m.rpcRejectWithConsent(pModuleType, pAppId, pRPC)
   commonRC.rpcRejectWithConsent(pModuleType, pAppId, pRPC, test)
 end
 
-function commonOnRCStatus.rpcAllowedWithConsent(pModuleType, pAppId, pRPC)
+function m.rpcAllowedWithConsent(pModuleType, pAppId, pRPC)
   commonRC.rpcAllowedWithConsent(pModuleType, pAppId, pRPC, test)
 end
 
-function commonOnRCStatus.setVehicleData(pModuleType, pAppId)
-  if not pAppId then pAppId = 1 end
-  local mobSession = commonOnRCStatus.getMobileSession(pAppId)
-  local cid = mobSession:SendRPC("SetInteriorVehicleData", {
-    moduleData = commonOnRCStatus.getSettableModuleControlData(pModuleType)
-  })
-  EXPECT_HMICALL("RC.SetInteriorVehicleData", {
-    appID = commonOnRCStatus.getHMIAppId(),
-    moduleData = commonOnRCStatus.getSettableModuleControlData(pModuleType)
-  })
-  :Do(function(_, data)
-    commonOnRCStatus.getHMIconnection():SendResponse(data.id, data.method, "SUCCESS", {
-      moduleData = commonOnRCStatus.getSettableModuleControlData(pModuleType)
-    })
-  end)
-  mobSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
+m.getAppEventName = commonRC.getAppEventName
+m.getHMIEventName = commonRC.getHMIEventName
+m.getAppRequestParams = commonRC.getAppRequestParams
+m.getAppResponseParams = commonRC.getAppResponseParams
+m.getHMIRequestParams = commonRC.getHMIRequestParams
+m.getHMIResponseParams = commonRC.getHMIResponseParams
+
+function m.rpcAllowed(pModuleType, pAppId, pRPC)
+  commonRC.rpcAllowed(pModuleType, pAppId, pRPC, test)
 end
 
-commonOnRCStatus.getAppEventName = commonRC.getAppEventName
-commonOnRCStatus.getHMIEventName = commonRC.getHMIEventName
-commonOnRCStatus.getAppRequestParams = commonRC.getAppRequestParams
-commonOnRCStatus.getAppResponseParams = commonRC.getAppResponseParams
-commonOnRCStatus.getHMIRequestParams = commonRC.getHMIRequestParams
-commonOnRCStatus.getHMIResponseParams = commonRC.getHMIResponseParams
-
-function commonOnRCStatus.rpcAllowed(pModuleType, pAppId, pRPC)
-  local mobSession = commonOnRCStatus.getMobileSession(pAppId)
-  local cid = mobSession:SendRPC(commonOnRCStatus.getAppEventName(pRPC),
-    commonOnRCStatus.getAppRequestParams(pRPC, pModuleType))
-  EXPECT_HMICALL(commonOnRCStatus.getHMIEventName(pRPC),
-    commonOnRCStatus.getHMIRequestParams(pRPC, pModuleType, pAppId))
-  :Do(function(_, data)
-      commonOnRCStatus.getHMIconnection():SendResponse(data.id, data.method, "SUCCESS",
-        commonOnRCStatus.getHMIResponseParams(pRPC, pModuleType))
-    end)
-  mobSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
-end
-
-function commonOnRCStatus.cloneTable(...)
+function m.cloneTable(...)
   commonFunctions:cloneTable(...)
 end
 
-return commonOnRCStatus
+return m

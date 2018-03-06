@@ -9,19 +9,19 @@
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
-local commonOnRCStatus = require('test_scripts/RC/OnRCStatus/commonOnRCStatus')
+local common = require('test_scripts/RC/OnRCStatus/commonOnRCStatus')
 
 --[[ Test Configuration ]]
 runner.testSettings.isSelfIncluded = false
 
 --[[ Scenario ]]
 runner.Title("Preconditions")
-runner.Step("Clean environment", commonOnRCStatus.preconditions)
-runner.Step("Start SDL, HMI, connect Mobile, start Session", commonOnRCStatus.start)
+runner.Step("Clean environment", common.preconditions)
+runner.Step("Start SDL, HMI, connect Mobile, start Session", common.start)
 
 runner.Title("Test")
-runner.Step("OnRCStatus notification by app registration", commonOnRCStatus.RegisterRCapplication, { 1 })
-runner.Step("OnRCStatus notification by registration 2nd app", commonOnRCStatus.RegisterRCapplication, { 2 })
+runner.Step("OnRCStatus notification by app registration", common.registerRCApplication, { 1 })
+runner.Step("OnRCStatus notification by registration 2nd app", common.registerRCApplication, { 2 })
 
 runner.Title("Postconditions")
-runner.Step("Stop SDL", commonOnRCStatus.postconditions)
+runner.Step("Stop SDL", common.postconditions)
