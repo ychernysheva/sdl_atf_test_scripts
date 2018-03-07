@@ -10,43 +10,37 @@
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
-local commonOnRCStatus = require('test_scripts/RC/OnRCStatus/commonOnRCStatus')
-local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
+local common = require('test_scripts/RC/OnRCStatus/commonOnRCStatus')
 
 --[[ Test Configuration ]]
 runner.testSettings.isSelfIncluded = false
 
---[[ Local Variables ]]
-local freeModules =  commonFunctions:cloneTable(commonOnRCStatus.modules)
-local allocatedModules = {}
-
 --[[ Local Functions ]]
-local function AlocateModuleWithoutNot(pModuleType)
-	commonOnRCStatus.rpcAllowed(pModuleType, 1, "SetInteriorVehicleData")
-	commonOnRCStatus.getMobileSession(1):ExpectNotification("OnRCStatus")
+local function alocateModuleWithoutNot(pModuleType)
+	common.rpcAllowed(pModuleType, 1, "SetInteriorVehicleData")
+	common.getMobileSession(1):ExpectNotification("OnRCStatus")
 	:Times(0)
 	EXPECT_HMINOTIFICATION("RC.OnRCStatus")
 	:Times(0)
 end
 
-local function AlocateModule(pModuleType)
-  local ModulesStatus = commonOnRCStatus.SetModuleStatus(freeModules, allocatedModules, pModuleType)
-  commonOnRCStatus.rpcAllowed(pModuleType, 1, "SetInteriorVehicleData")
-  commonOnRCStatus.getMobileSession(1):ExpectNotification("OnRCStatus", ModulesStatus)
-  ModulesStatus.appID = commonOnRCStatus.getHMIAppId()
-  EXPECT_HMINOTIFICATION("RC.OnRCStatus", ModulesStatus )
+local function alocateModule(pModuleType)
+  local pModuleStatus = common.setModuleStatus(common.getAllModules(), { }, pModuleType)
+  common.rpcAllowed(pModuleType, 1, "SetInteriorVehicleData")
+  common.validateOnRCStatusForApp(1, pModuleStatus)
+	common.validateOnRCStatusForHMI(1, pModuleStatus)
 end
 
 --[[ Scenario ]]
 runner.Title("Preconditions")
-runner.Step("Clean environment", commonOnRCStatus.preconditions)
-runner.Step("Start SDL, HMI, connect Mobile, start Session", commonOnRCStatus.start)
-runner.Step("RAI, PTU", commonOnRCStatus.RegisterRCapplication)
-runner.Step("Activate App", commonOnRCStatus.ActivateApp)
-runner.Step("Allocate module CLIMATE", AlocateModule, { "CLIMATE" })
+runner.Step("Clean environment", common.preconditions)
+runner.Step("Start SDL, HMI, connect Mobile, start Session", common.start)
+runner.Step("Register RC application", common.registerRCApplication)
+runner.Step("Activate App", common.activateApp)
+runner.Step("Allocate module CLIMATE", alocateModule, { "CLIMATE" })
 
 runner.Title("Test")
-runner.Step("App allocates module CLIMATE one more time", AlocateModuleWithoutNot, { "CLIMATE" })
+runner.Step("App allocates module CLIMATE one more time", alocateModuleWithoutNot, { "CLIMATE" })
 
 runner.Title("Postconditions")
-runner.Step("Stop SDL", commonOnRCStatus.postconditions)
+runner.Step("Stop SDL", common.postconditions)

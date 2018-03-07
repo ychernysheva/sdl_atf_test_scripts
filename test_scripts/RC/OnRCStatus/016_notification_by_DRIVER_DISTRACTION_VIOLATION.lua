@@ -10,48 +10,43 @@
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
-local commonOnRCStatus = require('test_scripts/RC/OnRCStatus/commonOnRCStatus')
-local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
+local common = require('test_scripts/RC/OnRCStatus/commonOnRCStatus')
 
 --[[ Test Configuration ]]
 runner.testSettings.isSelfIncluded = false
 
---[[ Local Variables ]]
-local freeModules =  commonFunctions:cloneTable(commonOnRCStatus.modules)
-local allocatedModules = {}
-
 --[[ Local Functions ]]
-local function AlocateModule(pModuleType)
-  local ModulesStatus = commonOnRCStatus.SetModuleStatus(freeModules, allocatedModules, pModuleType)
-  commonOnRCStatus.rpcAllowed(pModuleType, 1, "SetInteriorVehicleData")
-  commonOnRCStatus.getMobileSession(1):ExpectNotification("OnRCStatus", ModulesStatus)
-  ModulesStatus.appID = commonOnRCStatus.getHMIAppId()
-  EXPECT_HMINOTIFICATION("RC.OnRCStatus", ModulesStatus)
+local function alocateModule(pModuleType)
+  local pModuleStatus = common.setModuleStatus(common.getAllModules(), { }, pModuleType)
+  common.rpcAllowed(pModuleType, 1, "SetInteriorVehicleData")
+  common.validateOnRCStatusForApp(1, pModuleStatus)
+  common.validateOnRCStatusForHMI(1, pModuleStatus)
 end
 
-local function DriverDistractionViolation()
-  local hmiAppId = commonOnRCStatus.getHMIAppId()
-  commonOnRCStatus.getHMIconnection():SendNotification("BasicCommunication.OnExitApplication",
-    {appID = hmiAppId, reason = "DRIVER_DISTRACTION_VIOLATION"})
-  commonOnRCStatus.getMobileSession(1):ExpectNotification("OnHMIStatus",
-    { systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE"})
-  local ModulesStatus = { freeModules = commonOnRCStatus.ModulesArray(freeModules),
-    allocatedModules = commonOnRCStatus.ModulesArray(allocatedModules) }
-  commonOnRCStatus.getMobileSession(1):ExpectNotification("OnRCStatus", ModulesStatus)
-  ModulesStatus.appID = hmiAppId
-  EXPECT_HMINOTIFICATION("RC.OnRCStatus", ModulesStatus)
+local function driverDistractionViolation()
+  local hmiAppId = common.getHMIAppId()
+  common.getHMIconnection():SendNotification("BasicCommunication.OnExitApplication",
+    { appID = hmiAppId, reason = "DRIVER_DISTRACTION_VIOLATION" })
+  common.getMobileSession(1):ExpectNotification("OnHMIStatus",
+    { systemContext = "MAIN", hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE" })
+  local pModuleStatus = {
+    freeModules = common.getModulesArray(common.getAllModules()),
+    allocatedModules = { }
+  }
+  common.validateOnRCStatusForApp(1, pModuleStatus)
+  common.validateOnRCStatusForHMI(1, pModuleStatus)
 end
 
 --[[ Scenario ]]
 runner.Title("Preconditions")
-runner.Step("Clean environment", commonOnRCStatus.preconditions)
-runner.Step("Start SDL, HMI, connect Mobile, start Session", commonOnRCStatus.start)
-runner.Step("RAI, PTU", commonOnRCStatus.RegisterRCapplication)
-runner.Step("Activate App", commonOnRCStatus.ActivateApp)
-runner.Step("App allocates module CLIMATE " , AlocateModule, { "CLIMATE" })
+runner.Step("Clean environment", common.preconditions)
+runner.Step("Start SDL, HMI, connect Mobile, start Session", common.start)
+runner.Step("Register RC application", common.registerRCApplication)
+runner.Step("Activate App", common.activateApp)
+runner.Step("App allocates module CLIMATE" , alocateModule, { "CLIMATE" })
 
 runner.Title("Test")
-runner.Step("OnRCStatus notification by DRIVER_DISTRACTION_VIOLATION", DriverDistractionViolation)
+runner.Step("OnRCStatus notification by DRIVER_DISTRACTION_VIOLATION", driverDistractionViolation)
 
 runner.Title("Postconditions")
-runner.Step("Stop SDL", commonOnRCStatus.postconditions)
+runner.Step("Stop SDL", common.postconditions)

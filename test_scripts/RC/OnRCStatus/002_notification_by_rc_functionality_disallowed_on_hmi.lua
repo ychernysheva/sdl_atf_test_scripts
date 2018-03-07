@@ -10,32 +10,32 @@
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
-local commonOnRCStatus = require('test_scripts/RC/OnRCStatus/commonOnRCStatus')
+local common = require('test_scripts/RC/OnRCStatus/commonOnRCStatus')
 
 --[[ Test Configuration ]]
 runner.testSettings.isSelfIncluded = false
 
 --[[ Local Functions ]]
-local function RCdiallowedFromHMI()
-	commonOnRCStatus.getHMIconnection():SendNotification("RC.OnRemoteControlSettings", { allowed = false })
+local function disableRCFromHMI()
+	common.getHMIconnection():SendNotification("RC.OnRemoteControlSettings", { allowed = false })
 end
 
-local function RegistrationWithoutRCNotification()
-	commonOnRCStatus.rai_ptu_n()
-	commonOnRCStatus.getMobileSession(1):ExpectNotification("OnRCStatus")
-		:Times(0)
+local function registerAppWithoutRCNotification()
+	common.rai_n()
+	common.getMobileSession():ExpectNotification("OnRCStatus")
+	:Times(0)
 	EXPECT_HMINOTIFICATION("RC.OnRCStatus")
-		:Times(0)
+	:Times(0)
 end
 
 --[[ Scenario ]]
 runner.Title("Preconditions")
-runner.Step("Clean environment", commonOnRCStatus.preconditions)
-runner.Step("Start SDL, HMI, connect Mobile, start Session", commonOnRCStatus.start)
-runner.Step("RC functionality is disallowed from HMI", RCdiallowedFromHMI)
+runner.Step("Clean environment", common.preconditions)
+runner.Step("Start SDL, HMI, connect Mobile, start Session", common.start)
+runner.Step("RC functionality is disallowed from HMI", disableRCFromHMI)
 
 runner.Title("Test")
-runner.Step("RC appregistration without OnRCStatus notification", RegistrationWithoutRCNotification)
+runner.Step("Register RC application without OnRCStatus notification", registerAppWithoutRCNotification)
 
 runner.Title("Postconditions")
-runner.Step("Stop SDL", commonOnRCStatus.postconditions)
+runner.Step("Stop SDL", common.postconditions)
