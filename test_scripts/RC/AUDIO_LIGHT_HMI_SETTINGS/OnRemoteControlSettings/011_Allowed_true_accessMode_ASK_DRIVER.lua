@@ -48,8 +48,8 @@ runner.Step("Disable RC from HMI", disableRcFromHmi)
 
 runner.Title("Test")
 runner.Step("Enable RC from HMI with ASK_DRIVER access mode", common.defineRAMode, { true, "ASK_DRIVER"})
+runner.Step("Activate App2", common.activateApp, { 2 })
 for _, mod in pairs(modules) do
-  runner.Step("Activate App2", common.activateApp, { 2 })
   runner.Step("Check module " .. mod .." App2 SetInteriorVehicleData allowed", common.rpcAllowed,
     { mod, 2, "SetInteriorVehicleData" })
   runner.Step("Activate App1", common.activateApp)
