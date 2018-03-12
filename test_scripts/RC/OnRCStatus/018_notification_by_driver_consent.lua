@@ -17,26 +17,26 @@ runner.testSettings.isSelfIncluded = false
 
 --[[ Local Variables ]]
 local freeModules = common.getAllModules()
-local allocatedModules = {}
+local allocatedModules = {
+  [1] = {},
+  [2] = {}
+}
 
 --[[ Local Functions ]]
 local function alocateModule(pModuleType)
-  local pModuleStatus = common.setModuleStatus(freeModules, allocatedModules, pModuleType)
+  local pModuleStatusAllocatedApp, pModuleStatusAnotherApp = common.setModuleStatus(freeModules, allocatedModules, pModuleType)
   common.rpcAllowed(pModuleType, 1, "SetInteriorVehicleData")
-  common.validateOnRCStatusForApp(1, pModuleStatus)
-  common.validateOnRCStatusForApp(2, pModuleStatus)
-  common.validateOnRCStatusForHMI(2, pModuleStatus)
+  common.validateOnRCStatusForApp(1, pModuleStatusAllocatedApp)
+  common.validateOnRCStatusForApp(2, pModuleStatusAnotherApp)
+  common.validateOnRCStatusForHMI(2, { pModuleStatusAllocatedApp, pModuleStatusAnotherApp }, 1)
 end
 
 local function subscribeToModuleWithDriverConsent(pModuleType)
-	local pModuleStatus = {
-    freeModules = common.getModulesArray(freeModules),
-    allocatedModules = common.getModulesArray(allocatedModules)
-  }
+	local pModuleStatusAllocatedApp, pModuleStatusAnotherApp = common.setModuleStatus(freeModules, allocatedModules, pModuleType, 2)
 	common.rpcAllowedWithConsent(pModuleType, 2, "SetInteriorVehicleData")
-  common.validateOnRCStatusForApp(1, pModuleStatus)
-  common.validateOnRCStatusForApp(2, pModuleStatus)
-  common.validateOnRCStatusForHMI(2, pModuleStatus)
+  common.validateOnRCStatusForApp(1, pModuleStatusAnotherApp)
+  common.validateOnRCStatusForApp(2, pModuleStatusAllocatedApp)
+  common.validateOnRCStatusForHMI(2, { pModuleStatusAnotherApp, pModuleStatusAllocatedApp }, 2)
 end
 
 --[[ Scenario ]]

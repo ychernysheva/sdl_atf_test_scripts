@@ -17,14 +17,16 @@ runner.testSettings.isSelfIncluded = false
 
 --[[ Local Variables ]]
 local freeModules = common.getAllModules()
-local allocatedModules = {}
+local allocatedModules = {
+	[1] = { }
+}
 
 --[[ Local Functions ]]
 local function buttonPress(pModuleType)
 	local pModuleStatus = common.setModuleStatus(freeModules, allocatedModules, pModuleType)
 	common.rpcAllowed(pModuleType, 1, "ButtonPress")
 	common.validateOnRCStatusForApp(1, pModuleStatus)
-	common.validateOnRCStatusForHMI(1, pModuleStatus)
+	common.validateOnRCStatusForHMI(1, { pModuleStatus })
 end
 
 --[[ Scenario ]]

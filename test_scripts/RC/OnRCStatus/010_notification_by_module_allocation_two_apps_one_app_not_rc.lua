@@ -17,7 +17,9 @@ runner.testSettings.isSelfIncluded = false
 
 --[[ Local Variables ]]
 local freeModules = common.getAllModules()
-local allocatedModules = {}
+local allocatedModules = {
+	[1] = {}
+}
 
 --[[ General configuration parameters ]]
 config.application2.registerAppInterfaceParams.appHMIType = { "DEFAULT" }
@@ -27,7 +29,7 @@ local function alocateModule(pModuleType)
 	local pModuleStatus = common.setModuleStatus(freeModules, allocatedModules, pModuleType)
 	common.rpcAllowed(pModuleType, 1, "SetInteriorVehicleData")
 	common.validateOnRCStatusForApp(1, pModuleStatus)
-  common.validateOnRCStatusForHMI(1, pModuleStatus)
+	common.validateOnRCStatusForHMI(1, { pModuleStatus })
 	common.getMobileSession(2):ExpectNotification("OnRCStatus")
 	:Times(0)
 end

@@ -28,10 +28,10 @@ local function pTUfunc(tbl)
 end
 
 local function alocateModule(pModuleType)
-  local pModuleStatus = common.setModuleStatus(common.getAllModules(), { }, pModuleType)
+  local pModuleStatus = common.setModuleStatus(common.getAllModules(), {{}}, pModuleType)
   common.rpcAllowed(pModuleType, 1, "SetInteriorVehicleData")
   common.validateOnRCStatusForApp(1, pModuleStatus)
-  common.validateOnRCStatusForHMI(1, pModuleStatus)
+  common.validateOnRCStatusForHMI(1, { pModuleStatus })
 end
 
 local function registrationAppWithRevokingModule()
@@ -41,7 +41,7 @@ local function registrationAppWithRevokingModule()
     allocatedModules = { }
   }
   common.validateOnRCStatusForApp(1, pModuleStatus)
-  common.validateOnRCStatusForHMI(1, pModuleStatus)
+  common.validateOnRCStatusForHMI(1, { pModuleStatus })
 end
 
 --[[ Scenario ]]

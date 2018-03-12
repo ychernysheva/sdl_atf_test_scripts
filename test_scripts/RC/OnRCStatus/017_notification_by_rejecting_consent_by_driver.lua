@@ -15,6 +15,12 @@ local common = require('test_scripts/RC/OnRCStatus/commonOnRCStatus')
 --[[ Test Configuration ]]
 runner.testSettings.isSelfIncluded = false
 
+--[[ Local Variables ]]
+local allocatedModules = {
+  [1] = {},
+  [2] = {}
+}
+
 --[[ Local Functions ]]
 local function consentRejecting()
   common.rpcRejectWithConsent("CLIMATE", 2, "SetInteriorVehicleData")
@@ -27,11 +33,11 @@ local function consentRejecting()
 end
 
 local function alocateModule(pModuleType)
-  local pModuleStatus = common.setModuleStatus(common.getAllModules(), { }, pModuleType)
+  local pModuleStatusAllocatedApp, pModuleStatusAnotherApp = common.setModuleStatus(common.getAllModules(), allocatedModules, pModuleType)
   common.rpcAllowed(pModuleType, 1, "SetInteriorVehicleData")
-  common.validateOnRCStatusForApp(1, pModuleStatus)
-  common.validateOnRCStatusForApp(2, pModuleStatus)
-  common.validateOnRCStatusForHMI(2, pModuleStatus)
+  common.validateOnRCStatusForApp(1, pModuleStatusAllocatedApp)
+  common.validateOnRCStatusForApp(2, pModuleStatusAnotherApp)
+  common.validateOnRCStatusForHMI(2, { pModuleStatusAllocatedApp, pModuleStatusAnotherApp }, 1)
 end
 
 --[[ Scenario ]]
