@@ -13,6 +13,7 @@ local test = require("user_modules/dummy_connecttest")
 local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
 local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 local json = require("modules/json")
+local utils = require("user_modules/utils")
 
 --[[ Module ]]
 local m = {}
@@ -301,5 +302,7 @@ function m.validateOnRCStatusForHMI(pCountOfRCApps, pExpData, pAllocApp)
     end)
   :Times(pCountOfRCApps)
 end
+
+m.wait = utils.wait
 
 return m

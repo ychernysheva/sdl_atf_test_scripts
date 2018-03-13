@@ -18,6 +18,7 @@ runner.testSettings.isSelfIncluded = false
 --[[ Local Functions ]]
 local function disableRCFromHMI()
 	common.getHMIconnection():SendNotification("RC.OnRemoteControlSettings", { allowed = false })
+	common.wait(2000)
 end
 
 local function registerAppWithoutRCNotification()
