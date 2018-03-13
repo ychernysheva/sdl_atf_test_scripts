@@ -26,7 +26,7 @@ end
 local function updatePreloadedPT(pCountOfRCApps)
   if not pCountOfRCApps then pCountOfRCApps = 2 end
   local preloadedFile = commonPreconditions:GetPathToSDL()
-    .. commonFunctions:read_parameter_from_smart_device_link_ini("PreloadedPT")
+  .. commonFunctions:read_parameter_from_smart_device_link_ini("PreloadedPT")
   local preloadedTable = commonRC.jsonFileToTable(preloadedFile)
   preloadedTable.policy_table.functional_groupings["DataConsent-2"].rpcs = json.null
   preloadedTable.policy_table.functional_groupings["RemoteControl"].rpcs.OnRCStatus = {
@@ -106,7 +106,7 @@ function m.registerRCApplication(pAppId)
   for i = 1, pAppId do
     m.validateOnRCStatusForApp(i, pModuleStatus)
   end
-  m.validateOnRCStatusForHMI(pAppId, pModuleStatus)
+  m.validateOnRCStatusForHMI(pAppId, { pModuleStatus })
 end
 
 function m.raiPTU_n(ptu_update_func, pAppId)
@@ -140,30 +140,57 @@ function m.postconditions()
   restorePreloadedPT()
 end
 
-function m.setModuleStatus(pFreeMod, pAllocatedMod, pModule)
-  local ModulesStatus = { }
-  table.insert(pAllocatedMod, pModule)
+local function setAllocationState(pAllocArrays, pAllocApp, pModule)
+  for i=1,#pAllocArrays do
+    for key, value in pairs(pAllocArrays[i]) do
+      if pModule == value then
+        table.remove(pAllocArrays[i], key)
+      end
+    end
+  end
+  table.insert(pAllocArrays[pAllocApp], pModule)
+end
+
+function m.setModuleStatus(pFreeMod, pAllocatedMod, pModule, pAllocApp)
+  if not pAllocApp then pAllocApp = 1 end
+  local modulesStatusAllocatedApp = { }
+  local modulesStatusAnotherApp = { }
+  setAllocationState(pAllocatedMod, pAllocApp, pModule)
   for key, value in pairs(pFreeMod) do
     if pModule == value then
       table.remove(pFreeMod, key)
     end
   end
-  ModulesStatus.freeModules = m.getModulesArray(pFreeMod)
-  ModulesStatus.allocatedModules = m.getModulesArray(pAllocatedMod)
-  return ModulesStatus
+  modulesStatusAllocatedApp.freeModules = m.getModulesArray(pFreeMod)
+  modulesStatusAnotherApp.freeModules = m.getModulesArray(pFreeMod)
+  modulesStatusAllocatedApp.allocatedModules = m.getModulesArray(pAllocatedMod[pAllocApp])
+  if 1 == pAllocApp then
+    modulesStatusAnotherApp.allocatedModules = pAllocatedMod[2]
+  else
+    modulesStatusAnotherApp.allocatedModules = pAllocatedMod[1]
+  end
+  return modulesStatusAllocatedApp, modulesStatusAnotherApp
 end
 
-function m.setModuleStatusByDeallocation(pFreeMod, pAllocatedMod, pModule)
-  local ModulesStatus = { }
+function m.setModuleStatusByDeallocation(pFreeMod, pAllocatedMod, pModule, pRemoveAllocFromApp)
+  if not pRemoveAllocFromApp then pRemoveAllocFromApp = 1 end
+  local modulesStatusAllocatedApp = { }
+  local modulesStatusAnotherApp = { }
   table.insert(pFreeMod, pModule)
-  for key, value in pairs(pAllocatedMod) do
+  for key, value in pairs(pAllocatedMod[pRemoveAllocFromApp]) do
     if pModule == value then
-      table.remove(pAllocatedMod, key)
+      table.remove(pAllocatedMod[pRemoveAllocFromApp], key)
     end
   end
-  ModulesStatus.freeModules = m.getModulesArray(pFreeMod)
-  ModulesStatus.allocatedModules = m.getModulesArray(pAllocatedMod)
-  return ModulesStatus
+  modulesStatusAllocatedApp.freeModules = m.getModulesArray(pFreeMod)
+  modulesStatusAnotherApp.freeModules = m.getModulesArray(pFreeMod)
+  modulesStatusAllocatedApp.allocatedModules = m.getModulesArray(pAllocatedMod[pRemoveAllocFromApp])
+  if 1 == pRemoveAllocFromApp then
+    modulesStatusAnotherApp.allocatedModules = pAllocatedMod[2]
+  else
+    modulesStatusAnotherApp.allocatedModules = pAllocatedMod[1]
+  end
+  return modulesStatusAllocatedApp, modulesStatusAnotherApp
 end
 
 function m.unregisterApp(pAppId)
@@ -228,15 +255,27 @@ function m.validateOnRCStatusForApp(pAppId, pExpData)
     end)
 end
 
-function m.validateOnRCStatusForHMI(pCountOfRCApps, pExpData)
+function m.validateOnRCStatusForHMI(pCountOfRCApps, pExpData, pAllocApp)
   local usedHmiAppIds = { }
   EXPECT_HMINOTIFICATION("RC.OnRCStatus")
   :ValidIf(function(_, d)
-      m.sortModules(pExpData.freeModules)
-      m.sortModules(pExpData.allocatedModules)
       m.sortModules(d.params.freeModules)
       m.sortModules(d.params.allocatedModules)
-      return compareValues(pExpData, d.params, "params")
+      for i=1,#pExpData do
+        m.sortModules(pExpData[i].freeModules)
+        m.sortModules(pExpData[i].allocatedModules)
+      end
+      local AnotherApp
+      if pAllocApp and pAllocApp == 1 then
+        AnotherApp = 2
+      else
+        AnotherApp = 1
+      end
+      if d.params.appID == commonRC.getHMIAppId(pAllocApp) and pAllocApp then
+        return compareValues(pExpData[pAllocApp], d.params, "params")
+      else
+        return compareValues(pExpData[AnotherApp], d.params, "params")
+      end
     end)
   :ValidIf(function(e, d)
       if e.occurences == 1 then
@@ -258,7 +297,7 @@ function m.validateOnRCStatusForHMI(pCountOfRCApps, pExpData)
         end
       end
       return false, " Occurence: " .. e.occurences .. ", "
-        .. "expected appID: [" .. table.concat(expAppIds, ", ") .. "], " .. "actual: " .. tostring(actAppId)
+      .. "expected appID: [" .. table.concat(expAppIds, ", ") .. "], " .. "actual: " .. tostring(actAppId)
     end)
   :Times(pCountOfRCApps)
 end

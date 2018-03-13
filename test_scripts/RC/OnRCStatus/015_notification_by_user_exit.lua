@@ -17,10 +17,10 @@ runner.testSettings.isSelfIncluded = false
 
 --[[ Local Functions ]]
 local function alocateModule(pModuleType)
-  local pModuleStatus = common.setModuleStatus(common.getAllModules(), { }, pModuleType)
+  local pModuleStatus = common.setModuleStatus(common.getAllModules(), {{ }}, pModuleType)
   common.rpcAllowed(pModuleType, 1, "SetInteriorVehicleData")
   common.validateOnRCStatusForApp(1, pModuleStatus)
-  common.validateOnRCStatusForHMI(1, pModuleStatus)
+  common.validateOnRCStatusForHMI(1, { pModuleStatus })
 end
 
 local function userExit()
@@ -34,7 +34,7 @@ local function userExit()
     allocatedModules = { }
   }
   common.validateOnRCStatusForApp(1, pModuleStatus)
-  common.validateOnRCStatusForHMI(1, pModuleStatus)
+  common.validateOnRCStatusForHMI(1, { pModuleStatus })
 end
 
 --[[ Scenario ]]

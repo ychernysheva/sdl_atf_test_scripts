@@ -17,7 +17,7 @@ runner.testSettings.isSelfIncluded = false
 
 --[[ Local Variables ]]
 local freeModules = common.getAllModules()
-local allocatedModules = {}
+local allocatedModules = {{}}
 
 --[[ Local Functions ]]
 local function pTUfunc(tbl)
@@ -42,7 +42,7 @@ local function alocateModule(pModuleType)
   common.rpcAllowed(pModuleType, 1, "SetInteriorVehicleData")
   common.getMobileSession(1):ExpectNotification("OnRCStatus")
   :Times(0)
-  common.validateOnRCStatusForHMI(1, pModuleStatus)
+  common.validateOnRCStatusForHMI(1, { pModuleStatus })
 end
 
 local function registerApp()
@@ -51,9 +51,9 @@ local function registerApp()
   :Times(0)
   local pModuleStatus = {
 	  freeModules = common.getModulesArray(freeModules),
-	  allocatedModules = common.getModulesArray(allocatedModules)
+	  allocatedModules = common.getModulesArray(allocatedModules[1])
   }
-  common.validateOnRCStatusForHMI(1, pModuleStatus)
+  common.validateOnRCStatusForHMI(1, { pModuleStatus })
 end
 
 --[[ Scenario ]]

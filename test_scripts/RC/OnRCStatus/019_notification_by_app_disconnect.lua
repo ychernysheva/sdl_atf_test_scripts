@@ -17,22 +17,25 @@ runner.testSettings.isSelfIncluded = false
 
 --[[ Local Variables ]]
 local freeModules = common.getAllModules()
-local allocatedModules = {}
+local allocatedModules = {
+  [1] = {},
+  [2] = {}
+}
 
 --[[ Local Functions ]]
 local function alocateModule(pModuleType)
-  local pModuleStatus = common.setModuleStatus(freeModules, allocatedModules, pModuleType)
+  local pModuleStatusAllocatedApp, pModuleStatusAnotherApp = common.setModuleStatus(freeModules, allocatedModules, pModuleType)
   common.rpcAllowed(pModuleType, 1, "SetInteriorVehicleData")
-  common.validateOnRCStatusForApp(1, pModuleStatus)
-  common.validateOnRCStatusForApp(2, pModuleStatus)
-  common.validateOnRCStatusForHMI(2, pModuleStatus)
+  common.validateOnRCStatusForApp(1, pModuleStatusAllocatedApp)
+  common.validateOnRCStatusForApp(2, pModuleStatusAnotherApp)
+  common.validateOnRCStatusForHMI(2, { pModuleStatusAllocatedApp, pModuleStatusAnotherApp }, 1)
 end
 
 local function closeSession()
-	local pModuleStatus = common.setModuleStatusByDeallocation(freeModules, allocatedModules, "CLIMATE")
+	local pModuleStatus = common.setModuleStatusByDeallocation(freeModules, allocatedModules, "CLIMATE", 1)
 	common.closeSession(1)
   common.validateOnRCStatusForApp(2, pModuleStatus)
-  common.validateOnRCStatusForHMI(1, pModuleStatus)
+  common.validateOnRCStatusForHMI(1, { pModuleStatus })
 	EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered",
 		{ appID = common.getHMIAppId(), unexpectedDisconnect = true })
 end
