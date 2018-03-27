@@ -20,7 +20,7 @@ local common = require('test_scripts/RC/AUDIO_LIGHT_HMI_SETTINGS/commonRCmodules
 runner.testSettings.isSelfIncluded = false
 
 --[[ Local Variables ]]
-local module_data_radio = common.getReadOnlyRadioParams()
+local module_data_radio = common.getReadOnlyParamsByModule("RADIO")
 
 --[[ Local Functions ]]
 local function setVehicleData(module_data)
