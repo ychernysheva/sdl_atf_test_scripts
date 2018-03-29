@@ -234,16 +234,24 @@ local rcRPCs = {
       }
     end,
     hmiResponseParams = function(pModuleType, pSubscribe)
+      local GetInteriorVDModuleData = c.getModuleControlData(pModuleType)
+      if GetInteriorVDModuleData.audioControlData then
+        GetInteriorVDModuleData.audioControlData.keepContext = nil
+      end
       return {
-        moduleData = c.getModuleControlData(pModuleType),
+        moduleData = GetInteriorVDModuleData,
         isSubscribed = pSubscribe
       }
     end,
     responseParams = function(success, resultCode, pModuleType, pSubscribe)
+      local GetInteriorVDModuleData = c.getModuleControlData(pModuleType)
+      if GetInteriorVDModuleData.audioControlData then
+        GetInteriorVDModuleData.audioControlData.keepContext = nil
+      end
       return {
         success = success,
         resultCode = resultCode,
-        moduleData = c.getModuleControlData(pModuleType),
+        moduleData = GetInteriorVDModuleData,
         isSubscribed = pSubscribe
       }
     end
@@ -321,13 +329,21 @@ local rcRPCs = {
     appEventName = "OnInteriorVehicleData",
     hmiEventName = "RC.OnInteriorVehicleData",
     hmiResponseParams = function(pModuleType)
+      local OnInteriorVDModuleData = c.getAnotherModuleControlData(pModuleType)
+      if OnInteriorVDModuleData.audioControlData then
+        OnInteriorVDModuleData.audioControlData.keepContext = nil
+      end
       return {
-        moduleData = c.getAnotherModuleControlData(pModuleType)
+        moduleData = OnInteriorVDModuleData
       }
     end,
     responseParams = function(pModuleType)
+      local OnInteriorVDModuleData = c.getAnotherModuleControlData(pModuleType)
+      if OnInteriorVDModuleData.audioControlData then
+        OnInteriorVDModuleData.audioControlData.keepContext = nil
+      end
       return {
-        moduleData = c.getAnotherModuleControlData(pModuleType)
+        moduleData = OnInteriorVDModuleData
       }
     end
   },
@@ -387,6 +403,13 @@ function c.subscribeToModule(pModuleType, pAppId)
         c.getHMIResponseParams(rpc, pModuleType, subscribe))
     end)
   mobSession:ExpectResponse(cid, c.getAppResponseParams(rpc, true, "SUCCESS", pModuleType, subscribe))
+  :ValidIf(function(_,data)
+    if "AUDIO" == pModuleType and
+      nil ~= data.payload.moduleData.audioControlData.keepContext then
+      return false, "Mobile response GetInteriorVehicleData contains unexpected keepContext parameter"
+    end
+    return true
+  end)
 end
 
 function c.unSubscribeToModule(pModuleType, pAppId)
@@ -400,6 +423,13 @@ function c.unSubscribeToModule(pModuleType, pAppId)
         c.getHMIResponseParams(rpc, pModuleType, subscribe))
     end)
   mobSession:ExpectResponse(cid, c.getAppResponseParams(rpc, true, "SUCCESS", pModuleType, subscribe))
+  :ValidIf(function(_,data)
+    if "AUDIO" == pModuleType and
+      nil ~= data.payload.moduleData.audioControlData.keepContext then
+      return false, "Mobile response GetInteriorVehicleData contains unexpected keepContext parameter"
+    end
+    return true
+  end)
 end
 
 function c.activateApp(pAppId)
@@ -446,6 +476,13 @@ function c.isSubscribed(pModuleType, pAppId)
   local rpc = "OnInteriorVehicleData"
   test.hmiConnection:SendNotification(c.getHMIEventName(rpc), c.getHMIResponseParams(rpc, pModuleType))
   mobSession:ExpectNotification(c.getAppEventName(rpc), c.getAppResponseParams(rpc, pModuleType))
+  :ValidIf(function(_,data)
+    if "AUDIO" == pModuleType and
+      nil ~= data.payload.moduleData.audioControlData.keepContext then
+      return false, "Mobile notification OnInteriorVehicleData contains unexpected keepContext parameter"
+    end
+    return true
+  end)
 end
 
 function c.isUnsubscribed(pModuleType, pAppId)
