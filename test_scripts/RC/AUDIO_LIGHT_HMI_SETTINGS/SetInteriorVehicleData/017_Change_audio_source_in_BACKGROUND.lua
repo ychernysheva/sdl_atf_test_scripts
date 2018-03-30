@@ -25,7 +25,7 @@ config.application1.registerAppInterfaceParams.isMediaApplication = true
 config.application2.registerAppInterfaceParams.isMediaApplication = true
 
 --[[ Local Variables ]]
-local audioData = common.getModuleControlData("AUDIO")
+local audioData = common.getSettableModuleControlData("AUDIO")
 local audioSources = {
   "NO_SOURCE_SELECTED",
   "CD",

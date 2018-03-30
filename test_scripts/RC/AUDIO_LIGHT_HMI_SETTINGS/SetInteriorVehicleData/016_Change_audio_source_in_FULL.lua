@@ -24,7 +24,7 @@ runner.testSettings.isSelfIncluded = false
 config.application1.registerAppInterfaceParams.isMediaApplication = true
 
 --[[ Local Variables ]]
-local audioData = common.getModuleControlData("AUDIO")
+local audioData = common.getSettableModuleControlData("AUDIO")
 local audioSources = {
   "NO_SOURCE_SELECTED",
   "CD",

@@ -215,6 +215,66 @@ function c.getAnotherModuleControlData(pModuleType)
   return struct
 end
 
+function c.getModuleParams(pModuleData)
+  if pModuleData.moduleType == "RADIO" then
+    if not pModuleData.radioControlData then
+      pModuleData.radioControlData = { }
+    end
+    return pModuleData.radioControlData
+  elseif pModuleData.moduleType == "AUDIO" then
+    if not pModuleData.audioControlData then
+      pModuleData.audioControlData = { }
+    end
+    return pModuleData.audioControlData
+  end
+end
+
+function c.getReadOnlyParamsByModule(pModuleType)
+  local out = { moduleType = pModuleType }
+  if pModuleType == "RADIO" then
+    out.radioControlData = {
+      sisData = {
+        stationShortName = "Name2",
+        stationIDNumber = {
+          countryCode = 200,
+          fccFacilityId = 200
+        },
+        stationLongName = "RadioStationLongName2",
+        stationLocation = {
+          longitudeDegrees = 20.1,
+          latitudeDegrees = 20.1,
+          altitudeMeters = 20.1
+        },
+        stationMessage = "station message 2"
+      }
+    }
+  elseif pModuleType == "AUDIO" then
+    out.audioControlData = {
+      equalizerSettings = { { channelName = "Channel 1" } }
+    }
+  end
+  return out
+end
+
+function c.getSettableModuleControlData(pModuleType)
+  local out = c.getModuleControlData(pModuleType)
+  local params_read_only = c.getModuleParams(c.getReadOnlyParamsByModule(pModuleType))
+  if params_read_only then
+    for p_read_only, p_read_only_value in pairs(params_read_only) do
+      if pModuleType == "AUDIO" then
+        for sub_read_only_key, sub_read_only_value in pairs(p_read_only_value) do
+          for sub_read_only_name in pairs(sub_read_only_value) do
+            c.getModuleParams(out)[p_read_only][sub_read_only_key][sub_read_only_name] = nil
+          end
+        end
+      else
+        c.getModuleParams(out)[p_read_only] = nil
+      end
+    end
+  end
+  return out
+end
+
 -- RC RPCs structure
 local rcRPCs = {
   GetInteriorVehicleData = {
@@ -261,25 +321,25 @@ local rcRPCs = {
     hmiEventName = "RC.SetInteriorVehicleData",
     requestParams = function(pModuleType)
       return {
-        moduleData = c.getModuleControlData(pModuleType)
+        moduleData = c.getSettableModuleControlData(pModuleType)
       }
     end,
     hmiRequestParams = function(pModuleType, pAppId)
       return {
         appID = c.getHMIAppId(pAppId),
-        moduleData = c.getModuleControlData(pModuleType)
+        moduleData = c.getSettableModuleControlData(pModuleType)
       }
     end,
     hmiResponseParams = function(pModuleType)
       return {
-        moduleData = c.getModuleControlData(pModuleType)
+        moduleData = c.getSettableModuleControlData(pModuleType)
       }
     end,
     responseParams = function(success, resultCode, pModuleType)
       return {
         success = success,
         resultCode = resultCode,
-        moduleData = c.getModuleControlData(pModuleType)
+        moduleData = c.getSettableModuleControlData(pModuleType)
       }
     end
   },
@@ -518,27 +578,6 @@ function c.rpcRejectWithoutConsent(pModuleType, pAppId, pRPC)
   EXPECT_HMICALL(c.getHMIEventName("GetInteriorVehicleDataConsent")):Times(0)
   EXPECT_HMICALL(c.getHMIEventName(pRPC)):Times(0)
   mobSession:ExpectResponse(cid, { success = false, resultCode = "REJECTED" })
-end
-
-function c.getReadOnlyRadioParams()
-  local out = { moduleType = "RADIO" }
-    out.radioControlData = {
-        sisData = {
-        stationShortName = "Name2",
-        stationIDNumber = {
-          countryCode = 200,
-          fccFacilityId = 200
-        },
-        stationLongName = "RadioStationLongName2",
-        stationLocation = {
-          longitudeDegrees = 20.1,
-          latitudeDegrees = 20.1,
-          altitudeMeters = 20.1
-        },
-        stationMessage = "station message 2"
-      }
-    }
-  return out
 end
 
 function c.postconditions()
