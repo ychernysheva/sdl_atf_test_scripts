@@ -61,6 +61,10 @@ local function setVehicleData()
       common.getHMIconnection():SendResponse(data.id, data.method, "SUCCESS", {
           moduleData = audioData
         })
+      common.getHMIconnection():SendNotification("BasicCommunication.OnEventChanged", {
+          eventName = "AUDIO_SOURCE",
+          isActive = true
+        })
     end)
   mobSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
   mobSession:ExpectNotification("OnHMIStatus",
