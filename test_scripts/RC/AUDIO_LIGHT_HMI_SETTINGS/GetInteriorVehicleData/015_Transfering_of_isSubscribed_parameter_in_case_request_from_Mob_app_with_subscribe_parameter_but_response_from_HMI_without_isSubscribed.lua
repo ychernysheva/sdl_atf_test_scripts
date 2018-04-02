@@ -41,7 +41,7 @@ local function getDataForModule(pModuleType, isSubscriptionActive, pSubscribe)
     })
   :Do(function(_, data)
       common.getHMIconnection():SendResponse(data.id, data.method, "SUCCESS", {
-          moduleData = common.getModuleControlData(pModuleType),
+          moduleData = common.getModuleControlDataForResponse(pModuleType),
           -- no isSubscribed parameter
         })
     end)
@@ -54,7 +54,7 @@ local function getDataForModule(pModuleType, isSubscriptionActive, pSubscribe)
 
   mobileSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS",
       isSubscribed = isSubscriptionActive, -- return current value of subscription
-      moduleData = common.getModuleControlData(pModuleType)
+      moduleData = common.getModuleControlDataForResponse(pModuleType)
     })
 end
 

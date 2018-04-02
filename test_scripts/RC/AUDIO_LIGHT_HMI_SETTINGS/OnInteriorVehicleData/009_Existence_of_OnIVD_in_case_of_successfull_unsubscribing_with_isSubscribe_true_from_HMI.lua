@@ -41,13 +41,13 @@ local function unSubscriptionToModule(pModuleType)
     })
   :Do(function(_, data)
       common.getHMIconnection():SendResponse(data.id, data.method, "SUCCESS", {
-          moduleData = common.getModuleControlData(pModuleType),
+          moduleData = common.getModuleControlDataForResponse(pModuleType),
           isSubscribed = true -- HMI responds with true
         })
     end)
 
   mobileSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS",
-      moduleData = common.getModuleControlData(pModuleType),
+      moduleData = common.getModuleControlDataForResponse(pModuleType),
       isSubscribed = true
     })
 end

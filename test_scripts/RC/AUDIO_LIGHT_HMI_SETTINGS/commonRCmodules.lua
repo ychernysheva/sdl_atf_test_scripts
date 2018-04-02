@@ -614,4 +614,12 @@ function c.updateDefaultCapabilities(pDisabledModuleTypes)
   commonRC.tableToJsonFile(hmiCapTbl, hmiCapabilitiesFile)
 end
 
+function c.getModuleControlDataForResponse(pModuleType)
+  local moduleData = c.getModuleControlData(pModuleType)
+  if moduleData.audioControlData then
+    moduleData.audioControlData.keepContext = nil
+  end
+  return moduleData
+end
+
 return c

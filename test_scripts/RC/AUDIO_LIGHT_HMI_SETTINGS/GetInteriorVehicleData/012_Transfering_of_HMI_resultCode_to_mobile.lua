@@ -40,14 +40,14 @@ local function stepSuccessfull(pModuleType, pResultCode)
     })
   :Do(function(_, data)
       common.getHMIconnection():SendResponse(data.id, data.method, pResultCode, {
-          moduleData = common.getModuleControlData(pModuleType),
+          moduleData = common.getModuleControlDataForResponse(pModuleType),
           isSubscribed = false
         })
     end)
 
   mobileSession:ExpectResponse(cid, { success = true, resultCode = pResultCode,
       isSubscribed = false,
-      moduleData = common.getModuleControlData(pModuleType)
+      moduleData = common.getModuleControlDataForResponse(pModuleType)
     })
 end
 
