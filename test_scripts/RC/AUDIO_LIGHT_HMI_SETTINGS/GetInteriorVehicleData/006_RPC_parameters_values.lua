@@ -81,14 +81,14 @@ local function fakeParam(pModuleType)
     })
   :Do(function(_, data)
       common.getHMIconnection():SendResponse(data.id, data.method, "SUCCESS", {
-          moduleData = common.getModuleControlData(pModuleType),
+          moduleData = common.getModuleControlDataForResponse(pModuleType),
           isSubscribed = true
         })
     end)
 
   mobileSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS",
       isSubscribed = true,
-      moduleData = common.getModuleControlData(pModuleType)
+      moduleData = common.getModuleControlDataForResponse(pModuleType)
     })
 end
 
