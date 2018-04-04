@@ -76,7 +76,7 @@ runner.Step("Upload icon file2", common.putFile, {PutFileParams})
 runner.Step("SetAppIcon2", common.setAppIcon, { allParamsSet2 } )
 
 runner.Step("App unregistration", common.unregisterAppInterface, { 1 })
-runner.Step("App registration with iconResumed = true", common.registerAppWOPTU, { 1, true, true })
+runner.Step("App registration with iconResumed = true", common.registerAppWOPTU, { 1, true, true, "action.png" })
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", common.postconditions)

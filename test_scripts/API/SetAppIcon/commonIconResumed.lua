@@ -18,6 +18,13 @@ local m = actions
 -- local ptuTable = {}
 local hmiAppIds = {}
 
+function m.getPathToFileInStorage(fileName, pAppId)
+  if not pAppId then pAppId = 1 end
+  return commonPreconditions:GetPathToSDL() .. "storage/"
+  .. m.getConfigAppParams( pAppId ).appID .. "_"
+  .. utils.getDeviceMAC() .. "/" .. fileName
+end
+
 --[[ @registerAppWOPTU: register mobile application
 --! @parameters:
 --! pAppId - application number (1, 2, etc.)
@@ -25,14 +32,26 @@ local hmiAppIds = {}
 --! pReconnection - re-register mobile application
 --! @return: none
 --]]
-function m.registerAppWOPTU(pAppId, pIconResumed, pReconnection)
+function m.registerAppWOPTU(pAppId, pIconResumed, pReconnection, pIconValue)
   if not pAppId then pAppId = 1 end
+  if pIconResumed == true then
+    if not pIconValue then
+      pIconValue = m.getPathToFileInStorage("icon.png")
+    else
+      pIconValue = m.getPathToFileInStorage(pIconValue)
+    end
+  else
+    pIconValue = ""
+  end
   local mobSession = m.getMobileSession(pAppId)
   local function RegisterApp()
     local corId = mobSession:SendRPC("RegisterAppInterface",
         config["application" .. pAppId].registerAppInterfaceParams)
       test.hmiConnection:ExpectNotification("BasicCommunication.OnAppRegistered",
-        { application = { appName = config["application" .. pAppId].registerAppInterfaceParams.appName } })
+        { application = {
+            appName = config["application" .. pAppId].registerAppInterfaceParams.appName,
+            icon = pIconValue
+        }})
       :Do(function(_, d1)
           hmiAppIds[m.getConfigAppParams(pAppId).appID] = d1.params.application.appID
         end)
@@ -96,13 +115,6 @@ function m.putFile(paramsSend, file, pAppId)
   end
 
   mobSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
-end
-
-function m.getPathToFileInStorage(fileName, pAppId)
-  if not pAppId then pAppId = 1 end
-  return commonPreconditions:GetPathToSDL() .. "storage/"
-  .. m.getConfigAppParams( pAppId ).appID .. "_"
-  .. utils.getDeviceMAC() .. "/" .. fileName
 end
 
 --Description: setAppIcon successfully
