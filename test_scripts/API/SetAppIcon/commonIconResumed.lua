@@ -40,8 +40,6 @@ function m.registerAppWOPTU(pAppId, pIconResumed, pReconnection, pIconValue)
     else
       pIconValue = m.getPathToFileInStorage(pIconValue)
     end
-  else
-    pIconValue = ""
   end
   local mobSession = m.getMobileSession(pAppId)
   local function RegisterApp()
@@ -55,6 +53,13 @@ function m.registerAppWOPTU(pAppId, pIconResumed, pReconnection, pIconValue)
       :Do(function(_, d1)
           hmiAppIds[m.getConfigAppParams(pAppId).appID] = d1.params.application.appID
         end)
+      :ValidIf(function(_,data)
+        if false == pIconResumed and
+          data.params.application.icon then
+          return false, "BC.OnAppRegistered notification contains unexpected icon value "
+        end
+        return true
+      end)
       mobSession:ExpectResponse(corId, { success = true, resultCode = "SUCCESS", iconResumed = pIconResumed })
       :Do(function()
           mobSession:ExpectNotification("OnHMIStatus",
