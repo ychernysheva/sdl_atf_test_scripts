@@ -18,22 +18,21 @@
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
 local common = require('test_scripts/API/SetAppIcon/commonIconResumed')
-local test = require("user_modules/dummy_connecttest")
-local mobile_session = require('mobile_session')
 
 --[[ Test Configuration ]]
 runner.testSettings.isSelfIncluded = false
 
 --[[ Local Variables ]]
+local iconValue = "icon.png"
 local allParams = {
-    requestParams = {
-    syncFileName = "icon.png"
-  }
-}
+  requestParams = {
+    syncFileName = iconValue
+  },
   requestUiParams = {
-  syncFileName = {
-    imageType = "DYNAMIC",
-    value = common.getPathToFileInStorage(requestParams.syncFileName)
+    syncFileName = {
+      imageType = "DYNAMIC",
+      value = common.getPathToFileInStorage(iconValue)
+    }
   }
 }
 

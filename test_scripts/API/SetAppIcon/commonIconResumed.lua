@@ -10,6 +10,7 @@ local actions = require("user_modules/sequences/actions")
 local utils = require("user_modules/utils")
 local test = require("user_modules/dummy_connecttest")
 local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
+local mobile_session = require('mobile_session')
 
 --[[ Module ]]
 local m = actions
@@ -17,16 +18,28 @@ local m = actions
 --[[ Variables ]]
 local hmiAppIds = {}
 
---[[ @getPathToFileInStorage: Return app file from storage
+--[[ @getPathToFileInStorage: Get path of app icon from storage
 --! @parameters:
---! pFile - Path to file will be used to send to SDL
+--! pFileName - Name of file
 --! pAppId - application number (1, 2, etc.)
+--! @return: app icon path
 --]]
 function m.getPathToFileInStorage(pFileName, pAppId)
   if not pAppId then pAppId = 1 end
   return commonPreconditions:GetPathToSDL() .. "storage/"
   .. m.getConfigAppParams( pAppId ).appID .. "_"
-  .. utils.getDeviceMAC() .. "/" .. fileName
+  .. utils.getDeviceMAC() .. "/" .. pFileName
+end
+
+--[[ @getIconValueForResumtion: Get path of app icon from storage
+--! @parameters:
+--! pAppId - application number (1, 2, etc.)
+--! @return: app icon path
+--]]
+function m.getIconValueForResumtion (pAppId)
+  if not pAppId then pAppId = 1 end
+  return commonPreconditions:GetPathToSDL() .. "storage/"
+  .. m.getConfigAppParams( pAppId ).appID
 end
 
 --[[ @registerAppWOPTU: register mobile application
@@ -34,18 +47,12 @@ end
 --! pAppId - application number (1, 2, etc.)
 --! pIconResumed - apps icon was resumed at system or is not resumed
 --! pReconnection - re-register mobile application
---! pIconValue - 
 --! @return: none
 --]]
-function m.registerAppWOPTU(pAppId, pIconResumed, pReconnection, pIconValue)
+function m.registerAppWOPTU(pAppId, pIconResumed, pReconnection)
   if not pAppId then pAppId = 1 end
-  if pIconResumed == true then
-    if not pIconValue then
-      pIconValue = m.getPathToFileInStorage("icon.png")
-    else
-      pIconValue = m.getPathToFileInStorage(pIconValue)
-    end
-  end
+  local pIconValue
+  if pIconResumed == true then pIconValue = m.getIconValueForResumtion(pAppId) end
   local mobSession = m.getMobileSession(pAppId)
   local function RegisterApp()
     local corId = mobSession:SendRPC("RegisterAppInterface",
@@ -61,7 +68,7 @@ function m.registerAppWOPTU(pAppId, pIconResumed, pReconnection, pIconValue)
       :ValidIf(function(_,data)
         if false == pIconResumed and
           data.params.application.icon then
-          return false, "BC.OnAppRegistered notification contains unexpected icon value "
+          return false, "BC.OnAppRegistered notification contains unexpected parameter: icon "
         end
         return true
       end)
@@ -82,9 +89,10 @@ function m.registerAppWOPTU(pAppId, pIconResumed, pReconnection, pIconValue)
   end
 end
 
---[[ @unregisterAppInterface: Mobile application successfully unregistered
+--[[ @unregisterAppInterface: Mobile application unregistration
 --! @parameters:
 --! pAppId - Application number (1, 2, etc.)
+--! @return: none
 --]]
 function m.unregisterAppInterface(pAppId)
   if not pAppId then pAppId = 1 end
@@ -95,9 +103,9 @@ function m.unregisterAppInterface(pAppId)
   mobSession:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
 end
 
---[[ @putFileAllParams: Set all parameter for PutFile
---! @parameters: none 
---! @return: none
+--[[ @getPutFileAllParams: get all parameter for PutFile
+--! @parameters: none
+--! @return: parameters for PutFile
 --]]
 local function getPutFileAllParams()
   local temp = {
@@ -111,62 +119,59 @@ local function getPutFileAllParams()
   return temp
 end
 
---[[ @PutFile: File downloaded successfully
+--[[ @putFile: Successful processing PutFile RPC
 --! @parameters:
---! pFile - Path to file will be used to send to SDL
+--! pParamsSend - parameters for PutFile RPC
+--! pFile - file will be used to send to SDL
 --! pAppId - Application number (1, 2, etc.)
 --! @return: none
 --]]
-function m.putFile(paramsSend, pFile, pAppId)
-  if paramsSend then
-    paramsSend = paramsSend
-  else paramsSend =  putFileAllParams()
+function m.putFile(pParamsSend, pFile, pAppId)
+  if pParamsSend then
+    pParamsSend = pParamsSend
+  else pParamsSend =  getPutFileAllParams()
   end
   if not pAppId then pAppId = 1 end
   local mobSession = m.getMobileSession(pAppId)
   local cid
-  if file ~= nil then
-    cid = mobSession:SendRPC("PutFile", paramsSend, file)
+  if pFile ~= nil then
+    cid = mobSession:SendRPC("PutFile", pParamsSend, pFile)
   else
-    cid = mobSession:SendRPC("PutFile", paramsSend, "files/icon.png")
+    cid = mobSession:SendRPC("PutFile", pParamsSend, "files/icon.png")
   end
 
   mobSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 end
 
- 
-
---[[ @setAppIcon: Icon set successfully
+--[[ @setAppIcon: Successful Processing of SetAppIcon RPC
 --! @parameters:
---! params - Parameters will be sent to SDL
+--! pParams - Parameters for SetAppIcon RPC
 --! pAppId - Application number (1, 2, etc.)
---! @return: m
+--! @return: none
 --]]
-function m.setAppIcon(params, pAppId)
+function m.setAppIcon(pParams, pAppId)
   if not pAppId then pAppId = 1 end
   local mobSession = m.getMobileSession(pAppId)
-  local cid = mobSession:SendRPC("SetAppIcon", params.requestParams)
-  params.requestUiParams.appID = m.getHMIAppId()
-  EXPECT_HMICALL("UI.SetAppIcon", params.requestUiParams)
+  local cid = mobSession:SendRPC("SetAppIcon", pParams.requestParams)
+  pParams.requestUiParams.appID = m.getHMIAppId()
+  EXPECT_HMICALL("UI.SetAppIcon", pParams.requestUiParams)
   :Do(function(_, data)
       m.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", {})
     end)
   mobSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 end
 
-return m
-
 --[[ @CloseConnection: Close mobile connection successfully
 --! @parameters: none
 --! @return: none
 --]]
 function m.CloseConnection()
-  test.mobileConnection:Close()
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered", { unexpectedDisconnect = true })
+  test.mobileConnection:Close()
 end
 
 
---[[ @OpenConnection: return Mobile connection object
+--[[ @OpenConnection: Open mobile connection successfully
 --! @parameters: none
 --! return: none
 --]]
@@ -178,3 +183,5 @@ function m.OpenConnection()
   test.mobileConnection:Connect()
   test.mobileSession[1]:StartRPC()
 end
+
+return m

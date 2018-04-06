@@ -24,20 +24,21 @@ local common = require('test_scripts/API/SetAppIcon/commonIconResumed')
 runner.testSettings.isSelfIncluded = false
 
 --[[ Local Variables ]]
+local iconValue = "icon.png"
 local allParams = {
-  	requestParams = {
-  	syncFileName = "icon.png"
-  }
-}
+  requestParams = {
+    syncFileName = iconValue
+  },
   requestUiParams = {
-  syncFileName = {
-    imageType = "DYNAMIC",
-    value = common.getPathToFileInStorage(requestParams.syncFileName)
+    syncFileName = {
+      imageType = "DYNAMIC",
+      value = common.getPathToFileInStorage(iconValue)
+    }
   }
 }
 
-local function IconRemove(pFile)
-	os.remove(common.getPathToFileInStorage(pFile))
+local function IconRemove(pAppId)
+	os.remove(common.getIconValueForResumtion(pAppId))
 end
 
 --[[ Scenario ]]
@@ -50,7 +51,7 @@ runner.Step("App registration with iconResumed = false", common.registerAppWOPTU
 runner.Step("Upload icon file", common.putFile)
 runner.Step("SetAppIcon", common.setAppIcon, { allParams } )
 runner.Step("App unregistration", common.unregisterAppInterface, { 1 })
-runner.Step("Remove Icon for mobile app from the file system", IconRemove, { "icon.png"})
+runner.Step("Remove Icon for mobile app from the file system", IconRemove, { 1 })
 runner.Step("App registration with iconResumed = false", common.registerAppWOPTU, { 1, false, true })
 
 runner.Title("Postconditions")

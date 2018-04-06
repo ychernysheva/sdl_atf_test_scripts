@@ -24,29 +24,35 @@ local common = require('test_scripts/API/SetAppIcon/commonIconResumed')
 runner.testSettings.isSelfIncluded = false
 
 --[[ Local Variables ]]
+local IconValueForApp1 = "icon.png"
 local allParamsApp1 = {
-    requestParams1 = {
-    syncFileName = "icon.png"
-  }
-}
-  requestUiParams1 = {
-  syncFileName = {
-    imageType = "DYNAMIC",
-    value = common.getPathToFileInStorage(requestParams1.syncFileName)
+  requestParams = {
+  syncFileName = IconValueForApp1
+ },
+  requestUiParams = {
+    syncFileName = {
+      imageType = "DYNAMIC",
+      value = common.getPathToFileInStorage(IconValueForApp1)
+    }
   }
 }
 
-
+local IconValueForApp2 = "action.png"
 local allParamsApp2 = {
-    requestParams2 = {
-    syncFileName = "action.png"
+  requestParams = {
+    syncFileName = IconValueForApp2
+  },
+  requestUiParams = {
+    syncFileName = {
+      imageType = "DYNAMIC",
+      value = common.getPathToFileInStorage(IconValueForApp2, 2)
+    }
   }
 }
-  requestUiParams2 = {
-  syncFileName = {
-    imageType = "DYNAMIC",
-    value = common.getPathToFileInStorage(requestParams2.syncFileName)
-  }
+
+local PutFileParams = {
+    syncFileName = IconValueForApp2,
+    fileType = "GRAPHIC_PNG",
 }
 
 --[[ Scenario ]]
@@ -60,7 +66,7 @@ runner.Step("Upload icon file", common.putFile)
 runner.Step("SetAppIcon", common.setAppIcon, { allParamsApp1 } )
 
 runner.Step("App2 registration with iconResumed = false", common.registerAppWOPTU, { 2, false })
-runner.Step("Upload icon file", common.putFile, {nil, nil, 2})
+runner.Step("Upload icon file", common.putFile, {PutFileParams, nil, 2})
 runner.Step("SetAppIcon", common.setAppIcon, { allParamsApp2, 2 } )
 
 runner.Step("App1 unregistration", common.unregisterAppInterface, { 1 })
