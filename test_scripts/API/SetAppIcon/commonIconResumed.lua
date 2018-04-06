@@ -15,10 +15,14 @@ local commonPreconditions = require('user_modules/shared_testcases/commonPrecond
 local m = actions
 
 --[[ Variables ]]
--- local ptuTable = {}
 local hmiAppIds = {}
 
-function m.getPathToFileInStorage(fileName, pAppId)
+--[[ @getPathToFileInStorage: Return app file from storage
+--! @parameters:
+--! pFile - Path to file will be used to send to SDL
+--! pAppId - application number (1, 2, etc.)
+--]]
+function m.getPathToFileInStorage(pFileName, pAppId)
   if not pAppId then pAppId = 1 end
   return commonPreconditions:GetPathToSDL() .. "storage/"
   .. m.getConfigAppParams( pAppId ).appID .. "_"
@@ -30,6 +34,7 @@ end
 --! pAppId - application number (1, 2, etc.)
 --! pIconResumed - apps icon was resumed at system or is not resumed
 --! pReconnection - re-register mobile application
+--! pIconValue - 
 --! @return: none
 --]]
 function m.registerAppWOPTU(pAppId, pIconResumed, pReconnection, pIconValue)
@@ -77,8 +82,10 @@ function m.registerAppWOPTU(pAppId, pIconResumed, pReconnection, pIconValue)
   end
 end
 
---Description: unregisterAppInterface successfully
-  --pAppId - application number (1, 2, etc.)
+--[[ @unregisterAppInterface: Mobile application successfully unregistered
+--! @parameters:
+--! pAppId - Application number (1, 2, etc.)
+--]]
 function m.unregisterAppInterface(pAppId)
   if not pAppId then pAppId = 1 end
   local mobSession = m.getMobileSession(pAppId)
@@ -88,8 +95,11 @@ function m.unregisterAppInterface(pAppId)
   mobSession:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
 end
 
---Description: Set all parameter for PutFile
-local function putFileAllParams()
+--[[ @putFileAllParams: Set all parameter for PutFile
+--! @parameters: none 
+--! @return: none
+--]]
+local function getPutFileAllParams()
   local temp = {
     syncFileName = "icon.png",
     fileType = "GRAPHIC_PNG",
@@ -101,11 +111,13 @@ local function putFileAllParams()
   return temp
 end
 
---Description: PutFile successfully
-  --paramsSend: Parameters will be sent to SDL
-  --file: path to file will be used to send to SDL
-  --pAppId - application number (1, 2, etc.)
-function m.putFile(paramsSend, file, pAppId)
+--[[ @PutFile: File downloaded successfully
+--! @parameters:
+--! pFile - Path to file will be used to send to SDL
+--! pAppId - Application number (1, 2, etc.)
+--! @return: none
+--]]
+function m.putFile(paramsSend, pFile, pAppId)
   if paramsSend then
     paramsSend = paramsSend
   else paramsSend =  putFileAllParams()
@@ -114,17 +126,22 @@ function m.putFile(paramsSend, file, pAppId)
   local mobSession = m.getMobileSession(pAppId)
   local cid
   if file ~= nil then
-    cid = mobSession:SendRPC("PutFile",paramsSend, file)
+    cid = mobSession:SendRPC("PutFile", paramsSend, file)
   else
-    cid = mobSession:SendRPC("PutFile",paramsSend, "files/icon.png")
+    cid = mobSession:SendRPC("PutFile", paramsSend, "files/icon.png")
   end
 
   mobSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 end
 
---Description: setAppIcon successfully
-  --params - Parameters will be sent to SDL
-  --pAppId - application number (1, 2, etc.)
+ 
+
+--[[ @setAppIcon: Icon set successfully
+--! @parameters:
+--! params - Parameters will be sent to SDL
+--! pAppId - Application number (1, 2, etc.)
+--! @return: m
+--]]
 function m.setAppIcon(params, pAppId)
   if not pAppId then pAppId = 1 end
   local mobSession = m.getMobileSession(pAppId)
@@ -138,3 +155,26 @@ function m.setAppIcon(params, pAppId)
 end
 
 return m
+
+--[[ @CloseConnection: Close mobile connection successfully
+--! @parameters: none
+--! @return: none
+--]]
+function m.CloseConnection()
+  test.mobileConnection:Close()
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered", { unexpectedDisconnect = true })
+end
+
+
+--[[ @OpenConnection: return Mobile connection object
+--! @parameters: none
+--! return: none
+--]]
+function m.OpenConnection()
+  test.mobileSession[1] = mobile_session.MobileSession(
+    test,
+    test.mobileConnection,
+    config.application1.registerAppInterfaceParams)
+  test.mobileConnection:Connect()
+  test.mobileSession[1]:StartRPC()
+end

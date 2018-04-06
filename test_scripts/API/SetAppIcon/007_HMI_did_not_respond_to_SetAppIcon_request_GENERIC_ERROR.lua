@@ -23,18 +23,16 @@ local common = require('test_scripts/API/SetAppIcon/commonIconResumed')
 runner.testSettings.isSelfIncluded = false
 
 --[[ Local Variables ]]
-local requestParams = {
-  syncFileName = "icon.png"
+local allParams = {
+    requestParams = {
+    syncFileName = "icon.png"
+  }
 }
-local requestUiParams = {
+  requestUiParams = {
   syncFileName = {
     imageType = "DYNAMIC",
     value = common.getPathToFileInStorage(requestParams.syncFileName)
   }
-}
-local allParams = {
-  requestParams = requestParams,
-  requestUiParams = requestUiParams
 }
 
 local function setAppIcon_GENERIC_ERROR(params, pAppId)

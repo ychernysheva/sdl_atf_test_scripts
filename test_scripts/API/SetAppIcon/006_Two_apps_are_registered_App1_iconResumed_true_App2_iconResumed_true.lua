@@ -24,30 +24,29 @@ local common = require('test_scripts/API/SetAppIcon/commonIconResumed')
 runner.testSettings.isSelfIncluded = false
 
 --[[ Local Variables ]]
-local requestParams = {
-  syncFileName = "icon.png"
-}
-
-local requestUiParamsApp1 = {
-  syncFileName = {
-    imageType = "DYNAMIC",
-    value = common.getPathToFileInStorage(requestParams.syncFileName)
-  }
-}
-local requestUiParamsApp2 = {
-  syncFileName = {
-    imageType = "DYNAMIC",
-    value = common.getPathToFileInStorage(requestParams.syncFileName, 2)
-  }
-}
-
 local allParamsApp1 = {
-  requestParams = requestParams,
-  requestUiParams = requestUiParamsApp1
+    requestParams1 = {
+    syncFileName = "icon.png"
+  }
 }
+  requestUiParams1 = {
+  syncFileName = {
+    imageType = "DYNAMIC",
+    value = common.getPathToFileInStorage(requestParams1.syncFileName)
+  }
+}
+
+
 local allParamsApp2 = {
-  requestParams = requestParams,
-  requestUiParams = requestUiParamsApp2
+    requestParams2 = {
+    syncFileName = "action.png"
+  }
+}
+  requestUiParams2 = {
+  syncFileName = {
+    imageType = "DYNAMIC",
+    value = common.getPathToFileInStorage(requestParams2.syncFileName)
+  }
 }
 
 --[[ Scenario ]]
