@@ -58,7 +58,7 @@ runner.Step("App registration with iconResumed = false", common.registerAppWOPTU
 runner.Step("Upload icon file", common.putFile)
 runner.Step("HMI does not respond", setAppIcon_GENERIC_ERROR, { allParams })
 runner.Step("App unregistration", common.unregisterAppInterface, { 1 })
-runner.Step("App registration with iconResumed = false", common.registerAppWOPTU, { 1, false,true })
+runner.Step("App registration with iconResumed = false", common.registerAppWOPTU, { 1, false, true })
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", common.postconditions)

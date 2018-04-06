@@ -58,8 +58,8 @@ local allParamsSet2 = {
 }
 
 local PutFileParams = {
-    syncFileName = "action.png",
-    fileType = "GRAPHIC_PNG",
+  syncFileName = "action.png",
+  fileType = "GRAPHIC_PNG",
  }
 
 --[[ Scenario ]]
@@ -72,7 +72,7 @@ runner.Step("App registration with iconResumed = false", common.registerAppWOPTU
 runner.Step("Upload icon file1", common.putFile)
 runner.Step("SetAppIcon1", common.setAppIcon, { allParamsSet1 } )
 
-runner.Step("Upload icon file2", common.putFile, {PutFileParams})
+runner.Step("Upload icon file2", common.putFile, { PutFileParams })
 runner.Step("SetAppIcon2", common.setAppIcon, { allParamsSet2 } )
 
 runner.Step("App unregistration", common.unregisterAppInterface, { 1 })

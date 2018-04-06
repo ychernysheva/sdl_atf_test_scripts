@@ -42,9 +42,9 @@ local function setAppIcon_resultCode_REJECTED(params)
   local cid = mobSession:SendRPC("SetAppIcon", params.requestParams)
   params.requestUiParams.appID = common.getHMIAppId()
   EXPECT_HMICALL("UI.SetAppIcon", params.requestUiParams)
-  :Do(function(_,data)
-    common.getHMIConnection():SendResponse(data.id, data.method, "REJECTED", {})
-  end)
+  :Do(function(_, data)
+      common.getHMIConnection():SendResponse(data.id, data.method, "REJECTED", {})
+    end)
   mobSession:ExpectResponse(cid, { success = false, resultCode = "REJECTED" })
 end
 

@@ -8,4 +8,4 @@
 ./test_scripts/API/SetAppIcon/008_Mobile_App_received_response_SetAppIcon_INVALID_DATA.lua
 ./test_scripts/API/SetAppIcon/009_Mobile_App_received_response_SetAppIcon_DISALLOWED.lua
 ./test_scripts/API/SetAppIcon/010_Mobile_App_received_response_SetAppIcon_REJECTED.lua
-./test_scripts/API/SetAppIcon/011_App_re_sets_custom_icon_iconResumed_true_.lua
+./test_scripts/API/SetAppIcon/011_App_re_sets_custom_icon_iconResumed_true.lua

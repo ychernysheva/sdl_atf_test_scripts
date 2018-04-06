@@ -27,19 +27,18 @@ local hmiAppIds = {}
 function m.getPathToFileInStorage(pFileName, pAppId)
   if not pAppId then pAppId = 1 end
   return commonPreconditions:GetPathToSDL() .. "storage/"
-  .. m.getConfigAppParams( pAppId ).appID .. "_"
-  .. utils.getDeviceMAC() .. "/" .. pFileName
+    .. m.getConfigAppParams(pAppId).appID .. "_"
+    .. utils.getDeviceMAC() .. "/" .. pFileName
 end
 
---[[ @getIconValueForResumtion: Get path of app icon from storage
+--[[ @getIconValueForResumption: Get path of app icon from storage
 --! @parameters:
 --! pAppId - application number (1, 2, etc.)
 --! @return: app icon path
 --]]
-function m.getIconValueForResumtion (pAppId)
+function m.getIconValueForResumption(pAppId)
   if not pAppId then pAppId = 1 end
-  return commonPreconditions:GetPathToSDL() .. "storage/"
-  .. m.getConfigAppParams( pAppId ).appID
+  return commonPreconditions:GetPathToSDL() .. "storage/" .. m.getConfigAppParams(pAppId).appID
 end
 
 --[[ @registerAppWOPTU: register mobile application
@@ -52,16 +51,17 @@ end
 function m.registerAppWOPTU(pAppId, pIconResumed, pReconnection)
   if not pAppId then pAppId = 1 end
   local pIconValue
-  if pIconResumed == true then pIconValue = m.getIconValueForResumtion(pAppId) end
+  if pIconResumed == true then pIconValue = m.getIconValueForResumption(pAppId) end
   local mobSession = m.getMobileSession(pAppId)
   local function RegisterApp()
     local corId = mobSession:SendRPC("RegisterAppInterface",
         config["application" .. pAppId].registerAppInterfaceParams)
-      test.hmiConnection:ExpectNotification("BasicCommunication.OnAppRegistered",
-        { application = {
-            appName = config["application" .. pAppId].registerAppInterfaceParams.appName,
-            icon = pIconValue
-        }})
+      test.hmiConnection:ExpectNotification("BasicCommunication.OnAppRegistered", {
+        application = {
+          appName = config["application" .. pAppId].registerAppInterfaceParams.appName,
+          icon = pIconValue
+        }
+      })
       :Do(function(_, d1)
           hmiAppIds[m.getConfigAppParams(pAppId).appID] = d1.params.application.appID
         end)
@@ -74,18 +74,19 @@ function m.registerAppWOPTU(pAppId, pIconResumed, pReconnection)
       end)
       mobSession:ExpectResponse(corId, { success = true, resultCode = "SUCCESS", iconResumed = pIconResumed })
       :Do(function()
-          mobSession:ExpectNotification("OnHMIStatus",
-            { hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN" })
+          mobSession:ExpectNotification("OnHMIStatus", {
+            hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN"
+          })
           mobSession:ExpectNotification("OnPermissionsChange")
-      end)
+        end)
     end
   if pReconnection == true then
     RegisterApp()
   else
     mobSession:StartService(7)
     :Do(function()
-      RegisterApp()
-    end)
+        RegisterApp()
+      end)
   end
 end
 
@@ -98,8 +99,9 @@ function m.unregisterAppInterface(pAppId)
   if not pAppId then pAppId = 1 end
   local mobSession = m.getMobileSession(pAppId)
   local corId = mobSession:SendRPC("UnregisterAppInterface", { })
-  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered",
-    { appID = m.getHMIAppId(pAppId), unexpectedDisconnect = false })
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered", {
+    appID = m.getHMIAppId(pAppId), unexpectedDisconnect = false
+  })
   mobSession:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
 end
 
@@ -108,7 +110,7 @@ end
 --! @return: parameters for PutFile
 --]]
 local function getPutFileAllParams()
-  local temp = {
+  return {
     syncFileName = "icon.png",
     fileType = "GRAPHIC_PNG",
     persistentFile = false,
@@ -116,7 +118,6 @@ local function getPutFileAllParams()
     offset = 0,
     length = 11600
   }
-  return temp
 end
 
 --[[ @putFile: Successful processing PutFile RPC
@@ -129,7 +130,8 @@ end
 function m.putFile(pParamsSend, pFile, pAppId)
   if pParamsSend then
     pParamsSend = pParamsSend
-  else pParamsSend =  getPutFileAllParams()
+  else
+    pParamsSend = getPutFileAllParams()
   end
   if not pAppId then pAppId = 1 end
   local mobSession = m.getMobileSession(pAppId)
@@ -137,7 +139,7 @@ function m.putFile(pParamsSend, pFile, pAppId)
   if pFile ~= nil then
     cid = mobSession:SendRPC("PutFile", pParamsSend, pFile)
   else
-    cid = mobSession:SendRPC("PutFile", pParamsSend, "files/icon.png")
+    cid = mobSession:SendRPC("PutFile", pParamsSend, "files/icon_png.png")
   end
 
   mobSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
@@ -161,21 +163,20 @@ function m.setAppIcon(pParams, pAppId)
   mobSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 end
 
---[[ @CloseConnection: Close mobile connection successfully
+--[[ @closeConnection: Close mobile connection successfully
 --! @parameters: none
 --! @return: none
 --]]
-function m.CloseConnection()
+function m.closeConnection()
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered", { unexpectedDisconnect = true })
   test.mobileConnection:Close()
 end
 
-
---[[ @OpenConnection: Open mobile connection successfully
+--[[ @openConnection: Open mobile connection successfully
 --! @parameters: none
 --! return: none
 --]]
-function m.OpenConnection()
+function m.openConnection()
   test.mobileSession[1] = mobile_session.MobileSession(
     test,
     test.mobileConnection,
