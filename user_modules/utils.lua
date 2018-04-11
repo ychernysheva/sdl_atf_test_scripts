@@ -66,7 +66,7 @@ function m.cloneTable(pTbl)
   local copy = {}
   for k, v in pairs(pTbl) do
     if type(v) == 'table' then
-      v = m:cloneTable(v)
+      v = m.cloneTable(v)
     end
     copy[k] = v
   end
