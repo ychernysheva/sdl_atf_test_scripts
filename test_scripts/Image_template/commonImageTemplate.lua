@@ -22,7 +22,7 @@ local putFileParams = {
 }
 
 --[[ Functions ]]
-local function addCommandParams()
+function m.addCommandParams()
 	local requestParams = {
 		cmdID = 11,
 		menuParams = {
@@ -47,7 +47,7 @@ local function addCommandParams()
 	 return params
 end
 
-local function alertParams()
+function m.alertParams()
 	local requestParams = {
 	alertText1 = "alertText1",
 	alertText2 = "alertText2",
@@ -103,7 +103,7 @@ function m.putFile(pParams)
 end
 
 function m.addCommand(pIsTemplate, pParams)
-	if not pParams then pParams = addCommandParams() end
+	if not pParams then pParams = m.addCommandParams() end
 	if pIsTemplate == true or pIsTemplate == false then
 		pParams.requestParams.cmdIcon.isTemplate = pIsTemplate
 		pParams.responseUiParams.cmdIcon.isTemplate = pIsTemplate
@@ -129,10 +129,10 @@ end
 function m.rpcInvalidData(pIsTemplate, pRpc)
 	local params
 	if "AddCommand" == pRpc then
-		params = addCommandParams()
+		params = m.addCommandParams()
 		params.requestParams.cmdIcon.isTemplate = pIsTemplate
 	else
-		params = alertParams()
+		params = m.alertParams()
 		params.requestParams.softButtons[1].image.isTemplate = pIsTemplate
 	end
 	local mobSession = m.getMobileSession()
@@ -151,7 +151,7 @@ local function sendOnSystemContext(pCtx)
 end
 
 function m.alert(pIsTemplate, pParams)
-	if not pParams then pParams = alertParams() end
+	if not pParams then pParams = m.alertParams() end
 	local mobSession = m.getMobileSession()
 	if pIsTemplate then
 		pParams.requestParams.softButtons[1].image.isTemplate = pIsTemplate
@@ -179,6 +179,18 @@ function m.alert(pIsTemplate, pParams)
         { systemContext = "ALERT"},
         { systemContext = "MAIN"})
 	mobSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS"})
+end
+
+function m.rpcWithCustomResultCode(pRPC, pParams, pResultCode, pSuccess)
+	local mobSession = m.getMobileSession()
+	local hmiConnection = m.getHMIConnection()
+	local cid = mobSession:SendRPC(pRPC, pParams.requestParams)
+	pParams.responseUiParams.appID = m.getHMIAppId()
+	EXPECT_HMICALL("UI." .. pRPC, pParams.responseUiParams)
+	:Do(function(_,data)
+		hmiConnection:SendResponse(data.id, data.method, pResultCode, {})
+	end)
+	mobSession:ExpectResponse(cid, { success = pSuccess, resultCode = pResultCode})
 end
 
 return m

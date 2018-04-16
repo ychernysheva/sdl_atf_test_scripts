@@ -6,9 +6,9 @@
 --
 -- Description:
 -- In case:
--- Mobile application sends request with isTemplate = false
+-- Mobile application sends request with isTemplate = true and STATIC image type
 -- SDL must:
--- send isTemplate = false to HMI
+-- send request with received paramters to HMI
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
@@ -16,6 +16,17 @@ local common = require('test_scripts/Image_template/commonImageTemplate')
 
 --[[ Test Configuration ]]
 runner.testSettings.isSelfIncluded = false
+
+--[[ Local Variables ]]
+local fileName = "icon.png"
+
+local paramsAddCommand = common.addCommandParams()
+paramsAddCommand.requestParams.cmdIcon.imageType = "STATIC"
+paramsAddCommand.requestParams.cmdIcon.value = fileName
+paramsAddCommand.requestParams.cmdIcon.isTemplate = true
+paramsAddCommand.responseUiParams.cmdIcon.value = fileName
+paramsAddCommand.responseUiParams.cmdIcon.isTemplate = true
+paramsAddCommand.responseUiParams.cmdIcon.imageType = "STATIC"
 
 --[[ Scenario ]]
 runner.Title("Preconditions")
@@ -26,8 +37,8 @@ runner.Step("Activate App", common.activateApp)
 runner.Step("Adding PNG file via PutFile", common.putFile)
 
 runner.Title("Test")
-runner.Step("AddCommand with isTemplate = false", common.addCommand, { false })
-runner.Step("Alert with isTemplate = false in SoftButtons", common.alert, { false })
+runner.Step("AddCommand with isTemplate = true with STATIC image type", common.rpcWithCustomResultCode,
+	{ "AddCommand", paramsAddCommand, "UNSUPPORTED_RESOURCE", true })
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", common.postconditions)

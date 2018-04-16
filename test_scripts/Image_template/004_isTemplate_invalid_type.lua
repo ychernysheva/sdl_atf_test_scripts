@@ -23,9 +23,9 @@ runner.Step("Clean environment", common.preconditions)
 runner.Step("Start SDL, HMI, connect Mobile, start Session", common.start)
 runner.Step("Register App", common.registerApp)
 runner.Step("Activate App", common.activateApp)
+runner.Step("Adding PNG file via PutFile", common.putFile)
 
 runner.Title("Test")
-runner.Step("Adding PNG file via PutFile", common.putFile)
 runner.Step("AddCommand with isTemplate = 123", common.rpcInvalidData, { 123, "AddCommand" } )
 runner.Step("Alert with isTemplate = '123' in SoftButtons", common.rpcInvalidData, { "123", "Alert" })
 
