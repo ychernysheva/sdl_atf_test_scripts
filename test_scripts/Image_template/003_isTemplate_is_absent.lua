@@ -23,9 +23,9 @@ runner.Step("Clean environment", common.preconditions)
 runner.Step("Start SDL, HMI, connect Mobile, start Session", common.start)
 runner.Step("Register App", common.registerApp)
 runner.Step("Activate App", common.activateApp)
+runner.Step("Adding PNG file via PutFile", common.putFile)
 
 runner.Title("Test")
-runner.Step("Adding PNG file via PutFile", common.putFile)
 runner.Step("AddCommand without isTemplate", common.addCommand)
 runner.Step("Alert without isTemplate in SoftButtons", common.alert)
 
