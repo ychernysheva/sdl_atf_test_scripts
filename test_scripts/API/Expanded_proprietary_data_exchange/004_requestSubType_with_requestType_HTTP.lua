@@ -1,5 +1,5 @@
 ---------------------------------------------------------------------------------------------------
--- Proposal: https://github.com/smartdevicelink/sdl_evolution/blob/master/proposals/0037-Expand-Mobile-putfile-RPC.md
+-- Proposal: https://github.com/smartdevicelink/sdl_evolution/blob/master/proposals/0083-Expandable-design-for-proprietary-data-exchange.md
 -- User story:TBD
 -- Use case:TBD
 --
@@ -7,8 +7,10 @@
 -- TBD
 --
 -- Description:
--- In case: SDL reveives SystemRequest and on SystemRequest with requestType = HTTP and requestSubType
--- SDL does: ignore requestSubType and process messages as usual
+-- 1. In case: SDL receives SystemRequest and on SystemRequest with requestType = HTTP and requestSubType
+-- SDL does:
+-- 1. ignore requestSubType in SystemRequest and process messages as usual,
+-- 2. transfer OnSystemRequest to mobile app as usual
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
@@ -41,8 +43,8 @@ runner.Step("Start SDL, HMI, connect Mobile, start Session", common.start)
 runner.Step("App registration", common.registerApp)
 
 runner.Title("Test")
-runner.Step("SystemRequest with request type OEM_SPECIFIC", systemRequest, {params, usedFile})
-runner.Step("OnSystemRequest with request type OEM_SPECIFIC", common.onSystemRequest, {params})
+runner.Step("SystemRequest with request type HTTP", systemRequest, {params, usedFile})
+runner.Step("OnSystemRequest with request type HTTP", common.onSystemRequest, {params})
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", common.postconditions)

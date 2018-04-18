@@ -13,8 +13,13 @@ config.defaultProtocolVersion = 2
 
 local m = actions
 local ptuTable = {}
-local hmiAppIds = {}
 
+--[[ @systemRequest: successful processing of SystemRequest
+--! @parameters:
+--! pParams - parameters for SystemRequest
+--! pFile - file for SystemRequest
+--! @return: none
+--]]
 function m.systemRequest(pParams, pFile)
   local mobSession = m.getMobileSession()
   local cid = mobSession:SendRPC("SystemRequest", pParams, pFile)
@@ -26,6 +31,12 @@ function m.systemRequest(pParams, pFile)
   mobSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 end
 
+--[[ @unsuccessSystemRequest: processing SystemRequest in case notification is disallowed
+--! @parameters:
+--! pParams - parameters for SystemRequest
+--! pFile - file for SystemRequest
+--! @return: none
+--]]
 function m.unsuccessSystemRequest(pParams, pFile)
   local mobSession = m.getMobileSession()
   local cid = mobSession:SendRPC("SystemRequest", pParams, pFile)
@@ -34,12 +45,22 @@ function m.unsuccessSystemRequest(pParams, pFile)
   mobSession:ExpectResponse(cid, { success = false, resultCode = "DISALLOWED" })
 end
 
+--[[ @onSystemRequest: successful processing of OnSystemRequest
+--! @parameters:
+--! pParams - parameters for OnSystemRequest
+--! @return: none
+--]]
 function m.onSystemRequest(pParams)
   m.getHMIConnection():SendNotification("BasicCommunication.OnSystemRequest", pParams)
   if pParams.fileName then pParams.fileName = nil end
   m.getMobileSession():ExpectNotification("OnSystemRequest", pParams)
 end
 
+--[[ @unsuccessOnSystemRequest: processing OnSystemRequest in case notification is disallowed
+--! @parameters:
+--! pParams - parameters for OnSystemRequest
+--! @return: none
+--]]
 function m.unsuccessOnSystemRequest(pParams)
   m.getHMIConnection():SendNotification("BasicCommunication.OnSystemRequest", pParams)
   m.getMobileSession():ExpectNotification("OnSystemRequest")
@@ -130,8 +151,7 @@ function m.registerApp(pAppId)
           appName = m.getConfigAppParams(pAppId).appName
         }
       })
-      :Do(function(_, d1)
-          hmiAppIds[m.getConfigAppParams(pAppId).appID] = d1.params.application.appID
+      :Do(function()
           m.getHMIConnection():ExpectNotification("SDL.OnStatusUpdate",
             { status = "UPDATE_NEEDED" }, { status = "UPDATING" })
           :Times(2)
@@ -167,9 +187,6 @@ function m.registerAppWOPTU(pAppId, pRequestSubType)
           requestSubType = pRequestSubType
         }
       })
-      :Do(function(_, d1)
-        hmiAppIds[m.getConfigAppParams(pAppId).appID] = d1.params.application.appID
-      end)
       mobSession:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
       :Do(function()
           mobSession:ExpectNotification("OnHMIStatus",

@@ -1,5 +1,5 @@
 ---------------------------------------------------------------------------------------------------
--- Proposal: https://github.com/smartdevicelink/sdl_evolution/blob/master/proposals/0037-Expand-Mobile-putfile-RPC.md
+-- Proposal: https://github.com/smartdevicelink/sdl_evolution/blob/master/proposals/0083-Expandable-design-for-proprietary-data-exchange.md
 -- User story:TBD
 -- Use case:TBD
 --
@@ -8,7 +8,7 @@
 --
 -- Description:
 -- In case: SystemRequest and onSystemRequest with PROPRIETARY requestType contains requestSubType paramter during policy table update
--- SDL does: ignore received requestSubType and process received messages as usual
+-- SDL does: transfer message with requestSubType as usual
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')

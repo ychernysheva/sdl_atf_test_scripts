@@ -1,5 +1,5 @@
 ---------------------------------------------------------------------------------------------------
--- Proposal: https://github.com/smartdevicelink/sdl_evolution/blob/master/proposals/0037-Expand-Mobile-putfile-RPC.md
+-- Proposal: https://github.com/smartdevicelink/sdl_evolution/blob/master/proposals/0083-Expandable-design-for-proprietary-data-exchange.md
 -- User story:TBD
 -- Use case:TBD
 --
@@ -8,20 +8,22 @@
 --
 -- Description:
 -- In case: PT is updated without requestSubType for application App2 and App2 starts regisration
--- SDL does: not send requestSubType in OnAppRegistered during registration
+-- SDL does: send empty array(value from default section) in requestSubType in OnAppRegistered during registration
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
 local common = require('test_scripts/API/Expanded_proprietary_data_exchange/commonDataExchange')
 local json = require('modules/json')
+local utils = require("user_modules/utils")
 
 --[[ Test Configuration ]]
 runner.testSettings.isSelfIncluded = false
 
 --[[ Local Functions ]]
 local function ptuFuncRPC(tbl)
-  tbl.policy_table.app_policies[config.application2.registerAppInterfaceParams.appID] = tbl.policy_table.app_policies.default
-  tbl.policy_table.app_policies[config.application2.registerAppInterfaceParams.appID].RequestSubType = nil
+	local appId = config.application2.registerAppInterfaceParams.appID
+  tbl.policy_table.app_policies[appId] = utils.cloneTable(tbl.policy_table.app_policies.default)
+  tbl.policy_table.app_policies[appId].RequestSubType = nil
 end
 
 --[[ Scenario ]]

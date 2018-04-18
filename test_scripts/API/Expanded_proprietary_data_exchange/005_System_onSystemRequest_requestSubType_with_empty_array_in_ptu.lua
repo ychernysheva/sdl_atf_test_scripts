@@ -1,5 +1,5 @@
 ---------------------------------------------------------------------------------------------------
--- Proposal: https://github.com/smartdevicelink/sdl_evolution/blob/master/proposals/0037-Expand-Mobile-putfile-RPC.md
+-- Proposal: https://github.com/smartdevicelink/sdl_evolution/blob/master/proposals/0083-Expandable-design-for-proprietary-data-exchange.md
 -- User story:TBD
 -- Use case:TBD
 --
@@ -11,7 +11,7 @@
 -- 1. PTU is performed with empty array in requestSubType
 -- 2. SDL receives SystemRequest and onSystemRequest with requestSubType after ptu
 -- SDL does:
--- 1. not send OnAppPermissionChanged() to HMI during update
+-- 1. not send OnAppPermissionChanged() to HMI after update
 -- 2. successful process SystemRequest and resend onSystemRequest
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
