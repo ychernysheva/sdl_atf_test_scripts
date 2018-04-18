@@ -42,7 +42,7 @@ end
 
 function m.unsuccessOnSystemRequest(pParams)
   m.getHMIConnection():SendNotification("BasicCommunication.OnSystemRequest", pParams)
-  m.getMobileSession():ExpectNotification("OnSystemRequest", pParams)
+  m.getMobileSession():ExpectNotification("OnSystemRequest")
   :Times(0)
 end
 
@@ -107,7 +107,7 @@ function m.policyTableUpdate(pPTUpdateFunc, pExpNotificationFunc, pRequestSubTyp
                 m.getHMIConnection():SendNotification("SDL.OnReceivedPolicyUpdate", { policyfile = d3.params.fileName })
               end)
             session:ExpectResponse(corIdSystemRequest, { success = true, resultCode = "SUCCESS" })
-            -- :Do(function() os.remove(ptuFileName) end)
+            :Do(function() os.remove(ptuFileName) end)
           end)
         :Times(AtMost(1))
       end
@@ -155,7 +155,7 @@ end
 --! pAppId - application number (1, 2, etc.)
 --! @return: none
 --]]
-function m.registerAppWOPTU(pAppId, pRequestSubType, pAbsenceCheck)
+function m.registerAppWOPTU(pAppId, pRequestSubType, pApplications)
   if not pAppId then pAppId = 1 end
   local mobSession = m.getMobileSession(pAppId)
   mobSession:StartService(7)
@@ -167,31 +167,10 @@ function m.registerAppWOPTU(pAppId, pRequestSubType, pAbsenceCheck)
           requestSubType = pRequestSubType
         }
       })
-      :ValidIf(function(_, data)
-        if pAbsenceCheck then
-          if data.params.application.requestSubType then
-            return false, "BC.OnAppRegistered notification contains unexpected requestSubType parameter"
-          end
-        end
-        return true
-      end)
       :Do(function(_, d1)
-          hmiAppIds[m.getConfigAppParams(pAppId).appID] = d1.params.application.appID
-        EXPECT_HMICALL("BasicCommunication.UpdateAppList", { applications = {
-        { },
-        {
-          appName = m.getConfigAppParams(pAppId).appName,
-          requestSubType = pRequestSubType
-        }}})
-        :ValidIf(function(_, data)
-          if pAbsenceCheck then
-            if data.params.applications[2].requestSubType then
-              return false, "BC.UpdateAppList request contains unexpected requestSubType parameter"
-            end
-          end
-          return true
-        end)
-        end)
+        hmiAppIds[m.getConfigAppParams(pAppId).appID] = d1.params.application.appID
+        EXPECT_HMICALL("BasicCommunication.UpdateAppList", { applications = pApplications})
+      end)
       mobSession:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
       :Do(function()
           mobSession:ExpectNotification("OnHMIStatus",

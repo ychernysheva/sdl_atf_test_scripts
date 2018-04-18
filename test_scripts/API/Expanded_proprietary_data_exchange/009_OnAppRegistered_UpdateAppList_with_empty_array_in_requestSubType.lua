@@ -18,10 +18,21 @@ local json = require('modules/json')
 --[[ Test Configuration ]]
 runner.testSettings.isSelfIncluded = false
 
+--[[ Local Variables ]]
+local applicationsParams = {
+  {
+    appName = common.getConfigAppParams(1).appName
+  },
+  {
+	appName = common.getConfigAppParams(2).appName,
+	requestSubType = json.EMPTY_ARRAY
+  }
+}
+
 --[[ Local Functions ]]
 local function ptuFuncRPC(tbl)
   tbl.policy_table.app_policies[config.application2.registerAppInterfaceParams.appID] = tbl.policy_table.app_policies.default
-  tbl.policy_table.app_policies[config.application2.registerAppInterfaceParams.appID].requestSubType = json.EMPTY_ARRAY
+  tbl.policy_table.app_policies[config.application2.registerAppInterfaceParams.appID].RequestSubType = json.EMPTY_ARRAY
 end
 
 --[[ Scenario ]]
@@ -33,7 +44,7 @@ runner.Step("Policy table update", common.policyTableUpdate, {ptuFuncRPC })
 
 runner.Title("Test")
 runner.Step("Empty array in requestSubType in UpdateAppList and OnAppRegistered by app registration", common.registerAppWOPTU,
-	{ 2, json.EMPTY_ARRAY })
+	{ 2, json.EMPTY_ARRAY, applicationsParams })
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", common.postconditions)

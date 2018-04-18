@@ -11,7 +11,7 @@
 -- 1. PTU is performed with empty array in requestSubType
 -- 2. SDL receives SystemRequest and onSystemRequest with requestSubType after ptu
 -- SDL does:
--- 1. send OnAppPermissionChanged( requestSubType = [] ) to HMI during update
+-- 1. not send OnAppPermissionChanged() to HMI during update
 -- 2. successful process SystemRequest and resend onSystemRequest
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
@@ -32,25 +32,23 @@ local params = {
 
 --[[ Local Functions ]]
 local function ptuFuncRPC(tbl)
-  tbl.policy_table.app_policies[config.application1.registerAppInterfaceParams.appID].requestSubType = json.EMPTY_ARRAY
+  tbl.policy_table.app_policies[config.application1.registerAppInterfaceParams.appID].RequestSubType = json.EMPTY_ARRAY
 end
 
-local function policyUpdate()
-  common.policyTableUpdate(ptuFuncRPC)
-  EXPECT_HMICALL("SDL.OnAppPermissionChanged", {
-	appID = common.getConfigAppParams().appID,
-	requestSubType = json.EMPTY_ARRAY
-  })
+local function policyUpdate(pPtuFunc)
+  common.policyTableUpdate(pPtuFunc)
+  common.getHMIConnection():ExpectNotification("SDL.OnAppPermissionChanged")
+  :Times(0)
 end
 
 --[[ Scenario ]]
 runner.Title("Preconditions")
 runner.Step("Clean environment", common.preconditions)
 runner.Step("Start SDL, HMI, connect Mobile, start Session", common.start)
-runner.Step("App registration", common.registerApp)
+runner.Step("App1 registration", common.registerApp)
 
 runner.Title("Test")
-runner.Step("PTU with empty json in requestSubType section", policyUpdate)
+runner.Step("PTU with empty json in requestSubType section", policyUpdate, { ptuFuncRPC, })
 runner.Step("SystemRequest with request type OEM_SPECIFIC and requestSubType", common.systemRequest,
   {params, usedFile})
 runner.Step("onSystemRequest with request type OEM_SPECIFIC and with requestSubType", common.onSystemRequest,

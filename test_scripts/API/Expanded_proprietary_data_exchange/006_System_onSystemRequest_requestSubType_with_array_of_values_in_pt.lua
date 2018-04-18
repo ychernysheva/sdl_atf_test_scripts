@@ -39,14 +39,14 @@ local requestSubTypeArray = { "TYPE1", "TYPE2", "TYPE3" }
 
 --[[ Local Functions ]]
 local function ptuFuncRPC(tbl)
-  tbl.policy_table.app_policies[config.application1.registerAppInterfaceParams.appID].requestSubType = requestSubTypeArray
+  tbl.policy_table.app_policies[config.application1.registerAppInterfaceParams.appID].RequestSubType = requestSubTypeArray
 end
 
 local function policyUpdate()
   common.policyTableUpdate(ptuFuncRPC)
-  EXPECT_HMICALL("SDL.OnAppPermissionChanged", {
-	appID = common.getConfigAppParams().appID,
-	requestSubType = requestSubTypeArray
+  common.getHMIConnection():ExpectNotification("SDL.OnAppPermissionChanged", {
+    appID = common.getHMIAppId(),
+    requestSubType = requestSubTypeArray
   })
 end
 
