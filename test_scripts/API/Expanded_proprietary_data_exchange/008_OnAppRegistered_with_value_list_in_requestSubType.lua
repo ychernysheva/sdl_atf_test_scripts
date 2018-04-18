@@ -7,32 +7,25 @@
 -- TBD
 --
 -- Description:
--- In case: PT is updated without requestSubType for application App2 and App2 starts regisration
--- SDL does: not send requestSubType in OnAppRegistered and UpdateAppList during registration
+-- In case:
+-- 1. PT is updated with list of values for requestSubType for application App2 and App2 starts regisration
+-- SDL does:
+-- 1. send list of requestSubType values from PT in OnAppRegistered during registration
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
 local common = require('test_scripts/API/Expanded_proprietary_data_exchange/commonDataExchange')
-local json = require('modules/json')
 
 --[[ Test Configuration ]]
 runner.testSettings.isSelfIncluded = false
 
 --[[ Local Variables ]]
-local applicationsParams = {
-  {
-    appName = common.getConfigAppParams(1).appName
-  },
-  {
-	appName = common.getConfigAppParams(2).appName,
-	requestSubType = json.EMPTY_ARRAY
-  }
-}
+local requestSubTypeArray = { "TYPE1", "TYPE2", "TYPE3" }
 
 --[[ Local Functions ]]
 local function ptuFuncRPC(tbl)
   tbl.policy_table.app_policies[config.application2.registerAppInterfaceParams.appID] = tbl.policy_table.app_policies.default
-  tbl.policy_table.app_policies[config.application2.registerAppInterfaceParams.appID].RequestSubType = nil
+  tbl.policy_table.app_policies[config.application2.registerAppInterfaceParams.appID].RequestSubType = requestSubTypeArray
 end
 
 --[[ Scenario ]]
@@ -43,8 +36,8 @@ runner.Step("App registration", common.registerApp)
 runner.Step("Policy table update", common.policyTableUpdate, {ptuFuncRPC})
 
 runner.Title("Test")
-runner.Step("Empty array in requestSubType in UpdateAppList and OnAppRegistered by app registration", common.registerAppWOPTU,
-  { 2, json.EMPTY_ARRAY, applicationsParams })
+runner.Step("List of requestSubType in OnAppRegistered by app registration", common.registerAppWOPTU,
+  { 2, requestSubTypeArray })
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", common.postconditions)

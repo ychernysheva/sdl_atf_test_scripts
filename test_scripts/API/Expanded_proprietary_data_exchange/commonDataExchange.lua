@@ -155,7 +155,7 @@ end
 --! pAppId - application number (1, 2, etc.)
 --! @return: none
 --]]
-function m.registerAppWOPTU(pAppId, pRequestSubType, pApplications)
+function m.registerAppWOPTU(pAppId, pRequestSubType)
   if not pAppId then pAppId = 1 end
   local mobSession = m.getMobileSession(pAppId)
   mobSession:StartService(7)
@@ -169,7 +169,6 @@ function m.registerAppWOPTU(pAppId, pRequestSubType, pApplications)
       })
       :Do(function(_, d1)
         hmiAppIds[m.getConfigAppParams(pAppId).appID] = d1.params.application.appID
-        EXPECT_HMICALL("BasicCommunication.UpdateAppList", { applications = pApplications})
       end)
       mobSession:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
       :Do(function()

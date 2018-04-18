@@ -7,8 +7,8 @@
 -- TBD
 --
 -- Description:
--- In case: PT is updated with empty array for requestSubType for application App2 and App2 starts regisration
--- SDL does: send empty array from PT in OnAppRegistered and UpdateAppList during registration
+-- In case: PT is updated without requestSubType for application App2 and App2 starts regisration
+-- SDL does: not send requestSubType in OnAppRegistered during registration
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
@@ -18,21 +18,10 @@ local json = require('modules/json')
 --[[ Test Configuration ]]
 runner.testSettings.isSelfIncluded = false
 
---[[ Local Variables ]]
-local applicationsParams = {
-  {
-    appName = common.getConfigAppParams(1).appName
-  },
-  {
-	appName = common.getConfigAppParams(2).appName,
-	requestSubType = json.EMPTY_ARRAY
-  }
-}
-
 --[[ Local Functions ]]
 local function ptuFuncRPC(tbl)
   tbl.policy_table.app_policies[config.application2.registerAppInterfaceParams.appID] = tbl.policy_table.app_policies.default
-  tbl.policy_table.app_policies[config.application2.registerAppInterfaceParams.appID].RequestSubType = json.EMPTY_ARRAY
+  tbl.policy_table.app_policies[config.application2.registerAppInterfaceParams.appID].RequestSubType = nil
 end
 
 --[[ Scenario ]]
@@ -40,11 +29,11 @@ runner.Title("Preconditions")
 runner.Step("Clean environment", common.preconditions)
 runner.Step("Start SDL, HMI, connect Mobile, start Session", common.start)
 runner.Step("App registration", common.registerApp)
-runner.Step("Policy table update", common.policyTableUpdate, {ptuFuncRPC })
+runner.Step("Policy table update", common.policyTableUpdate, {ptuFuncRPC})
 
 runner.Title("Test")
-runner.Step("Empty array in requestSubType in UpdateAppList and OnAppRegistered by app registration", common.registerAppWOPTU,
-	{ 2, json.EMPTY_ARRAY, applicationsParams })
+runner.Step("Empty array in requestSubType in OnAppRegistered by app registration", common.registerAppWOPTU,
+  { 2, json.EMPTY_ARRAY })
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", common.postconditions)
