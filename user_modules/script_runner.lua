@@ -11,6 +11,7 @@ local runner = {}
 runner.testSettings = testSettings
 
 Test.isTest = true
+Test.caseTitles = { }
 
 --[Utils]
 local function existsInList (pList, pValue)
@@ -24,7 +25,7 @@ end
 
 --[ATF]
 local function buildTitle(titleText)
-  local maxLength = 101
+  local maxLength = 96
   local filler = "-"
   local resultTable = {}
   for line in titleText:gmatch("[^\n]+") do
@@ -32,9 +33,7 @@ local function buildTitle(titleText)
     if lineLength >= maxLength then
       table.insert(resultTable, line)
     else
-      local tailLength = math.fmod(maxLength - lineLength, 2)
-      local emtyLineSideLength = math.floor((maxLength - lineLength) / 2)
-      table.insert(resultTable, filler:rep(emtyLineSideLength) .. line .. filler:rep(emtyLineSideLength + tailLength))
+      table.insert(resultTable, "--- " .. line .. " " .. filler:rep(maxLength - line:len(line)))
     end
   end
   return table.concat(resultTable, "\n")
@@ -69,15 +68,15 @@ local function checkStepImplFunction(testStepImplFunction)
 end
 
 local function addTestStep(testStepName, testStepImplFunction)
-  testStepName = buildStepName(testStepName)
   testStepImplFunction = checkStepImplFunction(testStepImplFunction)
   Test[testStepName] = testStepImplFunction
 end
 
 local function extendedAddTestStep(testStepName, testStepImplFunction, paramsTable)
+  testStepName = buildStepName(testStepName)
   local implFunctionsListWithParams = {}
   if isPrintTitle then
-    table.insert(implFunctionsListWithParams, {implFunc = commonFunctions.userPrint, params = {0, 32, title, "\n"}})
+    Test.caseTitles[testStepName] = title
     isPrintTitle = false
   end
   if not paramsTable then
