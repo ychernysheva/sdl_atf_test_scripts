@@ -16,10 +16,12 @@ local commonSteps = require("user_modules/shared_testcases/commonSteps")
 local commonTestCases = require("user_modules/shared_testcases/commonTestCases")
 local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 local events = require("events")
+local utils = require('user_modules/utils')
 
 --[[ Local Variables ]]
 local ptu_table = {}
 local hmiAppIds = {}
+local preloadedPT = commonFunctions:read_parameter_from_smart_device_link_ini("PreloadedPT")
 
 local commonSmoke = {}
 
@@ -126,6 +128,8 @@ function commonSmoke.preconditions()
   commonFunctions:SDLForceStop()
   commonSteps:DeletePolicyTable()
   commonSteps:DeleteLogsFiles()
+  commonPreconditions:BackupFile(preloadedPT)
+  commonSmoke.updatePreloadedPT()
 end
 
 function commonSmoke.getDeviceName()
@@ -183,6 +187,9 @@ end
 function commonSmoke.getMobileSession(pAppId, self)
   self, pAppId = commonSmoke.getSelfAndParams(pAppId, self)
   if not pAppId then pAppId = 1 end
+  if not self["mobileSession" .. pAppId] then
+    self["mobileSession" .. pAppId] = mobile_session.MobileSession(self, self.mobileConnection)
+  end
   return self["mobileSession" .. pAppId]
 end
 
@@ -363,6 +370,49 @@ end
 
 function commonSmoke.postconditions()
   StopSDL()
+  commonPreconditions:RestoreFile(preloadedPT)
+end
+
+function commonSmoke.updatePreloadedPT()
+  local preloadedFile = commonPreconditions:GetPathToSDL() .. preloadedPT
+  local pt = utils.jsonFileToTable(preloadedFile)
+  pt.policy_table.functional_groupings["DataConsent-2"].rpcs = json.null
+  local additionalRPCs = {
+    "SendLocation", "SubscribeVehicleData", "UnsubscribeVehicleData", "GetVehicleData", "UpdateTurnList",
+    "AlertManeuver", "DialNumber", "ReadDID", "GetDTCs", "ShowConstantTBT"
+  }
+  pt.policy_table.functional_groupings.NewTestCaseGroup = { rpcs = { } }
+  for _, v in pairs(additionalRPCs) do
+    pt.policy_table.functional_groupings.NewTestCaseGroup.rpcs[v] = {
+      hmi_levels = { "BACKGROUND", "FULL", "LIMITED" }
+    }
+  end
+  pt.policy_table.app_policies["0000001"] = utils.cloneTable(pt.policy_table.app_policies.default)
+  pt.policy_table.app_policies["0000001"].groups = { "Base-4", "NewTestCaseGroup" }
+  pt.policy_table.app_policies["0000001"].keep_context = true
+  pt.policy_table.app_policies["0000001"].steal_focus = true
+  utils.tableToJsonFile(pt, preloadedFile)
+end
+
+function commonSmoke.registerApp(pAppId, self)
+  self, pAppId = commonSmoke.getSelfAndParams(pAppId, self)
+  if not pAppId then pAppId = 1 end
+  local mobSession = commonSmoke.getMobileSession(pAppId, self)
+  mobSession:StartService(7)
+  :Do(function()
+      local corId = mobSession:SendRPC("RegisterAppInterface", config["application" .. pAppId].registerAppInterfaceParams)
+      EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered",
+        { application = { appName = config["application" .. pAppId].registerAppInterfaceParams.appName } })
+      :Do(function(_, data)
+          hmiAppIds[config["application" .. pAppId].registerAppInterfaceParams.appID] = data.params.application.appID
+        end)
+      mobSession:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
+      :Do(function()
+          mobSession:ExpectNotification("OnHMIStatus",
+            { hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN" })
+          mobSession:ExpectNotification("OnPermissionsChange")
+        end)
+    end)
 end
 
 return commonSmoke
