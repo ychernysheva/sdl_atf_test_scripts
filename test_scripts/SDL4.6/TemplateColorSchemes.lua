@@ -3,7 +3,7 @@ local runner = require('user_modules/script_runner')
 local commonSmoke = require('test_scripts/Smoke/commonSmoke')
 
 local function getRequestParams()
-	return { 
+	return	{ 
 				displayLayout = "ONSCREEN_PRESETS",
 				dayColorScheme = {
 					primaryColor = {
@@ -16,7 +16,7 @@ local function getRequestParams()
 end
 
 local function getRequestParams2()
-	return { 
+	return 	{ 
 				displayLayout = "ONSCREEN_PRESETS",
 				dayColorScheme = {
 					primaryColor = {
@@ -29,7 +29,7 @@ local function getRequestParams2()
 end
 
 local function getRequestParams3()
-	return { 
+	return 	{ 
 				displayLayout = "MEDIA",
 				dayColorScheme = {
 					primaryColor = {
