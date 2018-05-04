@@ -34,6 +34,13 @@ local rpc_unsubscribe = {
   }
 }
 
+local vehicleDataResults = {
+  engineOilLife = {
+    dataType = "VEHICLEDATA_ENGINEOILLIFE", 
+    resultCode = "SUCCESS"
+  }
+}
+
 --[[ Local Functions ]]
 local function processRPCSubscribeSuccess(self)
   local mobileSession = common.getMobileSession(self, 1)
@@ -41,10 +48,12 @@ local function processRPCSubscribeSuccess(self)
   EXPECT_HMICALL("VehicleInfo." .. rpc_subscribe.name, rpc_subscribe.params)
   :Do(function(_, data)
       self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS",
-        {engineOilLife = {dataType = "VEHICLEDATA_ENGINEOILLIFE", resultCode = "SUCCESS"}})
+        vehicleDataResults)
     end)
-  mobileSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS",
-    engineOilLife = {dataType = "VEHICLEDATA_ENGINEOILLIFE", resultCode = "SUCCESS"} })
+  local responseParams = vehicleDataResults
+  responseParams.success = true
+  responseParams.resultCode = "SUCCESS"
+  mobileSession:ExpectResponse(cid, responseParams)
 end
 
 local function processRPCUnsubscribeSuccess(self)
@@ -53,10 +62,12 @@ local function processRPCUnsubscribeSuccess(self)
   EXPECT_HMICALL("VehicleInfo." .. rpc_unsubscribe.name, rpc_unsubscribe.params)
   :Do(function(_, data)
       self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS",
-        {engineOilLife = {dataType = "VEHICLEDATA_ENGINEOILLIFE", resultCode = "SUCCESS"}})
+        vehicleDataResults)
     end)
-  mobileSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS",
-    engineOilLife = {dataType = "VEHICLEDATA_ENGINEOILLIFE", resultCode = "SUCCESS"} })
+  local responseParams = vehicleDataResults
+  responseParams.success = true
+  responseParams.resultCode = "SUCCESS"
+  mobileSession:ExpectResponse(cid, responseParams)
 end
 
 --[[ Scenario ]]

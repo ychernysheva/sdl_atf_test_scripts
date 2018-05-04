@@ -28,6 +28,10 @@ local rpc = {
   }
 }
 
+local vehicleDataValues {
+  engineOilLife = 52.3
+}
+
 --[[ Local Functions ]]
 local function ptu_update_func(tbl)
   local params = tbl.policy_table.functional_groupings["Emergency-1"].rpcs["GetVehicleData"].parameters
@@ -41,7 +45,7 @@ local function processRPCSuccess(self)
   local cid = mobileSession:SendRPC(rpc.name, rpc.params)
   EXPECT_HMICALL("VehicleInfo." .. rpc.name, rpc.params)
   :Do(function(_, data)
-      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", { engineOilLife = 52.3 })
+      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", vehicleDataValues)
     end)
   mobileSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 end

@@ -21,10 +21,17 @@ local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 
 --[[ Local Variables ]]
 local rpc = {
-    name = "SubscribeVehicleData",
-    params = {
+  name = "SubscribeVehicleData",
+  params = {
     engineOilLife = true
-    }
+  }
+}
+
+local vehicleDataResults = {
+  engineOilLife = {
+    dataType = "VEHICLEDATA_ENGINEOILLIFE", 
+    resultCode = "DISALLOWED"
+  }
 }
 
 --[[ Local Functions ]]
@@ -40,9 +47,10 @@ local function processRPCFailure(self)
   local cid = mobileSession:SendRPC(rpc.name, rpc.params)
   EXPECT_HMICALL("VehicleInfo." .. rpc.name, rpc.params):Times(0)
   commonTestCases:DelayedExp(common.timeout)
-  mobileSession:ExpectResponse(cid, { success = false, resultCode = "DISALLOWED",
-    info = "'engineOilLife' parameter is disallowed by Policies",
-    engineOilLife = {dataType = "VEHICLEDATA_ENGINEOILLIFE", resultCode = "DISALLOWED"} })
+  local responseParams = vehicleDataResults
+  responseParams.success = false
+  responseParams.resultCode = "DISALLOWED"
+  mobileSession:ExpectResponse(cid, responseParams)
 end
 
 --[[ Scenario ]]

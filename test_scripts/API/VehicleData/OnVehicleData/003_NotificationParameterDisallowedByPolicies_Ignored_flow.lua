@@ -36,6 +36,13 @@ local rpc2 = {
   }
 }
 
+local vehicleDataResults = {
+  engineOilLife = {
+    dataType = "VEHICLEDATA_ENGINEOILLIFE", 
+    resultCode = "SUCCESS"
+  }
+}
+
 --[[ Local Functions ]]
 local function ptu_update_func(tbl)
   local params = tbl.policy_table.functional_groupings["Emergency-1"].rpcs["OnVehicleData"].parameters
@@ -49,11 +56,13 @@ local function processRPCSubscribeSuccess(self)
   local cid = mobileSession:SendRPC(rpc1.name, rpc1.params)
   EXPECT_HMICALL("VehicleInfo." .. rpc1.name, rpc1.params)
   :Do(function(_, data)
-      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS",
-        {engineOilLife = {dataType = "VEHICLEDATA_ENGINEOILLIFE", resultCode = "SUCCESS"}})
-    end)
-  mobileSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS", engineOilLife =
-    {dataType = "VEHICLEDATA_ENGINEOILLIFE", resultCode = "SUCCESS"} })
+      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", 
+        vehicleDataResults)
+    end)  
+  local responseParams = vehicleDataResults
+  responseParams.success = true
+  responseParams.resultCode = "SUCCESS"
+  mobileSession:ExpectResponse(cid, responseParams)
 end
 
 local function checkNotificationIgnored(self)

@@ -12,7 +12,7 @@
 -- 1) Mobile application sends valid UnsubscribeVehicleData to SDL and this request is allowed by Policies
 -- 2) Mobile app is already unsubscribed from this parameter
 -- SDL must:
--- Respond IGNORED, success:false {dataType = "VEHICLEDATA_ENGINEOILLIFE",
+-- Respond IGNORED, success:false {dataType = "VEHICLEDATA_engin eOilLife",
 -- resultCode = "DATA_NOT_SUBSCRIBED"} to mobile application
 ---------------------------------------------------------------------------------------------------
 
@@ -36,6 +36,20 @@ local rpc_unsubscribe = {
   }
 }
 
+local vehicleDataResults = {
+  engineOilLife = {
+    dataType = "VEHICLEDATA_ENGINEOILLIFE", 
+    resultCode = "SUCCESS"
+  }
+}
+
+local vehicleDataResults2 = {
+  engineOilLife = {
+    dataType = "VEHICLEDATA_ENGINEOILLIFE", 
+    resultCode = "DATA_NOT_SUBSCRIBED"
+  }
+}
+
 --[[ Local Functions ]]
 local function processRPCSubscribeSuccess(self)
   local mobileSession = common.getMobileSession(self, 1)
@@ -43,10 +57,12 @@ local function processRPCSubscribeSuccess(self)
   EXPECT_HMICALL("VehicleInfo." .. rpc_subscribe.name, rpc_subscribe.params)
   :Do(function(_, data)
       self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS",
-        { engineOilLife = { dataType = "VEHICLEDATA_ENGINEOILLIFE", resultCode = "SUCCESS" } })
+        vehicleDataResults)
     end)
-  mobileSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS",
-    engineOilLife = { dataType = "VEHICLEDATA_ENGINEOILLIFE", resultCode = "SUCCESS" } })
+  local responseParams = vehicleDataResults
+  responseParams.success = true
+  responseParams.resultCode = "SUCCESS"
+  mobileSession:ExpectResponse(cid, responseParams)
 end
 
 local function processRPCUnsubscribeSuccess(self)
@@ -55,10 +71,12 @@ local function processRPCUnsubscribeSuccess(self)
   EXPECT_HMICALL("VehicleInfo." .. rpc_unsubscribe.name, rpc_unsubscribe.params)
   :Do(function(_, data)
       self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS",
-        { engineOilLife = { dataType = "VEHICLEDATA_ENGINEOILLIFE", resultCode = "SUCCESS" } })
+        vehicleDataResults)
     end)
-  mobileSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS",
-    engineOilLife = { dataType = "VEHICLEDATA_ENGINEOILLIFE", resultCode = "SUCCESS"} })
+  local responseParams = vehicleDataResults
+  responseParams.success = true
+  responseParams.resultCode = "SUCCESS"
+  mobileSession:ExpectResponse(cid, responseParams)
 end
 
 local function processRPCUnsubscribeIgnored(self)
@@ -66,9 +84,10 @@ local function processRPCUnsubscribeIgnored(self)
   local cid = mobileSession:SendRPC(rpc_unsubscribe.name, rpc_unsubscribe.params)
   EXPECT_HMICALL("VehicleInfo." .. rpc_unsubscribe.name, rpc_unsubscribe.params):Times(0)
   commonTestCases:DelayedExp(common.timeout)
-  mobileSession:ExpectResponse(cid, { success = false, resultCode = "IGNORED",
-    engineOilLife = {dataType = "VEHICLEDATA_ENGINEOILLIFE",
-    resultCode = "DATA_NOT_SUBSCRIBED"} })
+  local responseParams = vehicleDataResults2
+  responseParams.success = false
+  responseParams.resultCode = "IGNORED"
+  mobileSession:ExpectResponse(cid, responseParams)
 end
 
 --[[ Scenario ]]

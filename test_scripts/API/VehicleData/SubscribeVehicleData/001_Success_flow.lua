@@ -26,6 +26,13 @@ local rpc = {
   }
 }
 
+local vehicleDataResults = {
+  engineOilLife = {
+    dataType = "VEHICLEDATA_ENGINEOILLIFE", 
+    resultCode = "SUCCESS"
+  }
+}
+
 --[[ Local Functions ]]
 local function processRPCSuccess(self)
   local mobileSession = common.getMobileSession(self, 1)
@@ -33,10 +40,12 @@ local function processRPCSuccess(self)
   EXPECT_HMICALL("VehicleInfo." .. rpc.name, rpc.params)
   :Do(function(_, data)
       self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS",
-        {engineOilLife = {dataType = "VEHICLEDATA_ENGINEOILLIFE", resultCode = "SUCCESS"}})
+        vehicleDataResults)
     end)
-  mobileSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS",
-    engineOilLife = {dataType = "VEHICLEDATA_ENGINEOILLIFE", resultCode = "SUCCESS"} })
+  local responseParams = vehicleDataResults
+  responseParams.success = true
+  responseParams.resultCode = "SUCCESS"
+  mobileSession:ExpectResponse(cid, responseParams)
 end
 
 --[[ Scenario ]]

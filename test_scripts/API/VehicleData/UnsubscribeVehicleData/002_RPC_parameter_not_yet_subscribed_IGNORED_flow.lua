@@ -22,10 +22,17 @@ local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 
 --[[ Local Variables ]]
 local rpc = {
-    name = "UnsubscribeVehicleData",
-    params = {
+  name = "UnsubscribeVehicleData",
+  params = {
     engineOilLife = true
-    }
+  }
+}
+
+local vehicleDataResults = {
+  engineOilLife = {
+    dataType = "VEHICLEDATA_ENGINEOILLIFE", 
+    resultCode = "DATA_NOT_SUBSCRIBED"
+  }
 }
 
 --[[ Local Functions ]]
@@ -34,9 +41,10 @@ local function processRPCFailure(self)
   local cid = mobileSession:SendRPC(rpc.name, rpc.params)
   EXPECT_HMICALL("VehicleInfo." .. rpc.name, rpc.params):Times(0)
   commonTestCases:DelayedExp(common.timeout)
-  mobileSession:ExpectResponse(cid, { success = false, resultCode = "IGNORED",
-    info = "Some provided VehicleData was not subscribed.",
-    engineOilLife = {dataType = "VEHICLEDATA_ENGINEOILLIFE", resultCode = "DATA_NOT_SUBSCRIBED"} })
+  local responseParams = vehicleDataResults
+  responseParams.success = false
+  responseParams.resultCode = "IGNORED"
+  mobileSession:ExpectResponse(cid, responseParams)
 end
 
 --[[ Scenario ]]

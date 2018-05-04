@@ -20,10 +20,24 @@ local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 
 --[[ Local Variables ]]
 local rpc = {
-    name = "SubscribeVehicleData",
-    params = {
+  name = "SubscribeVehicleData",
+  params = {
     engineOilLife = true
-    }
+  }
+}
+
+local vehicleDataResults = {
+  engineOilLife = {
+    dataType = "VEHICLEDATA_ENGINEOILLIFE", 
+    resultCode = "SUCCESS"
+  }
+}
+
+local vehicleDataResults2 = {
+  engineOilLife = {
+    dataType = "VEHICLEDATA_ENGINEOILLIFE", 
+    resultCode = "DATA_ALREADY_SUBSCRIBED"
+  }
 }
 
 --[[ Local Functions ]]
@@ -33,10 +47,12 @@ local function processRPCSuccess(self)
   EXPECT_HMICALL("VehicleInfo." .. rpc.name, rpc.params)
   :Do(function(_, data)
       self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS",
-        {engineOilLife = {dataType = "VEHICLEDATA_ENGINEOILLIFE", resultCode = "SUCCESS"}})
+        vehicleDataResults)
     end)
-  mobileSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS",
-    engineOilLife = {dataType = "VEHICLEDATA_ENGINEOILLIFE", resultCode = "SUCCESS"} })
+  local responseParams = vehicleDataResults
+  responseParams.success = true
+  responseParams.resultCode = "SUCCESS"
+  mobileSession:ExpectResponse(cid, responseParams)
 end
 
 local function processRPCIgnored(self)
@@ -44,9 +60,10 @@ local function processRPCIgnored(self)
   local cid = mobileSession:SendRPC(rpc.name, rpc.params)
   EXPECT_HMICALL("VehicleInfo." .. rpc.name, rpc.params):Times(0)
   commonTestCases:DelayedExp(common.timeout)
-  mobileSession:ExpectResponse(cid, { success = false, resultCode = "IGNORED",
-    info = "Already subscribed on some provided VehicleData.",
-    engineOilLife = {dataType = "VEHICLEDATA_ENGINEOILLIFE", resultCode = "DATA_ALREADY_SUBSCRIBED"} })
+  local responseParams = vehicleDataResults2
+  responseParams.success = false
+  responseParams.resultCode = "IGNORED"
+  mobileSession:ExpectResponse(cid, responseParams)
 end
 
 --[[ Scenario ]]
