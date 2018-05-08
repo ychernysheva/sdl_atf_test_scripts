@@ -92,7 +92,6 @@ function m.policyTableUpdate(pPTUpdateFunc, pExpNotificationFunc, pRequestSubTyp
   if pExpNotificationFunc then
     pExpNotificationFunc()
   else
-    m.getHMIConnection():ExpectNotification("SDL.OnStatusUpdate", { status = "UP_TO_DATE" })
     m.getHMIConnection():ExpectRequest("VehicleInfo.GetVehicleData", { odometer = true })
   end
   local ptsFileName = commonFunctions:read_parameter_from_smart_device_link_ini("SystemFilesPath") .. "/"
@@ -152,9 +151,6 @@ function m.registerApp(pAppId)
         }
       })
       :Do(function()
-          m.getHMIConnection():ExpectNotification("SDL.OnStatusUpdate",
-            { status = "UPDATE_NEEDED" }, { status = "UPDATING" })
-          :Times(2)
           m.getHMIConnection():ExpectRequest("BasicCommunication.PolicyUpdate")
           :Do(function(_, d2)
               m.getHMIConnection():SendResponse(d2.id, d2.method, "SUCCESS", { })
