@@ -23,12 +23,19 @@ local common = require('test_scripts/API/VehicleData/commonVehicleData')
 local rpc = {
   name = "GetVehicleData",
   params = {
-    engineOilLife = true
+    engineOilLife = true,
+    fuelRange = true
   }
 }
 
-local vehicleDataValues {
-  engineOilLife = 50.30
+local vehicleDataValues = {
+  engineOilLife = 50.30,
+  fuelRange = {
+    {
+      type = "GASOLINE",
+      range = 400.00
+    }
+  }
 }
 
 --[[ Local Functions ]]

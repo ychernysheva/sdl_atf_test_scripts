@@ -23,20 +23,31 @@ local common = require('test_scripts/API/VehicleData/commonVehicleData')
 local rpc1 = {
   name = "SubscribeVehicleData",
   params = {
-    engineOilLife = true
+    engineOilLife = true,
+    fuelRange = true
   }
 }
 
 local rpc2 = {
   name = "OnVehicleData",
   params = {
-    engineOilLife = 50.3
+    engineOilLife = 50.3,
+    fuelRange = {
+      {
+        type = "GASOLINE",
+        range = 400.00
+      }
+    }
   }
 }
 
 local vehicleDataResults = {
   engineOilLife = {
     dataType = "VEHICLEDATA_ENGINEOILLIFE", 
+    resultCode = "SUCCESS"
+  },
+  fuelRange = {
+    dataType = "VEHICLEDATA_FUELRANGE", 
     resultCode = "SUCCESS"
   }
 }

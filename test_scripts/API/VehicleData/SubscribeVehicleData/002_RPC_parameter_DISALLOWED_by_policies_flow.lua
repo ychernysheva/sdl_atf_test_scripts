@@ -23,7 +23,8 @@ local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 local rpc = {
   name = "SubscribeVehicleData",
   params = {
-    engineOilLife = true
+    engineOilLife = true,
+    fuelRange = true
   }
 }
 
@@ -31,15 +32,21 @@ local vehicleDataResults = {
   engineOilLife = {
     dataType = "VEHICLEDATA_ENGINEOILLIFE", 
     resultCode = "DISALLOWED"
+  },
+  fuelRange = {
+    dataType = "VEHICLEDATA_FUELRANGE", 
+    resultCode = "DISALLOWED"
   }
 }
 
 --[[ Local Functions ]]
 local function ptu_update_func(tbl)
   local params = tbl.policy_table.functional_groupings["Emergency-1"].rpcs["SubscribeVehicleData"].parameters
+  local newParams = {}
   for index, value in pairs(params) do
-    if ("engineOilLife" == value) then table.remove(params, index) end
+    if not (("engineOilLife" == value) or ("fuelRange" == value)) then table.insert(newParams, value) end
   end
+  tbl.policy_table.functional_groupings["Emergency-1"].rpcs["SubscribeVehicleData"].parameters = newParams
 end
 
 local function processRPCFailure(self)

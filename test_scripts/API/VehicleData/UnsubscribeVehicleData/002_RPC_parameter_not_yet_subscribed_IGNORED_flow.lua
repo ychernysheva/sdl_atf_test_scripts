@@ -24,13 +24,18 @@ local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 local rpc = {
   name = "UnsubscribeVehicleData",
   params = {
-    engineOilLife = true
+    engineOilLife = true,
+    fuelRange = true
   }
 }
 
 local vehicleDataResults = {
   engineOilLife = {
     dataType = "VEHICLEDATA_ENGINEOILLIFE", 
+    resultCode = "DATA_NOT_SUBSCRIBED"
+  },
+  fuelRange = {
+    dataType = "VEHICLEDATA_FUELRANGE", 
     resultCode = "DATA_NOT_SUBSCRIBED"
   }
 }

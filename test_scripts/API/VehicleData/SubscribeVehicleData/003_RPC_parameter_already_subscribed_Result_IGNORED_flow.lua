@@ -22,7 +22,8 @@ local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 local rpc = {
   name = "SubscribeVehicleData",
   params = {
-    engineOilLife = true
+    engineOilLife = true,
+    fuelRange = true
   }
 }
 
@@ -30,12 +31,20 @@ local vehicleDataResults = {
   engineOilLife = {
     dataType = "VEHICLEDATA_ENGINEOILLIFE", 
     resultCode = "SUCCESS"
+  },
+  fuelRange = {
+    dataType = "VEHICLEDATA_FUELRANGE", 
+    resultCode = "SUCCESS"
   }
 }
 
 local vehicleDataResults2 = {
   engineOilLife = {
     dataType = "VEHICLEDATA_ENGINEOILLIFE", 
+    resultCode = "DATA_ALREADY_SUBSCRIBED"
+  },
+  fuelRange = {
+    dataType = "VEHICLEDATA_FUELRANGE", 
     resultCode = "DATA_ALREADY_SUBSCRIBED"
   }
 }

@@ -90,6 +90,7 @@ local function ptu(self, app_id, ptu_update_func)
        local function updatePTU(tbl)
         for rpc in pairs(tbl.policy_table.functional_groupings["Emergency-1"].rpcs) do
           addParamToRPC(tbl, "Emergency-1", rpc, "engineOilLife")
+          addParamToRPC(tbl, "Emergency-1", rpc, "fuelRange")
         end
         tbl.policy_table.app_policies[commonVehicleData.getMobileAppId(app_id)] = commonVehicleData.getGetVehicleDataConfig()
       end

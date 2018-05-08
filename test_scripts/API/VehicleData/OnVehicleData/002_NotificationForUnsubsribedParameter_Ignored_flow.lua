@@ -25,27 +25,39 @@ local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 local rpc1 = {
   name = "SubscribeVehicleData",
   params = {
-    engineOilLife = true
+    engineOilLife = true,
+    fuelRange = true
   }
 }
 
 local rpc2 = {
   name = "OnVehicleData",
   params = {
-    engineOilLife = 50.3
+    engineOilLife = 50.3,
+    fuelRange = {
+      {
+        type = "GASOLINE",
+        range = 400.00
+      }
+    }
   }
 }
 
 local rpc3 = {
   name = "UnsubscribeVehicleData",
   params = {
-    engineOilLife = true
+    engineOilLife = true,
+    fuelRange = true
   }
 }
 
 local vehicleDataResults = {
   engineOilLife = {
     dataType = "VEHICLEDATA_ENGINEOILLIFE", 
+    resultCode = "SUCCESS"
+  },
+  fuelRange = {
+    dataType = "VEHICLEDATA_FUELRANGE", 
     resultCode = "SUCCESS"
   }
 }
@@ -57,7 +69,7 @@ local function processRPCSubscribeSuccess(self)
   EXPECT_HMICALL("VehicleInfo." .. rpc1.name, rpc1.params)
   :Do(function(_, data)
       self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS",
-        vehicleDataResults})
+        vehicleDataResults)
     end)  
   local responseParams = vehicleDataResults
   responseParams.success = true
