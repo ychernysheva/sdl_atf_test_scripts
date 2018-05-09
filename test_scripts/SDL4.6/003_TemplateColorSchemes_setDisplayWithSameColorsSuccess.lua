@@ -1,3 +1,19 @@
+---------------------------------------------------------------------------------------------------
+-- Proposal: https://github.com/smartdevicelink/sdl_evolution/blob/master/proposals/0147-template-color-scheme.md
+--
+-- Description:
+-- SDL Core should track the number of attempted SetDisplayLayout requests with the current template and REJECT 
+-- any beyond the first with the reason "Using SetDisplayLayout to change the color scheme may only be done once.
+-- Sending A SetDisplayLayout with the same color should still return success.
+--
+-- Preconditions: Send SetDisplayLayout with a layout and a color scheme.
+--
+-- Steps: Send additional SetDisplayLayout with same layout and the same color scheme.
+--
+-- Expected result: 
+-- SDL Core returns SUCCESS
+---------------------------------------------------------------------------------------------------
+
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
 local commonSmoke = require('test_scripts/Smoke/commonSmoke')
