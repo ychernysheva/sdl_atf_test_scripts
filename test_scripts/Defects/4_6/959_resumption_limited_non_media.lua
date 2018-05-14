@@ -51,10 +51,11 @@ local function registrationWithResumption()
   end)
 end
 
-local function fullLevel()
-  onEventChange(false)
+local function DeactivateApp()
+  actions.getHMIConnection():SendNotification("BasicCommunication.OnAppDeactivated",
+    { appID =  actions.getHMIAppId(1)})
   actions.getMobileSession():ExpectNotification("OnHMIStatus",
-    { hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN" })
+    { hmiLevel = "LIMITED", audioStreamingState = "AUDIBLE", systemContext = "MAIN" })
 end
 
 --[[ Scenario ]]
@@ -63,12 +64,12 @@ runner.Step("Clean environment", commonDefects.preconditions)
 runner.Step("Start SDL, HMI, connect Mobile, start Session", actions.start)
 runner.Step("RAI, PTU", actions.registerApp)
 runner.Step("Activate app", actions.activateApp)
+runner.Step("Deactivate app to LIMITED", DeactivateApp)
 
 runner.Title("Test")
 runner.Step("Reconnect", reconnect)
 runner.Step("onEventChange AUDIO_SOURCE true", onEventChange, { true })
 runner.Step("App resumption in limited", registrationWithResumption)
-runner.Step("App resumption in full after event is false", fullLevel)
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", commonDefects.postconditions)
