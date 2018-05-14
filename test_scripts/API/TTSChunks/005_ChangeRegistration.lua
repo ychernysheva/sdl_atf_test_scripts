@@ -9,26 +9,36 @@
 -- Description:
 -- In case:
 -- 1) HMI provides ‘FILE’ item in ‘speechCapabilities’ parameter of ‘TTS.GetCapabilities’ response
--- 2) New app registers and send Speak with ‘FILE’ item in ‘ttsChunks’ parameter
+-- 2) New app registers and send ChangeRegistration with ‘FILE’ item in ‘ttsName’ parameter
 -- SDL does:
--- 1) Send TTS.Speak request to HMI with ‘FILE’ item in ‘ttsChunks’ parameter
+-- 1) Send TTS.ChangeRegistration request to HMI with ‘FILE’ item in ‘ttsName’ parameter
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
-local common = require('test_scripts/TTSChunks/common')
+local common = require('test_scripts/API/TTSChunks/common')
 
 --[[ Test Configuration ]]
 runner.testSettings.isSelfIncluded = false
 
 --[[ Local Functions ]]
-local function sendSpeak()
+local function sendChangeRegistration()
   local params = {
-    ttsChunks = {
+    language = "EN-US",
+    hmiDisplayLanguage = "EN-US",
+    ttsName = {
       { type = common.type, text = "pathToFile" }
     }
   }
-  local corId = common.getMobileSession():SendRPC("Speak", params)
-  common.getHMIConnection():ExpectRequest("TTS.Speak", { ttsChunks = params.ttsChunks })
+  local corId = common.getMobileSession():SendRPC("ChangeRegistration", params)
+  common.getHMIConnection():ExpectRequest("UI.ChangeRegistration")
+  :Do(function(_, data)
+      common.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", {})
+    end)
+  common.getHMIConnection():ExpectRequest("VR.ChangeRegistration")
+  :Do(function(_, data)
+      common.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", {})
+    end)
+  common.getHMIConnection():ExpectRequest("TTS.ChangeRegistration", { ttsName = params.ttsName })
   :Do(function(_, data)
       common.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", {})
     end)
@@ -43,7 +53,7 @@ runner.Step("Register App", common.registerApp)
 runner.Step("Activate App", common.activateApp)
 
 runner.Title("Test")
-runner.Step("Send Speak", sendSpeak)
+runner.Step("Send ChangeRegistration", sendChangeRegistration)
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", common.postconditions)

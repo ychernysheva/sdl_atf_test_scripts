@@ -17,7 +17,7 @@
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
-local common = require('test_scripts/TTSChunks/common')
+local common = require('test_scripts/API/TTSChunks/common')
 
 --[[ Test Configuration ]]
 runner.testSettings.isSelfIncluded = false

@@ -9,36 +9,34 @@
 -- Description:
 -- In case:
 -- 1) HMI provides ‘FILE’ item in ‘speechCapabilities’ parameter of ‘TTS.GetCapabilities’ response
--- 2) New app registers and send SetGlobalProperties with ‘FILE’ item in ‘helpPrompt’, ‘timeoutPrompt’ parameters
+-- 2) New app registers and send PerformAudioPassThru with ‘FILE’ item in ‘initialPrompt’ parameter
 -- SDL does:
--- 1) Send TTS.SetGlobalProperties request to HMI with ‘FILE’ item in ‘helpPrompt’, ‘timeoutPrompt’ parameters
+-- 1) Send TTS.Speak request to HMI with ‘FILE’ item in ‘ttsChunks’ parameter
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
-local common = require('test_scripts/TTSChunks/common')
+local common = require('test_scripts/API/TTSChunks/common')
 
 --[[ Test Configuration ]]
 runner.testSettings.isSelfIncluded = false
 
 --[[ Local Functions ]]
-local function sendSetGlobalProperties()
+local function sendPerformAudioPassThru()
   local params = {
-    helpPrompt = {
-      { type = common.type, text = "pathToFile1" }
-    },
-    timeoutPrompt = {
-      { type = common.type, text = "pathToFile2" }
+    samplingRate = "8KHZ",
+    maxDuration = 2000,
+    bitsPerSample = "8_BIT",
+    audioType = "PCM",
+    initialPrompt = {
+      { type = common.type, text = "pathToFile" }
     }
   }
-  local corId = common.getMobileSession():SendRPC("SetGlobalProperties", params)
-  common.getHMIConnection():ExpectRequest("UI.SetGlobalProperties")
+  local corId = common.getMobileSession():SendRPC("PerformAudioPassThru", params)
+  common.getHMIConnection():ExpectRequest("UI.PerformAudioPassThru")
   :Do(function(_, data)
       common.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", {})
     end)
-  common.getHMIConnection():ExpectRequest("TTS.SetGlobalProperties", {
-    helpPrompt = params.helpPrompt,
-    timeoutPrompt = params.timeoutPrompt
-  })
+  common.getHMIConnection():ExpectRequest("TTS.Speak", { ttsChunks = params.initialPrompt })
   :Do(function(_, data)
       common.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", {})
     end)
@@ -53,7 +51,7 @@ runner.Step("Register App", common.registerApp)
 runner.Step("Activate App", common.activateApp)
 
 runner.Title("Test")
-runner.Step("Send SetGlobalProperties", sendSetGlobalProperties)
+runner.Step("Send PerformAudioPassThru", sendPerformAudioPassThru)
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", common.postconditions)

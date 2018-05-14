@@ -9,36 +9,36 @@
 -- Description:
 -- In case:
 -- 1) HMI provides ‘FILE’ item in ‘speechCapabilities’ parameter of ‘TTS.GetCapabilities’ response
--- 2) New app registers and send ChangeRegistration with ‘FILE’ item in ‘ttsName’ parameter
+-- 2) New app registers and send SetGlobalProperties with ‘FILE’ item in ‘helpPrompt’, ‘timeoutPrompt’ parameters
 -- SDL does:
--- 1) Send TTS.ChangeRegistration request to HMI with ‘FILE’ item in ‘ttsName’ parameter
+-- 1) Send TTS.SetGlobalProperties request to HMI with ‘FILE’ item in ‘helpPrompt’, ‘timeoutPrompt’ parameters
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
-local common = require('test_scripts/TTSChunks/common')
+local common = require('test_scripts/API/TTSChunks/common')
 
 --[[ Test Configuration ]]
 runner.testSettings.isSelfIncluded = false
 
 --[[ Local Functions ]]
-local function sendChangeRegistration()
+local function sendSetGlobalProperties()
   local params = {
-    language = "EN-US",
-    hmiDisplayLanguage = "EN-US",
-    ttsName = {
-      { type = common.type, text = "pathToFile" }
+    helpPrompt = {
+      { type = common.type, text = "pathToFile1" }
+    },
+    timeoutPrompt = {
+      { type = common.type, text = "pathToFile2" }
     }
   }
-  local corId = common.getMobileSession():SendRPC("ChangeRegistration", params)
-  common.getHMIConnection():ExpectRequest("UI.ChangeRegistration")
+  local corId = common.getMobileSession():SendRPC("SetGlobalProperties", params)
+  common.getHMIConnection():ExpectRequest("UI.SetGlobalProperties")
   :Do(function(_, data)
       common.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", {})
     end)
-  common.getHMIConnection():ExpectRequest("VR.ChangeRegistration")
-  :Do(function(_, data)
-      common.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", {})
-    end)
-  common.getHMIConnection():ExpectRequest("TTS.ChangeRegistration", { ttsName = params.ttsName })
+  common.getHMIConnection():ExpectRequest("TTS.SetGlobalProperties", {
+    helpPrompt = params.helpPrompt,
+    timeoutPrompt = params.timeoutPrompt
+  })
   :Do(function(_, data)
       common.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", {})
     end)
@@ -53,7 +53,7 @@ runner.Step("Register App", common.registerApp)
 runner.Step("Activate App", common.activateApp)
 
 runner.Title("Test")
-runner.Step("Send ChangeRegistration", sendChangeRegistration)
+runner.Step("Send SetGlobalProperties", sendSetGlobalProperties)
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", common.postconditions)
