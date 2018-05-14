@@ -19,7 +19,6 @@ local mobile_session = require("mobile_session")
 local events = require("events")
 local json = require("modules/json")
 local actions = require("user_modules/sequences/actions")
-local test = require("user_modules/dummy_connecttest")
 
 --[[ Local Variables ]]
 
