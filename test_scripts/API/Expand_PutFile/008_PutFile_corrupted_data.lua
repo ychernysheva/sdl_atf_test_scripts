@@ -22,16 +22,17 @@ local json = require("modules/json")
 --[[ Test Configuration ]]
 runner.testSettings.isSelfIncluded = false
 
-
 --[[ Local Variables ]]
 local fileName = "./files/action.png"
 
-local function bytesToInt32(pVal, pOffset)
-  local res = bit32.lshift(string.byte(pVal, pOffset), 24) +
-  bit32.lshift(string.byte(pVal, pOffset + 1), 16) +
-  bit32.lshift(string.byte(pVal, pOffset + 2), 8) +
-  string.byte(pVal, pOffset + 3)
-  return res
+local PROTOCOL_HEADER_SIZE = 12
+
+local function getProtocolFrameSize(pVersion)
+  if pVersion == 2 then
+    return 1500
+  else
+    return 131084
+  end
 end
 
 local function int32ToBytes(pVal)
@@ -42,6 +43,39 @@ local function int32ToBytes(pVal)
     bit32.band(pVal, 0xff)
   )
   return res
+end
+
+local function createProtocolHeader(pMessage)
+  local res = string.char(
+    bit32.bor(
+      bit32.lshift(pMessage.version, 4),
+      (pMessage.encryption and 0x08 or 0),
+      bit32.band(pMessage.frameType, 0x07)),
+    pMessage.serviceType,
+    pMessage.frameInfo,
+    pMessage.sessionId) ..
+  (pMessage.binaryData and int32ToBytes(#pMessage.binaryData) or string.char(0, 0, 0, 0)) ..
+  int32ToBytes(pMessage.messageId)
+  return res
+end
+
+local function GetBinaryFrame(pMessage)
+  local max_protocol_payload_size = getProtocolFrameSize(pMessage.version)
+     - PROTOCOL_HEADER_SIZE
+  if pMessage.binaryData then
+    if #pMessage.binaryData > max_protocol_payload_size then
+      error("Size of current frame is bigger than max frame size for protocol version " .. pMessage.version)
+    end
+  else
+    pMessage.binaryData = ""
+  end
+  return createProtocolHeader(pMessage) .. pMessage.binaryData
+end
+
+local function SendFrame(pFrameMessage)
+  local frame = GetBinaryFrame(pFrameMessage)
+  local mobileConnection = common.getMobileSession().mobile_session_impl.connection
+  mobileConnection.connection:Send({frame})
 end
 
 local function rpcPayload(pMsg)
@@ -142,22 +176,12 @@ local function putFileByFrames(pParams)
   end
 
   for _, frame in pairs(frames) do
-    common.getMobileSession():SendPacket(frame)
+    SendFrame(frame)
   end
 
-  common.getMobileSession():ExpectResponse(correlationId, { success = pParams.success, resultCode = pParams.resultCode })
+  common.getMobileSession():ExpectResponse(correlationId,
+    { success = pParams.success, resultCode = pParams.resultCode })
 
-  common.getMobileSession():ExpectPacket({
-      sessionId = common.getMobileSession().sessionId,
-      frameType = 0x01,
-      serviceType = 0x07
-    },
-    function(binaryData)
-      local rpcFunctionId = bit32.band(bytesToInt32(binaryData, 1), 0x0fffffff)
-      local rpcCorrelationId = bytesToInt32(binaryData, 5)
-      if rpcFunctionId ~= 32 or rpcCorrelationId ~= correlationId then return false end
-      return true
-    end)
 end
 
 
