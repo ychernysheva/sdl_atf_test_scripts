@@ -18,6 +18,7 @@ local sdl = require("SDL")
 local mobile_session = require("mobile_session")
 local events = require("events")
 local json = require("modules/json")
+local actions = require("user_modules/sequences/actions")
 
 --[[ Local Variables ]]
 
@@ -537,6 +538,16 @@ end
 function commonDefect.getMobileSession(self, pAppId)
   if not pAppId then pAppId = 1 end
   return self["mobileSession" .. pAppId]
+end
+
+function commonDefect.pinOnHashChange(pAppId)
+  if not pAppId then pAppId = 1 end
+  actions.getMobileSession(pAppId):ExpectNotification("OnHashChange")
+  :Pin()
+  :Times(AnyNumber())
+  :Do(function(_, data)
+    commonDefect.hashId = data.payload.hashID
+  end)
 end
 
 return commonDefect
