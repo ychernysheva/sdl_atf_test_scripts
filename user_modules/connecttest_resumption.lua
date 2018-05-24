@@ -516,6 +516,7 @@ function module:initHMI_onReady()
       displayCapabilities =
       {
         displayType = "GEN2_8_DMA",
+        displayName = "GENERIC_DISPLAY",
         textFields =
         {
           text_field("mainField1"),

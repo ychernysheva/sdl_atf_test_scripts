@@ -162,6 +162,7 @@ local function getDisplayCapValues()
 	-- some capabilities are excluded due to SDL issue
 	return {
 		displayType = "GEN2_8_DMA",
+		displayName = "GENERIC_DISPLAY",
 		graphicSupported = true,
 		-- imageCapabilities = {
 		-- 	"DYNAMIC",

@@ -234,6 +234,7 @@ function StopStartSDL_HMI_MOBILE_VR_TTS(self)
 	      displayCapabilities =
 	      {
 	        displayType = "GEN2_8_DMA",
+	        displayName = "GENERIC_DISPLAY",
 	        textFields =
 	        {
 	          text_field("mainField1"),

@@ -2818,6 +2818,7 @@ local function displayCap_Value()
 	local displayCapabilities =
 							{
 								displayType = "GEN2_8_DMA",
+								displayName = "GENERIC_DISPLAY",
 								graphicSupported = true,
 								imageCapabilities =
 								{
