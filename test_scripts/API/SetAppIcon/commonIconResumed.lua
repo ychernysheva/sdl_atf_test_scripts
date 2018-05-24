@@ -185,4 +185,16 @@ function m.openConnection()
   test.mobileSession[1]:StartRPC()
 end
 
+local preconditionsOrig = m.preconditions
+
+--[[ @preconditions: Expand initial precondition with removing storage folder
+--! @parameters: none
+--! return: none
+--]]
+function m.preconditions()
+  preconditionsOrig()
+  local storage = commonPreconditions:GetPathToSDL() .. "storage"
+  os.execute("rm -rf " .. storage)
+end
+
 return m
