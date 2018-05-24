@@ -87,4 +87,12 @@ function m.addSubMenu(pParams)
   mobSession:ExpectNotification("OnHashChange")
 end
 
+local preconditionsOrig = m.preconditions
+
+function m.preconditions()
+  preconditionsOrig()
+  local storage = commonPreconditions:GetPathToSDL() .. "storage"
+  os.execute("rm -rf " .. storage)
+end
+
 return m
