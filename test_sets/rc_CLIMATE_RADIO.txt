@@ -89,7 +89,7 @@
 ./test_scripts/RC/CLIMATE_RADIO/OnRemoteControlSettings/022_Release_resource_on_PTU_with_module_disallow.lua
 ./test_scripts/RC/CLIMATE_RADIO/OnRemoteControlSettings/023_Release_resource_on_PTU_with_app_revoked.lua
 ./test_scripts/RC/CLIMATE_RADIO/OnRemoteControlSettings/024_Allowed_false_no_PTU.lua
-./test_scripts/RC/CLIMATE_RADIO/GetInteriorVehicleData/001_Success_flow.lua
+./test_scripts/RC/CLIMATE_RADIO/SetInteriorVehicleData/001_Success_flow.lua
 ./test_scripts/RC/CLIMATE_RADIO/SetInteriorVehicleData/002_Disallow_flow_by_policy_CLIMATE.lua
 ./test_scripts/RC/CLIMATE_RADIO/SetInteriorVehicleData/003_Disallow_flow_by_policy_RADIO.lua
 ./test_scripts/RC/CLIMATE_RADIO/SetInteriorVehicleData/004_Disallow_flow_in_case_appHMIType_is_not_REMOTE_CONTROL.lua
