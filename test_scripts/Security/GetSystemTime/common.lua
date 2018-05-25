@@ -129,7 +129,7 @@ m.postconditions = common.postconditions
 local preconditionsOrig = m.preconditions
 function m.preconditions()
   preconditionsOrig()
-  common.initSDLCertificates("./files/Security/client_credential.pem", false)
+  common.initSDLCertificates("./files/Security/GetSystemTime_certificates/client_credential.pem", false)
 end
 
 return m
