@@ -26,7 +26,8 @@ local rpc1 = {
   name = "SubscribeVehicleData",
   params = {
     engineOilLife = true,
-    fuelRange = true
+    fuelRange = true,
+    tirePressure = true
   }
 }
 
@@ -39,6 +40,18 @@ local rpc2 = {
         type = "GASOLINE",
         range = 400.00
       }
+    },
+    tirePressure = {
+      leftFront = {
+        status = "NORMAL",
+        tpms = "SYSTEM_ACTIVE",
+        pressure = 35.00
+      },
+      rightFront = {
+        status = "NORMAL",
+        tpms = "SYSTEM_ACTIVE",
+        pressure = 35.00
+      }
     }
   }
 }
@@ -47,7 +60,8 @@ local rpc3 = {
   name = "UnsubscribeVehicleData",
   params = {
     engineOilLife = true,
-    fuelRange = true
+    fuelRange = true,
+    tirePressure = true
   }
 }
 
@@ -58,6 +72,10 @@ local vehicleDataResults = {
   },
   fuelRange = {
     dataType = "VEHICLEDATA_FUELRANGE", 
+    resultCode = "SUCCESS"
+  },
+  tirePressure = {
+    dataType = "VEHICLEDATA_TIREPRESSURE", 
     resultCode = "SUCCESS"
   }
 }

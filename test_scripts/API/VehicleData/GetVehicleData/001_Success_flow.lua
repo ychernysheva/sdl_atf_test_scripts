@@ -24,7 +24,8 @@ local rpc = {
   name = "GetVehicleData",
   params = {
     engineOilLife = true,
-    fuelRange = true
+    fuelRange = true,
+    tirePressure = true
   }
 }
 
@@ -35,8 +36,22 @@ local vehicleDataValues = {
       type = "GASOLINE",
       range = 400.00
     }
+  },
+  tirePressure = {
+    leftFront = {
+      status = "NORMAL",
+      tpms = "SYSTEM_ACTIVE",
+      pressure = 35.00
+    },
+    rightFront = {
+      status = "NORMAL",
+      tpms = "SYSTEM_ACTIVE",
+      pressure = 35.00
+    }
   }
 }
+
+
 
 --[[ Local Functions ]]
 local function processRPCSuccess(self)

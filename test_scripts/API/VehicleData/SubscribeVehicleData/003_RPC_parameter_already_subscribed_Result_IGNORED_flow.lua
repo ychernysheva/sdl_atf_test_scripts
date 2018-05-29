@@ -23,7 +23,8 @@ local rpc = {
   name = "SubscribeVehicleData",
   params = {
     engineOilLife = true,
-    fuelRange = true
+    fuelRange = true,
+    tirePressure = true
   }
 }
 
@@ -35,6 +36,10 @@ local vehicleDataResults = {
   fuelRange = {
     dataType = "VEHICLEDATA_FUELRANGE", 
     resultCode = "SUCCESS"
+  },
+  tirePressure = {
+    dataType = "VEHICLEDATA_TIREPRESSURE", 
+    resultCode = "SUCCESS"
   }
 }
 
@@ -45,6 +50,10 @@ local vehicleDataResults2 = {
   },
   fuelRange = {
     dataType = "VEHICLEDATA_FUELRANGE", 
+    resultCode = "DATA_ALREADY_SUBSCRIBED"
+  },
+  tirePressure = {
+    dataType = "VEHICLEDATA_TIREPRESSURE", 
     resultCode = "DATA_ALREADY_SUBSCRIBED"
   }
 }
