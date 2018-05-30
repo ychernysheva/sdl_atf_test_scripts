@@ -27,22 +27,20 @@ end
 
 local function listFilesRequests(self)
 	for i = 1, 10 do
-	self.mobileSession1:SendRPC("ListFiles", {})
+		self.mobileSession1:SendRPC("ListFiles", {})
 	end
 	self.mobileSession1:ExpectResponse("ListFiles")
 	:Do(function(_, data)
-		if
-			data.payload.resultCode == "SUCCESS" then
+		if data.payload.resultCode == "SUCCESS" then
 			return true
-		elseif
-			data.payload.resultCode == "APPLICATION_NOT_REGISTERED" then
+		elseif data.payload.resultCode == "APPLICATION_NOT_REGISTERED" then
 			return true
 		else return false, "Received unexpected resultCode " .. data.payload.resultCode
 		end
 	end)
-	:Times(AtMost(10))
-	EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered", {appID = common.getHMIAppId(pAppId), unexpectedDisconnect = false})
-	self.mobileSession1:ExpectNotification("OnAppInterfaceUnregistered", {{reason = reason }})
+	:Times(Between(1,10))
+	EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered", {appID = common.getHMIAppId(), unexpectedDisconnect = false})
+	self.mobileSession1:ExpectNotification("OnAppInterfaceUnregistered", { reason = "REQUEST_WHILE_IN_NONE_HMI_LEVEL" })
 end
 
 --[[ Scenario ]]
