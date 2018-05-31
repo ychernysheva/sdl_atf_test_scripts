@@ -51,8 +51,6 @@ local vehicleDataValues = {
   }
 }
 
-
-
 --[[ Local Functions ]]
 local function processRPCSuccess(self)
   local mobileSession = common.getMobileSession(self, 1)
