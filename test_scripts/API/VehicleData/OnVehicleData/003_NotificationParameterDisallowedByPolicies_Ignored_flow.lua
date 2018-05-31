@@ -26,7 +26,8 @@ local rpc1 = {
   name = "SubscribeVehicleData",
   params = {
     engineOilLife = true,
-    fuelRange = true
+    fuelRange = true,
+    tirePressure = true
   }
 }
 
@@ -38,6 +39,18 @@ local rpc2 = {
       {
         type = "GASOLINE",
         range = 400.00
+      }
+    },
+    tirePressure = {
+      leftFront = {
+        status = "NORMAL",
+        tpms = "SYSTEM_ACTIVE",
+        pressure = 35.00
+      },
+      rightFront = {
+        status = "NORMAL",
+        tpms = "SYSTEM_ACTIVE",
+        pressure = 35.00
       }
     }
   }
@@ -51,6 +64,10 @@ local vehicleDataResults = {
   fuelRange = {
     dataType = "VEHICLEDATA_FUELRANGE", 
     resultCode = "SUCCESS"
+  },
+  tirePressure = {
+    dataType = "VEHICLEDATA_TIREPRESSURE", 
+    resultCode = "SUCCESS"
   }
 }
 
@@ -59,7 +76,7 @@ local function ptu_update_func(tbl)
   local params = tbl.policy_table.functional_groupings["Emergency-1"].rpcs["OnVehicleData"].parameters
   local newParams = {}
   for index, value in pairs(params) do
-    if not (("engineOilLife" == value) or ("fuelRange" == value)) then table.insert(newParams, value) end
+    if not (("engineOilLife" == value) or ("fuelRange" == value) or ("tirePressure" == value)) then table.insert(newParams, value) end
   end
   tbl.policy_table.functional_groupings["Emergency-1"].rpcs["OnVehicleData"].parameters = newParams
 end
