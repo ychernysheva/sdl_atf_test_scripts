@@ -1,5 +1,15 @@
 ---------------------------------------------------------------------------------------------------
--- Issue:
+-- Issue: https://github.com/smartdevicelink/sdl_core/issues/2129
+---------------------------------------------------------------------------------------------------
+-- Description:
+-- In case:
+-- 1) There are 2 mobile apps:
+--   app1: is audio source ('audioStreamingState' = AUDIBLE)
+--   app2: is not audio source ('audioStreamingState' = NOT_AUDIBLE)
+-- 2) Mobile app2 is activated
+-- SDL must:
+-- 1) Send OnHMIStatus notification for both apps with appropriate value of 'audioStreamingState' parameter
+-- Particular value depends on app's 'appHMIType' and 'isMediaApplication' flag, and described in 'testCases' table below
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local common = require('test_scripts/MobileProjection/Phase2/common')

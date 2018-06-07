@@ -1,5 +1,17 @@
 ---------------------------------------------------------------------------------------------------
--- Issue:
+-- Issue: https://github.com/smartdevicelink/sdl_core/issues/2129
+---------------------------------------------------------------------------------------------------
+-- Description:
+-- In case:
+-- 1) There are 2 mobile apps:
+--   app1: NAVIGATION, is audio source ('audioStreamingState' = AUDIBLE)
+--   app2: MEDIA, is audio source ('audioStreamingState' = AUDIBLE)
+-- 2) And NAVI app starts streaming
+-- SDL must:
+-- 1) Not change the value of 'audioStreamingState' parameter for NAVI app
+-- 2) Change 'audioStreamingState' parameter for MEDIA app to:
+--   ATTENUATED - in case if MixingAudioSupported = true
+--   NOT_AUDIBLE - in case if MixingAudioSupported = false
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local common = require('test_scripts/MobileProjection/Phase2/common')

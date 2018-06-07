@@ -1,5 +1,14 @@
 ---------------------------------------------------------------------------------------------------
--- Issue:
+-- Issue: https://github.com/smartdevicelink/sdl_core/issues/2129
+---------------------------------------------------------------------------------------------------
+-- Description:
+-- In case:
+-- 1) Mobile app is in some state
+-- 2) Mobile app is moving to another state by one of the events:
+--   App activation, App deactivation, Deactivation of HMI, User exit
+-- SDL must:
+-- 1) Send (or not send) OnHMIStatus notification with appropriate value of 'hmiLevel' parameter
+-- Particular behavior and value depends on initial state and event, and described in 'testCases' table below
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local common = require('test_scripts/MobileProjection/Phase2/common')

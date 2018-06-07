@@ -1,5 +1,16 @@
 ---------------------------------------------------------------------------------------------------
--- Issue:
+-- Issue: https://github.com/smartdevicelink/sdl_core/issues/2129
+---------------------------------------------------------------------------------------------------
+-- Description:
+-- In case:
+-- 1) There are 2 mobile apps:
+--   app1: is video source ('videoStreamingState' = STREAMABLE)
+--   app2: is not video source ('audioStreamingState' = NOT_STREAMABLE)
+-- 2) Mobile app1 is deactivated
+-- 3) Mobile app2 is activated
+-- SDL must:
+-- 1) Send OnHMIStatus notification for both apps with appropriate value of 'videoStreamingState' parameter
+-- Particular value depends on app's 'appHMIType' and described in 'testCases' table below
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local common = require('test_scripts/MobileProjection/Phase2/common')

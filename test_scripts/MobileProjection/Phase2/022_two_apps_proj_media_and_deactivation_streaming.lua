@@ -1,5 +1,19 @@
 ---------------------------------------------------------------------------------------------------
--- Issue:
+-- Issue: https://github.com/smartdevicelink/sdl_core/issues/2129
+---------------------------------------------------------------------------------------------------
+-- Description:
+-- In case:
+-- 1) There are 2 mobile apps:
+--   app1: PROJECTION, isMediaApplication = true
+--   app2: MEDIA, isMediaApplication = true
+-- 2) And app1 activated, starts Video streaming and then deactivated
+-- 3) And app2 activated and then deactivated
+-- SDL must: (in case of deactivation of app1)
+-- 1) Send 'OnHMIStatus' notification to app1: 'audioStreamingState' = AUDIBLE and 'videoStreamingState' = STREAMABLE
+-- 2) Not send 'OnHMIStatus' notification to app2
+-- SDL must: (in case of deactivation of app2)
+-- 1) Not send 'OnHMIStatus' notification to app1
+-- 2) Send 'OnHMIStatus' notification to app2: 'audioStreamingState' = AUDIBLE and 'videoStreamingState' = NOT_STREAMABLE
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local common = require('test_scripts/MobileProjection/Phase2/common')

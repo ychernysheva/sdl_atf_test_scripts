@@ -1,5 +1,14 @@
 ---------------------------------------------------------------------------------------------------
--- Issue:
+-- Issue: https://github.com/smartdevicelink/sdl_core/issues/2129
+---------------------------------------------------------------------------------------------------
+-- Description:
+-- In case:
+-- 1) There is a mobile app which is video source
+-- 2) And this app starts Audio/Video streaming
+-- 3) And this app is deactivated
+-- SDL must:
+-- 1) Not change the value of 'audioStreamingState' and 'videoStreamingState' parameters in 'OnHMIStatus'
+-- 2) Change the value of 'hmiLevel' to LIMITED
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local common = require('test_scripts/MobileProjection/Phase2/common')

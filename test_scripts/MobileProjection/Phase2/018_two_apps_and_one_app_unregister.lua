@@ -1,5 +1,14 @@
 ---------------------------------------------------------------------------------------------------
--- Issue:
+-- Issue: https://github.com/smartdevicelink/sdl_core/issues/2129
+---------------------------------------------------------------------------------------------------
+-- Description:
+-- In case:
+-- 1) There are 2 mobile apps registered: PROJECTION and NAVIGATION
+-- 2) Mobile app1 is activated
+-- 3) Mobile app2 is activated
+-- 4) Mobile App2 is unregistered
+-- SDL must:
+-- 1) Not send 'OnHMIStatus' notification to app1
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local common = require('test_scripts/MobileProjection/Phase2/common')

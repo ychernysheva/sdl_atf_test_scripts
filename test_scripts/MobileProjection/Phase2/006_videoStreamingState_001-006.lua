@@ -1,5 +1,12 @@
 ---------------------------------------------------------------------------------------------------
--- Issue:
+-- Issue: https://github.com/smartdevicelink/sdl_core/issues/2129
+---------------------------------------------------------------------------------------------------
+-- Description:
+-- In case:
+-- 1) Mobile app is activated
+-- SDL must:
+-- 1) Send OnHMIStatus notification with appropriate value of 'videoStreamingState' parameter
+-- Particular value depends on app's 'appHMIType' and described in 'testCases' table below
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local common = require('test_scripts/MobileProjection/Phase2/common')

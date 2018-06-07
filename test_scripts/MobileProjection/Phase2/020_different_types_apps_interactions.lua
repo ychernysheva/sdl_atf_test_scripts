@@ -1,5 +1,26 @@
 ---------------------------------------------------------------------------------------------------
--- Issue:
+-- Issue: https://github.com/smartdevicelink/sdl_core/issues/2129
+---------------------------------------------------------------------------------------------------
+-- Description:
+-- In case:
+-- 1) There are 4 mobile apps:
+--   MEDIA (isMediaApplication = true)
+--   PROJECTION (isMediaApplication = false)
+--   DEFAULT (isMediaApplication = false)
+--   NAVIGATION (isMediaApplication = true)
+-- 2) And there is the following sequence of actions:
+--   Activation of app1
+--   Activation of app2
+--   Activation of app3
+--   Activation of app4
+--   HMI sends PHONE_CALL event (active/inactive)
+--   Activation of app2
+--   HMI sends EMBEDDED_NAVI event (active/inactive)
+-- SDL must:
+-- 1) Send (or not send) 'OnHMIStatus' notification to all apps with appropriate value for
+-- 'hmiLevel', 'audioStreamingState' and 'videoStreamingState' parameters
+-- Particular values depends on app's 'appHMIType', 'isMediaApplication' flag, current app's state
+-- and described in 'testCases' table below
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local common = require('test_scripts/MobileProjection/Phase2/common')

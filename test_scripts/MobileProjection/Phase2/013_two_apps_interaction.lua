@@ -1,5 +1,18 @@
 ---------------------------------------------------------------------------------------------------
--- Issue:
+-- Issue: https://github.com/smartdevicelink/sdl_core/issues/2129
+---------------------------------------------------------------------------------------------------
+-- Description:
+-- In case:
+-- 1) Mobile app1 is registered and activated
+-- 2) Mobile app2 is registered
+-- 3) Mobile app1 is deactivated
+-- 4) Mobile app2 is activated
+-- SDL must:
+-- 1) Send 'OnHMIStatus' notification to app1 with appropriate values for 'audioStreamingState'
+-- and 'videoStreamingState' parameters when app1 is deactivated
+-- 2) Send 'OnHMIStatus' notification to app1 and app2 with appropriate values for 'audioStreamingState'
+-- and 'videoStreamingState' parameters when app2 is activated
+-- Particular values depends on app's 'appHMIType' and described in 'testCases' table below
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local common = require('test_scripts/MobileProjection/Phase2/common')

@@ -1,5 +1,15 @@
 ---------------------------------------------------------------------------------------------------
--- Issue:
+-- Issue: https://github.com/smartdevicelink/sdl_core/issues/2129
+---------------------------------------------------------------------------------------------------
+-- Description:
+-- In case:
+-- 1) There are 2 mobile apps registered: PROJECTION and NAVIGATION
+-- 2) Mobile app1 is activated
+-- 3) Mobile app2 is activated
+-- 4) HMI sends 'BC.OnExitApplication' (USER_EXIT) for app2
+-- SDL must:
+-- 1) Not send 'OnHMIStatus' notification to app1
+-- 2) Send 'OnHMIStatus' notification to app2 with 'hmiLevel' = NONE
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local common = require('test_scripts/MobileProjection/Phase2/common')

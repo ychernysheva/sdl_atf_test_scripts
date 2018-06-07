@@ -1,5 +1,13 @@
 ---------------------------------------------------------------------------------------------------
--- Issue:
+-- Issue: https://github.com/smartdevicelink/sdl_core/issues/2129
+---------------------------------------------------------------------------------------------------
+-- Description:
+-- In case:
+-- 1) There is a mobile app which is video source
+-- 2) And this app starts Video streaming
+-- 3) And this app stops Video streaming
+-- SDL must:
+-- 1) Not send 'OnHMIStatus' when Video streaming is started or stopped
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local common = require('test_scripts/MobileProjection/Phase2/common')

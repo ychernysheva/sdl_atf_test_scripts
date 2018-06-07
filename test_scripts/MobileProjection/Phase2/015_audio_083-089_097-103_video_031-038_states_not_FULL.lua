@@ -1,5 +1,17 @@
 ---------------------------------------------------------------------------------------------------
--- Issue:
+-- Issue: https://github.com/smartdevicelink/sdl_core/issues/2129
+---------------------------------------------------------------------------------------------------
+-- Description:
+-- In case:
+-- 1) Mobile app is audio/video source
+-- 2) Mobile app is deactivated
+-- 3) One of the event below is received from HMI within 'BC.OnEventChanged' (isActive = true) notification:
+--   DEACTIVATE_HMI, AUDIO_SOURCE
+-- 4) The same event notification (isActive = false) is received
+-- SDL must:
+-- 1) Send OnHMIStatus notification with 'audioStreamingState' = NOT_AUDIBLE and 'videoStreamingState' = NOT_STREAMABLE
+-- 2) Restore original state of mobile app
+-- Particular value depends on app's 'appHMIType' and described in 'testCases' table below
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local common = require('test_scripts/MobileProjection/Phase2/common')

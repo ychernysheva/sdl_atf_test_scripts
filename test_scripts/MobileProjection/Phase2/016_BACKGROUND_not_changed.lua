@@ -1,5 +1,17 @@
 ---------------------------------------------------------------------------------------------------
--- Issue:
+-- Issue: https://github.com/smartdevicelink/sdl_core/issues/2129
+---------------------------------------------------------------------------------------------------
+-- Description:
+-- In case:
+-- 1) There are 2 mobile apps registered:
+--   app1: is not audio/video source
+--   app2: is NAVIGATION
+-- 2) Mobile app1 is activated
+-- 3) Mobile app1 is deactivated (moved to BACKGROUND)
+-- 4) Mobile app2 is activated
+-- SDL must:
+-- 1) Not send 'OnHMIStatus' notification to app1
+-- 2) Send 'OnHMIStatus' notification to app2 with 'hmiLevel' = FULL
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local common = require('test_scripts/MobileProjection/Phase2/common')

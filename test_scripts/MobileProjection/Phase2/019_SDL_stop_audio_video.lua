@@ -1,5 +1,19 @@
 ---------------------------------------------------------------------------------------------------
--- Issue:
+-- Issue: https://github.com/smartdevicelink/sdl_core/issues/2129
+---------------------------------------------------------------------------------------------------
+-- Description:
+-- In case:
+-- 1) There is a mobile app which is audio/video source
+-- 2) And this app starts Audio/Video streaming
+-- 3) And HMI sends 'BC.OnEventChanged' (AUDIO_SOURCE)
+-- 4) And app still continue streaming
+-- SDL must:
+-- 1) Send to HMI:
+--   Navigation.OnAudioDataStreaming(available = false)
+--   Navigation.OnVideoDataStreaming(available = false)
+--   Navigation.StopAudioStream
+--   Navigation.StopStream
+-- 2) Send End Audio/Video service control messages to app
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local common = require('test_scripts/MobileProjection/Phase2/common')

@@ -1,5 +1,13 @@
 ---------------------------------------------------------------------------------------------------
--- Issue:
+-- Issue: https://github.com/smartdevicelink/sdl_core/issues/2129
+---------------------------------------------------------------------------------------------------
+-- Description:
+-- In case:
+-- 1) Mobile app is audio source ('audioStreamingState' = AUDIBLE)
+-- 2) One of the event below is received from HMI within 'BC.OnEventChanged' notification:
+--   PHONE_CALL, EMERGENCY_EVENT, AUDIO_SOURCE, EMBEDDED_NAVI, DEACTIVATE_HMI
+-- SDL must:
+-- 1) Send OnHMIStatus notification with 'audioStreamingState' = NOT_AUDIBLE
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local common = require('test_scripts/MobileProjection/Phase2/common')
