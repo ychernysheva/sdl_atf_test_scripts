@@ -15,29 +15,61 @@
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
-local common = require('test_scripts/API/TTSChunks/common')
+local common = require('test_scripts/SDL4_6/TTSChunks/common')
+
+--[[ Local Variables ]]
+local putFileParams = {
+  requestParams = {
+    syncFileName = 'pathToFile1',
+    fileType = "GRAPHIC_PNG",
+    persistentFile = false,
+    systemFile = false
+  },
+  filePath = "files/icon.png"
+}
+
+local putFileParams2 = {
+  requestParams = {
+    syncFileName = 'pathToFile2',
+    fileType = "GRAPHIC_PNG",
+    persistentFile = false,
+    systemFile = false
+  },
+  filePath = "files/icon.png"
+}
+
+local params = {
+  helpPrompt = {
+    { type = common.type, text = "pathToFile1" }
+  },
+  timeoutPrompt = {
+    { type = common.type, text = "pathToFile2" }
+  }
+}
+
+local hmiParams = {
+  helpPrompt = {
+    { type = common.type, text = common.getPathToFileInStorage("pathToFile1") }
+  },
+  timeoutPrompt = {
+    { type = common.type, text = common.getPathToFileInStorage("pathToFile2") }
+  }
+}
 
 --[[ Test Configuration ]]
 runner.testSettings.isSelfIncluded = false
 
 --[[ Local Functions ]]
-local function sendSetGlobalProperties()
-  local params = {
-    helpPrompt = {
-      { type = common.type, text = "pathToFile1" }
-    },
-    timeoutPrompt = {
-      { type = common.type, text = "pathToFile2" }
-    }
-  }
+local function sendSetGlobalProperties_FILE_NOT_FOUND()
   local corId = common.getMobileSession():SendRPC("SetGlobalProperties", params)
-  common.getHMIConnection():ExpectRequest("UI.SetGlobalProperties")
-  :Do(function(_, data)
-      common.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", {})
-    end)
+  common.getMobileSession():ExpectResponse(corId, { success = false, resultCode = "FILE_NOT_FOUND" })
+end
+
+local function sendSetGlobalProperties_SUCCESS()
+  local corId = common.getMobileSession():SendRPC("SetGlobalProperties", params)
   common.getHMIConnection():ExpectRequest("TTS.SetGlobalProperties", {
-    helpPrompt = params.helpPrompt,
-    timeoutPrompt = params.timeoutPrompt
+    helpPrompt = hmiParams.helpPrompt,
+    timeoutPrompt = hmiParams.timeoutPrompt
   })
   :Do(function(_, data)
       common.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", {})
@@ -53,7 +85,10 @@ runner.Step("Register App", common.registerApp)
 runner.Step("Activate App", common.activateApp)
 
 runner.Title("Test")
-runner.Step("Send SetGlobalProperties", sendSetGlobalProperties)
+runner.Step("Send SetGlobalProperties FILE_NOT_FOUND response", sendSetGlobalProperties_FILE_NOT_FOUND)
+runner.Step("Upload first icon file", common.putFile, { putFileParams })
+runner.Step("Upload second icon file", common.putFile, { putFileParams2 })
+runner.Step("Send SetGlobalProperties SUCCESS response", sendSetGlobalProperties_SUCCESS)
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", common.postconditions)

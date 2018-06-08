@@ -17,14 +17,74 @@
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
-local common = require('test_scripts/API/TTSChunks/common')
+local common = require('test_scripts/SDL4_6/TTSChunks/common')
+
+--[[ Local Variables ]]
+local putFileParams = {
+  requestParams = {
+    syncFileName = 'pathToFile1',
+    fileType = "GRAPHIC_PNG",
+    persistentFile = false,
+    systemFile = false
+  },
+  filePath = "files/icon.png"
+}
+
+local putFileParams2 = {
+  requestParams = {
+    syncFileName = 'pathToFile2',
+    fileType = "GRAPHIC_PNG",
+    persistentFile = false,
+    systemFile = false
+  },
+  filePath = "files/icon.png"
+}
+
+local putFileParams3 = {
+  requestParams = {
+    syncFileName = 'pathToFile3',
+    fileType = "GRAPHIC_PNG",
+    persistentFile = false,
+    systemFile = false
+  },
+  filePath = "files/icon.png"
+}
+
+
+local params = {
+  initialText = "StartPerformInteraction",
+  interactionMode = "VR_ONLY",
+  interactionChoiceSetIDList = { 100 },
+  initialPrompt = {
+    { type = common.type, text = "pathToFile1" }
+  },
+  helpPrompt = {
+    { type = common.type, text = "pathToFile2" }
+  },
+  timeoutPrompt = {
+    { type = common.type, text = "pathToFile3" }
+  }
+}
+
+
+local hmiParams = {
+  initialPrompt = {
+    { type = common.type, text = common.getPathToFileInStorage("pathToFile1") }
+  },
+  helpPrompt = {
+    { type = common.type, text = common.getPathToFileInStorage("pathToFile2") }
+  },
+  timeoutPrompt = {
+    { type = common.type, text = common.getPathToFileInStorage("pathToFile3") }
+  }
+}
 
 --[[ Test Configuration ]]
 runner.testSettings.isSelfIncluded = false
 
 --[[ Local Functions ]]
 local function createInteractionChoiceSet()
-  local params = {
+  local choiceParams = {
     interactionChoiceSetID = 100,
     choiceSet = {
       {
@@ -34,7 +94,7 @@ local function createInteractionChoiceSet()
       }
     }
   }
-  local corId = common.getMobileSession():SendRPC("CreateInteractionChoiceSet", params)
+  local corId = common.getMobileSession():SendRPC("CreateInteractionChoiceSet", choiceParams)
   common.getHMIConnection():ExpectRequest("VR.AddCommand")
   :Do(function(_, data)
       common.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", {})
@@ -42,30 +102,21 @@ local function createInteractionChoiceSet()
   common.getMobileSession():ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
 end
 
-local function sendPerformInteraction()
-  local params = {
-    initialText = "StartPerformInteraction",
-    interactionMode = "VR_ONLY",
-    interactionChoiceSetIDList = { 100 },
-    initialPrompt = {
-      { type = common.type, text = "pathToFile1" }
-    },
-    helpPrompt = {
-      { type = common.type, text = "pathToFile2" }
-    },
-    timeoutPrompt = {
-      { type = common.type, text = "pathToFile3" }
-    }
-  }
+local function sendPerformInteraction_FILE_NOT_FOUND()
+  local corId = common.getMobileSession():SendRPC("PerformInteraction", params)
+  common.getMobileSession():ExpectResponse(corId, { success = false, resultCode = "FILE_NOT_FOUND" })
+end
+
+local function sendPerformInteraction_SUCCESS()
   local corId = common.getMobileSession():SendRPC("PerformInteraction", params)
   common.getHMIConnection():ExpectRequest("UI.PerformInteraction")
   :Do(function(_, data)
       common.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", {})
     end)
   common.getHMIConnection():ExpectRequest("VR.PerformInteraction", {
-    initialPrompt = params.initialPrompt,
-    helpPrompt = params.helpPrompt,
-    timeoutPrompt = params.timeoutPrompt
+    initialPrompt = hmiParams.initialPrompt,
+    helpPrompt = hmiParams.helpPrompt,
+    timeoutPrompt = hmiParams.timeoutPrompt
   })
   :Do(function(_, data)
       common.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", {})
@@ -82,7 +133,11 @@ runner.Step("Activate App", common.activateApp)
 runner.Step("Create InteractionChoiceSet", createInteractionChoiceSet)
 
 runner.Title("Test")
-runner.Step("Send PerformInteraction", sendPerformInteraction)
+runner.Step("Send PerformInteraction FILE_NOT_FOUND response", sendPerformInteraction_FILE_NOT_FOUND)
+runner.Step("Upload first icon file", common.putFile, { putFileParams })
+runner.Step("Upload second icon file", common.putFile, { putFileParams2 })
+runner.Step("Upload third icon file", common.putFile, { putFileParams3 })
+runner.Step("Send PerformInteraction SUCCESS response", sendPerformInteraction_SUCCESS)
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", common.postconditions)

@@ -9,34 +9,49 @@
 -- Description:
 -- In case:
 -- 1) HMI provides ‘FILE’ item in ‘speechCapabilities’ parameter of ‘TTS.GetCapabilities’ response
--- 2) New app registers and send PerformAudioPassThru with ‘FILE’ item in ‘initialPrompt’ parameter
+-- 2) New app registers and send Alert with ‘FILE’ item in ‘ttsChunks’ parameter
 -- SDL does:
 -- 1) Send TTS.Speak request to HMI with ‘FILE’ item in ‘ttsChunks’ parameter
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
-local common = require('test_scripts/API/TTSChunks/common')
+local common = require('test_scripts/SDL4_6/TTSChunks/common')
+
+--[[ Local Variables ]]
+local putFileParams = {
+  requestParams = {
+    syncFileName = 'pathToFile',
+    fileType = "GRAPHIC_PNG",
+    persistentFile = false,
+    systemFile = false
+  },
+  filePath = "files/icon.png"
+}
+
+local params = {
+  ttsChunks = {
+    { type = common.type, text = "pathToFile" }
+  }
+}
+
+local hmiParams = {
+  ttsChunks = {
+    { type = common.type, text = common.getPathToFileInStorage("pathToFile") }
+  }
+}
 
 --[[ Test Configuration ]]
 runner.testSettings.isSelfIncluded = false
 
 --[[ Local Functions ]]
-local function sendPerformAudioPassThru()
-  local params = {
-    samplingRate = "8KHZ",
-    maxDuration = 2000,
-    bitsPerSample = "8_BIT",
-    audioType = "PCM",
-    initialPrompt = {
-      { type = common.type, text = "pathToFile" }
-    }
-  }
-  local corId = common.getMobileSession():SendRPC("PerformAudioPassThru", params)
-  common.getHMIConnection():ExpectRequest("UI.PerformAudioPassThru")
-  :Do(function(_, data)
-      common.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", {})
-    end)
-  common.getHMIConnection():ExpectRequest("TTS.Speak", { ttsChunks = params.initialPrompt })
+local function sendAlert_FILE_NOT_FOUND()
+  local corId = common.getMobileSession():SendRPC("Alert", params)
+  common.getMobileSession():ExpectResponse(corId, { success = false, resultCode = "FILE_NOT_FOUND" })
+end
+
+local function sendAlert_SUCCESS()
+  local corId = common.getMobileSession():SendRPC("Alert", params)
+  common.getHMIConnection():ExpectRequest("TTS.Speak", { ttsChunks = hmiParams.ttsChunks })
   :Do(function(_, data)
       common.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", {})
     end)
@@ -51,7 +66,9 @@ runner.Step("Register App", common.registerApp)
 runner.Step("Activate App", common.activateApp)
 
 runner.Title("Test")
-runner.Step("Send PerformAudioPassThru", sendPerformAudioPassThru)
+runner.Step("Send Alert FILE_NOT_FOUND response", sendAlert_FILE_NOT_FOUND)
+runner.Step("Upload icon file", common.putFile, { putFileParams })
+runner.Step("Send Alert SUCCESS response", sendAlert_SUCCESS)
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", common.postconditions)
