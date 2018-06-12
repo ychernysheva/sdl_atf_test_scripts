@@ -229,6 +229,7 @@ local function HMI_Send_Button_GetCapabilities_Response(Input_capabilities)
 			displayCapabilities =
 			{
 			  displayType = "GEN2_8_DMA",
+			  displayName = "GENERIC_DISPLAY",
 			  textFields =
 			  {
 				text_field("mainField1"),

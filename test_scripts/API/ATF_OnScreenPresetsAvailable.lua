@@ -277,6 +277,7 @@ function Test:initHMI_onReady(bOnScreenPresetsAvailable)
 	ExpectRequest("UI.GetCapabilities", true, {
 		displayCapabilities = {
 			displayType = "GEN2_8_DMA",
+			displayName = "GENERIC_DISPLAY",
 			textFields = {
 				text_field("mainField1"),
 				text_field("mainField2"),
@@ -895,6 +896,7 @@ end
 				displayCapabilities =
 				{
 					displayType = "GEN2_8_DMA",
+					displayName = "GENERIC_DISPLAY",
 					textFields =
 					{
 						text_field("mainField1"),

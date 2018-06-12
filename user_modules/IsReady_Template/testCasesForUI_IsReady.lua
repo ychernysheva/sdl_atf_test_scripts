@@ -157,6 +157,7 @@ function testCasesForUI_IsReady.InitHMI_onReady_without_UI_IsReady(self, exp_occ
       displayCapabilities =
       {
         displayType = "GEN2_8_DMA",
+        displayName = "GENERIC_DISPLAY",
         textFields =
         {
           text_field("mainField1"),

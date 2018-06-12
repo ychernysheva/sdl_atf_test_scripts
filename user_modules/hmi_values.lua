@@ -195,6 +195,7 @@ function module.getDefaultHMITable()
     params = {
       displayCapabilities = {
         displayType = "GEN2_8_DMA",
+        displayName = "GENERIC_DISPLAY",
         textFields = (function()
           local fields = {
             "mainField1", "mainField2", "mainField3", "mainField4", "statusBar", "mediaClock", "mediaTrack",

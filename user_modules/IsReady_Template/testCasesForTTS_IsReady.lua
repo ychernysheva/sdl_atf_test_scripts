@@ -157,6 +157,7 @@ function testCasesForTTS_IsReady.InitHMI_onReady_without_TTS_IsReady(self, exp_o
       displayCapabilities =
       {
         displayType = "GEN2_8_DMA",
+        displayName = "GENERIC_DISPLAY",
         textFields =
         {
           text_field("mainField1"),

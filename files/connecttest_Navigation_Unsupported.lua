@@ -507,6 +507,7 @@ function module:runSDL()
         displayCapabilities =
         {
           displayType = "GEN2_8_DMA",
+          displayName = "GENERIC_DISPLAY",
           textFields =
           {
             text_field("mainField1"),

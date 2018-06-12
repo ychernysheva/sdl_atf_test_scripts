@@ -462,6 +462,7 @@ function Test:initHMI_onReady_VR_IsReady(case)
 		displayCapabilities =
 		{
 			displayType = "GEN2_8_DMA",
+			displayName = "GENERIC_DISPLAY",
 			textFields =
 			{
 				text_field("mainField1"),
@@ -831,6 +832,7 @@ local function Case1_BothVR_TTS_IsReady_available_false()
 		displayCapabilities =
 		{
 			displayType = "GEN2_8_DMA",
+			displayName = "GENERIC_DISPLAY",
 			textFields =
 			{
 				text_field("mainField1"),

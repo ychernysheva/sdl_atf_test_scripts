@@ -207,6 +207,7 @@ function Test:Step1_SDL_requests_vin_on_InitHMI_OnReady()
       displayCapabilities =
       {
         displayType = "GEN2_8_DMA",
+        displayName = "GENERIC_DISPLAY",
         textFields =
         {
           text_field("mainField1"),

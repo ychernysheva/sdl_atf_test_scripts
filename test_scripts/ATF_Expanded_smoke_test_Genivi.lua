@@ -10655,6 +10655,7 @@ local blockId = 1
 
 		             {
 		                         displayType = "GEN2_8_DMA",
+		                         displayName = "GENERIC_DISPLAY",
 		                         textFields =
 		                            {
 		                                    {
@@ -10746,6 +10747,7 @@ local blockId = 1
 		        displayCapabilities =
 		         {
 		           displayType = "GEN2_8_DMA",
+		           displayName = "GENERIC_DISPLAY",
 		           textFields =
 		              {
 		                      {
