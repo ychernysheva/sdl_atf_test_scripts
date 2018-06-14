@@ -31,17 +31,16 @@ m.readFile = utils.readFile
 
 --[[ Functions ]]
 function m.getSystemTimeValue()
-  local dd = os.date("*t")
   return {
-    millisecond = 0,
-    second = dd.sec,
-    minute = dd.min,
-    hour = dd.hour,
-    day = dd.day,
-    month = dd.month,
-    year = dd.year,
-    tz_hour = 2,
-    tz_minute = 0
+    millisecond = 100,
+    second = 30,
+    minute = 29,
+    hour = 15,
+    day = 20,
+    month = 3,
+    year = 2018,
+    tz_hour = -3,
+    tz_minute = 10
   }
 end
 
