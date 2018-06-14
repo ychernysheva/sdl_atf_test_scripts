@@ -44,10 +44,6 @@ function m.getSystemTimeValue()
   }
 end
 
-function m.setForceProtectedServiceParam(pParamValue)
-  m.setSDLIniParameter("ForceProtectedService", pParamValue)
-end
-
 function m.getAppID(pAppId)
   return m.getConfigAppParams(pAppId).appID
 end
@@ -86,16 +82,10 @@ function m.start(pOnSystemTime, pHMIParams)
     end)
 end
 
-function m.expectHandshakeMessage(pGetSystemTimeOccur, pTime, pHandshakeOccurences)
-  if not pTime then
-    pTime = m.getSystemTimeValue()
-  end
-  if not pHandshakeOccurences then pHandshakeOccurences = 1 end
-  if pGetSystemTimeOccur == 0 then
-    pHandshakeOccurences = pGetSystemTimeOccur
-  end
+local function expectHandshakeMessage(pGetSystemTimeOccur, pTime, pHandshakeOccurences)
   m.getMobileSession():ExpectHandshakeMessage()
-    :Times(pHandshakeOccurences)
+  :Times(pHandshakeOccurences)
+
   EXPECT_HMICALL("BasicCommunication.GetSystemTime")
   :Do(function(_, d)
     m.getHMIConnection():SendResponse(d.id, d.method, "SUCCESS", { systemTime = pTime })
@@ -103,14 +93,14 @@ function m.expectHandshakeMessage(pGetSystemTimeOccur, pTime, pHandshakeOccurenc
   :Times(pGetSystemTimeOccur)
 end
 
-function m.startServiceSecured(pData, pServiceId, pGetSystemTimeOccur, pTime)
+function m.startServiceSecured(pData, pServiceId, pGetSystemTimeOccur, pTime, pHandshakeOccurences)
   m.getMobileSession():StartSecureService(pServiceId)
   m.getMobileSession():ExpectControlMessage(pServiceId, pData)
 
   m.getHMIConnection():ExpectNotification("SDL.OnStatusUpdate")
   :Times(0)
 
-  m.expectHandshakeMessage(pGetSystemTimeOccur, pTime)
+  expectHandshakeMessage(pGetSystemTimeOccur, pTime, pHandshakeOccurences)
 end
 
 local function expNotDuringPTU()
@@ -130,7 +120,7 @@ function m.startServiceSecuredwithPTU(pData, pServiceId, pGetSystemTimeOccur, pT
       end
     end)
 
-  m.expectHandshakeMessage(pGetSystemTimeOccur, pTime, pHandshakeOccurences)
+  expectHandshakeMessage(pGetSystemTimeOccur, pTime, pHandshakeOccurences)
 end
 
 return m

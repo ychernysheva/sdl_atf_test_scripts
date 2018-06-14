@@ -69,7 +69,7 @@ runner.Step("Register App", common.registerApp)
 runner.Step("Activate App", common.activateApp)
 runner.Step("PolicyTableUpdate with not valid certificate", common.policyTableUpdate, { ptUpdateWithNotValidCer })
 runner.Step("Handshake with BC.GetSystemTime request from SDL", common.startServiceSecuredwithPTU,
-	{ pData, serviceId, 1, systemTime, ptUpdateWithValidCer })
+	{ pData, serviceId, 1, systemTime, ptUpdateWithValidCer, 1 })
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", common.postconditions)

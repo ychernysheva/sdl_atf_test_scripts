@@ -44,7 +44,8 @@ runner.Title("Test")
 runner.Step("Register App", common.registerApp)
 runner.Step("Activate App", common.activateApp)
 runner.Step("PolicyTableUpdate with certificate", common.policyTableUpdate, { ptUpdate })
-runner.Step("Handshake without BC.GetSystemTime request from SDL", common.startServiceSecured, { pData, serviceId, 0 })
+runner.Step("Handshake without BC.GetSystemTime request from SDL", common.startServiceSecured,
+	{ pData, serviceId, 0, common.getSystemTimeValue(), 0 })
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", common.postconditions)

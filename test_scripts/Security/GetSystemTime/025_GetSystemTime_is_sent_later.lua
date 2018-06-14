@@ -48,10 +48,18 @@ runner.Step("Register App", common.registerApp)
 runner.Step("Activate App", common.activateApp)
 runner.Step("PolicyTableUpdate with certificate", common.policyTableUpdate, { ptUpdate })
 runner.Step("Handshake without BC.GetSystemTime request from SDL", common.startServiceSecured, {
-  { frameInfo = common.frameInfo.START_SERVICE_NACK, encryption = false }, serviceId, 0 })
+  { frameInfo = common.frameInfo.START_SERVICE_NACK, encryption = false },
+  serviceId,
+  0,
+  common.getSystemTimeValue(),
+  0 })
 runner.Step("Send BC.OnSystemTimeReady from HMI", sendOnSystemTimeReady)
 runner.Step("Handshake with BC.GetSystemTime request from SDL", common.startServiceSecured, {
-  { frameInfo = common.frameInfo.START_SERVICE_ACK, encryption = true }, serviceId, 1 })
+  { frameInfo = common.frameInfo.START_SERVICE_ACK, encryption = true },
+  serviceId,
+  1,
+  common.getSystemTimeValue(),
+  1 })
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", common.postconditions)
