@@ -35,6 +35,17 @@ local function ptUpdate(pTbl)
   pTbl.policy_table.module_config.certificate = crt
 end
 
+local function startServiceSecuredWithoutGSTResponse()
+  common.getMobileSession():StartSecureService(serviceId)
+  common.getMobileSession():ExpectControlMessage(serviceId, pData)
+  :Timeout(11500)
+  common.getHMIConnection():ExpectNotification("SDL.OnStatusUpdate")
+  :Times(0)
+  common.getMobileSession():ExpectHandshakeMessage()
+  :Times(0)
+  EXPECT_HMICALL("BasicCommunication.GetSystemTime")
+end
+
 --[[ Scenario ]]
 runner.Title("Preconditions")
 runner.Step("Clean environment", common.preconditions)
@@ -45,8 +56,7 @@ runner.Title("Test")
 runner.Step("Register App", common.registerApp)
 runner.Step("Activate App", common.activateApp)
 runner.Step("PolicyTableUpdate with valid certificate", common.policyTableUpdate, { ptUpdate })
-runner.Step("Handshake without BC.GetSystemTime response from HMI", common.startServiceSecuredWitTimeoutWithoutGetSTResp,
-  { pData, serviceId })
+runner.Step("Handshake without BC.GetSystemTime response from HMI", startServiceSecuredWithoutGSTResponse)
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", common.postconditions)

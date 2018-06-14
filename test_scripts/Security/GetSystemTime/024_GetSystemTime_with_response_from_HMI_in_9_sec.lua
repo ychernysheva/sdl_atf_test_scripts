@@ -35,6 +35,24 @@ local function ptUpdate(pTbl)
   pTbl.policy_table.module_config.certificate = crt
 end
 
+local function startServiceSecuredWithDelayedGSTResponse()
+  common.getMobileSession():StartSecureService(serviceId)
+  common.getMobileSession():ExpectControlMessage(serviceId, pData)
+  :Timeout(11500)
+  common.getHMIConnection():ExpectNotification("SDL.OnStatusUpdate")
+  :Times(0)
+  common.getMobileSession():ExpectHandshakeMessage()
+  :Times(1)
+  EXPECT_HMICALL("BasicCommunication.GetSystemTime")
+  :Do(function(_,data)
+      local function GetSystemTimeResponse()
+        common.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", {
+          systemTime = common.getSystemTimeValue() })
+      end
+      RUN_AFTER(GetSystemTimeResponse, 8000)
+    end)
+end
+
 --[[ Scenario ]]
 runner.Title("Preconditions")
 runner.Step("Clean environment", common.preconditions)
@@ -45,8 +63,7 @@ runner.Title("Test")
 runner.Step("Register App", common.registerApp)
 runner.Step("Activate App", common.activateApp)
 runner.Step("PolicyTableUpdate with valid certificate", common.policyTableUpdate, { ptUpdate })
-runner.Step("Handshake with response BC.GetSystemTime in 9 sec from HMI", common.startServiceSecuredWitTimeoutWithoutGetSTResp,
-  { pData, serviceId, 8000 })
+runner.Step("Handshake with response BC.GetSystemTime in 9 sec from HMI", startServiceSecuredWithDelayedGSTResponse)
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", common.postconditions)

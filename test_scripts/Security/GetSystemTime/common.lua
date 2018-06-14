@@ -1,4 +1,4 @@
----------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
 -- Common module
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
@@ -30,7 +30,7 @@ m.delayedExp = utils.wait
 m.readFile = utils.readFile
 
 --[[ Functions ]]
-local function getSystemTimeValue()
+function m.getSystemTimeValue()
   local dd = os.date("*t")
   return {
     millisecond = 0,
@@ -89,7 +89,7 @@ end
 
 function m.expectHandshakeMessage(pGetSystemTimeOccur, pTime, pHandshakeOccurences)
   if not pTime then
-    pTime = getSystemTimeValue()
+    pTime = m.getSystemTimeValue()
   end
   if not pHandshakeOccurences then pHandshakeOccurences = 1 end
   if pGetSystemTimeOccur == 0 then
@@ -132,33 +132,6 @@ function m.startServiceSecuredwithPTU(pData, pServiceId, pGetSystemTimeOccur, pT
     end)
 
   m.expectHandshakeMessage(pGetSystemTimeOccur, pTime, pHandshakeOccurences)
-end
-
-function m.startServiceSecuredWitTimeoutWithoutGetSTResp(pData, pServiceId, pTimeout)
-  m.getMobileSession():StartSecureService(pServiceId)
-  m.getMobileSession():ExpectControlMessage(pServiceId, pData)
-  :Timeout(11500)
-
-  m.getHMIConnection():ExpectNotification("SDL.OnStatusUpdate")
-  :Times(0)
-
-  local handshakeOccurences = 0
-  if pTimeout then
-    handshakeOccurences = 1
-  end
-  m.getMobileSession():ExpectHandshakeMessage()
-  :Times(handshakeOccurences)
-
-  EXPECT_HMICALL("BasicCommunication.GetSystemTime")
-  :Do(function(_,data)
-    if pTimeout then
-      local function GetSystemTimeResponse()
-        m.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", { systemTime = getSystemTimeValue() })
-      end
-      RUN_AFTER(GetSystemTimeResponse, pTimeout)
-    end
-  end)
-
 end
 
 return m
