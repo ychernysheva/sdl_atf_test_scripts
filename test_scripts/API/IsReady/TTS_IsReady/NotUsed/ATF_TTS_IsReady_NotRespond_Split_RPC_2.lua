@@ -434,7 +434,7 @@ function Test:initHMI_onReady_TTS_IsReady(case)
 	-- :Times(0)
 	
 	ExpectRequest("TTS.GetCapabilities", true, {
-		speechCapabilities = { "TEXT", "SAPI_PHONEMES", "LHPLUS_PHONEMES", "PRE_RECORDED", "SILENCE" },
+		speechCapabilities = { "TEXT", "SAPI_PHONEMES", "LHPLUS_PHONEMES", "PRE_RECORDED", "SILENCE", "FILE" },
 		prerecordedSpeechCapabilities =
 		{
 			"HELP_JINGLE",

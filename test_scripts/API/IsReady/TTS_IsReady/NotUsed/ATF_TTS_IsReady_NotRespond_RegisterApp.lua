@@ -411,7 +411,7 @@ function Test:initHMI_onReady_TTS_IsReady(case)
 		},
 		presetBankCapabilities = { onScreenPresetsAvailable = true }
 	}
-	local speech_capabilities = {"TEXT", "SAPI_PHONEMES", "LHPLUS_PHONEMES", "PRE_RECORDED", "SILENCE"}
+	local speech_capabilities = {"TEXT", "SAPI_PHONEMES", "LHPLUS_PHONEMES", "PRE_RECORDED", "SILENCE", "FILE"}
 	ExpectRequest("Buttons.GetCapabilities", true, buttons_capabilities)
 	ExpectRequest("VR.GetCapabilities", true, { vrCapabilities = { "TEXT" } })
 	--UPDATED
@@ -420,7 +420,7 @@ function Test:initHMI_onReady_TTS_IsReady(case)
 	
 	--UPDATED
 	ExpectRequest("TTS.GetCapabilities", true, {
-		speechCapabilities = { "TEXT", "SAPI_PHONEMES", "LHPLUS_PHONEMES", "PRE_RECORDED", "SILENCE" },
+		speechCapabilities = { "TEXT", "SAPI_PHONEMES", "LHPLUS_PHONEMES", "PRE_RECORDED", "SILENCE", "FILE" },
 		prerecordedSpeechCapabilities =
 		{
 			"HELP_JINGLE",
@@ -665,7 +665,7 @@ local function RegisterApplication_Check_TTS_Parameters_From_HMI_capabilities_js
 		-- As TTS.GetCapabilities is received:
 		GetCapabilities_language = "EN-US"
 		--
-		GetCapabilities_speech_capabilities = {"TEXT", "SAPI_PHONEMES", "LHPLUS_PHONEMES", "PRE_RECORDED", "SILENCE"}
+		GetCapabilities_speech_capabilities = {"TEXT", "SAPI_PHONEMES", "LHPLUS_PHONEMES", "PRE_RECORDED", "SILENCE", "FILE"}
 		GetCapabilities_prerecordedSpeechCapabilities =
 		{
 			"HELP_JINGLE",
@@ -738,7 +738,7 @@ local function RegisterApplication_Check_TTS_Parameters_From_HMI_capabilities_js
 		-- As TTS.GetCapabilities is received:
 		GetCapabilities_language = "EN-US"
 		--
-		GetCapabilities_speech_capabilities = {"TEXT", "SAPI_PHONEMES", "LHPLUS_PHONEMES", "PRE_RECORDED", "SILENCE"}
+		GetCapabilities_speech_capabilities = {"TEXT", "SAPI_PHONEMES", "LHPLUS_PHONEMES", "PRE_RECORDED", "SILENCE", "FILE"}
 		GetCapabilities_prerecordedSpeechCapabilities =
 		{
 			"HELP_JINGLE",
@@ -808,7 +808,7 @@ local function RegisterApplication_Check_TTS_Parameters_From_HMI_capabilities_js
 		-- As TTS.GetCapabilities is received:
 		GetCapabilities_language = "EN-US"
 		--
-		GetCapabilities_speech_capabilities = {"TEXT", "SAPI_PHONEMES", "LHPLUS_PHONEMES", "PRE_RECORDED", "SILENCE"}
+		GetCapabilities_speech_capabilities = {"TEXT", "SAPI_PHONEMES", "LHPLUS_PHONEMES", "PRE_RECORDED", "SILENCE", "FILE"}
 		GetCapabilities_prerecordedSpeechCapabilities =
 		{
 			"HELP_JINGLE",
@@ -970,7 +970,7 @@ local function RegisterApplication_Check_TTS_Parameters_From_HMI_capabilities_js
 		-- As TTS.GetCapabilities is received:
 		GetCapabilities_language = "EN-US"
 		--
-		GetCapabilities_speech_capabilities = {"TEXT", "SAPI_PHONEMES", "LHPLUS_PHONEMES", "PRE_RECORDED", "SILENCE"}
+		GetCapabilities_speech_capabilities = {"TEXT", "SAPI_PHONEMES", "LHPLUS_PHONEMES", "PRE_RECORDED", "SILENCE", "FILE"}
 		GetCapabilities_prerecordedSpeechCapabilities =
 		{
 			"HELP_JINGLE",

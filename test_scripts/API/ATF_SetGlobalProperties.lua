@@ -3703,6 +3703,146 @@ end
 	--End test case PositiveResponseCheck.1.7
 	-----------------------------------------------------------------------------------------
 
+	--Begin test case PositiveResponseCheck.1.120
+	--Description: Check helpPrompt: type parameter is valid data (FILE)
+
+		function Test:SetGlobalProperties_helpPrompt_type_FILE_SUCCESS()
+		
+			--mobile side: sending SetGlobalProperties request
+			local cid = self.mobileSession:SendRPC("SetGlobalProperties",
+			{
+				menuTitle = "Menu Title",
+				timeoutPrompt = 
+				{
+					{
+						text = "Timeout prompt",
+						type = "TEXT"
+					}
+				},
+				vrHelp = 
+				{
+					{
+						position = 1,
+						image = 
+						{
+							value = "action.png",
+							imageType = "DYNAMIC"
+						},
+						text = "VR help item"
+					}
+				},
+				menuIcon = 
+				{
+					value = "action.png",
+					imageType = "DYNAMIC"
+				},
+				helpPrompt = 
+				{
+					{
+						text = "Help_prompt.m4a",
+						type = "FILE"
+					}
+				},
+				vrHelpTitle = "VR help title",
+				keyboardProperties = 
+				{
+					keyboardLayout = "QWERTY",
+					keypressMode = "SINGLE_KEYPRESS",
+					limitedCharacterList = 
+					{
+						"a"
+					},
+					language = "EN-US",
+					autoCompleteText = "Daemon, Freedom"
+				}
+			})
+		
+
+			--hmi side: expect TTS.SetGlobalProperties request
+			EXPECT_HMICALL("TTS.SetGlobalProperties",
+			{
+				timeoutPrompt = 
+				{
+					{
+						text = "Timeout prompt",
+						type = "TEXT"
+					}
+				},
+				helpPrompt = 
+				{
+					{
+						text = "Help_prompt.m4a",
+						type = "FILE"
+					}
+				}
+			})
+			:Timeout(iTimeout)
+			:Do(function(_,data)
+				--hmi side: sending UI.SetGlobalProperties response
+				self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+			end)
+
+		
+
+			--hmi side: expect UI.SetGlobalProperties request
+			EXPECT_HMICALL("UI.SetGlobalProperties",
+			{
+				menuTitle = "Menu Title",
+				vrHelp = 
+				{
+					{
+						position = 1,
+						--[=[ TODO: update after resolving APPLINK-16052
+
+						image = 
+						{
+							imageType = "DYNAMIC",
+							value = strAppFolder .. "action.png"
+						},]=]
+						text = "VR help item"
+					}
+				},
+				--Checked below
+				-- menuIcon = 
+				-- {
+				-- 	imageType = "DYNAMIC",
+				-- 	value = strAppFolder .. "action.png"
+				-- },
+				vrHelpTitle = "VR help title",
+				keyboardProperties = 
+				{
+					keyboardLayout = "QWERTY",
+					keypressMode = "SINGLE_KEYPRESS",
+					--[=[ TODO: update after resolving APPLINK-16047
+
+					limitedCharacterList = 
+					{
+						"a"
+					},]=]
+					language = "EN-US",
+					autoCompleteText = "Daemon, Freedom"
+				}
+			})
+			:Timeout(iTimeout)
+			:ValidIf(function(_,data)
+				return Check_menuIconParams(data)
+      		end)
+			:Do(function(_,data)
+				--hmi side: sending UI.SetGlobalProperties response
+				self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+			end)
+
+			--mobile side: expect SetGlobalProperties response
+			EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})
+			:Timeout(iTimeout)						
+			
+			--mobile side: expect OnHashChange notification
+			EXPECT_NOTIFICATION("OnHashChange")
+		end
+
+	--End test case PositiveResponseCheck.1.120
+	-----------------------------------------------------------------------------------------
+
 	--Begin test case PositiveResponseCheck.1.8
 	--Description: Check helpPrompt: text parameter is lower bound
 
@@ -6339,6 +6479,148 @@ end
 		end
 
 	--End test case PositiveResponseCheck.1.20
+	-----------------------------------------------------------------------------------------
+
+	--Begin test case PositiveResponseCheck.1.121
+	--Description: Check timeoutPrompt: type parameter is valid data (FILE)
+
+		function Test:SetGlobalProperties_timeoutPrompt_type_FILE_SUCCESS()
+		
+			--mobile side: sending SetGlobalProperties request
+			local cid = self.mobileSession:SendRPC("SetGlobalProperties",
+			{
+				menuTitle = "Menu Title",
+				timeoutPrompt = 
+				{
+					{
+						text = "Timeout_prompt.m4a",
+						type = "FILE"
+					}
+				},
+				vrHelp = 
+				{
+					{
+						position = 1,
+						image = 
+						{
+							value = "action.png",
+							imageType = "DYNAMIC"
+						},
+						text = "VR help item"
+					}
+				},
+				menuIcon = 
+				{
+					value = "action.png",
+					imageType = "DYNAMIC"
+				},
+				helpPrompt = 
+				{
+					{
+						text = "Help prompt",
+						type = "TEXT"
+					}
+				},
+				vrHelpTitle = "VR help title",
+				keyboardProperties = 
+				{
+					keyboardLayout = "QWERTY",
+					keypressMode = "SINGLE_KEYPRESS",
+					limitedCharacterList = 
+					{
+						"a"
+					},
+					language = "EN-US",
+					autoCompleteText = "Daemon, Freedom"
+				}
+			})
+		
+
+			--hmi side: expect TTS.SetGlobalProperties request
+			EXPECT_HMICALL("TTS.SetGlobalProperties",
+			{
+				timeoutPrompt = 
+				{
+					{
+						text = "Timeout_prompt.m4a",
+						type = "FILE"
+					}
+				},
+				helpPrompt = 
+				{
+					{
+						text = "Help prompt",
+						type = "TEXT"
+					}
+				}
+			})
+			:Timeout(iTimeout)
+			:Do(function(_,data)
+				--hmi side: sending UI.SetGlobalProperties response
+				self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+			end)
+
+		
+
+			--hmi side: expect UI.SetGlobalProperties request
+			EXPECT_HMICALL("UI.SetGlobalProperties",
+			{
+				menuTitle = "Menu Title",
+				vrHelp = 
+				{
+					{
+						position = 1,
+						--[=[ TODO: update after resolving APPLINK-16052
+
+						image = 
+						{
+							imageType = "DYNAMIC",
+							value = strAppFolder .. "action.png"
+						},]=]
+						text = "VR help item"
+					}
+				},
+				--Checked below
+				-- menuIcon = 
+				-- {
+				-- 	imageType = "DYNAMIC",
+				-- 	value = strAppFolder .. "action.png"
+				-- },
+				vrHelpTitle = "VR help title",
+				keyboardProperties = 
+				{
+					keyboardLayout = "QWERTY",
+					keypressMode = "SINGLE_KEYPRESS",
+					--[=[ TODO: update after resolving APPLINK-16047
+
+					limitedCharacterList = 
+					{
+						"a"
+					},]=]
+					language = "EN-US",
+					autoCompleteText = "Daemon, Freedom"
+				}
+			})
+			:Timeout(iTimeout)
+			:ValidIf(function(_,data)
+				return Check_menuIconParams(data)
+      		end)
+			:Do(function(_,data)
+				--hmi side: sending UI.SetGlobalProperties response
+				self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+			end)
+
+		
+
+			--mobile side: expect SetGlobalProperties response
+			EXPECT_RESPONSE(cid, { success = true, resultCode = "SUCCESS"})
+			:Timeout(iTimeout)						
+			
+			--mobile side: expect OnHashChange notification
+			EXPECT_NOTIFICATION("OnHashChange")
+		end
+
+	--End test case PositiveResponseCheck.1.121
 	-----------------------------------------------------------------------------------------
 
 	--Begin test case PositiveResponseCheck.1.21
@@ -17558,6 +17840,149 @@ end
 	--End test case PositiveResponseCheck.1.110
 	-----------------------------------------------------------------------------------------
 	
+--Begin test case PositiveResponseCheck.1.122
+	--Description: Check timeoutPrompt: type parameter (ttsChunks) is not supported data (FILE)
+
+		function Test:SetGlobalProperties_timeoutPrompt_type_FILE_WARNINGS()
+		
+			--mobile side: sending SetGlobalProperties request
+			local cid = self.mobileSession:SendRPC("SetGlobalProperties",
+			{
+				menuTitle = "Menu Title",
+				timeoutPrompt = 
+				{
+					{
+						text = "Timeout_prompt.m4a",
+						type = "FILE"
+					}
+				},
+				vrHelp = 
+				{
+					{
+						position = 1,
+						image = 
+						{
+							value = "action.png",
+							imageType = "DYNAMIC"
+						},
+						text = "VR help item"
+					}
+				},
+				menuIcon = 
+				{
+					value = "action.png",
+					imageType = "DYNAMIC"
+				},
+				helpPrompt = 
+				{
+					{
+						text = "Help prompt",
+						type = "TEXT"
+					}
+				},
+				vrHelpTitle = "VR help title",
+				keyboardProperties = 
+				{
+					keyboardLayout = "QWERTY",
+					keypressMode = "SINGLE_KEYPRESS",
+					limitedCharacterList = 
+					{
+						"a"
+					},
+					language = "EN-US",
+					autoCompleteText = "Daemon, Freedom"
+				}
+			})
+		
+
+			--hmi side: expect TTS.SetGlobalProperties request
+			EXPECT_HMICALL("TTS.SetGlobalProperties",
+			{
+				timeoutPrompt = 
+				{
+					{
+						text = "Timeout_prompt.m4a",
+						type = "FILE"
+					}
+				},
+				helpPrompt = 
+				{
+					{
+						text = "Help prompt",
+						type = "TEXT"
+					}
+				}
+			})
+			:Timeout(iTimeout)
+			:Do(function(_,data)
+				--hmi side: sending TTS.SetGlobalProperties response
+				self.hmiConnection:SendResponse(data.id, data.method, "WARNINGS", {})
+			end)
+
+		
+
+			--hmi side: expect UI.SetGlobalProperties request
+			EXPECT_HMICALL("UI.SetGlobalProperties",
+			{
+				menuTitle = "Menu Title",
+				vrHelp = 
+				{
+					{
+						position = 1,
+						--[=[ TODO: update after resolving APPLINK-16052
+
+						image = 
+						{
+							imageType = "DYNAMIC",
+							value = strAppFolder .. "action.png"
+						},]=]
+						text = "VR help item"
+					}
+				},
+				--Checked below
+				-- menuIcon = 
+				-- {
+				-- 	imageType = "DYNAMIC",
+				-- 	value = strAppFolder .. "action.png"
+				-- },
+				vrHelpTitle = "VR help title",
+				keyboardProperties = 
+				{
+					keyboardLayout = "QWERTY",
+					keypressMode = "SINGLE_KEYPRESS",
+					--[=[ TODO: update after resolving APPLINK-16047
+
+					limitedCharacterList = 
+					{
+						"a"
+					},]=]
+					language = "EN-US",
+					autoCompleteText = "Daemon, Freedom"
+				}
+			})
+			:Timeout(iTimeout)
+			:ValidIf(function(_,data)
+				return Check_menuIconParams(data)
+   			end)
+			:Do(function(_,data)
+				--hmi side: sending UI.SetGlobalProperties response
+				self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+			end)
+
+		
+
+			--mobile side: expect SetGlobalProperties response
+			EXPECT_RESPONSE(cid, { success = true, resultCode = "WARNINGS"})
+			:Timeout(iTimeout)						
+			
+			--mobile side: expect OnHashChange notification
+			EXPECT_NOTIFICATION("OnHashChange")
+			
+		end
+
+	--End test case PositiveResponseCheck.1.122
+	-----------------------------------------------------------------------------------------
+
 	--Begin test case PositiveResponseCheck.1.111
 	--Description: Check helpPrompt: type parameter (ttsChunks) is not supported data (SAPI_PHONEMES)
 
@@ -18122,6 +18547,148 @@ end
 		end
 
 	--End test case PositiveResponseCheck.1.114
+	-----------------------------------------------------------------------------------------
+
+	--Begin test case PositiveResponseCheck.1.123
+	--Description: Check helpPrompt: type parameter (ttsChunks) is not supported data (FILE)
+
+		function Test:SetGlobalProperties_helpPrompt_type_FILE_WARNINGS()
+		
+			--mobile side: sending SetGlobalProperties request
+			local cid = self.mobileSession:SendRPC("SetGlobalProperties",
+			{
+				menuTitle = "Menu Title",
+				timeoutPrompt = 
+				{
+					{
+						text = "Timeout prompt",
+						type = "TEXT"
+					}
+				},
+				vrHelp = 
+				{
+					{
+						position = 1,
+						image = 
+						{
+							value = "action.png",
+							imageType = "DYNAMIC"
+						},
+						text = "VR help item"
+					}
+				},
+				menuIcon = 
+				{
+					value = "action.png",
+					imageType = "DYNAMIC"
+				},
+				helpPrompt = 
+				{
+					{
+						text = "Help_prompt.m4a",
+						type = "FILE"
+					}
+				},
+				vrHelpTitle = "VR help title",
+				keyboardProperties = 
+				{
+					keyboardLayout = "QWERTY",
+					keypressMode = "SINGLE_KEYPRESS",
+					limitedCharacterList = 
+					{
+						"a"
+					},
+					language = "EN-US",
+					autoCompleteText = "Daemon, Freedom"
+				}
+			})
+		
+
+			--hmi side: expect TTS.SetGlobalProperties request
+			EXPECT_HMICALL("TTS.SetGlobalProperties",
+			{
+				timeoutPrompt = 
+				{
+					{
+						text = "Timeout prompt",
+						type = "TEXT"
+					}
+				},
+				helpPrompt = 
+				{
+					{
+						text = "Help_prompt.m4a",
+						type = "FILE"
+					}
+				}
+			})
+			:Timeout(iTimeout)
+			:Do(function(_,data)
+				--hmi side: sending TTS.SetGlobalProperties response
+				self.hmiConnection:SendResponse(data.id, data.method, "WARNINGS", {})
+			end)
+
+		
+
+			--hmi side: expect UI.SetGlobalProperties request
+			EXPECT_HMICALL("UI.SetGlobalProperties",
+			{
+				menuTitle = "Menu Title",
+				vrHelp = 
+				{
+					{
+						position = 1,
+						--[=[ TODO: update after resolving APPLINK-16052
+
+						image = 
+						{
+							imageType = "DYNAMIC",
+							value = strAppFolder .. "action.png"
+						},]=]
+						text = "VR help item"
+					}
+				},
+				--Checked below
+				-- menuIcon = 
+				-- {
+				-- 	imageType = "DYNAMIC",
+				-- 	value = strAppFolder .. "action.png"
+				-- },
+				vrHelpTitle = "VR help title",
+				keyboardProperties = 
+				{
+					keyboardLayout = "QWERTY",
+					keypressMode = "SINGLE_KEYPRESS",
+					--[=[ TODO: update after resolving APPLINK-16047
+
+					limitedCharacterList = 
+					{
+						"a"
+					},]=]
+					language = "EN-US",
+					autoCompleteText = "Daemon, Freedom"
+				}
+			})
+			:Timeout(iTimeout)
+			:ValidIf(function(_,data)
+				return Check_menuIconParams(data)
+   			end)
+			:Do(function(_,data)
+				--hmi side: sending UI.SetGlobalProperties response
+				self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+			end)
+
+		
+
+			--mobile side: expect SetGlobalProperties response
+			EXPECT_RESPONSE(cid, { success = true, resultCode = "WARNINGS"})
+			:Timeout(iTimeout)						
+			
+			--mobile side: expect OnHashChange notification
+			EXPECT_NOTIFICATION("OnHashChange")
+		end
+
+	--End test case PositiveResponseCheck.1.123
 	-----------------------------------------------------------------------------------------
 	
 	--Begin test case PositiveResponseCheck.1.115

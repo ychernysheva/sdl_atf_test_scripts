@@ -5358,7 +5358,7 @@ end
 				--Begin Test case PositiveRequestCheck.1.16
 				--Description: ttsChunks: available values of type
 
-					local ttsChunksType = {{text = "4025",type = "PRE_RECORDED"},{ text = "Sapi",type = "SAPI_PHONEMES"}, {text = "LHplus", type = "LHPLUS_PHONEMES"}, {text = "Silence", type = "SILENCE"}}
+					local ttsChunksType = {{text = "4025",type = "PRE_RECORDED"},{ text = "Sapi",type = "SAPI_PHONEMES"}, {text = "LHplus", type = "LHPLUS_PHONEMES"}, {text = "Silence", type = "SILENCE"}, {text = "File.m4a", type = "FILE"}}
 					for i=1,#ttsChunksType do
 						Test["Alert_ttsChunksType" .. tostring(ttsChunksType[i].type)] = function(self)
 							--mobile side: Alert request 	
@@ -10882,7 +10882,7 @@ end
 			--Requirement id in JAMA: SDLAQ-CRS-1029
 
 			--Verification criteria: 
-				--When "ttsChunks" are sent within the request but the type is different from "TEXT" (SAPI_PHONEMES, LHPLUS_PHONEMES, PRE_RECORDED or SILENCE), WARNINGS is returned as a result of request. Info parameter provides additional information about the case. General request result success=false in case of TTS is the only component which processes a request. 
+				--When "ttsChunks" are sent within the request but the type is different from "TEXT" (SAPI_PHONEMES, LHPLUS_PHONEMES, PRE_RECORDED, SILENCE, or FILE), WARNINGS is returned as a result of request. Info parameter provides additional information about the case. General request result success=false in case of TTS is the only component which processes a request. 
 
 			function Test:Alert_WarningsSuccessFalse() 
 
@@ -10946,7 +10946,7 @@ end
 			--Requirement id in JAMA: SDLAQ-CRS-1029
 
 			--Verification criteria: 
-				--When "ttsChunks" are sent within the request but the type is different from "TEXT" (SAPI_PHONEMES, LHPLUS_PHONEMES, PRE_RECORDED or SILENCE), WARNINGS is returned as a result of request. Info parameter provides additional information about the case. General request result success=true in case of no errors from other components. 
+				--When "ttsChunks" are sent within the request but the type is different from "TEXT" (SAPI_PHONEMES, LHPLUS_PHONEMES, PRE_RECORDED, SILENCE, or FILE), WARNINGS is returned as a result of request. Info parameter provides additional information about the case. General request result success=true in case of no errors from other components. 
 
 			function Test:Alert_WarningsSuccessTrue() 
 
