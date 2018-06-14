@@ -46,7 +46,7 @@ local systemTime = {
 }
 
 --[[ Local Functions ]]
-local function ptUpdateWithNotActualCer(pTbl)
+local function ptUpdateWithNotYetValidCer(pTbl)
   local filePath = "./files/Security/GetSystemTime_certificates/client_credential.pem"
   local crt = common.readFile(filePath)
   pTbl.policy_table.module_config.certificate = crt
@@ -61,7 +61,7 @@ runner.Title("Test")
 
 runner.Step("Register App", common.registerApp)
 runner.Step("Activate App", common.activateApp)
-runner.Step("PolicyTableUpdate with valid certificate", common.policyTableUpdate, { ptUpdateWithNotActualCer })
+runner.Step("PolicyTableUpdate with valid certificate", common.policyTableUpdate, { ptUpdateWithNotYetValidCer })
 runner.Step("Handshake with BC.GetSystemTime request from SDL", common.startServiceSecured,
   { pData, serviceId, 1, systemTime })
 
