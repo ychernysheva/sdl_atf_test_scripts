@@ -51,11 +51,16 @@ local function update_ptu()
   ptu.policy_table.app_policies["0000001"] = { keep_context = false, steal_focus = false, priority = "NONE", default_hmi = "NONE" }
   ptu.policy_table.app_policies["0000001"]["groups"] = { "Base-4", "Base-6" }
   ptu.policy_table.functional_groupings["DataConsent-2"].rpcs = json.null
-  --TODO: Update part in case to check UTF-8 parameters.
   -- updating specific parameters
   ptu.policy_table.consumer_friendly_messages.messages = {
     ["AppPermissions"] = { ["languages"] = { ["en-us"] = { }}},
     ["AppPermissionsHelp"] = { ["languages"] = { ["en-us"] = { }}}}
+  ptu.policy_table.consumer_friendly_messages.messages["AppPermissions"]["languages"]["en-us"].tts = "表示您同意_1"
+  ptu.policy_table.consumer_friendly_messages.messages["AppPermissions"]["languages"]["en-us"].label = "Метка"
+  ptu.policy_table.consumer_friendly_messages.messages["AppPermissions"]["languages"]["en-us"].line1 = "LINE1"
+  ptu.policy_table.consumer_friendly_messages.messages["AppPermissions"]["languages"]["en-us"].line2 = "LINE2"
+  ptu.policy_table.consumer_friendly_messages.messages["AppPermissions"]["languages"]["en-us"].textBody = "TEXTBODY"
+  ptu.policy_table.consumer_friendly_messages.messages["AppPermissionsHelp"]["languages"]["en-us"].tts = "授權請求_2"
 end
 
 local function timestamp()
@@ -184,13 +189,13 @@ end
 
 function Test:ValidatePTS()
   if (ptu == nil) then
-    update_ptu()
     self:FailTestCase("ptu is empty. Preloaded file will be used")
   else
     if ptu.policy_table.consumer_friendly_messages.messages then
       self:FailTestCase("Expected absence of 'consumer_friendly_messages.messages' section in PTS")
     end
   end
+  update_ptu()
 end
 
 function Test:StorePTSInFile()
@@ -223,8 +228,7 @@ for i = 1, 1 do
 end
 
 function Test:TestStep_ValidateResult()
-  --TODO: Update part in case to check UTF-8 parameters.
-  local r_expected = { "1||||||en-us|AppPermissions", "2||||||en-us|AppPermissionsHelp" }
+  local r_expected = { "1|表示您同意_1|Метка|LINE1|LINE2|TEXTBODY|en-us|AppPermissions", "2|授權請求_2|||||en-us|AppPermissionsHelp" }
   local query = "select id, tts, label, line1, line2, textBody, language_code, message_type_name from message"
   local r_actual = execute_sqlite_query(db_file, query)
   if not is_table_equal(r_expected, r_actual) then
