@@ -1,7 +1,7 @@
 ---------------------------------------------------------------------------------------------------
 -- User story: https://github.com/smartdevicelink/sdl_requirements/issues/11
 -- Use case: https://github.com/smartdevicelink/sdl_requirements/blob/master/detailed_docs/rc_enabling_disabling.md
--- Item: Use Case 1: Main Flow
+-- Item: Use Case 1: Main Flow (updates https://github.com/smartdevicelink/sdl_core/issues/2173)
 --
 -- Requirement summary:
 -- [SDL_RC] Resource allocation based on access mode
@@ -12,9 +12,8 @@
 --
 -- SDL must:
 -- 1) store RC state allowed:false internally
--- 2) assign HMILevel none to all registered applications with appHMIType REMOTE_CONTROL and send OnHMIStatus (NONE) to such apps
--- 3) keep all applications with appHMIType REMOTE_CONTROL registered
--- 4) unsubscribe all REMOTE_CONTROL applications from OnInteriorVehicleData notifications for all HMI modules internally
+-- 2) keep all applications with appHMIType REMOTE_CONTROL registered and in current HMI levels
+-- 3) unsubscribe all REMOTE_CONTROL applications from OnInteriorVehicleData notifications for all HMI modules internally
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
@@ -50,8 +49,8 @@ local function disableRcFromHmi()
 
   commonRC.defineRAMode(false, nil)
 
-  mobileSession1:ExpectNotification("OnHMIStatus", {hmiLevel = "NONE"}):Times(AtLeast(1)) -- issue with SDL --> notification is sent twice
-  mobileSession2:ExpectNotification("OnHMIStatus", {hmiLevel = "NONE"}):Times(AtLeast(1)) -- issue with SDL --> notification is sent twice
+  mobileSession1:ExpectNotification("OnHMIStatus"):Times(0)
+  mobileSession2:ExpectNotification("OnHMIStatus"):Times(0)
   mobileSession3:ExpectNotification("OnHMIStatus"):Times(0) -- NAVIGATION app
 
   commonTestCases:DelayedExp(commonRC.timeout)
@@ -78,11 +77,11 @@ for _, mod in pairs(commonRC.modules)  do
   -- Apps are not subscribed from RC modules
   runner.Step("Check App1 is not subscribed on " .. mod, commonRC.isUnsubscribed, { mod, 1 })
   runner.Step("Check App2 is not subscribed on " .. mod, commonRC.isUnsubscribed, { mod, 2 })
-  -- -- All RC RPCs denied - need clarification
-  -- for _, rpc in pairs(rcRpcs) do
-  --   runner.Step("Check module " .. mod .." App1 " .. rpc .. " denied", commonRC.rpcDenied, { mod, 1, rpc, "DISALLOWED" })
-  --   runner.Step("Check module " .. mod .." App2 " .. rpc .. " denied", commonRC.rpcDenied, { mod, 2, rpc, "DISALLOWED" })
-  -- end
+  -- All RC RPCs rejected
+  for _, rpc in pairs(rcRpcs) do
+    runner.Step("Check module " .. mod .." App1 " .. rpc .. " rejected", commonRC.rpcDenied, { mod, 1, rpc, "USER_DISALLOWED" })
+    runner.Step("Check module " .. mod .." App2 " .. rpc .. " rejected", commonRC.rpcDenied, { mod, 2, rpc, "USER_DISALLOWED" })
+  end
 
 end
 
