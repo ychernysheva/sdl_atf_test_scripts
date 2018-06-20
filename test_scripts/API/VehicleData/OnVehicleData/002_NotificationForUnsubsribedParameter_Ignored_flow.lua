@@ -27,7 +27,8 @@ local rpc1 = {
   params = {
     engineOilLife = true,
     fuelRange = true,
-    tirePressure = true
+    tirePressure = true,
+    electronicParkBrakeStatus = true
   }
 }
 
@@ -52,7 +53,8 @@ local rpc2 = {
         tpms = "SYSTEM_ACTIVE",
         pressure = 35.00
       }
-    }
+    },
+    electronicParkBrakeStatus = "CLOSED"
   }
 }
 
@@ -61,7 +63,8 @@ local rpc3 = {
   params = {
     engineOilLife = true,
     fuelRange = true,
-    tirePressure = true
+    tirePressure = true, 
+    electronicParkBrakeStatus = true
   }
 }
 
@@ -76,6 +79,10 @@ local vehicleDataResults = {
   },
   tirePressure = {
     dataType = "VEHICLEDATA_TIREPRESSURE", 
+    resultCode = "SUCCESS"
+  }, 
+  electronicParkBrakeStatus = {
+    dataType = "VEHICLEDATA_ELECTRONICPARKBRAKESTATUS", 
     resultCode = "SUCCESS"
   }
 }

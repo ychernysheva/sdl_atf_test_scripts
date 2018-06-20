@@ -92,6 +92,7 @@ local function ptu(self, app_id, ptu_update_func)
           addParamToRPC(tbl, "Emergency-1", rpc, "engineOilLife")
           addParamToRPC(tbl, "Emergency-1", rpc, "fuelRange")
           addParamToRPC(tbl, "Emergency-1", rpc, "tirePressure")
+          addParamToRPC(tbl, "Emergency-1", rpc, "electronicParkBrakeStatus")
         end
         tbl.policy_table.app_policies[commonVehicleData.getMobileAppId(app_id)] = commonVehicleData.getGetVehicleDataConfig()
       end

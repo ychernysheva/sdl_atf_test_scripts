@@ -26,7 +26,8 @@ local rpc = {
   params = {
     engineOilLife = true,
     fuelRange = true,
-    tirePressure = true
+    tirePressure = true,
+    electronicParkBrakeStatus = true
   }
 }
 
@@ -41,6 +42,10 @@ local vehicleDataResults = {
   },
   tirePressure = {
     dataType = "VEHICLEDATA_TIREPRESSURE", 
+    resultCode = "DATA_NOT_SUBSCRIBED"
+  },
+  electronicParkBrakeStatus = {
+    dataType = "VEHICLEDATA_ELECTRONICPARKBRAKESTATUS",
     resultCode = "DATA_NOT_SUBSCRIBED"
   }
 }
