@@ -156,7 +156,7 @@ end
 
 function m.cleanUpCertificates()
   local sdlBin = commonPreconditions:GetPathToSDL()
-  os.execute("cd " .. sdlBin .. " && find . -type l -exec rm -f {} \\;")
+  os.execute("cd " .. sdlBin .. " && find . -type l -not -name 'lib*' -exec rm -f {} \\;")
   os.execute("cd " .. sdlBin .. " && rm -rf *.pem")
 end
 
