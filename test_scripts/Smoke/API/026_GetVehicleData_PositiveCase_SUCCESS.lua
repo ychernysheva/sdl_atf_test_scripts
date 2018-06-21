@@ -66,6 +66,7 @@ local vehicleDataValues = {
   },
   instantFuelConsumption = 1000.5,
   externalTemperature = 55.5,
+  turnSignal = "OFF",
   vin = "123456",
   prndl = "DRIVE",
   tirePressure = {

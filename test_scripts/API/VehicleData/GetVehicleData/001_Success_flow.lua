@@ -25,7 +25,8 @@ local rpc = {
   params = {
     engineOilLife = true,
     fuelRange = true,
-    tirePressure = true
+    tirePressure = true,
+    turnSignal = true
   }
 }
 
@@ -48,7 +49,8 @@ local vehicleDataValues = {
       tpms = "SYSTEM_ACTIVE",
       pressure = 35.00
     }
-  }
+  },
+  turnSignal = "LEFT"
 }
 
 --[[ Local Functions ]]

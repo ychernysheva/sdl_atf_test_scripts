@@ -24,7 +24,8 @@ local rpc = {
   params = {
     engineOilLife = true,
     fuelRange = true,
-    tirePressure = true
+    tirePressure = true,
+    turnSignal = true
   }
 }
 
@@ -40,6 +41,10 @@ local vehicleDataResults = {
   tirePressure = {
     dataType = "VEHICLEDATA_TIREPRESSURE", 
     resultCode = "SUCCESS"
+  },
+  turnSignal = {
+    dataType = "VEHICLEDATA_TURNSIGNAL", 
+    resultCode = "SUCCESS"
   }
 }
 
@@ -54,6 +59,10 @@ local vehicleDataResults2 = {
   },
   tirePressure = {
     dataType = "VEHICLEDATA_TIREPRESSURE", 
+    resultCode = "DATA_ALREADY_SUBSCRIBED"
+  },
+  turnSignal = {
+    dataType = "VEHICLEDATA_TURNSIGNAL", 
     resultCode = "DATA_ALREADY_SUBSCRIBED"
   }
 }
