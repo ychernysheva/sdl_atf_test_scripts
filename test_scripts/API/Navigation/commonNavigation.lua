@@ -13,6 +13,7 @@ local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
 local commonSteps = require("user_modules/shared_testcases/commonSteps")
 local commonTestCases = require("user_modules/shared_testcases/commonTestCases")
 local SDL = require('SDL')
+local events = require("events")
 
 local api_loader = require("modules/api_loader")
 local mobile_api = api_loader.init("data/MOBILE_API.xml")
