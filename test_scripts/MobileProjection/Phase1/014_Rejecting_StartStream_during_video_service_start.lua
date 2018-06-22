@@ -56,7 +56,7 @@ local function startService()
     local function response()
       common.getHMIConnection():SendError(data.id, data.method, "REJECTED", "Request is rejected")
     end
-    RUN_AFTER(response, 100)
+    RUN_AFTER(response, 550)
   end)
   :Times(4)
   common.getHMIConnection():ExpectRequest("Navigation.StopStream")
@@ -68,6 +68,7 @@ end
 --[[ Scenario ]]
 runner.Title("Preconditions")
 runner.Step("Clean environment", common.preconditions)
+runner.Step("Set StartStreamRetry value to 3,500", common.setSDLIniParameter, { "StartStreamRetry", "3,500" })
 runner.Step("Start SDL, HMI, connect Mobile, start Session", common.start)
 runner.Step("Register App", common.registerApp)
 runner.Step("PolicyTableUpdate with HMI types", common.policyTableUpdate, { ptUpdate })
