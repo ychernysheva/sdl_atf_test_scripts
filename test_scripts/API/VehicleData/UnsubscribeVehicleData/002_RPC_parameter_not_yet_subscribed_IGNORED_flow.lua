@@ -45,7 +45,7 @@ local vehicleDataResults = {
     resultCode = "DATA_NOT_SUBSCRIBED"
   },
   turnSignal = {
-    dataType = "turnSignal", 
+    dataType = "VEHICLEDATA_TURNSIGNAL", 
     resultCode = "DATA_NOT_SUBSCRIBED"
   }
 }

@@ -54,7 +54,7 @@ local vehicleDataResults = {
     resultCode = "SUCCESS"
   },
   turnSignal = {
-    dataType = "turnSignal", 
+    dataType = "VEHICLEDATA_TURNSIGNAL", 
     resultCode = "SUCCESS"
   }
 }
