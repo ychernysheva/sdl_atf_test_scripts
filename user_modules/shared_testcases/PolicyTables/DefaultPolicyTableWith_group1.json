@@ -1553,7 +1553,7 @@
 						}
 					}
 				},
-				
+
 				"group1" : {
 					"languages" : {
 						"de-de" : {
@@ -2326,7 +2326,9 @@
 				"steal_focus" : false,
 				"priority" : "NONE",
 				"default_hmi" : "NONE",
-				"groups" : ["Base-4"]
+				"groups" : ["Base-4"],
+        "RequestType": [],
+        "RequestSubType": []
 			},
 			"0000001" : {
 				"keep_context" : false,
