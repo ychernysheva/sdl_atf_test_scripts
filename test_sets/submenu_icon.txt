@@ -1,0 +1,4 @@
+./test_scripts/API/SubMenuIcon/001_menuIcon_is_SUCCESS.lua
+./test_scripts/API/SubMenuIcon/002_menuIcon_invalid_type.lua
+./test_scripts/API/SubMenuIcon/003_menuIcon_selected_not_existing_file.lua
+./test_scripts/API/SubMenuIcon/004_menuIcon_is_absent.lua
