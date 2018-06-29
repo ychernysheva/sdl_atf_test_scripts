@@ -26,7 +26,8 @@ local rpc = {
   params = {
     engineOilLife = true,
     fuelRange = true,
-    tirePressure = true
+    tirePressure = true,
+    turnSignal = true
   }
 }
 
@@ -49,7 +50,8 @@ local vehicleDataValues = {
       tpms = "SYSTEM_ACTIVE",
       pressure = 35.00
     }
-  }
+  },
+  turnSignal = "OFF"
 }
 
 --[[ Local Functions ]]
@@ -57,7 +59,7 @@ local function ptu_update_func(tbl)
   local params = tbl.policy_table.functional_groupings["Emergency-1"].rpcs["GetVehicleData"].parameters
   local newParams = {}
   for index, value in pairs(params) do
-    if not (("engineOilLife" == value) or ("fuelRange" == value) or ("tirePressure" == value)) then table.insert(newParams, value) end
+    if not (("engineOilLife" == value) or ("fuelRange" == value) or ("tirePressure" == value) or ("turnSignal" == value)) then table.insert(newParams, value) end
   end
   tbl.policy_table.functional_groupings["Emergency-1"].rpcs["GetVehicleData"].parameters = newParams
 end

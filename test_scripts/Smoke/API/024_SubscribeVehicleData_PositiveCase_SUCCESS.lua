@@ -42,6 +42,7 @@ local VDValues = {
   fuelRange = "VEHICLEDATA_FUELRANGE",
   instantFuelConsumption = "VEHICLEDATA_FUELCONSUMPTION",
   externalTemperature = "VEHICLEDATA_EXTERNTEMP",
+  turnSignal = "VEHICLEDATA_TURNSIGNAL",
   prndl = "VEHICLEDATA_PRNDL",
   tirePressure = "VEHICLEDATA_TIREPRESSURE",
   odometer = "VEHICLEDATA_ODOMETER",
