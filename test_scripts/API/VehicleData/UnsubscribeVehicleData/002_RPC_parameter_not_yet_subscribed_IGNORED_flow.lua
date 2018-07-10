@@ -27,7 +27,8 @@ local rpc = {
     engineOilLife = true,
     fuelRange = true,
     tirePressure = true,
-    electronicParkBrakeStatus = true
+    electronicParkBrakeStatus = true,
+    turnSignal = true
   }
 }
 
@@ -46,6 +47,10 @@ local vehicleDataResults = {
   },
   electronicParkBrakeStatus = {
     dataType = "VEHICLEDATA_ELECTRONICPARKBRAKESTATUS",
+    resultCode = "DATA_NOT_SUBSCRIBED"
+  },
+  turnSignal = {
+    dataType = "VEHICLEDATA_TURNSIGNAL", 
     resultCode = "DATA_NOT_SUBSCRIBED"
   }
 }

@@ -26,7 +26,8 @@ local rpc1 = {
     engineOilLife = true,
     fuelRange = true,
     tirePressure = true,
-    electronicParkBrakeStatus = true
+    electronicParkBrakeStatus = true,
+    turnSignal = true
   }
 }
 
@@ -52,7 +53,8 @@ local rpc2 = {
         pressure = 35.00
       }
     },
-    electronicParkBrakeStatus = "CLOSED"
+    electronicParkBrakeStatus = "CLOSED",
+    turnSignal = "OFF"
   }
 }
 
@@ -71,6 +73,10 @@ local vehicleDataResults = {
   },
   electronicParkBrakeStatus = {
     dataType = "VEHICLEDATA_ELECTRONICPARKBRAKESTATUS",
+    resultCode = "SUCCESS"
+  },
+  turnSignal = {
+    dataType = "VEHICLEDATA_TURNSIGNAL", 
     resultCode = "SUCCESS"
   }
 }

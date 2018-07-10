@@ -26,7 +26,8 @@ local rpc = {
     engineOilLife = true,
     fuelRange = true,
     tirePressure = true,
-    electronicParkBrakeStatus = true
+    electronicParkBrakeStatus = true,
+    turnSignal = true
   }
 }
 
@@ -50,7 +51,8 @@ local vehicleDataValues = {
       pressure = 35.00
     }
   },
-  electronicParkBrakeStatus = "CLOSED"
+  electronicParkBrakeStatus = "CLOSED",
+  turnSignal = "LEFT"
 }
 
 --[[ Local Functions ]]

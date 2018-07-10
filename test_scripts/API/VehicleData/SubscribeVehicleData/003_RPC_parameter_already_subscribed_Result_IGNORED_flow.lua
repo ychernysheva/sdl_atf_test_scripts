@@ -25,7 +25,8 @@ local rpc = {
     engineOilLife = true,
     fuelRange = true,
     tirePressure = true,
-    electronicParkBrakeStatus = true
+    electronicParkBrakeStatus = true,
+    turnSignal = true
   }
 }
 
@@ -43,7 +44,11 @@ local vehicleDataResults = {
     resultCode = "SUCCESS"
   },
   electronicParkBrakeStatus = {
-    dataType = "VEHICLEDATA_ELECTRONICPARKBRAKESTATUS", 
+    dataType = "VEHICLEDATA_ELECTRONICPARKBRAKESTATUS",
+    resultCode = "SUCCESS"
+  }, 
+  turnSignal = {
+    dataType = "VEHICLEDATA_TURNSIGNAL", 
     resultCode = "SUCCESS"
   }
 }
@@ -60,7 +65,11 @@ local vehicleDataResults2 = {
   tirePressure = {
     dataType = "VEHICLEDATA_TIREPRESSURE", 
     resultCode = "DATA_ALREADY_SUBSCRIBED"
-  }
+  },
+  turnSignal = {
+    dataType = "VEHICLEDATA_TURNSIGNAL", 
+    resultCode = "DATA_ALREADY_SUBSCRIBED"
+  },
   electronicParkBrakeStatus = {
     dataType = "VEHICLEDATA_TIREPRESSURE", 
     resultCode = "DATA_ALREADY_SUBSCRIBED"

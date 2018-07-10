@@ -26,7 +26,8 @@ local rpc = {
     engineOilLife = true,
     fuelRange = true,
     tirePressure = true,
-    electronicParkBrakeStatus = true
+    electronicParkBrakeStatus = true,
+    turnSignal = true
   }
 }
 
@@ -46,6 +47,10 @@ local vehicleDataResults = {
   electronicParkBrakeStatus = {
     dataType = "VEHICLEDATA_ELECTRONICPARKBRAKESTATUS", 
     resultCode = "DISALLOWED"
+  },
+  turnSignal = {
+    dataType = "VEHICLEDATA_TURNSIGNAL", 
+    resultCode = "DISALLOWED"
   }
 }
 
@@ -54,7 +59,7 @@ local function ptu_update_func(tbl)
   local params = tbl.policy_table.functional_groupings["Emergency-1"].rpcs["UnsubscribeVehicleData"].parameters
   local newParams = {}
   for index, value in pairs(params) do
-    if not (("engineOilLife" == value) or ("fuelRange" == value) or ("tirePressure" == value) or ("electronicParkBrakeStatus" == value)) then table.insert(newParams, value) end
+    if not (("engineOilLife" == value) or ("fuelRange" == value) or ("tirePressure" == value) or ("turnSignal" == value) or ("electronicParkBrakeStatus" == value)) then table.insert(newParams, value) end
   end
   tbl.policy_table.functional_groupings["Emergency-1"].rpcs["UnsubscribeVehicleData"].parameters = newParams
 end
