@@ -26,6 +26,7 @@ local rpc_subscribe = {
     engineOilLife = true,
     fuelRange = true,
     tirePressure = true,
+    electronicParkBrakeStatus = true,
     turnSignal = true
   }
 }
@@ -36,6 +37,7 @@ local rpc_unsubscribe = {
     engineOilLife = true,
     fuelRange = true,
     tirePressure = true,
+    electronicParkBrakeStatus = true,
     turnSignal = true
   }
 }
@@ -51,6 +53,10 @@ local vehicleDataResults = {
   },
   tirePressure = {
     dataType = "VEHICLEDATA_TIREPRESSURE", 
+    resultCode = "SUCCESS"
+  },
+  electronicParkBrakeStatus = {
+    dataType = "VEHICLEDATA_ELECTRONICPARKBRAKESTATUS",
     resultCode = "SUCCESS"
   },
   turnSignal = {

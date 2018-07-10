@@ -96,6 +96,7 @@ local vehicleDataValues = {
     middleRow1BeltDeployed = "YES",
     middleRow1BuckleBelted = "YES"
   },
+  electronicParkBrakeStatus = "CLOSED",
   bodyInformation = {
     parkBrakeActive = true,
     ignitionStableStatus = "MISSING_FROM_TRANSMITTER",

@@ -47,6 +47,7 @@ local VDValues = {
   tirePressure = "VEHICLEDATA_TIREPRESSURE",
   odometer = "VEHICLEDATA_ODOMETER",
   beltStatus = "VEHICLEDATA_BELTSTATUS",
+  electronicParkBrakeStatus = "VEHICLEDATA_ELECTRONICPARKBRAKESTATUS",
   bodyInformation = "VEHICLEDATA_BODYINFO",
   deviceStatus = "VEHICLEDATA_DEVICESTATUS",
   driverBraking = "VEHICLEDATA_BRAKING",
