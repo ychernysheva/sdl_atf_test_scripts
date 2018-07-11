@@ -26,7 +26,7 @@ local commandWithoutVr = {
     menuName = "CommandWithoutVr"
   }
 }
-local commandWithtVr = {
+local commandWithVr = {
   cmdID = 1,
   vrCommands = { "vrCommand"},
   menuParams = {
@@ -42,7 +42,7 @@ runner.Step("App registration", common.registerAppWOPTU)
 runner.Step("App activation", common.activateApp)
 
 runner.Title("Test")
-runner.Step("SetGlobalProperties after AddCommand with vr command", common.addCommandWithSetGP, { nil, commandWithtVr })
+runner.Step("SetGlobalProperties after AddCommand with vr command", common.addCommandWithSetGP, { nil, commandWithVr })
 runner.Step("Absence of SetGlobalProperties after AddCommand without vr command", common.addCommandWithoutSetGP, { nil, commandWithoutVr })
 
 runner.Title("Postconditions")
