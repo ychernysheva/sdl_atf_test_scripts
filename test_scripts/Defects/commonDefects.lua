@@ -430,6 +430,7 @@ function commonDefect.rai_n(id, self)
             { hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN" })
           :Times(AtLeast(1))
           self["mobileSession" .. id]:ExpectNotification("OnPermissionsChange")
+          self["mobileSession" .. id]:ExpectNotification("OnDriverDistraction", { state = "DD_OFF" })
         end)
     end)
 end

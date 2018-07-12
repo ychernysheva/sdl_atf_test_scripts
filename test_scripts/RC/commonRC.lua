@@ -233,6 +233,7 @@ function commonRC.rai_n(id, self)
           self["mobileSession" .. id]:ExpectNotification("OnHMIStatus", { hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN" })
           :Times(AtLeast(1)) -- issue with SDL --> notification is sent twice
           self["mobileSession" .. id]:ExpectNotification("OnPermissionsChange")
+          self["mobileSession" .. id]:ExpectNotification("OnDriverDistraction", { state = "DD_OFF" })
         end)
     end)
 end
