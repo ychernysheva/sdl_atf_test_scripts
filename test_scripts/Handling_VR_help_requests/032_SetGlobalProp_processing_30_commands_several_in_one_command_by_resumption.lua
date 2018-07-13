@@ -23,29 +23,9 @@ local common = require('test_scripts/Handling_VR_help_requests/commonVRhelp')
 --[[ Test Configuration ]]
 runner.testSettings.isSelfIncluded = false
 
---[[ Local Functions ]]
-local function sendAddCommand()
-	local params = common.getAddCommandParams(30)
-	params.vrCommands = { "vrCommand_30_1", "vrCommand_30_2" }
-	local cid = common.getMobileSession():SendRPC("AddCommand", params)
-	EXPECT_HMICALL("UI.AddCommand")
-  :Do(function(_, data)
-      common.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", {})
-    end)
-  local requestHMIParams = {
-    type = "Command",
-    cmdID = params.cmdID,
-    vrCommands = params.vrCommands,
-    appID = common.getHMIAppId()
-  }
-  EXPECT_HMICALL("VR.AddCommand", requestHMIParams)
-  :Do(function(_,data)
-      common.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", {})
-    end)
-  table.insert(common.commandArray, { cmdID = params.cmdID, vrCommand = { params.vrCommands[1] } })
-	common.getMobileSession():ExpectResponse(cid, { success = true, resultCode = "SUCCESS"})
-	common.setGlobalPropertiesFromSDL()
-end
+--[[ Local Variables ]]
+local AddCommandParams = common.getAddCommandParams(30)
+AddCommandParams.vrCommands = { "Command_30_1", "Command_30_2" }
 
 --[[ Scenario ]]
 runner.Title("Preconditions")
@@ -62,7 +42,8 @@ end
 runner.Step("App reconnect", common.reconnect)
 runner.Step("App resumption", common.registrationWithResumption,
   { 1, common.resumptionLevelFull, common.resumptionDataAddCommands })
-runner.Step("Set 2 VR commands by 1 request", sendAddCommand)
+runner.Step("SetGlobalProperties after AddCommand with several vrCommand", common.addCommandWithSetGP,
+  { nil, AddCommandParams })
 runner.Step("Absence SetGlobalProperties from SDL after adding 32 VR command", common.addCommandWithoutSetGP, { 31 })
 
 runner.Title("Postconditions")

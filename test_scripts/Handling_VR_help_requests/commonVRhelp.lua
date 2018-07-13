@@ -16,6 +16,7 @@ config.defaultProtocolVersion = 2
 local m = actions
 m.commandArray = {}
 m.timeActivation = 0
+m.commandsLimit = 30
 
 m.cloneTable = utils.cloneTable
 m.tableToString = utils.tableToString
@@ -190,15 +191,16 @@ end
 
 function m.vrHelp(pCommandArray)
   local out = {}
-  local positionValue = 0
+  local counter = 0
   for _, value in pairs(pCommandArray) do
     for _, sub_v in pairs(value.vrCommand) do
-      positionValue = positionValue + 1
+      counter = counter + 1
       local item = {
         text = sub_v,
-        position = positionValue
+        position = counter
       }
       table.insert(out, item)
+      if counter == m.commandsLimit then return out end
     end
   end
   return out
@@ -206,13 +208,16 @@ end
 
 function m.vrHelpPrompt(pVrCommandArray)
   local out = {}
+  local counter = 0
   for _, value in pairs(pVrCommandArray) do
     for _, sub_v in pairs(value.vrCommand) do
+      counter = counter + 1
       local item = {
         text = sub_v,
         type = "TEXT"
       }
       table.insert(out, item)
+      if counter == m.commandsLimit then return out end
     end
   end
   return out
