@@ -13,6 +13,18 @@ config.application2.registerAppInterfaceParams.isMediaApplication = false
 config.application2.registerAppInterfaceParams.appHMIType = {"DEFAULT"}
 
 --[[ Local Functions ]]
+-- Prepare policy table for policy table update
+-- @tparam table tbl table to update
+local function ptUpdateFunc(pTbl)
+  -- make sure that OnDriverDistraction is disallowed in HMILevel NONE
+  pTbl.policy_table.functional_groupings["Base-4"].rpcs["OnDriverDistraction"].hmi_levels = {
+    "FULL",
+    "LIMITED",
+    "BACKGROUND"
+  }
+end
+
+
 --! @OnDDinNONE: Processing OnDriverDistraction notification with expectations 0 times
 --! @parameters:
 --! id - id of session,
@@ -157,7 +169,7 @@ runner.Step("Clean environment", commonDefects.preconditions)
 -- Start SDL and HMI, establish connection between SDL and HMI, open mobile connection via TCP and create mobile session
 runner.Step("Start SDL, HMI, connect Mobile, start Session", commonDefects.start)
 -- Register application, perform PTU
-runner.Step("RAI, PTU", commonDefects.rai_ptu)
+runner.Step("RAI, PTU", commonDefects.rai_ptu, {ptUpdateFunc})
 
 runner.Title("Test")
 -- Absence of OnDriverDistraction notification on mobile app in NONE HMI level
@@ -167,9 +179,9 @@ runner.Step("OnDriverDistraction_in_FULL", ActivationAppWithOnDD, {{state = "DD_
 runner.Step("UnregisterRegisterApp", commonDefects.unregisterApp, {1})
 
 -- Register first application
-runner.Step("RAI_first_app", commonDefects.rai_n, {1})
+runner.Step("RAI_first_app", commonDefects.rai_n, {1, false})
 -- Register second application
-runner.Step("RAI_second_app", commonDefects.rai_ptu_n, {2})
+runner.Step("RAI_second_app", commonDefects.rai_ptu_n, {2, ptUpdateFunc})
 -- Activate first application
 runner.Step("Activate_first_app", commonDefects.activate_app)
 -- Receiving OnDriverDistraction notification on mobile app with FULL HMI level

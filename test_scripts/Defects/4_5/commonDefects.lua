@@ -410,9 +410,10 @@ end
 --! self - test object
 --! @return: none
 --]]
-function commonDefect.rai_n(id, self)
-  self, id = commonDefect.getSelfAndParams(id, self)
+function commonDefect.rai_n(id, expect_dd, self)
+  self, id, expect_dd = commonDefect.getSelfAndParams(id, expect_dd, self)
   if not id then id = 1 end
+  if expect_dd == nil then expect_dd = true end
   self["mobileSession" .. id] = mobile_session.MobileSession(self, self.mobileConnection)
   self["mobileSession" .. id]:StartService(7)
   :Do(function()
@@ -429,6 +430,11 @@ function commonDefect.rai_n(id, self)
             { hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN" })
           :Times(AtLeast(1))
           self["mobileSession" .. id]:ExpectNotification("OnPermissionsChange")
+          if expect_dd then
+            self["mobileSession" .. id]:ExpectNotification("OnDriverDistraction", { state = "DD_OFF" })
+          else
+            self["mobileSession" .. id]:ExpectNotification("OnDriverDistraction"):Times(0)
+          end
         end)
     end)
 end
