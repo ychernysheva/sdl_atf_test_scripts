@@ -47,7 +47,7 @@ local function resumptionData()
     return true
   end)
   :Times(#common.commandArray)
-EXPECT_HMICALL("UI.AddCommand")
+  EXPECT_HMICALL("UI.AddCommand")
   :Do(function(_, data)
     common.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", {})
   end)

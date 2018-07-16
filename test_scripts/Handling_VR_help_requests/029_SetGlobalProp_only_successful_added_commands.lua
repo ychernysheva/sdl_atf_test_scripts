@@ -31,18 +31,25 @@ local function rejectedAddCommand(pParams)
   EXPECT_HMICALL("TTS.SetGlobalProperties")
   :Times(0)
 
-  EXPECT_HMICALL("UI.AddCommand")
+  local requestUiParams = {
+    cmdID = pParams.cmdID,
+    menuParams = pParams.menuParams,
+    appID = common.getHMIAppId()
+  }
+
+  EXPECT_HMICALL("UI.AddCommand", requestUiParams)
   :Do(function(_,data)
     hmiConnection:SendError(data.id, data.method, "REJECTED", "Rejected request")
   end)
-  local requestUiParams = {
+
+  local requestVrParams = {
     cmdID = pParams.cmdID,
     vrCommands = pParams.vrCommands,
     type = "Command",
     appID = common.getHMIAppId()
   }
 
-  EXPECT_HMICALL("VR.AddCommand", requestUiParams)
+  EXPECT_HMICALL("VR.AddCommand", requestVrParams)
   :Do(function(_,data)
     hmiConnection:SendError(data.id, data.method, "REJECTED", "Rejected request")
   end)

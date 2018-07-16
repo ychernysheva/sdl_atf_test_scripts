@@ -29,15 +29,15 @@ local commandWithoutVr = {
     menuName = "CommandWithoutVr"
   }
 }
-local commandWithtVr = {
+local commandWithVr = {
   cmdID = 1,
   vrCommands = { "vrCommand"},
   menuParams = {
-    menuName = "commandWithtVr"
+    menuName = "commandWithVr"
   }
 }
 
-local uiCommandArray = { { cmdID = commandWithtVr.cmdID }, { cmdID = commandWithoutVr.cmdID } }
+local uiCommandArray = { { cmdID = commandWithVr.cmdID }, { cmdID = commandWithoutVr.cmdID } }
 
 --[[ Local Functions ]]
 local function resumptionLevelLimited()
@@ -47,13 +47,8 @@ local function resumptionLevelLimited()
     common.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", {})
   end)
   common.getMobileSession():ExpectNotification("OnHMIStatus",
-  { hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN" },
-  { hmiLevel = "LIMITED", audioStreamingState = "AUDIBLE", systemContext = "MAIN" })
-  :Do(function(exp)
-    if exp.occurences == 2 then
-      common.timeActivation = timestamp()
-    end
-  end)
+    { hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN" },
+    { hmiLevel = "LIMITED", audioStreamingState = "AUDIBLE", systemContext = "MAIN" })
   :Times(2)
 end
 
@@ -135,7 +130,7 @@ runner.Step("App activation", common.activateApp)
 runner.Step("Bring app to LIMITED HMI level", deactivateAppToLimited)
 
 runner.Title("Test")
-runner.Step("AddCommand with vr command", common.addCommandWithSetGP, {nil, commandWithtVr })
+runner.Step("AddCommand with vr command", common.addCommandWithSetGP, {nil, commandWithVr })
 runner.Step("AddCommand without vr command", common.addCommandWithoutSetGP, {nil, commandWithoutVr })
 runner.Step("App reconnect", common.reconnect)
 runner.Step("App resumption", common.registrationWithResumption,

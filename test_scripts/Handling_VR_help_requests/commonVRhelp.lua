@@ -15,7 +15,6 @@ config.defaultProtocolVersion = 2
 --[[ Variables ]]
 local m = actions
 m.commandArray = {}
-m.timeActivation = 0
 m.commandsLimit = 30
 
 m.cloneTable = utils.cloneTable
@@ -63,7 +62,7 @@ function m.getAddCommandParams(pN)
     cmdID = pN,
     vrCommands = { "vrCommand" .. pN},
     menuParams = {
-    menuName = "Command" .. pN
+      menuName = "Command" .. pN
     }
   }
   return out
@@ -74,19 +73,24 @@ function m.addCommand(pParams, pAppId)
   local mobSession = m.getMobileSession(pAppId)
   local hmiConnection = m.getHMIConnection()
   local cid = mobSession:SendRPC("AddCommand", pParams)
-  EXPECT_HMICALL("UI.AddCommand")
+  local requestUiParams = {
+    cmdID = pParams.cmdID,
+    menuParams = pParams.menuParams,
+    appID = m.getHMIAppId()
+  }
+  EXPECT_HMICALL("UI.AddCommand", requestUiParams)
   :Do(function(_,data)
     hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
   end)
   if pParams.vrCommands then
     table.insert(m.commandArray, { cmdID = pParams.cmdID, vrCommand = pParams.vrCommands})
-    local requestUiParams = {
+    local requestVrParams = {
       cmdID = pParams.cmdID,
       vrCommands = pParams.vrCommands,
       type = "Command",
       appID = m.getHMIAppId(pAppId)
     }
-    EXPECT_HMICALL("VR.AddCommand", requestUiParams)
+    EXPECT_HMICALL("VR.AddCommand", requestVrParams)
     :Do(function(_,data)
       hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
     end)
@@ -142,38 +146,16 @@ function m.setGlobalProperties(pParams, pAppId)
   mobSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS"})
 end
 
-function m.setGlobalPropertiesFromSDL(pIsCheckOnTimeoutRequied)
+function m.setGlobalPropertiesFromSDL()
   local params = m.getGPParams()
   local hmiConnection = m.getHMIConnection()
   EXPECT_HMICALL("UI.SetGlobalProperties", params.requestUiParams)
   :Do(function(_,data)
     hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
   end)
-  :ValidIf(function()
-    if pIsCheckOnTimeoutRequied then
-      local timeSetGPReg = timestamp()
-      local timeToSetGP = timeSetGPReg - m.timeActivation
-      if timeToSetGP > 10500 or timeToSetGP < 9500 then
-        return false, "SetGlobalProperties request with constructed vrHelp came not in 10 sec " ..
-        "after activation, actual time is" .. tostring(timeToSetGP)
-      end
-    end
-    return true
-  end)
   EXPECT_HMICALL("TTS.SetGlobalProperties", params.requestTtsParams)
   :Do(function(_,data)
     hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-  end)
-  :ValidIf(function()
-    if pIsCheckOnTimeoutRequied then
-      local timeSetGPReg = timestamp()
-      local timeToSetGP = timeSetGPReg - m.timeActivation
-      if timeToSetGP > 10500 or timeToSetGP < 9500 then
-        return false, "SetGlobalProperties request with constructed helpPrompt came not in 10 sec " ..
-        "after activation, actual time is" .. tostring(timeToSetGP)
-      end
-    end
-    return true
   end)
 end
 
@@ -183,9 +165,6 @@ function m.activateApp(pAppId)
   m.getHMIConnection():ExpectResponse(requestId)
   m.getMobileSession(pAppId):ExpectNotification("OnHMIStatus",
     { hmiLevel = "FULL", audioStreamingState = "AUDIBLE", systemContext = "MAIN" })
-    :Do(function()
-      m.timeActivation = timestamp()
-    end)
   m.wait()
 end
 
@@ -276,9 +255,9 @@ function m.reconnect(pAppId)
     {appID = m.getHMIAppId(pAppId), unexpectedDisconnect = true})
   :Do(function()
     test.mobileSession[pAppId] = mobile_session.MobileSession(
-    test,
-    test.mobileConnection,
-    config["application" .. pAppId].registerAppInterfaceParams)
+      test,
+      test.mobileConnection,
+      config["application" .. pAppId].registerAppInterfaceParams)
     test.mobileConnection:Connect()
   end)
 end
@@ -384,13 +363,8 @@ function m.resumptionLevelFull()
     m.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", {})
   end)
   m.getMobileSession():ExpectNotification("OnHMIStatus",
-  { hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN" },
-  { hmiLevel = "FULL", audioStreamingState = "AUDIBLE", systemContext = "MAIN" })
-  :Do(function(exp)
-    if exp.occurences == 2 then
-      m.timeActivation = timestamp()
-    end
-  end)
+    { hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN" },
+    { hmiLevel = "FULL", audioStreamingState = "AUDIBLE", systemContext = "MAIN" })
   :Times(2)
 end
 

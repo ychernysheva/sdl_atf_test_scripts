@@ -30,7 +30,7 @@ local commandWithVr = {
   cmdID = 1,
   vrCommands = { "vrCommand"},
   menuParams = {
-    menuName = "commandWithtVr"
+    menuName = "commandWithVr"
   }
 }
 
