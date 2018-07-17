@@ -23,12 +23,12 @@ runner.testSettings.isSelfIncluded = false
 
 --[[ Local Functions ]]
 local function subscribeToModuleWOOnRCStatus(pModuleType)
-	common.subscribeToModule(pModuleType)
-	common.getMobileSession(1):ExpectNotification("OnRCStatus")
-	:Times(0)
-	common.getMobileSession(2):ExpectNotification("OnRCStatus")
-	:Times(0)
-	EXPECT_HMINOTIFICATION("RC.OnRCStatus")
+  common.subscribeToModule(pModuleType)
+  common.getMobileSession(1):ExpectNotification("OnRCStatus")
+  :Times(0)
+  common.getMobileSession(2):ExpectNotification("OnRCStatus")
+  :Times(0)
+  EXPECT_HMINOTIFICATION("RC.OnRCStatus")
   :Times(0)
 end
 
@@ -41,8 +41,8 @@ runner.Step("Activate App 1", common.activateApp, { 1 })
 runner.Step("Register RC application 2", common.registerRCApplication, { 2 })
 
 runner.Title("Test")
-for _, mod in pairs(common.getModules()) do
-	runner.Step("GetInteriorVehicleData " .. mod, subscribeToModuleWOOnRCStatus, { mod })
+for _, mod in pairs(common.getAllModules()) do
+  runner.Step("GetInteriorVehicleData " .. mod, subscribeToModuleWOOnRCStatus, { mod })
 end
 
 runner.Title("Postconditions")

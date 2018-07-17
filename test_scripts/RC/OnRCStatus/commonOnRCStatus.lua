@@ -19,6 +19,24 @@ local utils = require("user_modules/utils")
 local m = {}
 
 --[[ Functions ]]
+local getRCAppConfigOrigin = commonRC.getRCAppConfig
+function commonRC.getRCAppConfig(tbl)
+  local rcAppConfig = getRCAppConfigOrigin(tbl)
+  rcAppConfig.moduleType = { "RADIO", "CLIMATE", "SEAT" }
+  return rcAppConfig
+end
+
+function commonRC.getSettableModuleControlData(pModuleType)
+  local out = commonRC.getModuleControlData(pModuleType)
+  local params_read_only = commonRC.getModuleParams(commonRC.getReadOnlyParamsByModule(pModuleType))
+  if params_read_only then
+    for p_read_only in pairs(params_read_only) do
+      commonRC.getModuleParams(out)[p_read_only] = nil
+    end
+  end
+  return out
+end
+
 local function backupPreloadedPT()
   local preloadedFile = commonFunctions:read_parameter_from_smart_device_link_ini("PreloadedPT")
   commonPreconditions:BackupFile(preloadedFile)
@@ -41,6 +59,57 @@ local function updatePreloadedPT(pCountOfRCApps)
   commonRC.tableToJsonFile(preloadedTable, preloadedFile)
 end
 
+local origGetModuleControlData = commonRC.getModuleControlData
+function commonRC.getModuleControlData(module_type)
+  local out = { }
+  if module_type == "SEAT" then
+    out.moduleType = module_type
+    out.seatControlData = {
+      id = "DRIVER",
+      heatingEnabled = true,
+      coolingEnabled = true,
+      heatingLevel = 50,
+      coolingLevel = 50,
+      horizontalPosition = 50,
+      verticalPosition = 50,
+      frontVerticalPosition = 50,
+      backVerticalPosition = 50,
+      backTiltAngle = 50,
+      headSupportHorizontalPosition = 50,
+      headSupportVerticalPosition = 50,
+      massageEnabled = true,
+      massageMode = {
+        {
+          massageZone = "LUMBAR",
+          massageMode = "HIGH"
+        },
+        {
+          massageZone = "SEAT_CUSHION",
+          massageMode = "LOW"
+        }
+      },
+      massageCushionFirmness = {
+        {
+          cushion = "TOP_LUMBAR",
+          firmness = 30
+        },
+        {
+          cushion = "BACK_BOLSTERS",
+          firmness = 60
+        }
+      },
+      memory = {
+        id = 1,
+        label = "Label value",
+        action = "SAVE"
+      }
+    }
+  else
+    out = origGetModuleControlData(module_type)
+  end
+  return out
+end
+
 local function restorePreloadedPT()
   local preloadedFile = commonFunctions:read_parameter_from_smart_device_link_ini("PreloadedPT")
   commonPreconditions:RestoreFile(preloadedFile)
@@ -51,7 +120,7 @@ function m.getModules()
 end
 
 function m.getAllModules()
-  return commonFunctions:cloneTable({ "RADIO", "CLIMATE" })
+  return commonFunctions:cloneTable({ "RADIO", "CLIMATE", "SEAT" })
 end
 
 function m.getRCAppConfig()
@@ -97,17 +166,22 @@ function m.getHMIAppIdsRC()
   return out
 end
 
-function m.registerRCApplication(pAppId)
+function m.registerRCApplication(pAppId, pAllowed)
   if not pAppId then pAppId = 1 end
-  local pModuleStatus = {
-    freeModules = m.getModulesArray(m.getAllModules()),
-    allocatedModules = { }
+  if pAllowed == nil then pAllowed = true end
+  local freeModulesArray = {}
+  if true == pAllowed then
+    freeModulesArray = m.getModulesArray(m.getAllModules())
+  end
+  local pModuleStatusForApp = {
+    freeModules = freeModulesArray,
+    allocatedModules = { },
+    allowed = pAllowed
   }
   commonRC.rai_n(pAppId, test)
-  for i = 1, pAppId do
-    m.validateOnRCStatusForApp(i, pModuleStatus)
-  end
-  m.validateOnRCStatusForHMI(pAppId, { pModuleStatus })
+  m.validateOnRCStatusForApp(pAppId, pModuleStatusForApp)
+  EXPECT_HMICALL("RC.OnRCStatus")
+  :Times(0)
 end
 
 function m.raiPTU_n(ptu_update_func, pAppId)
@@ -246,14 +320,22 @@ function m.sortModules(pModulesArray)
 end
 
 function m.validateOnRCStatusForApp(pAppId, pExpData)
-  m.getMobileSession(pAppId):ExpectNotification("OnRCStatus")
-  :ValidIf(function(_, d)
-      m.sortModules(pExpData.freeModules)
-      m.sortModules(pExpData.allocatedModules)
-      m.sortModules(d.payload.freeModules)
-      m.sortModules(d.payload.allocatedModules)
-      return compareValues(pExpData, d.payload, "payload")
-    end)
+ local ExpData = utils.cloneTable(pExpData)
+ if ExpData.allowed == nil then ExpData.allowed = true end
+ m.getMobileSession(pAppId):ExpectNotification("OnRCStatus")
+ :ValidIf(function(_, d)
+     m.sortModules(ExpData.freeModules)
+     m.sortModules(ExpData.allocatedModules)
+     m.sortModules(d.payload.freeModules)
+     m.sortModules(d.payload.allocatedModules)
+     return compareValues(ExpData, d.payload, "payload")
+   end)
+ :ValidIf(function(_, d)
+   if d.payload.allowed == nil  then
+     return false, "RC.OnRCStatus notification doesn't contains 'allowed' parameter"
+   end
+   return true
+ end)
 end
 
 function m.validateOnRCStatusForHMI(pCountOfRCApps, pExpData, pAllocApp)
@@ -278,6 +360,12 @@ function m.validateOnRCStatusForHMI(pCountOfRCApps, pExpData, pAllocApp)
         return compareValues(pExpData[AnotherApp], d.params, "params")
       end
     end)
+  :ValidIf(function(_, d)
+    if d.params.allowed ~= nil then
+      return false, "RC.OnRCStatus notification contains unexpected 'allowed' parameter"
+    end
+    return true
+  end)
   :ValidIf(function(e, d)
       if e.occurences == 1 then
         usedHmiAppIds = {}
@@ -304,5 +392,13 @@ function m.validateOnRCStatusForHMI(pCountOfRCApps, pExpData, pAllocApp)
 end
 
 m.wait = utils.wait
+
+function m.registerNonRCApp(pAppId)
+  m.rai_n(pAppId)
+  m.getMobileSession(pAppId):ExpectNotification("OnRCStatus")
+  :Times(0)
+  EXPECT_HMINOTIFICATION("RC.OnRCStatus")
+  :Times(0)
+end
 
 return m

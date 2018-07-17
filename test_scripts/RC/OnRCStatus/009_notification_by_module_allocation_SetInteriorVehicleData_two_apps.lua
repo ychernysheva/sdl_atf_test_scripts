@@ -29,11 +29,11 @@ local allocatedModules = {
 
 --[[ Local Functions ]]
 local function setVehicleData(pModuleType)
-	local pModuleStatusAllocatedApp, pModuleStatusAnotherApp = common.setModuleStatus(freeModules, allocatedModules, pModuleType)
-	common.rpcAllowed(pModuleType, 1, "SetInteriorVehicleData")
-	common.validateOnRCStatusForApp(1, pModuleStatusAllocatedApp)
-	common.validateOnRCStatusForApp(2, pModuleStatusAnotherApp)
-	common.validateOnRCStatusForHMI(2, { pModuleStatusAllocatedApp, pModuleStatusAnotherApp }, 1)
+  local pModuleStatusAllocatedApp, pModuleStatusAnotherApp = common.setModuleStatus(freeModules, allocatedModules, pModuleType)
+  common.rpcAllowed(pModuleType, 1, "SetInteriorVehicleData")
+  common.validateOnRCStatusForApp(1, pModuleStatusAllocatedApp)
+  common.validateOnRCStatusForApp(2, pModuleStatusAnotherApp)
+  common.validateOnRCStatusForHMI(2, { pModuleStatusAllocatedApp, pModuleStatusAnotherApp }, 1)
 end
 
 --[[ Scenario ]]
@@ -45,8 +45,8 @@ runner.Step("Activate App 1", common.activateApp, { 1 })
 runner.Step("Register RC application 2", common.registerRCApplication, { 2 })
 
 runner.Title("Test")
-for _, mod in pairs(common.getModules()) do
-	runner.Step("SetInteriorVehicleData " .. mod, setVehicleData, { mod })
+for _, mod in pairs(common.getAllModules()) do
+  runner.Step("SetInteriorVehicleData " .. mod, setVehicleData, { mod })
 end
 
 runner.Title("Postconditions")
