@@ -19,6 +19,24 @@ local utils = require("user_modules/utils")
 local m = {}
 
 --[[ Functions ]]
+local getRCAppConfigOrigin = commonRC.getRCAppConfig
+function commonRC.getRCAppConfig(tbl)
+  local rcAppConfig = getRCAppConfigOrigin(tbl)
+  rcAppConfig.moduleType = { "RADIO", "CLIMATE", "SEAT" }
+  return rcAppConfig
+end
+
+function commonRC.getSettableModuleControlData(pModuleType)
+  local out = commonRC.getModuleControlData(pModuleType)
+  local params_read_only = commonRC.getModuleParams(commonRC.getReadOnlyParamsByModule(pModuleType))
+  if params_read_only then
+    for p_read_only in pairs(params_read_only) do
+      commonRC.getModuleParams(out)[p_read_only] = nil
+    end
+  end
+  return out
+end
+
 local function backupPreloadedPT()
   local preloadedFile = commonFunctions:read_parameter_from_smart_device_link_ini("PreloadedPT")
   commonPreconditions:BackupFile(preloadedFile)
@@ -41,6 +59,57 @@ local function updatePreloadedPT(pCountOfRCApps)
   commonRC.tableToJsonFile(preloadedTable, preloadedFile)
 end
 
+local origGetModuleControlData = commonRC.getModuleControlData
+function commonRC.getModuleControlData(module_type)
+  local out = { }
+  if module_type == "SEAT" then
+    out.moduleType = module_type
+    out.seatControlData = {
+      id = "DRIVER",
+      heatingEnabled = true,
+      coolingEnabled = true,
+      heatingLevel = 50,
+      coolingLevel = 50,
+      horizontalPosition = 50,
+      verticalPosition = 50,
+      frontVerticalPosition = 50,
+      backVerticalPosition = 50,
+      backTiltAngle = 50,
+      headSupportHorizontalPosition = 50,
+      headSupportVerticalPosition = 50,
+      massageEnabled = true,
+      massageMode = {
+        {
+          massageZone = "LUMBAR",
+          massageMode = "HIGH"
+        },
+        {
+          massageZone = "SEAT_CUSHION",
+          massageMode = "LOW"
+        }
+      },
+      massageCushionFirmness = {
+        {
+          cushion = "TOP_LUMBAR",
+          firmness = 30
+        },
+        {
+          cushion = "BACK_BOLSTERS",
+          firmness = 60
+        }
+      },
+      memory = {
+        id = 1,
+        label = "Label value",
+        action = "SAVE"
+      }
+    }
+  else
+    out = origGetModuleControlData(module_type)
+  end
+  return out
+end
+
 local function restorePreloadedPT()
   local preloadedFile = commonFunctions:read_parameter_from_smart_device_link_ini("PreloadedPT")
   commonPreconditions:RestoreFile(preloadedFile)
@@ -51,7 +120,7 @@ function m.getModules()
 end
 
 function m.getAllModules()
-  return commonFunctions:cloneTable({ "RADIO", "CLIMATE" })
+  return commonFunctions:cloneTable({ "RADIO", "CLIMATE", "SEAT" })
 end
 
 function m.getRCAppConfig()

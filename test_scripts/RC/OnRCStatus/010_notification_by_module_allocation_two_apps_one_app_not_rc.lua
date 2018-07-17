@@ -49,7 +49,7 @@ runner.Step("Activate App 1", common.activateApp)
 runner.Step("Register non-RC application 2", common.rai_n, { 2 })
 
 runner.Title("Test")
-for _, mod in pairs(common.getModules()) do
+for _, mod in pairs(common.getAllModules()) do
   runner.Step("Allocation of module " .. mod, alocateModule, { mod })
 end
 

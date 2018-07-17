@@ -41,7 +41,7 @@ runner.Step("Register RC application", common.registerRCApplication)
 runner.Step("Activate App", common.activateApp)
 
 runner.Title("Test")
-for _, mod in pairs(common.getModules()) do
+for _, mod in pairs(common.getAllModules()) do
 	runner.Step("SetInteriorVehicleData " .. mod, setVehicleData, { mod })
 end
 
