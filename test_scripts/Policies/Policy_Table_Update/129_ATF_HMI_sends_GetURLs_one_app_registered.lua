@@ -47,7 +47,7 @@ commonFunctions:newTestCasesGroup("Test")
 function Test:TestStep_PTU_GetURLs()
   local endpoints = {}
   testCasesForPolicyTableSnapshot:extract_pts(
-    {config.application1.registerAppInterfaceParams.appID},
+    {config.application1.registerAppInterfaceParams.fullAppID},
     {self.applications[config.application1.registerAppInterfaceParams.appName]})
 
   for i = 1, #testCasesForPolicyTableSnapshot.pts_endpoints do

@@ -121,7 +121,7 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 --ToDo: shall be removed when APPLINK-16610 is fixed
 config.defaultProtocolVersion = 2
 
-local strAppFolder = config.pathToSDL .. "storage/" ..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
+local strAppFolder = config.pathToSDL .. "storage/" ..config.application1.registerAppInterfaceParams.fullAppID.. "_" .. config.deviceMAC.. "/"
 
 
 ---------------------------------------------------------------------------------------------
@@ -134,7 +134,7 @@ function Check_menuIconParams(data, type_icon, value)
 	if(type_icon == nil) then type_icon = "DYNAMIC" end
 
 	local result = true
-	local path  = "bin/storage/"..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
+	local path  = "bin/storage/"..config.application1.registerAppInterfaceParams.fullAppID.. "_" .. config.deviceMAC.. "/"
 	local value_Icon = value--"action.png"
 	
 	if (type_icon == "DYNAMIC") then
@@ -310,7 +310,7 @@ end
 	--Verification criteria:
 		--SetGlobalProperties sets-up global properties for the current application.
 		--SDL sets-up default values for "vrHelpTitle" and "vrHelp" parameters if they both don't exist in request.
-		--VRHelpTitle and VRHelpItems are sent with SetGlobalProperties request for setting app’s help items. HMI will open by itself a top level HelpList as a result of VR activation.
+		--VRHelpTitle and VRHelpItems are sent with SetGlobalProperties request for setting appï¿½s help items. HMI will open by itself a top level HelpList as a result of VR activation.
 
 
 	--Begin test case CommonRequestCheck.1
@@ -35873,7 +35873,7 @@ end
 		-----------------------------------------------------------------------------------------
 
 		--Begin test case SequenceCheck.3
-		--Description: Check for manual test case TC_SetGlobalProperties_02: SDL sends TTS.SetGlobalProperties request in 20 seconds from activation to FULL with the default list of HelpPrompts is a list of TTSChunks ( UI commands) defined as “TEXT” type, which are the list of the commands.
+		--Description: Check for manual test case TC_SetGlobalProperties_02: SDL sends TTS.SetGlobalProperties request in 20 seconds from activation to FULL with the default list of HelpPrompts is a list of TTSChunks ( UI commands) defined as ï¿½TEXTï¿½ type, which are the list of the commands.
 
 		function Test:Begin_TC_SetGlobalProperties_03()
 			print("--------------------------------------------------------")
@@ -36099,7 +36099,7 @@ end
 		--[[
 		Description: Check for manual test case TC_SetGlobalProperties_02, extra check, not covered in original: 
 		SDL sends TTS.SetGlobalProperties request in 20 seconds from activation to LIMITED with the default list of
-		HelpPrompts is a list of TTSChunks ( UI commands) defined as “TEXT” type, which are the list of the commands.
+		HelpPrompts is a list of TTSChunks ( UI commands) defined as ï¿½TEXTï¿½ type, which are the list of the commands.
 		--]]
 
 		function Test:Begin_TC_SetGlobalProperties_3_1()
@@ -36726,7 +36726,7 @@ end
 	--[[TODO: Next test suit is blocked by defect APPLINK-21931, after resolving the issue need to uncomment suit]]
 	--[[
 	--Begin test case SequenceCheck.6.1
-	--Description:Check for manual test case TC_SetGlobalProperties_02: SDL sends TTS.SetGlobalProperties request in 20 seconds from activation to LIMITED with the default list of HelpPrompts is a list of TTSChunks ( UI commands) defined as “TEXT” type, which are the list of the commands.
+	--Description:Check for manual test case TC_SetGlobalProperties_02: SDL sends TTS.SetGlobalProperties request in 20 seconds from activation to LIMITED with the default list of HelpPrompts is a list of TTSChunks ( UI commands) defined as ï¿½TEXTï¿½ type, which are the list of the commands.
 
 
 		function Test:Begin_TC_SetGlobalProperties_6_1()
@@ -37010,7 +37010,7 @@ end
 	--[[TODO: Next test suit is blocked by defect APPLINK-21931, after resolving the issue need to uncomment suit]]
 	--[[
 	-- Begin test case SequenceCheck.6.2
-	--Description:Check for manual test case TC_SetGlobalProperties_02: SDL sends TTS.SetGlobalProperties request in 20 seconds from activation to LIMITED with the default list of HelpPrompts is a list of TTSChunks ( UI commands) defined as “TEXT” type, which are the list of the commands.
+	--Description:Check for manual test case TC_SetGlobalProperties_02: SDL sends TTS.SetGlobalProperties request in 20 seconds from activation to LIMITED with the default list of HelpPrompts is a list of TTSChunks ( UI commands) defined as ï¿½TEXTï¿½ type, which are the list of the commands.
 
 
 		function Test:Begin_TC_SetGlobalProperties_6_2()

@@ -31,7 +31,7 @@ local json = require("modules/json")
 local commonTestCases = require("user_modules/shared_testcases/commonTestCases")
 
 --[[ Local Variables ]]
-local app_id = config.application1.registerAppInterfaceParams.appID
+local app_id = config.application1.registerAppInterfaceParams.fullAppID
 local sequence = { }
 local ptu_table
 
@@ -124,7 +124,7 @@ function Test:RAI_PTU()
   :Do(
     function(_, d1)
       log("SDL->HMI: N: BC.OnAppRegistered")
-      self.applications[config.application1.registerAppInterfaceParams.appID] = d1.params.application.appID
+      self.applications[config.application1.registerAppInterfaceParams.fullAppID] = d1.params.application.appID
       EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", { status = "UPDATE_NEEDED" }, { status = "UPDATING" }, { status = "UPDATE_NEEDED" }, { status = "UPDATING" })
       :Do(
         function(_, d2)

@@ -125,8 +125,8 @@ function Test:TestStep_CheckThatAppID_Present_In_DataBase()
     commonFunctions:userPrint(31, "policy.sqlite file is not found")
     self:FailTestCase("PolicyTable is not avaliable " .. tostring(PolicyDBPath))
   end
-  local select_value = "SELECT id FROM application WHERE id = '"..tostring(registerAppInterfaceParams.appID).."'"
-  local result = commonFunctions:is_db_contains(PolicyDBPath, select_value, {tostring(registerAppInterfaceParams.appID)})
+  local select_value = "SELECT id FROM application WHERE id = '"..tostring(registerAppInterfaceParams.fullAppID).."'"
+  local result = commonFunctions:is_db_contains(PolicyDBPath, select_value, {tostring(registerAppInterfaceParams.fullAppID)})
   if result == false then
     self:FailTestCase("DB doesn't contain special id")
   end

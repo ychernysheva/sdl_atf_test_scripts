@@ -21,7 +21,7 @@
 --ToDo: shall be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
 config.defaultProtocolVersion = 2
 config.application1.registerAppInterfaceParams.appName = "SPT"
-config.application1.registerAppInterfaceParams.appID = "1234567"
+config.application1.registerAppInterfaceParams.fullAppID = "1234567"
 config.application1.registerAppInterfaceParams.isMediaApplication = true
 
 --[[ Required Shared libraries ]]

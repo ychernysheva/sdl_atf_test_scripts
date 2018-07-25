@@ -87,7 +87,7 @@ end
 
 function commonSmoke.getHMIAppId(pAppId)
   if not pAppId then pAppId = 1 end
-  return hmiAppIds[config["application" .. pAppId].registerAppInterfaceParams.appID]
+  return hmiAppIds[config["application" .. pAppId].registerAppInterfaceParams.fullAppID]
 end
 
 function commonSmoke.getPathToFileInStorage(fileName)
@@ -166,7 +166,7 @@ end
 function commonSmoke.activateApp(pAppId, self)
   self, pAppId = commonSmoke.getSelfAndParams(pAppId, self)
   if not pAppId then pAppId = 1 end
-  local pHMIAppId = hmiAppIds[config["application" .. pAppId].registerAppInterfaceParams.appID]
+  local pHMIAppId = hmiAppIds[config["application" .. pAppId].registerAppInterfaceParams.fullAppID]
   local mobSession = commonSmoke.getMobileSession(pAppId, self)
   local requestId = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = pHMIAppId })
   EXPECT_HMIRESPONSE(requestId)
@@ -273,7 +273,7 @@ function commonSmoke.registerApp(pAppId, self)
       EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered",
         { application = { appName = config["application" .. pAppId].registerAppInterfaceParams.appName } })
       :Do(function(_, data)
-          hmiAppIds[config["application" .. pAppId].registerAppInterfaceParams.appID] = data.params.application.appID
+          hmiAppIds[config["application" .. pAppId].registerAppInterfaceParams.fullAppID] = data.params.application.appID
         end)
       mobSession:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
       :Do(function()

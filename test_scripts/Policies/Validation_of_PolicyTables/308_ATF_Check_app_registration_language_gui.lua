@@ -123,7 +123,7 @@ function Test:Precondition_StartSession()
 end
 
 function Test.Precondition_PreparePTData()
-  PrepareJsonPTU1(application1.registerAppInterfaceParams.appID, ptu_first_app_registered)
+  PrepareJsonPTU1(application1.registerAppInterfaceParams.fullAppID, ptu_first_app_registered)
 end
 
 function Test:RegisterFirstApp()
@@ -150,7 +150,7 @@ function Test:CheckDB_app_registration_language_gui()
 end
 
 function Test.Precondition_PreparePTData()
-  PrepareJsonPTU1(application1.registerAppInterfaceParams.appID, ptu_first_app_registered)
+  PrepareJsonPTU1(application1.registerAppInterfaceParams.fullAppID, ptu_first_app_registered)
 end
 
 --[[ Test ]]

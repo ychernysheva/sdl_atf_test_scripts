@@ -21,7 +21,7 @@ local m = actions
 config.defaultProtocolVersion = 3
 config.isCheckClientCertificate = false
 config.application1.registerAppInterfaceParams.appName = "server"
-config.application1.registerAppInterfaceParams.appID = "SPT"
+config.application1.registerAppInterfaceParams.fullAppID = "SPT"
 m.appHMIType = "DEFAULT"
 config.application1.registerAppInterfaceParams.appHMIType = { m.appHMIType }
 

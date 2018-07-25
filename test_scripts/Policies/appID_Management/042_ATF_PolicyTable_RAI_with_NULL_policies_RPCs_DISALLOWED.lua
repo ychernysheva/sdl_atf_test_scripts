@@ -121,7 +121,7 @@ end
 
 function Test:Pecondition_RegisterNewApp()
   config.application2.registerAppInterfaceParams.appName = "App_test"
-  config.application2.registerAppInterfaceParams.appID = "123abc"
+  config.application2.registerAppInterfaceParams.fullAppID = "123abc"
   local correlationId = self.mobileSession2:SendRPC("RegisterAppInterface", config.application2.registerAppInterfaceParams)
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
   -- self.mobileSession2:ExpectNotification("OnHMIStatus", {hmiLevel = "NONE", systemContext = "MAIN", audioStreamingState = "NOT_AUDIBLE" })

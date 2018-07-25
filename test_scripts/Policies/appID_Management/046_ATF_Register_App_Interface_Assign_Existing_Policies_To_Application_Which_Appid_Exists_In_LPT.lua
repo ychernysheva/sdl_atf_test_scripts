@@ -58,7 +58,7 @@ commonSteps:DeleteLogsFileAndPolicyTable()
 --[[ General Settings for configuration ]]
 Test = require("connecttest")
 require("user_modules/AppTypes")
-config.application2.registerAppInterfaceParams.appID = "123_xyz"
+config.application2.registerAppInterfaceParams.fullAppID = "123_xyz"
 
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")

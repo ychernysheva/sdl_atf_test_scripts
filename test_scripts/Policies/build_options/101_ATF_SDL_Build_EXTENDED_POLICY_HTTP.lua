@@ -32,7 +32,7 @@ local mobile_session = require('mobile_session')
 require('user_modules/AppTypes')
 
 config.application2.registerAppInterfaceParams.appName = "Media Application"
-config.application2.registerAppInterfaceParams.appID = "MyTestApp"
+config.application2.registerAppInterfaceParams.fullAppID = "MyTestApp"
 
 --[[ Local Variables ]]
 local filePTU = "files/ptu.json"

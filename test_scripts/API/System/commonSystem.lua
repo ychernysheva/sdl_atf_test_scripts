@@ -147,7 +147,7 @@ end
 function common.activateApp(pAppId, self)
   self, pAppId = common.getSelfAndParams(pAppId, self)
   if not pAppId then pAppId = 1 end
-  local pHMIAppId = hmiAppIds[config["application" .. pAppId].registerAppInterfaceParams.appID]
+  local pHMIAppId = hmiAppIds[config["application" .. pAppId].registerAppInterfaceParams.fullAppID]
   local mobSession = common.getMobileSession(pAppId, self)
   local requestId = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = pHMIAppId })
   EXPECT_HMIRESPONSE(requestId)
@@ -216,7 +216,7 @@ function common.registerAppWithPTU(pAppId, pPTUpdateFunc, self)
       EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered",
         { application = { appName = config["application" .. pAppId].registerAppInterfaceParams.appName } })
       :Do(function(_, d1)
-          hmiAppIds[config["application" .. pAppId].registerAppInterfaceParams.appID] = d1.params.application.appID
+          hmiAppIds[config["application" .. pAppId].registerAppInterfaceParams.fullAppID] = d1.params.application.appID
           EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",
             { status = "UPDATE_NEEDED" }, { status = "UPDATING" }, { status = "UP_TO_DATE" })
           :Times(3)

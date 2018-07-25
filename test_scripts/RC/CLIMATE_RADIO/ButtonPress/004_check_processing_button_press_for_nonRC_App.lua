@@ -53,7 +53,7 @@ local function step2(self)
 end
 
 local function ptu_update_func(tbl)
-  local appId = config.application1.registerAppInterfaceParams.appID
+  local appId = config.application1.registerAppInterfaceParams.fullAppID
   tbl.policy_table.app_policies[appId].AppHMIType = { "DEFAULT" }
 end
 

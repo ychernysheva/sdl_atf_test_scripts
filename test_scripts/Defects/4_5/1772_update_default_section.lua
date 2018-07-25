@@ -37,7 +37,7 @@ local function ptuUpdateFunc(tbl)
   -- for update default permissions with new GetVehicleData RPC
   tbl.policy_table.app_policies.default.groups = { "Base-4", "NewTestCaseGroup" }
   -- written nil in policy_table.app_policies[appID] to make sure that PT has no record with update related to appID
-  tbl.policy_table.app_policies[config.application1.registerAppInterfaceParams.appID] = nil
+  tbl.policy_table.app_policies[config.application1.registerAppInterfaceParams.fullAppID] = nil
 end
 
 -- Successful processing of GetVehicleData RPC

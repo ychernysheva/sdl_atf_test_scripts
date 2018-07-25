@@ -65,7 +65,7 @@ function Test.Precondition_PreparePTData()
     "RequestType":[ "TRAFFIC_MESSAGE_CHANNEL", "PROPRIETARY", "HTTP", "QUERY_APPS" ]
   }]]
   local app = json.decode(json_app)
-  testCasesForPolicyTable:AddApplicationToPTJsonFile(basic_ptu_file, ptu_app_registered, config.application1.registerAppInterfaceParams.appID, app)
+  testCasesForPolicyTable:AddApplicationToPTJsonFile(basic_ptu_file, ptu_app_registered, config.application1.registerAppInterfaceParams.fullAppID, app)
 end
 
 function Test:Precondition_ActivateApp()

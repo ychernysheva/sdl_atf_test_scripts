@@ -24,7 +24,7 @@ require('user_modules/AppTypes')
 --[[ Local Variables ]]------------------------------------------------------------------------------------------------
 local applicationName = config.application1.registerAppInterfaceParams.appName
 local pathToAppFolder = commonPreconditions:GetPathToSDL() .. SDLConfig:GetValue("AppStorageFolder") .. "/"
-	.. tostring(config.application1.registerAppInterfaceParams.appID .. "_" .. tostring(config.deviceMAC) .. "/")
+	.. tostring(config.application1.registerAppInterfaceParams.fullAppID .. "_" .. tostring(config.deviceMAC) .. "/")
 local spaceAvailable = tonumber(SDLConfig:GetValue("AppDirectoryQuota"))
 local fileTypes = {
 		{ typeV = "GRAPHIC_BMP", file = "files/PutFile/bmp_6kb.bmp" },

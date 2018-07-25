@@ -90,7 +90,7 @@ end
 
 function m.getPathToFileInStorage(pFileName)
   return commonPreconditions:GetPathToSDL() .. "storage/"
-  .. config["application1"].registerAppInterfaceParams.appID .. "_"
+  .. config["application1"].registerAppInterfaceParams.fullAppID .. "_"
   .. utils.getDeviceMAC() .. "/" .. pFileName
 end
 

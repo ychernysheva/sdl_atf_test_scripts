@@ -22,7 +22,7 @@ local exitAppReasons = {"USER_EXIT", "DRIVER_DISTRACTION_VIOLATION"}
 
 --[[ Local Functions ]]
 local function ptu_update_func(tbl)
-  tbl.policy_table.app_policies[config.application2.registerAppInterfaceParams.appID] = commonRC.getRCAppConfig()
+  tbl.policy_table.app_policies[config.application2.registerAppInterfaceParams.fullAppID] = commonRC.getRCAppConfig()
   table.insert(tbl.policy_table.functional_groupings.RemoteControl.rpcs.OnInteriorVehicleData.hmi_levels, "NONE")
 end
 

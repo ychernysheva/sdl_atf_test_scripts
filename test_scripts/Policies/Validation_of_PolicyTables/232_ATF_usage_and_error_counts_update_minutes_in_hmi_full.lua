@@ -453,12 +453,12 @@ function Test:CheckPTUinLocalPT()
       query = table.concat(
         {
           'select minutes_in_hmi_full from app_level where application_id = "',
-          config.application1.registerAppInterfaceParams.appID,
+          config.application1.registerAppInterfaceParams.fullAppID,
           '"'
         }),
       expectedValues = {table.concat(
           {
-            TESTED_DATA.expected.policy_table.usage_and_error_counts.app_level[config.application1.registerAppInterfaceParams.appID].minutes_in_hmi_full, ""
+            TESTED_DATA.expected.policy_table.usage_and_error_counts.app_level[config.application1.registerAppInterfaceParams.fullAppID].minutes_in_hmi_full, ""
           })
       }
     }
