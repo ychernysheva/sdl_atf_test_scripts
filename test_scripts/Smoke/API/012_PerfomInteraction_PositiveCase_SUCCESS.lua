@@ -128,7 +128,7 @@ local function setChoiceSet(choiceIDValue)
   return temp
 end
 
---! @setChoiceSet: Creates Choice structure without VRcommands
+--! @setChoiceSet_noVR: Creates Choice structure without VRcommands
 --! @parameters:
 --! choiceIDValue - Id for created choice
 --! @return: table of created choice structure
@@ -231,7 +231,7 @@ local function CreateInteractionChoiceSet(choiceSetID, self)
   self.mobileSession1:ExpectResponse(cid, { resultCode = "SUCCESS", success = true })
 end
 
---! @CreateInteractionChoiceSet: Creation of Choice Set with no vrCommands
+--! @CreateInteractionChoiceSet_noVR: Creation of Choice Set with no vrCommands
 --! @parameters:
 --! choiceSetID - id for choice set
 --! self - test object
@@ -397,8 +397,8 @@ runner.Step("CreateInteractionChoiceSet no VR commands with id 400", CreateInter
 runner.Title("Test")
 runner.Step("PerformInteraction with VR_ONLY interaction mode", PI_PerformViaVR_ONLY, {requestParams})
 runner.Step("PerformInteraction with MANUAL_ONLY interaction mode", PI_PerformViaMANUAL_ONLY, {requestParams})
+runner.Step("PerformInteraction with MANUAL_ONLY interaction mode no VR commands", PI_PerformViaMANUAL_ONLY, {requestParams_noVR})
 runner.Step("PerformInteraction with BOTH interaction mode", PI_PerformViaBOTH, {requestParams})
-runner.Step("PerformInteraction with MANUAL_ONLY interaction mode no VR commands", PI_PerformViaMANUAL_ONLY, {requestParams})
 
 
 runner.Title("Postconditions")
