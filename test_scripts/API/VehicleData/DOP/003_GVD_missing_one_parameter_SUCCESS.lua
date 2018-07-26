@@ -29,6 +29,9 @@ local function sendGetVehicleData(pParam)
       common.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", { gps = gpsData })
     end)
   common.getMobileSession():ExpectResponse(cid, { success = true, resultCode = "SUCCESS", gps = gpsData })
+  :ValidIf(function(_, data)
+      return common.checkAbsenceOfParam(pParam, data)
+    end)
 end
 
 --[[ Scenario ]]

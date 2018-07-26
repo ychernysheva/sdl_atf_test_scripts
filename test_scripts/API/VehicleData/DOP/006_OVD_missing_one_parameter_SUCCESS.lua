@@ -24,6 +24,9 @@ local function sendOnVehicleData(pParam)
   gpsData[pParam] = value
   common.getHMIConnection():SendNotification("VehicleInfo.OnVehicleData", { gps = gpsData })
   common.getMobileSession():ExpectNotification("OnVehicleData", { gps = gpsData })
+  :ValidIf(function(_, data)
+      return common.checkAbsenceOfParam(pParam, data)
+    end)
 end
 
 --[[ Scenario ]]

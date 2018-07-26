@@ -52,4 +52,11 @@ function m.subscribeVehicleData()
   m.getMobileSession():ExpectResponse(cid, { success = true, resultCode = "SUCCESS", gps = gpsResponseData })
 end
 
+function m.checkAbsenceOfParam(pParam, pData)
+  if pData.payload[pParam] ~= nil then
+    return false, "Parameter '" .. pParam .. "' is not expected"
+  end
+  return true
+end
+
 return m

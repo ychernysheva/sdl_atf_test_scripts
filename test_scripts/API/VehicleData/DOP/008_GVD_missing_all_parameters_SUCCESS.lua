@@ -15,6 +15,7 @@ local runner = require('user_modules/script_runner')
 
 --[[ Test Configuration ]]
 runner.testSettings.isSelfIncluded = false
+config.checkAllValidations = true
 
 --[[ Local Variables ]]
 local value = nil
@@ -31,6 +32,15 @@ local function sendGetVehicleData()
       common.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", { gps = gpsData })
     end)
   common.getMobileSession():ExpectResponse(cid, { success = true, resultCode = "SUCCESS", gps = gpsData })
+  :ValidIf(function(_, data)
+      return common.checkAbsenceOfParam(common.params[1], data)
+    end)
+  :ValidIf(function(_, data)
+      return common.checkAbsenceOfParam(common.params[2], data)
+    end)
+  :ValidIf(function(_, data)
+      return common.checkAbsenceOfParam(common.params[3], data)
+    end)
 end
 
 --[[ Scenario ]]
