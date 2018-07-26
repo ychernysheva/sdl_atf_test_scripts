@@ -21,6 +21,7 @@ local m = actions
 
 m.cprint = utils.cprint
 m.wait = utils.wait
+m.SDL = SDL
 
 --[[ Constants ]]
 m.appParams = {
@@ -241,11 +242,21 @@ function m.sendLowVoltageSignal()
   m.wait()
 end
 
+--[[ @failTestCase: fail test case
+--! @parameters:
+--! pCause - message with reason of the fail
+--! @return: none
+--]]
+function m.failTestCase(pCause)
+  test:FailTestCase(pCause)
+end
+
 --[[ @sendIgnitionOffSignal: send 'IGNITION_OFF' signal
 --! @parameters: none
 --! @return: none
 --]]
 function m.sendIgnitionOffSignal()
+  local isSDLStoppedByItself = true
   m.sendSignal("IGNITION_OFF")
   os.execute("sleep 1")
   local count = 0
@@ -254,8 +265,12 @@ function m.sendIgnitionOffSignal()
     if count == 10 then
       SDL:StopSDL()
       waitUntilSDLLoggerIsClosed()
+      isSDLStoppedByItself = false
     end
     os.execute("sleep 1")
+  end
+  if not isSDLStoppedByItself then
+    m.failTestCase("SDL was not stopped")
   end
 end
 
@@ -290,18 +305,6 @@ function m.waitUntilResumptionDataIsStored()
   while not isFileExist() do
     os.execute("sleep 1")
   end
-end
-
---[[ @isSDLStopped: verifies if SDL stopped
---! @parameters: none
---! @return: none
---]]
-function m.isSDLStopped()
-  local s = SDL:CheckStatusSDL()
-  if s ~= SDL.STOPPED then
-    return test:FailTestCase("SDL is not stopped")
-  end
-  utils.cprint(35, "SDL stopped")
 end
 
 m.rpcSend.AddCommand = function(pAppId, pCommandId)
