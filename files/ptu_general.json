@@ -2289,7 +2289,8 @@
 				"steal_focus": false,
 				"priority": "NONE",
 				"default_hmi": "BACKGROUND",
-				"groups": ["Base-4", "Navigation-1"]
+				"groups": ["Base-4", "Navigation-1"],
+        "RequestType": []
 			},
 			"device": {
 				"keep_context": false,
