@@ -131,6 +131,7 @@ function testCasesForPolicyTableSnapshot:verify_PTS(is_created, app_IDs, device_
     { name = "module_config.notifications_per_minute_by_priority.COMMUNICATION", elem_required = "required"},
     { name = "module_config.notifications_per_minute_by_priority.NORMAL", elem_required = "required"},
     { name = "module_config.notifications_per_minute_by_priority.NONE", elem_required = "required"},
+    { name = "module_config.notifications_per_minute_by_priority.PROJECTION", elem_required = "optional"},
     { name = "module_config.certificate", elem_required = "optional"},
     { name = "module_config.vehicle_make", elem_required = "optional"},
     { name = "module_config.vehicle_model", elem_required = "optional"},
