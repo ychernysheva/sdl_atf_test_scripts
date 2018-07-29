@@ -38,7 +38,9 @@ local function sendWakeUpSignal()
     unexpectedDisconnect = true,
     appID = common.getHMIAppId()
   })
-  common.cleanSessions()
+  :Do(function()
+      common.cleanSessions()
+    end)
 end
 
 --[[ Scenario ]]
