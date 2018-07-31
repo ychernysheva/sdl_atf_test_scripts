@@ -8,7 +8,7 @@
 -- 1. Mobile app requests createInteractionChoiceSet with image that is absent on file system
 -- SDL must:
 -- 1. transfer this RPC to HMI for processing
--- 2. transfer the received from HMI response (WARNINGS, message: “Requested image(s) not found”) to mobile app
+-- 2. transfer the received from HMI response (WARNINGS) to mobile app
 ---------------------------------------------------------------------------------------------------
 
 --[[ Required Shared libraries ]]
@@ -64,8 +64,7 @@ local function createInteractionChoiceSet(pParams)
     end
   end)
 
-  common.getMobileSession():ExpectResponse(cid, { resultCode = "WARNINGS", success = true,
-    info = "Requested image(s) not found." })
+  common.getMobileSession():ExpectResponse(cid, { resultCode = "WARNINGS", success = true })
   common.getMobileSession():ExpectNotification("OnHashChange")
 end
 

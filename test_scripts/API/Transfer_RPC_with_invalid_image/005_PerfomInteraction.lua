@@ -164,8 +164,7 @@ local function CreateInteractionChoiceSet(choiceSetID)
   :Do(function(_,data)
       common.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", { })
     end)
-  common.getMobileSession():ExpectResponse(cid, { resultCode = "WARNINGS", success = true,
-    info = "Requested image(s) not found." })
+  common.getMobileSession():ExpectResponse(cid, { resultCode = "WARNINGS", success = true })
 end
 
 --! @PI_PerformViaVR_ONLY: Processing PI with interaction mode VR_ONLY with performing selection

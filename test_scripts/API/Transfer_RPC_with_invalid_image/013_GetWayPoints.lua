@@ -5,10 +5,10 @@
 --
 -- Description:
 -- In case:
--- 1. Mobile app requests GetWayPoints with image that is absent on file system
+-- 1. Mobile app requests GetWayPoints
+-- 2. HMI sends Navigation.GetWayPoints with image that is absent on file system
 -- SDL must:
--- 1. transfer this RPC to HMI for processing
--- 2. transfer the received from HMI response (WARNINGS, message: “Requested image(s) not found”) to mobile app
+-- 1. transfer the received from HMI response to mobile app
 ---------------------------------------------------------------------------------------------------
 
 --[[ Required Shared libraries ]]
@@ -67,13 +67,13 @@ local function getWayPoints()
   responseParams.appID = common.getHMIAppId()
   EXPECT_HMICALL("Navigation.GetWayPoints", requestParams)
   :Do(function(_,data)
-      common.getHMIConnection():SendResponse(data.id, data.method, "WARNINGS", responseParams)
+      common.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", responseParams)
     end)
 
   local ExpectedResponse = common.cloneTable(responseParams)
   ExpectedResponse.appID = nil
   ExpectedResponse["success"] = true
-  ExpectedResponse["resultCode"] = "WARNINGS"
+  ExpectedResponse["resultCode"] = "SUCCESS"
   common.getMobileSession():ExpectResponse(cid, ExpectedResponse)
 end
 
