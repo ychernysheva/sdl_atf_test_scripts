@@ -41,8 +41,8 @@ local responseParams = {
       phoneNumber = "Phone39300434",
       locationImage =
       {
-        value ="missed_icon.png",
-        imageType ="DYNAMIC",
+        value = common.getPathToFileInStorage("missed_icon.png"),
+        imageType = "DYNAMIC",
       },
       searchAddress =
       {

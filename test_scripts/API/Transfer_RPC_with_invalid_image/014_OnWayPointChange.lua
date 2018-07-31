@@ -50,7 +50,7 @@ local notifParams = {
 }
 
 --[[ Local Functions ]]
-local function subcribleWayPoints()
+local function subscribeWayPoints()
   local cid = common.getMobileSession():SendRPC("SubscribeWayPoints",{})
   EXPECT_HMICALL("Navigation.SubscribeWayPoints")
   :Do(function(_,data)
@@ -71,7 +71,7 @@ runner.Step("Clean environment", common.preconditions)
 runner.Step("Start SDL, HMI, connect Mobile, start Session", common.start)
 runner.Step("RAI", common.registerAppWOPTU)
 runner.Step("Activate App", common.activateApp)
-runner.Step("SubcribleWayPoints", subcribleWayPoints)
+runner.Step("SubcribleWayPoints", subscribeWayPoints)
 
 runner.Title("Test")
 runner.Step("OnWayPointChange with invalid image", onWayPointChange)

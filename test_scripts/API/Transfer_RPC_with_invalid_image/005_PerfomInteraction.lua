@@ -64,11 +64,11 @@ local requestParams = {
 
 --[[ Local Functions ]]
 
---! @setChoiseSet: Creates Choice structure
+--! @setChoiceSet: Creates Choice structure
 --! @parameters:
 --! choiceIDValue - Id for created choice
 --! @return: table of created choice structure
-local function setChoiseSet(choiceIDValue)
+local function setChoiceSet(choiceIDValue)
   local temp = {
     {
       choiceID = choiceIDValue,
@@ -94,11 +94,11 @@ local function SendOnSystemContext(ctx)
     { appID = common.getHMIAppId(), systemContext = ctx })
 end
 
---! @setExChoiseSet: ChoiceSet structure for UI.PerformInteraction request
+--! @setExChoiceSet: ChoiceSet structure for UI.PerformInteraction request
 --! @parameters:
 --! choiceIDValues - value of choice id
 --! @return: none
-local function setExChoiseSet(choiceIDValues)
+local function setExChoiceSet(choiceIDValues)
   local exChoiceSet = { }
   for i = 1, #choiceIDValues do
     exChoiceSet[i] = {
@@ -154,7 +154,7 @@ local function CreateInteractionChoiceSet(choiceSetID)
   local choiceID = choiceSetID
   local cid = common.getMobileSession():SendRPC("CreateInteractionChoiceSet", {
       interactionChoiceSetID = choiceSetID,
-      choiceSet = setChoiseSet(choiceID),
+      choiceSet = setChoiceSet(choiceID),
     })
   EXPECT_HMICALL("VR.AddCommand", {
       cmdID = choiceID,
@@ -228,7 +228,7 @@ local function PI_PerformViaMANUAL_ONLY(paramsSend)
     end)
   EXPECT_HMICALL("UI.PerformInteraction", {
       timeout = paramsSend.timeout,
-      choiceSet = setExChoiseSet(paramsSend.interactionChoiceSetIDList),
+      choiceSet = setExChoiceSet(paramsSend.interactionChoiceSetIDList),
       initialText = {
         fieldName = "initialInteractionText",
         fieldText = paramsSend.initialText
@@ -280,7 +280,7 @@ local function PI_PerformViaBOTH(paramsSend)
     end)
   EXPECT_HMICALL("UI.PerformInteraction", {
       timeout = paramsSend.timeout,
-      choiceSet = setExChoiseSet(paramsSend.interactionChoiceSetIDList),
+      choiceSet = setExChoiceSet(paramsSend.interactionChoiceSetIDList),
       initialText = {
         fieldName = "initialInteractionText",
         fieldText = paramsSend.initialText
