@@ -2251,7 +2251,7 @@
 		"groups": [
 		  "Base-4", "Notifications", "Location-1"
 		],
-        "RequestType": []
+		"RequestType": []
 	      },
             "default": {
                 "keep_context": false,

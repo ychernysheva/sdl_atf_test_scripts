@@ -383,7 +383,7 @@
 				"priority": "NONE",
 				"default_hmi": "NONE",
 				"groups": ["Base-4"],
-        "RequestType": []
+				"RequestType": []
 			},
 			"1234567": {
 				"keep_context": false,
@@ -392,7 +392,7 @@
 				"default_hmi": "NONE",
 				"groups": ["Base-4"],
 				"nicknames": ["AnotherName"],
-        "RequestType": []
+				"RequestType": []
 			},
 			"device": {
 				"keep_context": false,

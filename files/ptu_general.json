@@ -2267,7 +2267,7 @@
 				"priority": "NONE",
 				"default_hmi": "NONE",
 				"groups": ["Base-4", "Navigation-1","DrivingCharacteristics-3", "Location-1", "VehicleInfo-3", "Emergency-1", "OnKeyboardInputOnlyGroup", "PropriataryData-1"],
-        "RequestType": []
+				"RequestType": []
 			},
 			"0000001": {
 				"keep_context": true,
@@ -2275,7 +2275,7 @@
 				"priority": "NONE",
 				"default_hmi": "NONE",
 				"groups": ["Base-4", "Navigation-1","DrivingCharacteristics-3", "Location-1", "VehicleInfo-3", "Emergency-1", "OnKeyboardInputOnlyGroup", "PropriataryData-1", "SendLocation"],
-        "RequestType": []
+				"RequestType": []
 			},
 			"0000004": {
 				"keep_context": true,
@@ -2283,7 +2283,7 @@
 				"priority": "NONE",
 				"default_hmi": "BACKGROUND",
 				"groups": ["Base-4", "Navigation-1","DrivingCharacteristics-3", "Location-1", "VehicleInfo-3", "Emergency-1", "OnKeyboardInputOnlyGroup", "PropriataryData-1", "SendLocation"],
-        "RequestType": []
+				"RequestType": []
 			},
 			"background": {
 				"keep_context": false,
@@ -2291,7 +2291,7 @@
 				"priority": "NONE",
 				"default_hmi": "BACKGROUND",
 				"groups": ["Base-4", "Navigation-1"],
-        "RequestType": []
+				"RequestType": []
 			},
 			"device": {
 				"keep_context": false,

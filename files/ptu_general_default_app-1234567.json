@@ -2052,7 +2052,7 @@
 				"priority": "NONE",
 				"default_hmi": "NONE",
 				"groups": ["Base-4"],
-        "RequestType": []
+				"RequestType": []
 			},
 			"background": {
 				"keep_context": false,
@@ -2060,7 +2060,7 @@
 				"priority": "NONE",
 				"default_hmi": "BACKGROUND",
 				"groups": ["Base-4", "Navigation-1"],
-        "RequestType": []
+				"RequestType": []
 			},
 			"device": {
 				"keep_context": false,

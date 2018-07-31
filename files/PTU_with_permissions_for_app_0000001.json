@@ -2047,7 +2047,7 @@
 				"default_hmi": "BACKGROUND",
 				"groups": ["Location-1"],
 				"nicknames": ["Test Application"],
-        "RequestType": []
+				"RequestType": []
 			},
 			"default": {
 				"keep_context": false,
@@ -2055,7 +2055,7 @@
 				"priority": "NONE",
 				"default_hmi": "NONE",
 				"groups": ["Base-4"],
-        "RequestType": []
+				"RequestType": []
 			},
 			"device": {
 				"keep_context": false,
