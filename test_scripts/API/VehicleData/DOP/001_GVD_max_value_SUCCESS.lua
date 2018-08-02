@@ -4,7 +4,7 @@
 -- In case:
 -- 1. App sends 'GetVehicleData' request with gps=true
 -- 2. And SDL transfers this request to HMI
--- 3. And HMI responds with gps data with one of the following parameters set to inbound max value (1000):
+-- 3. And HMI responds with gps data with one of the following parameters set to exactly max value (1000):
 -- "pdop", "hdop", "vdop"
 -- SDL does:
 -- 1. Process this response and transfer it to App

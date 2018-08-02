@@ -4,7 +4,7 @@
 -- In case:
 -- 1. App sends 'GetVehicleData' request with gps=true
 -- 2. And SDL transfers this request to HMI
--- 3. And HMI responds with gps data with one of the following parameters set to outbound max value (1001):
+-- 3. And HMI responds with gps data with one of the following parameters set to beyond max value (1001):
 -- "pdop", "hdop", "vdop"
 -- SDL does:
 -- 1. Ignore this response

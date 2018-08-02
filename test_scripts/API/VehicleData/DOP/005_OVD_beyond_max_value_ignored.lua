@@ -3,7 +3,7 @@
 ---------------------------------------------------------------------------------------------------
 -- In case:
 -- 1. Mobile app is subscribed to get gps data
--- 2. And HMI sends OnVehicleData with outbound max value (1001) for the one of the following parameters:
+-- 2. And HMI sends OnVehicleData with beyond max value (1001) for the one of the following parameters:
 -- "pdop", "hdop", "vdop"
 -- SDL does:
 -- 1. Ignore this notification
