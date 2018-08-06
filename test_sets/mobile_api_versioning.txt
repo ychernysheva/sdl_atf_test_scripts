@@ -1,0 +1,2 @@
+./test_scripts/SDL4_6/MobileVersioning/VersionNegotiation/001_register_legacy_app.lua
+./test_scripts/SDL4_6/MobileVersioning/VersionNegotiation/002_register_app_on_legacy_module.lua
