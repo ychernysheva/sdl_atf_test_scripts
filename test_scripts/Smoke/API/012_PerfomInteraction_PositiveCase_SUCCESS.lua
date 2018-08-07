@@ -34,6 +34,9 @@ local runner = require('user_modules/script_runner')
 local commonSmoke = require('test_scripts/Smoke/commonSmoke')
 local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 
+config.application1.registerAppInterfaceParams.syncMsgVersion.majorVersion = 5
+config.application1.registerAppInterfaceParams.syncMsgVersion.minorVersion = 0
+
 --[[ Local Variables ]]
 local putFileParams = {
   requestParams = {
