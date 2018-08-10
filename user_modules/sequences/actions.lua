@@ -446,7 +446,7 @@ end
 --]]
 function m.postconditions()
   StopSDL()
-  self.restoreSDLIniParameters()
+  m.restoreSDLIniParameters()
 end
 
 --[[ @getAppsCount: provide count of registered applications

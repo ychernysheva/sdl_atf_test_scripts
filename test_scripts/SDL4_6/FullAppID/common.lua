@@ -18,6 +18,8 @@ local commonSmoke = require('test_scripts/Smoke/commonSmoke')
 
 local m = commonSteps
 
+local preloadedPT = commonFunctions:read_parameter_from_smart_device_link_ini("PreloadedPT")
+
 --[[ Local Functions ]]
 function m.preconditions()
   -- Stop SDL if process is still running
@@ -26,6 +28,8 @@ function m.preconditions()
   commonSteps:DeletePolicyTable()
   -- Delete log files
   commonSteps:DeleteLogsFiles()
+  commonPreconditions:BackupFile(preloadedPT)
+  commonSmoke.updatePreloadedPT()
 end
 
 -- Allow device from HMI
