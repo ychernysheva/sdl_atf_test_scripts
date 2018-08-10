@@ -3,7 +3,7 @@
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
-local common = require('test_scripts/Defects/4_6/2405/common')
+local common = require('test_scripts/Defects/5_0/2405/common')
 
 --[[ Test Configuration ]]
 runner.testSettings.isSelfIncluded = false
@@ -12,7 +12,7 @@ runner.testSettings.isSelfIncluded = false
 local tc = {
   grp = {
     [1] = { name = "Dummy-1", prompt = "Dummy_1", params = common.EMPTY_ARRAY },
-    [2] = { name = "Dummy-2", prompt = "Dummy_2", params = { "speed" } }
+    [2] = { name = "Dummy-2", prompt = "Dummy_2", params = nil }
   },
   resultCode = "SUCCESS",
   success = true
