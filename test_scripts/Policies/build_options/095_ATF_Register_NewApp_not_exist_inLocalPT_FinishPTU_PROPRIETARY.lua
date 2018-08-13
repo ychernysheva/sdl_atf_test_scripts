@@ -155,7 +155,7 @@ function Test:TestStep_CheckThatAppID_Present_In_DataBase()
     if r[1] then wait = false end
   end
 
-  local sql = table.concat({"SELECT 1 FROM application WHERE id = '", tostring(registerAppInterfaceParams.fullAppID), "'"})
+  local sql = table.concat({"SELECT 1 FROM application WHERE id = '", tostring(registerAppInterfaceParams.appID), "'"})
   print(sql)
   local r_actual = commonFunctions:get_data_policy_sql(PolicyDBPath, sql)
   if r_actual[1] == nil then
