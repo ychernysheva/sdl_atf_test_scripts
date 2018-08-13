@@ -29,7 +29,6 @@ function m.preconditions()
   -- Delete log files
   commonSteps:DeleteLogsFiles()
   commonPreconditions:BackupFile(preloadedPT)
-  commonSmoke.updatePreloadedPT()
 end
 
 -- Allow device from HMI
@@ -292,6 +291,7 @@ end
 function m.postconditions()
   actions.restoreSDLIniParameters()
   StopSDL()
+  commonPreconditions:RestoreFile(preloadedPT)
 end
 
 return m
