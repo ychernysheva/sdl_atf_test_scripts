@@ -135,6 +135,7 @@ function testCasesForPolicyTableSnapshot:verify_PTS(is_created, app_IDs, device_
     { name = "module_config.vehicle_model", elem_required = "optional"},
     { name = "module_config.vehicle_year", elem_required = "optional"},
     { name = "module_config.display_order", elem_required = "optional"},
+    { name = "module_config.full_app_id_supported", elem_required = "required"},
 
     { name = "consumer_friendly_messages.version", elem_required = "required"},
 
