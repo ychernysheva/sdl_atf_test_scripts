@@ -9,7 +9,7 @@
 --
 -- Description:
 -- In case:
--- 1) If application is subscribed to get vehicle data with 'engineOilLife' parameter
+-- 1) If application is subscribed to get vehicle data with 'gps' parameter
 -- 2) Notification about changes with mandatory parameters is received from hmi
 -- 3) Notification about changes without mandatory parameters is received from hmi
 -- SDL must:
@@ -30,7 +30,7 @@ local rpc1 = {
 }
 
 local vehicleDataResults = {
-  engineOilLife = {
+  gps = {
     dataType = "VEHICLEDATA_GPS",
     resultCode = "SUCCESS"
   }
