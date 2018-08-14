@@ -73,7 +73,7 @@ Test["TEST_NAME_OFF".."_Precondition_Update_Policy_Table"] = function(self)
   common_functions_external_consent:CreateJsonFileForPTU(data, "/tmp/ptu_update.json")
   -- remove preload_pt from json file
   local parent_item = {"policy_table","module_config"}
-  local removed_json_items = {"preloaded_pt"}
+  local removed_json_items = {"preloaded_pt", "preloaded_date"}
   common_functions:RemoveItemsFromJsonFile("/tmp/ptu_update.json", parent_item, removed_json_items)
   -- update policy table
   common_functions_external_consent:UpdatePolicy(self, "/tmp/ptu_update.json")
