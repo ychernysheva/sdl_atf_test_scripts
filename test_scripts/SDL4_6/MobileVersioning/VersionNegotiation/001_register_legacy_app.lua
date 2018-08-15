@@ -109,7 +109,7 @@ runner.Step("Clean environment", commonSmoke.preconditions)
 runner.Step("Start SDL, HMI, connect Mobile, start Session", commonSmoke.start)
 runner.Step("RAI", commonSmoke.registerApp)
 runner.Step("Activate App", commonSmoke.activateApp)
-runner.Step("UnregisterAppInterface Positive Case", unregisterAppInterface)
+runner.Step("UnregisterAppInterface Positive Case", UnregisterAppInterface)
 
 runner.Title("Test")
 runner.Step("RegisterAppInterface Legacy App Case", RegisterAppInterface)

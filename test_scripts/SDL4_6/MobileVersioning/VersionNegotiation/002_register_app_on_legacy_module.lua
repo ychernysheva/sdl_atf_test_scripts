@@ -70,7 +70,7 @@ local responseSyncMsgVersion = {
 		patchVersion = 0
 }
 
-local function SetNotificationParams()
+local function GetNotificationParams()
 	local notificationParams = {
 		application = {}
 	}
@@ -92,7 +92,7 @@ local function SetNotificationParams()
 end
 
 --[[ Local Functions ]]
-local function unregisterAppInterface(self)
+local function UnregisterAppInterface(self)
 	local cid = self.mobileSession1:SendRPC("UnregisterAppInterface", { })
 	EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered",
 		{ appID = commonSmoke.getHMIAppId(), unexpectedDisconnect = false })
@@ -101,7 +101,7 @@ end
 
 local function RegisterAppInterface(self)
 	local CorIdRAI = self.mobileSession1:SendRPC("RegisterAppInterface", requestParams)
-	local notificationParams = SetNotificationParams()
+	local notificationParams = GetNotificationParams()
 	EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", notificationParams)
 	self.mobileSession1:ExpectResponse(CorIdRAI, { success = true, resultCode = "SUCCESS", syncMsgVersion = responseSyncMsgVersion})
 	self.mobileSession1:ExpectNotification("OnHMIStatus",
@@ -115,7 +115,7 @@ runner.Step("Clean environment", commonSmoke.preconditions)
 runner.Step("Start SDL, HMI, connect Mobile, start Session", commonSmoke.start)
 runner.Step("RAI", commonSmoke.registerApp)
 runner.Step("Activate App", commonSmoke.activateApp)
-runner.Step("UnregisterAppInterface Positive Case", unregisterAppInterface)
+runner.Step("UnregisterAppInterface Positive Case", UnregisterAppInterface)
 
 runner.Title("Test")
 runner.Step("RegisterAppInterface New App on Legacy Module Positive Case", RegisterAppInterface)
