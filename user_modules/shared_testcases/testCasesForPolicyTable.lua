@@ -1046,6 +1046,8 @@ function testCasesForPolicyTable:trigger_getting_device_consent(self, app_name, 
       self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
     end)
   end)
+  EXPECT_HMICALL("BasicCommunication.ActivateApp"):Times(Between(0,1))
+  :Do(function(_,data) self.hmiConnection:SendResponse(data.id,"BasicCommunication.ActivateApp", "SUCCESS", {}) end)
 
   EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"})
 end
