@@ -64,7 +64,7 @@ local requestParams = {
 	}
 }
 
-local function SetNotificationParams()
+local function GetNotificationParams()
 	local notificationParams = {
 		application = {}
 	}
@@ -86,7 +86,7 @@ local function SetNotificationParams()
 end
 
 --[[ Local Functions ]]
-local function unregisterAppInterface(self)
+local function UnregisterAppInterface(self)
 	local cid = self.mobileSession1:SendRPC("UnregisterAppInterface", { })
 	EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered",
 		{ appID = commonSmoke.getHMIAppId(), unexpectedDisconnect = false })
@@ -95,7 +95,7 @@ end
 
 local function RegisterAppInterface(self)
 	local CorIdRAI = self.mobileSession1:SendRPC("RegisterAppInterface", requestParams)
-	local notificationParams = SetNotificationParams()
+	local notificationParams = GetNotificationParams()
 	EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", notificationParams)
 	self.mobileSession1:ExpectResponse(CorIdRAI, { success = true, resultCode = "SUCCESS", syncMsgVersion = requestParams.syncMsgVersion})
 	self.mobileSession1:ExpectNotification("OnHMIStatus",
