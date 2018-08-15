@@ -1,5 +1,5 @@
 ---------------------------------------------------------------------------------------------------
--- User story: Smoke
+-- User story: MobileVersioning Legacy App
 -- Use case: CreateInteractionChoiceSet
 -- Item: Happy path
 --
@@ -35,7 +35,7 @@
 local runner = require('user_modules/script_runner')
 local commonSmoke = require('test_scripts/Smoke/commonSmoke')
 
-config.application1.registerAppInterfaceParams.syncMsgVersion.majorVersion = 5
+config.application1.registerAppInterfaceParams.syncMsgVersion.majorVersion = 3
 config.application1.registerAppInterfaceParams.syncMsgVersion.minorVersion = 0
 
 --[[ Local Variables ]]
@@ -58,19 +58,6 @@ local requestParams = {
 			vrCommands = {
 				"Choice1001"
 			},
-			image = {
-				value ="icon.png",
-				imageType ="DYNAMIC"
-			}
-		}
-	}
-}
-local requestParams_noVR = {
-	interactionChoiceSetID = 1002,
-	choiceSet = {
-		{
-			choiceID = 1002,
-			menuName ="Choice1002",
 			image = {
 				value ="icon.png",
 				imageType ="DYNAMIC"
@@ -112,11 +99,6 @@ local function createInteractionChoiceSet(params, self)
 	self.mobileSession1:ExpectNotification("OnHashChange")
 end
 
-local function createInteractionChoiceSet_noVR(params, self)
-	local cid = self.mobileSession1:SendRPC("CreateInteractionChoiceSet", params)
-	self.mobileSession1:ExpectResponse(cid, { success = true, resultCode = "SUCCESS"})
-end
-
 --[[ Scenario ]]
 runner.Title("Preconditions")
 runner.Step("Clean environment", commonSmoke.preconditions)
@@ -127,7 +109,6 @@ runner.Step("Upload icon file", commonSmoke.putFile, {putFileParams})
 
 runner.Title("Test")
 runner.Step("CreateInteractionChoiceSet Positive Case", createInteractionChoiceSet, {allParams})
-runner.Step("CreateInteractionChoiceSet No VR Commands Positive Case", createInteractionChoiceSet_noVR, {requestParams_noVR})
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", commonSmoke.postconditions)

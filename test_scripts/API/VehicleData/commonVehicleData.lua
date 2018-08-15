@@ -56,7 +56,6 @@ local function jsonFileToTable(file_name)
   return json.decode(content)
 end
 
-
 local function addParamToRPC(tbl, functional_grouping, rpc, param)
   local is_found = false
   local params = tbl.policy_table.functional_groupings[functional_grouping].rpcs[rpc].parameters
@@ -87,13 +86,14 @@ local function ptu(self, app_id, ptu_update_func)
       self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",
         { requestType = "PROPRIETARY", fileName = pts_file_name })
       getPTUFromPTS(ptu_table)
-       local function updatePTU(tbl)
+      local function updatePTU(tbl)
         for rpc in pairs(tbl.policy_table.functional_groupings["Emergency-1"].rpcs) do
           addParamToRPC(tbl, "Emergency-1", rpc, "engineOilLife")
           addParamToRPC(tbl, "Emergency-1", rpc, "fuelRange")
           addParamToRPC(tbl, "Emergency-1", rpc, "tirePressure")
           addParamToRPC(tbl, "Emergency-1", rpc, "electronicParkBrakeStatus")
           addParamToRPC(tbl, "Emergency-1", rpc, "turnSignal")
+          addParamToRPC(tbl, "Emergency-1", rpc, "gps")
         end
         tbl.policy_table.app_policies[commonVehicleData.getMobileAppId(app_id)] = commonVehicleData.getGetVehicleDataConfig()
       end
@@ -260,13 +260,13 @@ end
 
 local function allowSDL(self)
   self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", {
-    allowed = true,
-    source = "GUI",
-    device = {
-      id = commonVehicleData.getDeviceMAC(),
-      name = commonVehicleData.getDeviceName()
-    }
-  })
+      allowed = true,
+      source = "GUI",
+      device = {
+        id = commonVehicleData.getDeviceMAC(),
+        name = commonVehicleData.getDeviceName()
+      }
+    })
 end
 
 function commonVehicleData.start(pHMIParams, self)
