@@ -9,7 +9,7 @@
 -- 3) All apps have some data that can be resumed
 -- 4) SDL get LOW_VOLTAGE signal
 -- 5) And then SDL get WAKE_UP signal
--- 6) All apps are registered with the same hashID
+-- 6) All apps are registered with their corresponding hashIDs
 -- SDL does:
 -- 1) after 4th step:
 -- Stop all read write activities

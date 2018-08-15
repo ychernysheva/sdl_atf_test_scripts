@@ -34,7 +34,7 @@ local function checkAppId(pAppId, pData)
 end
 
 local function checkResumptionHMILevel()
-	common.getMobileSession(1):ExpectNotification("OnHMIStatus",
+  common.getMobileSession(1):ExpectNotification("OnHMIStatus",
     { hmiLevel = "NONE", systemContext = "MAIN", audioStreamingState = "NOT_AUDIBLE" },
     { hmiLevel = "LIMITED", systemContext = "MAIN", audioStreamingState = "AUDIBLE" })
   :Times(2)

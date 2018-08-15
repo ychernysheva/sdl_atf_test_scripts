@@ -17,9 +17,17 @@ runner.testSettings.isSelfIncluded = false
 
 --[[ Local Variables ]]
 local cid = nil
+local hmiId
 
 --[[ Local Functions ]]
 local function checkResumptionData()
+  common.getMobileSession():ExpectResponse(cid) -- check absence of response
+  :Times(0)
+end
+
+local function showResponseDuringWakeUp()
+  common.sendWakeUpSignal()
+  common.getHMIConnection():SendResponse(hmiId, "UI.Show", "SUCCESS", {})
   common.getMobileSession():ExpectResponse(cid) -- check absence of response
   :Times(0)
 end
@@ -43,6 +51,9 @@ local function processRPCPartially()
   }
   cid = common.getMobileSession():SendRPC("Show", params)
   EXPECT_HMICALL("UI.Show")
+  :Do(function(_, data)
+    hmiId = data.id
+  end)
 end
 
 local function checkAppId(pAppId, pData)
@@ -64,8 +75,8 @@ runner.Title("Test")
 runner.Step("Wait until Resumption Data is stored" , common.waitUntilResumptionDataIsStored)
 runner.Step("RPC Show partially", processRPCPartially)
 runner.Step("Send LOW_VOLTAGE signal", common.sendLowVoltageSignal)
-runner.Step("Close mobile connection", common.cleanSessions)
-runner.Step("Send WAKE_UP signal", common.sendWakeUpSignal)
+runner.Step("Send WAKE_UP signal and absence Show response on mobile app", showResponseDuringWakeUp)
+runner.Step("Clean sessions", common.cleanSessions)
 runner.Step("Re-connect Mobile", common.connectMobile)
 runner.Step("Re-register App, check resumption data and HMI level", common.reRegisterApp, {
   1, checkAppId, checkResumptionData, checkResumptionHMILevel, "SUCCESS", 11000
