@@ -1,5 +1,5 @@
 ---------------------------------------------------------------------------------------------------
--- User story: Smoke
+-- User story: MobileVersioning Legacy App
 -- Use case: PerformInteraction
 -- Item: Happy path
 --
@@ -34,7 +34,7 @@ local runner = require('user_modules/script_runner')
 local commonSmoke = require('test_scripts/Smoke/commonSmoke')
 local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 
-config.application1.registerAppInterfaceParams.syncMsgVersion.majorVersion = 5
+config.application1.registerAppInterfaceParams.syncMsgVersion.majorVersion = 3
 config.application1.registerAppInterfaceParams.syncMsgVersion.minorVersion = 0
 
 --[[ Local Variables ]]
@@ -94,20 +94,6 @@ local requestParams = {
   interactionLayout = "ICON_ONLY"
 }
 
-local requestParams_noVR = {
-  initialText = "StartPerformInteraction",
-  initialPrompt = initialPromptValue,
-  interactionMode = "BOTH",
-  interactionChoiceSetIDList = {
-    100, 200, 300, 400
-  },
-  helpPrompt = helpPromptValue,
-  timeoutPrompt = timeoutPromptValue,
-  timeout = 5000,
-  vrHelp = vrHelpvalue,
-  interactionLayout = "ICON_ONLY"
-}
-
 --[[ Local Functions ]]
 
 --! @setChoiceSet: Creates Choice structure
@@ -122,24 +108,6 @@ local function setChoiceSet(choiceIDValue)
       vrCommands = {
         "VrChoice" .. tostring(choiceIDValue),
       },
-      image = {
-        value ="icon.png",
-        imageType ="STATIC",
-      }
-    }
-  }
-  return temp
-end
-
---! @setChoiceSet_noVR: Creates Choice structure without VRcommands
---! @parameters:
---! choiceIDValue - Id for created choice
---! @return: table of created choice structure
-local function setChoiceSet_noVR(choiceIDValue)
-  local temp = {
-    {
-      choiceID = choiceIDValue,
-      menuName ="Choice" .. tostring(choiceIDValue),
       image = {
         value ="icon.png",
         imageType ="STATIC",
@@ -231,20 +199,6 @@ local function CreateInteractionChoiceSet(choiceSetID, self)
   :Do(function(_,data)
       self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", { })
     end)
-  self.mobileSession1:ExpectResponse(cid, { resultCode = "SUCCESS", success = true })
-end
-
---! @CreateInteractionChoiceSet_noVR: Creation of Choice Set with no vrCommands
---! @parameters:
---! choiceSetID - id for choice set
---! self - test object
---! @return: none
-local function CreateInteractionChoiceSet_noVR(choiceSetID, self)
-  local choiceID = choiceSetID
-  local cid = self.mobileSession1:SendRPC("CreateInteractionChoiceSet", {
-      interactionChoiceSetID = choiceSetID,
-      choiceSet = setChoiceSet_noVR(choiceID),
-    })
   self.mobileSession1:ExpectResponse(cid, { resultCode = "SUCCESS", success = true })
 end
 
@@ -395,12 +349,10 @@ runner.Step("Upload icon file", commonSmoke.putFile, {putFileParams})
 runner.Step("CreateInteractionChoiceSet with id 100", CreateInteractionChoiceSet, {100})
 runner.Step("CreateInteractionChoiceSet with id 200", CreateInteractionChoiceSet, {200})
 runner.Step("CreateInteractionChoiceSet with id 300", CreateInteractionChoiceSet, {300})
-runner.Step("CreateInteractionChoiceSet no VR commands with id 400", CreateInteractionChoiceSet_noVR, {400})
 
 runner.Title("Test")
 runner.Step("PerformInteraction with VR_ONLY interaction mode", PI_PerformViaVR_ONLY, {requestParams})
 runner.Step("PerformInteraction with MANUAL_ONLY interaction mode", PI_PerformViaMANUAL_ONLY, {requestParams})
-runner.Step("PerformInteraction with MANUAL_ONLY interaction mode no VR commands", PI_PerformViaMANUAL_ONLY, {requestParams_noVR})
 runner.Step("PerformInteraction with BOTH interaction mode", PI_PerformViaBOTH, {requestParams})
 
 

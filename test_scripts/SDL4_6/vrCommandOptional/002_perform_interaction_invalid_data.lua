@@ -5,11 +5,11 @@
 --
 -- Requirement summary:
 -- [PerformInteraction]:
--- SUCCESS result code
--- TIMED_OUT result code
+-- INVALID_DATA
 --
 -- Description:
--- Mobile application sends PerformInteraction request with valid parameters to SDL
+-- Mobile application sends PerformInteraction VR request with invalid parameters to SDL
+-- It will have several choice sets with vrCommands and one without, so it cannot do a VR interaction
 
 -- Pre-conditions:
 -- a. HMI and SDL are started
@@ -18,15 +18,11 @@
 -- d. ChoiceSets are already added
 
 -- Steps:
--- appID requests PerformInteraction with valid parameters to SDL
+-- appID requests PerformInteraction using VR with non-VR choice sets 
 
 -- Expected:
--- SDL validates parameters of the request
--- SDL checks if PerformInteraction is allowed by Policies
--- SDL checks if all parameters are allowed by Policies
--- SDL provides ability to perform choice on HMI manually or by voice
--- After user provide the choice SDL responds with (resultCode: SUCCESS, success:true) to mobile application
--- After user does not provide the choice SDL responds with (resultCode: TIMED_OUT, success:false) to mobile application
+-- SDL invalidates parameters of the request
+-- SDL responds with (resultCode: INVALID_DATA, success:false) to mobile application
 ---------------------------------------------------------------------------------------------------
 
 --[[ Required Shared libraries ]]
@@ -256,78 +252,7 @@ end
 local function PI_PerformViaVR_ONLY(paramsSend, self)
   paramsSend.interactionMode = "VR_ONLY"
   local cid = self.mobileSession1:SendRPC("PerformInteraction",paramsSend)
-  EXPECT_HMICALL("VR.PerformInteraction", {
-      helpPrompt = paramsSend.helpPrompt,
-      initialPrompt = paramsSend.initialPrompt,
-      timeout = paramsSend.timeout,
-      timeoutPrompt = paramsSend.timeoutPrompt
-    })
-  :Do(function(_,data)
-      local function vrResponse()
-        self.hmiConnection:SendNotification("TTS.Started")
-        self.hmiConnection:SendNotification("VR.Started")
-        SendOnSystemContext(self, "VRSESSION")
-        self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS",
-          { choiceID = paramsSend.interactionChoiceSetIDList[1] })
-        self.hmiConnection:SendNotification("TTS.Stopped")
-        self.hmiConnection:SendNotification("VR.Stopped")
-        SendOnSystemContext(self, "MAIN")
-      end
-      RUN_AFTER(vrResponse, 1000)
-    end)
-
-  EXPECT_HMICALL("UI.PerformInteraction", {
-      timeout = paramsSend.timeout,
-      vrHelp = paramsSend.vrHelp,
-      vrHelpTitle = paramsSend.initialText,
-    })
-  :Do(function(_,data)
-      self.hmiConnection:SendResponse( data.id, data.method, "SUCCESS", { } )
-    end)
-  ExpectOnHMIStatusWithAudioStateChanged_PI(self, "VR")
-  self.mobileSession1:ExpectResponse(cid,
-    { success = true, resultCode = "SUCCESS", choiceID = paramsSend.interactionChoiceSetIDList[1] })
-end
-
---! @PI_PerformViaMANUAL_ONLY: Processing PI with interaction mode MANUAL_ONLY with performing selection
---! @parameters:
---! paramsSend - parameters for PI request
---! self - test object
---! @return: none
-local function PI_PerformViaMANUAL_ONLY(paramsSend, self)
-  paramsSend.interactionMode = "MANUAL_ONLY"
-  local cid = self.mobileSession1:SendRPC("PerformInteraction", paramsSend)
-  EXPECT_HMICALL("VR.PerformInteraction", {
-      helpPrompt = paramsSend.helpPrompt,
-      initialPrompt = paramsSend.initialPrompt,
-      timeout = paramsSend.timeout,
-      timeoutPrompt = paramsSend.timeoutPrompt
-    })
-  :Do(function(_,data)
-      self.hmiConnection:SendNotification("TTS.Started")
-      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", { })
-    end)
-  EXPECT_HMICALL("UI.PerformInteraction", {
-      timeout = paramsSend.timeout,
-      choiceSet = setExChoiceSet(paramsSend.interactionChoiceSetIDList),
-      initialText = {
-        fieldName = "initialInteractionText",
-        fieldText = paramsSend.initialText
-      }
-    })
-  :Do(function(_,data)
-      SendOnSystemContext(self,"HMI_OBSCURED")
-      local function uiResponse()
-        self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS",
-          { choiceID = paramsSend.interactionChoiceSetIDList[1] })
-        self.hmiConnection:SendNotification("TTS.Stopped")
-        SendOnSystemContext(self,"MAIN")
-      end
-      RUN_AFTER(uiResponse, 1000)
-    end)
-  ExpectOnHMIStatusWithAudioStateChanged_PI(self, "MANUAL")
-  self.mobileSession1:ExpectResponse(cid,
-    { success = true, resultCode = "SUCCESS", choiceID = paramsSend.interactionChoiceSetIDList[1] })
+  self.mobileSession1:ExpectResponse(cid, { success = false, resultCode = "INVALID_DATA"})
 end
 
 --! @PI_PerformViaBOTH: Processing PI with interaction mode BOTH with timeout on VR and IU
@@ -338,51 +263,7 @@ end
 local function PI_PerformViaBOTH(paramsSend, self)
   paramsSend.interactionMode = "BOTH"
   local cid = self.mobileSession1:SendRPC("PerformInteraction",paramsSend)
-  EXPECT_HMICALL("VR.PerformInteraction", {
-      helpPrompt = paramsSend.helpPrompt,
-      initialPrompt = paramsSend.initialPrompt,
-      timeout = paramsSend.timeout,
-      timeoutPrompt = paramsSend.timeoutPrompt
-    })
-  :Do(function(_,data)
-      self.hmiConnection:SendNotification("VR.Started")
-      self.hmiConnection:SendNotification("TTS.Started")
-      SendOnSystemContext(self,"VRSESSION")
-      local function firstSpeakTimeOut()
-        self.hmiConnection:SendNotification("TTS.Stopped")
-        self.hmiConnection:SendNotification("TTS.Started")
-      end
-      RUN_AFTER(firstSpeakTimeOut, 5)
-      local function vrResponse()
-        self.hmiConnection:SendError(data.id, data.method, "TIMED_OUT", "Perform Interaction error response.")
-        self.hmiConnection:SendNotification("VR.Stopped")
-      end
-      RUN_AFTER(vrResponse, 20)
-    end)
-  EXPECT_HMICALL("UI.PerformInteraction", {
-      timeout = paramsSend.timeout,
-      choiceSet = setExChoiceSet(paramsSend.interactionChoiceSetIDList),
-      initialText = {
-        fieldName = "initialInteractionText",
-        fieldText = paramsSend.initialText
-      },
-      vrHelp = paramsSend.vrHelp,
-      vrHelpTitle = paramsSend.initialText
-    })
-  :Do(function(_,data)
-      local function choiceIconDisplayed()
-        SendOnSystemContext(self,"HMI_OBSCURED")
-      end
-      RUN_AFTER(choiceIconDisplayed, 25)
-      local function uiResponse()
-        self.hmiConnection:SendNotification("TTS.Stopped")
-        self.hmiConnection:SendError(data.id, data.method, "TIMED_OUT", "Perform Interaction error response.")
-        SendOnSystemContext(self,"MAIN")
-      end
-      RUN_AFTER(uiResponse, 30)
-    end)
-  ExpectOnHMIStatusWithAudioStateChanged_PI(self, "BOTH")
-  self.mobileSession1:ExpectResponse(cid, { success = false, resultCode = "TIMED_OUT" })
+  self.mobileSession1:ExpectResponse(cid, { success = false, resultCode = "INVALID_DATA"})
 end
 
 --[[ Scenario ]]
@@ -398,10 +279,8 @@ runner.Step("CreateInteractionChoiceSet with id 300", CreateInteractionChoiceSet
 runner.Step("CreateInteractionChoiceSet no VR commands with id 400", CreateInteractionChoiceSet_noVR, {400})
 
 runner.Title("Test")
-runner.Step("PerformInteraction with VR_ONLY interaction mode", PI_PerformViaVR_ONLY, {requestParams})
-runner.Step("PerformInteraction with MANUAL_ONLY interaction mode", PI_PerformViaMANUAL_ONLY, {requestParams})
-runner.Step("PerformInteraction with MANUAL_ONLY interaction mode no VR commands", PI_PerformViaMANUAL_ONLY, {requestParams_noVR})
-runner.Step("PerformInteraction with BOTH interaction mode", PI_PerformViaBOTH, {requestParams})
+runner.Step("PerformInteraction with VR_ONLY interaction mode invalid data", PI_PerformViaVR_ONLY, {requestParams_noVR})
+runner.Step("PerformInteraction with BOTH interaction mode invalid data", PI_PerformViaBOTH, {requestParams_noVR})
 
 
 runner.Title("Postconditions")
