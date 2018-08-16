@@ -23,19 +23,9 @@ runner.testSettings.isSelfIncluded = false
 
 --[[ Local Variables ]]
 local mod = "CLIMATE"
+local rpc = "SetInteriorVehicleData"
 
 --[[ Local Functions ]]
-local function setVehicleData(pModuleType)
-  local cid = common.getMobileSession():SendRPC("SetInteriorVehicleData", {
-      moduleData = common.getSettableModuleControlData(pModuleType)
-    })
-
-  EXPECT_HMICALL("RC.SetInteriorVehicleData")
-  :Times(0)
-
-  common.getMobileSession():ExpectResponse(cid, { success = false, resultCode = "DISALLOWED" })
-end
-
 local function PTUfunc(tbl)
   tbl.policy_table.app_policies[config.application1.registerAppInterfaceParams.appID] = common.getRCAppConfig()
   tbl.policy_table.app_policies[config.application1.registerAppInterfaceParams.appID].moduleType = { "RADIO" }
@@ -49,7 +39,7 @@ runner.Step("RAI, PTU", common.raiPTUn, { PTUfunc })
 runner.Step("Activate App", common.activateApp)
 
 runner.Title("Test")
-runner.Step("SetInteriorVehicleData " .. mod, setVehicleData, { mod })
+runner.Step("SetInteriorVehicleData " .. mod, common.rpcDenied, {mod, 1, rpc, "DISALLOWED"})
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", common.postconditions)
