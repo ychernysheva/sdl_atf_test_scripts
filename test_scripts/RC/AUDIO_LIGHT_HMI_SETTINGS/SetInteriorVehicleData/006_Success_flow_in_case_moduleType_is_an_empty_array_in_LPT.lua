@@ -27,24 +27,6 @@ runner.testSettings.isSelfIncluded = false
 local modules = { "CLIMATE", "AUDIO", "LIGHT", "HMI_SETTINGS" }
 
 --[[ Local Functions ]]
-local function setVehicleData(pModuleType)
-  local cid = common.getMobileSession():SendRPC("SetInteriorVehicleData", {
-      moduleData = common.getSettableModuleControlData(pModuleType)
-    })
-
-  EXPECT_HMICALL("RC.SetInteriorVehicleData", {
-      appID = common.getHMIAppId(),
-      moduleData = common.getSettableModuleControlData(pModuleType)
-    })
-  :Do(function(_, data)
-      common.getHMIconnection():SendResponse(data.id, data.method, "SUCCESS", {
-          moduleData = common.getSettableModuleControlData(pModuleType)
-        })
-    end)
-
-  common.getMobileSession():ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
-end
-
 local function PTUfunc(tbl)
   tbl.policy_table.app_policies[config.application1.registerAppInterfaceParams.appID] = common.getRCAppConfig()
   tbl.policy_table.app_policies[config.application1.registerAppInterfaceParams.appID].moduleType = json.EMPTY_ARRAY
@@ -60,7 +42,7 @@ runner.Step("Activate App", common.activateApp)
 runner.Title("Test")
 
 for _, mod in pairs(modules) do
-  runner.Step("SetInteriorVehicleData " .. mod, setVehicleData, { mod })
+  runner.Step("SetInteriorVehicleData " .. mod, common.rpcAllowed, { mod, 1, "SetInteriorVehicleData" })
 end
 
 runner.Title("Postconditions")
