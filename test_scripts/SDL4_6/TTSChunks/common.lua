@@ -4,6 +4,7 @@
 --[[ General configuration parameters ]]
 config.mobileHost = "127.0.0.1"
 config.defaultProtocolVersion = 2
+config.application1.registerAppInterfaceParams.syncMsgVersion.majorVersion = 5
 
 --[[ Required Shared libraries ]]
 local actions = require("user_modules/sequences/actions")

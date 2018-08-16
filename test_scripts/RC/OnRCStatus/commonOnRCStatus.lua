@@ -6,6 +6,8 @@ config.defaultProtocolVersion = 2
 config.application1.registerAppInterfaceParams.appHMIType = { "REMOTE_CONTROL" }
 config.application2.registerAppInterfaceParams.appHMIType = { "REMOTE_CONTROL" }
 config.checkAllValidations = true
+config.application1.registerAppInterfaceParams.syncMsgVersion.majorVersion = 5
+config.application2.registerAppInterfaceParams.syncMsgVersion.majorVersion = 5
 
 --[[ Required Shared libraries ]]
 local commonRC = require('test_scripts/RC/commonRC')
