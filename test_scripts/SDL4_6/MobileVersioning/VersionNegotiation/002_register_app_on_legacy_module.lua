@@ -29,7 +29,8 @@
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
 local commonSmoke = require('test_scripts/Smoke/commonSmoke')
-local mobileAPI = require('user_modules/mobile_api')
+local load_schema = require('load_schema')
+local mob_api_version = load_schema.mob_api_version
 
 --[[ Local Variables ]]
 local requestParams = {
@@ -65,7 +66,7 @@ local requestParams = {
 	}
 }
 
-local responseSyncMsgVersion = mobileAPI.GetVersion()
+local responseSyncMsgVersion = mob_api_version
 
 local function GetNotificationParams()
 	local notificationParams = {
