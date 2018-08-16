@@ -7,6 +7,8 @@ config.defaultProtocolVersion = 2
 config.ValidateSchema = false
 config.application1.registerAppInterfaceParams.appHMIType = { "REMOTE_CONTROL" }
 config.application2.registerAppInterfaceParams.appHMIType = { "REMOTE_CONTROL" }
+config.application1.registerAppInterfaceParams.syncMsgVersion.majorVersion = 5
+config.application2.registerAppInterfaceParams.syncMsgVersion.majorVersion = 5
 
 --[[ Required Shared libraries ]]
 local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
