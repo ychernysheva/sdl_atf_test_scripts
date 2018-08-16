@@ -16,16 +16,6 @@ local commonRC = require('test_scripts/RC/commonRC')
 --[[ Local Variables ]]
 local mod = "HMI_SETTINGS"
 
---[[ Local Functions ]]
-local function getDataForModule(pModuleType, self)
-  local cid = self.mobileSession1:SendRPC("GetInteriorVehicleData", {
-      moduleType = pModuleType
-    })
-  EXPECT_HMICALL("RC.GetInteriorVehicleData", {})
-  :Times(0)
-  self.mobileSession1:ExpectResponse(cid, { success = false, resultCode = "DISALLOWED" })
-end
-
 local function PTUfunc(tbl)
   tbl.policy_table.app_policies[config.application1.registerAppInterfaceParams.appID].moduleType = { "CLIMATE" }
 end
@@ -38,7 +28,7 @@ runner.Step("RAI, PTU", commonRC.rai_ptu, { PTUfunc })
 runner.Step("Activate App", commonRC.activate_app)
 
 runner.Title("Test")
-runner.Step("GetInteriorVehicleData " .. mod, getDataForModule, { mod })
+runner.Step("GetInteriorVehicleData " .. mod, commonRC.rpcDenied, { mod, 1, "GetInteriorVehicleData", "DISALLOWED" })
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", commonRC.postconditions)

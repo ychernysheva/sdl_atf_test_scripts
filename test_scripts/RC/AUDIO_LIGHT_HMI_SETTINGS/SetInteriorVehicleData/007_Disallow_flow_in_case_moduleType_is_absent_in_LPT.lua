@@ -25,18 +25,6 @@ runner.testSettings.isSelfIncluded = false
 --modules array does not contain "RADIO" because "RADIO" module has read only parameters
 local modules = { "CLIMATE", "AUDIO", "LIGHT", "HMI_SETTINGS" }
 
---[[ Local Functions ]]
-local function setVehicleData(pModuleType)
-  local cid = common.getMobileSession():SendRPC("SetInteriorVehicleData", {
-      moduleData = common.getSettableModuleControlData(pModuleType)
-    })
-
-  EXPECT_HMICALL("RC.SetInteriorVehicleData")
-  :Times(0)
-
-  common.getMobileSession():ExpectResponse(cid, { success = false, resultCode = "DISALLOWED" })
-end
-
 local function PTUfunc(tbl)
   tbl.policy_table.app_policies[config.application1.registerAppInterfaceParams.appID].moduleType = nil
 end
@@ -50,7 +38,7 @@ runner.Step("Activate App", common.activateApp)
 
 runner.Title("Test")
 for _, mod in pairs(modules) do
-  runner.Step("SetInteriorVehicleData " .. mod, setVehicleData, { mod })
+  runner.Step("SetInteriorVehicleData " .. mod, common.rpcDenied, { mod, 1, "SetInteriorVehicleData", "DISALLOWED" })
 end
 
 runner.Title("Postconditions")

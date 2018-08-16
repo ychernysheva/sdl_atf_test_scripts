@@ -23,17 +23,6 @@ runner.testSettings.isSelfIncluded = false
 --[[ General configuration parameters ]]
 config.application1.registerAppInterfaceParams.appHMIType = { "DEFAULT" }
 
---[[ Local Functions ]]
-local function getDataForModule(pModuleType)
-  local mobileSession = common.getMobileSession()
-  local cid = mobileSession:SendRPC("GetInteriorVehicleData", {
-      moduleType = pModuleType
-    })
-  EXPECT_HMICALL("RC.GetInteriorVehicleData")
-  :Times(0)
-  mobileSession:ExpectResponse(cid, { success = false, resultCode = "DISALLOWED" })
-end
-
 local function PTUfunc(tbl)
   local appId = config.application1.registerAppInterfaceParams.appID
   tbl.policy_table.app_policies[appId].AppHMIType = { "DEFAULT" }
@@ -49,7 +38,7 @@ runner.Step("Activate App", common.activateApp)
 runner.Title("Test")
 
 for _, mod in pairs(common.modules) do
-  runner.Step("GetInteriorVehicleData " .. mod, getDataForModule, { mod })
+  runner.Step("GetInteriorVehicleData " .. mod, common.rpcDenied, { mod, 1, "GetInteriorVehicleData", "DISALLOWED" })
 end
 
 runner.Title("Postconditions")
