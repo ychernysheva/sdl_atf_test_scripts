@@ -29,7 +29,7 @@ local function ptUpdateFunc(pTbl)
   pTbl.policy_table.app_policies[appId].AppHMIType = { "DEFAULT" }
 end
 
-local function rpcDissallowed()
+local function rpcDisallowed()
   local cid = common.getMobileSession():SendRPC("GetSystemCapability", { systemCapabilityType = "REMOTE_CONTROL" })
   common.getMobileSession():ExpectResponse(cid, { success = false, resultCode = "DISALLOWED" })
 end
@@ -42,7 +42,7 @@ runner.Step("RAI, PTU", common.raiPTUn, { ptUpdateFunc })
 runner.Step("Activate App", common.activateApp)
 
 runner.Title("Test")
-runner.Step("GetSystemCapability DISALLOWED", rpcDissallowed)
+runner.Step("GetSystemCapability DISALLOWED", rpcDisallowed)
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", common.postconditions)
