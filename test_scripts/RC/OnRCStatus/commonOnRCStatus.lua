@@ -24,7 +24,7 @@ local m = {}
 local getRCAppConfigOrigin = commonRC.getRCAppConfig
 function commonRC.getRCAppConfig(tbl)
   local rcAppConfig = getRCAppConfigOrigin(tbl)
-  rcAppConfig.moduleType = { "RADIO", "CLIMATE", "SEAT" }
+  rcAppConfig.moduleType = { "RADIO", "CLIMATE", "SEAT", "AUDIO", "LIGHT", "HMI_SETTINGS" }
   return rcAppConfig
 end
 
@@ -106,6 +106,35 @@ function commonRC.getModuleControlData(module_type)
         action = "SAVE"
       }
     }
+  elseif module_type == "AUDIO" then
+    out.moduleType = "AUDIO"
+    out.audioControlData = {
+      source = "RADIO_TUNER",
+      volume = 50
+    }
+  elseif module_type == "LIGHT" then
+    out.moduleType = "LIGHT"
+    out.lightControlData = {
+      lightState = {
+        {
+          id = "FRONT_LEFT_HIGH_BEAM",
+          status = "ON",
+          density = 0.2,
+          color = {
+            red = 50,
+            green = 150,
+            blue = 200
+          }
+        }
+      }
+    }
+  elseif module_type == "HMI_SETTINGS" then
+    out.moduleType = "HMI_SETTINGS"
+    out.hmiSettingsControlData = {
+      displayMode = "DAY",
+      temperatureUnit = "CELSIUS",
+      distanceUnit = "KILOMETERS"
+    }
   else
     out = origGetModuleControlData(module_type)
   end
@@ -122,7 +151,7 @@ function m.getModules()
 end
 
 function m.getAllModules()
-  return commonFunctions:cloneTable({ "RADIO", "CLIMATE", "SEAT" })
+  return commonFunctions:cloneTable({ "RADIO", "CLIMATE", "SEAT", "AUDIO", "LIGHT", "HMI_SETTINGS" })
 end
 
 function m.getRCAppConfig()
