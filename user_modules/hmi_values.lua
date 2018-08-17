@@ -377,9 +377,7 @@ function module.getDefaultHMITable()
                 keepContextAvailable = true,
                 volumeAvailable = true,
                 equalizerAvailable = true,
-                equalizerMaxChannelId = 100,
-                hdRadioEnableAvailable = true,
-                siriusxmRadioAvailable = true
+                equalizerMaxChannelId = 100
               }
             },
             seatControlCapabilities = {
