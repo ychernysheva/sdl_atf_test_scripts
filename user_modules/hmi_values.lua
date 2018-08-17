@@ -365,7 +365,9 @@ function module.getDefaultHMITable()
                 stateAvailable = true,
                 signalStrengthAvailable = true,
                 signalChangeThresholdAvailable = true,
-                sisDataAvailable = true
+                sisDataAvailable = true,
+                hdRadioEnableAvailable = true,
+                siriusxmRadioAvailable = true
               }
             },
           audioControlCapabilities = {
@@ -397,7 +399,7 @@ function module.getDefaultHMITable()
                 massageCushionFirmnessAvailable = true,
                 memoryAvailable = true
               }
-	         },
+           },
           hmiSettingsControlCapabilities = {
               moduleName = "HmiSettings",
               distanceUnitAvailable = true,
