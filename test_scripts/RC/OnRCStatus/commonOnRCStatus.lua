@@ -109,7 +109,7 @@ function commonRC.getModuleControlData(module_type)
   elseif module_type == "AUDIO" then
     out.moduleType = "AUDIO"
     out.audioControlData = {
-      source = "RADIO_TUNER",
+      source = "AM",
       volume = 50
     }
   elseif module_type == "LIGHT" then
