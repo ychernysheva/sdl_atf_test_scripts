@@ -20,51 +20,9 @@ os.execute("cp -f files/SmokeTest_genivi_pt.json " .. commonPreconditions:GetPat
 Test = require('connecttest')
 require('cardinalities')
 require('user_modules/AppTypes')
-<<<<<<< HEAD
-local SDLConfig = require ('user_modules/shared_testcases/SmartDeviceLinkConfigurations')
-config.SDLStoragePath = config.pathToSDL .. "storage/"
-config.sharedMemoryPath = ""
-local dif_fileType = {{typeV = "GRAPHIC_BMP", file = "files/PutFile/bmp_6kb.bmp" }, {typeV = "GRAPHIC_JPEG", file = "files/PutFile/jpeg_4kb.jpg" }, {typeV = "GRAPHIC_PNG", file = "files/PutFile/icon.png" }, {typeV = "AUDIO_WAVE", file = "files/PutFile/WAV_6kb.wav" }, {typeV = "AUDIO_MP3", file = "files/PutFile/MP3_123kb.mp3" }, {typeV = "AUDIO_AAC", file = "files/PutFile/Alarm.aac" }, {typeV = "BINARY", file = "files/PutFile/binaryFile" }, {typeV = "JSON", file = "files/PutFile/luxoftPT.json" }}
-
-local ButtonArray = {"OK","PLAY_PAUSE","SEEKLEFT", "SEEKRIGHT", "TUNEUP", "TUNEDOWN", "PRESET_0", "PRESET_1", "PRESET_2", "PRESET_3", "PRESET_4", "PRESET_5", "PRESET_6", "PRESET_7", "PRESET_8", "PRESET_9"}
-=======
->>>>>>> origin/develop
 
 --[[ Local Variables ]]------------------------------------------------------------------------------------------------
 local applicationName = config.application1.registerAppInterfaceParams.appName
-<<<<<<< HEAD
-Test.spaceAvailable = tonumber(SDLConfig:GetValue("AppDirectoryQuota"))
-Test.InitialSpaceAvailable = tonumber(SDLConfig:GetValue("AppDirectoryQuota"))
-config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
-local iTimeout = 5000
-local PathToAppFolder = config.pathToSDL .. SDLConfig:GetValue("AppStorageFolder") .. "/" .. tostring(config.application1.registerAppInterfaceParams.appID .. "_" .. tostring(config.deviceMAC) .. "/")
-local updateModeNotRequireStartEndTime = {"PAUSE", "RESUME", "CLEAR"}
-local updateMode = {"COUNTUP", "COUNTDOWN", "PAUSE", "RESUME", "CLEAR"}
-local updateModeCountUpDown = {"COUNTUP", "COUNTDOWN"}
-local buttonName = {"OK","PLAY_PAUSE","SEEKLEFT","SEEKRIGHT","TUNEUP","TUNEDOWN", "PRESET_0","PRESET_1","PRESET_2","PRESET_3","PRESET_4","PRESET_5","PRESET_6","PRESET_7","PRESET_8"}
-local PositiveChoiceSets
-local textPromtValue = {"Please speak one of the following commands," ,"Please say a command,"}
-
-local NavigationType = false
-if Test.appHMITypes["NAVIGATION"] == true then
-	NavigationType = true
-end
-
----------------------------------------------------------------------------------------------
------------------------------------------ Functions Used ------------------------------------
----------------------------------------------------------------------------------------------
-
-	--Common functions
-	------------------------------------------------------------------------------------------
-
-	function DelayedExp(timeout)
-	  local event = events.Event()
-	  event.matches = function(self, e) return self == e end
-	  EXPECT_EVENT(event, "Delayed event")
-	  RUN_AFTER(function()
-	              RAISE_EVENT(event, event)
-	            end, timeout)
-=======
 local pathToAppFolder = commonPreconditions:GetPathToSDL() .. SDLConfig:GetValue("AppStorageFolder") .. "/"
 	.. tostring(config.application1.registerAppInterfaceParams.appID .. "_" .. tostring(config.deviceMAC) .. "/")
 local spaceAvailable = tonumber(SDLConfig:GetValue("AppDirectoryQuota"))
@@ -78,7 +36,7 @@ local fileTypes = {
 		{ typeV = "BINARY", file = "files/PutFile/binaryFile" },
 		{ typeV = "JSON", file = "files/PutFile/luxoftPT.json" }
 	}
-local buttonArray = { "OK", "SEEKLEFT", "SEEKRIGHT", "TUNEUP", "TUNEDOWN", "PRESET_0", "PRESET_1", "PRESET_2", "PRESET_3",
+local buttonArray = { "OK", "PLAY_PAUSE", "SEEKLEFT", "SEEKRIGHT", "TUNEUP", "TUNEDOWN", "PRESET_0", "PRESET_1", "PRESET_2", "PRESET_3",
 	"PRESET_4", "PRESET_5", "PRESET_6", "PRESET_7", "PRESET_8", "PRESET_9" }
 local updateModeNotRequireStartEndTime = { "PAUSE", "RESUME", "CLEAR" }
 local updateMode = { "COUNTUP", "COUNTDOWN", "PAUSE", "RESUME", "CLEAR" }
@@ -108,7 +66,6 @@ local blockId = 1
 		name = name .. string.rep(filler, strLen - string.len(name))
 		Test[name] = function() end
 		blockId = blockId + 1
->>>>>>> origin/develop
 	end
 
 	-- Sending OnSystemContext notification
@@ -6432,20 +6389,12 @@ local blockId = 1
 
 				      	EXPECT_NOTIFICATION("OnHashChange")
 				  else
-<<<<<<< HEAD
 				  	if 
-				  		ButtonArray[i] == "PLAY_PAUSE" or
-				  		ButtonArray[i] == "SEEKLEFT" or 
-				  		ButtonArray[i] == "SEEKRIGHT" or
-				  		ButtonArray[i] == "TUNEUP" or
-				  		ButtonArray[i] == "TUNEDOWN" then
-=======
-				  	if
-				  		buttonArray[i] == "SEEKLEFT" or
+				  		buttonArray[i] == "PLAY_PAUSE" or
+				  		buttonArray[i] == "SEEKLEFT" or 
 				  		buttonArray[i] == "SEEKRIGHT" or
 				  		buttonArray[i] == "TUNEUP" or
 				  		buttonArray[i] == "TUNEDOWN" then
->>>>>>> origin/develop
 				  			--mobile side: expect SubscribeButton response
 				      		self.mobileSession:ExpectResponse(CorIdSubscribeButtonAllPAramsVD, { success = false, resultCode = "REJECTED"})
 
@@ -6509,20 +6458,12 @@ local blockId = 1
 				      	--mobile side: expect SubscribeButton response
 				      	self.mobileSession:ExpectResponse(cid, { success = false, resultCode = "IGNORED"})
 				  else
-<<<<<<< HEAD
 				  	if 
-				  		ButtonArray[i] == "PLAY_PAUSE" or 
-				  		ButtonArray[i] == "SEEKLEFT" or 
-				  		ButtonArray[i] == "SEEKRIGHT" or
-				  		ButtonArray[i] == "TUNEUP" or
-				  		ButtonArray[i] == "TUNEDOWN" then
-=======
-				  	if
-				  		buttonArray[i] == "SEEKLEFT" or
+				  		buttonArray[i] == "PLAY_PAUSE" or 
+				  		buttonArray[i] == "SEEKLEFT" or 
 				  		buttonArray[i] == "SEEKRIGHT" or
 				  		buttonArray[i] == "TUNEUP" or
 				  		buttonArray[i] == "TUNEDOWN" then
->>>>>>> origin/develop
 				  			--mobile side: expect SubscribeButton response
 				      		self.mobileSession:ExpectResponse(cid, { success = false, resultCode = "REJECTED"})
 				  	else
@@ -6583,20 +6524,12 @@ local blockId = 1
 
 				      	EXPECT_NOTIFICATION("OnHashChange")
 				  else
-<<<<<<< HEAD
 				  	if 
-				  		ButtonArray[i] == "PLAY_PAUSE" or 
-				  		ButtonArray[i] == "SEEKLEFT" or 
-				  		ButtonArray[i] == "SEEKRIGHT" or
-				  		ButtonArray[i] == "TUNEUP" or
-				  		ButtonArray[i] == "TUNEDOWN" then
-=======
-				  	if
-				  		buttonArray[i] == "SEEKLEFT" or
+				  		buttonArray[i] == "PLAY_PAUSE" or 
+				  		buttonArray[i] == "SEEKLEFT" or 
 				  		buttonArray[i] == "SEEKRIGHT" or
 				  		buttonArray[i] == "TUNEUP" or
 				  		buttonArray[i] == "TUNEDOWN" then
->>>>>>> origin/develop
 					  		--mobile side: expect SubscribeButton response
 					      	self.mobileSession:ExpectResponse(CorIdUnSubscribeButton, { success = false, resultCode = "IGNORED"})
 
