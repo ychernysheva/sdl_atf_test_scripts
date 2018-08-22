@@ -229,6 +229,7 @@ function Test:initHMI_onReady_VehicleinfoIsReady(method1, resultCode, params1, c
         displayCapabilities =
         {
           displayType = "GEN2_8_DMA",
+          displayName = "GENERIC_DISPLAY",
           textFields =
           {
             text_field("mainField1"),

@@ -30,13 +30,13 @@
 work_dir = "~/SmartDeviceLinkCore/"
 
 sdl_repository = "https://github.com/smartdevicelink/sdl_core/"
-sdl_branch = "4.1.0"
+sdl_branch = "4.2.0"
 
 atf_repository = "https://github.com/smartdevicelink/sdl_atf/"
-atf_branch = "4.1.0"
+atf_branch = "4.2.0"
 
 scripts_repository = "https://github.com/smartdevicelink/sdl_atf_test_scripts/"
-scripts_branch = "4.1.0"
+scripts_branch = "4.2.0"
 
 sdl_clone_dir = work_dir + "sdl_core/"
 sdl_build_dir = sdl_clone_dir + "build/"
@@ -51,7 +51,6 @@ test_scripts_dir = scripts_clone_dir + "test_scripts/"
 
 test_run_dir = work_dir + "test_run/"
 reports_dir = test_run_dir + "reports/"
-
 
 def set_custom_config(config_file_name):
     """
