@@ -48,6 +48,7 @@ local buttonName = {
 }
 
 local mediaButtonName = {
+  "PLAY_PAUSE",
   "SEEKLEFT",
   "SEEKRIGHT",
   "TUNEUP",
