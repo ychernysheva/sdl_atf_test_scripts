@@ -312,6 +312,7 @@ function module.getDefaultHMITable()
         module.createButtonCapability("PRESET_8"),
         module.createButtonCapability("PRESET_9"),
         module.createButtonCapability("OK", true, false, true),
+        module.createButtonCapability("PLAY_PAUSE", true, false, true),
         module.createButtonCapability("SEEKLEFT"),
         module.createButtonCapability("SEEKRIGHT"),
         module.createButtonCapability("TUNEUP"),
