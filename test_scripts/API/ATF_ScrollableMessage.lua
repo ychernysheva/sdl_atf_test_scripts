@@ -26,7 +26,7 @@ APIName = "ScrollableMessage" -- set request name
 APIId = 25
 strMaxLengthFileName255 = string.rep("a", 251)  .. ".png" -- set max length file name
 
-local storagePath = config.pathToSDL .. "storage/" .. config.application1.registerAppInterfaceParams.appID .. "_" .. config.deviceMAC .. "/"
+local storagePath = config.pathToSDL .. "storage/" .. config.application1.registerAppInterfaceParams.fullAppID .. "_" .. config.deviceMAC .. "/"
 
 --[[
 

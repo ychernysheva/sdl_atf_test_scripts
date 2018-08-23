@@ -13,7 +13,7 @@ local constants = require("protocol_handler/ford_protocol_constants")
 --[[ General configuration parameters ]]
 config.SecurityProtocol = "DTLS"
 config.application1.registerAppInterfaceParams.appName = "server"
-config.application1.registerAppInterfaceParams.appID = "SPT"
+config.application1.registerAppInterfaceParams.fullAppID = "SPT"
 
 --[[ Module ]]
 local m = actions

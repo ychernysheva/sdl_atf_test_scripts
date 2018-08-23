@@ -23,7 +23,7 @@ local common = require("test_scripts/RC/commonRC")
 runner.testSettings.isSelfIncluded = false
 
 local function PTUfunc(tbl)
-  local appId = config.application1.registerAppInterfaceParams.appID
+  local appId = config.application1.registerAppInterfaceParams.fullAppID
   tbl.policy_table.app_policies[appId] = common.getRCAppConfig()
   tbl.policy_table.app_policies[appId].moduleType = json.EMPTY_ARRAY
 end

@@ -96,7 +96,7 @@ local TESTED_DATA = {
     }
   }
 }
-config.application1.registerAppInterfaceParams.appID = APP_ID
+config.application1.registerAppInterfaceParams.fullAppID = APP_ID
 config.application1.registerAppInterfaceParams.languageDesired = APP_LANGUAGE
 
 local TestData = {

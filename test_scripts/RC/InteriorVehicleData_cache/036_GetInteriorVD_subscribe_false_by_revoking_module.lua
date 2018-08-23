@@ -21,7 +21,7 @@ runner.testSettings.isSelfIncluded = false
 
 --[[ Local Functions ]]
 local function ptuFuncRPC2(tbl)
-  tbl.policy_table.app_policies[config.application1.registerAppInterfaceParams.appID].moduleType = { common.modules[2] }
+  tbl.policy_table.app_policies[config.application1.registerAppInterfaceParams.fullAppID].moduleType = { common.modules[2] }
 end
 
 local function ptu()

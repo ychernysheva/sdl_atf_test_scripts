@@ -28,8 +28,8 @@ local modules = { "CLIMATE", "AUDIO", "LIGHT", "HMI_SETTINGS" }
 
 --[[ Local Functions ]]
 local function PTUfunc(tbl)
-  tbl.policy_table.app_policies[config.application1.registerAppInterfaceParams.appID] = common.getRCAppConfig()
-  tbl.policy_table.app_policies[config.application1.registerAppInterfaceParams.appID].moduleType = json.EMPTY_ARRAY
+  tbl.policy_table.app_policies[config.application1.registerAppInterfaceParams.fullAppID] = common.getRCAppConfig()
+  tbl.policy_table.app_policies[config.application1.registerAppInterfaceParams.fullAppID].moduleType = json.EMPTY_ARRAY
 end
 
 --[[ Scenario ]]

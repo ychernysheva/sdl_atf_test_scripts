@@ -50,12 +50,12 @@ app3Params.appHMIType = { "DEFAULT", "REMOTE_CONTROL" }
 
 --[[ Local Functions ]]
 local function PTUfunc(tbl)
-  tbl.policy_table.app_policies[app1Params.appID] = commonRC.getRCAppConfig()
-  tbl.policy_table.app_policies[app1Params.appID].AppHMIType = app1Params.appHMIType
-  tbl.policy_table.app_policies[app2Params.appID] = commonRC.getRCAppConfig()
-  tbl.policy_table.app_policies[app2Params.appID].AppHMIType = app2Params.appHMIType
-  tbl.policy_table.app_policies[app3Params.appID] = commonRC.getRCAppConfig()
-  tbl.policy_table.app_policies[app3Params.appID].AppHMIType = app3Params.appHMIType
+  tbl.policy_table.app_policies[app1Params.fullAppID] = commonRC.getRCAppConfig()
+  tbl.policy_table.app_policies[app1Params.fullAppID].AppHMIType = app1Params.appHMIType
+  tbl.policy_table.app_policies[app2Params.fullAppID] = commonRC.getRCAppConfig()
+  tbl.policy_table.app_policies[app2Params.fullAppID].AppHMIType = app2Params.appHMIType
+  tbl.policy_table.app_policies[app3Params.fullAppID] = commonRC.getRCAppConfig()
+  tbl.policy_table.app_policies[app3Params.fullAppID].AppHMIType = app3Params.appHMIType
 end
 
 local function step(pModuleType, pRPC1, pRPC2)

@@ -56,7 +56,7 @@ function Test:TestStep_PTS_Creation_rule()
       EXPECT_HMICALL("BasicCommunication.PolicyUpdate", { file = "/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json" })
       :Do(function(_,data)
         result = testCasesForPolicyTableSnapshot:verify_PTS(true,
-          {config.application1.registerAppInterfaceParams.appID},
+          {config.application1.registerAppInterfaceParams.fullAppID},
           {utils.getDeviceMAC()},
           {hmi_app1_id},
           "print")

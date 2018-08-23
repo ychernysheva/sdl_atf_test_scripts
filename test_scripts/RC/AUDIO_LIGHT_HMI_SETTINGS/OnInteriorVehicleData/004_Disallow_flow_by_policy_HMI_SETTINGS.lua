@@ -26,8 +26,8 @@ runner.testSettings.isSelfIncluded = false
 local mod = "HMI_SETTINGS"
 
 local function PTUfunc(tbl)
-  tbl.policy_table.app_policies[config.application1.registerAppInterfaceParams.appID] = common.getRCAppConfig()
-  tbl.policy_table.app_policies[config.application1.registerAppInterfaceParams.appID].moduleType = { mod }
+  tbl.policy_table.app_policies[config.application1.registerAppInterfaceParams.fullAppID] = common.getRCAppConfig()
+  tbl.policy_table.app_policies[config.application1.registerAppInterfaceParams.fullAppID].moduleType = { mod }
 end
 
 --[[ Scenario ]]

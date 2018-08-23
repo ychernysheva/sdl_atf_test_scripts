@@ -56,7 +56,7 @@ function Test:Precondition_flow_PTU_SUCCEESS_EXTERNAL_PROPRIETARY()
         {status = "UPDATING"}, {status = "UP_TO_DATE"}):Times(2)
       EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "PROPRIETARY"})
       :Do(function(_,_)
-          local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", {requestType = "PROPRIETARY", fileName = "PolicyTableUpdate", appID = config.application1.registerAppInterfaceParams.appID},
+          local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", {requestType = "PROPRIETARY", fileName = "PolicyTableUpdate", appID = config.application1.registerAppInterfaceParams.fullAppID},
           "files/ptu.json")
           EXPECT_HMICALL("BasicCommunication.SystemRequest",{ requestType = "PROPRIETARY", fileName = SystemFilesPath.."PolicyTableUpdate" })
           :Do(function(_,_data1)

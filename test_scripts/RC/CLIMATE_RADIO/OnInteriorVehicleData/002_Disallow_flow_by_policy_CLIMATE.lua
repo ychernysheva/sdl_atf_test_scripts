@@ -26,7 +26,7 @@ runner.testSettings.isSelfIncluded = false
 local mod = "CLIMATE"
 
 local function PTUfunc(tbl)
-  tbl.policy_table.app_policies[config.application1.registerAppInterfaceParams.appID].moduleType = { mod }
+  tbl.policy_table.app_policies[config.application1.registerAppInterfaceParams.fullAppID].moduleType = { mod }
 end
 
 --[[ Scenario ]]

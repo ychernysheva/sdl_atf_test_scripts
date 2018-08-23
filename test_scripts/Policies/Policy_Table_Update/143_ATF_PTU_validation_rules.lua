@@ -60,7 +60,7 @@ function Test:TestStep_PTU_validation_rules()
   local is_verification_passed
   local endpoints = {}
   is_verification_passed = testCasesForPolicyTableSnapshot:verify_PTS(true,
-      {config.application1.registerAppInterfaceParams.appID },
+      {config.application1.registerAppInterfaceParams.fullAppID },
       {utils.getDeviceMAC()},
       {""},
       "print")

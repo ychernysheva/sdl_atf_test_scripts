@@ -84,7 +84,7 @@ function Test:Precondition_Activate_Consent_App()
 end
 
 function Test:Precondition_Update_Policy_With_heart_beat_timeout_ms_Param()
-  testCasesForPolicyTable:flow_SUCCEESS_EXTERNAL_PROPRIETARY(self, config.application1.registerAppInterfaceParams.appID, utils.getDeviceMAC(),
+  testCasesForPolicyTable:flow_SUCCEESS_EXTERNAL_PROPRIETARY(self, config.application1.registerAppInterfaceParams.fullAppID, utils.getDeviceMAC(),
     self.HMIAppID, nil, nil, "ptu_heart_beat_timeout_ms_app_1234567.json")
 end
 

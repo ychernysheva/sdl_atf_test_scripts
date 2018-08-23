@@ -4,7 +4,7 @@
 --[[ General configuration parameters ]]
 config.SecurityProtocol = "DTLS"
 config.application1.registerAppInterfaceParams.appName = "server"
-config.application1.registerAppInterfaceParams.appID = "SPT"
+config.application1.registerAppInterfaceParams.fullAppID = "SPT"
 -- config.cipherListString = ":SSLv2:AES256-GCM-SHA384"
 
 --[[ Required Shared libraries ]]

@@ -31,7 +31,7 @@ local utils = require ('user_modules/utils')
 --Set 2 protocol as default for script:
 config.defaultProtocolVersion = 2
 
-local storagePath = config.pathToSDL .. SDLConfig:GetValue("AppStorageFolder") .. "/" .. tostring(config.application1.registerAppInterfaceParams.appID .. "_" .. tostring(utils.getDeviceMAC()) .. "/")
+local storagePath = config.pathToSDL .. SDLConfig:GetValue("AppStorageFolder") .. "/" .. tostring(config.application1.registerAppInterfaceParams.fullAppID .. "_" .. tostring(utils.getDeviceMAC()) .. "/")
 
 ---------------------------------------------------------------------------------------------
 -------------------------------------Common functions-----------------------------------------

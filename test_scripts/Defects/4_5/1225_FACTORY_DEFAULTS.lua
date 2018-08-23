@@ -82,7 +82,7 @@ end
 -- Prepare policy table for policy table update
 -- @tparam table tbl table to update
 local function ptUpdateFunc(pTbl)
-  local appId = config.application1.registerAppInterfaceParams.appID
+  local appId = config.application1.registerAppInterfaceParams.fullAppID
   -- add to table in app_policies section record for appId with group "Location-1"
   table.insert(pTbl.policy_table.app_policies[appId].groups, "Location-1")
 end
@@ -169,7 +169,7 @@ local function Check_user_consent_records_in_Snapshot(self)
     -- Check presence of consented group for registered appID
     local pts = ptsToTable(pathToPTS)
     local ucr = pts.policy_table.device_data[commonDefects.getDeviceMAC()].user_consent_records
-    if not (ucr[config.application1.registerAppInterfaceParams.appID]) then
+    if not (ucr[config.application1.registerAppInterfaceParams.fullAppID]) then
       commonFunctions:printError("Error: user_consent_records.consent_groups.Location is not present in Snapshot")
       is_test_fail = true
     end
@@ -233,7 +233,7 @@ local function Check_no_user_consent_records_in_Snapshot(self)
     -- Check absence of consented group for registered appID
     local pts = ptsToTable(pathToPTS)
     local ucr = pts.policy_table.device_data[commonDefects.getDeviceMAC()].user_consent_records
-    if (ucr[config.application1.registerAppInterfaceParams.appID]) then
+    if (ucr[config.application1.registerAppInterfaceParams.fullAppID]) then
       commonFunctions:printError("Error: user_consent_records.consent_groups.Location was not reset in Snapshot")
       is_test_fail = true
     end

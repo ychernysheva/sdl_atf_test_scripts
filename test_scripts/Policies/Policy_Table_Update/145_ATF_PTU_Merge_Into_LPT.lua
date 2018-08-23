@@ -32,6 +32,7 @@ local utils = require ('user_modules/utils')
 local policy_file_path = commonFunctions:read_parameter_from_smart_device_link_ini("SystemFilesPath")
 local policy_file_name = "PolicyTableUpdate"
 local ptu_file = "files/jsons/Policies/Policy_Table_Update/ptu_18190.json"
+local pts_file_with_full_app_id_supported = "files/jsons/Policies/Policy_Table_Update/ptu_file_with_full_app_id_supported.json"
 --"files/ptu_general.json")
 --[[ Local Functions ]]
 
@@ -155,7 +156,7 @@ end
 
 function Test:TestStep_ValidateResult()
   local pts = json_to_table(policy_file_path .. "/sdl_snapshot.json")
-  local ptu = json_to_table(ptu_file)
+  local ptu = json_to_table(pts_file_with_full_app_id_supported)
   -- Reconcile expected vs actual
   ptu.policy_table.module_config.preloaded_pt = false
   ptu.policy_table.app_policies["0000002"] = "default"

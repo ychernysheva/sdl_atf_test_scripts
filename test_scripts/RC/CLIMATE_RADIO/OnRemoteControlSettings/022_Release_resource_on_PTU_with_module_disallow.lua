@@ -22,11 +22,11 @@ runner.testSettings.isSelfIncluded = false
 
 --[[ Local Functions ]]
 local function PTUfunc1(tbl)
-  tbl.policy_table.app_policies[config.application1.registerAppInterfaceParams.appID].moduleType = { "RADIO" }
+  tbl.policy_table.app_policies[config.application1.registerAppInterfaceParams.fullAppID].moduleType = { "RADIO" }
 end
 
 local function PTUfunc2(tbl)
-  tbl.policy_table.app_policies[config.application1.registerAppInterfaceParams.appID] = {
+  tbl.policy_table.app_policies[config.application1.registerAppInterfaceParams.fullAppID] = {
     keep_context = false,
     steal_focus = false,
     priority = "NONE",
@@ -36,7 +36,7 @@ local function PTUfunc2(tbl)
     AppHMIType = { "REMOTE_CONTROL" }
   }
   table.insert(tbl.policy_table.functional_groupings.RemoteControl.rpcs.OnInteriorVehicleData.hmi_levels, "NONE")
-  tbl.policy_table.app_policies[config.application2.registerAppInterfaceParams.appID] = commonRC.getRCAppConfig()
+  tbl.policy_table.app_policies[config.application2.registerAppInterfaceParams.fullAppID] = commonRC.getRCAppConfig()
 end
 
 --[[ Scenario ]]

@@ -27,7 +27,7 @@ runner.testSettings.isSelfIncluded = false
 
 --[[ Local Functions ]]
 local function PTUfunc(tbl)
-	tbl.policy_table.app_policies[config.application1.registerAppInterfaceParams.appID].moduleType = { "RADIO" }
+	tbl.policy_table.app_policies[config.application1.registerAppInterfaceParams.fullAppID].moduleType = { "RADIO" }
 end
 
 --[[ Scenario ]]

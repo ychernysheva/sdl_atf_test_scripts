@@ -36,7 +36,7 @@ local testCasesForExternalUCS = require('user_modules/shared_testcases/testCases
 local utils = require ('user_modules/utils')
 
 --[[ Local variables ]]
-local appId = config.application1.registerAppInterfaceParams.appID
+local appId = config.application1.registerAppInterfaceParams.fullAppID
 local checkedSection = "external_consent_status_groups"
 
 --[[ General Precondition before ATF start ]]

@@ -14,7 +14,7 @@
 -- field ("module_config" section) of policies database, SDL must trigger a PolicyTableUpdate sequence
 ---------------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
-config.application1.registerAppInterfaceParams.appID = "123456"
+config.application1.registerAppInterfaceParams.fullAppID = "123456"
 config.application1.registerAppInterfaceParams.appHMIType = { "DEFAULT" }
 
 --[[ Required Shared libraries ]]

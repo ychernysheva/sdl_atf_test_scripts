@@ -95,14 +95,14 @@ local function getPTUFromPTS(ptu)
   -- remove preloaded_date
   ptu.policy_table.module_config.preloaded_date = nil
   -- Create structure in app_policies related to registered application
-  ptu.policy_table.app_policies[config.application1.registerAppInterfaceParams.appID] = {
+  ptu.policy_table.app_policies[config.application1.registerAppInterfaceParams.fullAppID] = {
     keep_context = false,
     steal_focus = false,
     priority = "NONE",
     default_hmi = "NONE"
   }
   -- Added permissions for registered app from "Base-4", "Base-6" groups
-  ptu.policy_table.app_policies[config.application1.registerAppInterfaceParams.appID]["groups"] = {
+  ptu.policy_table.app_policies[config.application1.registerAppInterfaceParams.fullAppID]["groups"] = {
     "Base-4", "Base-6"
   }
 end

@@ -1093,7 +1093,7 @@ end
 						]
 					  }]] .. "\n"
 					  
-		local appID = config.application1.registerAppInterfaceParams.appID
+		local appID = config.application1.registerAppInterfaceParams.fullAppID
 		local PermissionLinesForApplication = 
 		[[			"]]..appID ..[[" : {
 						"keep_context" : false,

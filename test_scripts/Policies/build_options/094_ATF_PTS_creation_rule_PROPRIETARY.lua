@@ -37,7 +37,7 @@ require('user_modules/AppTypes')
 commonFunctions:newTestCasesGroup("Test")
 function Test:TestStep_PTS_Creation_rule()
   local result = testCasesForPolicyTableSnapshot:verify_PTS(true,
-    {config.application1.registerAppInterfaceParams.appID},
+    {config.application1.registerAppInterfaceParams.fullAppID},
     {utils.getDeviceMAC()},
     {""},
     "print",

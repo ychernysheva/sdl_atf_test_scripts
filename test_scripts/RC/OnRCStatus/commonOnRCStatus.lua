@@ -32,7 +32,7 @@ function commonRC.getHMIAppIdsRC()
   for appID, hmiAppId in pairs(commonRC.getHMIAppIds()) do
     for i = 1, 5 do
       local params = config["application" .. i].registerAppInterfaceParams
-      if params.appID == appID and params.appHMIType[1] == "REMOTE_CONTROL" then
+      if params.fullAppID == appID and params.appHMIType[1] == "REMOTE_CONTROL" then
         table.insert(out, hmiAppId)
       end
     end

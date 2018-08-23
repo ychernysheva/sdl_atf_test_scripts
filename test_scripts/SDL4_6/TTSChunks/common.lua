@@ -63,7 +63,7 @@ end
 
 function m.getMobileAppId(pAppId)
   if not pAppId then pAppId = 1 end
-  return config["application" .. pAppId].registerAppInterfaceParams.appID
+  return config["application" .. pAppId].registerAppInterfaceParams.fullAppID
 end
 
 return m

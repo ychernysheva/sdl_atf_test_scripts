@@ -26,7 +26,7 @@ local mod = "RADIO"
 
 --[[ Local Functions ]]
 local function PTUfunc(tbl)
-	tbl.policy_table.app_policies[config.application1.registerAppInterfaceParams.appID].moduleType = { "CLIMATE" }
+	tbl.policy_table.app_policies[config.application1.registerAppInterfaceParams.fullAppID].moduleType = { "CLIMATE" }
 end
 
 --[[ Scenario ]]

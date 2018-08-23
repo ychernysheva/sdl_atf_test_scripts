@@ -32,10 +32,10 @@ local allocatedModules = {
 
 --[[ Local Functions ]]
 local function pTUfunc(tbl)
-  local appId1 = config.application1.registerAppInterfaceParams.appID
+  local appId1 = config.application1.registerAppInterfaceParams.fullAppID
   tbl.policy_table.app_policies[appId1] = common.getRCAppConfig(tbl)
   tbl.policy_table.app_policies[appId1].moduleType = json.EMPTY_ARRAY
-  local appId2 = config.application2.registerAppInterfaceParams.appID
+  local appId2 = config.application2.registerAppInterfaceParams.fullAppID
   tbl.policy_table.app_policies[appId2] = common.getRCAppConfig(tbl)
 end
 

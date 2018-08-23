@@ -25,7 +25,7 @@ config.application1.registerAppInterfaceParams.appHMIType = { "DEFAULT" }
 
 --[[ Local Functions ]]
 local function PTUfunc(tbl)
-  local appId = config.application1.registerAppInterfaceParams.appID
+  local appId = config.application1.registerAppInterfaceParams.fullAppID
   tbl.policy_table.app_policies[appId].AppHMIType = { "DEFAULT" }
 end
 

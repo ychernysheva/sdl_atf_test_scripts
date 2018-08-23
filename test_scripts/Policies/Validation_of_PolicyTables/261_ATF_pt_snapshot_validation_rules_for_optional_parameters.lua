@@ -51,7 +51,7 @@ commonFunctions:newTestCasesGroup("Test")
 
 function Test:TestStep_CheckPTS()
   local result = testCasesForPolicyTableSnapshot:verify_PTS(true,
-            {config.application1.registerAppInterfaceParams.appID},
+            {config.application1.registerAppInterfaceParams.fullAppID},
             {utils.getDeviceMAC()},
             {self.applications[config.application1.registerAppInterfaceParams.appName]},
             "print")

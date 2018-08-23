@@ -96,7 +96,7 @@ function Test:Register_App_And_Check_Order_Of_Request_Response_Notiofications()
 
   config.application1.registerAppInterfaceParams.appName = "SPT"
   config.application1.registerAppInterfaceParams.isMediaApplication = true
-  config.application1.registerAppInterfaceParams.appID = "1234567"
+  config.application1.registerAppInterfaceParams.fullAppID = "1234567"
 
   local CorIdRAI = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered",
