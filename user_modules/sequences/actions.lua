@@ -79,7 +79,7 @@ function m.policyTableUpdate(pPTUpdateFunc, pExpNotificationFunc)
         { requestType = "PROPRIETARY", fileName = ptsFileName })
       getPTUFromPTS(ptuTable)
       for i = 1, m.getAppsCount() do
-        ptuTable.policy_table.app_policies[m.getConfigAppParams(i).appID] = m.getAppDataForPTU(i)
+        ptuTable.policy_table.app_policies[m.getConfigAppParams(i).fullAppID] = m.getAppDataForPTU(i)
       end
       if pPTUpdateFunc then
         pPTUpdateFunc(ptuTable)
@@ -168,7 +168,7 @@ end
 --]]
 function m.getHMIAppId(pAppId)
   if not pAppId then pAppId = 1 end
-  return hmiAppIds[m.getConfigAppParams(pAppId).appID]
+  return hmiAppIds[m.getConfigAppParams(pAppId).fullAppID]
 end
 
 --[[ @getMobileSession: get mobile session
@@ -237,7 +237,7 @@ function m.registerAppWOPTU(pAppId)
       m.getHMIConnection():ExpectNotification("BasicCommunication.OnAppRegistered",
         { application = { appName = m.getConfigAppParams(pAppId).appName } })
       :Do(function(_, d1)
-          hmiAppIds[m.getConfigAppParams(pAppId).appID] = d1.params.application.appID
+          hmiAppIds[m.getConfigAppParams(pAppId).fullAppID] = d1.params.application.appID
         end)
       m.getMobileSession(pAppId):ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
       :Do(function()
@@ -465,7 +465,7 @@ end
 --]]
 function m.getPathToFileInStorage(pFileName, pAppId)
   if not pAppId then pAppId = 1 end
-  return commonPreconditions:GetPathToSDL() .. "storage/" .. m.getConfigAppParams( pAppId ).appID .. "_"
+  return commonPreconditions:GetPathToSDL() .. "storage/" .. m.getConfigAppParams( pAppId ).fullAppID .. "_"
     .. utils.getDeviceMAC() .. "/" .. pFileName
 end
 
@@ -486,7 +486,24 @@ end
 --]]
 function m.setHMIAppId(pHMIAppId, pAppId)
   if not pAppId then pAppId = 1 end
-  hmiAppIds[m.getConfigAppParams(pAppId).appID] = pHMIAppId
+  hmiAppIds[m.getConfigAppParams(pAppId).fullAppID] = pHMIAppId
+end
+
+--[[ @getHMIAppIds: return array of all HMI application identifiers
+--! @parameters: none
+--! @return: array of all HMI application identifiers
+--]]
+function m.getHMIAppIds()
+  return hmiAppIds
+end
+
+--[[ @deleteHMIAppId: remove HMI application identifier
+--! @parameters:
+--! pAppId - application number (1, 2, etc.)
+--! @return: none
+--]]
+function m.deleteHMIAppId(pAppId)
+  hmiAppIds[m.getConfigAppParams(pAppId).fullAppID] = nil
 end
 
 return m
