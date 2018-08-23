@@ -31,7 +31,7 @@ local modules = { "CLIMATE", "RADIO" }
 
 --[[ Local Functions ]]
 local function ptu_update_func(tbl)
-  tbl.policy_table.app_policies[config.application2.registerAppInterfaceParams.appID] = commonRC.getRCAppConfig()
+  tbl.policy_table.app_policies[config.application2.registerAppInterfaceParams.fullAppID] = commonRC.getRCAppConfig()
 end
 
 local function rpcTimedOutHMIResponse(pModuleType, pAppId, pRPC, self)

@@ -69,7 +69,7 @@ require('user_modules/AppTypes')
 commonFunctions:newTestCasesGroup("Preconditions")
 
 function Test.Precondition_PreparePTData()
-  PrepareJsonPTU1(config.application1.registerAppInterfaceParams.appID, ptu_app_registered)
+  PrepareJsonPTU1(config.application1.registerAppInterfaceParams.fullAppID, ptu_app_registered)
 end
 
 function Test:ConnectMobile()

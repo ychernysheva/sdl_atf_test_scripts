@@ -39,8 +39,8 @@ local function ptu_update_func(tbl)
     AppHMIType = { "NAVIGATION" }
 	}
 
-  tbl.policy_table.app_policies[config.application2.registerAppInterfaceParams.appID] = commonRC.getRCAppConfig()
-  tbl.policy_table.app_policies[config.application3.registerAppInterfaceParams.appID] = notRcAppConfig
+  tbl.policy_table.app_policies[config.application2.registerAppInterfaceParams.fullAppID] = commonRC.getRCAppConfig()
+  tbl.policy_table.app_policies[config.application3.registerAppInterfaceParams.fullAppID] = notRcAppConfig
 end
 
 local function disableRcFromHmi(self)

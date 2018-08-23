@@ -90,7 +90,7 @@ function Test:TestStep_Validate_default_hmi_upon_PTU()
     self.mobileSession2:ExpectNotification("OnSystemRequest", { requestType = "PROPRIETARY" })
     :Do(function()
       local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest",
-        { fileName = "PolicyTableUpdate", requestType = "PROPRIETARY", appID = config.application2.registerAppInterfaceParams.appID},
+        { fileName = "PolicyTableUpdate", requestType = "PROPRIETARY", appID = config.application2.registerAppInterfaceParams.fullAppID},
         "files/PTU_AppIDDefaultHMI.json")
       local systemRequestId
       EXPECT_HMICALL("BasicCommunication.SystemRequest")

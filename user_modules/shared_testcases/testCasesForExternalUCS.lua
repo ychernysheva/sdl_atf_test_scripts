@@ -78,7 +78,7 @@ local m = { }
 --! @parameters: NO
 --]]
   local function updatePTU()
-    local appId = config.application1.registerAppInterfaceParams.appID
+    local appId = config.application1.registerAppInterfaceParams.fullAppID
     m.pts.policy_table.consumer_friendly_messages.messages = nil
     m.pts.policy_table.device_data = nil
     m.pts.policy_table.module_meta = nil
@@ -165,7 +165,7 @@ local m = { }
 --! that has to be passed as an input parameter
 --]]
   function m.activateApp(test, id, status, updateFunc)
-    local appId = config["application"..id].registerAppInterfaceParams.appID
+    local appId = config["application"..id].registerAppInterfaceParams.fullAppID
     local reqId = test.hmiConnection:SendRequest("SDL.ActivateApp", { appID = m.HMIAppIds[appId] })
     EXPECT_HMIRESPONSE(reqId)
     :Do(function(_, d1)

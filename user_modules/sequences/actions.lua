@@ -434,7 +434,7 @@ end
 --! @parameters: none
 --! @return: none
 --]]
-local function restoreSDLIniParameters()
+function m.restoreSDLIniParameters()
   for pParamName, pParamValue in pairs(originalValuesInSDLIni) do
     commonFunctions:write_parameter_to_smart_device_link_ini(pParamName, pParamValue)
   end
@@ -446,7 +446,7 @@ end
 --]]
 function m.postconditions()
   StopSDL()
-  restoreSDLIniParameters()
+  m.restoreSDLIniParameters()
 end
 
 --[[ @getAppsCount: provide count of registered applications

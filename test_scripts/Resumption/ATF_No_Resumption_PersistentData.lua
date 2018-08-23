@@ -136,7 +136,7 @@ local applicationData =
 	--ToDo: shall be removed when APPLINK-16610 is fixed
 	config.defaultProtocolVersion = 2
 
-	local storagePath = config.pathToSDL .. "storage/"..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
+	local storagePath = config.pathToSDL .. "storage/"..config.application1.registerAppInterfaceParams.fullAppID.. "_" .. config.deviceMAC.. "/"
 
 	local AppValuesOnHMIStatusFULL 
 	local AppValuesOnHMIStatusLIMITED

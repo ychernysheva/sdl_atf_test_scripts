@@ -176,7 +176,7 @@ function Test:TestStep_CheckThatAppID_Present_In_DataBase()
     self:FailTestCase("PolicyTable is not avaliable" .. tostring(PolicyDBPath))
   end
   os.execute(" sleep 2 ")
-  local AppId_2 = "sqlite3 " .. tostring(PolicyDBPath) .. " \"SELECT id FROM application WHERE id = '"..tostring(registerAppInterfaceParams.appID).."'\""
+  local AppId_2 = "sqlite3 " .. tostring(PolicyDBPath) .. " \"SELECT id FROM application WHERE id = '"..tostring(registerAppInterfaceParams.fullAppID).."'\""
   local bHandle = assert( io.popen(AppId_2, 'r'))
   local AppIdValue_2 = bHandle:read( '*all')
   if AppIdValue_2 == nil then

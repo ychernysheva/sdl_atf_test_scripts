@@ -900,7 +900,7 @@ end
 -- Difference with PROPRIETARY flow is clarified in "Can you clarify is PTU flows for External_Proprietary and Proprietary have differences?"
 -- But this should be checked in appropriate scripts
 function testCasesForPolicyTable:flow_SUCCEESS_EXTERNAL_PROPRIETARY(self, app_id, device_id, hmi_app_id, ptu_file_path, ptu_file_name, ptu_file)
-  if (app_id == nil) then app_id = config.application1.registerAppInterfaceParams.appID end
+  if (app_id == nil) then app_id = config.application1.registerAppInterfaceParams.fullAppID end
   if (device_id == nil) then device_id = utils.getDeviceMAC() end
   if (hmi_app_id == nil) then hmi_app_id = self.applications[config.application1.registerAppInterfaceParams.appName] end
   if (ptu_file_path == nil) then ptu_file_path = "files/" end
@@ -969,7 +969,7 @@ function testCasesForPolicyTable:trigger_user_request_update_from_HMI(self)
   EXPECT_HMICALL("BasicCommunication.PolicyUpdate", { file = "/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json"})
   :Do(function(_,data)
     testCasesForPolicyTableSnapshot:verify_PTS(true,
-    {config.application1.registerAppInterfaceParams.appID },
+    {config.application1.registerAppInterfaceParams.fullAppID },
     {utils.getDeviceMAC()},
     {hmi_app1_id})
 
@@ -1024,7 +1024,7 @@ function testCasesForPolicyTable:trigger_getting_device_consent(self, app_name, 
     EXPECT_HMICALL("BasicCommunication.PolicyUpdate", {file = "/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json"})
     :Do(function(_,data)
       testCasesForPolicyTableSnapshot:verify_PTS(true,
-      {config.application1.registerAppInterfaceParams.appID },
+      {config.application1.registerAppInterfaceParams.fullAppID },
       {utils.getDeviceMAC()},
       {hmi_app1_id})
 
@@ -1049,8 +1049,7 @@ function testCasesForPolicyTable:trigger_getting_device_consent(self, app_name, 
       self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
     end)
   end)
-
-  EXPECT_HMICALL("BasicCommunication.ActivateApp")
+  EXPECT_HMICALL("BasicCommunication.ActivateApp"):Times(Between(0,1))
   :Do(function(_,data) self.hmiConnection:SendResponse(data.id,"BasicCommunication.ActivateApp", "SUCCESS", {}) end)
 
   EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"})
@@ -1079,7 +1078,7 @@ function testCasesForPolicyTable:trigger_PTU_user_press_button_HMI(self, execute
   EXPECT_HMICALL("BasicCommunication.PolicyUpdate", {file = "/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json"})
   :Do(function(_,data)
     testCasesForPolicyTableSnapshot:verify_PTS(true,
-      {config.application1.registerAppInterfaceParams.appID },
+      {config.application1.registerAppInterfaceParams.fullAppID },
       {utils.getDeviceMAC()},
       {hmi_app1_id})
 

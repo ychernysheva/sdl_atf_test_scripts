@@ -58,7 +58,7 @@ function Test:TestStep_PoliciesManager_changes_status_UPDATING()
       EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "PROPRIETARY"})
       :Do(function()
           local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest",
-            {requestType = "PROPRIETARY", fileName = "PolicyTableUpdate", appID = config.application1.registerAppInterfaceParams.appID}, "files/ptu.json")
+            {requestType = "PROPRIETARY", fileName = "PolicyTableUpdate", appID = config.application1.registerAppInterfaceParams.fullAppID}, "files/ptu.json")
           EXPECT_HMICALL("BasicCommunication.SystemRequest",{ requestType = "PROPRIETARY", fileName = SystemFilesPath.."/PolicyTableUpdate" })
           :Do(function(_,_data1)
               self.hmiConnection:SendResponse(_data1.id,"BasicCommunication.SystemRequest", "SUCCESS", {})

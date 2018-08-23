@@ -60,12 +60,12 @@ function Test:Precondition_CheckThatAppID_SecondApp_Present_In_DataBase()
   local app2_exist = false
 
   for _, value in pairs(app_id_table) do
-    if ( value == config.application2.registerAppInterfaceParams.appID) then
+    if ( value == config.application2.registerAppInterfaceParams.fullAppID) then
       app2_exist = true
     end
   end
   if(app2_exist == false) then
-    self:FailTestCase("Application " .. config.application2.registerAppInterfaceParams.appID .. " doesn't exist in Local PT.")
+    self:FailTestCase("Application " .. config.application2.registerAppInterfaceParams.fullAppID .. " doesn't exist in Local PT.")
   end
 end
 
@@ -88,12 +88,12 @@ function Test:TestStep_CheckThatAppID_SecondApp_StillPresent_In_DataBase()
   local app2_exist = false
 
   for _, value in pairs(app_id_table) do
-    if ( value == config.application2.registerAppInterfaceParams.appID) then
+    if ( value == config.application2.registerAppInterfaceParams.fullAppID) then
       app2_exist = true
     end
   end
   if(app2_exist == false) then
-    self:FailTestCase("Application " .. config.application2.registerAppInterfaceParams.appID .. " doesn't exist in Local PT.")
+    self:FailTestCase("Application " .. config.application2.registerAppInterfaceParams.fullAppID .. " doesn't exist in Local PT.")
   end
 end
 

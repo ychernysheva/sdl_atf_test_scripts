@@ -81,8 +81,8 @@ function Test:Precondition_StartSession()
 end
 
 function Test.Precondition_PreparePTData()
-  PrepareJsonPTU1(config.application1.registerAppInterfaceParams.appID, ptu_first_app_registered)
-  PrepareJsonPTU1(config.application2.registerAppInterfaceParams.appID, ptu_second_app_registered)
+  PrepareJsonPTU1(config.application1.registerAppInterfaceParams.fullAppID, ptu_first_app_registered)
+  PrepareJsonPTU1(config.application2.registerAppInterfaceParams.fullAppID, ptu_second_app_registered)
 end
 --[[ end of Preconditions ]]
 

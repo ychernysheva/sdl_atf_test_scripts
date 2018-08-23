@@ -21,8 +21,8 @@ local json = require("modules/json")
 
 --[[ Local Functions ]]
 local function ptu_update_func(tbl)
-  tbl.policy_table.app_policies[config.application1.registerAppInterfaceParams.appID] = json.null
-  tbl.policy_table.app_policies[config.application2.registerAppInterfaceParams.appID] = commonRC.getRCAppConfig()
+  tbl.policy_table.app_policies[config.application1.registerAppInterfaceParams.fullAppID] = json.null
+  tbl.policy_table.app_policies[config.application2.registerAppInterfaceParams.fullAppID] = commonRC.getRCAppConfig()
 end
 
 --[[ Scenario ]]

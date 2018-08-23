@@ -61,7 +61,7 @@ function commonRC.getRCAppConfig(tbl)
 end
 
 local function updatePTU(tbl)
-  tbl.policy_table.app_policies[config.application1.registerAppInterfaceParams.appID] = commonRC.getRCAppConfig(tbl)
+  tbl.policy_table.app_policies[config.application1.registerAppInterfaceParams.fullAppID] = commonRC.getRCAppConfig(tbl)
 end
 
 function commonRC.jsonFileToTable(file_name)
@@ -197,7 +197,7 @@ function commonRC.rai_ptu_n(id, ptu_update_func, self)
       local corId = self["mobileSession" .. id]:SendRPC("RegisterAppInterface", config["application" .. id].registerAppInterfaceParams)
       EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config["application" .. id].registerAppInterfaceParams.appName } })
       :Do(function(_, d1)
-          hmiAppIds[config["application" .. id].registerAppInterfaceParams.appID] = d1.params.application.appID
+          hmiAppIds[config["application" .. id].registerAppInterfaceParams.fullAppID] = d1.params.application.appID
           EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", { status = "UPDATE_NEEDED" }, { status = "UPDATING" }, { status = "UP_TO_DATE" })
           :Times(3)
           EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
@@ -226,7 +226,7 @@ function commonRC.rai_n(id, self)
       local corId = self["mobileSession" .. id]:SendRPC("RegisterAppInterface", config["application" .. id].registerAppInterfaceParams)
       EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config["application" .. id].registerAppInterfaceParams.appName } })
       :Do(function(_, d1)
-          hmiAppIds[config["application" .. id].registerAppInterfaceParams.appID] = d1.params.application.appID
+          hmiAppIds[config["application" .. id].registerAppInterfaceParams.fullAppID] = d1.params.application.appID
         end)
       self["mobileSession" .. id]:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
       :Do(function()
@@ -249,7 +249,7 @@ end
 function commonRC.activate_app(pAppId, self)
   self, pAppId = commonRC.getSelfAndParams(pAppId, self)
   if not pAppId then pAppId = 1 end
-  local pHMIAppId = hmiAppIds[config["application" .. pAppId].registerAppInterfaceParams.appID]
+  local pHMIAppId = hmiAppIds[config["application" .. pAppId].registerAppInterfaceParams.fullAppID]
   local mobSession = commonRC.getMobileSession(self, pAppId)
   local requestId = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = pHMIAppId })
   EXPECT_HMIRESPONSE(requestId)
@@ -628,7 +628,7 @@ end
 
 function commonRC.getHMIAppId(pAppId)
   if not pAppId then pAppId = 1 end
-  return hmiAppIds[config["application" .. pAppId].registerAppInterfaceParams.appID]
+  return hmiAppIds[config["application" .. pAppId].registerAppInterfaceParams.fullAppID]
 end
 
 function commonRC.getMobileSession(self, pAppId)
@@ -772,7 +772,7 @@ function commonRC.getHMIAppIds()
 end
 
 function commonRC.deleteHMIAppId(pAppId)
-  hmiAppIds[config["application" .. pAppId].registerAppInterfaceParams.appID] = nil
+  hmiAppIds[config["application" .. pAppId].registerAppInterfaceParams.fullAppID] = nil
 end
 
 

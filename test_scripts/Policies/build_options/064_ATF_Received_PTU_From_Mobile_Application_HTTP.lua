@@ -30,7 +30,7 @@ local commonSteps = require("user_modules/shared_testcases/commonSteps")
 local json = require("modules/json")
 
 --[[ Local Variables ]]
-local app_id = config.application1.registerAppInterfaceParams.appID
+local app_id = config.application1.registerAppInterfaceParams.fullAppID
 local sequence = { }
 local ptu_table
 local actual_request_type = ""
@@ -121,7 +121,7 @@ function Test:RAI_PTU()
   :Do(
     function(_, d1)
       log("SDL->HMI: N: BC.OnAppRegistered")
-      self.applications[config.application1.registerAppInterfaceParams.appID] = d1.params.application.appID
+      self.applications[config.application1.registerAppInterfaceParams.fullAppID] = d1.params.application.appID
       EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", { status = "UPDATE_NEEDED" }, { status = "UPDATING" }, {status = "UP_TO_DATE" })
       :Do(
         function(_, d2)

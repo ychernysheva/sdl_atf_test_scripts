@@ -378,7 +378,7 @@ end
   commonFunctions:newTestCasesGroup("Preconditions")
 
 function Test:Precondition_PreparePTUfile()
-  prepareJsonPTU(config.application1.registerAppInterfaceParams.appID, ptuAppRegistered)
+  prepareJsonPTU(config.application1.registerAppInterfaceParams.fullAppID, ptuAppRegistered)
   self:preparePTUpdate()
 end
 

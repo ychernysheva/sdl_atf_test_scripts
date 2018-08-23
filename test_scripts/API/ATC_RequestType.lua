@@ -107,7 +107,7 @@ config.application1 =
   }
 }
 
-local storagePath = config.SDLStoragePath..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"	
+local storagePath = config.SDLStoragePath..config.application1.registerAppInterfaceParams.fullAppID.. "_" .. config.deviceMAC.. "/"	
 local applicationID
 local registerAppInterfaceParams = {syncMsgVersion = 
 										{ 

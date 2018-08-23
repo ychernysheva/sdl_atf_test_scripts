@@ -42,7 +42,7 @@ local function setVehicleData(pModuleType, self)
 end
 
 local function ptu_update_func(tbl)
-  tbl.policy_table.app_policies[config.application1.registerAppInterfaceParams.appID].moduleType = json.EMPTY_ARRAY
+  tbl.policy_table.app_policies[config.application1.registerAppInterfaceParams.fullAppID].moduleType = json.EMPTY_ARRAY
 end
 
 --[[ Scenario ]]

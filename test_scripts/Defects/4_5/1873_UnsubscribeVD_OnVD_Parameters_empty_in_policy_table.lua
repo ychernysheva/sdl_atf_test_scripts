@@ -51,7 +51,7 @@ local function ptuUpdateFuncDisallowedRPC(tbl)
     }
   }
   tbl.policy_table.functional_groupings.NewTestCaseGroup = VDgroup
-  tbl.policy_table.app_policies[config.application1.registerAppInterfaceParams.appID].groups =
+  tbl.policy_table.app_policies[config.application1.registerAppInterfaceParams.fullAppID].groups =
   {"Base-4", "NewTestCaseGroup"}
 end
 

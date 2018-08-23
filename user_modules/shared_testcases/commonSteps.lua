@@ -194,6 +194,7 @@ function commonSteps:RegisterTheSecondMediaApp()
 														languageDesired ="EN-US",
 														hmiDisplayLanguageDesired ="EN-US",
 														appID ="2",
+														fullAppID ="2",
 														ttsName =
 														{
 															{
