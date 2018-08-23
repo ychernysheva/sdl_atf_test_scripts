@@ -17,13 +17,13 @@
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
-local common = require('test_scripts/RC/AUDIO_LIGHT_HMI_SETTINGS/commonRCmodules')
+local common = require("test_scripts/RC/commonRC")
 
 --[[ Test Configuration ]]
 runner.testSettings.isSelfIncluded = false
 
 --[[ Local Functions ]]
-local function getDataForModule(pModuleType, isSubscriptionActive, pSubscribe)
+local function getDataForModule(pModuleType, isSubscriptionActive, pSubscribe, pHMIreqCount, isCheckSubscribeAbsence)
   local mobileSession = common.getMobileSession()
   local cid = mobileSession:SendRPC("GetInteriorVehicleData", {
       moduleType = pModuleType,
@@ -36,21 +36,24 @@ local function getDataForModule(pModuleType, isSubscriptionActive, pSubscribe)
   end
 
   EXPECT_HMICALL("RC.GetInteriorVehicleData", {
-      appID = common.getHMIAppId(),
       moduleType = pModuleType
     })
   :Do(function(_, data)
-      common.getHMIconnection():SendResponse(data.id, data.method, "SUCCESS", {
+      common.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", {
           moduleData = common.getModuleControlDataForResponse(pModuleType),
           -- no isSubscribed parameter
         })
     end)
   :ValidIf(function(_, data)
-      if data.params.subscribe == pSubscribeHMI then
-        return true
+      if isCheckSubscribeAbsence == true then
+        if data.params.subscribe == pSubscribeHMI then
+          return true
+        end
+        return false, 'Parameter "subscribe" is transfered to HMI with value: ' .. tostring(data.params.subscribe)
       end
-      return false, 'Parameter "subscribe" is transfered to HMI with value: ' .. tostring(data.params.subscribe)
+      return true
     end)
+  :Times(pHMIreqCount)
 
   mobileSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS",
       isSubscribed = isSubscriptionActive, -- return current value of subscription
@@ -62,24 +65,24 @@ end
 runner.Title("Preconditions")
 runner.Step("Clean environment", common.preconditions)
 runner.Step("Start SDL, HMI, connect Mobile, start Session", common.start)
-runner.Step("RAI, PTU", common.raiPTUn)
+runner.Step("RAI", common.registerAppWOPTU)
 runner.Step("Activate App", common.activateApp)
 
 runner.Title("Test")
 
-for _, mod in pairs(common.modules) do
+for _, mod in pairs(common.modulesWithoutSeat) do
   runner.Step("GetInteriorVehicleData " .. mod .. " NoSubscription_subscribe", getDataForModule,
-    { mod, false, true })
+    { mod, false, true, 1 ,true })
   runner.Step("GetInteriorVehicleData " .. mod .. " NoSubscription_unsubscribe", getDataForModule,
-    { mod, false, false })
+    { mod, false, false, 1, true })
 end
 
-for _, mod in pairs(common.modules) do
+for _, mod in pairs(common.modulesWithoutSeat) do
   runner.Step("Subscribe app to " .. mod, common.subscribeToModule, { mod })
   runner.Step("GetInteriorVehicleData " .. mod .. " ActiveSubscription_subscribe", getDataForModule,
-    { mod, true, true })
+    { mod, true, true, 0 })
   runner.Step("GetInteriorVehicleData " .. mod .. " ActiveSubscription_unsubscribe", getDataForModule,
-    { mod, true, false })
+    { mod, true, false, 1, false })
 end
 
 runner.Title("Postconditions")

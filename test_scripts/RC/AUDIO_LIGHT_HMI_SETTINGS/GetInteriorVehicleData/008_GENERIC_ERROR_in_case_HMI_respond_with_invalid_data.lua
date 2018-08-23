@@ -17,13 +17,10 @@
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
-local common = require('test_scripts/RC/AUDIO_LIGHT_HMI_SETTINGS/commonRCmodules')
+local common = require("test_scripts/RC/commonRC")
 
 --[[ Test Configuration ]]
 runner.testSettings.isSelfIncluded = false
-
---[[ Local Variables ]]
-local modules = { "AUDIO", "LIGHT", "HMI_SETTINGS" }
 
 --[[ Local Functions ]]
 local function invalidParamType(pModuleType)
@@ -34,12 +31,11 @@ local function invalidParamType(pModuleType)
     })
 
   EXPECT_HMICALL("RC.GetInteriorVehicleData", {
-      appID = common.getHMIAppId(),
       moduleType = pModuleType,
       subscribe = true
     })
   :Do(function(_, data)
-      common.getHMIconnection():SendResponse(data.id, data.method, "SUCCESS", {
+      common.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", {
           moduleData = common.getModuleControlData(pModuleType),
           isSubscribed = "yes" -- invalid type of parameter
         })
@@ -56,14 +52,13 @@ local function missingMandatoryParam(pModuleType)
     })
 
   EXPECT_HMICALL("RC.GetInteriorVehicleData", {
-      appID = common.getHMIAppId(),
       moduleType = pModuleType,
       subscribe = true
     })
   :Do(function(_, data)
       local moduleData = common.getModuleControlData(pModuleType)
       moduleData.moduleType = nil -- missing mandatory parameter
-      common.getHMIconnection():SendResponse(data.id, data.method, "SUCCESS", {
+      common.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", {
           moduleData = moduleData,
           isSubscribed = true
         })
@@ -76,12 +71,12 @@ end
 runner.Title("Preconditions")
 runner.Step("Clean environment", common.preconditions)
 runner.Step("Start SDL, HMI, connect Mobile, start Session", common.start)
-runner.Step("RAI, PTU", common.raiPTUn)
+runner.Step("RAI", common.registerAppWOPTU)
 runner.Step("Activate App", common.activateApp)
 
 runner.Title("Test")
 
-for _, mod in pairs(modules) do
+for _, mod in pairs(common.newModules) do
   runner.Step("GetInteriorVehicleData " .. mod .. " Invalid response from HMI-Invalid type of parameter", invalidParamType, { mod })
   runner.Step("GetInteriorVehicleData " .. mod .. " Invalid response from HMI-Missing mandatory parameter", missingMandatoryParam, { mod })
 end

@@ -15,13 +15,10 @@
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
-local common = require('test_scripts/RC/AUDIO_LIGHT_HMI_SETTINGS/commonRCmodules')
+local common = require("test_scripts/RC/commonRC")
 
 --[[ Test Configuration ]]
 runner.testSettings.isSelfIncluded = false
-
---[[ Local Variables ]]
-local modules = { "AUDIO", "LIGHT", "HMI_SETTINGS" }
 
 --[[ Local Functions ]]
 local function getDataForModule(module_type)
@@ -32,12 +29,11 @@ local function getDataForModule(module_type)
     })
 
   EXPECT_HMICALL("RC.GetInteriorVehicleData", {
-      appID = common.getHMIAppId(),
       moduleType = module_type,
       subscribe = true
     })
   :Do(function(_, data)
-      common.getHMIconnection():SendError(data.id, data.method, "READ_ONLY", "Info message")
+      common.getHMIConnection():SendError(data.id, data.method, "READ_ONLY", "Info message")
     end)
 
   mobileSession:ExpectResponse(cid, { success = false, resultCode = "GENERIC_ERROR", info = "Info message" })
@@ -47,12 +43,12 @@ end
 runner.Title("Preconditions")
 runner.Step("Clean environment", common.preconditions)
 runner.Step("Start SDL, HMI, connect Mobile, start Session", common.start)
-runner.Step("RAI, PTU", common.raiPTUn)
+runner.Step("RAI", common.registerAppWOPTU)
 runner.Step("Activate App", common.activateApp)
 
 runner.Title("Test")
 
-for _, mod in pairs(modules) do
+for _, mod in pairs(common.newModules) do
   runner.Step("GetInteriorVehicleData " .. mod, getDataForModule, { mod })
 end
 
