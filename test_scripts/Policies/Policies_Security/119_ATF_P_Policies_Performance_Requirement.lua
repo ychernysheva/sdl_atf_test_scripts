@@ -24,7 +24,7 @@ local json = require("modules/json")
 local utils = require ('user_modules/utils')
 
 --[[ Local Variables ]]
-local app_id = config.application1.registerAppInterfaceParams.appID
+local app_id = config.application1.registerAppInterfaceParams.fullAppID
 local sequence = { }
 local ptu_table
 local HMIAppId

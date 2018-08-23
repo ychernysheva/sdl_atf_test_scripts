@@ -30,7 +30,7 @@ local function setVehicleData(pModuleType)
 end
 
 local function ptu_update_func(tbl)
-  tbl.policy_table.app_policies[config.application1.registerAppInterfaceParams.appID].moduleType = nil
+  tbl.policy_table.app_policies[config.application1.registerAppInterfaceParams.fullAppID].moduleType = nil
 end
 
 --[[ Scenario ]]

@@ -415,7 +415,7 @@ function Test:updatePolicyInDifferentSessions(PTName, appName, mobileSession)
   end
 
   function Test:Precondition_PreparePTUfile()
-    prepareJsonPTU(config.application1.registerAppInterfaceParams.appID, ptuAppRegistered)
+    prepareJsonPTU(config.application1.registerAppInterfaceParams.fullAppID, ptuAppRegistered)
     self:preparePTUpdate()
     TestData:store("Store prepared PTU", ptuAppRegistered, "prepared_ptu.json" )
   end
@@ -482,7 +482,7 @@ function Test:updatePolicyInDifferentSessions(PTName, appName, mobileSession)
     TestData:store("Store LocalPT after PTU", constructPathToDatabase(), "afterPTU_policy.sqlite" )
     local checks = {
       {
-        query = table.concat({'select request_type from request_type a where application_id = "', config.application1.registerAppInterfaceParams.appID, '"'}),
+        query = table.concat({'select request_type from request_type a where application_id = "', config.application1.registerAppInterfaceParams.fullAppID, '"'}),
         expectedValues = TESTED_DATA.update.policy_table.app_policies.default.RequestType
       }
     }

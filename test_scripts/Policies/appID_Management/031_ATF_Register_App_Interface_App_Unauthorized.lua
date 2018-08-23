@@ -57,7 +57,7 @@ end
 commonFunctions:newTestCasesGroup("Test")
 function Test:RegisterNewApp()
   config.application2.registerAppInterfaceParams.appName = "App1"
-  config.application2.registerAppInterfaceParams.appID = "123_abc"
+  config.application2.registerAppInterfaceParams.fullAppID = "123_abc"
   local corId = self.mobileSession2:SendRPC("RegisterAppInterface", config.application2.registerAppInterfaceParams)
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = "App1" }})
   EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})

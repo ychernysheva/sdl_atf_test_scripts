@@ -100,7 +100,7 @@ end
 
 function Test:TestStep_FinishPTU_ForAppId1()
   local SystemFilesPath = commonFunctions:read_parameter_from_smart_device_link_ini("SystemFilesPath")
-  local CorIdSystemRequest = self.mobileSession:SendRPC ("SystemRequest", { requestType = "PROPRIETARY", fileName = "PolicyTableUpdate", appID = config.application1.registerAppInterfaceParams.appID },
+  local CorIdSystemRequest = self.mobileSession:SendRPC ("SystemRequest", { requestType = "PROPRIETARY", fileName = "PolicyTableUpdate", appID = config.application1.registerAppInterfaceParams.fullAppID },
     "files/jsons/Policies/Policy_Table_Update/ptu.json")
 
   EXPECT_HMICALL("BasicCommunication.SystemRequest")
@@ -123,7 +123,7 @@ function Test:TestStep_CheckThatAppID_BothApps_Present_In_DataBase()
   local PolicyDBPath = tostring(config.pathToSDL) .. "/storage/policy.sqlite"
   os.execute(" sleep 2 ")
 
-  local query = " select functional_group_id from app_group where application_id = '"..tostring(config.application1.registerAppInterfaceParams.appID).."' "
+  local query = " select functional_group_id from app_group where application_id = '"..tostring(config.application1.registerAppInterfaceParams.fullAppID).."' "
   local AppId_1 = commonFunctions:get_data_policy_sql(PolicyDBPath, query)
   local AppIdValue_1
   for _,v in pairs(AppId_1) do
@@ -131,12 +131,12 @@ function Test:TestStep_CheckThatAppID_BothApps_Present_In_DataBase()
   end
 
   if AppIdValue_1 == nil then
-    commonFunctions:printError("ERROR: Value in DB for app: "..tostring(config.application1.registerAppInterfaceParams.appID).."is unexpected value nil")
+    commonFunctions:printError("ERROR: Value in DB for app: "..tostring(config.application1.registerAppInterfaceParams.fullAppID).."is unexpected value nil")
     is_test_fail = true
   else
     -- default group
     if(AppIdValue_1 ~= "686787169") then
-      commonFunctions:printError("ERROR: Application: "..tostring(config.application1.registerAppInterfaceParams.appID).."is not assigned to default group(686787169). Real: "..AppIdValue_1)
+      commonFunctions:printError("ERROR: Application: "..tostring(config.application1.registerAppInterfaceParams.fullAppID).."is not assigned to default group(686787169). Real: "..AppIdValue_1)
       is_test_fail = true
     end
   end

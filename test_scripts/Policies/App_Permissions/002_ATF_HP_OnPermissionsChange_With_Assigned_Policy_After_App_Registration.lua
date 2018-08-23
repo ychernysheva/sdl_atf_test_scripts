@@ -90,7 +90,7 @@ function Test:Step1_Register_App_And_Check_Its_Permissions_In_OnPermissionsChang
 
   config.application1.registerAppInterfaceParams.appName = "SPT"
   config.application1.registerAppInterfaceParams.isMediaApplication = true
-  config.application1.registerAppInterfaceParams.appID = "1234567"
+  config.application1.registerAppInterfaceParams.fullAppID = "1234567"
 
   local CorIdRAI = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered",

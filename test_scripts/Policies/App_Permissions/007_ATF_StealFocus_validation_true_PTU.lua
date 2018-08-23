@@ -59,7 +59,7 @@ function Test:Precondition_StartNewSession()
 end
 
 function Test:Precondition_ActivateApplication()
-  config.application1.registerAppInterfaceParams.appID = "123456"
+  config.application1.registerAppInterfaceParams.fullAppID = "123456"
   local CorIdRAI = self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { policyAppID = "123456"} })
   :Do(function(_,data)

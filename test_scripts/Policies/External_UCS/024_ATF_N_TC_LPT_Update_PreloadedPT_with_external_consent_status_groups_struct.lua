@@ -81,7 +81,7 @@ function Test.UpdatePreloadedPT()
     preloadedTable.policy_table.device_data = {
       [utils.getDeviceMAC()] = {
         user_consent_records = {
-          [config.application1.registerAppInterfaceParams.appID] = {
+          [config.application1.registerAppInterfaceParams.fullAppID] = {
             external_consent_status_groups = {
               Location = false
             }

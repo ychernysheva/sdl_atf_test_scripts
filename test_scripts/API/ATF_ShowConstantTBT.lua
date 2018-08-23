@@ -34,7 +34,7 @@ local policyTable = require('user_modules/shared_testcases/testCasesForPolicyTab
 
 APIName = "ShowConstantTBT" -- set request name
 strMaxLengthFileName255 = string.rep("a", 251)  .. ".png" -- set max length file name
-local storagePath = config.pathToSDL .. SDLConfig:GetValue("AppStorageFolder") .. "/" .. tostring(config.application1.registerAppInterfaceParams.appID .. "_" .. tostring(config.deviceMAC) .. "/")
+local storagePath = config.pathToSDL .. SDLConfig:GetValue("AppStorageFolder") .. "/" .. tostring(config.application1.registerAppInterfaceParams.fullAppID .. "_" .. tostring(config.deviceMAC) .. "/")
 
 --Debug = {"graphic", "value"} --use to print request before sending to SDL.
 Debug = {} -- empty {}: script will do not print request on console screen.

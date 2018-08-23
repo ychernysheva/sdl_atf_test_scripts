@@ -40,7 +40,7 @@ local function register_app(pAppId, self)
       EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered",
         { application = { appName = config["application" .. pAppId].registerAppInterfaceParams.appName } })
       :Do(function(_, d1)
-          hmiAppIds[config["application" .. pAppId].registerAppInterfaceParams.appID] = d1.params.application.appID
+          hmiAppIds[config["application" .. pAppId].registerAppInterfaceParams.fullAppID] = d1.params.application.appID
         end)
       self["mobileSession" .. pAppId]:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
       :Do(function()
@@ -54,7 +54,7 @@ end
 
 local function activate_app(pAppId, self)
   local requestId = self.hmiConnection:SendRequest("SDL.ActivateApp",
-    { appID = hmiAppIds[config["application" .. pAppId].registerAppInterfaceParams.appID] })
+    { appID = hmiAppIds[config["application" .. pAppId].registerAppInterfaceParams.fullAppID] })
   EXPECT_HMIRESPONSE(requestId)
 
   self["mobileSession" .. pAppId]:ExpectNotification("OnHMIStatus",

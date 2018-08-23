@@ -70,7 +70,7 @@ end
 --! @return: none
 --]]
 local function updatePTU(tbl)
-  tbl.policy_table.app_policies[config.application1.registerAppInterfaceParams.appID] = commonDefect.DefaultStruct()
+  tbl.policy_table.app_policies[config.application1.registerAppInterfaceParams.fullAppID] = commonDefect.DefaultStruct()
 end
 
 --[[ @jsonFileToTable: convert .json file to table
@@ -332,7 +332,7 @@ function commonDefect.rai_ptu_n(id, ptu_update_func, self)
       EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered",
         { application = { appName = config["application" .. id].registerAppInterfaceParams.appName } })
       :Do(function(_, d1)
-          hmiAppIds[config["application" .. id].registerAppInterfaceParams.appID] = d1.params.application.appID
+          hmiAppIds[config["application" .. id].registerAppInterfaceParams.fullAppID] = d1.params.application.appID
           EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
           :DoOnce(function(_, d2)
               self.hmiConnection:SendResponse(d2.id, d2.method, "SUCCESS", { })
@@ -374,7 +374,7 @@ function commonDefect.rai_ptu_n_without_OnPermissionsChange(id, ptu_update_func,
       EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered",
         { application = { appName = config["application" .. id].registerAppInterfaceParams.appName } })
       :Do(function(_, d1)
-          hmiAppIds[config["application" .. id].registerAppInterfaceParams.appID] = d1.params.application.appID
+          hmiAppIds[config["application" .. id].registerAppInterfaceParams.fullAppID] = d1.params.application.appID
           EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
           :DoOnce(function(_, d2)
               self.hmiConnection:SendResponse(d2.id, d2.method, "SUCCESS", { })
@@ -422,7 +422,7 @@ function commonDefect.rai_n(id, expect_dd, self)
       EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered",
         { application = { appName = config["application" .. id].registerAppInterfaceParams.appName } })
       :Do(function(_, d1)
-          hmiAppIds[config["application" .. id].registerAppInterfaceParams.appID] = d1.params.application.appID
+          hmiAppIds[config["application" .. id].registerAppInterfaceParams.fullAppID] = d1.params.application.appID
         end)
       self["mobileSession" .. id]:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
       :Do(function()
@@ -474,7 +474,7 @@ end
 function commonDefect.activate_app(pAppId, self)
   self, pAppId = commonDefect.getSelfAndParams(pAppId, self)
   if not pAppId then pAppId = 1 end
-  local pHMIAppId = hmiAppIds[config["application" .. pAppId].registerAppInterfaceParams.appID]
+  local pHMIAppId = hmiAppIds[config["application" .. pAppId].registerAppInterfaceParams.fullAppID]
   local mobSession = commonDefect.getMobileSession(self, pAppId)
   local requestId = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = pHMIAppId })
   EXPECT_HMIRESPONSE(requestId)
@@ -531,7 +531,7 @@ end
 --]]
 function commonDefect.getHMIAppId(pAppId)
   if not pAppId then pAppId = 1 end
-  return hmiAppIds[config["application" .. pAppId].registerAppInterfaceParams.appID]
+  return hmiAppIds[config["application" .. pAppId].registerAppInterfaceParams.fullAppID]
 end
 
 --[[ @getMobileSession: get mobile session

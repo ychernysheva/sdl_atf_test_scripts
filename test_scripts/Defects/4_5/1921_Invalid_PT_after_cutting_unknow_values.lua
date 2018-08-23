@@ -60,7 +60,7 @@ local function ptuUpdateFuncRPC(tbl)
     }
   }
   tbl.policy_table.functional_groupings["NewTestCaseGroup1"] = VDgroup
-  tbl.policy_table.app_policies[config.application1.registerAppInterfaceParams.appID].groups =
+  tbl.policy_table.app_policies[config.application1.registerAppInterfaceParams.fullAppID].groups =
     { "Base-4", "NewTestCaseGroup1" }
 end
 
@@ -79,7 +79,7 @@ local function ptuUpdateFuncParams(tbl)
     }
   }
   tbl.policy_table.functional_groupings["NewTestCaseGroup2"] = VDgroup
-  tbl.policy_table.app_policies[config.application1.registerAppInterfaceParams.appID].groups =
+  tbl.policy_table.app_policies[config.application1.registerAppInterfaceParams.fullAppID].groups =
     { "Base-4", "NewTestCaseGroup1", "NewTestCaseGroup2" }
 end
 
@@ -108,7 +108,7 @@ local function ptuUpdateFuncNotValid(tbl)
     }
   }
   tbl.policy_table.functional_groupings["NewTestCaseGroup3"] = VDgroup
-  tbl.policy_table.app_policies[config.application1.registerAppInterfaceParams.appID].groups =
+  tbl.policy_table.app_policies[config.application1.registerAppInterfaceParams.fullAppID].groups =
     { "Base-4", "NewTestCaseGroup1", "NewTestCaseGroup2", "NewTestCaseGroup3" }
 end
 

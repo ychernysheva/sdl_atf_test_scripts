@@ -19,7 +19,7 @@ local commonRC = require('test_scripts/RC/commonRC')
 
 --[[ Local Functions ]]
 local function ptu_update_func(tbl)
-  tbl.policy_table.app_policies[config.application1.registerAppInterfaceParams.appID] = {
+  tbl.policy_table.app_policies[config.application1.registerAppInterfaceParams.fullAppID] = {
     keep_context = false,
     steal_focus = false,
     priority = "NONE",
@@ -29,7 +29,7 @@ local function ptu_update_func(tbl)
     AppHMIType = { "REMOTE_CONTROL" }
   }
   table.insert(tbl.policy_table.functional_groupings.RemoteControl.rpcs.OnInteriorVehicleData.hmi_levels, "NONE")
-  tbl.policy_table.app_policies[config.application2.registerAppInterfaceParams.appID] = commonRC.getRCAppConfig()
+  tbl.policy_table.app_policies[config.application2.registerAppInterfaceParams.fullAppID] = commonRC.getRCAppConfig()
 end
 
 --[[ Scenario ]]

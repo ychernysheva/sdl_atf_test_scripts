@@ -54,7 +54,7 @@ local function updatePreloadedPT(pCountOfRCApps)
     hmi_levels = { "FULL", "BACKGROUND", "LIMITED", "NONE" }
   }
   for i = 1, pCountOfRCApps do
-    local appId = config["application" .. i].registerAppInterfaceParams.appID
+    local appId = config["application" .. i].registerAppInterfaceParams.fullAppID
     preloadedTable.policy_table.app_policies[appId] = commonRC.getRCAppConfig(preloadedTable)
     preloadedTable.policy_table.app_policies[appId].AppHMIType = nil
   end
@@ -189,7 +189,7 @@ function m.getHMIAppIdsRC()
   for appID, hmiAppId in pairs(commonRC.getHMIAppIds()) do
     for i = 1, 5 do
       local params = config["application" .. i].registerAppInterfaceParams
-      if params.appID == appID and params.appHMIType[1] == "REMOTE_CONTROL" then
+      if params.fullAppID == appID and params.appHMIType[1] == "REMOTE_CONTROL" then
         table.insert(out, hmiAppId)
       end
     end

@@ -30,7 +30,7 @@ local json = require("modules/json")
 --[[ Local Variables ]]
 local sequence = { }
 
-local app_id = config.application1.registerAppInterfaceParams.appID
+local app_id = config.application1.registerAppInterfaceParams.fullAppID
 
 local policy_file_name = "PolicyTableUpdate"
 local pts_file_name = "sdl_snapshot.json"

@@ -24,7 +24,7 @@
 config.defaultProtocolVersion = 2
 config.application1.registerAppInterfaceParams.appName = "SPT"
 config.application1.registerAppInterfaceParams.isMediaApplication = true
-config.application1.registerAppInterfaceParams.appID = "1234567"
+config.application1.registerAppInterfaceParams.fullAppID = "1234567"
 
 --[[ Required Shared libraries ]]
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')

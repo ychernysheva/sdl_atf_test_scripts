@@ -69,7 +69,7 @@ function Test:TestStep_PTU_AppID_NotListed_PT_WiFi()
       EXPECT_HMICALL("BasicCommunication.PolicyUpdate",{file = "/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json" })
       :Do(function(_,_data1)
         testCasesForPolicyTableSnapshot:verify_PTS(true,
-        {config.application1.registerAppInterfaceParams.appID, config.application1.registerAppInterfaceParams.appID},
+        {config.application1.registerAppInterfaceParams.fullAppID, config.application1.registerAppInterfaceParams.fullAppID},
         {utils.getDeviceMAC()},
         {hmi_app_id1, hmi_app_id2})
 

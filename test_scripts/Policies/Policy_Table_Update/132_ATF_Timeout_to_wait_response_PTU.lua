@@ -53,7 +53,7 @@ function Test:TestStep_PTS_Timeout_wait_response_PTU()
   EXPECT_HMICALL("BasicCommunication.PolicyUpdate",{})
   :Do(function(_,data)
     testCasesForPolicyTableSnapshot:verify_PTS(true,
-      {config.application1.registerAppInterfaceParams.appID},
+      {config.application1.registerAppInterfaceParams.fullAppID},
       {utils.getDeviceMAC()},
       {hmi_app_id})
 

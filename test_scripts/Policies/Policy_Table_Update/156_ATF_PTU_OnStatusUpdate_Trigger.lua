@@ -111,7 +111,7 @@ end
 
 function Test:TestStep_RegisteNewApp()
   config.application2.registerAppInterfaceParams.appName = "App1"
-  config.application2.registerAppInterfaceParams.appID = "123_abc"
+  config.application2.registerAppInterfaceParams.fullAppID = "123_abc"
 
   local corId = self.mobileSession2:SendRPC("RegisterAppInterface", config.application2.registerAppInterfaceParams)
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered",

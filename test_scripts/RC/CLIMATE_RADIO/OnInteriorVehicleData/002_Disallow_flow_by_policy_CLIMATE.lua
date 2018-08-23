@@ -23,7 +23,7 @@ local commonRC = require('test_scripts/RC/commonRC')
 local mod = "CLIMATE"
 
 local function ptu_update_func(tbl)
-  tbl.policy_table.app_policies[config.application1.registerAppInterfaceParams.appID].moduleType = { mod }
+  tbl.policy_table.app_policies[config.application1.registerAppInterfaceParams.fullAppID].moduleType = { mod }
 end
 
 --[[ Scenario ]]

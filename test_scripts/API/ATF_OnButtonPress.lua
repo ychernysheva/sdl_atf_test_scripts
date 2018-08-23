@@ -53,7 +53,7 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 
 Apps = {}
 Apps[1] = {}
-Apps[1].storagePath = config.pathToSDL .. "storage/"..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
+Apps[1].storagePath = config.pathToSDL .. "storage/"..config.application1.registerAppInterfaceParams.fullAppID.. "_" .. config.deviceMAC.. "/"
 Apps[1].appName = config.application1.registerAppInterfaceParams.appName 
 Apps[1].isMedia = commonFunctions:isMediaApp()
 Apps[2] = {}

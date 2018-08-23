@@ -55,7 +55,7 @@ function Test:TestStep_PolicyManager_sends_PTS_to_HMI()
           EXPECT_HMICALL("BasicCommunication.PolicyUpdate",{})
           :Do(function(_,data)
             testCasesForPolicyTableSnapshot:verify_PTS(true,
-              {config.application1.registerAppInterfaceParams.appID},
+              {config.application1.registerAppInterfaceParams.fullAppID},
               {utils.getDeviceMAC()},
               {hmi_app_id})
 
