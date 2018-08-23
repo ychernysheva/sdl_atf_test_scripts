@@ -124,13 +124,8 @@ function Test:RAI_PTU()
   :Do(
     function(_, d1)
       log("SDL->HMI: N: BC.OnAppRegistered")
-<<<<<<< HEAD
       self.applications[config.application1.registerAppInterfaceParams.fullAppID] = d1.params.application.appID
-      EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", { status = "UPDATE_NEEDED" }, { status = "UPDATING" }, { status = "UPDATE_NEEDED" }, { status = "UPDATING" })
-=======
-      self.applications[config.application1.registerAppInterfaceParams.appID] = d1.params.application.appID
       EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", { status = "UPDATE_NEEDED" }, { status = "UPDATING" }, { status = "UPDATE_NEEDED" })
->>>>>>> origin/develop
       :Do(
         function(_, d2)
           log("SDL->HMI: N: SDL.OnStatusUpdate", d2.params.status)

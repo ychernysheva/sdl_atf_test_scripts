@@ -4,18 +4,11 @@
             "0000001": {
                 "groups": ["Base-4", "Base-6"],
                 "priority": "NONE",
-<<<<<<< HEAD
-        "keep_context": false,
-                "steal_focus": false,
-        "default_hmi": "NONE",
-        "nicknames": ["App1"]
-=======
                 "keep_context": false,
                 "steal_focus": false,
                 "default_hmi": "NONE",
                 "nicknames": ["App1"],
                 "RequestType": []
->>>>>>> origin/develop
             },
             "default": {
                 "keep_context": false,
@@ -23,12 +16,8 @@
                 "priority": "NONE",
                 "default_hmi": "NONE",
                 "groups": ["Base-4"],
-<<<<<<< HEAD
                 "RequestType": [],
                 "RequestSubType": []
-=======
-                "RequestType": []
->>>>>>> origin/develop
             },
             "device": {
                 "keep_context": false,

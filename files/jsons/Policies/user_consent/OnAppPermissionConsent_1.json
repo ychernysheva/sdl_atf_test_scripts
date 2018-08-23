@@ -2243,40 +2243,24 @@
             }
         },
         "app_policies": {
-<<<<<<< HEAD
-       "0000001": {
-        "keep_context": false,
-        "steal_focus": false,
-        "priority": "NONE",
-        "default_hmi": "NONE",
-        "groups": [
-          "Base-4", "Notifications", "Location-1"
-        ]
-          },
-=======
-	   "0000001": {
-		"keep_context": false,
-		"steal_focus": false,
-		"priority": "NONE",
-		"default_hmi": "NONE",
-		"groups": [
-		  "Base-4", "Notifications", "Location-1"
-		],
-		"RequestType": []
-	      },
->>>>>>> origin/develop
+            "0000001": {
+        		"keep_context": false,
+        		"steal_focus": false,
+        		"priority": "NONE",
+        		"default_hmi": "NONE",
+        		"groups": [
+        		  "Base-4", "Notifications", "Location-1"
+        		],
+                "RequestType": []
+            },
             "default": {
                 "keep_context": false,
                 "steal_focus": false,
                 "priority": "NONE",
                 "default_hmi": "NONE",
                 "groups": ["Base-4"],
-<<<<<<< HEAD
                 "RequestType": [],
                 "RequestSubType": []
-=======
-                "RequestType": []
->>>>>>> origin/develop
             },
             "device": {
                 "keep_context": false,

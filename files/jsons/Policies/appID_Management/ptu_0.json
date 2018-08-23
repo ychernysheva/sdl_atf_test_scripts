@@ -16,14 +16,9 @@
                 "steal_focus": false,
                 "priority": "NONE",
                 "default_hmi": "NONE",
-<<<<<<< HEAD
                 "groups": ["Base-4"], 
                 "RequestType": [],
                 "RequestSubType": []
-=======
-                "groups": ["Base-4"],
-                "RequestType": []
->>>>>>> origin/develop
             },
             "device": {
                 "keep_context": false,
