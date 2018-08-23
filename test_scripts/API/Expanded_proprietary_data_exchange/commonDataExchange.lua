@@ -10,6 +10,7 @@ local json = require("modules/json")
 
 --[[ General configuration parameters ]]
 config.defaultProtocolVersion = 2
+config.application1.registerAppInterfaceParams.syncMsgVersion.majorVersion = 5
 
 local m = actions
 local ptuTable = {}

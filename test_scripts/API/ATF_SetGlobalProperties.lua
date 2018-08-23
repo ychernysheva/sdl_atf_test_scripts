@@ -2033,7 +2033,213 @@ end
 
 	--End test case CommonRequestCheck.20
 	-----------------------------------------------------------------------------------------
+   --Begin test case CommonRequestCheck.21
+  --Description: Check request with all parameters
 
+    function Test:SetGlobalProperties_ImageNotAvailableInStorag_WARNINGS()
+    
+      --mobile side: sending SetGlobalProperties request
+      local cid = self.mobileSession:SendRPC("SetGlobalProperties",
+      {
+        menuTitle = "Menu Title",
+        timeoutPrompt = 
+        {
+          {
+            text = "Timeout prompt duplicate",
+            type = "TEXT"
+          }
+        },
+        vrHelp = 
+        {
+          {
+            position = 1,
+            image = 
+            {
+              value = "action.png",
+              imageType = "DYNAMIC"
+            },
+            text = "VR help item"
+          }
+        },
+        menuIcon = 
+        {
+          value = "imagenotavailable.png",
+          imageType = "DYNAMIC"
+        },
+        helpPrompt = 
+        {
+          {
+            text = "Help prompt",
+            type = "TEXT"
+          }
+        },
+        vrHelpTitle = "VR help title",
+        keyboardProperties = 
+        {
+          keyboardLayout = "QWERTY",
+          keypressMode = "SINGLE_KEYPRESS",
+          limitedCharacterList = 
+          {
+            "a"
+          },
+          language = "EN-US",
+          autoCompleteText = "Daemon, Freedom"
+        }
+      })
+    
+
+      --hmi side: expect TTS.SetGlobalProperties request
+      EXPECT_HMICALL("TTS.SetGlobalProperties")
+      :Times(2)
+      :Do(function(_,data)
+        --hmi side: sending UI.SetGlobalProperties response
+        self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+      end)
+
+    
+
+      --hmi side: expect UI.SetGlobalProperties request
+      EXPECT_HMICALL("UI.SetGlobalProperties")
+      :Times(2)
+      :Do(function(_,data)
+        --hmi side: sending UI.SetGlobalProperties response
+        self.hmiConnection:SendResponse(data.id, data.method, "WARNINGS", {info ="Requested image(s) not found."})
+      end)
+      :Do(function(exp,data)
+        if exp.occurences == 1 then 
+          local msg = 
+            {
+              serviceType      = 7,
+              frameInfo        = 0,
+              rpcType          = 0,
+              rpcFunctionId    = 3, --SetGlobalPropertiesID  
+              rpcCorrelationId = cid,
+              payload          = '{"vrHelp":[{"image":{"imageType":"DYNAMIC","value":"action.png"},"position":1,"text":"VR help item"}],"helpPrompt":[{"type":"TEXT","text":"Help prompt"}],"menuTitle":"Menu Title","vrHelpTitle":"VR help title","timeoutPrompt":[{"type":"TEXT","text":"Timeout prompt duplicate"}],"menuIcon":{"imageType":"DYNAMIC","value":"action.png"}}'
+            }
+      
+          self.mobileSession:Send(msg)
+        end
+
+        --hmi side: sending UI.SetGlobalProperties response
+        self.hmiConnection:SendResponse(data.id, data.method, "WARNINGS", {info ="Requested image(s) not found."})          
+        
+      end)
+        
+
+      --mobile side: expect SetGlobalProperties response
+      EXPECT_RESPONSE(cid, { success = true, resultCode = "WARNINGS",info ="Requested image(s) not found."})
+      :Times(2)
+            
+      --mobile side: expect OnHashChange notification
+      EXPECT_NOTIFICATION("OnHashChange")
+      :Times(2)
+    end
+    --End test case CommonRequestCheck.21
+ -----------------------------------------------------------------------------------------
+    
+  --Begin test case CommonRequestCheck.22
+  --Description: Check request with all parameters
+
+    function Test:SetGlobalProperties_VRImageNotAvailableInStorag_WARNINGS()
+    
+      --mobile side: sending SetGlobalProperties request
+      local cid = self.mobileSession:SendRPC("SetGlobalProperties",
+      {
+        menuTitle = "Menu Title",
+        timeoutPrompt = 
+        {
+          {
+            text = "Timeout prompt duplicate",
+            type = "TEXT"
+          }
+        },
+        vrHelp = 
+        {
+          {
+            position = 1,
+            image = 
+            {
+              value = "imagenotavailable.png",
+              imageType = "DYNAMIC"
+            },
+            text = "VR help item"
+          }
+        },
+        menuIcon = 
+        {
+          value = "action.png",
+          imageType = "DYNAMIC"
+        },
+        helpPrompt = 
+        {
+          {
+            text = "Help prompt",
+            type = "TEXT"
+          }
+        },
+        vrHelpTitle = "VR help title",
+        keyboardProperties = 
+        {
+          keyboardLayout = "QWERTY",
+          keypressMode = "SINGLE_KEYPRESS",
+          limitedCharacterList = 
+          {
+            "a"
+          },
+          language = "EN-US",
+          autoCompleteText = "Daemon, Freedom"
+        }
+      })
+    
+
+      --hmi side: expect TTS.SetGlobalProperties request
+      EXPECT_HMICALL("TTS.SetGlobalProperties")
+      :Times(2)
+      :Do(function(_,data)
+        --hmi side: sending UI.SetGlobalProperties response
+        self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+      end)
+
+    
+
+      --hmi side: expect UI.SetGlobalProperties request
+      EXPECT_HMICALL("UI.SetGlobalProperties")
+      :Times(2)
+      :Do(function(_,data)
+        --hmi side: sending UI.SetGlobalProperties response
+        self.hmiConnection:SendResponse(data.id, data.method, "WARNINGS", {info ="Requested image(s) not found."})
+      end)
+      :Do(function(exp,data)
+        if exp.occurences == 1 then 
+          local msg = 
+            {
+              serviceType      = 7,
+              frameInfo        = 0,
+              rpcType          = 0,
+              rpcFunctionId    = 3, --SetGlobalPropertiesID  
+              rpcCorrelationId = cid,
+              payload          = '{"vrHelp":[{"image":{"imageType":"DYNAMIC","value":"action.png"},"position":1,"text":"VR help item"}],"helpPrompt":[{"type":"TEXT","text":"Help prompt"}],"menuTitle":"Menu Title","vrHelpTitle":"VR help title","timeoutPrompt":[{"type":"TEXT","text":"Timeout prompt duplicate"}],"menuIcon":{"imageType":"DYNAMIC","value":"action.png"}}'
+            }
+      
+          self.mobileSession:Send(msg)
+        end
+
+        --hmi side: sending UI.SetGlobalProperties response
+        self.hmiConnection:SendResponse(data.id, data.method, "WARNINGS", {info ="Requested image(s) not found."})          
+        
+      end)
+        
+
+      --mobile side: expect SetGlobalProperties response
+      EXPECT_RESPONSE(cid, { success = true, resultCode = "WARNINGS",info ="Requested image(s) not found."})
+      :Times(2)
+            
+      --mobile side: expect OnHashChange notification
+      EXPECT_NOTIFICATION("OnHashChange")
+      :Times(2)
+    end
+    --End test case CommonRequestCheck.22
+  -----------------------------------------------------------------------------------------
 
 
 ---------------------------------------------------------------------------------------------

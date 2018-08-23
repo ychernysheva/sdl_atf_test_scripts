@@ -2253,8 +2253,12 @@
                 "priority": "NONE",
                 "default_hmi": "NONE",
                 "groups": ["Base-4"],
+<<<<<<< HEAD
                 "RequestType": [],
                 "RequestSubType": []
+=======
+                "RequestType": []
+>>>>>>> origin/develop
             },
             "device": {
                 "keep_context": false,

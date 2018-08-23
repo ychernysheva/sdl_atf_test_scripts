@@ -8,16 +8,22 @@
                 "steal_focus": false,
                 "default_hmi": "NONE",
                 "priority": "NONE",
-                "nicknames": ["Media Application", "MediaApp"]
+                "nicknames": ["Media Application", "MediaApp"],
+                "RequestType": []
             },
             "default": {
                 "keep_context": false,
                 "steal_focus": false,
                 "priority": "NONE",
                 "default_hmi": "NONE",
+<<<<<<< HEAD
                 "groups": ["Base-4"], 
                 "RequestType": [],
                 "RequestSubType": []
+=======
+                "groups": ["Base-4"],
+                "RequestType": []
+>>>>>>> origin/develop
             },
             "device": {
                 "keep_context": false,
