@@ -97,7 +97,10 @@ local function RegisterAppInterface(self)
 	local CorIdRAI = self.mobileSession1:SendRPC("RegisterAppInterface", requestParams)
 	local notificationParams = GetNotificationParams()
 	EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", notificationParams)
-	self.mobileSession1:ExpectResponse(CorIdRAI, { success = true, resultCode = "SUCCESS", syncMsgVersion = requestParams.syncMsgVersion})
+	self.mobileSession1:ExpectResponse(CorIdRAI, { success = true, resultCode = "SUCCESS", syncMsgVersion = {
+		majorVersion = 4,
+		minorVersion = 5,
+	}})
 	self.mobileSession1:ExpectNotification("OnHMIStatus",
 		{ hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN" })
 	self.mobileSession1:ExpectNotification("OnPermissionsChange")
