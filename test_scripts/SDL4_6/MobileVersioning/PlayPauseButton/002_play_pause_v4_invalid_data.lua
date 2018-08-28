@@ -39,7 +39,7 @@ config.application1.registerAppInterfaceParams.syncMsgVersion = {
 local function subscribeButtonSuccess(pButName, self)
   local cid = self.mobileSession1:SendRPC("SubscribeButton", { buttonName = pButName })
   local appIDvalue = commonSmoke.getHMIAppId()
-  EXPECT_HMINOTIFICATION("Buttons.OnButtonSubscription", { appID = appIDvalue, name = pButName, isSubscribed = true })
+  EXPECT_HMINOTIFICATION("Buttons.OnButtonSubscription", { appID = appIDvalue, name = "PLAY_PAUSE", isSubscribed = true })
   self.mobileSession1:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
   self.mobileSession1:ExpectNotification("OnHashChange")
 end
