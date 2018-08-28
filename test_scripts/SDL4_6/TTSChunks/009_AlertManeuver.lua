@@ -45,7 +45,7 @@ runner.testSettings.isSelfIncluded = false
 
 --[[ Local Functions ]]
 local function pTUpdateFunc(pTbl)
-  table.insert(pTbl.policy_table.app_policies[common.getConfigAppParams().appID].groups, "Navigation-1")
+  table.insert(pTbl.policy_table.app_policies[common.getConfigAppParams().fullAppID].groups, "Navigation-1")
 end
 
 local function sendAlertManeuver_FILE_NOT_FOUND()
