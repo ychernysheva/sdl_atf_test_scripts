@@ -33,6 +33,7 @@ local commonSmoke = require('test_scripts/Smoke/commonSmoke')
 --[[ Local Variables ]]
 local buttonName = {
   "OK",
+  "PLAY_PAUSE",
   "SEEKLEFT",
   "SEEKRIGHT",
   "TUNEUP",

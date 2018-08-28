@@ -25,7 +25,7 @@ commonPreconditions:Connecttest_OnButtonSubscription("connecttest_OnButton.lua")
 	if pattern2Result == nil then 
 		print(" \27[31m capabilities array is not found in /user_modules/connecttest_OnButton.lua \27[0m ")
 	else
-		fileContent  =  string.gsub(fileContent, pattern2, '{capabilities = {button_capability("PRESET_0"),button_capability("PRESET_1"),button_capability("PRESET_2"),button_capability("PRESET_3"),button_capability("PRESET_4"),button_capability("PRESET_5"),button_capability("PRESET_6"),button_capability("PRESET_7"),button_capability("PRESET_8"),button_capability("PRESET_9"),button_capability("OK", true, false, true),button_capability("SEEKLEFT"),button_capability("SEEKRIGHT"),button_capability("TUNEUP"),button_capability("TUNEDOWN"),button_capability("SEARCH")}')
+		fileContent  =  string.gsub(fileContent, pattern2, '{capabilities = {button_capability("PRESET_0"),button_capability("PRESET_1"),button_capability("PRESET_2"),button_capability("PRESET_3"),button_capability("PRESET_4"),button_capability("PRESET_5"),button_capability("PRESET_6"),button_capability("PRESET_7"),button_capability("PRESET_8"),button_capability("PRESET_9"),button_capability("OK", true, false, true),button_capability("PLAY_PAUSE"),button_capability("SEEKLEFT"),button_capability("SEEKRIGHT"),button_capability("TUNEUP"),button_capability("TUNEDOWN"),button_capability("SEARCH")}')
 	end
 
 	f = assert(io.open('./user_modules/connecttest_OnButton.lua', "w+"))
@@ -65,6 +65,7 @@ if config.application1.registerAppInterfaceParams.isMediaApplication == true the
 					
 	ButtonNames_WithoutCUSTOM_BUTTON = {
 						"OK",
+						"PLAY_PAUSE",
 						"SEEKLEFT",
 						"SEEKRIGHT",
 						"TUNEUP",
@@ -83,6 +84,7 @@ if config.application1.registerAppInterfaceParams.isMediaApplication == true the
 					}
 										
 	ButtonNames_WithoutCUSTOM_BUTTON_OK = {
+						"PLAY_PAUSE",
 						"SEEKLEFT",
 						"SEEKRIGHT",
 						"TUNEUP",
@@ -115,6 +117,7 @@ end
 
 -- group of media buttons, this group  should be update also with PRESETS 0-9 due to APPLINK-14516 (APPLINK-14503)
 local MediaButtons = {
+					"PLAY_PAUSE",
 					"SEEKLEFT",
 					"SEEKRIGHT",
 					"TUNEUP",

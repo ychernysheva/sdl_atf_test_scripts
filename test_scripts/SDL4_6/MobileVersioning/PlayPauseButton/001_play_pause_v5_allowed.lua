@@ -1,5 +1,5 @@
 ---------------------------------------------------------------------------------------------------
--- User story: Smoke
+-- User story: MobileVersioning
 -- Use case: SubscribeButton
 -- Item: Happy path
 --
@@ -29,6 +29,12 @@
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
 local commonSmoke = require('test_scripts/Smoke/commonSmoke')
+
+
+config.application1.registerAppInterfaceParams.syncMsgVersion = {
+  majorVersion = 5,
+  minorVersion = 0
+}
 
 --[[ Local Variables ]]
 local buttonName = {

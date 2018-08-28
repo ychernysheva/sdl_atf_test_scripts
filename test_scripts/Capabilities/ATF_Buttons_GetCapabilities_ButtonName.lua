@@ -34,6 +34,7 @@ local ButtonNames = {
 						"PRESET_8",
 						"PRESET_9",
 						"OK",
+						"PLAY_PAUSE",
 						"SEEKLEFT",
 						"SEEKRIGHT",
 						"TUNEUP",
@@ -414,6 +415,7 @@ stopSDL()
 	--SDLAQ-N_CRS-148: ButtonName
 	--Description: Defines the hard (physical) and soft (touchscreen) buttons available from SYNC
 					--OK
+					--PLAY_PAUSE
 					--SEEKLEFT
 					--SEEKRIGHT
 					--TUNEUP
@@ -458,6 +460,7 @@ stopSDL()
 					button_capability("PRESET_8"),
 					button_capability("PRESET_9"),
 					button_capability("OK", true, false, true),
+					button_capability("PLAY_PAUSE"),
 					button_capability("SEEKLEFT"),
 					button_capability("SEEKRIGHT"),
 					button_capability("TUNEUP"),

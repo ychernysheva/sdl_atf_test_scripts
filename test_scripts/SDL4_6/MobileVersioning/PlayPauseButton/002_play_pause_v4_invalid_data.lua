@@ -30,32 +30,27 @@
 local runner = require('user_modules/script_runner')
 local commonSmoke = require('test_scripts/Smoke/commonSmoke')
 
---[[ Local Variables ]]
-local buttonName = {
-  "OK",
-  "PLAY_PAUSE",
-  "SEEKLEFT",
-  "SEEKRIGHT",
-  "TUNEUP",
-  "TUNEDOWN",
-  "PRESET_0",
-  "PRESET_1",
-  "PRESET_2",
-  "PRESET_3",
-  "PRESET_4",
-  "PRESET_5",
-  "PRESET_6",
-  "PRESET_7",
-  "PRESET_8"
+config.application1.registerAppInterfaceParams.syncMsgVersion = {
+  majorVersion = 4,
+  minorVersion = 5
 }
 
 --[[ Local Functions ]]
-local function subscribeButton(pButName, self)
+local function subscribeButtonSuccess(pButName, self)
   local cid = self.mobileSession1:SendRPC("SubscribeButton", { buttonName = pButName })
   local appIDvalue = commonSmoke.getHMIAppId()
-  EXPECT_HMINOTIFICATION("Buttons.OnButtonSubscription", { appID = appIDvalue, name = pButName, isSubscribed = true })
+  EXPECT_HMINOTIFICATION("Buttons.OnButtonSubscription", { appID = appIDvalue, name = "PLAY_PAUSE", isSubscribed = true })
   self.mobileSession1:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
   self.mobileSession1:ExpectNotification("OnHashChange")
+end
+
+local function subscribeButtonInvalidData(pButName, self)
+  local cid = self.mobileSession1:SendRPC("SubscribeButton", { buttonName = pButName })
+  EXPECT_HMINOTIFICATION("Buttons.OnButtonSubscription")
+  :Times(0)
+  self.mobileSession1:ExpectResponse(cid, { success = false, resultCode = "INVALID_DATA" })
+  self.mobileSession1:ExpectNotification("OnHashChange")
+  :Times(0)
 end
 
 --[[ Scenario ]]
@@ -66,9 +61,10 @@ runner.Step("RAI", commonSmoke.registerApp)
 runner.Step("Activate App", commonSmoke.activateApp)
 
 runner.Title("Test")
-for _, v in pairs(buttonName) do
-  runner.Step("SubscribeButton " .. v .. " Positive Case", subscribeButton, { v })
-end
+
+runner.Step("SubscribeButton " .. "OK" .. " Positive Case", subscribeButtonSuccess, { "OK" })
+
+runner.Step("SubscribeButton " .. "PLAY_PAUSE" .. " Invalid Data Case", subscribeButtonInvalidData, { "PLAY_PAUSE" })
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", commonSmoke.postconditions)
