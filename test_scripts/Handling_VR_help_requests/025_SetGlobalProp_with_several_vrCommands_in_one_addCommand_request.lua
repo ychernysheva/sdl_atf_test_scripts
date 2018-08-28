@@ -7,9 +7,9 @@
 --
 -- Description:
 -- In case:
--- 1. Command1 commands with vrCommands Command1_1, Command2_1, Command3_1 is added
+-- 1. Command1 commands with Command1_1, Command2_1, Command3_1 synonyms is added
 -- SDL does:
--- send SetGlobalProperties  with constructed the vrHelp and helpPrompt parameters using added vrCommands.
+-- send SetGlobalProperties with constructed the vrHelp and helpPrompt parameters using 1st synonym
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
