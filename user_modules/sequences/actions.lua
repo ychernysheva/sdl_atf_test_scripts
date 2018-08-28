@@ -20,7 +20,6 @@ local m = {}
 m.minTimeout = 500
 
 --[[ Variables ]]
-local ptuTable = {}
 local hmiAppIds = {}
 local originalValuesInSDLIni = {}
 
@@ -33,14 +32,36 @@ test.mobileSession = {}
 --! pTbl - table with policy table snapshot (PTS)
 --! @return: table with PTU
 --]]
-local function getPTUFromPTS(pTbl)
-  pTbl.policy_table.consumer_friendly_messages.messages = nil
-  pTbl.policy_table.device_data = nil
-  pTbl.policy_table.module_meta = nil
-  pTbl.policy_table.usage_and_error_counts = nil
-  pTbl.policy_table.functional_groupings["DataConsent-2"].rpcs = json.null
-  pTbl.policy_table.module_config.preloaded_pt = nil
-  pTbl.policy_table.module_config.preloaded_date = nil
+local function getPTUFromPTS()
+  local pTbl = {}
+  local ptsFileName = commonFunctions:read_parameter_from_smart_device_link_ini("SystemFilesPath") .. "/"
+    .. commonFunctions:read_parameter_from_smart_device_link_ini("PathToSnapshot")
+  if utils.isFileExist(ptsFileName) then
+    pTbl = utils.jsonFileToTable(ptsFileName)
+  else
+    utils.cprint(35, "PTS file was not found, PreloadedPT is used instead")
+    local appConfigFolder = commonFunctions:read_parameter_from_smart_device_link_ini("AppConfigFolder")
+    if appConfigFolder == nil or appConfigFolder == "" then
+      appConfigFolder = commonPreconditions:GetPathToSDL()
+    end
+    local preloadedPT = commonFunctions:read_parameter_from_smart_device_link_ini("PreloadedPT")
+    local ptsFile = appConfigFolder .. preloadedPT
+    if utils.isFileExist(ptsFile) then
+      pTbl = utils.jsonFileToTable(ptsFile)
+    else
+      utils.cprint(35, "PreloadedPT was not found, PTS is not created")
+    end
+  end
+  if next(pTbl) ~= nil then
+    pTbl.policy_table.consumer_friendly_messages.messages = nil
+    pTbl.policy_table.device_data = nil
+    pTbl.policy_table.module_meta = nil
+    pTbl.policy_table.usage_and_error_counts = nil
+    pTbl.policy_table.functional_groupings["DataConsent-2"].rpcs = json.null
+    pTbl.policy_table.module_config.preloaded_pt = nil
+    pTbl.policy_table.module_config.preloaded_date = nil
+  end
+  return pTbl
 end
 
 --[[ @getAppDataForPTU: provide application data for PTU
@@ -77,7 +98,7 @@ function m.policyTableUpdate(pPTUpdateFunc, pExpNotificationFunc)
   :Do(function()
       m.getHMIConnection():SendNotification("BasicCommunication.OnSystemRequest",
         { requestType = "PROPRIETARY", fileName = ptsFileName })
-      getPTUFromPTS(ptuTable)
+      local ptuTable = getPTUFromPTS()
       for i = 1, m.getAppsCount() do
         ptuTable.policy_table.app_policies[m.getConfigAppParams(i).fullAppID] = m.getAppDataForPTU(i)
       end
@@ -211,7 +232,6 @@ function m.registerApp(pAppId)
           m.getHMIConnection():ExpectRequest("BasicCommunication.PolicyUpdate")
           :Do(function(_, d2)
               m.getHMIConnection():SendResponse(d2.id, d2.method, "SUCCESS", { })
-              ptuTable = utils.jsonFileToTable(d2.params.file)
             end)
         end)
       m.getMobileSession(pAppId):ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
@@ -467,15 +487,6 @@ function m.getPathToFileInStorage(pFileName, pAppId)
   if not pAppId then pAppId = 1 end
   return commonPreconditions:GetPathToSDL() .. "storage/" .. m.getConfigAppParams( pAppId ).fullAppID .. "_"
     .. utils.getDeviceMAC() .. "/" .. pFileName
-end
-
---[[ @setPTUTable: set PTU table that is used in Policy Table Update sequence
---! @parameters:
---! @pPTUTable - PTU table
---! @return: none
---]]
-function m.setPTUTable(pPTUTable)
-  ptuTable = pPTUTable
 end
 
 --[[ @setHMIAppId: set HMI application identifier
