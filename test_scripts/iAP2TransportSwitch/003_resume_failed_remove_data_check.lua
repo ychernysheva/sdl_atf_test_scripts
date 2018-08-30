@@ -50,7 +50,7 @@ local iconFileName = "icon.png"
 --[[ Local Functions ]]
 local function isFileExisting(pFileName)
   local device_id = "ac355aa5275c7388743f1bd27761ab5fa79ec876927347b97bd6e0361ae04699"
-  return commonFunctions:File_exists(config.pathToSDL .. "storage/" .. common.appParams.appID
+  return commonFunctions:File_exists(config.pathToSDL .. "storage/" .. common.appParams.fullAppID
     .. "_" .. device_id .. "/" .. pFileName)
 end
 

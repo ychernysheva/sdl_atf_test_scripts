@@ -105,7 +105,7 @@ function m.policyTableUpdate(pPTUpdateFunc, pExpNotificationFunc, pRequestSubTyp
         { requestType = "PROPRIETARY", fileName = ptsFileName, requestSubType = pRequestSubType })
       getPTUFromPTS(ptuTable)
       for i = 1, m.getAppsCount() do
-        ptuTable.policy_table.app_policies[m.getConfigAppParams(i).appID] = m.getAppDataForPTU(i)
+        ptuTable.policy_table.app_policies[m.getConfigAppParams(i).fullAppID] = m.getAppDataForPTU(i)
       end
       if pPTUpdateFunc then
         pPTUpdateFunc(ptuTable)
