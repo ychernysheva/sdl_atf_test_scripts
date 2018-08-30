@@ -942,6 +942,7 @@ function commonRC.activateApp(pAppId)
   EXPECT_HMIRESPONSE(requestId)
   mobSession:ExpectNotification("OnHMIStatus", { hmiLevel = "FULL", audioStreamingState = audibleState(pAppId),
       systemContext = "MAIN" })
+  utils.wait()
 end
 
 function commonRC.updateDefaultCapabilities(pDisabledModuleTypes)
