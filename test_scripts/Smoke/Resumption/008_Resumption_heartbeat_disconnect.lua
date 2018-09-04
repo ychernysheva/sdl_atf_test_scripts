@@ -43,6 +43,17 @@ local function connectMobile(self)
   return EXPECT_EVENT(events.connectedEvent, "Connected")
 end
 
+local function delayedExp(pTime, self)
+ local event = events.Event()
+ event.matches = function(e1, e2) return e1 == e2 end
+ EXPECT_HMIEVENT(event, "Delayed event")
+ :Timeout(pTime + 5000)
+ local function toRun()
+   event_dispatcher:RaiseEvent(self.hmiConnection, event)
+ end
+ RUN_AFTER(toRun, pTime)
+end
+
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
 commonSteps:DeletePolicyTable()
@@ -89,14 +100,8 @@ function Test:Wait_20_sec()
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered", {appID = self.applications[default_app_params], unexpectedDisconnect = true })
   :Timeout(20000)
   EXPECT_EVENT(events.disconnectedEvent, "Disconnected")
-  :Do(function()
-      print("Disconnected!!!")
-    end)
-  :Timeout(20000)
-end
-
-function Test:Connect_Mobile()
-  connectMobile(self)
+  :Times(0)
+  delayedExp(20000, self)
 end
 
 function Test:Register_And_Resume_App_And_Data()
