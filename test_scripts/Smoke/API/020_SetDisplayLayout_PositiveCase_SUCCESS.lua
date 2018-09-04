@@ -87,6 +87,7 @@ local function getDisplayCapImageFieldsValues()
 		"menuIcon",
 		"cmdIcon",
 		"graphic",
+		"secondaryGraphic",
 		"showConstantTBTIcon",
 		"showConstantTBTNextTurnIcon"
 	}
