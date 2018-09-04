@@ -100,19 +100,8 @@ function Test:Wait_20_sec()
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered", {appID = self.applications[default_app_params], unexpectedDisconnect = true })
   :Timeout(20000)
   EXPECT_EVENT(events.disconnectedEvent, "Disconnected")
-<<<<<<< HEAD:test_scripts/Smoke/Resumption/ATF_Resumption_heartbeat_disconnect.lua
   :Times(0)
   delayedExp(20000, self)
-=======
-  :Do(function()
-      print("Disconnected!!!")
-    end)
-  :Timeout(20000)
-end
-
-function Test:Connect_Mobile()
-  connectMobile(self)
->>>>>>> origin/develop:test_scripts/Smoke/Resumption/008_Resumption_heartbeat_disconnect.lua
 end
 
 function Test:Register_And_Resume_App_And_Data()
