@@ -535,6 +535,7 @@ function Test:initHMI_onReady_Navi_IsReady(case)
 		displayCapabilities =
 		{
 			displayType = "GEN2_8_DMA",
+			displayName = "GENERIC_DISPLAY",
 			textFields =
 			{
 				text_field("mainField1"),

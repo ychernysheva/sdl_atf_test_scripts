@@ -402,14 +402,14 @@ function Test:initHMI_onReady_TTS_IsReady(case)
 		},
 		presetBankCapabilities = { onScreenPresetsAvailable = true }
 	}
-	local speech_capabilities = {"TEXT", "SAPI_PHONEMES", "LHPLUS_PHONEMES", "PRE_RECORDED", "SILENCE"}
+	local speech_capabilities = {"TEXT", "SAPI_PHONEMES", "LHPLUS_PHONEMES", "PRE_RECORDED", "SILENCE", "FILE"}
 	ExpectRequest("Buttons.GetCapabilities", true, buttons_capabilities)
 	ExpectRequest("VR.GetCapabilities", true, { vrCapabilities = { "TEXT" } })
 	ExpectRequest("TTS.GetCapabilities", true, speech_capabilities)
 	:Times(0)
 	
 	ExpectRequest("TTS.GetCapabilities", true, {
-		speechCapabilities = { "TEXT", "SAPI_PHONEMES", "LHPLUS_PHONEMES", "PRE_RECORDED", "SILENCE" },
+		speechCapabilities = { "TEXT", "SAPI_PHONEMES", "LHPLUS_PHONEMES", "PRE_RECORDED", "SILENCE", "FILE" },
 		prerecordedSpeechCapabilities =
 		{
 			"HELP_JINGLE",
@@ -454,6 +454,7 @@ function Test:initHMI_onReady_TTS_IsReady(case)
 		displayCapabilities =
 		{
 			displayType = "GEN2_8_DMA",
+			displayName = "GENERIC_DISPLAY",
 			textFields =
 			{
 				text_field("mainField1"),

@@ -18,15 +18,12 @@
 -- PTU is requested. PTS is created.
 -- SDL.GetURLs({urls[] = default})
 ---------------------------------------------------------------------------------------------
-
---[[ General configuration parameters ]]
-config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
-
 --[[ Required Shared libraries ]]
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
 local testCasesForPolicyTableSnapshot = require('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
+local utils = require ('user_modules/utils')
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
@@ -44,7 +41,7 @@ require('user_modules/AppTypes')
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
 function Test:Precondition_trigger_getting_device_consent()
-  testCasesForPolicyTable:trigger_getting_device_consent(self, config.application1.registerAppInterfaceParams.appName, config.deviceMAC)
+  testCasesForPolicyTable:trigger_getting_device_consent(self, config.application1.registerAppInterfaceParams.appName, utils.getDeviceMAC())
 end
 
 function Test:Precondition_flow_PTU_SUCCEESS_EXTERNAL_PROPRIETARY()
@@ -59,7 +56,7 @@ function Test:Precondition_flow_PTU_SUCCEESS_EXTERNAL_PROPRIETARY()
         {status = "UPDATING"}, {status = "UP_TO_DATE"}):Times(2)
       EXPECT_NOTIFICATION("OnSystemRequest", {requestType = "PROPRIETARY"})
       :Do(function(_,_)
-          local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", {requestType = "PROPRIETARY", fileName = "PolicyTableUpdate", appID = config.application1.registerAppInterfaceParams.appID},
+          local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", {requestType = "PROPRIETARY", fileName = "PolicyTableUpdate", appID = config.application1.registerAppInterfaceParams.fullAppID},
           "files/ptu.json")
           EXPECT_HMICALL("BasicCommunication.SystemRequest",{ requestType = "PROPRIETARY", fileName = SystemFilesPath.."PolicyTableUpdate" })
           :Do(function(_,_data1)
@@ -121,11 +118,10 @@ function Test:TestStep_PTU_DB_GetURLs_NoAppRegistered()
   local policy_endpoints = {}
 
   local sevices_table = commonFunctions:get_data_policy_sql(config.pathToSDL.."/storage/policy.sqlite", "select service from endpoint")
-
   for _, value in pairs(sevices_table) do
     policy_endpoints[#policy_endpoints + 1] = { found = false, service = value }
     --TODO(istoimenova): Should be updated when policy defect is fixed
-    if ( value == "4" or value == "7") then
+    if ( value == "0x04" or value == "0x07") then
       policy_endpoints[#policy_endpoints].found = true
     end
   end

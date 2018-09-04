@@ -2,24 +2,28 @@
 -- RC common module
 ---------------------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
-config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
+config.mobileHost = "127.0.0.1"
 config.defaultProtocolVersion = 2
 config.ValidateSchema = false
+config.checkAllValidations = true
 config.application1.registerAppInterfaceParams.appHMIType = { "REMOTE_CONTROL" }
 config.application2.registerAppInterfaceParams.appHMIType = { "REMOTE_CONTROL" }
+config.application1.registerAppInterfaceParams.syncMsgVersion.majorVersion = 5
+config.application2.registerAppInterfaceParams.syncMsgVersion.majorVersion = 5
+config.application3.registerAppInterfaceParams.syncMsgVersion.majorVersion = 5
 
 --[[ Required Shared libraries ]]
+local test = require("user_modules/dummy_connecttest")
 local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
-local commonSteps = require("user_modules/shared_testcases/commonSteps")
 local commonTestCases = require("user_modules/shared_testcases/commonTestCases")
 local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
-local mobile_session = require("mobile_session")
 local json = require("modules/json")
 local hmi_values = require("user_modules/hmi_values")
+local events = require("events")
+local utils = require('user_modules/utils')
+local actions = require("user_modules/sequences/actions")
 
---[[ Local Variables ]]
-local ptu_table = {}
-local hmiAppIds = {}
+--[[ Common Variables ]]
 
 local commonRC = {}
 
@@ -27,229 +31,176 @@ commonRC.timeout = 2000
 commonRC.minTimeout = 500
 commonRC.DEFAULT = "Default"
 commonRC.buttons = { climate = "FAN_UP", radio = "VOLUME_UP" }
+commonRC.getHMIConnection = actions.getHMIConnection
+commonRC.getMobileSession = actions.getMobileSession
+commonRC.policyTableUpdate = actions.policyTableUpdate
+commonRC.registerApp = actions.registerApp
+commonRC.registerAppWOPTU = actions.registerAppWOPTU
+commonRC.getHMIAppId = actions.getHMIAppId
+commonRC.jsonFileToTable = utils.jsonFileToTable
+commonRC.tableToJsonFile = utils.tableToJsonFile
+commonRC.cloneTable = utils.cloneTable
+commonRC.wait = utils.wait
 
-local function getPTUFromPTS(tbl)
-  tbl.policy_table.consumer_friendly_messages.messages = nil
-  tbl.policy_table.device_data = nil
-  tbl.policy_table.module_meta = nil
-  tbl.policy_table.usage_and_error_counts = nil
-  tbl.policy_table.functional_groupings["DataConsent-2"].rpcs = json.null
-  tbl.policy_table.module_config.preloaded_pt = nil
-  tbl.policy_table.module_config.preloaded_date = nil
+commonRC.modules = { "RADIO", "CLIMATE" }
+commonRC.allModules = { "RADIO", "CLIMATE", "SEAT", "AUDIO", "LIGHT", "HMI_SETTINGS" }
+commonRC.newModules = { "AUDIO", "LIGHT", "HMI_SETTINGS" }
+commonRC.modulesWithoutSeat = { "RADIO", "CLIMATE", "AUDIO", "LIGHT", "HMI_SETTINGS" }
+
+commonRC.capMap = {
+  ["RADIO"] = "radioControlCapabilities",
+  ["CLIMATE"] = "climateControlCapabilities",
+  ["SEAT"] = "seatControlCapabilities",
+  ["AUDIO"] = "audioControlCapabilities",
+  ["LIGHT"] = "lightControlCapabilities",
+  ["HMI_SETTINGS"] = "hmiSettingsControlCapabilities",
+  ["BUTTONS"] = "buttonCapabilities"
+}
+
+commonRC.audioSources = {
+  "NO_SOURCE_SELECTED",
+  "CD",
+  "BLUETOOTH_STEREO_BTST",
+  "USB",
+  "USB2",
+  "LINE_IN",
+  "IPOD",
+  "MOBILE_APP",
+  "AM",
+  "FM",
+  "XM",
+  "DAB"
+}
+
+commonRC.LightsNameList = { "FRONT_LEFT_HIGH_BEAM", "FRONT_RIGHT_HIGH_BEAM", "FRONT_LEFT_LOW_BEAM",
+  "FRONT_RIGHT_LOW_BEAM", "FRONT_LEFT_PARKING_LIGHT", "FRONT_RIGHT_PARKING_LIGHT",
+  "FRONT_LEFT_FOG_LIGHT", "FRONT_RIGHT_FOG_LIGHT", "FRONT_LEFT_DAYTIME_RUNNING_LIGHT",
+  "FRONT_RIGHT_DAYTIME_RUNNING_LIGHT", "FRONT_LEFT_TURN_LIGHT", "FRONT_RIGHT_TURN_LIGHT",
+  "REAR_LEFT_FOG_LIGHT", "REAR_RIGHT_FOG_LIGHT", "REAR_LEFT_TAIL_LIGHT", "REAR_RIGHT_TAIL_LIGHT",
+  "REAR_LEFT_BRAKE_LIGHT", "REAR_RIGHT_BRAKE_LIGHT", "REAR_LEFT_TURN_LIGHT", "REAR_RIGHT_TURN_LIGHT",
+  "REAR_REGISTRATION_PLATE_LIGHT", "HIGH_BEAMS", "LOW_BEAMS", "FOG_LIGHTS", "RUNNING_LIGHTS",
+  "PARKING_LIGHTS", "BRAKE_LIGHTS", "REAR_REVERSING_LIGHTS", "SIDE_MARKER_LIGHTS", "LEFT_TURN_LIGHTS",
+  "RIGHT_TURN_LIGHTS", "HAZARD_LIGHTS", "AMBIENT_LIGHTS", "OVERHEAD_LIGHTS", "READING_LIGHTS",
+  "TRUNK_LIGHTS", "EXTERIOR_FRONT_LIGHTS", "EXTERIOR_REAR_LIGHTS", "EXTERIOR_LEFT_LIGHTS",
+  "EXTERIOR_RIGHT_LIGHTS", "REAR_CARGO_LIGHTS", "REAR_TRUCK_BED_LIGHTS", "REAR_TRAILER_LIGHTS",
+  "LEFT_SPOT_LIGHTS", "RIGHT_SPOT_LIGHTS", "LEFT_PUDDLE_LIGHTS", "RIGHT_PUDDLE_LIGHTS",
+  "EXTERIOR_ALL_LIGHTS" }
+commonRC.readOnlyLightStatus = { "RAMP_UP", "RAMP_DOWN", "UNKNOWN", "INVALID" }
+
+--[[ Common Functions ]]
+function commonRC.getRCAppConfig(tbl)
+  if tbl then
+    local out = commonRC.cloneTable(tbl.policy_table.app_policies.default)
+    out.moduleType = commonRC.allModules
+    out.groups = { "Base-4", "RemoteControl" }
+    out.AppHMIType = { "REMOTE_CONTROL" }
+    return out
+  else
+    return {
+      keep_context = false,
+      steal_focus = false,
+      priority = "NONE",
+      default_hmi = "NONE",
+      moduleType = commonRC.allModules,
+      groups = { "Base-4", "RemoteControl" },
+      AppHMIType = { "REMOTE_CONTROL" }
+    }
+  end
 end
 
-function commonRC.getRCAppConfig()
+function actions.getAppDataForPTU(pAppId)
   return {
     keep_context = false,
     steal_focus = false,
     priority = "NONE",
     default_hmi = "NONE",
-    moduleType = { "RADIO", "CLIMATE" },
     groups = { "Base-4", "RemoteControl" },
-    AppHMIType = { "REMOTE_CONTROL" }
+    AppHMIType = actions.getConfigAppParams(pAppId).appHMIType
   }
 end
 
-local function updatePTU(tbl)
-  tbl.policy_table.app_policies[config.application1.registerAppInterfaceParams.appID] = commonRC.getRCAppConfig()
+local function allowSDL()
+  commonRC.getHMIConnection():SendNotification("SDL.OnAllowSDLFunctionality", {
+    allowed = true,
+    source = "GUI",
+    device = {
+      id = utils.getDeviceMAC(),
+      name = utils.getDeviceName()
+    }
+  })
 end
 
-local function jsonFileToTable(file_name)
-  local f = io.open(file_name, "r")
-  local content = f:read("*all")
-  f:close()
-  return json.decode(content)
-end
-
-local function tableToJsonFile(tbl, file_name)
-  local f = io.open(file_name, "w")
-  f:write(json.encode(tbl))
-  f:close()
-end
-
-local function checkIfPTSIsSentAsBinary(bin_data)
-  if not (bin_data ~= nil and string.len(bin_data) > 0) then
-    commonFunctions:userPrint(31, "PTS was not sent to Mobile in payload of OnSystemRequest")
-  end
-end
-
-local function ptu(self, ptu_update_func)
-  local function getAppsCount()
-    local count = 0
-    for _, _ in pairs(hmiAppIds) do
-      count = count + 1
-    end
-    return count
-  end
-
-  local policy_file_name = "PolicyTableUpdate"
-  local policy_file_path = commonFunctions:read_parameter_from_smart_device_link_ini("SystemFilesPath")
-  local pts_file_name = commonFunctions:read_parameter_from_smart_device_link_ini("PathToSnapshot")
-  local ptu_file_name = os.tmpname()
-  local requestId = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
-  EXPECT_HMIRESPONSE(requestId)
+function commonRC.start(pHMIParams)
+  test:runSDL()
+  commonFunctions:waitForSDLStart(test)
   :Do(function()
-      self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest", { requestType = "PROPRIETARY", fileName = pts_file_name })
-      getPTUFromPTS(ptu_table)
-      updatePTU(ptu_table)
-      if ptu_update_func then
-        ptu_update_func(ptu_table)
-      end
-      tableToJsonFile(ptu_table, ptu_file_name)
-
-      local event = events.Event()
-      event.matches = function(self, e) return self == e end
-      EXPECT_EVENT(event, "PTU event")
-      :Timeout(11000)
-
-      for id = 1, getAppsCount() do
-        local mobileSession = commonRC.getMobileSession(self, id)
-        mobileSession:ExpectNotification("OnSystemRequest", { requestType = "PROPRIETARY" })
-        :Do(function(_, d2)
-            print("App ".. id .. " was used for PTU")
-            RAISE_EVENT(event, event, "PTU event")
-            checkIfPTSIsSentAsBinary(d2.binaryData)
-            local corIdSystemRequest = mobileSession:SendRPC("SystemRequest", { requestType = "PROPRIETARY", fileName = policy_file_name }, ptu_file_name)
-            EXPECT_HMICALL("BasicCommunication.SystemRequest")
-            :Do(function(_, d3)
-                self.hmiConnection:SendResponse(d3.id, "BasicCommunication.SystemRequest", "SUCCESS", { })
-                self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate", { policyfile = policy_file_path .. "/" .. policy_file_name })
-              end)
-            mobileSession:ExpectResponse(corIdSystemRequest, { success = true, resultCode = "SUCCESS" })
-          end)
-        :Times(AtMost(1))
-      end
-    end)
-  os.remove(ptu_file_name)
-end
-
-local function allow_sdl(self)
-  self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality",
-    { allowed = true, source = "GUI", device = { id = config.deviceMAC, name = "127.0.0.1" } })
-end
-
-function commonRC.preconditions()
-  commonFunctions:SDLForceStop()
-  commonSteps:DeletePolicyTable()
-  commonSteps:DeleteLogsFiles()
-end
-
-function commonRC.start(pHMIParams, self)
-  self, pHMIParams = commonRC.getSelfAndParams(pHMIParams, self)
-  self:runSDL()
-  commonFunctions:waitForSDLStart(self)
-  :Do(function()
-      self:initHMI(self)
+      test:initHMI(test)
       :Do(function()
           commonFunctions:userPrint(35, "HMI initialized")
-          self:initHMI_onReady(pHMIParams)
+          test:initHMI_onReady(pHMIParams)
           :Do(function()
               commonFunctions:userPrint(35, "HMI is ready")
-              self:connectMobile()
+              test:connectMobile()
               :Do(function()
                   commonFunctions:userPrint(35, "Mobile connected")
-                  allow_sdl(self)
+                  allowSDL()
                 end)
             end)
         end)
     end)
 end
 
-function commonRC.rai_ptu(ptu_update_func, self)
-  self, ptu_update_func = commonRC.getSelfAndParams(ptu_update_func, self)
-  commonRC.rai_ptu_n(1, ptu_update_func, self)
+local function backupPreloadedPT()
+  local preloadedFile = commonFunctions:read_parameter_from_smart_device_link_ini("PreloadedPT")
+  commonPreconditions:BackupFile(preloadedFile)
 end
 
-function commonRC.rai_ptu_n(id, ptu_update_func, self)
-  self, id, ptu_update_func = commonRC.getSelfAndParams(id, ptu_update_func, self)
-  if not id then id = 1 end
-  self["mobileSession" .. id] = mobile_session.MobileSession(self, self.mobileConnection)
-  self["mobileSession" .. id]:StartService(7)
-  :Do(function()
-      local corId = self["mobileSession" .. id]:SendRPC("RegisterAppInterface", config["application" .. id].registerAppInterfaceParams)
-      EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config["application" .. id].registerAppInterfaceParams.appName } })
-      :Do(function(_, d1)
-          hmiAppIds[config["application" .. id].registerAppInterfaceParams.appID] = d1.params.application.appID
-          EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", { status = "UPDATE_NEEDED" }, { status = "UPDATING" }, { status = "UP_TO_DATE" })
-          :Times(3)
-          EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
-          :Do(function(_, d2)
-              self.hmiConnection:SendResponse(d2.id, d2.method, "SUCCESS", { })
-              ptu_table = jsonFileToTable(d2.params.file)
-              ptu(self, ptu_update_func)
-            end)
-        end)
-      self["mobileSession" .. id]:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
-      :Do(function()
-          self["mobileSession" .. id]:ExpectNotification("OnHMIStatus", { hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN" })
-          :Times(AtLeast(1)) -- issue with SDL --> notification is sent twice
-          self["mobileSession" .. id]:ExpectNotification("OnPermissionsChange")
-        end)
-    end)
+local function updatePreloadedPT(pCountOfRCApps)
+  if not pCountOfRCApps then pCountOfRCApps = 2 end
+  local preloadedFile = commonPreconditions:GetPathToSDL()
+  .. commonFunctions:read_parameter_from_smart_device_link_ini("PreloadedPT")
+  local preloadedTable = commonRC.jsonFileToTable(preloadedFile)
+  preloadedTable.policy_table.functional_groupings["DataConsent-2"].rpcs = json.null
+  preloadedTable.policy_table.functional_groupings["RemoteControl"].rpcs.OnRCStatus = {
+    hmi_levels = { "FULL", "BACKGROUND", "LIMITED", "NONE" }
+  }
+  for i = 1, pCountOfRCApps do
+    local appId = config["application" .. i].registerAppInterfaceParams.fullAppID
+    preloadedTable.policy_table.app_policies[appId] = commonRC.getRCAppConfig(preloadedTable)
+    preloadedTable.policy_table.app_policies[appId].AppHMIType = nil
+  end
+  commonRC.tableToJsonFile(preloadedTable, preloadedFile)
 end
 
-function commonRC.rai_n(id, self)
-  self, id = commonRC.getSelfAndParams(id, self)
-  if not id then id = 1 end
-  self["mobileSession" .. id] = mobile_session.MobileSession(self, self.mobileConnection)
-  self["mobileSession" .. id]:StartService(7)
-  :Do(function()
-      local corId = self["mobileSession" .. id]:SendRPC("RegisterAppInterface", config["application" .. id].registerAppInterfaceParams)
-      EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", { application = { appName = config["application" .. id].registerAppInterfaceParams.appName } })
-      :Do(function(_, d1)
-          hmiAppIds[config["application" .. id].registerAppInterfaceParams.appID] = d1.params.application.appID
-        end)
-      self["mobileSession" .. id]:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
-      :Do(function()
-          self["mobileSession" .. id]:ExpectNotification("OnHMIStatus", { hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN" })
-          :Times(AtLeast(1)) -- issue with SDL --> notification is sent twice
-          self["mobileSession" .. id]:ExpectNotification("OnPermissionsChange")
-        end)
-    end)
+function commonRC.preconditions(isPreloadedUpdate, pCountOfRCApps)
+  if isPreloadedUpdate == nil then isPreloadedUpdate = true end
+  actions.preconditions()
+  if isPreloadedUpdate == true then
+    backupPreloadedPT()
+    updatePreloadedPT(pCountOfRCApps)
+  end
 end
 
-function commonRC.unregisterApp(pAppId, self)
-  local mobSession = commonRC.getMobileSession(self, pAppId)
+local function restorePreloadedPT()
+  local preloadedFile = commonFunctions:read_parameter_from_smart_device_link_ini("PreloadedPT")
+  commonPreconditions:RestoreFile(preloadedFile)
+end
+
+function commonRC.postconditions()
+  actions.postconditions()
+  restorePreloadedPT()
+end
+
+function commonRC.unregisterApp(pAppId)
+  if not pAppId then pAppId = 1 end
+  local mobSession = commonRC.getMobileSession(pAppId)
   local hmiAppId = commonRC.getHMIAppId(pAppId)
+  commonRC.deleteHMIAppId(pAppId)
   local cid = mobSession:SendRPC("UnregisterAppInterface",{})
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered", { appID = hmiAppId, unexpectedDisconnect = false })
   mobSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS"})
 end
 
-function commonRC.activate_app(pAppId, self)
-  self, pAppId = commonRC.getSelfAndParams(pAppId, self)
-  if not pAppId then pAppId = 1 end
-  local pHMIAppId = hmiAppIds[config["application" .. pAppId].registerAppInterfaceParams.appID]
-  local mobSession = commonRC.getMobileSession(self, pAppId)
-  local requestId = self.hmiConnection:SendRequest("SDL.ActivateApp", { appID = pHMIAppId })
-  EXPECT_HMIRESPONSE(requestId)
-  mobSession:ExpectNotification("OnHMIStatus", { hmiLevel = "FULL", audioStreamingState = "AUDIBLE", systemContext = "MAIN" })
-  commonTestCases:DelayedExp(commonRC.minTimeout)
-end
-
-function commonRC.postconditions()
-  StopSDL()
-end
-
-function commonRC.getSelfAndParams(...)
-  local out = { }
-  local selfIdx = nil
-  for i,v in pairs({...}) do
-    if type(v) == "table" and v.isTest then
-      table.insert(out, v)
-      selfIdx = i
-      break
-    end
-  end
-  local idx = 2
-  for i = 1, table.maxn({...}) do
-    if i ~= selfIdx then
-      out[idx] = ({...})[i]
-      idx = idx + 1
-    end
-  end
-  return table.unpack(out, 1, table.maxn(out))
-end
 
 function commonRC.getModuleControlData(module_type)
   local out = { moduleType = module_type }
@@ -270,7 +221,11 @@ function commonRC.getModuleControlData(module_type)
       defrostZone = "FRONT",
       dualModeEnable = true,
       acMaxEnable = true,
-      ventilationMode = "BOTH"
+      ventilationMode = "BOTH",
+      heatedSteeringWheelEnable = true,
+      heatedWindshieldEnable = true,
+      heatedRearWindowEnable = true,
+      heatedMirrorsEnable = true
     }
   elseif module_type == "RADIO" then
     out.radioControlData = {
@@ -292,7 +247,97 @@ function commonRC.getModuleControlData(module_type)
       signalStrength = 5,
       signalChangeThreshold = 10,
       radioEnable = true,
-      state = "ACQUIRING"
+      state = "ACQUIRING",
+      hdRadioEnable = true,
+      sisData = {
+        stationShortName = "Name1",
+        stationIDNumber = {
+          countryCode = 100,
+          fccFacilityId = 100
+        },
+        stationLongName = "RadioStationLongName",
+        stationLocation = {
+          longitudeDegrees = 0.1,
+          latitudeDegrees = 0.1,
+          altitude = 0.1
+        },
+        stationMessage = "station message"
+      }
+    }
+  elseif module_type == "SEAT" then
+    out.seatControlData = {
+      id = "DRIVER",
+      heatingEnabled = true,
+      coolingEnabled = true,
+      heatingLevel = 50,
+      coolingLevel = 50,
+      horizontalPosition = 50,
+      verticalPosition = 50,
+      frontVerticalPosition = 50,
+      backVerticalPosition = 50,
+      backTiltAngle = 50,
+      headSupportHorizontalPosition = 50,
+      headSupportVerticalPosition = 50,
+      massageEnabled = true,
+      massageMode = {
+        {
+          massageZone = "LUMBAR",
+          massageMode = "HIGH"
+        },
+        {
+          massageZone = "SEAT_CUSHION",
+          massageMode = "LOW"
+        }
+      },
+      massageCushionFirmness = {
+        {
+          cushion = "TOP_LUMBAR",
+          firmness = 30
+        },
+        {
+          cushion = "BACK_BOLSTERS",
+          firmness = 60
+        }
+      },
+      memory = {
+        id = 1,
+        label = "Label value",
+        action = "SAVE"
+      }
+    }
+  elseif module_type == "AUDIO" then
+    out.audioControlData = {
+      source = "AM",
+      keepContext = false,
+      volume = 50,
+      equalizerSettings = {
+        {
+          channelId = 10,
+          channelName = "Channel 1",
+          channelSetting = 50
+        }
+      }
+    }
+  elseif module_type == "LIGHT" then
+    out.lightControlData = {
+      lightState = {
+        {
+          id = "FRONT_LEFT_HIGH_BEAM",
+          status = "ON",
+          density = 0.2,
+          color = {
+            red = 50,
+            green = 150,
+            blue = 200
+          }
+        }
+      }
+    }
+  elseif module_type == "HMI_SETTINGS" then
+    out.hmiSettingsControlData = {
+      displayMode = "DAY",
+      temperatureUnit = "CELSIUS",
+      distanceUnit = "KILOMETERS"
     }
   end
   return out
@@ -339,7 +384,97 @@ function commonRC.getAnotherModuleControlData(module_type)
       signalStrength = 5,
       signalChangeThreshold = 20,
       radioEnable = true,
-      state = "ACQUIRING"
+      state = "ACQUIRING",
+      hdRadioEnable = false,
+      sisData = {
+        stationShortName = "Name2",
+        stationIDNumber = {
+          countryCode = 200,
+          fccFacilityId = 200
+        },
+        stationLongName = "RadioStationLongName2",
+        stationLocation = {
+          longitudeDegrees = 20.1,
+          latitudeDegrees = 20.1,
+          altitude = 20.1
+        },
+        stationMessage = "station message 2"
+      }
+    }
+  elseif module_type == "SEAT" then
+    out.seatControlData ={
+      id = "FRONT_PASSENGER",
+      heatingEnabled = true,
+      coolingEnabled = false,
+      heatingLevel = 75,
+      coolingLevel = 0,
+      horizontalPosition = 75,
+      verticalPosition = 75,
+      frontVerticalPosition = 75,
+      backVerticalPosition = 75,
+      backTiltAngle = 75,
+      headSupportHorizontalPosition = 75,
+      headSupportVerticalPosition = 75,
+      massageEnabled = true,
+      massageMode = {
+        {
+          massageZone = "LUMBAR",
+          massageMode = "OFF"
+        },
+        {
+          massageZone = "SEAT_CUSHION",
+          massageMode = "HIGH"
+        }
+      },
+      massageCushionFirmness = {
+        {
+          cushion = "MIDDLE_LUMBAR",
+          firmness = 65
+        },
+        {
+          cushion = "SEAT_BOLSTERS",
+          firmness = 30
+        }
+      },
+      memory = {
+        id = 2,
+        label = "Another label value",
+        action = "RESTORE"
+      }
+    }
+  elseif module_type == "AUDIO" then
+    out.audioControlData = {
+      source = "USB",
+      keepContext = true,
+      volume = 20,
+      equalizerSettings = {
+        {
+          channelId = 20,
+          channelName = "Channel 2",
+          channelSetting = 20
+        }
+      }
+    }
+  elseif module_type == "LIGHT" then
+    out.lightControlData = {
+      lightState = {
+        {
+          id = "READING_LIGHTS",
+          status = "ON",
+          density = 0.5,
+          color = {
+            red = 150,
+            green = 200,
+            blue = 250
+          }
+        }
+      }
+    }
+  elseif module_type == "HMI_SETTINGS" then
+    out.hmiSettingsControlData = {
+      displayMode = "NIGHT",
+      temperatureUnit = "FAHRENHEIT",
+      distanceUnit = "MILES"
     }
   end
   return out
@@ -373,7 +508,25 @@ function commonRC.getReadOnlyParamsByModule(pModuleType)
       availableHDs = 2,
       signalStrength = 4,
       signalChangeThreshold = 22,
-      state = "MULTICAST"
+      state = "MULTICAST",
+      sisData = {
+        stationShortName = "Name2",
+        stationIDNumber = {
+          countryCode = 200,
+          fccFacilityId = 200
+        },
+        stationLongName = "RadioStationLongName2",
+        stationLocation = {
+          longitudeDegrees = 20.1,
+          latitudeDegrees = 20.1,
+          altitude = 20.1
+        },
+        stationMessage = "station message 2"
+      }
+    }
+  elseif pModuleType == "AUDIO" then
+    out.audioControlData = {
+      equalizerSettings = { { channelName = "Channel 1" } }
     }
   end
   return out
@@ -390,14 +543,34 @@ function commonRC.getModuleParams(pModuleData)
       pModuleData.radioControlData = { }
     end
     return pModuleData.radioControlData
+  elseif pModuleData.moduleType == "AUDIO" then
+    if not pModuleData.audioControlData then
+      pModuleData.audioControlData = { }
+    end
+    return pModuleData.audioControlData
+  elseif pModuleData.moduleType == "SEAT" then
+    if not pModuleData.seatControlData then
+      pModuleData.seatControlData = { }
+    end
+    return pModuleData.seatControlData
   end
 end
 
 function commonRC.getSettableModuleControlData(pModuleType)
   local out = commonRC.getModuleControlData(pModuleType)
   local params_read_only = commonRC.getModuleParams(commonRC.getReadOnlyParamsByModule(pModuleType))
-  for p_read_only in pairs(params_read_only) do
-    commonRC.getModuleParams(out)[p_read_only] = nil
+  if params_read_only then
+    for p_read_only, p_read_only_value in pairs(params_read_only) do
+      if pModuleType == "AUDIO" then
+        for sub_read_only_key, sub_read_only_value in pairs(p_read_only_value) do
+          for sub_read_only_name in pairs(sub_read_only_value) do
+            commonRC.getModuleParams(out)[p_read_only][sub_read_only_key][sub_read_only_name] = nil
+          end
+        end
+      else
+        commonRC.getModuleParams(out)[p_read_only] = nil
+      end
+    end
   end
   return out
 end
@@ -413,24 +586,31 @@ local rcRPCs = {
         subscribe = pSubscribe
       }
     end,
-    hmiRequestParams = function(pModuleType, pAppId, pSubscribe)
+    hmiRequestParams = function(pModuleType, _, pSubscribe)
       return {
-        appID = commonRC.getHMIAppId(pAppId),
         moduleType = pModuleType,
         subscribe = pSubscribe
       }
     end,
     hmiResponseParams = function(pModuleType, pSubscribe)
+      local GetInteriorVDModuleData = commonRC.actualInteriorDataStateOnHMI[pModuleType]
+      if GetInteriorVDModuleData.audioControlData then
+        GetInteriorVDModuleData.audioControlData.keepContext = nil
+      end
       return {
-        moduleData = commonRC.getModuleControlData(pModuleType),
+        moduleData = GetInteriorVDModuleData,
         isSubscribed = pSubscribe
       }
     end,
     responseParams = function(success, resultCode, pModuleType, pSubscribe)
+      local GetInteriorVDModuleData = commonRC.actualInteriorDataStateOnHMI[pModuleType]
+      if GetInteriorVDModuleData.audioControlData then
+        GetInteriorVDModuleData.audioControlData.keepContext = nil
+      end
       return {
         success = success,
         resultCode = resultCode,
-        moduleData = commonRC.getModuleControlData(pModuleType),
+        moduleData = GetInteriorVDModuleData,
         isSubscribed = pSubscribe
       }
     end
@@ -508,13 +688,21 @@ local rcRPCs = {
     appEventName = "OnInteriorVehicleData",
     hmiEventName = "RC.OnInteriorVehicleData",
     hmiResponseParams = function(pModuleType)
+      local OnInteriorVDModuleData = commonRC.getAnotherModuleControlData(pModuleType)
+      if OnInteriorVDModuleData.audioControlData then
+        OnInteriorVDModuleData.audioControlData.keepContext = nil
+      end
       return {
-        moduleData = commonRC.getAnotherModuleControlData(pModuleType)
+        moduleData = OnInteriorVDModuleData
       }
     end,
     responseParams = function(pModuleType)
+      local OnInteriorVDModuleData = commonRC.getAnotherModuleControlData(pModuleType)
+      if OnInteriorVDModuleData.audioControlData then
+        OnInteriorVDModuleData.audioControlData.keepContext = nil
+      end
       return {
-        moduleData = commonRC.getAnotherModuleControlData(pModuleType)
+        moduleData = OnInteriorVDModuleData
       }
     end
   },
@@ -553,115 +741,132 @@ function commonRC.getHMIResponseParams(pRPC, ...)
   return rcRPCs[pRPC].hmiResponseParams(...)
 end
 
-function commonRC.subscribeToModule(pModuleType, pAppId, self)
-  self, pAppId = commonRC.getSelfAndParams(pAppId, self)
+function commonRC.subscribeToModule(pModuleType, pAppId)
   local rpc = "GetInteriorVehicleData"
   local subscribe = true
-  local mobSession = commonRC.getMobileSession(self, pAppId)
+  local mobSession = commonRC.getMobileSession(pAppId)
   local cid = mobSession:SendRPC(commonRC.getAppEventName(rpc), commonRC.getAppRequestParams(rpc, pModuleType, subscribe))
   EXPECT_HMICALL(commonRC.getHMIEventName(rpc), commonRC.getHMIRequestParams(rpc, pModuleType, pAppId, subscribe))
   :Do(function(_, data)
-      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", commonRC.getHMIResponseParams(rpc, pModuleType, subscribe))
+      commonRC.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", commonRC.getHMIResponseParams(rpc, pModuleType, subscribe))
+      commonRC.setActualInteriorVD(pModuleType, commonRC.getHMIResponseParams(rpc, pModuleType, subscribe).moduleData)
     end)
   mobSession:ExpectResponse(cid, commonRC.getAppResponseParams(rpc, true, "SUCCESS", pModuleType, subscribe))
+  :ValidIf(function(_,data)
+      if "AUDIO" == pModuleType and
+      nil ~= data.payload.moduleData.audioControlData.keepContext then
+        return false, "Mobile response GetInteriorVehicleData contains unexpected keepContext parameter"
+      end
+      return true
+    end)
 end
 
-function commonRC.unSubscribeToModule(pModuleType, pAppId, self)
-  self, pAppId = commonRC.getSelfAndParams(pAppId, self)
+function commonRC.unSubscribeToModule(pModuleType, pAppId)
   local rpc = "GetInteriorVehicleData"
   local subscribe = false
-  local mobSession = commonRC.getMobileSession(self, pAppId)
+  local mobSession = commonRC.getMobileSession(pAppId)
   local cid = mobSession:SendRPC(commonRC.getAppEventName(rpc), commonRC.getAppRequestParams(rpc, pModuleType, subscribe))
   EXPECT_HMICALL(commonRC.getHMIEventName(rpc), commonRC.getHMIRequestParams(rpc, pModuleType, pAppId, subscribe))
   :Do(function(_, data)
-      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", commonRC.getHMIResponseParams(rpc, pModuleType, subscribe))
+      commonRC.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", commonRC.getHMIResponseParams(rpc, pModuleType, subscribe))
     end)
   mobSession:ExpectResponse(cid, commonRC.getAppResponseParams(rpc, true, "SUCCESS", pModuleType, subscribe))
+  :ValidIf(function(_,data)
+      if "AUDIO" == pModuleType and
+      nil ~= data.payload.moduleData.audioControlData.keepContext then
+        return false, "Mobile response GetInteriorVehicleData contains unexpected keepContext parameter"
+      end
+      return true
+    end)
 end
 
-function commonRC.isSubscribed(pModuleType, pAppId, self)
-  self, pAppId = commonRC.getSelfAndParams(pAppId, self)
-  local mobSession = commonRC.getMobileSession(self, pAppId)
+function commonRC.isSubscribed(pModuleType, pAppId)
+  local mobSession = commonRC.getMobileSession(pAppId)
   local rpc = "OnInteriorVehicleData"
-  self.hmiConnection:SendNotification(commonRC.getHMIEventName(rpc), commonRC.getHMIResponseParams(rpc, pModuleType))
+  commonRC.getHMIConnection():SendNotification(commonRC.getHMIEventName(rpc), commonRC.getHMIResponseParams(rpc, pModuleType))
+  commonRC.setActualInteriorVD(pModuleType, commonRC.getHMIResponseParams(rpc, pModuleType).moduleData)
   mobSession:ExpectNotification(commonRC.getAppEventName(rpc), commonRC.getAppResponseParams(rpc, pModuleType))
+  :ValidIf(function(_,data)
+      if "AUDIO" == pModuleType and
+      nil ~= data.payload.moduleData.audioControlData.keepContext then
+        return false, "Mobile notification OnInteriorVehicleData contains unexpected keepContext parameter"
+      end
+      return true
+    end)
 end
 
-function commonRC.isUnsubscribed(pModuleType, pAppId, self)
-  self, pAppId = commonRC.getSelfAndParams(pAppId, self)
-  local mobSession = commonRC.getMobileSession(self, pAppId)
+function commonRC.isUnsubscribed(pModuleType, pAppId)
+  local mobSession = commonRC.getMobileSession(pAppId)
   local rpc = "OnInteriorVehicleData"
-  self.hmiConnection:SendNotification(commonRC.getHMIEventName(rpc), commonRC.getHMIResponseParams(rpc, pModuleType))
+  commonRC.getHMIConnection():SendNotification(commonRC.getHMIEventName(rpc), commonRC.getHMIResponseParams(rpc, pModuleType))
+  commonRC.setActualInteriorVD(pModuleType, commonRC.getHMIResponseParams(rpc, pModuleType).moduleData)
   mobSession:ExpectNotification(commonRC.getAppEventName(rpc), {}):Times(0)
   commonTestCases:DelayedExp(commonRC.timeout)
 end
 
-function commonRC.getHMIAppId(pAppId)
-  if not pAppId then pAppId = 1 end
-  return hmiAppIds[config["application" .. pAppId].registerAppInterfaceParams.appID]
-end
-
-function commonRC.getMobileSession(self, pAppId)
-  if not pAppId then pAppId = 1 end
-  return self["mobileSession" .. pAppId]
-end
-
-function commonRC.defineRAMode(pAllowed, pAccessMode, self)
-  self, pAccessMode = commonRC.getSelfAndParams(pAccessMode, self)
+function commonRC.defineRAMode(pAllowed, pAccessMode)
   local rpc = "OnRemoteControlSettings"
-  self.hmiConnection:SendNotification(commonRC.getHMIEventName(rpc), commonRC.getHMIResponseParams(rpc, pAllowed, pAccessMode))
+  commonRC.getHMIConnection():SendNotification(commonRC.getHMIEventName(rpc), commonRC.getHMIResponseParams(rpc, pAllowed, pAccessMode))
   commonTestCases:DelayedExp(commonRC.minTimeout) -- workaround due to issue with SDL -> redundant OnHMIStatus notification is sent
 end
 
-function commonRC.rpcDenied(pModuleType, pAppId, pRPC, pResultCode, self)
-  local mobSession = commonRC.getMobileSession(self, pAppId)
+function commonRC.rpcDenied(pModuleType, pAppId, pRPC, pResultCode)
+  local mobSession = commonRC.getMobileSession(pAppId)
   local cid = mobSession:SendRPC(commonRC.getAppEventName(pRPC), commonRC.getAppRequestParams(pRPC, pModuleType))
   EXPECT_HMICALL(commonRC.getHMIEventName(pRPC), {}):Times(0)
   mobSession:ExpectResponse(cid, { success = false, resultCode = pResultCode })
   commonTestCases:DelayedExp(commonRC.timeout)
 end
 
-function commonRC.rpcAllowed(pModuleType, pAppId, pRPC, self)
-  local mobSession = commonRC.getMobileSession(self, pAppId)
+function commonRC.rpcDeniedWithCustomParams(pParams, pAppId, pRPC, pResultCode)
+  local mobSession = commonRC.getMobileSession(pAppId)
+  local cid = mobSession:SendRPC(commonRC.getAppEventName(pRPC), pParams)
+  EXPECT_HMICALL(commonRC.getHMIEventName(pRPC), {}):Times(0)
+  mobSession:ExpectResponse(cid, { success = false, resultCode = pResultCode })
+  commonTestCases:DelayedExp(commonRC.timeout)
+end
+
+function commonRC.rpcAllowed(pModuleType, pAppId, pRPC)
+  local mobSession = commonRC.getMobileSession(pAppId)
   local cid = mobSession:SendRPC(commonRC.getAppEventName(pRPC), commonRC.getAppRequestParams(pRPC, pModuleType))
   EXPECT_HMICALL(commonRC.getHMIEventName(pRPC), commonRC.getHMIRequestParams(pRPC, pModuleType, pAppId))
   :Do(function(_, data)
-      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", commonRC.getHMIResponseParams(pRPC, pModuleType))
+      commonRC.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", commonRC.getHMIResponseParams(pRPC, pModuleType))
     end)
   mobSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 end
 
-function commonRC.rpcAllowedWithConsent(pModuleType, pAppId, pRPC, self)
-  local mobSession = commonRC.getMobileSession(self, pAppId)
+function commonRC.rpcAllowedWithConsent(pModuleType, pAppId, pRPC)
+  local mobSession = commonRC.getMobileSession(pAppId)
   local cid = mobSession:SendRPC(commonRC.getAppEventName(pRPC), commonRC.getAppRequestParams(pRPC, pModuleType))
   local consentRPC = "GetInteriorVehicleDataConsent"
   EXPECT_HMICALL(commonRC.getHMIEventName(consentRPC), commonRC.getHMIRequestParams(consentRPC, pModuleType, pAppId))
   :Do(function(_, data)
-      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", commonRC.getHMIResponseParams(consentRPC, true))
+      commonRC.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", commonRC.getHMIResponseParams(consentRPC, true))
       EXPECT_HMICALL(commonRC.getHMIEventName(pRPC), commonRC.getHMIRequestParams(pRPC, pModuleType, pAppId))
       :Do(function(_, data2)
-          self.hmiConnection:SendResponse(data2.id, data2.method, "SUCCESS", commonRC.getHMIResponseParams(pRPC, pModuleType))
+          commonRC.getHMIConnection():SendResponse(data2.id, data2.method, "SUCCESS", commonRC.getHMIResponseParams(pRPC, pModuleType))
         end)
     end)
   mobSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 end
 
-function commonRC.rpcRejectWithConsent(pModuleType, pAppId, pRPC, self)
+function commonRC.rpcRejectWithConsent(pModuleType, pAppId, pRPC)
   local info = "The resource is in use and the driver disallows this remote control RPC"
   local consentRPC = "GetInteriorVehicleDataConsent"
-  local mobSession = commonRC.getMobileSession(self, pAppId)
+  local mobSession = commonRC.getMobileSession(pAppId)
   local cid = mobSession:SendRPC(commonRC.getAppEventName(pRPC), commonRC.getAppRequestParams(pRPC, pModuleType))
   EXPECT_HMICALL(commonRC.getHMIEventName(consentRPC), commonRC.getHMIRequestParams(consentRPC, pModuleType, pAppId))
   :Do(function(_, data)
-      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", commonRC.getHMIResponseParams(consentRPC, false))
+      commonRC.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", commonRC.getHMIResponseParams(consentRPC, false))
       EXPECT_HMICALL(commonRC.getHMIEventName(pRPC)):Times(0)
     end)
   mobSession:ExpectResponse(cid, { success = false, resultCode = "REJECTED", info = info })
   commonTestCases:DelayedExp(commonRC.timeout)
 end
 
-function commonRC.rpcRejectWithoutConsent(pModuleType, pAppId, pRPC, self)
-  local mobSession = commonRC.getMobileSession(self, pAppId)
+function commonRC.rpcRejectWithoutConsent(pModuleType, pAppId, pRPC)
+  local mobSession = commonRC.getMobileSession(pAppId)
   local cid = mobSession:SendRPC(commonRC.getAppEventName(pRPC), commonRC.getAppRequestParams(pRPC, pModuleType))
   EXPECT_HMICALL(commonRC.getHMIEventName("GetInteriorVehicleDataConsent")):Times(0)
   EXPECT_HMICALL(commonRC.getHMIEventName(pRPC)):Times(0)
@@ -669,40 +874,33 @@ function commonRC.rpcRejectWithoutConsent(pModuleType, pAppId, pRPC, self)
   commonTestCases:DelayedExp(commonRC.timeout)
 end
 
+function commonRC.rpcButtonPress(pParams, pAppId)
+  local cid = commonRC.getMobileSession(pAppId):SendRPC("ButtonPress",  pParams)
+  pParams.appID = commonRC.getHMIAppId(pAppId)
+  EXPECT_HMICALL("Buttons.ButtonPress", pParams)
+  :Do(function(_, data)
+    commonRC.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", {})
+  end)
+  commonRC.getMobileSession(pAppId):ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
+end
+
 function commonRC.buildButtonCapability(name, shortPressAvailable, longPressAvailable, upDownAvailable)
   return hmi_values.createButtonCapability(name, shortPressAvailable, longPressAvailable, upDownAvailable)
 end
 
-function commonRC.buildHmiRcCapabilities(pClimateCapabilities, pRadioCapabilities, pButtonCapabilities)
+function commonRC.buildHmiRcCapabilities(pCapabilities)
   local hmiParams = hmi_values.getDefaultHMITable()
-  local capParams = hmiParams.RC.GetCapabilities.params.remoteControlCapability
-
   hmiParams.RC.IsReady.params.available = true
-
-  if pClimateCapabilities then
-    if pClimateCapabilities ~= commonRC.DEFAULT then
-      capParams.climateControlCapabilities = pClimateCapabilities
+  local capParams = hmiParams.RC.GetCapabilities.params.remoteControlCapability
+  for k, v in pairs(commonRC.capMap) do
+    if pCapabilities[k] then
+      if pCapabilities[k] ~= commonRC.DEFAULT then
+        capParams[v] = pCapabilities[k]
+      end
+    else
+      capParams[v] = nil
     end
-  else
-    capParams.climateControlCapabilities = nil
   end
-
-  if pRadioCapabilities then
-    if pRadioCapabilities ~= commonRC.DEFAULT then
-      capParams.radioControlCapabilities = pRadioCapabilities
-    end
-  else
-    capParams.radioControlCapabilities = nil
-  end
-
-  if pButtonCapabilities then
-    if pButtonCapabilities ~= commonRC.DEFAULT then
-      capParams.buttonCapabilities = pButtonCapabilities
-    end
-  else
-    capParams.buttonCapabilities = nil
-  end
-
   return hmiParams
 end
 
@@ -724,17 +922,96 @@ function commonRC.getButtonIdByName(pArray, pButtonName)
   end
 end
 
+local function audibleState(pAppId)
+  if not pAppId then pAppId = 1 end
+  local appParams = config["application" .. pAppId].registerAppInterfaceParams
+  local audibleStateValue
+  if appParams.isMediaApplication == true then
+    audibleStateValue = "AUDIBLE"
+  else
+    audibleStateValue = "NOT_AUDIBLE"
+  end
+  return audibleStateValue
+end
+
+function commonRC.activateApp(pAppId)
+  if not pAppId then pAppId = 1 end
+  local pHMIAppId = commonRC.getHMIAppId(pAppId)
+  local mobSession = commonRC.getMobileSession(pAppId)
+  local requestId = test.hmiConnection:SendRequest("SDL.ActivateApp", { appID = pHMIAppId })
+  EXPECT_HMIRESPONSE(requestId)
+  mobSession:ExpectNotification("OnHMIStatus", { hmiLevel = "FULL", audioStreamingState = audibleState(pAppId),
+      systemContext = "MAIN" })
+  utils.wait()
+end
+
 function commonRC.updateDefaultCapabilities(pDisabledModuleTypes)
   local hmiCapabilitiesFile = commonPreconditions:GetPathToSDL()
-    .. commonFunctions:read_parameter_from_smart_device_link_ini("HMICapabilities")
-  local hmiCapTbl = jsonFileToTable(hmiCapabilitiesFile)
+  .. commonFunctions:read_parameter_from_smart_device_link_ini("HMICapabilities")
+  local hmiCapTbl = commonRC.jsonFileToTable(hmiCapabilitiesFile)
   local rcCapTbl = hmiCapTbl.UI.systemCapabilities.remoteControlCapability
   for _, pDisabledModuleType in pairs(pDisabledModuleTypes) do
     local buttonId = commonRC.getButtonIdByName(rcCapTbl.buttonCapabilities, commonRC.getButtonNameByModule(pDisabledModuleType))
     table.remove(rcCapTbl.buttonCapabilities, buttonId)
     rcCapTbl[string.lower(pDisabledModuleType) .. "ControlCapabilities"] = nil
   end
-  tableToJsonFile(hmiCapTbl, hmiCapabilitiesFile)
+  commonRC.tableToJsonFile(hmiCapTbl, hmiCapabilitiesFile)
+end
+
+commonRC.getHMIAppIds =  actions.getHMIAppIds
+commonRC.deleteHMIAppId = actions.deleteHMIAppId
+
+commonRC.actualInteriorDataStateOnHMI = {
+  CLIMATE = commonRC.cloneTable(commonRC.getModuleControlData("CLIMATE")),
+  RADIO = commonRC.cloneTable(commonRC.getModuleControlData("RADIO")),
+  SEAT = commonRC.cloneTable(commonRC.getModuleControlData("SEAT")),
+  AUDIO = commonRC.cloneTable(commonRC.getModuleControlData("AUDIO")),
+  LIGHT = commonRC.cloneTable(commonRC.getModuleControlData("LIGHT")),
+  HMI_SETTINGS = commonRC.cloneTable(commonRC.getModuleControlData("HMI_SETTINGS"))
+}
+
+function commonRC.setActualInteriorVD(pModuleType, pParams)
+  local moduleParams
+  if pModuleType == "CLIMATE" then
+    moduleParams = "climateControlData"
+  elseif pModuleType == "RADIO" then
+    moduleParams = "radioControlData"
+  elseif pModuleType == "SEAT" then
+    moduleParams = "seatControlData"
+  elseif pModuleType == "AUDIO" then
+    moduleParams = "audioControlData"
+  elseif pModuleType == "LIGHT" then
+    moduleParams = "lightControlData"
+  elseif pModuleType == "HMI_SETTINGS" then
+    moduleParams = "hmiSettingsControlData"
+  end
+  for key, value in pairs(pParams[moduleParams]) do
+    if type(value) ~= "table" then
+      if value ~= commonRC.actualInteriorDataStateOnHMI[pModuleType][moduleParams][key] then
+        commonRC.actualInteriorDataStateOnHMI[pModuleType][moduleParams][key] = value
+      end
+    else
+      if false == commonFunctions:is_table_equal(value, commonRC.actualInteriorDataStateOnHMI[pModuleType][moduleParams][key]) then
+        commonRC.actualInteriorDataStateOnHMI[pModuleType][moduleParams][key] = value
+      end
+    end
+  end
+end
+
+function commonRC.getModuleControlDataForResponse(pModuleType)
+  local moduleData = commonRC.actualInteriorDataStateOnHMI[pModuleType]
+  if moduleData.audioControlData then
+    moduleData.audioControlData.keepContext = nil
+  end
+  return moduleData
+end
+
+function commonRC.rpcUnsuccessResultCode(pAppId, pRPC, pRequestParams, pResult)
+  local mobSession = commonRC.getMobileSession(pAppId)
+  local cid = mobSession:SendRPC(commonRC.getAppEventName(pRPC), pRequestParams)
+  EXPECT_HMICALL(commonRC.getHMIEventName(pRPC))
+  :Times(0)
+  mobSession:ExpectResponse(cid, pResult)
 end
 
 return commonRC

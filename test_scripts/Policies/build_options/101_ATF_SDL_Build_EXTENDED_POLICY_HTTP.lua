@@ -13,9 +13,7 @@
 -- The flag EXTENDED_POLICY is set to HTTP
 -- PTU passes successfully
 ---------------------------------------------------------------------------------------------
-
 --[[ General configuration parameters ]]
-config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 config.defaultProtocolVersion = 2
 
 --[[ Required Shared libraries ]]
@@ -34,7 +32,7 @@ local mobile_session = require('mobile_session')
 require('user_modules/AppTypes')
 
 config.application2.registerAppInterfaceParams.appName = "Media Application"
-config.application2.registerAppInterfaceParams.appID = "MyTestApp"
+config.application2.registerAppInterfaceParams.fullAppID = "MyTestApp"
 
 --[[ Local Variables ]]
 local filePTU = "files/ptu.json"

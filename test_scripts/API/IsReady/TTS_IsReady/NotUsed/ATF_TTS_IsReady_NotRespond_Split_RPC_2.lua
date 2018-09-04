@@ -90,7 +90,7 @@ function Check_menuIconParams(data, type_icon, value)
 	if(type_icon == nil) then type_icon = "DYNAMIC" end
 	
 	local result = true
-	local path = "bin/storage/"..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
+	local path = "bin/storage/"..config.application1.registerAppInterfaceParams.fullAppID.. "_" .. config.deviceMAC.. "/"
 	local value_Icon = value--"action.png"
 	
 	if (type_icon == "DYNAMIC") then
@@ -434,7 +434,7 @@ function Test:initHMI_onReady_TTS_IsReady(case)
 	-- :Times(0)
 	
 	ExpectRequest("TTS.GetCapabilities", true, {
-		speechCapabilities = { "TEXT", "SAPI_PHONEMES", "LHPLUS_PHONEMES", "PRE_RECORDED", "SILENCE" },
+		speechCapabilities = { "TEXT", "SAPI_PHONEMES", "LHPLUS_PHONEMES", "PRE_RECORDED", "SILENCE", "FILE" },
 		prerecordedSpeechCapabilities =
 		{
 			"HELP_JINGLE",

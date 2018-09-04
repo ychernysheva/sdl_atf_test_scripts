@@ -16,7 +16,7 @@
 local runner = require('user_modules/script_runner')
 local mobile_session = require("mobile_session")
 local common = require('test_scripts/Defects/4_5/commonDefects')
-local SDL = require('SDL')
+local sdl = require('SDL')
 
 --[[ Local Variables ]]
 
@@ -65,27 +65,6 @@ local function OnAwakeSDL(self)
   self.mobileSession1:ExpectNotification("OnHashChange"):Do(function(_, data)
       -- Write hashID to self.currentHashID
       self.currentHashID = data.payload.hashID
-    end)
-end
-
--- IGNITION_OFF flow
-local function IGNITION_OFF(self)
-  -- Send OnExitAllApplications(SUSPEND) notification from HMI
-  self.hmiConnection:SendNotification("BasicCommunication.OnExitAllApplications",
-    { reason = "SUSPEND" })
-  -- Expect notification OnSDLPersistenceComplete(IGNITION_OFF) on HMI side
-  EXPECT_HMINOTIFICATION("BasicCommunication.OnSDLPersistenceComplete"):Do(function()
-      -- Send OnExitAllApplications(IGNITION_OFF) from HMI to SDL
-      self.hmiConnection:SendNotification("BasicCommunication.OnExitAllApplications",
-        { reason = "IGNITION_OFF" })
-      -- Send OnAppInterfaceUnregistered(IGNITION_OFF) from HMI to SDL
-      self.mobileSession1:ExpectNotification("OnAppInterfaceUnregistered",
-        { reason = "IGNITION_OFF" })
-      -- Expect OnAppUnregistered notification on HMI from SDL
-      EXPECT_HMINOTIFICATION("BasicCommunication.OnAppUnregistered", { unexpectedDisconnect = false })
-      -- Expect OnAppUnregistered notification on HMI from SDL
-      EXPECT_HMINOTIFICATION("BasicCommunication.OnSDLClose")
-      SDL:DeleteFile()
     end)
 end
 
@@ -161,7 +140,7 @@ local function expectResumeData(self)
   runner.Step("Add Command After SUSPEND", AddCommandAfterSUSPEND)
   -- OnAwakeSDL notification from HMI
   runner.Step("Send OnAwakeSDL", OnAwakeSDL)
-  runner.Step("IGNITION_OFF", IGNITION_OFF)
+  runner.Step("IGNITION_OFF", common.ignitionOff)
   -- Start SDL and HMI, establish connection between SDL and HMI, open mobile connection via TCP
   -- and create mobile session
   runner.Step("Start SDL, HMI, connect Mobile, start Session", common.start)

@@ -28,7 +28,7 @@ APIName = "PerformAudioPassThru" -- set request name
 
 local infoMessage = string.rep("a", 1000)
 local SDLConfig = require('user_modules/shared_testcases/SmartDeviceLinkConfigurations')
-local storagePath = config.pathToSDL .. SDLConfig:GetValue("AppStorageFolder") .. "/" .. tostring(config.application1.registerAppInterfaceParams.appID .. "_" .. tostring(config.deviceMAC) .. "/")
+local storagePath = config.pathToSDL .. SDLConfig:GetValue("AppStorageFolder") .. "/" .. tostring(config.application1.registerAppInterfaceParams.fullAppID .. "_" .. tostring(config.deviceMAC) .. "/")
 local function SendOnSystemContext(self, ctx)
 	self.hmiConnection:SendNotification("UI.OnSystemContext",{ appID = self.applications["Test Application"], systemContext = ctx })
 end
@@ -1095,7 +1095,7 @@ end
 
 				--Begin Test case PositiveRequestCheck.1.8
 				--Description: initialPrompt: type in bound
-					local initialPromptType = {"SAPI_PHONEMES", "LHPLUS_PHONEMES", "PRE_RECORDED", "SILENCE"}
+					local initialPromptType = {"SAPI_PHONEMES", "LHPLUS_PHONEMES", "PRE_RECORDED", "SILENCE", "FILE"}
 					for i=1, #initialPromptType do
 						Test["PerformAudioPassThru_initialPromptType" .. initialPromptType[i]] = function(self)
 							local params = createRequest()
@@ -5339,7 +5339,7 @@ end
 				-- Used when the user chooses to cancel the current Audio Pass Thru session and audio streaming
 				-- GENERIC_ERROR comes as a result code on response when all other codes aren't applicable or the unknown issue occured.
 				-- PerformAudioPassThru is finished being interrupted by the user who chooses to repeat the attempt from UI (e.g. by pressing the "Retry" button). The audio file written to the app's directory on SDL is cleaned up. The audio stream stops playing on mobile device. The resultCode of the request is returned as "RETRY". Success=true.
-				-- When "ttsChunks" are sent in the request but the type is different from "TEXT" (SAPI_PHONEMES, LHPLUS_PHONEMES, PRE_RECORDED or SILENCE), WARNINGS is returned as a result of request. Info parameter provides additional information about the case. General request result success=true in case of no errors from other components.
+				-- When "ttsChunks" are sent in the request but the type is different from "TEXT" (SAPI_PHONEMES, LHPLUS_PHONEMES, PRE_RECORDED, SILENCE, or FILE), WARNINGS is returned as a result of request. Info parameter provides additional information about the case. General request result success=true in case of no errors from other components.
 			--Begin Test case ResultCodeCheck.1.1
 			--Description: Success resultCode from TTS, error resultCode from UI
 				local resultCodes = {{code = "GENERIC_ERROR", success = false}, { code = "ABORTED", success  = false}, { code = "REJECTED", success  = false}, { code = "RETRY", success  = true}, { code = "WARNINGS", success  = true}}
@@ -5615,9 +5615,9 @@ end
 				--SDLAQ-CRS-1031
 
 			--Verification criteria:
-				-- When "ttsChunks" are sent in the request but the type is different from "TEXT" (SAPI_PHONEMES, LHPLUS_PHONEMES, PRE_RECORDED or SILENCE), WARNINGS is returned as a result of request. Info parameter provides additional information about the case. General request result success=true in case of no errors from other components.
+				-- When "ttsChunks" are sent in the request but the type is different from "TEXT" (SAPI_PHONEMES, LHPLUS_PHONEMES, PRE_RECORDED, SILENCE, or FILE), WARNINGS is returned as a result of request. Info parameter provides additional information about the case. General request result success=true in case of no errors from other components.
 --[[TODO: Update according to APPLINK-15261
-			local ttsChunksType = {{text = "4025",type = "PRE_RECORDED"},{ text = "Sapi",type = "SAPI_PHONEMES"}, {text = "LHplus", type = "LHPLUS_PHONEMES"}, {text = "Silence", type = "SILENCE"}}
+			local ttsChunksType = {{text = "4025",type = "PRE_RECORDED"},{ text = "Sapi",type = "SAPI_PHONEMES"}, {text = "LHplus", type = "LHPLUS_PHONEMES"}, {text = "Silence", type = "SILENCE"}, {text = "File.m4a", type = "FILE"}}
 			for i=1,#ttsChunksType do
 					Test["PerformAudioPassThru_ttsChunksType" .. tostring(ttsChunksType[i].type)] = function(self)
 						local params = createRequest()

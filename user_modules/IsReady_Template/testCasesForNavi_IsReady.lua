@@ -152,6 +152,7 @@ function testCasesForNavi_IsReady.InitHMI_onReady_without_Navi_IsReady(self, exp
       displayCapabilities =
       {
         displayType = "GEN2_8_DMA",
+        displayName = "GENERIC_DISPLAY",
         textFields =
         {
           text_field("mainField1"),

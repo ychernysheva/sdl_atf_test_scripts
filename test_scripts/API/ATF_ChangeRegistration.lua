@@ -4832,7 +4832,7 @@ end
 			--Requirement id in JAMA: SDLAQ-CRS-1047, SDLAQ-CRS-2678
 
 			--Verification criteria:
-				--The request result is success but the result code is WARNING when ttsName is recieved as a SAPI_PHONEMES or LHPLUS_PHONEMES or PRE_RECORDED or SILENCE. ttsName has not been sent to TTS component for futher processing, the other parts of the request are sent to HMI. The response's "Info" parameter provides the information that not supported TTSChunk type is used.
+				--The request result is success but the result code is WARNING when ttsName is recieved as a SAPI_PHONEMES or LHPLUS_PHONEMES or PRE_RECORDED or SILENCE or FILE. ttsName has not been sent to TTS component for futher processing, the other parts of the request are sent to HMI. The response's "Info" parameter provides the information that not supported TTSChunk type is used.
 
 			--Begin Test case ResultCodeCheck.2.1
 			--Description: ttsName: type = PRE_RECORDED
@@ -4879,6 +4879,16 @@ end
 					self:changeRegistrationWarning(paramsSend)
 				end
 			--End Test case ResultCodeCheck.2.4
+
+			--Begin Test case ResultCodeCheck.2.5
+			--Description: ttsName: type = FILE
+				function Test:ChangeRegistration_ttsNameTypeFILE()
+					local paramsSend = changeRegistrationAllParams()
+					paramsSend.ttsName[1].type = "FILE"
+
+					self:changeRegistrationWarning(paramsSend)
+				end
+			--End Test case ResultCodeCheck.2.5
 		--End Test case ResultCodeCheck.2
 
 		-----------------------------------------------------------------------------------------

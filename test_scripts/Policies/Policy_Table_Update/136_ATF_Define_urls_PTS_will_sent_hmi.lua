@@ -17,14 +17,11 @@
 -- Expected result:
 -- SDL.GetURLs({urls[] = default}, (<urls>, appID))
 ---------------------------------------------------------------------------------------------
-
---[[ General configuration parameters ]]
-config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
-
 --[[ Required Shared libraries ]]
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
+local utils = require ('user_modules/utils')
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
@@ -42,7 +39,7 @@ require('user_modules/AppTypes')
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
 function Test:Precondition_trigger_getting_device_consent()
-  testCasesForPolicyTable:trigger_getting_device_consent(self, config.application1.registerAppInterfaceParams.appName, config.deviceMAC)
+  testCasesForPolicyTable:trigger_getting_device_consent(self, config.application1.registerAppInterfaceParams.appName, utils.getDeviceMAC())
 end
 
 --[[ Test ]]
@@ -56,7 +53,7 @@ function Test:TestStep_PTU_GetURLs_AppRegistered()
   for _, value in pairs(sevices_table) do
     policy_endpoints[#policy_endpoints + 1] = { found = false, service = value }
     --TODO(istoimenova): Should be updated when policy defect is fixed
-      if ( value == "4" or value == "7" or value == "1") then
+      if ( value == "0x04" or value == "0x07" or value == "0x01") then
         policy_endpoints[#policy_endpoints].found = true
       end
   end

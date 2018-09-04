@@ -331,14 +331,18 @@ function module:initHMI()
           "BasicCommunication.PlayTone",
           "BasicCommunication.OnSDLClose",
           "SDL.OnSDLConsentNeeded",
-          "BasicCommunication.OnResumeAudioSource"
+          "BasicCommunication.OnResumeAudioSource",
+          "BasicCommunication.OnSystemTimeReady"
         })
       registerComponent("UI",
         {
           "UI.OnRecordStart"
         })
       registerComponent("VehicleInfo")
-      registerComponent("RC")
+      registerComponent("RC",
+        {
+          "RC.OnRCStatus"
+        })
       registerComponent("Navigation",
         {
           "Navigation.OnAudioDataStreaming",
@@ -366,7 +370,7 @@ function module:initHMI_onReady(hmi_table)
       return
     end
     local event = events.Event()
-    event.level = 2
+    event.level = 1
     event.matches = function(self, data)
       return data.method == name
     end

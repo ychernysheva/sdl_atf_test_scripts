@@ -7,6 +7,8 @@ local commonFunctions = {}
 local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 require('atf.util')
 local json = require('json4lua/json/json')
+local expectations = require('expectations')
+local events = require('events')
 
 require('modules/config')
 local NewTestSuiteNumber = 0 -- use as subfix of test case "NewTestSuite" to make different test case name.
@@ -1329,5 +1331,21 @@ function commonFunctions:pathJoin(...)
   args[#args]  = string.sub(args[#args], -1) == "/" and string.sub(args[#args], 1, -2) or args[#args]
   return table.concat(args, "/")
 end
+
+function commonFunctions.getURLs(pService)
+  local utils = require ('user_modules/utils')
+  local function getPathToSDL()
+    local pathToSDL = config.pathToSDL
+    if pathToSDL:sub(-1) ~= '/' then
+      pathToSDL = pathToSDL .. "/"
+    end
+    return pathToSDL
+  end
+  local fileName = getPathToSDL() .. commonFunctions:read_parameter_from_smart_device_link_ini("PreloadedPT")
+  local tbl = utils.jsonFileToTable(fileName)
+  local url = tbl.policy_table.module_config.endpoints[pService].default
+  return url
+end
+
 
 return commonFunctions

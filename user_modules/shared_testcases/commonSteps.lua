@@ -24,6 +24,7 @@ local commonSteps = {}
 local mobile_session = require('mobile_session')
 local config = require('config')
 local SDLConfig = require('user_modules/shared_testcases/SmartDeviceLinkConfigurations')
+local utils = require ('user_modules/utils')
 
 ---------------------------------------------------------------------------------------------
 
@@ -193,6 +194,7 @@ function commonSteps:RegisterTheSecondMediaApp()
 														languageDesired ="EN-US",
 														hmiDisplayLanguageDesired ="EN-US",
 														appID ="2",
+														fullAppID ="2",
 														ttsName =
 														{
 															{
@@ -548,7 +550,7 @@ function commonSteps:ActivateAppInSpecificLevel(test, HMIAppID)
 	      :Do(function(_,_)
 	      	--hmi side: send request SDL.OnAllowSDLFunctionality
 	      	test.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality",
-	      		{allowed = true, source = "GUI", device = {id = config.deviceMAC, name = "127.0.0.1"}})
+	      		{allowed = true, source = "GUI", device = {id = utils.getDeviceMAC(), name = utils.getDeviceName()}})
 	      	--hmi side: expect BasicCommunication.ActivateApp request
 	      	EXPECT_HMICALL("BasicCommunication.ActivateApp")
 	      	:Do(function(_,data2)
