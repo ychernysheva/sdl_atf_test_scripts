@@ -12,7 +12,7 @@
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
-local common = require('test_scripts/Image_template/commonImageTemplate')
+local common = require('test_scripts/SDL5_0/Image_template/commonImageTemplate')
 
 --[[ Test Configuration ]]
 runner.testSettings.isSelfIncluded = false

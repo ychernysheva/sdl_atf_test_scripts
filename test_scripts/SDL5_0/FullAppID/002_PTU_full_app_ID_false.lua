@@ -14,7 +14,7 @@ local sdl = require("SDL")
 local commonSteps = require("user_modules/shared_testcases/commonSteps")
 local commonSmoke = require('test_scripts/Smoke/commonSmoke')
 
-local common = require("test_scripts/SDL4_6/FullAppID/common")
+local common = require("test_scripts/SDL5_0/FullAppID/common")
 
 local full_app_id_supported = "false"
 
