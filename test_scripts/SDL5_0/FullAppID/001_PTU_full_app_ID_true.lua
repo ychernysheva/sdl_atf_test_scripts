@@ -1,20 +1,12 @@
 ---------------------------------------------------------------------------------------------
 -- Script verifies that a PT snapshot contains the correct full_app_id_supported flag
--- Supports PROPRIETARY 
+-- Supports PROPRIETARY
 ---------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
-local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
-local commonPreconditions = require("user_modules/shared_testcases/commonPreconditions")
-local mobile_session = require("mobile_session")
 local actions = require("user_modules/sequences/actions")
-local json = require("modules/json")
-local atf_logger = require("atf_logger")
-local sdl = require("SDL")
-local commonSteps = require("user_modules/shared_testcases/commonSteps")
-local commonSmoke = require('test_scripts/Smoke/commonSmoke')
 
-local common = require("test_scripts/SDL4_6/FullAppID/common")
+local common = require("test_scripts/SDL5_0/FullAppID/common")
 
 local full_app_id_supported = "true"
 

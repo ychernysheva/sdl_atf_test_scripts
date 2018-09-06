@@ -15,7 +15,7 @@
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
-local common = require('test_scripts/SDL4_6/TTSChunks/common')
+local common = require('test_scripts/SDL5_0/TTSChunks/common')
 
 --[[ Test Configuration ]]
 runner.testSettings.isSelfIncluded = false
@@ -29,10 +29,10 @@ local function registerApp()
         { type = common.type, text = "pathToFile" }
       }
       local corId = common.getMobileSession():SendRPC("RegisterAppInterface", params)
-      common.getHMIConnection():ExpectNotification("BasicCommunication.OnAppRegistered", { 
-        ttsName = { 
+      common.getHMIConnection():ExpectNotification("BasicCommunication.OnAppRegistered", {
+        ttsName = {
           { type = common.type, text = common.getPathToFileInStorage("pathToFile") }
-        } 
+        }
       })
       -- WARNINGS response is received since `pathToFile` is not a valid file
       common.getMobileSession():ExpectResponse(corId, { success = true, resultCode = "WARNINGS" })

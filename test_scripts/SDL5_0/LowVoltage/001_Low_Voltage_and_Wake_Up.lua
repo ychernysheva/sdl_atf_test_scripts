@@ -23,7 +23,7 @@
 -- Not resume HMI level for App3
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
-local common = require('test_scripts/LowVoltage/common')
+local common = require('test_scripts/SDL5_0/LowVoltage/common')
 local runner = require('user_modules/script_runner')
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 

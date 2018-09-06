@@ -13,7 +13,7 @@
 
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
-local common = require('test_scripts/API/Transfer_RPC_with_invalid_image/common')
+local common = require('test_scripts/SDL5_0/Transfer_RPC_with_invalid_image/common')
 local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
 
 --[[ Test Configuration ]]

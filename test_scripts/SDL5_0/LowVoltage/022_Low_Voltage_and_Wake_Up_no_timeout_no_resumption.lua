@@ -10,7 +10,7 @@
 -- 2. not resume persistent data
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
-local common = require('test_scripts/LowVoltage/common')
+local common = require('test_scripts/SDL5_0/LowVoltage/common')
 local runner = require('user_modules/script_runner')
 
 --[[ Test Configuration ]]

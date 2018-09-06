@@ -13,7 +13,7 @@
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
-local common = require('test_scripts/Handling_VR_help_requests/commonVRhelp')
+local common = require('test_scripts/SDL5_0/Handling_VR_help_requests/commonVRhelp')
 
 --[[ Test Configuration ]]
 runner.testSettings.isSelfIncluded = false
