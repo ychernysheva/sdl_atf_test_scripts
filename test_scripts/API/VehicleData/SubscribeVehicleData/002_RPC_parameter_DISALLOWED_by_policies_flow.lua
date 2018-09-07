@@ -63,6 +63,13 @@ local function ptu_update_func(tbl)
     if not (("engineOilLife" == value) or ("fuelRange" == value) or ("tirePressure" == value) or ("turnSignal" == value) or ("electronicParkBrakeStatus" == value)) then table.insert(newParams, value) end
   end
   tbl.policy_table.functional_groupings["Emergency-1"].rpcs["SubscribeVehicleData"].parameters = newParams
+
+  params = tbl.policy_table.functional_groupings["VehicleInfo-3"].rpcs["SubscribeVehicleData"].parameters
+  newParams = {}
+  for index, value in pairs(params) do
+    if not (("engineOilLife" == value) or ("fuelRange" == value) or ("tirePressure" == value) or ("turnSignal" == value) or ("electronicParkBrakeStatus" == value)) then table.insert(newParams, value) end
+  end
+  tbl.policy_table.functional_groupings["VehicleInfo-3"].rpcs["SubscribeVehicleData"].parameters = newParams
 end
 
 local function processRPCFailure(self)
