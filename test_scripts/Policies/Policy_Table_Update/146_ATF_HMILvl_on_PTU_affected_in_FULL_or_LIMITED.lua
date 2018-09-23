@@ -44,6 +44,7 @@ local applications =
       hmiDisplayLanguageDesired = 'EN-US',
       appHMIType = { "NAVIGATION" },
       appID = "0000001",
+      fullAppID = "0000001",
       deviceInfo =
       {
         os = "Android",
@@ -68,6 +69,7 @@ local applications =
       hmiDisplayLanguageDesired = 'EN-US',
       appHMIType = { "MEDIA" },
       appID = "0000002",
+      fullAppID = "0000002",
       deviceInfo =
       {
         os = "Android",

@@ -144,7 +144,7 @@ local m = { }
     EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered",
       { application = { appName = RAIParams.appName } })
     :Do(function(_, d)
-        m.HMIAppIds[RAIParams.appID] = d.params.application.appID
+        m.HMIAppIds[RAIParams.fullAppID] = d.params.application.appID
       end)
     test["mobileSession"..id]:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
     :Do(function()

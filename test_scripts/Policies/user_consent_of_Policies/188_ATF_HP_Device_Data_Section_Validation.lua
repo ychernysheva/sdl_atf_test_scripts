@@ -56,7 +56,7 @@ local pathToSnapshot
 local consentDeviceSystemTimeStamp
 local consentGroupSystemTimeStamp
 local MACHash
-local appID = config.application1.registerAppInterfaceParams["appID"]
+local appID = config.application1.registerAppInterfaceParams["fullAppID"]
 
 --[[ Local Functions ]]
 local function GetCurrentTimeStampDeviceConsent()
