@@ -37,7 +37,7 @@ commonSteps:DeleteLogsFiles()
 commonSteps:DeletePolicyTable()
 
 --[[ Local Variables ]]
-local appID = config.application1.registerAppInterfaceParams["appID"]
+local appID = config.application1.registerAppInterfaceParams["fullAppID"]
 local countAppActivation = 0
 
 --[[ Preconditions ]]

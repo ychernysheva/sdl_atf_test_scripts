@@ -64,6 +64,7 @@ local application1 =
     hmiDisplayLanguageDesired = language_desired,
     appHMIType = { "NAVIGATION" },
     appID = "0000001",
+    fullAppID = "0000001",
     deviceInfo =
     {
       os = "Android",
