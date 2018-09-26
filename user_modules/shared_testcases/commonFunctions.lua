@@ -919,7 +919,7 @@ function commonFunctions:write_parameter_to_smart_device_link_ini(param_name, pa
   local result = false
   for line in io.lines(path_to_ini_file) do
     if is_find_string == false then
-      if string.match(line, "^%s*"..param_name.."%s*=%s*") ~= nil then
+      if string.match(line, "[; ]*"..param_name..".*=.*") ~= nil then
         line = param_name.." = "..param_value
         is_find_string = true
       end
