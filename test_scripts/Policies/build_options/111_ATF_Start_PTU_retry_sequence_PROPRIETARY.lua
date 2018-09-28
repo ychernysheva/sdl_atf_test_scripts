@@ -112,6 +112,7 @@ function Test:TestStep_RetrySequenceStart()
 
   EXPECT_HMICALL("BasicCommunication.PolicyUpdate"):Times(0)
   self.mobileSession:ExpectNotification("OnSystemRequest", { requestType = "PROPRIETARY" }):Times(1)
+  :Timeout(40000)
 
   commonTestCases:DelayedExp(40000)
 end
