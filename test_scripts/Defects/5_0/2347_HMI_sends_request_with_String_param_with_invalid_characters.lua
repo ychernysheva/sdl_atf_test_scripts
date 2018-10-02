@@ -51,21 +51,21 @@ local invalidParams = {
 
 --[[ Local Functions ]]
 local function testGetUserFriendlyMessageValidParams()
-	local rqId = common.getHMIConnection():SendRequest("SDL.GetUserFriendlyMessage", {
+	local rqIdValid = common.getHMIConnection():SendRequest("SDL.GetUserFriendlyMessage", {
 		language = "EN-US", 
 		messageCodes = {"DataConsent"}
 	})
-	common.getHMIConnection():ExpectResponse(rqId, {result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
+	common.getHMIConnection():ExpectResponse(rqIdValid, {result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
 end
 
 local function testGetUserFriendlyMessageInvalidMandatory(pMessageCodes)
-	local rqId = common.getHMIConnection():SendRequest("SDL.GetUserFriendlyMessage", { messageCodes = pMessageCodes })
-	common.getHMIConnection():ExpectResponse(rqId, {error = {code = 11, data = {method = "SDL.GetUserFriendlyMessage"}}})
+	local rqIdMandatory = common.getHMIConnection():SendRequest("SDL.GetUserFriendlyMessage", { messageCodes = pMessageCodes })
+	common.getHMIConnection():ExpectResponse(rqIdMandatory, {error = {code = 11, data = {method = "SDL.GetUserFriendlyMessage"}}})
 end
 
 local function testGetUserFriendlyMessageFullRequest(pRqParams)
-	local rqId = common.getHMIConnection():SendRequest("SDL.GetUserFriendlyMessage", pRqParams)
-	common.getHMIConnection():ExpectResponse(rqId, {error = {code = 11, data = {method = "SDL.GetUserFriendlyMessage"}}})
+	local rqIdFull = common.getHMIConnection():SendRequest("SDL.GetUserFriendlyMessage", pRqParams)
+	common.getHMIConnection():ExpectResponse(rqIdFull, {error = {code = 11, data = {method = "SDL.GetUserFriendlyMessage"}}})
 end
 
 --[[ Scenario ]]
@@ -75,12 +75,12 @@ runner.Step("Start SDL, HMI, connect Mobile, start Session", common.start)
 
 runner.Title("Test")
 runner.Step("GetUserFriendlyMessage valid params", testGetUserFriendlyMessageValidParams)
-runner.Step("GetUserFriendlyMessage madatory endline", testGetUserFriendlyMessageInvalidMandatory, invalidParams.endline.messageCodes)
-runner.Step("GetUserFriendlyMessage madatory tab", testGetUserFriendlyMessageInvalidMandatory, invalidParams.tab.messageCodes)
-runner.Step("GetUserFriendlyMessage madatory whitespace", testGetUserFriendlyMessageInvalidMandatory, invalidParams.whitespace.messageCodes)
-runner.Step("GetUserFriendlyMessage full endline", testGetUserFriendlyMessageFullRequest, invalidParams.endline)
-runner.Step("GetUserFriendlyMessage full tab", testGetUserFriendlyMessageFullRequest, invalidParams.tab)
-runner.Step("GetUserFriendlyMessage full whitespace", testGetUserFriendlyMessageFullRequest, invalidParams.whitespace)
+runner.Step("GetUserFriendlyMessage madatory endline", testGetUserFriendlyMessageInvalidMandatory, { invalidParams.endline.messageCodes })
+runner.Step("GetUserFriendlyMessage madatory tab", testGetUserFriendlyMessageInvalidMandatory, { invalidParams.tab.messageCodes })
+runner.Step("GetUserFriendlyMessage madatory whitespace", testGetUserFriendlyMessageInvalidMandatory, { invalidParams.whitespace.messageCodes })
+runner.Step("GetUserFriendlyMessage full endline", testGetUserFriendlyMessageFullRequest, { invalidParams.endline })
+runner.Step("GetUserFriendlyMessage full tab", testGetUserFriendlyMessageFullRequest, { invalidParams.tab })
+runner.Step("GetUserFriendlyMessage full whitespace", testGetUserFriendlyMessageFullRequest, { invalidParams.whitespace })
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", common.postconditions)
