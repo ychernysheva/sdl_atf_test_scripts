@@ -30,6 +30,15 @@
 ./test_scripts/SDL5_0/vrCommandOptional/001_create_interaction_choice_set_invalid_data.lua
 ./test_scripts/SDL5_0/vrCommandOptional/002_perform_interaction_invalid_data.lua
 ;
+;Disable HMI Level resumption based on app and transport type
+;
+./test_scripts/SDL5_0/ConditionalResumption/001_conditional_resumption_allowed.lua
+./test_scripts/SDL5_0/ConditionalResumption/002_conditional_resumption_denied.lua
+./test_scripts/SDL5_0/ConditionalResumption/003_conditional_resumption_specific_hmi_level_navi.lua
+./test_scripts/SDL5_0/ConditionalResumption/004_conditional_resumption_specific_hmi_level_projection.lua
+./test_scripts/SDL5_0/ConditionalResumption/005_conditional_resumption_specific_hmi_level_media.lua
+./test_scripts/SDL5_0/ConditionalResumption/006_conditional_resumption_specific_hmi_level_choose_highest.lua
+;
 ;DTLS Encryption
 ;
 ./test_scripts/Security/DTLS/001_StartRPC_service.lua

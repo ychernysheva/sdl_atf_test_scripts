@@ -335,6 +335,14 @@ function commonFunctions:is_table_equal(table1, table2)
   end
   return true
 end
+
+function commonFunctions:table_contains(table, value)
+  if not table then return false end
+  for _,val in pairs(table) do
+    if val == value then return true end
+  end
+  return false
+end
 ---------------------------------------------------------------------------------------------
 
 
@@ -919,13 +927,14 @@ function commonFunctions:write_parameter_to_smart_device_link_ini(param_name, pa
   local result = false
   for line in io.lines(path_to_ini_file) do
     if is_find_string == false then
-      if string.match(line, "^%s*"..param_name.."%s*=%s*") ~= nil then
+      if string.match(line, "[; ]*"..param_name..".*=.*") ~= nil then
         line = param_name.." = "..param_value
         is_find_string = true
       end
     end
     new_file_content = new_file_content..line.."\n"
   end
+  
   if is_find_string == true then
     local file = io.open(path_to_ini_file, "w")
     if file then
