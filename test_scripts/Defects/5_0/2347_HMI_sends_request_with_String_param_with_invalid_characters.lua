@@ -26,44 +26,47 @@
 -- Actual result:
 -- N/A
 ---------------------------------------------------------------------------------------------------
-
-
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
 local common = require('user_modules/sequences/actions')
 
-
 --[[ Test Configuration ]]
 runner.testSettings.isSelfIncluded = false
 
+--[[ Local Variables ]]
+local invalidParams = {
+	endline = {
+		language = "EN-US",
+		messageCodes = {"\n"}
+	},
+	tab = {
+		language = "EN-US",
+		messageCodes = {"\t"}
+	},
+	whitespace = {
+		language = "EN-US",
+		messageCodes = {" "}
+	}
+}
 
 --[[ Local Functions ]]
 local function testGetUserFriendlyMessageValidParams()
-	
 	local rqId = common.getHMIConnection():SendRequest("SDL.GetUserFriendlyMessage", {
 		language = "EN-US", 
 		messageCodes = {"DataConsent"}
 	})
-	common.getHMIConnection():ExpectResponse (rqId, {result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
-	
+	common.getHMIConnection():ExpectResponse(rqId, {result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
 end
 
-local function testGetUserFriendlyMessageInvalidStringParam()
-
-	local rqId1 = common.getHMIConnection():SendRequest("SDL.GetUserFriendlyMessage", {	messageCodes = {"\n"}})
-	common.getHMIConnection():ExpectResponse (rqId1, {error = {code = 11, data = {method = "SDL.GetUserFriendlyMessage"}}})
-		
-	local rqId2 = common.getHMIConnection():SendRequest("SDL.GetUserFriendlyMessage", {	language = "EN-US", messageCodes = {"\n"}})
-	common.getHMIConnection():ExpectResponse (rqId2, {error = {code = 11, data = {method = "SDL.GetUserFriendlyMessage"}}})
-
-	local rqId3 = common.getHMIConnection():SendRequest("SDL.GetUserFriendlyMessage", {	language = "EN-US", messageCodes = {"\t"}})
-	common.getHMIConnection():ExpectResponse (rqId3, {error = {code = 11, data = {method = "SDL.GetUserFriendlyMessage"}}})
-
-	local rqId4 = common.getHMIConnection():SendRequest("SDL.GetUserFriendlyMessage", {	language = "EN-US", messageCodes = {" "}})
-	common.getHMIConnection():ExpectResponse (rqId4, {error = {code = 11, data = {method = "SDL.GetUserFriendlyMessage"}}})
-
+local function testGetUserFriendlyMessageInvalidMandatory(pMessageCodes)
+	local rqId = common.getHMIConnection():SendRequest("SDL.GetUserFriendlyMessage", { messageCodes = pMessageCodes })
+	common.getHMIConnection():ExpectResponse(rqId, {error = {code = 11, data = {method = "SDL.GetUserFriendlyMessage"}}})
 end
 
+local function testGetUserFriendlyMessageFullRequest(pRqParams)
+	local rqId = common.getHMIConnection():SendRequest("SDL.GetUserFriendlyMessage", pRqParams)
+	common.getHMIConnection():ExpectResponse(rqId, {error = {code = 11, data = {method = "SDL.GetUserFriendlyMessage"}}})
+end
 
 --[[ Scenario ]]
 runner.Title("Preconditions")
@@ -71,8 +74,13 @@ runner.Step("Clean environment", common.preconditions)
 runner.Step("Start SDL, HMI, connect Mobile, start Session", common.start)
 
 runner.Title("Test")
-runner.Step("GetUserFriendlyMessage with valid params", testGetUserFriendlyMessageValidParams)
-runner.Step("GetUserFriendlyMessage with invalid string param", testGetUserFriendlyMessageInvalidStringParam)
+runner.Step("GetUserFriendlyMessage valid params", testGetUserFriendlyMessageValidParams)
+runner.Step("GetUserFriendlyMessage madatory endline", testGetUserFriendlyMessageInvalidMandatory, invalidParams.endline.messageCodes)
+runner.Step("GetUserFriendlyMessage madatory tab", testGetUserFriendlyMessageInvalidMandatory, invalidParams.tab.messageCodes)
+runner.Step("GetUserFriendlyMessage madatory whitespace", testGetUserFriendlyMessageInvalidMandatory, invalidParams.whitespace.messageCodes)
+runner.Step("GetUserFriendlyMessage full endline", testGetUserFriendlyMessageFullRequest, invalidParams.endline)
+runner.Step("GetUserFriendlyMessage full tab", testGetUserFriendlyMessageFullRequest, invalidParams.tab)
+runner.Step("GetUserFriendlyMessage full whitespace", testGetUserFriendlyMessageFullRequest, invalidParams.whitespace)
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", common.postconditions)
