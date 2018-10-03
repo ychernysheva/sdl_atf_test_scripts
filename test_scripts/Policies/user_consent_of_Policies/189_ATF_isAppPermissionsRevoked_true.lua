@@ -180,12 +180,7 @@ function Test:TestStep_Activate_app_isAppPermissionRevoked_true()
         code = 0,
         method = "SDL.ActivateApp",
         isAppRevoked = false,
-        isAppPermissionsRevoked = true,
-        appRevokedPermissions =
-        {
-          { name = "DrivingCharacteristics"}
-        }
-      }
+        isAppPermissionsRevoked = false      }
     })
 end
 

@@ -55,7 +55,7 @@ end
 --[[ Test ]]
 commonFunctions:newTestCasesGroup("Test")
 function Test:RegisterNewApp()
-  config.application2.registerAppInterfaceParams.appName = config.application1.registerAppInterfaceParams.appName
+  config.application2.registerAppInterfaceParams.appName = "INCORRECT_NAME"
   config.application2.registerAppInterfaceParams.fullAppID = "123_xyz"
   local corId = self.mobileSession2:SendRPC("RegisterAppInterface", config.application2.registerAppInterfaceParams)
   self.mobileSession2:ExpectResponse(corId, { success = false, resultCode = "DISALLOWED" })
