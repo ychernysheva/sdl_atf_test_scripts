@@ -186,7 +186,6 @@ function m.policyTableUpdateSuccess(pPTUpdateFunc)
   :Do(function(e, d)
       if e.occurences == 1 then
         m.getHMIConnection():SendResponse(d.id, d.method, "SUCCESS", { })
-        m.setPTUTable(utils.jsonFileToTable(d.params.file))
         m.policyTableUpdate(pPTUpdateFunc, expNotificationFunc)
       end
     end)
