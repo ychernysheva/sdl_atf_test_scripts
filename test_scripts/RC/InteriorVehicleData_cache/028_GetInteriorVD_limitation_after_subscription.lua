@@ -34,7 +34,7 @@ runner.Title("Test")
 
 for i=1,7 do
   runner.Step("GetInteriorVehicleData without subscribe parameter " .. i, common.GetInteriorVehicleData,
-    {"CLIMATE", nil, false, 1 })
+    {"CLIMATE", true, false, 1 })
 end
 
 runner.Title("Postconditions")
