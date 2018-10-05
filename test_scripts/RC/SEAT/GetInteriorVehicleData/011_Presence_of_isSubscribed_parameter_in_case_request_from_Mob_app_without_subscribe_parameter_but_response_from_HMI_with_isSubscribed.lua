@@ -11,7 +11,7 @@
 -- 3) and with "isSubscribed" parameter from HMI
 -- SDL must:
 -- 1) transfer GetInteriorVehicleData_response with resultCode: <"any-result">
--- and without "isSubscribed" param to the related app
+-- and with "isSubscribed" param to the related app
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
@@ -21,40 +21,36 @@ local commonRC = require('test_scripts/RC/commonRC')
 runner.testSettings.isSelfIncluded = false
 
 --[[ Local Functions ]]
-local function getDataForModule(pModuleType, isSubscriptionActive, pHMIrequest)
-  local mobSession = commonRC.getMobileSession()
-  local cid = mobSession:SendRPC("GetInteriorVehicleData", {
-    moduleType = pModuleType
-    -- no subscribe parameter
-  })
+local function getDataForModule(pModuleType, isSubscriptionActive, pHMIrequestCount)
+  local mobileSession = common.getMobileSession()
+  local cid = mobileSession:SendRPC("GetInteriorVehicleData", {
+      moduleType = pModuleType
+      -- no subscribe parameter
+    })
 
   EXPECT_HMICALL("RC.GetInteriorVehicleData", {
-    moduleType = pModuleType
-  })
+      moduleType = pModuleType
+    })
   :Do(function(_, data)
-      commonRC.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", {
-        moduleData = commonRC.getModuleControlData(pModuleType),
-        isSubscribed = isSubscriptionActive -- return current value of subscription
-      })
+      common.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", {
+          moduleData = common.getModuleControlDataForResponse(pModuleType),
+          isSubscribed = isSubscriptionActive -- return current value of subscription
+        })
     end)
   :ValidIf(function(_, data) -- no subscribe parameter
-      if data.params.subscribe == nil then
+      if (isSubscriptionActive and data.params.subscribe == false) or data.params.subscribe == nil then
         return true
       end
       return false, 'Parameter "subscribe" is transfered with to HMI value: ' .. tostring(data.params.subscribe)
     end)
-  :Times(pHMIrequest)
+  :Times(pHMIrequestCount)
 
-  mobSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS",
-    moduleData = commonRC.getModuleControlData(pModuleType)
-  })
-  :ValidIf(function(_, data) -- no isSubscribed parameter
-      if data.payload.isSubscribed == nil then
-        return true
-      end
-      return false, 'Parameter "isSubscribed" is transfered to App with value: ' .. tostring(data.payload.isSubscribed)
-    end)
+  mobileSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS",
+      moduleData = common.getModuleControlDataForResponse(pModuleType),
+      isSubscribed = isSubscriptionActive
+    })
 end
+
 
 --[[ Scenario ]]
 runner.Title("Preconditions")
@@ -66,7 +62,7 @@ runner.Step("Activate App", commonRC.activateApp)
 runner.Title("Test")
 runner.Step("GetInteriorVehicleData SEAT NoSubscription", getDataForModule, { "SEAT", false, 1 })
 runner.Step("Subscribe app to SEAT", commonRC.subscribeToModule, { "SEAT" })
-runner.Step("GetInteriorVehicleData SEAT ActiveSubscription_subscribe", getDataForModule, { "SEAT", true, 0 })
+runner.Step("GetInteriorVehicleData SEAT ActiveSubscription_subscribe", getDataForModule, { "SEAT", true, 1 })
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", commonRC.postconditions)

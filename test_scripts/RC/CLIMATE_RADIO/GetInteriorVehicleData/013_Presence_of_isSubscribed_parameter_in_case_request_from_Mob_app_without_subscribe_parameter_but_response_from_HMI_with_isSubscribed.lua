@@ -13,11 +13,11 @@
 -- 3) and with "isSubscribed" parameter from HMI
 -- SDL must:
 -- 1) transfer GetInteriorVehicleData_response with resultCode: <"any-result">
--- and without "isSubscribed" param to the related app
+-- and with "isSubscribed" param to the related app
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
-local common = require("test_scripts/RC/commonRC")
+local commonRC = require('test_scripts/RC/commonRC')
 
 --[[ Test Configuration ]]
 runner.testSettings.isSelfIncluded = false
@@ -40,7 +40,7 @@ local function getDataForModule(pModuleType, isSubscriptionActive, pHMIrequestCo
         })
     end)
   :ValidIf(function(_, data) -- no subscribe parameter
-      if data.params.subscribe == nil then
+      if (isSubscriptionActive and data.params.subscribe == false) or data.params.subscribe == nil then
         return true
       end
       return false, 'Parameter "subscribe" is transfered with to HMI value: ' .. tostring(data.params.subscribe)
@@ -48,33 +48,28 @@ local function getDataForModule(pModuleType, isSubscriptionActive, pHMIrequestCo
   :Times(pHMIrequestCount)
 
   mobileSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS",
-      moduleData = common.getModuleControlDataForResponse(pModuleType)
+      moduleData = common.getModuleControlDataForResponse(pModuleType),
+      isSubscribed = isSubscriptionActive
     })
-  :ValidIf(function(_, data) -- no isSubscribed parameter
-      if data.payload.isSubscribed == nil then
-        return true
-      end
-      return false, 'Parameter "isSubscribed" is transfered to App with value: ' .. tostring(data.payload.isSubscribed)
-    end)
 end
 
 --[[ Scenario ]]
 runner.Title("Preconditions")
-runner.Step("Clean environment", common.preconditions)
-runner.Step("Start SDL, HMI, connect Mobile, start Session", common.start)
-runner.Step("RAI", common.registerAppWOPTU)
-runner.Step("Activate App", common.activateApp)
+runner.Step("Clean environment", commonRC.preconditions)
+runner.Step("Start SDL, HMI, connect Mobile, start Session", commonRC.start)
+runner.Step("RAI", commonRC.registerAppWOPTU)
+runner.Step("Activate App", commonRC.activateApp)
 
 runner.Title("Test")
 
-for _, mod in pairs(common.modulesWithoutSeat) do
+for _, mod in pairs(commonRC.modules) do
   runner.Step("GetInteriorVehicleData " .. mod .. " NoSubscription", getDataForModule, { mod, false, 1 })
 end
 
-for _, mod in pairs(common.modulesWithoutSeat) do
-  runner.Step("Subscribe app to " .. mod, common.subscribeToModule, { mod })
-  runner.Step("GetInteriorVehicleData " .. mod .. " ActiveSubscription_subscribe", getDataForModule, { mod, true, 0 })
+for _, mod in pairs(commonRC.modules) do
+  runner.Step("Subscribe app to " .. mod, commonRC.subscribeToModule, { mod })
+  runner.Step("GetInteriorVehicleData " .. mod .. " ActiveSubscription_subscribe", getDataForModule, { mod, true, 1 })
 end
 
 runner.Title("Postconditions")
-runner.Step("Stop SDL", common.postconditions)
+runner.Step("Stop SDL", commonRC.postconditions)

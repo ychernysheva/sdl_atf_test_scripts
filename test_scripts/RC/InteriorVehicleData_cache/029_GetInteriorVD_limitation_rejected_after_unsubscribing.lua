@@ -31,8 +31,8 @@ runner.Step("Register app", common.registerAppWOPTU, { 1 })
 runner.Step("Activate app", common.activateApp, { 1 })
 runner.Step("GetInteriorVehicleData with subscribe=true", common.GetInteriorVehicleData,
   {"CLIMATE", true, true, 1 })
-runner.Step("GetInteriorVehicleData without subscribe", common.GetInteriorVehicleData,
-  {"CLIMATE", nil, false, 1 })
+runner.Step("GetInteriorVehicleData without subscribe=true", common.GetInteriorVehicleData,
+  {"CLIMATE", true, false, 1 })
 runner.Step("GetInteriorVehicleData with subscribe=false", common.GetInteriorVehicleData,
   {"CLIMATE", false, true, 1 })
 
