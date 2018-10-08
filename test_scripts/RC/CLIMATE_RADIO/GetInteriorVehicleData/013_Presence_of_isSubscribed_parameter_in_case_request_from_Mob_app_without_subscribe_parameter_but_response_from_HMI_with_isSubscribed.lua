@@ -24,7 +24,7 @@ runner.testSettings.isSelfIncluded = false
 
 --[[ Local Functions ]]
 local function getDataForModule(pModuleType, isSubscriptionActive, pHMIrequestCount)
-  local mobileSession = common.getMobileSession()
+  local mobileSession = commonRC.getMobileSession()
   local cid = mobileSession:SendRPC("GetInteriorVehicleData", {
       moduleType = pModuleType
       -- no subscribe parameter
@@ -34,8 +34,8 @@ local function getDataForModule(pModuleType, isSubscriptionActive, pHMIrequestCo
       moduleType = pModuleType
     })
   :Do(function(_, data)
-      common.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", {
-          moduleData = common.getModuleControlDataForResponse(pModuleType),
+      commonRC.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", {
+          moduleData = commonRC.getModuleControlDataForResponse(pModuleType),
           isSubscribed = isSubscriptionActive -- return current value of subscription
         })
     end)
@@ -48,7 +48,7 @@ local function getDataForModule(pModuleType, isSubscriptionActive, pHMIrequestCo
   :Times(pHMIrequestCount)
 
   mobileSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS",
-      moduleData = common.getModuleControlDataForResponse(pModuleType),
+      moduleData = commonRC.getModuleControlDataForResponse(pModuleType),
       isSubscribed = isSubscriptionActive
     })
 end
