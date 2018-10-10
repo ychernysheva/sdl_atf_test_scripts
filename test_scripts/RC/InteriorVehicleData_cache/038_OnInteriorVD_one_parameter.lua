@@ -11,7 +11,7 @@
 -- 2. HMI sends OnInteriorVD with one param changing for module_1
 -- 3. Mobile app1 sends GetInteriorVD(module_1, without subscribe parameter) request
 -- SDL must
--- 1. send GetInteriorVD request to HMI
+-- 1. not send GetInteriorVD request to HMI
 -- 2. send GetinteriorVD response to mobile app2 with actual data
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
@@ -63,7 +63,7 @@ for _, mod in pairs(common.modules) do
   runner.Step("App1 OnInteriorVehicleData for " .. mod, common.OnInteriorVD,
     { mod, true, 1, getModuleData(mod, OnInteriorVDparams[mod]) })
   runner.Step("App2 GetInteriorVehicleData without subscribe " .. mod, common.GetInteriorVehicleData,
-    { mod, nil, true, 1 })
+    { mod, nil, false, 1 })
 end
 
 runner.Title("Postconditions")
