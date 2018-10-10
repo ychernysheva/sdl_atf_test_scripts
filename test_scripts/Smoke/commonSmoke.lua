@@ -279,7 +279,7 @@ function commonSmoke.registerApp(pAppId, self)
       :Do(function()
           mobSession:ExpectNotification("OnHMIStatus",
             { hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN" })
-          mobSession:ExpectNotification("OnPermissionsChange")
+          mobSession:ExpectNotification("OnPermissionsChange"):Times(AtLeast(1))
           mobSession:ExpectNotification("OnDriverDistraction", { state = "DD_OFF" })
         end)
     end)
