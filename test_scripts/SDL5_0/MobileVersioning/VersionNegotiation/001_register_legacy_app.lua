@@ -100,6 +100,7 @@ local function RegisterAppInterface(self)
 	self.mobileSession1:ExpectResponse(CorIdRAI, { success = true, resultCode = "SUCCESS", syncMsgVersion = {
 		majorVersion = 4,
 		minorVersion = 5,
+		patchVersion = 1
 	}})
 	self.mobileSession1:ExpectNotification("OnHMIStatus",
 		{ hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN" })

@@ -32,7 +32,8 @@ local commonSmoke = require('test_scripts/Smoke/commonSmoke')
 
 config.application1.registerAppInterfaceParams.syncMsgVersion = {
   majorVersion = 4,
-  minorVersion = 5
+  minorVersion = 5,
+  patchVersion = 1
 }
 
 --[[ Local Functions ]]
