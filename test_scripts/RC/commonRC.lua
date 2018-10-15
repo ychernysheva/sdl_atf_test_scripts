@@ -385,7 +385,7 @@ function commonRC.getAnotherModuleControlData(module_type)
       signalChangeThreshold = 20,
       radioEnable = true,
       state = "ACQUIRING",
-      hdRadioEnable = false,
+      hdRadioEnable = true,
       sisData = {
         stationShortName = "Name2",
         stationIDNumber = {
