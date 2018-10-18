@@ -23,9 +23,9 @@ local common = require('user_modules/sequences/actions')
 runner.testSettings.isSelfIncluded = false
 
 --[[ Local Functions ]]
-local function checkShowConstantTBT(pParams)
+local function checkShowConstantTBT(pParams, pResultTable)
 	local cid = common.getMobileSession():SendRPC("ShowConstantTBT", pParams)
-	common.getMobileSession():ExpectResponse(cid, {success = true, resultCode = "SUCCESS"})
+	common.getMobileSession():ExpectResponse(cid, pResultTable)
 end
 
 --[[ Scenario ]]
@@ -40,18 +40,17 @@ runner.Step("Negative check mandatory parameter distanceToManeuver", checkShowCo
 		appID = common.getHMIAppId(1),
 		--distanceToManeuver = 50.1,
 	 	distanceToManeuverScale = 100.2
-	}})
+	}, {success = false, resultCode = "INVALID_DATA"}})
 runner.Step("Negative check mandatory parameter distanceToManeuverScale", checkShowConstantTBT, {{
 		appID = common.getHMIAppId(1),
 		distanceToManeuver = 50.1,
 	 	--distanceToManeuverScale = 100.2
-	}})
-
+	}, {success = false, resultCode = "INVALID_DATA"}})
 runner.Step("Positive case for ShowConstantTBT", checkShowConstantTBT, {{
 		appID = common.getHMIAppId(1),
 		distanceToManeuver = 50.1,
 	 	distanceToManeuverScale = 100.2
-	}})
+	}, {success = true, resultCode = "SUCCESS"}})
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", common.postconditions)
