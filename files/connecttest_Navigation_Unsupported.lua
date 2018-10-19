@@ -452,6 +452,7 @@ function module:runSDL()
         button_capability("PRESET_8"),
         button_capability("PRESET_9"),
         button_capability("OK", true, false, true),
+        button_capability("PLAY_PAUSE"),
         button_capability("SEEKLEFT"),
         button_capability("SEEKRIGHT"),
         button_capability("TUNEUP"),
@@ -507,6 +508,7 @@ function module:runSDL()
         displayCapabilities =
         {
           displayType = "GEN2_8_DMA",
+          displayName = "GENERIC_DISPLAY",
           textFields =
           {
             text_field("mainField1"),

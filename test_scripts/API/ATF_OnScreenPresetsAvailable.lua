@@ -22,9 +22,9 @@ local commonSteps = require('user_modules/shared_testcases/commonSteps')
 require('user_modules/AppTypes')
 local bOnScreenPresetsAvailable = true
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
---local storagePath = config.SDLStoragePath..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
+--local storagePath = config.SDLStoragePath..config.application1.registerAppInterfaceParams.fullAppID.. "_" .. config.deviceMAC.. "/"
 local SDLConfig = require('user_modules/shared_testcases/SmartDeviceLinkConfigurations')
-local storagePath = config.pathToSDL .. SDLConfig:GetValue("AppStorageFolder") .. "/" .. tostring(config.application1.registerAppInterfaceParams.appID .. "_" .. tostring(config.deviceMAC) .. "/")
+local storagePath = config.pathToSDL .. SDLConfig:GetValue("AppStorageFolder") .. "/" .. tostring(config.application1.registerAppInterfaceParams.fullAppID .. "_" .. tostring(config.deviceMAC) .. "/")
 local resultCodes = {
 			{resultCode = "SUCCESS", success =  true},
 			{resultCode = "INVALID_DATA", success =  false},
@@ -222,6 +222,7 @@ function Test:initHMI_onReady(bOnScreenPresetsAvailable)
 			button_capability("PRESET_8"),
 			button_capability("PRESET_9"),
 			button_capability("OK", true, false, true),
+			button_capability("PLAY_PAUSE"),
 			button_capability("SEEKLEFT"),
 			button_capability("SEEKRIGHT"),
 			button_capability("TUNEUP"),
@@ -277,6 +278,7 @@ function Test:initHMI_onReady(bOnScreenPresetsAvailable)
 	ExpectRequest("UI.GetCapabilities", true, {
 		displayCapabilities = {
 			displayType = "GEN2_8_DMA",
+			displayName = "GENERIC_DISPLAY",
 			textFields = {
 				text_field("mainField1"),
 				text_field("mainField2"),
@@ -843,6 +845,7 @@ end
 					button_capability("PRESET_8"),
 					button_capability("PRESET_9"),
 					button_capability("OK", true, false, true),
+					button_capability("PLAY_PAUSE"),
 					button_capability("SEEKLEFT"),
 					button_capability("SEEKRIGHT"),
 					button_capability("TUNEUP"),
@@ -895,6 +898,7 @@ end
 				displayCapabilities =
 				{
 					displayType = "GEN2_8_DMA",
+					displayName = "GENERIC_DISPLAY",
 					textFields =
 					{
 						text_field("mainField1"),

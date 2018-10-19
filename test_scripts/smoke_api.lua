@@ -24,10 +24,10 @@ require('user_modules/AppTypes')
 
 --[[ Local Variables ]]
 local iTimeout = 5000
-local strMaxLengthFileName255 = string.rep("a", 251)  .. ".png" -- set max length file name
+local strMaxLengthFileName242 = string.rep("a", 238)  .. ".png" -- max is 242 since docker limitation
 local textPromtValue = {"Please speak one of the following commands,", "Please say a command,"}
 
-local storagePath = commonPreconditions:GetPathToSDL() .. "storage/" .. config.application1.registerAppInterfaceParams.appID .. "_" .. config.deviceMAC .. "/"
+local storagePath = commonPreconditions:GetPathToSDL() .. "storage/" .. config.application1.registerAppInterfaceParams.fullAppID .. "_" .. config.deviceMAC .. "/"
 
 ---------------------------------------------------------------------------------------------
 -----------------------------Required Shared Libraries---------------------------------------
@@ -514,7 +514,7 @@ end
 
 -- 2. PutFiles
 	commonSteps:PutFile("PutFile_action.png", "action.png")
-	commonSteps:PutFile("PutFile_MaxLength_255Characters", strMaxLengthFileName255)
+	commonSteps:PutFile("PutFile_MaxLength_255Characters", strMaxLengthFileName242)
 	commonSteps:PutFile("Putfile_SpaceBefore", " SpaceBefore")
 	commonSteps:PutFile("Putfile_Icon.png", "icon.png")
 
@@ -679,17 +679,7 @@ function Test:ResetGlobalProperties_PositiveCase()
 		--hmi side: expect TTS.SetGlobalProperties request
 		EXPECT_HMICALL("TTS.SetGlobalProperties",
 		{
-			helpPrompt =
-			{
-				{
-					type = "TEXT",
-					text = textPromtValue[1]
-				},
-				{
-					type = "TEXT",
-					text = textPromtValue[2]
-				}
-			},
+			helpPrompt = { },
 			timeoutPrompt =
 			{
 				{
@@ -1130,7 +1120,7 @@ function Test:CreateInteractionChoiceSet_PositiveCase()
 					EXPECT_HMICALL("VR.AddCommand",
 									{
 										cmdID = 1001,
-										appID = self.applications[config.application1.registerAppInterfaceParams.appID],
+										appID = self.applications[config.application1.registerAppInterfaceParams.fullAppID],
 										type = "Choice",
 										vrCommands = {"Choice1001" }
 									})
@@ -1222,14 +1212,20 @@ end
 
 function Test:ListFiles()
   local cid = self.mobileSession:SendRPC("ListFiles", {} )
-
   EXPECT_RESPONSE(cid,
     {
       success = true,
       resultCode = "SUCCESS",
-      spaceAvailable = 103878520,
-      filenames = { " SpaceBefore", strMaxLengthFileName255, "icon.png" }
+      -- spaceAvailable = 103878520 -- disabled due to CI issue
     })
+  :ValidIf(function(_, data)
+    local files_expected = { " SpaceBefore", strMaxLengthFileName242, "icon.png" }
+    if not commonFunctions:is_table_equal(data.payload.filenames, files_expected) then
+        return false, "\nExpected files:\n" .. commonFunctions:convertTableToString(files_expected, 1)
+          .. "\nActual files:\n" .. commonFunctions:convertTableToString(data.payload.filenames, 1)
+      end
+    return true
+    end)
 end
 
 -- End Test case 1.11
@@ -2822,6 +2818,7 @@ local function displayCap_Value()
 	local displayCapabilities =
 							{
 								displayType = "GEN2_8_DMA",
+								displayName = "GENERIC_DISPLAY",
 								graphicSupported = true,
 								imageCapabilities =
 								{
@@ -3253,7 +3250,23 @@ local function setGVDResponse(paramsSend)
 			gps =
 				{
 					longitudeDegrees = 25.5,
-					latitudeDegrees = 45.5
+					latitudeDegrees = 45.5,
+					utcYear = 2010,
+					utcMonth = 1,
+					utcDay = 1,
+					utcHours = 2,
+					utcMinutes = 3,
+					utcSeconds = 4,
+					compassDirection = "NORTH",
+					pdop = 1.1,
+					hdop = 2.2,
+					vdop = 3.3,
+					actual = true,
+					satellites = 5,
+					dimension = "NO_FIX",
+					altitude = 4.4,
+					heading = 5.5,
+					speed = 100
 				},
 			speed = 100.5,
 			rpm = 1000,
@@ -3265,10 +3278,30 @@ local function setGVDResponse(paramsSend)
 			prndl="DRIVE",
 			tirePressure={
 					pressureTelltale = "ON",
+					leftFront = { status = "NORMAL" },
+					rightFront = { status = "NORMAL" },
+					leftRear = { status = "NORMAL" },
+					rightRear = { status = "NORMAL" },
+					innerLeftRear = { status = "NORMAL" },
+					innerRightRear = { status = "NORMAL" }
 				},
 			odometer= 8888,
 			beltStatus={
-					driverBeltDeployed = "NOT_SUPPORTED"
+					driverBeltDeployed = "NOT_SUPPORTED",
+					passengerBeltDeployed = "YES",
+					passengerBuckleBelted = "YES",
+					driverBuckleBelted = "YES",
+					leftRow2BuckleBelted = "YES",
+					passengerChildDetected = "YES",
+					rightRow2BuckleBelted = "YES",
+					middleRow2BuckleBelted = "YES",
+					middleRow3BuckleBelted = "YES",
+					leftRow3BuckleBelted = "YES",
+					rightRow3BuckleBelted = "YES",
+					leftRearInflatableBelted = "YES",
+					rightRearInflatableBelted = "YES",
+					middleRow1BeltDeployed = "YES",
+					middleRow1BuckleBelted = "YES"
 				},
 			bodyInformation={
 					parkBrakeActive = true,
@@ -3276,7 +3309,17 @@ local function setGVDResponse(paramsSend)
 					ignitionStatus = "UNKNOWN"
 				},
 			deviceStatus={
-					voiceRecOn = true
+					voiceRecOn = true,
+					btIconOn = true,
+					callActive = true,
+					phoneRoaming = true,
+					textMsgAvailable = true,
+					battLevelStatus = "ONE_LEVEL_BARS",
+					stereoAudioOutputMuted = true,
+					monoAudioOutputMuted = true,
+					signalLevelStatus = "TWO_LEVEL_BARS",
+					primaryAudioSource = "USB",
+					eCallEventActive = true
 				},
 			driverBraking="NOT_SUPPORTED",
 			wiperStatus="MAN_LOW",

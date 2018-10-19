@@ -109,7 +109,7 @@ config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd40
 --ToDo: shall be removed when APPLINK-16610 is fixed
 config.defaultProtocolVersion = 2
 
-local storagePath  = config.pathToSDL .. "storage/"..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
+local storagePath  = config.pathToSDL .. "storage/"..config.application1.registerAppInterfaceParams.fullAppID.. "_" .. config.deviceMAC.. "/"
 
 local function SendOnSystemContext(self, ctx)
   self.hmiConnection:SendNotification("UI.OnSystemContext",{ appID = self.applications["Test Application"], systemContext = ctx })
@@ -466,7 +466,7 @@ function Test:SetGlobalProperties()
         appID = self.applications["Test Application"]
       })
       :ValidIf(function(_,data)
-          local path  = "bin/storage/"..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
+          local path  = "bin/storage/"..config.application1.registerAppInterfaceParams.fullAppID.. "_" .. config.deviceMAC.. "/"
           local value_menuIcon = path .. "action.png"
           
           if(data.params.menuIcon.imageType == "DYNAMIC") then
@@ -1101,7 +1101,7 @@ end
                    }
           })
           :ValidIf(function(_,data)
-              local path  = "bin/storage/"..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
+              local path  = "bin/storage/"..config.application1.registerAppInterfaceParams.fullAppID.. "_" .. config.deviceMAC.. "/"
               local value_menuIcon = path .. "action.png"
               -- params graphic
               if(data.params.graphic.imageType == "DYNAMIC") then
@@ -1695,7 +1695,7 @@ end
       }
       )
       :ValidIf(function(_,data)
-          local path  = "bin/storage/"..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
+          local path  = "bin/storage/"..config.application1.registerAppInterfaceParams.fullAppID.. "_" .. config.deviceMAC.. "/"
           local value_menuIcon = path .. "action.png"
           -- params turnIcon
           if(data.params.turnIcon.imageType == "DYNAMIC") then
@@ -2005,7 +2005,7 @@ end
       -- }
     })
     :ValidIf(function(_,data)
-          local path  = "bin/storage/"..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
+          local path  = "bin/storage/"..config.application1.registerAppInterfaceParams.fullAppID.. "_" .. config.deviceMAC.. "/"
           local value_menuIcon = path .. "action.png"
           
           if(data.params.syncFileName.imageType == "DYNAMIC") then

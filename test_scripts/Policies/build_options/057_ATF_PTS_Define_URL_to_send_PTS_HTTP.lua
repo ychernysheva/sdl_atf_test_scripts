@@ -18,10 +18,6 @@
 -- SDL.GetURLs({urls[] = default}, (<urls>, appID))
 -- SDL-> <app ID> ->OnSystemRequest(params, url, timeout)
 ---------------------------------------------------------------------------------------------
-
---[[ General configuration parameters ]]
-config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
-
 --[[ Required Shared libraries ]]
 local mobileSession = require("mobile_session")
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
@@ -200,7 +196,7 @@ function Test:RegisterApp_2()
       print("SDL->MOB2: OnSystemRequest, requestType: " .. data.payload.requestType)
       if(data.payload.requestType == "HTTP") then
         if(data.payload.url ~= nil) then
-          r_actual_app = 1
+          r_actual_app = 2
           r_actual_url = data.payload.url
         end
       end
@@ -211,7 +207,7 @@ function Test:RegisterApp_2()
       print("SDL->MOB1: OnSystemRequest, requestType: " .. data.payload.requestType)
       if(data.payload.requestType == "HTTP") then
         if(data.payload.url ~= nil) then
-          r_actual_app = 2
+          r_actual_app = 1
           r_actual_url = data.payload.url
         end
       end

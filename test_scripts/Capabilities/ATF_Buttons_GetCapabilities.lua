@@ -17,7 +17,7 @@ require('user_modules/AppTypes')
 config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 --ToDo: shall be removed when APPLINK-16610 is fixed
 config.defaultProtocolVersion = 2
-local storagePath = config.pathToSDL .. "storage/" ..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
+local storagePath = config.pathToSDL .. "storage/" ..config.application1.registerAppInterfaceParams.fullAppID.. "_" .. config.deviceMAC.. "/"
 ---------------------------------------------------------------------------------------------
 ------------------------------------ Common Variables And Functions -------------------------
 ---------------------------------------------------------------------------------------------
@@ -26,13 +26,14 @@ local ButtonNames_NoCUSTOM_BUTTON
 local ButtonNames_NoCUSTOM_BUTTON_OK
 if config.application1.registerAppInterfaceParams.isMediaApplication then
 
-	ButtonNames_NoCUSTOM_BUTTON = {"OK","SEEKLEFT","SEEKRIGHT", "TUNEUP", "TUNEDOWN","PRESET_0", "PRESET_1", "PRESET_2", "PRESET_3", "PRESET_4", "PRESET_5", "PRESET_6", "PRESET_7", "PRESET_8", "PRESET_9", "SEARCH"}
+	ButtonNames_NoCUSTOM_BUTTON = {"OK","PLAY_PAUSE","SEEKLEFT","SEEKRIGHT", "TUNEUP", "TUNEDOWN","PRESET_0", "PRESET_1", "PRESET_2", "PRESET_3", "PRESET_4", "PRESET_5", "PRESET_6", "PRESET_7", "PRESET_8", "PRESET_9", "SEARCH"}
 										
-	ButtonNames_NoCUSTOM_BUTTON_OK = {"SEEKLEFT","SEEKRIGHT", "TUNEUP", "TUNEDOWN", "PRESET_0", "PRESET_1", "PRESET_2", "PRESET_3", "PRESET_4", "PRESET_5", "PRESET_6", "PRESET_7", "PRESET_8", "PRESET_9", "SEARCH"}
+	ButtonNames_NoCUSTOM_BUTTON_OK = {"PLAY_PAUSE","SEEKLEFT","SEEKRIGHT", "TUNEUP", "TUNEDOWN", "PRESET_0", "PRESET_1", "PRESET_2", "PRESET_3", "PRESET_4", "PRESET_5", "PRESET_6", "PRESET_7", "PRESET_8", "PRESET_9", "SEARCH"}
 	
 	-- group of media buttons, this group  should be updated with PRESETS 0-9 due to APPLINK-14516 (APPLINK-14503)
 	MediaButtons = 
 					{
+						"PLAY_PAUSE",
 						"SEEKLEFT",
 						"SEEKRIGHT",
 						"TUNEUP",
@@ -84,6 +85,7 @@ local Input_Timeoutcapabilities =
       		button_capability("PRESET_8"),
       		button_capability("PRESET_9"),
       		button_capability("OK", true, false, true),
+      		button_capability("PLAY_PAUSE"),
       		button_capability("SEEKLEFT"),
       		button_capability("SEEKRIGHT"),
       		button_capability("TUNEUP"),
@@ -110,6 +112,7 @@ local Input_ButtonsCapabilities_RAI =
       		button_capability("PRESET_8"),
       		button_capability("PRESET_9"),
       		button_capability("OK", true, false, true),
+      		button_capability("PLAY_PAUSE"),
       		button_capability("SEEKLEFT"),
       		button_capability("SEEKRIGHT"),
       		button_capability("TUNEUP"),
@@ -373,6 +376,7 @@ local function HMI_Send_Button_GetCapabilities_Response(Input_capabilities)
 			displayCapabilities =
 			{
 			  displayType = "GEN2_8_DMA",
+			  displayName = "GENERIC_DISPLAY",
 			  textFields =
 			  {
 				text_field("mainField1"),
@@ -603,6 +607,7 @@ local function HMI_Send_Button_GetCapabilities_Response_Timeout(Input_Timeoutcap
 		      button_capability("PRESET_8"),
 		      button_capability("PRESET_9"),
 		      button_capability("OK", true, false, true),
+		      button_capability("PLAY_PAUSE"),
 		      button_capability("SEEKLEFT"),
 		      button_capability("SEEKRIGHT"),
 		      button_capability("TUNEUP"),
@@ -657,6 +662,7 @@ local function HMI_Send_Button_GetCapabilities_Response_Timeout(Input_Timeoutcap
 			displayCapabilities =
 			{
 			  displayType = "GEN2_8_DMA",
+			  displayName = "GENERIC_DISPLAY",
 			  textFields =
 	        {
 	          text_field("mainField1"),
@@ -888,6 +894,7 @@ local function HMI_Send_Button_GetCapabilities_Response_Invalid()
 		      button_capability("PRESET_8"),
 		      button_capability("PRESET_9"),
 		      button_capability("OK", true, false, true),
+		      button_capability("PLAY_PAUSE"),
 		      button_capability("SEEKLEFT"),
 		      button_capability("SEEKRIGHT"),
 		      button_capability("TUNEUP"),
@@ -942,6 +949,7 @@ local function HMI_Send_Button_GetCapabilities_Response_Invalid()
 			displayCapabilities =
 			{
 			  displayType = "GEN2_8_DMA",
+			  displayName = "GENERIC_DISPLAY",
 			  textFields =
 	        {
 	          text_field("mainField1"),
@@ -1195,6 +1203,7 @@ stopSDL()
 	--APPLINK-20199: [HMI API]Buttons.GetCapabilities request/response 
 	--Description: Defines the hard (physical) and soft (touchscreen) buttons available from SYNC
 					--OK
+					--PLAY_PAUSE
 					--SEEKLEFT
 					--SEEKRIGHT
 					--TUNEUP
@@ -1240,6 +1249,7 @@ stopSDL()
 					button_capability("PRESET_8"),
 					button_capability("PRESET_9"),
 					button_capability("OK", true, false, true),
+					button_capability("PLAY_PAUSE"),
 					button_capability("SEEKLEFT"),
 					button_capability("SEEKRIGHT"),
 					button_capability("TUNEUP"),
@@ -1270,6 +1280,7 @@ stopSDL()
 					button_capability("PRESET_8"),
 					button_capability("PRESET_9"),
 					button_capability("OK", true, false, true),
+					button_capability("PLAY_PAUSE"),
 					button_capability("SEEKLEFT"),
 					button_capability("SEEKRIGHT"),
 					button_capability("TUNEUP"),

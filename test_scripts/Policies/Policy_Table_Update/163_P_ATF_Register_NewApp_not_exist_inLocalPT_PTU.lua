@@ -16,13 +16,13 @@
 -------------------------------------------------------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
 config.defaultProtocolVersion = 2
-config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 
 --[[ Required Shared libraries ]]
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local mobile_session = require('mobile_session')
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
+local utils = require ('user_modules/utils')
 
 --[[ Local Functions ]]
 local registerAppInterfaceParams =
@@ -60,17 +60,17 @@ require("user_modules/AppTypes")
 commonFunctions:newTestCasesGroup ("Preconditions")
 
 function Test:Precondition_trigger_getting_device_consent()
-  testCasesForPolicyTable:trigger_getting_device_consent(self, config.application1.registerAppInterfaceParams.appName, config.deviceMAC)
+  testCasesForPolicyTable:trigger_getting_device_consent(self, config.application1.registerAppInterfaceParams.appName, utils.getDeviceMAC())
 end
 
 function Test:Precondition_PolicyUpdateStarted()
 
   local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
   EXPECT_HMIRESPONSE(RequestIdGetURLS)
-  :Do(function(_,_)
+  :Do(function(_, data)
       self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",{
           requestType = "PROPRIETARY",
-          url = "http://policies.telematics.ford.com/api/policies",
+          url = data.result.urls[1].url,
           appID = self.applications [config.application1.registerAppInterfaceParams.appName],
           fileName = "sdl_snapshot.json"
         })
@@ -97,7 +97,7 @@ function Test:TestStep_CheckThatAppID_BothApps_Present_In_DataBase()
   local PolicyDBPath = tostring(config.pathToSDL) .. "/storage/policy.sqlite"
   os.execute(" sleep 2 ")
 
-  local query = " select functional_group_id from app_group where application_id = '"..tostring(config.application1.registerAppInterfaceParams.appID).."' "
+  local query = " select functional_group_id from app_group where application_id = '"..tostring(config.application1.registerAppInterfaceParams.fullAppID).."' "
   local AppId_1 = commonFunctions:get_data_policy_sql(PolicyDBPath, query)
   local AppIdValue_1
   for _,v in pairs(AppId_1) do
@@ -105,12 +105,12 @@ function Test:TestStep_CheckThatAppID_BothApps_Present_In_DataBase()
   end
 
   if AppIdValue_1 == nil then
-    commonFunctions:printError("ERROR: Value in DB for app: "..tostring(config.application1.registerAppInterfaceParams.appID).."is unexpected value nil")
+    commonFunctions:printError("ERROR: Value in DB for app: "..tostring(config.application1.registerAppInterfaceParams.fullAppID).."is unexpected value nil")
     is_test_fail = true
   else
     -- default group
     if(AppIdValue_1 ~= "686787169") then
-      commonFunctions:printError("ERROR: Application: "..tostring(config.application1.registerAppInterfaceParams.appID).."is not assigned to default group(686787169). Real: "..AppIdValue_1)
+      commonFunctions:printError("ERROR: Application: "..tostring(config.application1.registerAppInterfaceParams.fullAppID).."is not assigned to default group(686787169). Real: "..AppIdValue_1)
       is_test_fail = true
     end
   end

@@ -16,33 +16,24 @@
 
 -- Expected:
 -- 2. PoliciesManager increment "count_of_rpcs_sent_in_hmi_none" at LocalPT for this app
-
---[[ General configuration parameters ]]
-config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
-
+---------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
-local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
+local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
+local testCasesForPolicyTable = require("user_modules/shared_testcases/testCasesForPolicyTable")
 
 --[[ General Precondition before ATF start ]]
+config.defaultProtocolVersion = 2
 commonSteps:DeleteLogsFileAndPolicyTable()
+testCasesForPolicyTable:Precondition_updatePolicy_By_overwriting_preloaded_pt("files/ptu_general.json")
 
 --[[ General Settings for configuration ]]
-Test = require('connecttest')
-require('cardinalities')
+Test = require("connecttest")
 require('user_modules/AppTypes')
 
 --[[ Test ]]
 function Test:SendDissalowedRpcInNone()
-  local cid = self.mobileSession:SendRPC("AddCommand",
-    {
-      cmdID = 10,
-      menuParams =
-      {
-        position = 0,
-        menuName ="Command"
-      }
-    })
+  local cid = self.mobileSession:SendRPC("GetVehicleData", { gps = true})
   EXPECT_RESPONSE(cid, { success = false, resultCode = "DISALLOWED" })
 end
 
@@ -55,5 +46,7 @@ function Test:CheckDB_updated_count_of_rejections_duplicate_name()
     self:FailTestCase("DB doesn't include expected value for count_of_rpcs_sent_in_hmi_none. Exp: "..exp_result[1])
   end
 end
+
+testCasesForPolicyTable:Restore_preloaded_pt()
 
 return Test

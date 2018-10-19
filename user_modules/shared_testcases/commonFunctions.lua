@@ -7,6 +7,8 @@ local commonFunctions = {}
 local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 require('atf.util')
 local json = require('json4lua/json/json')
+local expectations = require('expectations')
+local events = require('events')
 
 require('modules/config')
 local NewTestSuiteNumber = 0 -- use as subfix of test case "NewTestSuite" to make different test case name.
@@ -130,11 +132,6 @@ function commonFunctions:createMultipleExpectationsWaiter(test, name)
   return exp_waiter
 end
 
-function commonFunctions:userPrint( color, message, delimeter)
-  delimeter = delimeter or "\n"
-  io.write("\27[" .. tostring(color) .. "m" .. tostring(message) .. "\27[0m", delimeter)
-end
-
 --1. Functions for String
 ---------------------------------------------------------------------------------------------
 function commonFunctions:createString(length)
@@ -170,6 +167,28 @@ function commonFunctions:createArrayInteger(size, value)
   end
   return temp
 
+end
+
+function commonFunctions:createArrayEnum(size, value)
+
+  local temp = {}
+  for i = 1, size do
+    table.insert(temp, value)
+  end
+  return temp
+
+end
+
+function commonFunctions:buildColoredString(color, message)
+  if config.color then
+    return "\27[" .. tostring(color) .. "m" .. tostring(message) .. "\27[0m"
+  end
+  return message
+end
+
+function commonFunctions:userPrint( color, message, delimeter)
+  delimeter = delimeter or "\n"
+  io.write(commonFunctions:buildColoredString(color, message), delimeter)
 end
 ---------------------------------------------------------------------------------------------
 
@@ -315,6 +334,14 @@ function commonFunctions:is_table_equal(table1, table2)
     return false
   end
   return true
+end
+
+function commonFunctions:table_contains(table, value)
+  if not table then return false end
+  for _,val in pairs(table) do
+    if val == value then return true end
+  end
+  return false
 end
 ---------------------------------------------------------------------------------------------
 
@@ -480,7 +507,6 @@ function commonFunctions:verify_Unsuccess_Case(self, Request, ResultCode)
 
   --mobile side: expect the response
   EXPECT_RESPONSE(cid, { success = false, resultCode = ResultCode })
-  :Timeout(50)
 
   messageflag = true
 end
@@ -854,7 +880,7 @@ end
 --14. Functions for SDL stop
 ---------------------------------------------------------------------------------------------
 function commonFunctions:SDLForceStop(self)
-  os.execute("ps aux | grep smart | awk \'{print $2}\' | xargs kill -9")
+  os.execute("ps aux | grep ./smartDeviceLinkCore | awk '{print $2}' | xargs kill -9")
   commonFunctions:sleep(1)
 end
 
@@ -901,13 +927,14 @@ function commonFunctions:write_parameter_to_smart_device_link_ini(param_name, pa
   local result = false
   for line in io.lines(path_to_ini_file) do
     if is_find_string == false then
-      if string.match(line, "^%s*"..param_name.."%s*=%s*") ~= nil then
+      if string.match(line, "[; ]*"..param_name..".*=.*") ~= nil then
         line = param_name.." = "..param_value
         is_find_string = true
       end
     end
     new_file_content = new_file_content..line.."\n"
   end
+  
   if is_find_string == true then
     local file = io.open(path_to_ini_file, "w")
     if file then
@@ -1313,5 +1340,21 @@ function commonFunctions:pathJoin(...)
   args[#args]  = string.sub(args[#args], -1) == "/" and string.sub(args[#args], 1, -2) or args[#args]
   return table.concat(args, "/")
 end
+
+function commonFunctions.getURLs(pService)
+  local utils = require ('user_modules/utils')
+  local function getPathToSDL()
+    local pathToSDL = config.pathToSDL
+    if pathToSDL:sub(-1) ~= '/' then
+      pathToSDL = pathToSDL .. "/"
+    end
+    return pathToSDL
+  end
+  local fileName = getPathToSDL() .. commonFunctions:read_parameter_from_smart_device_link_ini("PreloadedPT")
+  local tbl = utils.jsonFileToTable(fileName)
+  local url = tbl.policy_table.module_config.endpoints[pService].default
+  return url
+end
+
 
 return commonFunctions

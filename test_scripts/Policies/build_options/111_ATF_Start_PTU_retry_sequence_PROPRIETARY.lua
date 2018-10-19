@@ -21,7 +21,6 @@
 -- SDL->HMI: SDL.OnStatusUpdate(UPDATE_NEEDED)
 ---------------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
-config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 config.application1.registerAppInterfaceParams.appHMIType = { "MEDIA" }
 config.defaultProtocolVersion = 2
 
@@ -113,6 +112,7 @@ function Test:TestStep_RetrySequenceStart()
 
   EXPECT_HMICALL("BasicCommunication.PolicyUpdate"):Times(0)
   self.mobileSession:ExpectNotification("OnSystemRequest", { requestType = "PROPRIETARY" }):Times(1)
+  :Timeout(40000)
 
   commonTestCases:DelayedExp(40000)
 end

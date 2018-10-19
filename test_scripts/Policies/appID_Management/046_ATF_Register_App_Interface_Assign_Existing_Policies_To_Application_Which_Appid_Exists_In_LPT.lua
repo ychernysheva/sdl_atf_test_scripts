@@ -19,12 +19,13 @@
 -- Permissions in payload of OnPermissionsChange() notification is the same as defined in LPT (specific)
 ---------------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
-config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
+config.defaultProtocolVersion = 2
 
 --[[ Required Shared libraries ]]
 local mobileSession = require("mobile_session")
 local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
 local commonSteps = require("user_modules/shared_testcases/commonSteps")
+local utils = require ('user_modules/utils')
 
 --[[ Local Variables ]]
 local policy_file_name = "PolicyTableUpdate"
@@ -57,7 +58,7 @@ commonSteps:DeleteLogsFileAndPolicyTable()
 --[[ General Settings for configuration ]]
 Test = require("connecttest")
 require("user_modules/AppTypes")
-config.application2.registerAppInterfaceParams.appID = "123_xyz"
+config.application2.registerAppInterfaceParams.fullAppID = "123_xyz"
 
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
@@ -72,7 +73,7 @@ function Test:ActivateApp()
     EXPECT_HMIRESPONSE(requestId2)
     :Do(function(_, _)
     self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality",
-    { allowed = true, source = "GUI", device = { id = config.deviceMAC, name = "127.0.0.1" } })
+    { allowed = true, source = "GUI", device = { id = utils.getDeviceMAC(), name = utils.getDeviceName() } })
     EXPECT_HMICALL("BasicCommunication.ActivateApp")
     :Do(function(_, data2)
     self.hmiConnection:SendResponse(data2.id,"BasicCommunication.ActivateApp", "SUCCESS", { })
@@ -137,14 +138,10 @@ function Test:TestStep4_RegisterNewApp()
 end
 
 function Test:TestStep5_ValidateResult()
-  self.mobileSession:ExpectAny()
-  :ValidIf(function(_, _)
   if not is_table_equal(r_expected, r_actual) then
-    return false, "\nExpected RPCs:\n" .. commonFunctions:convertTableToString(r_expected, 1) .. "\nActual RPCs:\n" .. commonFunctions:convertTableToString(r_actual, 1)
+    self:FailTestCase("\nExpected RPCs:\n" .. commonFunctions:convertTableToString(r_expected, 1)
+      .. "\nActual RPCs:\n" .. commonFunctions:convertTableToString(r_actual, 1))
   end
-  return true
-  end)
-  :Times(1)
 end
 
 --[[ Postconditions ]]

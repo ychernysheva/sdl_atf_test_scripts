@@ -90,7 +90,7 @@ function Check_menuIconParams(data, type_icon, value)
 	if(type_icon == nil) then type_icon = "DYNAMIC" end
 	
 	local result = true
-	local path = "bin/storage/"..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
+	local path = "bin/storage/"..config.application1.registerAppInterfaceParams.fullAppID.. "_" .. config.deviceMAC.. "/"
 	local value_Icon = value--"action.png"
 	
 	if (type_icon == "DYNAMIC") then
@@ -431,14 +431,14 @@ function Test:initHMI_onReady_TTS_IsReady(case)
 		},
 		presetBankCapabilities = { onScreenPresetsAvailable = true }
 	}
-	local speech_capabilities = {"TEXT", "SAPI_PHONEMES", "LHPLUS_PHONEMES", "PRE_RECORDED", "SILENCE"}
+	local speech_capabilities = {"TEXT", "SAPI_PHONEMES", "LHPLUS_PHONEMES", "PRE_RECORDED", "SILENCE", "FILE"}
 	ExpectRequest("Buttons.GetCapabilities", true, buttons_capabilities)
 	ExpectRequest("VR.GetCapabilities", true, { vrCapabilities = { "TEXT" } })
 	ExpectRequest("TTS.GetCapabilities", true, speech_capabilities)
 	:Times(0)
 	
 	ExpectRequest("TTS.GetCapabilities", true, {
-		speechCapabilities = { "TEXT", "SAPI_PHONEMES", "LHPLUS_PHONEMES", "PRE_RECORDED", "SILENCE" },
+		speechCapabilities = { "TEXT", "SAPI_PHONEMES", "LHPLUS_PHONEMES", "PRE_RECORDED", "SILENCE", "FILE" },
 		prerecordedSpeechCapabilities =
 		{
 			"HELP_JINGLE",
@@ -483,6 +483,7 @@ function Test:initHMI_onReady_TTS_IsReady(case)
 		displayCapabilities =
 		{
 			displayType = "GEN2_8_DMA",
+			displayName = "GENERIC_DISPLAY",
 			textFields =
 			{
 				text_field("mainField1"),

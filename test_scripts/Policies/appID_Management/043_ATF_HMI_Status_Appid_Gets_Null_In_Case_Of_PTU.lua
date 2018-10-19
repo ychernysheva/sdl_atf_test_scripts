@@ -20,9 +20,7 @@
 -- OnHMIStatus: hmiLevel="NONE", systemContext="MAIN", audioStreamingState="NOT_AUDIBLE"
 --
 ---------------------------------------------------------------------------------------------
-
 --[[ General configuration parameters ]]
-config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 config.application1.registerAppInterfaceParams.appName = "App1"
 config.application1.registerAppInterfaceParams.appHMIType = { "DEFAULT" }
 config.application2.registerAppInterfaceParams.appHMIType = { "MEDIA" }
@@ -34,6 +32,7 @@ local testCasesForPolicyAppIdManagament = require("user_modules/shared_testcases
 local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
 local commonSteps = require("user_modules/shared_testcases/commonSteps")
 local testCasesForPolicyTable = require('user_modules/shared_testcases/testCasesForPolicyTable')
+local utils = require ('user_modules/utils')
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
@@ -46,7 +45,7 @@ local HMIAppID
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
 function Test:Pecondition_trigger_getting_device_consent()
-  testCasesForPolicyTable:trigger_getting_device_consent(self, config.application1.registerAppInterfaceParams.appName, config.deviceMAC)
+  testCasesForPolicyTable:trigger_getting_device_consent(self, config.application1.registerAppInterfaceParams.appName, utils.getDeviceMAC())
 end
 
 function Test:UpdatePolicy()
@@ -60,7 +59,7 @@ end
 
 function Test:RegisterNewApp()
   config.application2.registerAppInterfaceParams.appName = "Media Application"
-  config.application2.registerAppInterfaceParams.appID = "123_xyz"
+  config.application2.registerAppInterfaceParams.fullAppID = "123_xyz"
   local correlationId = self.mobileSession2:SendRPC("RegisterAppInterface", config.application2.registerAppInterfaceParams)
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered")
   :Do(function(_,data)
@@ -85,44 +84,50 @@ function Test:TestStep_UpdatePolicy()
   local file = "files/jsons/Policies/appID_Management/ptu_013_2.json"
   local policy_file_path = commonFunctions:read_parameter_from_smart_device_link_ini("SystemFilesPath")
 
-  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", { status = "UPDATING" }, { status = "UP_TO_DATE" }):Times(2)
-  local requestId = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
-  EXPECT_HMIRESPONSE(requestId, {result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
-  :Do(function()
+  EXPECT_HMICALL("BasicCommunication.PolicyUpdate",
+  {
+    file = "/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json"
+  })
+  :Do(function(_, data1)
+    EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", { status = "UPDATING" }, { status = "UP_TO_DATE" }):Times(2)
+    self.hmiConnection:SendResponse(data1.id, data1.method, "SUCCESS", {})
+    local requestId = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
+    EXPECT_HMIRESPONSE(requestId)
+    :Do(function()
+        self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest", { requestType = "PROPRIETARY", fileName = policy_file_name })
 
-      self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest", { requestType = "PROPRIETARY", fileName = policy_file_name })
+        local request_received = false
 
-      local request_received = false
+        -- Steps in case OnSystemRequest is sent to application 1
+        self.mobileSession:ExpectNotification("OnSystemRequest", { requestType = "PROPRIETARY" }):Times(Between(0,1))
+        :Do(function()
+            print("OnSystemRequest for App1 is received")
+            if(request_received == true) then
+              self:FailTestCase("OnSystemRequest already received for application 2")
+            end
+            request_received = true
+            local corIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", { requestType = "PROPRIETARY", fileName = policy_file_name }, file)
+            self.mobileSession:ExpectResponse(corIdSystemRequest, { success = true, resultCode = "SUCCESS"})
+          end)
 
-      -- Steps in case OnSystemRequest is sent to application 1
-      self.mobileSession:ExpectNotification("OnSystemRequest", { requestType = "PROPRIETARY" }):Times(Between(0,1))
-      :Do(function()
-          print("OnSystemRequest for App1 is received")
-          if(request_received == true) then
-            self:FailTestCase("OnSystemRequest already received for application 2")
-          end
-          request_received = true
-          local corIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", { requestType = "PROPRIETARY", fileName = policy_file_name }, file)
-          self.mobileSession:ExpectResponse(corIdSystemRequest, { success = true, resultCode = "SUCCESS"})
-        end)
+        -- Steps in case OnSystemRequest is sent to application 2
+        self.mobileSession2:ExpectNotification("OnSystemRequest", { requestType = "PROPRIETARY" }):Times(Between(0,1))
+        :Do(function()
+            print("OnSystemRequest for App2 is received")
+            if(request_received == true) then
+              self:FailTestCase("OnSystemRequest already received for application 1")
+            end
+            request_received = true
+            local corIdSystemRequest = self.mobileSession2:SendRPC("SystemRequest", { requestType = "PROPRIETARY", fileName = policy_file_name }, file)
+            self.mobileSession2:ExpectResponse(corIdSystemRequest, { success = true, resultCode = "SUCCESS"})
+          end)
 
-      -- Steps in case OnSystemRequest is sent to application 2
-      self.mobileSession2:ExpectNotification("OnSystemRequest", { requestType = "PROPRIETARY" }):Times(Between(0,1))
-      :Do(function()
-          print("OnSystemRequest for App2 is received")
-          if(request_received == true) then
-            self:FailTestCase("OnSystemRequest already received for application 1")
-          end
-          request_received = true
-          local corIdSystemRequest = self.mobileSession2:SendRPC("SystemRequest", { requestType = "PROPRIETARY", fileName = policy_file_name }, file)
-          self.mobileSession2:ExpectResponse(corIdSystemRequest, { success = true, resultCode = "SUCCESS"})
-        end)
-
-      EXPECT_HMICALL("BasicCommunication.SystemRequest",{requestType = "PROPRIETARY", fileName = policy_file_path.."/"..policy_file_name },file)
-      :Do(function(_, data)
-          self.hmiConnection:SendResponse(data.id, "BasicCommunication.SystemRequest", "SUCCESS", {})
-          self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate", { policyfile = policy_file_path.."/"..policy_file_name} )
-        end)
+        EXPECT_HMICALL("BasicCommunication.SystemRequest",{requestType = "PROPRIETARY", fileName = policy_file_path.."/"..policy_file_name },file)
+        :Do(function(_, data)
+            self.hmiConnection:SendResponse(data.id, "BasicCommunication.SystemRequest", "SUCCESS", {})
+            self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate", { policyfile = policy_file_path.."/"..policy_file_name} )
+          end)
+      end)
     end)
 
   EXPECT_HMINOTIFICATION("SDL.OnAppPermissionChanged", { appID = HMIAppID, appRevoked = true})

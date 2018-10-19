@@ -19,9 +19,7 @@
 -- Expected:
 -- 4. PolciesManager writes <languageDesired> to "app_registration_language_gui" field at LocalPT
 ---------------------------------------------------------------------------------------------
-
 --[[ General configuration parameters ]]
-config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 config.application1.registerAppInterfaceParams.appHMIType = { "MEDIA" }
 config.defaultProtocolVersion = 2
 
@@ -66,6 +64,7 @@ local application1 =
     hmiDisplayLanguageDesired = language_desired,
     appHMIType = { "NAVIGATION" },
     appID = "0000001",
+    fullAppID = "0000001",
     deviceInfo =
     {
       os = "Android",
@@ -125,7 +124,7 @@ function Test:Precondition_StartSession()
 end
 
 function Test.Precondition_PreparePTData()
-  PrepareJsonPTU1(application1.registerAppInterfaceParams.appID, ptu_first_app_registered)
+  PrepareJsonPTU1(application1.registerAppInterfaceParams.fullAppID, ptu_first_app_registered)
 end
 
 function Test:RegisterFirstApp()
@@ -152,7 +151,7 @@ function Test:CheckDB_app_registration_language_gui()
 end
 
 function Test.Precondition_PreparePTData()
-  PrepareJsonPTU1(application1.registerAppInterfaceParams.appID, ptu_first_app_registered)
+  PrepareJsonPTU1(application1.registerAppInterfaceParams.fullAppID, ptu_first_app_registered)
 end
 
 --[[ Test ]]

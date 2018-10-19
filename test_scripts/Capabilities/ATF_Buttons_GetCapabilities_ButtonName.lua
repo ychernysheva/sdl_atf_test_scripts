@@ -34,6 +34,7 @@ local ButtonNames = {
 						"PRESET_8",
 						"PRESET_9",
 						"OK",
+						"PLAY_PAUSE",
 						"SEEKLEFT",
 						"SEEKRIGHT",
 						"TUNEUP",
@@ -229,6 +230,7 @@ local function HMI_Send_Button_GetCapabilities_Response(Input_capabilities)
 			displayCapabilities =
 			{
 			  displayType = "GEN2_8_DMA",
+			  displayName = "GENERIC_DISPLAY",
 			  textFields =
 			  {
 				text_field("mainField1"),
@@ -413,6 +415,7 @@ stopSDL()
 	--SDLAQ-N_CRS-148: ButtonName
 	--Description: Defines the hard (physical) and soft (touchscreen) buttons available from SYNC
 					--OK
+					--PLAY_PAUSE
 					--SEEKLEFT
 					--SEEKRIGHT
 					--TUNEUP
@@ -457,6 +460,7 @@ stopSDL()
 					button_capability("PRESET_8"),
 					button_capability("PRESET_9"),
 					button_capability("OK", true, false, true),
+					button_capability("PLAY_PAUSE"),
 					button_capability("SEEKLEFT"),
 					button_capability("SEEKRIGHT"),
 					button_capability("TUNEUP"),

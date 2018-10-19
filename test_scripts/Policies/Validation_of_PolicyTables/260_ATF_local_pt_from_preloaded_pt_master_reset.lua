@@ -15,9 +15,6 @@
 -- Expected result:
 -- SDL must populate the LocalPT with items from PreloadedPT
 ---------------------------------------------------------------------------------------------
---[[ General configuration parameters ]]
-config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
-
 --[[ Required Shared libraries ]]
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require ('user_modules/shared_testcases/commonSteps')
@@ -276,8 +273,8 @@ function Test:CheckLocalPT()
      expectedValues = {"NONE|"..tostring(TESTED_DATA[1].module_config.notifications_per_minute_by_priority.NONE)} },
       { query = 'select * from seconds_between_retry',
      expectedValues = {"0|"..tostring(TESTED_DATA[1].module_config.seconds_between_retries[1])} },
-     { query = 'select * from endpoint where service is 4',
-     expectedValues = {"4|http://ivsu.software.ford.com/api/getsoftwareupdates|default"} },
+     { query = 'select * from endpoint where service is "0x04"',
+     expectedValues = {"0x04|http://ivsu.software.ford.com/api/getsoftwareupdates|default"} },
    }
 
   if not self.checkLocalPT(checks) then

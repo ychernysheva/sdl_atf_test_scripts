@@ -29,9 +29,7 @@
 -- PoliciesManager: update "<appID>" subsection of "user_consent_records" subsection of "<device_identifier>" section of "device_data" section in Local PT.
 -- c) SDL responds SUCCESS to allowed by USER RPC and DISALLOW to disallowed by Policy RPC.
 ---------------------------------------------------------------------------------------------
-
 --[[ General configuration parameters ]]
-config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 --ToDo: shall be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
 config.defaultProtocolVersion = 2
 
@@ -42,37 +40,13 @@ local commonTestCases = require ('user_modules/shared_testcases/commonTestCases'
 local commonPreconditions = require ('user_modules/shared_testcases/commonPreconditions')
 local testCasesForPolicyTableSnapshot = require ('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
 local testCasesForPolicyTable = require ('user_modules/shared_testcases/testCasesForPolicyTable')
+local utils = require ('user_modules/utils')
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
 commonPreconditions:Connecttest_without_ExitBySDLDisconnect_WithoutOpenConnectionRegisterApp("connecttest_connect_device.lua")
 --TODO(istoimenova): shall be removed when issue: "ATF does not stop HB timers by closing session and connection" is fixed
 config.defaultProtocolVersion = 2
-
---[[ Local variables ]]
-local RPC_Permission_for_1234567 = {}
-
---[[ Local Functions ]]
-local function Get_RPCs()
-  --Permission_for_1234567
-  testCasesForPolicyTableSnapshot:extract_pts()
-
-  for i = 1, #testCasesForPolicyTableSnapshot.pts_elements do
-
-    if ( string.sub(testCasesForPolicyTableSnapshot.pts_elements[i].name,1,string.len("functional_groupings.Permission_for_1234567.rpcs.")) == "functional_groupings.Permission_for_1234567.rpcs." ) then
-      local str = string.match(testCasesForPolicyTableSnapshot.pts_elements[i].name, "functional_groupings%.Permission_for_1234567%.rpcs%.(%S+)%.%S+%.%S+")
-      if(#RPC_Permission_for_1234567 == 0) then
-        RPC_Permission_for_1234567[#RPC_Permission_for_1234567 + 1] = str
-      end
-
-      if(RPC_Permission_for_1234567[#RPC_Permission_for_1234567] ~= str) then
-        RPC_Permission_for_1234567[#RPC_Permission_for_1234567 + 1] = str
-        -- allowed_rps[#allowed_rps + 1] = str
-      end
-    end
-  end
-
-end
 
 --[[ General Settings for configuration ]]
 Test = require('user_modules/connecttest_connect_device')
@@ -83,11 +57,10 @@ local mobile_session = require('mobile_session')
 --[[ Preconditions ]]
 commonFunctions:newTestCasesGroup("Preconditions")
 function Test:Precondition_Connect_device()
-  local ServerAddress = commonFunctions:read_parameter_from_smart_device_link_ini("ServerAddress")
   commonTestCases:DelayedExp(2000)
   self:connectMobile()
   EXPECT_HMICALL("BasicCommunication.UpdateDeviceList", {
-      deviceList = { { id = config.deviceMAC, name = ServerAddress, transportType = "WIFI", isSDLAllowed = false} } })
+      deviceList = { { id = utils.getDeviceMAC(), name = utils.getDeviceName(), transportType = "WIFI", isSDLAllowed = false} } })
   :Do(function(_,data)
       self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
     end)
@@ -133,8 +106,8 @@ function Test:Precondition_Activate_App_And_Consent_Device()
         hmiDisplayLanguageDesired = "EN-US",
         deviceInfo =
         {
-          name = "127.0.0.1",
-          id = config.deviceMAC,
+          name = utils.getDeviceName(),
+          id = utils.getDeviceMAC(),
           transportType = "WIFI",
           isSDLAllowed = false
         }
@@ -152,7 +125,7 @@ function Test:Precondition_Activate_App_And_Consent_Device()
           local RequestId1 = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
           EXPECT_HMIRESPONSE(RequestId1,{result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
           :Do(function(_,_)
-              self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = "127.0.0.1"}})
+              self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality", {allowed = true, source = "GUI", device = {id = utils.getDeviceMAC(), name = utils.getDeviceName()}})
               EXPECT_HMICALL("BasicCommunication.ActivateApp")
               :Do(function(_,data1)
                   self.hmiConnection:SendResponse(data1.id,"BasicCommunication.ActivateApp", "SUCCESS", {})
@@ -164,49 +137,35 @@ function Test:Precondition_Activate_App_And_Consent_Device()
   EXPECT_RESPONSE(CorIdRAI, { success = true, resultCode = "SUCCESS"})
 end
 
-function Test:Precondition_DeactivateApp()
-  self.hmiConnection:SendNotification("BasicCommunication.OnAppDeactivated", {appID = self.applications["SPT"], reason = "GENERAL"})
-  EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "LIMITED"})
-end
-
 function Test:Precondition_UpdatePolicyWithPTU()
+  local pts_file_name = commonFunctions:read_parameter_from_smart_device_link_ini("SystemFilesPath") .. "/"
+    .. commonFunctions:read_parameter_from_smart_device_link_ini("PathToSnapshot")
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", { status = "UPDATING" }, { status = "UP_TO_DATE" }):Times(2)
   local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
-  EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
+  EXPECT_HMIRESPONSE(RequestIdGetURLS)
   :Do(function()
-      self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",
-        {
+      self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest", {
           requestType = "PROPRIETARY",
-          fileName = "filename"
+          fileName = pts_file_name
         }
       )
       EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY" })
       :Do(function()
-          local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest",
-            {
-              fileName = "PolicyTableUpdate",
-              requestType = "PROPRIETARY"
-            }, "files/PTU_with_permissions_for_app_1234567.json")
-          local systemRequestId
+          local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", {
+            requestType = "PROPRIETARY" }, "files/PTU_with_permissions_for_app_1234567.json")
           EXPECT_HMICALL("BasicCommunication.SystemRequest")
-          :Do(function(_,data)
-              systemRequestId = data.id
-              self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate",
-                {
-                  policyfile = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate"
-                })
-              local function to_run()
-                self.hmiConnection:SendResponse(systemRequestId,"BasicCommunication.SystemRequest", "SUCCESS", {})
-              end
-              RUN_AFTER(to_run, 800)
-              self.mobileSession:ExpectResponse(CorIdSystemRequest, {success = true, resultCode = "SUCCESS"})
+          :Do(function(_, data)
+              self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate", { policyfile = data.params.fileName })
+              self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
             end)
+          self.mobileSession:ExpectResponse(CorIdSystemRequest, { success = true, resultCode = "SUCCESS" })
         end)
     end)
 end
 
 --[[ Test ]]
 function Test:TestStep_User_Consents_New_Permissions_After_App_Activation()
-  Get_RPCs()
+  self.hmiConnection:SendNotification("BasicCommunication.OnAppDeactivated", {appID = self.applications["SPT"], reason = "GENERAL"})
   local RequestIdActivateApp = self.hmiConnection:SendRequest("SDL.ActivateApp", {appID = self.applications["SPT"]})
 
   EXPECT_HMIRESPONSE(RequestIdActivateApp,
@@ -216,25 +175,26 @@ function Test:TestStep_User_Consents_New_Permissions_After_App_Activation()
         isAppPermissionsRevoked = false,
         isAppRevoked = false},
       method = "SDL.ActivateApp"})
-
-  local RequestIdGetUserFriendlyMessage = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"DataConsent"}})
-  EXPECT_HMIRESPONSE(RequestIdGetUserFriendlyMessage,
-    { result = { code = 0,
-        messages = {{ messageCode = "DataConsent"}},
-        method = "SDL.GetUserFriendlyMessage"}})
-
-  local RequestIdListOfPermissions = self.hmiConnection:SendRequest("SDL.GetListOfPermissions", { appID = self.applications["SPT"] })
-  EXPECT_HMIRESPONSE(RequestIdListOfPermissions,
-    { result = {
-        code = 0,
-        allowedFunctions = {{name = "New_permissions"}} },
-      method = "SDL.GetListOfPermissions"})
-  :Do(function(_,data)
-      local functionalGroupID = data.result.allowedFunctions[1].id
-      self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent",
-        { appID = self.applications["SPT"], source = "GUI", consentedFunctions = {{name = "New_permissions", allowed = true, id = functionalGroupID} }})
-    end)
-  EXPECT_NOTIFICATION("OnPermissionsChange", {})
+  :Do(function()
+      local RequestIdGetUserFriendlyMessage = self.hmiConnection:SendRequest("SDL.GetUserFriendlyMessage", {language = "EN-US", messageCodes = {"New_permissions"}})
+      EXPECT_HMIRESPONSE(RequestIdGetUserFriendlyMessage,
+        { result = { code = 0,
+            messages = {{ messageCode = "New_permissions"}},
+            method = "SDL.GetUserFriendlyMessage"}})
+    
+      local RequestIdListOfPermissions = self.hmiConnection:SendRequest("SDL.GetListOfPermissions", { appID = self.applications["SPT"] })
+      EXPECT_HMIRESPONSE(RequestIdListOfPermissions,
+        { result = {
+            code = 0,
+            allowedFunctions = {{name = "New_permissions"}} },
+          method = "SDL.GetListOfPermissions"})
+      :Do(function(_,data)
+          local functionalGroupID = data.result.allowedFunctions[1].id
+          self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent",
+            { appID = self.applications["SPT"], source = "GUI", consentedFunctions = {{name = "New_permissions", allowed = true, id = functionalGroupID} }})
+        end)
+      EXPECT_NOTIFICATION("OnPermissionsChange", {})
+  end)
 end
 
 function Test:TestStep_Check_Allowed_RPC()
@@ -262,7 +222,6 @@ end
 
 --[[ Postconditions ]]
 commonFunctions:newTestCasesGroup("Postconditions")
-testCasesForPolicyTable:Restore_preloaded_pt()
 function Test.Postcondition_StopSDL()
   StopSDL()
 end

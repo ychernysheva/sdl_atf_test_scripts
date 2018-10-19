@@ -20,7 +20,6 @@
 -- 2) Mobile application 2 remains in LIMITED
 ---------------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
-config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 config.application1.registerAppInterfaceParams.isMediaApplication = true
 config.application1.registerAppInterfaceParams.appHMIType = { "MEDIA" }
 config.application2.registerAppInterfaceParams.isMediaApplication = false
@@ -82,8 +81,8 @@ function Test:Precondition_StartSession()
 end
 
 function Test.Precondition_PreparePTData()
-  PrepareJsonPTU1(config.application1.registerAppInterfaceParams.appID, ptu_first_app_registered)
-  PrepareJsonPTU1(config.application2.registerAppInterfaceParams.appID, ptu_second_app_registered)
+  PrepareJsonPTU1(config.application1.registerAppInterfaceParams.fullAppID, ptu_first_app_registered)
+  PrepareJsonPTU1(config.application2.registerAppInterfaceParams.fullAppID, ptu_second_app_registered)
 end
 --[[ end of Preconditions ]]
 

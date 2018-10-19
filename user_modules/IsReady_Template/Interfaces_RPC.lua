@@ -13,7 +13,7 @@ f:close()
 local json = require("modules/json")
 local HmiCapabilities = json.decode(fileContent)
 
-local storagePath = config.SDLStoragePath..config.application1.registerAppInterfaceParams.appID.. "_" .. config.deviceMAC.. "/"
+local storagePath = config.SDLStoragePath..config.application1.registerAppInterfaceParams.fullAppID.. "_" .. config.deviceMAC.. "/"
 
 local function image_field(name, width, heigth)
           xmlReporter.AddMessage(debug.getinfo(1, "n").name, tostring(name))
@@ -61,6 +61,7 @@ interfaces.RAI = {
                                   hmiDisplayLanguage        = "EN-US",
                                   displayCapabilities       = {
                                                                 displayType = "GEN2_8_DMA",
+                                                                displayName = "GENERIC_DISPLAY",
                                                                 textFields =
                                                                 {
                                                                   { name = "mainField1", characterSet = "TYPE2SET", width = 500, rows = 1},

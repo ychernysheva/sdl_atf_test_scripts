@@ -16,17 +16,16 @@
 -- Expected result:
 -- In case "en-us" <language> sub-section for at least one <messageCode> is not found in PTUpdate , PoliciesManager must reject PTU and assume it as invalid
 ---------------------------------------------------------------------------------------------
-
 --[[ Required Shared libraries ]]
 local json = require("modules/json")
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require ('user_modules/shared_testcases/commonSteps')
 local testCasesForPolicySDLErrorsStops = require ('user_modules/shared_testcases/testCasesForPolicySDLErrorsStops')
+local utils = require ('user_modules/utils')
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
 config.defaultProtocolVersion = 2
-config.deviceMAC = "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
 
 --[[ General configuration parameters ]]
 Test = require('connecttest')
@@ -153,7 +152,7 @@ local function activateAppInSpecificLevel(self, HMIAppID, hmi_level)
 
             --hmi side: send request SDL.OnAllowSDLFunctionality
             self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality",
-              {allowed = true, source = "GUI", device = {id = config.deviceMAC, name = "127.0.0.1"}})
+              {allowed = true, source = "GUI", device = {id = utils.getDeviceMAC(), name = utils.getDeviceName()}})
 
             --hmi side: expect BasicCommunication.ActivateApp request
             EXPECT_HMICALL("BasicCommunication.ActivateApp")
@@ -173,7 +172,7 @@ function Test:updatePolicyInDifferentSessions(PTName, appName, mobileSession)
 
   local iappID = self.applications[appName]
   local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
-  EXPECT_HMIRESPONSE(RequestIdGetURLS,{result = {code = 0, method = "SDL.GetURLS", urls = {{url = "http://policies.telematics.ford.com/api/policies"}}}})
+  EXPECT_HMIRESPONSE(RequestIdGetURLS)
   :Do(function(_,_)
       self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest", { requestType = "PROPRIETARY", fileName = "PolicyTableUpdate"} )
 
@@ -204,9 +203,6 @@ function Test:updatePolicyInDifferentSessions(PTName, appName, mobileSession)
 
   EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",
     {status = "UPDATING"}, {status = "UPDATE_NEEDED"}):Times(2)
-
-  EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
-
 end
 
   local function constructPathToDatabase()
@@ -382,7 +378,7 @@ end
   commonFunctions:newTestCasesGroup("Preconditions")
 
 function Test:Precondition_PreparePTUfile()
-  prepareJsonPTU(config.application1.registerAppInterfaceParams.appID, ptuAppRegistered)
+  prepareJsonPTU(config.application1.registerAppInterfaceParams.fullAppID, ptuAppRegistered)
   self:preparePTUpdate()
 end
 
@@ -392,6 +388,7 @@ commonFunctions:newTestCasesGroup("Test")
 function Test:ActivateAppInFULL()
   HMIAppId = self.applications[config.application1.registerAppInterfaceParams.appName]
   activateAppInSpecificLevel(self,HMIAppId,"FULL")
+  EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
 end
 
 function Test:UpdatePolicy_ExpectOnAppPermissionChangedWithAppID()
