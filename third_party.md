@@ -30,4 +30,4 @@ The third party software included and used by this project is:
 
 * Licensed under MIT License
 * The library is included in the build folder
-* See [https://github.com/facebook/react](https://github.com/facebook/react)
+* See [https://www.lua.org/ftp](https://www.lua.org/ftp)
