@@ -522,6 +522,12 @@ function module.getDefaultHMITable()
     pinned = true
   }
 
+  hmi_table.Buttons.SubscribeButton = {
+    params = { },
+    mandatory = false,
+    pinned = true
+  }
+
   return hmi_table
 end
 
