@@ -44,6 +44,7 @@ require('cardinalities')
 --[[ Required Shared libraries ]]
 local commonSteps = require ('user_modules/shared_testcases/commonSteps')
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
+local commonTestCases = require ('user_modules/shared_testcases/commonTestCases')
 local utils = require ('user_modules/utils')
 require('user_modules/AppTypes')
 
@@ -172,9 +173,12 @@ function Test:Precondition_Activate_App_Consent_Device_Make_PTU_Consent_Group()
                               EXPECT_HMIRESPONSE(RequestIdGetUserFriendlyMessage,{result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
                               :Do(function(_,_)
                                   local functionalGroupID = data1.result.allowedFunctions[1].id
-                                  self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent",
-                                    { appID = self.applications["Test Application"], source = "GUI", consentedFunctions = {{name = "Location", allowed = true, id = functionalGroupID} }})
-                                  GetCurrentTimeStampGroupConsent()
+                                  local function sendConsent()
+                                    self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent",
+                                      { appID = self.applications["Test Application"], source = "GUI", consentedFunctions = {{name = "Location", allowed = true, id = functionalGroupID} }})
+                                    GetCurrentTimeStampGroupConsent()
+                                  end
+                                  RUN_AFTER(sendConsent, 2000)
                                 end)
                             end)
                         end)
@@ -186,7 +190,7 @@ function Test:Precondition_Activate_App_Consent_Device_Make_PTU_Consent_Group()
             end)
         end)
     end)
-
+  commonTestCases:DelayedExp(4000)
 end
 
 --[[ Test ]]

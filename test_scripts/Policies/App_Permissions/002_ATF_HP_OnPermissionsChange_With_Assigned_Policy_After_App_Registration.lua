@@ -190,22 +190,8 @@ function Test:Step2_Check_Disallowed_RPC()
 end
 
 function Test:Step3_Check_RPC_From_OnPermissionsChange_Allowance()
-  for i = 1, #RPC_BaseBeforeDataConsent do
-    if ( string.sub(RPC_BaseBeforeDataConsent[i],1,string.len("On")) ~= "On" ) then
-      local CorIdRAI = self.mobileSession:SendRPC(RPC_BaseBeforeDataConsent[i],{})
-      EXPECT_RESPONSE(CorIdRAI, {})
-      :ValidIf(function(_,data)
-          if data.payload.resultCode == "DISALLOWED" then
-            commonFunctions:printError("RPC: "..RPC_BaseBeforeDataConsent[i].." should be allowed by policy. Real: "..data.payload.resultCode)
-            return false
-          else
-            return true
-          end
-        end)
-
-      break
-    end
-  end
+  local CorIdRAI = self.mobileSession:SendRPC("ListFiles", {})
+  EXPECT_RESPONSE(CorIdRAI, { success = true, resultCode = "SUCCESS" })
 end
 
 --[[ Postconditions ]]
