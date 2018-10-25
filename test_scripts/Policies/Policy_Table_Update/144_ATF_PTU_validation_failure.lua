@@ -34,6 +34,7 @@ local testCasesForPolicyTable = require('user_modules/shared_testcases/testCases
 local testCasesForPolicyTableSnapshot = require('user_modules/shared_testcases/testCasesForPolicyTableSnapshot')
 local testCasesForPolicySDLErrorsStops = require('user_modules/shared_testcases/testCasesForPolicySDLErrorsStops')
 local utils = require ('user_modules/utils')
+local commonTestCases = require ('user_modules/shared_testcases/commonTestCases')
 
 --[[ General Precondition before ATF start ]]
 commonSteps:DeleteLogsFileAndPolicyTable()
@@ -107,6 +108,10 @@ function Test:TestStep_PTU_validation_failure()
   if(is_test_fail == true) then
     self:FailTestCase("Test is FAILED. See prints.")
   end
+end
+
+function Test:Wait_3s()
+  commonTestCases:DelayedExp(3000)
 end
 
 function Test:TestStep_CheckSDLLogError()

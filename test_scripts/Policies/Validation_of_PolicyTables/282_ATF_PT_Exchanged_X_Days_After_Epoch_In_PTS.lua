@@ -49,7 +49,15 @@ local function getDaysAfterEpochFromPTS(pathToFile)
 end
 
 local function getSystemDaysAfterEpoch()
-  return math.floor(os.time()/86400)
+  local function getTimezoneOffset(ts)
+    local utcdate = os.date("!*t", ts)
+    local localdate = os.date("*t", ts)
+    localdate.isdst = false
+    return os.difftime(os.time(localdate), os.time(utcdate))
+  end
+  local t = os.time()
+  local ofs = getTimezoneOffset(t)
+  return math.floor((t+ofs)/(60*60*24))
 end
 
 --[[ Preconditions ]]

@@ -58,10 +58,7 @@ local TestData = {
     end
   end,
   delete = function(self)
-    if self.isExist then
-      os.execute("rm -r -f " .. self.path)
-      self.isExist = false
-    end
+    os.execute("rm -r -f " .. self.path)
   end,
   info = function(self)
     if self.isExist then
@@ -139,6 +136,7 @@ end
 commonFunctions:newTestCasesGroup("Preconditions")
 
 function Test:StopSDL_precondition()
+  TestData:delete()
   TestData:init()
   StopSDL(self)
 end
@@ -151,9 +149,15 @@ function Test:Precondition_StartSDL()
   StartSDL(config.pathToSDL, true)
 end
 
-function Test:Precondition_InitHMIandMobileApp()
+function Test:InitHMI()
   self:initHMI()
+end
+
+function Test:InitHMI_onReady()
   self:initHMI_onReady()
+end
+
+function Test:Precondition_InitHMIandMobileApp()
   self:connectMobile()
   self.mobileSession = mobile_session.MobileSession(self, self.mobileConnection)
   self.mobileSession:StartService(7)
