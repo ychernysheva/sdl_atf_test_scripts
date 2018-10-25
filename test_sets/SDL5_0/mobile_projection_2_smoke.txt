@@ -19,4 +19,4 @@
 ./test_scripts/MobileProjection/Phase2/smoke/020_different_types_apps_interactions.lua
 ./test_scripts/MobileProjection/Phase2/smoke/021_two_apps_and_deactivation.lua
 ./test_scripts/MobileProjection/Phase2/smoke/022_two_apps_proj_media_and_deactivation_streaming.lua
-;./test_scripts/MobileProjection/Phase2/smoke/023_two_apps_navi_comm_and_deactivation_streaming.lua 2642
+./test_scripts/MobileProjection/Phase2/smoke/023_two_apps_navi_comm_and_deactivation_streaming.lua
