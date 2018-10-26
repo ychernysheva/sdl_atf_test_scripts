@@ -45,7 +45,7 @@ local function EndServiceByUserExit()
        and data.frameInfo == constants.FRAME_INFO.END_SERVICE
   end
   common.getMobileSession():ExpectEvent(EndServiceEvent, "Expect EndServiceEvent")
-  :Do(function()
+  :DoOnce(function()
       common.getMobileSession():StopStreaming(FileForStreaming)
 	    common.getMobileSession():Send({
 	      frameType = constants.FRAME_TYPE.CONTROL_FRAME,
