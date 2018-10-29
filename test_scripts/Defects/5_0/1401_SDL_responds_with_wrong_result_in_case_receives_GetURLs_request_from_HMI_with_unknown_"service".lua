@@ -15,7 +15,7 @@
 -- 2) Enter service id "25"
 -- 3) Send GetUrls request -> GetURLs(service 25) is sent to SDL
 --
--- Expected result: 
+-- Expected: 
 -- In case SDL receives GetURLs request from HMI AND is not defined in "endpoint" table, 
 -- SDL must repond with SUCCESS result code and without "urls" param
 -- 
@@ -31,7 +31,14 @@ runner.testSettings.isSelfIncluded = false
 --[[ Local Functions ]]
 local function testGetURLsRequest()
 	local requestId = common.getHMIConnection():SendRequest("SDL.GetURLS", { service = 25 })
-	common.getHMIConnection():ExpectResponse(requestId, {result = {code = 0, method = "SDL.GetURLS", urls = nil}})
+	common.getHMIConnection():ExpectResponse(requestId, {result = {code = 0, method = "SDL.GetURLS"}})
+	:ValidIf(function(_, data)
+		if data.result.urls == nil then 
+			return true
+		else
+			return false, "'GetURLs' response should not contain 'urls' param"
+		end
+	end)
 end
 
 --[[ Scenario ]]
