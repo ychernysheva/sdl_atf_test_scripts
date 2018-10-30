@@ -30,9 +30,8 @@ local common = require('user_modules/sequences/actions')
 --[[ Test Configuration ]]
 runner.testSettings.isSelfIncluded = false
 
-
 --[[ Local Variables ]]
-local responseUiParams = {
+local params = {
   distanceToManeuver = 50.1,
   distanceToManeuverScale = 100.2
 }
@@ -42,13 +41,30 @@ local function ptuFunc(tbl)
 	tbl.policy_table.app_policies["0000001"].groups = {"Base-4", "Navigation-1"}
 end
 
-local function checkShowConstantTBT(pParams, pResultTable)
+local function checkShowConstantTBTPositive(pParams)
 	local cid = common.getMobileSession():SendRPC("ShowConstantTBT", pParams)
+
 	common.getHMIConnection():ExpectRequest("Navigation.ShowConstantTBT", pParams)
 	:Do(function(_, data)
-			common.getHMIConnection():SendResponse(data.id, data.method, pResultTable.resultCode, {})
+			common.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", {})
 		end)
-	common.getMobileSession():ExpectResponse(cid, pResultTable)
+
+	common.getMobileSession():ExpectResponse(cid, {
+		success = true, 
+		resultCode = "SUCCESS"
+	})
+end
+
+local function checkShowConstantTBTNegative(pParams)
+	local cid = common.getMobileSession():SendRPC("ShowConstantTBT", pParams)
+
+	common.getHMIConnection():ExpectRequest("Navigation.ShowConstantTBT", pParams)
+	:Times(0)
+
+	common.getMobileSession():ExpectResponse(cid, {
+		success = false, 
+		resultCode = "INVALID_DATA"
+	})
 end
 
 --[[ Scenario ]]
@@ -60,14 +76,13 @@ runner.Step("Activate App", common.activateApp)
 runner.Step("PTU", common.policyTableUpdate, { ptuFunc })
 
 runner.Title("Test")
-runner.Step("Negative check mandatory parameter distanceToManeuver", checkShowConstantTBT, {{
-		distanceToManeuverScale = responseUiParams.distanceToManeuver
-	}, {success = false, resultCode = "INVALID_DATA"}})
-runner.Step("Negative check mandatory parameter distanceToManeuverScale", checkShowConstantTBT, {{
-		distanceToManeuver = responseUiParams.distanceToManeuver
-	}, {success = false, resultCode = "INVALID_DATA"}})
-runner.Step("Positive case for ShowConstantTBT", checkShowConstantTBT, {responseUiParams
-	, {success = true, resultCode = "SUCCESS"}})
+runner.Step("Negative check mandatory parameter distanceToManeuver", checkShowConstantTBTNegative, {{
+		distanceToManeuverScale = params.distanceToManeuver
+	}})
+runner.Step("Negative check mandatory parameter distanceToManeuverScale", checkShowConstantTBTNegative, {{
+		distanceToManeuver = params.distanceToManeuver
+	}})
+runner.Step("Positive case for ShowConstantTBT", checkShowConstantTBTPositive, {params})
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", common.postconditions)
