@@ -4,13 +4,6 @@
 -- Description:
 -- Mismatch for mandatory parameter between MOBILE_API and HMI_API
 --
--- There is a mismatch for the mandatory parameter between the MOBILE_API and the HMI_API for the 
--- following parameters:
---     distanceToManeuver
---     distanceToManeuverScale
--- The MOBILE_API is reflecting that these parameters are not mandatory, whereas the HMI_API 
--- reflects that they are mandatory.
---
 -- Preconditions:
 -- 1) Clear environment
 -- 2) SDL started, HMI and mobile session connected
@@ -37,6 +30,13 @@ local common = require('user_modules/sequences/actions')
 --[[ Test Configuration ]]
 runner.testSettings.isSelfIncluded = false
 
+
+--[[ Local Variables ]]
+local responseUiParams = {
+  distanceToManeuver = 50.1,
+  distanceToManeuverScale = 100.2
+}
+
 --[[ Local Functions ]]
 local function ptuFunc(tbl)
 	tbl.policy_table.app_policies["0000001"].groups = {"Base-4", "Navigation-1"}
@@ -44,6 +44,10 @@ end
 
 local function checkShowConstantTBT(pParams, pResultTable)
 	local cid = common.getMobileSession():SendRPC("ShowConstantTBT", pParams)
+	common.getHMIConnection():ExpectRequest("Navigation.ShowConstantTBT", pParams)
+	:Do(function(_, data)
+			common.getHMIConnection():SendResponse(data.id, data.method, pResultTable.resultCode, {})
+		end)
 	common.getMobileSession():ExpectResponse(cid, pResultTable)
 end
 
@@ -57,15 +61,13 @@ runner.Step("PTU", common.policyTableUpdate, { ptuFunc })
 
 runner.Title("Test")
 runner.Step("Negative check mandatory parameter distanceToManeuver", checkShowConstantTBT, {{
-	 	distanceToManeuverScale = 100.2
+		distanceToManeuverScale = responseUiParams.distanceToManeuver
 	}, {success = false, resultCode = "INVALID_DATA"}})
 runner.Step("Negative check mandatory parameter distanceToManeuverScale", checkShowConstantTBT, {{
-		distanceToManeuver = 50.1,
+		distanceToManeuver = responseUiParams.distanceToManeuver
 	}, {success = false, resultCode = "INVALID_DATA"}})
-runner.Step("Positive case for ShowConstantTBT", checkShowConstantTBT, {{
-		distanceToManeuver = 50.1,
-	 	distanceToManeuverScale = 100.2
-	}, {success = true, resultCode = "SUCCESS"}})
+runner.Step("Positive case for ShowConstantTBT", checkShowConstantTBT, {responseUiParams
+	, {success = true, resultCode = "SUCCESS"}})
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", common.postconditions)
