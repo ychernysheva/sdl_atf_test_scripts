@@ -1,0 +1,6 @@
+./test_scripts/CloudAppRPCs/001_CloupAppVehicleId_GetVehicleData.lua
+./test_scripts/CloudAppRPCs/002_CloudAppVehicleId_SubscribeVehicleData.lua
+./test_scripts/CloudAppRPCs/003_CloudAppVehicleId_UnsubscribeVehicleData.lua
+./test_scripts/CloudAppRPCs/004_CloudAppVehicleId_OnVehicleData.lua
+./test_scripts/CloudAppRPCs/005_SetCloudAppProperties_Success.lua
+./test_scripts/CloudAppRPCs/006_SetCloudAppProperties_InvalidParams.lua
