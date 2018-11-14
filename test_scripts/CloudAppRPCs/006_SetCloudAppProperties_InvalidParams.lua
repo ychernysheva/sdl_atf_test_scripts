@@ -4,11 +4,11 @@
 --  2) Specific permissions are assigned for <appID> with SetCloudAppProperties
 --
 --  Steps:
---  1) Application sends a SetCloudAppProperties RPC request
+--  1) Application sends a SetCloudAppProperties RPC request(with invalid param)
 --
 --  Expected:
---  1) SDL responds to mobile app with "ResultCode: SUCCESS,
---        success: true
+--  1) SDL responds to mobile app with "ResultCode: INVALID_DATA,
+--        success: false
 ---------------------------------------------------------------------------------------------------
 
 --[[ Required Shared libraries ]]
@@ -20,7 +20,7 @@ local rpc = {
   name = "SetCloudAppProperties",
   params = {
     appName = "TestApp",
-    appID = "232",
+    appID = "0000001",
     enabled = true,
     cloudAppAuthToken = "ABCD12345",
     cloudTransportType = "WSS",

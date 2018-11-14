@@ -12,6 +12,8 @@ local events = require("events")
 local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
 local commonSteps = require("user_modules/shared_testcases/commonSteps")
 local commonTestCases = require("user_modules/shared_testcases/commonTestCases")
+local utils = require ('user_modules/utils')
+local test = require("user_modules/dummy_connecttest")
 
 --[[ Local Variables ]]
 local ptu_table = {}
@@ -35,7 +37,7 @@ function commonCloudAppRPCs.getGetVehicleDataConfig()
     steal_focus = false,
     priority = "NONE",
     default_hmi = "NONE",
-    groups = { "Base-4", "Emergency-1" , "CloudApp" }
+    groups = { "Base-4" , "CloudApp" }
   }
 end
 
@@ -87,14 +89,6 @@ local function ptu(self, app_id, ptu_update_func)
         { requestType = "PROPRIETARY", fileName = pts_file_name })
       getPTUFromPTS(ptu_table)
       local function updatePTU(tbl)
-        for rpc in pairs(tbl.policy_table.functional_groupings["Emergency-1"].rpcs) do
-          addParamToRPC(tbl, "Emergency-1", rpc, "engineOilLife")
-          addParamToRPC(tbl, "Emergency-1", rpc, "fuelRange")
-          addParamToRPC(tbl, "Emergency-1", rpc, "tirePressure")
-          addParamToRPC(tbl, "Emergency-1", rpc, "electronicParkBrakeStatus")
-          addParamToRPC(tbl, "Emergency-1", rpc, "turnSignal")
-          addParamToRPC(tbl, "Emergency-1", rpc, "gps")
-        end
         tbl.policy_table.app_policies[commonCloudAppRPCs.getMobileAppId(app_id)] = commonCloudAppRPCs.getGetVehicleDataConfig()
       end
       updatePTU(ptu_table)
@@ -197,6 +191,29 @@ end
 function commonCloudAppRPCs.postconditions()
   StopSDL()
 end
+
+function commonCloudAppRPCs.test_assert(condition, msg)
+  if not condition then
+    test:FailTestCase(msg)
+  end
+end
+
+function commonCloudAppRPCs:Request_PTU()
+  local is_test_fail = false
+  local hmi_app1_id = self.applications[config.application1.registerAppInterfaceParams.appName]
+  self.hmiConnection:SendNotification("SDL.OnPolicyUpdate", {} )
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
+
+  EXPECT_HMICALL("BasicCommunication.PolicyUpdate",{ file = "/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json" })
+  :Do(function(_,data)
+    self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
+    end)
+end
+
+function commonCloudAppRPCs.GetPolicySnapshot()
+  return jsonFileToTable("/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json")
+end
+
 
 function commonCloudAppRPCs.registerAppWithPTU(id, ptu_update_func, self)
   self, id, ptu_update_func = commonCloudAppRPCs.getSelfAndParams(id, ptu_update_func, self)
