@@ -14,6 +14,7 @@ local commonSteps = require("user_modules/shared_testcases/commonSteps")
 local commonTestCases = require("user_modules/shared_testcases/commonTestCases")
 local utils = require ('user_modules/utils')
 local test = require("user_modules/dummy_connecttest")
+local actions = require("user_modules/sequences/actions")
 
 --[[ Local Variables ]]
 local ptu_table = {}
@@ -25,19 +26,26 @@ commonCloudAppRPCs.timeout = 2000
 commonCloudAppRPCs.minTimeout = 500
 commonCloudAppRPCs.DEFAULT = "Default"
 
+commonCloudAppRPCs.policyTableUpdate = actions.policyTableUpdate
+commonCloudAppRPCs.registerAppWOPTU = actions.registerAppWOPTU
+
 local function checkIfPTSIsSentAsBinary(bin_data)
   if not (bin_data ~= nil and string.len(bin_data) > 0) then
     commonFunctions:userPrint(31, "PTS was not sent to Mobile in payload of OnSystemRequest")
   end
 end
 
-function commonCloudAppRPCs.getGetVehicleDataConfig()
+function commonCloudAppRPCs.getVehicleDataConfig(app_id)
   return {
     keep_context = false,
     steal_focus = false,
     priority = "NONE",
     default_hmi = "NONE",
-    groups = { "Base-4" , "CloudApp" }
+    groups = { "Base-4" , "CloudApp" },
+    endpoint = "ws://127.0.0.1:2000/",
+    nicknames = { config["application" .. app_id].registerAppInterfaceParams.appName },
+    cloud_transport_type = "WS",
+    enabled = true
   }
 end
 
@@ -89,8 +97,9 @@ local function ptu(self, app_id, ptu_update_func)
         { requestType = "PROPRIETARY", fileName = pts_file_name })
       getPTUFromPTS(ptu_table)
       local function updatePTU(tbl)
-        tbl.policy_table.app_policies[commonCloudAppRPCs.getMobileAppId(app_id)] = commonCloudAppRPCs.getGetVehicleDataConfig()
+        tbl.policy_table.app_policies[commonCloudAppRPCs.getMobileAppId(app_id)] = commonCloudAppRPCs.getVehicleDataConfig(app_id)
       end
+
       updatePTU(ptu_table)
       if ptu_update_func then
         ptu_update_func(ptu_table)
@@ -200,7 +209,6 @@ end
 
 function commonCloudAppRPCs:Request_PTU()
   local is_test_fail = false
-  local hmi_app1_id = self.applications[config.application1.registerAppInterfaceParams.appName]
   self.hmiConnection:SendNotification("SDL.OnPolicyUpdate", {} )
   EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
 
