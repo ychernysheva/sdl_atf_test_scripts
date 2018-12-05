@@ -1,7 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 -- Common module
 ---------------------------------------------------------------------------------------------------
----------------------------------------------------------------------------------------------------
 --[[ General configuration parameters ]]
 config.defaultProtocolVersion = 2
 
@@ -45,7 +44,7 @@ function c.SetMediaClockTimer(pValue)
   local cid = c.getMobileSession():SendRPC("SetMediaClockTimer", c.requestParams)
 
   c.requestParams.appID = c.getHMIAppId()
-  EXPECT_HMICALL("UI.SetMediaClockTimer", c.requestParams)
+  c.getHMIConnection():ExpectRequest("UI.SetMediaClockTimer", c.requestParams)
   :Do(function(_, data)
     c.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", {})
   end)

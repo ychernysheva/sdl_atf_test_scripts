@@ -22,7 +22,7 @@ runner.Step("Clean environment", common.preconditions)
 runner.Step("Start SDL, HMI, connect Mobile, start Session", common.start)
 runner.Step("Register App", common.registerAppWOPTU)
 runner.Step("App activation", common.activateApp)
-runner.Step("App sends SetMediaClockTimer with enableSeek = true", common.SetMediaClockTimer, { true })
+runner.Step("App sends SetMediaClockTimer with enableSeek= true", common.SetMediaClockTimer, { true })
 
 runner.Title("Test")
 runner.Step("Mobile app received OnSetMediaClockTimer notification", common.OnSeekMediaClockTimer)

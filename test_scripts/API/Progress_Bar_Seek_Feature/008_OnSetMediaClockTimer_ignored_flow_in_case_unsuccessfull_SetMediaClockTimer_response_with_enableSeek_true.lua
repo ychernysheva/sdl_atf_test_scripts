@@ -33,7 +33,7 @@ local requestParams = {
     enableSeek = true
 }
 
-local resulCode = {
+local resultCode = {
     "UNSUPPORTED_REQUEST",
     "DISALLOWED",
     "REJECTED",
@@ -57,7 +57,7 @@ local function SetMediaClockTimer(pResultCode)
     local cid = common.getMobileSession():SendRPC("SetMediaClockTimer", requestParams)
 
     requestParams.appID = common.getHMIAppId()
-    EXPECT_HMICALL("UI.SetMediaClockTimer", requestParams)
+    common.getHMIConnection():ExpectRequest("UI.SetMediaClockTimer", requestParams)
     :Do(function(_, data)
         common.getHMIConnection():SendResponse(data.id, data.method, pResultCode, {})
     end)
@@ -73,7 +73,7 @@ runner.Step("Register App", common.registerAppWOPTU)
 runner.Step("App activation", common.activateApp)
 
 runner.Title("Test")
-for _, v in pairs(resulCode) do
+for _, v in pairs(resultCode) do
     runner.Step("SetMediaClockTimer with enableSeek= true and received error " .. v .. " from HMI", SetMediaClockTimer, {v})
     runner.Step("HMI sends OnSetMediaClockTimer notification", common.OnSeekMediaClockTimerUnsuccess, { common.seekTimeParams })
 end

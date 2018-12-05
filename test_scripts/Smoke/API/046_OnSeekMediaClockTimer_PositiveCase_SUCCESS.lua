@@ -12,27 +12,22 @@ local commonSmoke = require('test_scripts/Smoke/commonSmoke')
 
 --[[ Local Variables ]]
 local requestParams = {
-    startTime = {
-      hours = 0,
-      minutes = 1,
-      seconds = 33
-    },
-    endTime = {
-      hours = 0,
-      minutes = 59 ,
-      seconds = 35
-    },
-    updateMode = "COUNTUP"
-}
-
-local value = {
-    true,
-    false
+  startTime = {
+    hours = 0,
+    minutes = 1,
+    seconds = 33
+  },
+  endTime = {
+    hours = 0,
+    minutes = 59 ,
+    seconds = 35
+  },
+  updateMode = "COUNTUP",
+  enableSeek = true
 }
 
 --[[ Local Functions ]]
-local function SetMediaClockTimer(pValue, self)
-  requestParams.enableSeek = pValue
+local function SetMediaClockTimer(self)
   local cid = self.mobileSession1:SendRPC("SetMediaClockTimer", requestParams)
 
   requestParams.appID = commonSmoke.getHMIAppId()
@@ -54,13 +49,6 @@ local function OnSeekMediaClockTimer(self)
   })
 
   self.mobileSession1:ExpectNotification("OnSeekMediaClockTimer", {seekTime = {hours = 0, minutes = 2, seconds = 25 }})
-  :ValidIf(function()
-    if requestParams.enableSeek == true then
-      return true
-    elseif requestParams.enableSeek == false then
-      return false, "Mobile app received OnSeekMediaClockTimer notification when enableSeek = false "
-    end
-  end)
 end
 
 --[[ Scenario ]]
@@ -71,10 +59,8 @@ runner.Step("RAI", commonSmoke.registerApp)
 runner.Step("Activate App", commonSmoke.activateApp)
 
 runner.Title("Test")
-for _, v in pairs(value) do
-    runner.Step("App sends SetMediaClockTimer with enableSeek " .. tostring(v), SetMediaClockTimer, { v })
-    runner.Step("Mobile app received OnSetMediaClockTimer notification", OnSeekMediaClockTimer)
-end
+runner.Step("App sends SetMediaClockTimer with enableSeek", SetMediaClockTimer)
+runner.Step("Mobile app received OnSetMediaClockTimer notification", OnSeekMediaClockTimer)
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", commonSmoke.postconditions)
