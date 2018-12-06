@@ -1,6 +1,5 @@
 ---------------------------------------------------------------------------------------------------
--- Proposal: https://github.com/smartdevicelink/sdl_evolution/blob/master/proposals/0189-Restructuring-OnResetTimeout.md
---
+-- Proposal: https://github.com/smartdevicelink/sdl_evolution/blob/master/proposals/0084-Progress-Bar-Seek-Feature.md
 -- Description:
 -- In case:
 -- 1) Mobile app sends "SetMediaClockTimer" request with valid "enableSeek"(boolean) param to SDL
@@ -18,8 +17,8 @@ runner.testSettings.isSelfIncluded = false
 
 --[[ Local Variables ]]
 local value = {
-	true,
-	false
+  true,
+  false
 }
 
 --[[ Scenario ]]
@@ -31,7 +30,7 @@ runner.Step("App activation", common.activateApp)
 
 runner.Title("Test")
 for _, v in pairs(value) do
-	runner.Step("App sends SetMediaClockTimer with enableSeek " .. tostring(v), common.SetMediaClockTimer, { v })
+  runner.Step("App sends SetMediaClockTimer with enableSeek " .. tostring(v), common.SetMediaClockTimer, { v })
 end
 
 runner.Title("Postconditions")

@@ -1,6 +1,5 @@
 ---------------------------------------------------------------------------------------------------
--- Proposal: https://github.com/smartdevicelink/sdl_evolution/blob/master/proposals/0189-Restructuring-OnResetTimeout.md
---
+-- Proposal: https://github.com/smartdevicelink/sdl_evolution/blob/master/proposals/0084-Progress-Bar-Seek-Feature.md
 -- Description:
 -- In case:
 -- 1) Mobile app sends "SetMediaClockTimer" request with valid "enableSeek"(true) param to SDL
@@ -19,50 +18,50 @@ runner.testSettings.isSelfIncluded = false
 
 --[[ Local Variables ]]
 local requestParams = {
-    startTime = {
-      hours = 0,
-      minutes = 1,
-      seconds = 33
-    },
-    endTime = {
-      hours = 0,
-      minutes = 59 ,
-      seconds = 35
-    },
-    updateMode = "COUNTUP",
-    enableSeek = true
+  startTime = {
+    hours = 0,
+    minutes = 1,
+    seconds = 33
+  },
+  endTime = {
+    hours = 0,
+    minutes = 59 ,
+    seconds = 35
+  },
+  updateMode = "COUNTUP",
+  enableSeek = true
 }
 
 local resultCode = {
-    "UNSUPPORTED_REQUEST",
-    "DISALLOWED",
-    "REJECTED",
-    "ABORTED",
-    "IGNORED",
-    "IN_USE",
-    "DATA_NOT_AVAILABLE",
-    "TIMED_OUT",
-    "INVALID_DATA",
-    "CHAR_LIMIT_EXCEEDED",
-    "INVALID_ID",
-    "APPLICATION_NOT_REGISTERED",
-    "OUT_OF_MEMORY",
-    "TOO_MANY_PENDING_REQUESTS",
-    "GENERIC_ERROR",
-    "USER_DISALLOWED"
+  "UNSUPPORTED_REQUEST",
+  "DISALLOWED",
+  "REJECTED",
+  "ABORTED",
+  "IGNORED",
+  "IN_USE",
+  "DATA_NOT_AVAILABLE",
+  "TIMED_OUT",
+  "INVALID_DATA",
+  "CHAR_LIMIT_EXCEEDED",
+  "INVALID_ID",
+  "APPLICATION_NOT_REGISTERED",
+  "OUT_OF_MEMORY",
+  "TOO_MANY_PENDING_REQUESTS",
+  "GENERIC_ERROR",
+  "USER_DISALLOWED"
 }
 
 --[[ Local Functions ]]
 local function SetMediaClockTimer(pResultCode)
-    local cid = common.getMobileSession():SendRPC("SetMediaClockTimer", requestParams)
+  local cid = common.getMobileSession():SendRPC("SetMediaClockTimer", requestParams)
 
-    requestParams.appID = common.getHMIAppId()
-    common.getHMIConnection():ExpectRequest("UI.SetMediaClockTimer", requestParams)
-    :Do(function(_, data)
-        common.getHMIConnection():SendResponse(data.id, data.method, pResultCode, {})
-    end)
+  requestParams.appID = common.getHMIAppId()
+  common.getHMIConnection():ExpectRequest("UI.SetMediaClockTimer", requestParams)
+  :Do(function(_, data)
+    common.getHMIConnection():SendResponse(data.id, data.method, pResultCode, {})
+  end)
 
-    common.getMobileSession():ExpectResponse(cid, { success = false, resultCode = pResultCode })
+  common.getMobileSession():ExpectResponse(cid, { success = false, resultCode = pResultCode })
 end
 
 --[[ Scenario ]]
@@ -74,8 +73,8 @@ runner.Step("App activation", common.activateApp)
 
 runner.Title("Test")
 for _, v in pairs(resultCode) do
-    runner.Step("SetMediaClockTimer with enableSeek= true and received error " .. v .. " from HMI", SetMediaClockTimer, {v})
-    runner.Step("HMI sends OnSetMediaClockTimer notification", common.OnSeekMediaClockTimerUnsuccess, { common.seekTimeParams })
+  runner.Step("SetMediaClockTimer with enableSeek= true and received error " .. v .. " from HMI", SetMediaClockTimer, {v})
+  runner.Step("HMI sends OnSetMediaClockTimer notification", common.OnSeekMediaClockTimerUnsuccess, { common.seekTimeParams })
 end
 
 runner.Title("Postconditions")

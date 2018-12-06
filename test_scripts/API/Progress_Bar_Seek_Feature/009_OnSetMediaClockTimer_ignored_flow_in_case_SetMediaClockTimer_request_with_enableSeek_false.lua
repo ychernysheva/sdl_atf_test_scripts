@@ -1,6 +1,5 @@
 ---------------------------------------------------------------------------------------------------
--- Proposal: https://github.com/smartdevicelink/sdl_evolution/blob/master/proposals/0189-Restructuring-OnResetTimeout.md
---
+-- Proposal: https://github.com/smartdevicelink/sdl_evolution/blob/master/proposals/0084-Progress-Bar-Seek-Feature.md
 -- Description:
 -- In case:
 -- 1) Mobile app sends "SetMediaClockTimer" request with valid "enableSeek"(false) param to SDL
@@ -16,7 +15,6 @@ local common = require('test_scripts/API/Progress_Bar_Seek_Feature/commonProgres
 
 --[[ Test Configuration ]]
 runner.testSettings.isSelfIncluded = false
-
 
 --[[ Scenario ]]
 runner.Title("Preconditions")

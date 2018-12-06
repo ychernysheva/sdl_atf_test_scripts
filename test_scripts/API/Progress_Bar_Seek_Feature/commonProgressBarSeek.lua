@@ -27,9 +27,9 @@ c.requestParams = {
 }
 
 c.seekTimeParams = {
-	hours = 0,
-	minutes = 1,
-	seconds = 1
+  hours = 0,
+  minutes = 1,
+  seconds = 1
 }
 
 --[[ Common Functions ]]
@@ -51,13 +51,13 @@ function c.SetMediaClockTimer(pValue)
   c.getMobileSession():ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 end
 
---[[ @setMediaClockTimerUnsuccess: Processing SetMediaClockTimer with ERROR resultCode
+--[[ @SetMediaClockTimerUnsuccess: Processing SetMediaClockTimer with ERROR resultCode
 --! @parameters:
 --! pValue - value for enableSeek parameter
 --! pResultCode - result error
 --! @return: none
 --]]
-function c.setMediaClockTimerUnsuccess(pValue, pResultCode)
+function c.SetMediaClockTimerUnsuccess(pValue, pResultCode)
   c.requestParams.enableSeek = pValue
   local cid = c.getMobileSession():SendRPC("SetMediaClockTimer", c.requestParams)
 

@@ -1,6 +1,5 @@
 ---------------------------------------------------------------------------------------------------
--- Proposal: https://github.com/smartdevicelink/sdl_evolution/blob/master/proposals/0189-Restructuring-OnResetTimeout.md
---
+-- Proposal: https://github.com/smartdevicelink/sdl_evolution/blob/master/proposals/0084-Progress-Bar-Seek-Feature.md
 -- Description:
 -- In case:
 -- 1) Mobile app sends "SetMediaClockTimer" request with valid "enableSeek"(true) param to SDL
@@ -27,7 +26,7 @@ runner.Step("App registration", common.registerAppWOPTU)
 runner.Step("App activation", common.activateApp)
 
 runner.Title("Test")
-runner.Step("HMI does not respond to the UI.SetMediaClockTimer", common.setMediaClockTimerUnsuccess, { true, errorCode })
+runner.Step("HMI does not respond to the UI.SetMediaClockTimer", common.SetMediaClockTimerUnsuccess, { true, errorCode })
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", common.postconditions)

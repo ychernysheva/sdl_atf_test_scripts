@@ -1,6 +1,5 @@
 ---------------------------------------------------------------------------------------------------
--- Proposal: https://github.com/smartdevicelink/sdl_evolution/blob/master/proposals/0189-Restructuring-OnResetTimeout.md
---
+-- Proposal: https://github.com/smartdevicelink/sdl_evolution/blob/master/proposals/0084-Progress-Bar-Seek-Feature.md
 -- Description:
 -- In case:
 -- 1) Mobile app sends "SetMediaClockTimer" request with valid "enableSeek"(true) param to SDL
@@ -23,10 +22,10 @@ runner.testSettings.isSelfIncluded = false
 
 --[[ Local Variables ]]
 local invalidValue = {
-	invalidDataType = { hours = "Invalid data type", minutes = 2, seconds = 30 },
-	invalidStructure = { hours = { 12 }, minutes = 2, seconds = 30 },
-	missingMandatory = { minutes = 2, seconds = 30 },
-	valueOutOfBound = { hours = 61 , minutes = 2, seconds = 30 }
+  invalidDataType = { hours = "Invalid data type", minutes = 2, seconds = 30 },
+  invalidStructure = { hours = { 12 }, minutes = 2, seconds = 30 },
+  missingMandatory = { minutes = 2, seconds = 30 },
+  valueOutOfBound = { hours = 61 , minutes = 2, seconds = 30 }
 }
 
 --[[ Scenario ]]
@@ -39,8 +38,8 @@ runner.Step("App sends SetMediaClockTimer with enableSeek = true", common.SetMed
 
 runner.Title("Test")
 for k, v in pairs(invalidValue) do
-	runner.Step("HMI sends OnSetMediaClockTimer notification with " .. tostring(k),
-	common.OnSeekMediaClockTimerUnsuccess, { v })
+  runner.Step("HMI sends OnSetMediaClockTimer notification with " .. tostring(k),
+  common.OnSeekMediaClockTimerUnsuccess, { v })
 end
 
 runner.Title("Postconditions")
