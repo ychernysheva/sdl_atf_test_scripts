@@ -7,7 +7,7 @@
 -- 3) HMI sends "OnSeekMediaClockTimer" notification to SDL which is valid but not allowed by Policies
 -- SDL does:
 -- 1) Ignore notification
--- 2) Does not re-send OnSeekMediaClockTimer notification to the mobile app
+-- 2) Not re-send OnSeekMediaClockTimer notification to the mobile app
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
