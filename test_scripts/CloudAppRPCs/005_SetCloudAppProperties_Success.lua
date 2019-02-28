@@ -22,12 +22,14 @@ local common = require('test_scripts/CloudAppRPCs/commonCloudAppRPCs')
 local rpc = {
   name = "SetCloudAppProperties",
   params = {
-    appName = "TestApp",
-    appID = "0000001",
-    enabled = true,
-    cloudAppAuthToken = "ABCD12345",
-    cloudTransportType = "WSS",
-    hybridAppPreference = "CLOUD"
+    properties = {
+      appName = "TestApp",
+      appID = "0000001",
+      enabled = true,
+      authToken = "ABCD12345",
+      cloudTransportType = "WSS",
+      hybridAppPreference = "CLOUD"
+    }
   }
 }
 local expected = {
@@ -50,7 +52,7 @@ end
 
 local function verifyCloudAppProperties(self)
   local snp_tbl = common.GetPolicySnapshot()
-  local app_id = rpc.params.appID
+  local app_id = rpc.params.properties.appID
   local result = {}
 
   result.auth_token = snp_tbl.policy_table.app_policies[app_id].auth_token

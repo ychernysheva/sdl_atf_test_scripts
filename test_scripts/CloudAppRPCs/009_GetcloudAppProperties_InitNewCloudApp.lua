@@ -7,6 +7,7 @@
 --  1) Application sends a SetCloudAppProperties RPC request(with app_id which does not currently exist in policy table)
 --  2) Application triggers a PTU
 --  3) Checks policy table to make sure cloud app properties are set correctly
+--  4) Application sends a GetCloudAppProperties RPC request to verify changes
 --
 --  Expected:
 --  1) SDL responds to mobile app with "ResultCode: SUCCESS,
@@ -23,12 +24,12 @@ local rpc = {
   name = "SetCloudAppProperties",
   params = {
     properties = {
-      appName = "TestApp",
-      appID = "232",
-      enabled = true,
-      authToken = "ABCD12345",
-      cloudTransportType = "WSS",
-      hybridAppPreference = "CLOUD"
+        appName = "TestApp",
+        appID = "232",
+        enabled = true,
+        authToken = "ABCD12345",
+        cloudTransportType = "WSS",
+        hybridAppPreference = "CLOUD"
     }
   }
 }
@@ -37,6 +38,20 @@ local expected = {
   cloud_transport_type = "WSS",
   enabled = "true",
   hybrid_app_preference = "CLOUD"
+}
+
+local get_rpc = {
+    name = "GetCloudAppProperties",
+    params = {
+      appID = "232"
+    }
+}
+
+local get_expected = {
+    authToken = "ABCD12345",
+    cloudTransportType = "WSS",
+    enabled = true,
+    hybridAppPreference = "CLOUD"
 }
 
 --[[ Local Functions ]]
@@ -48,6 +63,17 @@ local function processRPCSuccess(self)
   responseParams.success = true
   responseParams.resultCode = "SUCCESS"
   mobileSession:ExpectResponse(cid, responseParams)
+end
+
+local function processGetRPCSuccess(self)
+    local mobileSession = common.getMobileSession(self, 1)
+    local cid = mobileSession:SendRPC(get_rpc.name, get_rpc.params)
+  
+    local responseParams = {}
+    responseParams.success = true
+    responseParams.resultCode = "SUCCESS"
+    responseParams.properties = get_expected
+    mobileSession:ExpectResponse(cid, responseParams)
 end
 
 local function verifyCloudAppProperties(self)
@@ -80,6 +106,7 @@ runner.Title("Test")
 runner.Step("RPC " .. rpc.name .. "_resultCode_SUCCESS(new_app_id)", processRPCSuccess)
 runner.Step("Request PTU", common.Request_PTU)
 runner.Step("Verify CloudApp Properties", verifyCloudAppProperties)
+runner.Step("RPC " .. get_rpc.name .. "_resultCode_SUCCESS", processGetRPCSuccess)
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", common.postconditions)

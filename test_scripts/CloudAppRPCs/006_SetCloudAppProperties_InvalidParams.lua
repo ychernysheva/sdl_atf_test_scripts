@@ -19,12 +19,14 @@ local common = require('test_scripts/CloudAppRPCs/commonCloudAppRPCs')
 local rpc = {
   name = "SetCloudAppProperties",
   params = {
-    appName = "TestApp",
-    appID = "0000001",
-    enabled = true,
-    cloudAppAuthToken = "ABCD12345",
-    cloudTransportType = "WSS",
-    hybridAppPreference = "CORE"
+    properties = {
+      appName = "TestApp",
+      appID = "0000001",
+      enabled = true,
+      authToken = "ABCD12345",
+      cloudTransportType = "WSS",
+      hybridAppPreference = "CORE"
+    }
   }
 }
 
