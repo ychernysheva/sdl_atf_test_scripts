@@ -252,6 +252,44 @@ function commonCloudAppRPCs.registerAppWithPTU(id, ptu_update_func, self)
     end)
 end
 
+function commonCloudAppRPCs.registerAppWithPTUExpectIconURL(id, ptu_update_func, self)
+  self, id, ptu_update_func = commonCloudAppRPCs.getSelfAndParams(id, ptu_update_func, self)
+  if not id then id = 1 end
+  self["mobileSession" .. id] = mobile_session.MobileSession(self, self.mobileConnection)
+  self["mobileSession" .. id]:StartService(7)
+  :Do(function()
+      local corId = self["mobileSession" .. id]:SendRPC("RegisterAppInterface",
+        config["application" .. id].registerAppInterfaceParams)
+      EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered",
+        { application = { appName = config["application" .. id].registerAppInterfaceParams.appName } })
+      :Do(function(_, d1)
+          hmiAppIds[config["application" .. id].registerAppInterfaceParams.fullAppID] = d1.params.application.appID
+          EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",
+            { status = "UPDATE_NEEDED" }, { status = "UPDATING" }, { status = "UP_TO_DATE" })
+          :Times(3)
+          EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
+          :Do(function(e, d2)
+              if e.occurences == 1 then
+                self.hmiConnection:SendResponse(d2.id, d2.method, "SUCCESS", { })
+                ptu_table = jsonFileToTable(d2.params.file)
+                ptu(self, id, ptu_update_func)
+              else
+                self:FailTestCase("BC.PolicyUpdate was sent more than once (PTU update was incorrect)")
+              end
+            end)
+        end)
+      self["mobileSession" .. id]:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
+      :Do(function()
+          self["mobileSession" .. id]:ExpectNotification("OnHMIStatus",
+            { hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN" })
+          :Times(1)
+          self["mobileSession" .. id]:ExpectNotification("OnPermissionsChange"):Times(2)
+          self["mobileSession" .. id]:ExpectNotification("OnSystemRequest",
+            { requestType = "LOCK_SCREEN_ICON_URL" }):Times(AtLeast(1))
+        end)
+    end)
+end
+
 function commonCloudAppRPCs.raiN(id, self)
   self, id = commonCloudAppRPCs.getSelfAndParams(id, self)
   if not id then id = 1 end
