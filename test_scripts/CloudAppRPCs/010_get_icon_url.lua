@@ -18,6 +18,8 @@ local common = require('test_scripts/CloudAppRPCs/commonCloudAppRPCs')
 
 --[[ Local Variables ]]
 local cloud_app_id = "cloudAppID123"
+config.application1.registerAppInterfaceParams.syncMsgVersion.majorVersion = 5
+config.application1.registerAppInterfaceParams.syncMsgVersion.minorVersion = 1
 
 --[[ Local Functions ]]
 local function PTUfunc(tbl)
