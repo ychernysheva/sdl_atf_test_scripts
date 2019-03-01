@@ -65,14 +65,13 @@ local function processRPCSuccess(self)
   mobileSession:ExpectResponse(cid, responseParams)
 end
 
-local function processGetRPCSuccess(self)
+local function processGetRPCFailure(self)
     local mobileSession = common.getMobileSession(self, 1)
     local cid = mobileSession:SendRPC(get_rpc.name, get_rpc.params)
   
     local responseParams = {}
-    responseParams.success = true
-    responseParams.resultCode = "SUCCESS"
-    responseParams.properties = get_expected
+    responseParams.success = false
+    responseParams.resultCode = "DATA_NOT_AVAILABLE"
     mobileSession:ExpectResponse(cid, responseParams)
 end
 
@@ -106,7 +105,7 @@ runner.Title("Test")
 runner.Step("RPC " .. rpc.name .. "_resultCode_SUCCESS(new_app_id)", processRPCSuccess)
 runner.Step("Request PTU", common.Request_PTU)
 runner.Step("Verify CloudApp Properties", verifyCloudAppProperties)
-runner.Step("RPC " .. get_rpc.name .. "_resultCode_SUCCESS", processGetRPCSuccess)
+runner.Step("RPC " .. get_rpc.name .. "_resultCode_DATA_NOT_AVAILABLE", processGetRPCFailure)
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", common.postconditions)
