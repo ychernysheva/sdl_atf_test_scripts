@@ -332,7 +332,8 @@ function module:initHMI()
           "BasicCommunication.OnSDLClose",
           "SDL.OnSDLConsentNeeded",
           "BasicCommunication.OnResumeAudioSource",
-          "BasicCommunication.OnSystemTimeReady"
+          "BasicCommunication.OnSystemTimeReady",
+          "BasicCommunication.OnSystemCapabilityUpdated"
         })
       registerComponent("UI",
         {
@@ -347,6 +348,10 @@ function module:initHMI()
         {
           "Navigation.OnAudioDataStreaming",
           "Navigation.OnVideoDataStreaming"
+        })
+      registerComponent("AppService", 
+        {
+          "AppService.OnAppServiceData"
         })
     end)
   exp_waiter:AddExpectation(web_socket_connected_event)
