@@ -4,7 +4,7 @@
 --  2) Specific permissions are assigned for <appID> with PublishAppService
 --
 --  Steps:
---  1) Application sends a PublishAppService RPC request
+--  1) Application sends a PublishAppService RPC request for service type NAVIGATION
 --
 --  Expected:
 --  1) SDL sends a OnSystemCapabilityUpdated(APP_SERVICES, PUBLISHED) notification to mobile app
@@ -22,7 +22,7 @@ runner.testSettings.isSelfIncluded = false
 --[[ Local Variables ]]
 local manifest = {
   serviceName = config.application1.registerAppInterfaceParams.appName,
-  serviceType = "MEDIA",
+  serviceType = "NAVIGATION",
   allowAppConsumers = true,
   rpcSpecVersion = config.application1.registerAppInterfaceParams.syncMsgVersion,
   mediaServiceManifest = {}
@@ -46,7 +46,7 @@ local expectedResponse = {
 }
 
 local function PTUfunc(tbl)
-  tbl.policy_table.app_policies[common.getConfigAppParams(1).fullAppID] = common.getAppServiceProducerConfig(1);
+  tbl.policy_table.app_policies[common.getConfigAppParams(1).fullAppID] = common.getAppServiceProducerConfig(1, "NAVIGATION");
 end
 
 --[[ Local Functions ]]
@@ -58,10 +58,6 @@ local function processRPCSuccess(self)
     common.appServiceCapabilityUpdateParams("PUBLISHED", manifest),
     common.appServiceCapabilityUpdateParams("ACTIVATED", manifest)):Times(2)
   mobileSession:ExpectResponse(cid, expectedResponse)
-
-  EXPECT_HMINOTIFICATION("BasicCommunication.OnSystemCapabilityUpdated", 
-    common.appServiceCapabilityUpdateParams("PUBLISHED", manifest),
-    common.appServiceCapabilityUpdateParams("ACTIVATED", manifest)):Times(2)
 end
 
 --[[ Scenario ]]

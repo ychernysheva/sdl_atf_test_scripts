@@ -4,12 +4,14 @@
 --  2) Specific permissions are assigned for <appID> with PublishAppService
 --
 --  Steps:
---  1) Application sends a PublishAppService RPC request
+--  1) Application sends a PublishAppService RPC request for service type NAVIGATION
+--  2) Application sends a PublishAppService RPC request with service_name = "BadServiceName"
+--  3) Application sends a PublishAppService RPC request with handled_rpc = {44}
 --
---  Expected:
+--  Expected for each step:
 --  1) SDL sends a OnSystemCapabilityUpdated(APP_SERVICES, PUBLISHED) notification to mobile app
 --  2) SDL sends a OnSystemCapabilityUpdated(APP_SERVICES, ACTIVATED) notification to mobile app
---  3) SDL responds to mobile app with "resultCode: SUCCESS, success: true"
+--  3) SDL responds to mobile app with "resultCode: DISALLOWED"
 ---------------------------------------------------------------------------------------------------
 
 --[[ Required Shared libraries ]]
@@ -22,7 +24,7 @@ runner.testSettings.isSelfIncluded = false
 --[[ Local Variables ]]
 local manifest = {
   serviceName = config.application1.registerAppInterfaceParams.appName,
-  serviceType = "MEDIA",
+  serviceType = "NAVIGATION",
   allowAppConsumers = true,
   rpcSpecVersion = config.application1.registerAppInterfaceParams.syncMsgVersion,
   mediaServiceManifest = {}
@@ -36,32 +38,47 @@ local rpc = {
 }
 
 local expectedResponse = {
-  appServiceRecord = {
-    serviceManifest = manifest,
-    servicePublished = true,
-    serviceActive = true
-  },
-  success = true,
-  resultCode = "SUCCESS"
+  resultCode = "DISALLOWED"
 }
 
 local function PTUfunc(tbl)
-  tbl.policy_table.app_policies[common.getConfigAppParams(1).fullAppID] = common.getAppServiceProducerConfig(1);
+  tbl.policy_table.app_policies[common.getConfigAppParams(1).fullAppID] = common.getAppServiceProducerConfig(1, "WEATHER");
 end
 
 --[[ Local Functions ]]
-local function processRPCSuccess(self)
+local function processServiceTypeDisallowed(self)
   local mobileSession = common.getMobileSession(self, 1)
   local cid = mobileSession:SendRPC(rpc.name, rpc.params)
 
   mobileSession:ExpectNotification("OnSystemCapabilityUpdated", 
     common.appServiceCapabilityUpdateParams("PUBLISHED", manifest),
-    common.appServiceCapabilityUpdateParams("ACTIVATED", manifest)):Times(2)
+    common.appServiceCapabilityUpdateParams("ACTIVATED", manifest)):Times(0)
   mobileSession:ExpectResponse(cid, expectedResponse)
+end
 
-  EXPECT_HMINOTIFICATION("BasicCommunication.OnSystemCapabilityUpdated", 
+local function processServiceNameDisallowed(self)
+  rpc.params.appServiceManifest.serviceType = "WEATHER"
+  rpc.params.appServiceManifest.serviceName = "BadServiceName"
+  
+  local mobileSession = common.getMobileSession(self, 1)
+  local cid = mobileSession:SendRPC(rpc.name, rpc.params)
+
+  mobileSession:ExpectNotification("OnSystemCapabilityUpdated", 
     common.appServiceCapabilityUpdateParams("PUBLISHED", manifest),
-    common.appServiceCapabilityUpdateParams("ACTIVATED", manifest)):Times(2)
+    common.appServiceCapabilityUpdateParams("ACTIVATED", manifest)):Times(0)
+  mobileSession:ExpectResponse(cid, expectedResponse)
+end
+
+local function processHandledRPCsDisallowed(self)
+  rpc.params.appServiceManifest.serviceName = config.application1.registerAppInterfaceParams.appName
+  rpc.params.appServiceManifest["handledRPCs"] = {44}
+  local mobileSession = common.getMobileSession(self, 1)
+  local cid = mobileSession:SendRPC(rpc.name, rpc.params)
+
+  mobileSession:ExpectNotification("OnSystemCapabilityUpdated", 
+    common.appServiceCapabilityUpdateParams("PUBLISHED", manifest),
+    common.appServiceCapabilityUpdateParams("ACTIVATED", manifest)):Times(0)
+  mobileSession:ExpectResponse(cid, expectedResponse)
 end
 
 --[[ Scenario ]]
@@ -73,7 +90,9 @@ runner.Step("PTU", common.policyTableUpdate, { PTUfunc })
 runner.Step("Activate App", common.activateApp)
 
 runner.Title("Test")
-runner.Step("RPC " .. rpc.name .. "_resultCode_SUCCESS", processRPCSuccess)
+runner.Step("RPC " .. rpc.name .. "_disallowed_by_service_type", processServiceTypeDisallowed)
+runner.Step("RPC " .. rpc.name .. "_disallowed_by_service_name", processServiceNameDisallowed)
+runner.Step("RPC " .. rpc.name .. "_disallowed_by_handled_rpcs", processHandledRPCsDisallowed)
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", common.postconditions)

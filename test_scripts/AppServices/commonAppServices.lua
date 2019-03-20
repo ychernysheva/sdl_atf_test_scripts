@@ -52,23 +52,28 @@ function commonAppServices.getAppServiceConsumerConfig(app_id)
   }
 end
 
-function commonAppServices.getAppServiceProducerConfig(app_id)
-  return {
+function commonAppServices.getAppServiceProducerConfig(app_id, service_type)
+  local policy = {
     keep_context = false,
     steal_focus = false,
     priority = "NONE",
     default_hmi = "NONE",
     groups = { "Base-4" , "AppServiceProducer" },
     nicknames = { config["application" .. app_id].registerAppInterfaceParams.appName },
-    app_services = {
-      MEDIA = {
-        handled_rpcs = {{function_id = 2000}},
-        service_names = {
-          config["application" .. app_id].registerAppInterfaceParams.appName
-        }
-      }
+    app_services = {}
+  }
+  local service_info = {
+    handled_rpcs = {{function_id = 2000}},
+    service_names = {
+      config["application" .. app_id].registerAppInterfaceParams.appName
     }
   }
+  if service_type then
+    policy.app_services[service_type] = service_info
+  else
+    policy.app_services["MEDIA"] = service_info
+  end
+  return policy
 end
 
 function commonAppServices.publishEmbeddedAppService(manifest)
