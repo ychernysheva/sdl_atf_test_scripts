@@ -119,6 +119,40 @@ function commonAppServices.publishMobileAppService(manifest, app_id)
     end)
 end
 
+function commonAppServices.mobileSubscribeAppServiceData(provider_app_id, app_id)
+  if not app_id then app_id = 1 end
+  local requestParams = {
+    serviceType = "MEDIA",
+    subscribe = true
+  }
+  local mobileSession = commonAppServices.getMobileSession(app_id)
+  local cid = mobileSession:SendRPC("GetAppServiceData", requestParams)
+  local service_id = commonAppServices.getAppServiceID(provider_app_id)
+  local responseParams = {
+    serviceData = {
+      serviceID = service_id,
+      serviceType = "MEDIA",
+      mediaServiceData = {}
+    }
+  }
+  if provider_app_id == 0 then
+    EXPECT_HMICALL("AppService.GetAppServiceData", requestParams):Do(function(_, data) 
+        commonAppServices.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", responseParams)
+      end)
+  else
+    local providerMobileSession = commonAppServices.getMobileSession(provider_app_id)
+
+    -- Fill out mobile response params
+    responseParams.resultCode = "SUCCESS"
+    responseParams.success = true
+    providerMobileSession:ExpectRequest("GetAppServiceData", requestParams):Do(function(_, data) 
+        providerMobileSession:SendResponse("GetAppServiceData", data.rpcCorrelationId, responseParams)
+      end)
+  end
+
+  mobileSession:ExpectResponse(cid, responseParams)
+end
+
 function commonAppServices.getAppServiceID(app_id)
   if not app_id then app_id = 1 end
   return serviceIDs[app_id]
