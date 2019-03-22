@@ -1,16 +1,15 @@
 ---------------------------------------------------------------------------------------------------
 --  Precondition: 
 --  1) Application with <appID> is registered on SDL.
---  2) Specific permissions are assigned for <appID> with GetAppServiceData
+--  2) Specific permissions are assigned for <appID> with OnAppServiceData
+--  3) Application has published a MEDIA service
+--  4) HMI is subscribed to OnAppServiceData
 --
 --  Steps:
---  1) Application sends a AppService.PublishAppService RPC request with serviceType MEDIA
---  2) HMI sends a AppService.GetAppServiceData RPC request with serviceType MEDIA
+--  1) Application sends a OnAppServiceData RPC notification with serviceType MEDIA
 --
 --  Expected:
---  1) SDL forwards the GetAppServiceData request to Application as GetAppServiceData
---  2) Application sends a GetAppServiceData response (SUCCESS) to Core with its own serviceData
---  3) SDL forwards the response to HMI as AppService.GetAppServiceData
+--  1) SDL forwards the OnAppServiceData notification to HMI
 ---------------------------------------------------------------------------------------------------
 
 --[[ Required Shared libraries ]]
