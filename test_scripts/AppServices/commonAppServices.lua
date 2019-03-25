@@ -58,7 +58,7 @@ function commonAppServices.getAppServiceProducerConfig(app_id)
     steal_focus = false,
     priority = "NONE",
     default_hmi = "NONE",
-    groups = { "Base-4" , "AppServiceProducer" },
+    groups = { "Base-4" , "AppServiceProvider" },
     nicknames = { config["application" .. app_id].registerAppInterfaceParams.appName },
     app_services = {
       MEDIA = {
