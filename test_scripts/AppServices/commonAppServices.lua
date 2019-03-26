@@ -1,5 +1,7 @@
 
 local actions = require("user_modules/sequences/actions")
+local utils = require("user_modules/utils")
+local test = require("user_modules/dummy_connecttest")
 
 local commonAppServices = actions
 
@@ -119,6 +121,35 @@ function commonAppServices.publishMobileAppService(manifest, app_id)
     end)
 end
 
+function commonAppServices.publishSecondMobileAppService(manifest1, manifest2, app_id)
+  if not app_id then app_id = 2 end
+
+  local mobileSession = commonAppServices.getMobileSession(app_id)
+  local cid = mobileSession:SendRPC("PublishAppService", {
+    appServiceManifest = manifest2
+  })
+
+  local second_app_record = appServiceCapability("PUBLISHED", manifest2)
+
+  local publishedParams = commonAppServices.appServiceCapabilityUpdateParams("ACTIVATED", manifest1)
+  publishedParams.systemCapability.appServicesCapabilities.appServices[2] = second_app_record
+  publishedParams.systemCapability.appServicesCapabilities.appServices[1].updateReason = nil
+
+  mobileSession:ExpectNotification("OnSystemCapabilityUpdated", publishedParams):Times(1)
+  mobileSession:ExpectResponse(cid, {
+    appServiceRecord = {
+      serviceManifest = manifest,
+      servicePublished = true
+    },
+    success = true,
+    resultCode = "SUCCESS"
+  }):Do(function(_, data)
+      if data.payload.success then
+        serviceIDs[app_id] = data.payload.appServiceRecord.serviceID
+      end
+    end)
+end
+
 function commonAppServices.mobileSubscribeAppServiceData(provider_app_id, app_id)
   if not app_id then app_id = 1 end
   local requestParams = {
@@ -156,6 +187,43 @@ end
 function commonAppServices.getAppServiceID(app_id)
   if not app_id then app_id = 1 end
   return serviceIDs[app_id]
+end
+
+function commonAppServices.GetAppServiceSystemCapability(manifest, subscribe, app_id)
+  if not app_id then app_id = 1 end
+  local requestParams = {
+    systemCapabilityType = "APP_SERVICES",
+    subscribe = subscribe
+  }
+
+  local mobileSession = commonAppServices.getMobileSession(app_id)
+  local cid = mobileSession:SendRPC("GetSystemCapability", requestParams)
+
+  local responseParams = {
+    success = true,
+    resultCode = "SUCCESS",
+    systemCapability = {
+      systemCapabilityType = "APP_SERVICES",
+      appServicesCapabilities = {
+        appServices = {{
+          updatedAppServiceRecord = {
+            serviceManifest = manifest
+          }
+        }}
+      }
+    }
+  }
+
+  mobileSession:ExpectResponse(cid, responseParams)
+end
+
+function commonAppServices.cleanSession(app_id)
+  test.mobileSession[app_id]:StopRPC()
+  :Do(function(_, d)
+    utils.cprint(35, "Mobile session " .. d.sessionId .. " deleted")
+    test.mobileSession[app_id] = nil
+  end)
+  utils.wait()
 end
 
 return commonAppServices
