@@ -7,7 +7,7 @@ local commonAppServices = actions
 
 local serviceIDs = {}
 
-local function appServiceCapability(update_reason, manifest) 
+function commonAppServices.appServiceCapability(update_reason, manifest) 
   local appService = {
     updateReason = update_reason,
     updatedAppServiceRecord = {
@@ -36,7 +36,7 @@ function commonAppServices.appServiceCapabilityUpdateParams(update_reason, manif
       systemCapabilityType = "APP_SERVICES",
       appServicesCapabilities = {
         appServices = {
-          appServiceCapability(update_reason, manifest)
+          commonAppServices.appServiceCapability(update_reason, manifest)
         }
       }
     }
@@ -60,7 +60,7 @@ function commonAppServices.getAppServiceProducerConfig(app_id)
     steal_focus = false,
     priority = "NONE",
     default_hmi = "NONE",
-    groups = { "Base-4" , "AppServiceProducer" },
+    groups = { "Base-4" , "AppServiceProvider" },
     nicknames = { config["application" .. app_id].registerAppInterfaceParams.appName },
     app_services = {
       MEDIA = {
@@ -73,14 +73,39 @@ function commonAppServices.getAppServiceProducerConfig(app_id)
   }
 end
 
+function commonAppServices.findCapabilityUpdate(capability, params)
+  if not params.systemCapability then
+    return false, "params.systemCapability is nil"
+  end
+  local systemCapability = params.systemCapability
+  if not systemCapability.systemCapabilityType == "APP_SERVICES" or not systemCapability.appServicesCapabilities then
+    return false, "appServicesCapabilities is nil"
+  end
+  local appServices = systemCapability.appServicesCapabilities.appServices
+  for key, value in pairs(appServices) do
+    local res, err = compareValues(capability, value, "params")
+    if res then
+      return true
+    end
+  end
+  return false, "unable to find matching app service update"
+end
+
 function commonAppServices.publishEmbeddedAppService(manifest)
   local cid = commonAppServices.getHMIConnection():SendRequest("AppService.PublishAppService", {
     appServiceManifest = manifest
   })
-
-  EXPECT_HMINOTIFICATION("BasicCommunication.OnSystemCapabilityUpdated", 
-    commonAppServices.appServiceCapabilityUpdateParams("PUBLISHED", manifest),
-    commonAppServices.appServiceCapabilityUpdateParams("ACTIVATED", manifest)):Times(AtLeast(1))
+  local first_run = true
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnSystemCapabilityUpdated"):Times(AtLeast(1)):ValidIf(function(self, data)
+      if first_run then
+        first_run = false
+        local publishedParams = commonAppServices.appServiceCapability("PUBLISHED", manifest)
+        return commonAppServices.findCapabilityUpdate(publishedParams, data.params)
+      else
+        local activatedParams = commonAppServices.appServiceCapability("ACTIVATED", manifest)
+        return commonAppServices.findCapabilityUpdate(activatedParams, data.params)
+      end
+    end)
   EXPECT_HMIRESPONSE(cid, {
     result = {
       appServiceRecord = {
@@ -104,9 +129,17 @@ function commonAppServices.publishMobileAppService(manifest, app_id)
     appServiceManifest = manifest
   })
 
-  mobileSession:ExpectNotification("OnSystemCapabilityUpdated",
-    commonAppServices.appServiceCapabilityUpdateParams("PUBLISHED", manifest),
-    commonAppServices.appServiceCapabilityUpdateParams("ACTIVATED", manifest)):Times(AtLeast(1))
+  local first_run = true
+  mobileSession:ExpectNotification("OnSystemCapabilityUpdated"):Times(AtLeast(1)):ValidIf(function(self, data)
+      if first_run then
+        first_run = false
+        local publishedParams = commonAppServices.appServiceCapability("PUBLISHED", manifest)
+        return commonAppServices.findCapabilityUpdate(publishedParams, data.payload)
+      else
+        local activatedParams = commonAppServices.appServiceCapability("ACTIVATED", manifest)
+        return commonAppServices.findCapabilityUpdate(activatedParams, data.payload)
+      end
+    end)
   mobileSession:ExpectResponse(cid, {
     appServiceRecord = {
       serviceManifest = manifest,
