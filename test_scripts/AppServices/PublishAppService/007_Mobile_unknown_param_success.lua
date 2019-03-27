@@ -48,11 +48,11 @@ local expectedResponse = {
   resultCode = "SUCCESS"
 }
 
+--[[ Local Functions ]]
 local function PTUfunc(tbl)
   tbl.policy_table.app_policies[common.getConfigAppParams(1).fullAppID] = common.getAppServiceProducerConfig(1);
 end
 
---[[ Local Functions ]]
 local function processRPCSuccess(self)
   local mobileSession = common.getMobileSession(self, 1)
   local cid = mobileSession:SendRPC(rpc.name, rpc.params)

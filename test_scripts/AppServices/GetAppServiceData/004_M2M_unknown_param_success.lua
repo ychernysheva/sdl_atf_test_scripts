@@ -64,12 +64,12 @@ local expectedResponse = {
   resultCode = "SUCCESS"
 }
 
+--[[ Local Functions ]]
 local function PTUfunc(tbl)
   tbl.policy_table.app_policies[common.getConfigAppParams(1).fullAppID] = common.getAppServiceProducerConfig(1);
   tbl.policy_table.app_policies[common.getConfigAppParams(2).fullAppID] = common.getAppServiceConsumerConfig(2);
 end
 
---[[ Local Functions ]]
 local function processRPCSuccess(self)
   local mobileSession = common.getMobileSession(1)
   local mobileSession2 = common.getMobileSession(2)
