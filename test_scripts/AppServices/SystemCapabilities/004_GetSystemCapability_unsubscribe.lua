@@ -3,7 +3,6 @@
 --  1) Application 1 with <appID> is registered on SDL.
 --  2) Application 2 with <appID2> is registered on SDL.
 --  3) Specific permissions are assigned for <appID> with PublishAppService
---  4) Specific permissions are assigned for <appID2> with GetSystemCapability
 --
 --  Steps:
 --  1) Application 2 sends a GetSystemCapability RPC request with subscribe = true
@@ -65,7 +64,6 @@ local publishExpectedResponse = {
 
 local function PTUfunc(tbl)
   tbl.policy_table.app_policies[common.getConfigAppParams(1).fullAppID] = common.getAppServiceProducerConfig(1);
-  tbl.policy_table.app_policies[common.getConfigAppParams(2).fullAppID] = common.getAppServiceConsumerConfig(2);
 end
 
 --[[ Local Functions ]]

@@ -54,6 +54,10 @@ local function processServiceTypeDisallowed(self)
     common.appServiceCapabilityUpdateParams("PUBLISHED", manifest),
     common.appServiceCapabilityUpdateParams("ACTIVATED", manifest)):Times(0)
   mobileSession:ExpectResponse(cid, expectedResponse)
+
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnSystemCapabilityUpdated", 
+  common.appServiceCapabilityUpdateParams("PUBLISHED", manifest),
+  common.appServiceCapabilityUpdateParams("ACTIVATED", manifest)):Times(0)
 end
 
 local function processServiceNameDisallowed(self)
@@ -67,6 +71,10 @@ local function processServiceNameDisallowed(self)
     common.appServiceCapabilityUpdateParams("PUBLISHED", manifest),
     common.appServiceCapabilityUpdateParams("ACTIVATED", manifest)):Times(0)
   mobileSession:ExpectResponse(cid, expectedResponse)
+
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnSystemCapabilityUpdated", 
+  common.appServiceCapabilityUpdateParams("PUBLISHED", manifest),
+  common.appServiceCapabilityUpdateParams("ACTIVATED", manifest)):Times(0)
 end
 
 local function processHandledRPCsDisallowed(self)
@@ -79,6 +87,10 @@ local function processHandledRPCsDisallowed(self)
     common.appServiceCapabilityUpdateParams("PUBLISHED", manifest),
     common.appServiceCapabilityUpdateParams("ACTIVATED", manifest)):Times(0)
   mobileSession:ExpectResponse(cid, expectedResponse)
+
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnSystemCapabilityUpdated", 
+  common.appServiceCapabilityUpdateParams("PUBLISHED", manifest),
+  common.appServiceCapabilityUpdateParams("ACTIVATED", manifest)):Times(0)
 end
 
 --[[ Scenario ]]
