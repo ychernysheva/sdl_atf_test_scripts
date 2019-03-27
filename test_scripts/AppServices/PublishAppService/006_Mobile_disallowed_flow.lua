@@ -10,7 +10,7 @@
 --
 --  Expected for each step:
 --  1) SDL does NOT send a OnSystemCapabilityUpdated(APP_SERVICES, PUBLISHED) notification to mobile app
---  2) SDL sends a OnSystemCapabilityUpdated(APP_SERVICES, ACTIVATED) notification to mobile app
+--  2) SDL does NOT send a OnSystemCapabilityUpdated(APP_SERVICES, ACTIVATED) notification to mobile app
 --  3) SDL responds to mobile app with "resultCode: DISALLOWED"
 ---------------------------------------------------------------------------------------------------
 
