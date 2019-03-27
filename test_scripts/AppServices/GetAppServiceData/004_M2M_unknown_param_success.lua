@@ -29,7 +29,7 @@ local manifest = {
   allowAppConsumers = true,
   rpcSpecVersion = config.application1.registerAppInterfaceParams.syncMsgVersion,
   mediaServiceManifest = {
-    futureServiceManifestItem = "This a future parameter"
+    futureServiceManifestItem = "This a future manifest parameter"
   }
 }
 
