@@ -126,10 +126,10 @@ function commonAppServices.publishMobileAppService(manifest, app_id)
     appServiceManifest = manifest
   })
 
-  local first_run = true
+  local first_run_mobile = true
   mobileSession:ExpectNotification("OnSystemCapabilityUpdated"):Times(AtLeast(1)):ValidIf(function(self, data)
-      if first_run then
-        first_run = false
+      if first_run_mobile then
+        first_run_mobile = false
         local publishedParams = commonAppServices.appServiceCapability("PUBLISHED", manifest)
         return commonAppServices.findCapabilityUpdate(publishedParams, data.payload)
       else
@@ -137,6 +137,18 @@ function commonAppServices.publishMobileAppService(manifest, app_id)
         return commonAppServices.findCapabilityUpdate(activatedParams, data.payload)
       end
     end)
+  local first_run_hmi = true
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnSystemCapabilityUpdated"):Times(AtLeast(1)):ValidIf(function(self, data)
+      if first_run_hmi then
+        first_run_hmi = false
+        local publishedParams = commonAppServices.appServiceCapability("PUBLISHED", manifest)
+        return commonAppServices.findCapabilityUpdate(publishedParams, data.params)
+      else
+        local activatedParams = commonAppServices.appServiceCapability("ACTIVATED", manifest)
+        return commonAppServices.findCapabilityUpdate(activatedParams, data.params)
+      end
+    end)
+
   mobileSession:ExpectResponse(cid, {
     appServiceRecord = {
       serviceManifest = manifest,
