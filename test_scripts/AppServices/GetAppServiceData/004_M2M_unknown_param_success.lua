@@ -37,7 +37,7 @@ local rpc = {
   name = "GetAppServiceData",
   params = {
     serviceType = manifest.serviceType,
-    futureServiceRequestItem = "future parameter"
+    futureServiceRequestItem = "This is a future request parameter"
   }
 }
 
