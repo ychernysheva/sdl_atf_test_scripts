@@ -130,10 +130,23 @@ local function ptu(self, app_id, ptu_update_func)
   os.remove(ptu_file_name)
 end
 
+function commonCloudAppRPCs.DeleteStorageFolder()
+  local ExistDirectoryResult = commonSteps:Directory_exist( tostring(config.pathToSDL .. "storage"))
+  if ExistDirectoryResult == true then
+    local RmFolder  = assert( os.execute( "rm -rf " .. tostring(config.pathToSDL .. "storage" )))
+    if RmFolder ~= true then
+      commonFunctions:userPrint(31, "Folder 'storage' is not deleted")
+    end
+  else
+    commonFunctions:userPrint(33, "Folder 'storage' is absent")
+  end
+end
+
 function commonCloudAppRPCs.preconditions()
   commonFunctions:SDLForceStop()
   commonSteps:DeletePolicyTable()
   commonSteps:DeleteLogsFiles()
+  commonCloudAppRPCs.DeleteStorageFolder()
 end
 
 --[[Module functions]]
@@ -190,6 +203,7 @@ end
 
 function commonCloudAppRPCs.postconditions()
   StopSDL()
+  commonCloudAppRPCs.DeleteStorageFolder()
 end
 
 function commonCloudAppRPCs.test_assert(condition, msg)
