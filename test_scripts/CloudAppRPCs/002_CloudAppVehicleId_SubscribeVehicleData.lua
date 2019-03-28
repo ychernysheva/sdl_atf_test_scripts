@@ -16,6 +16,9 @@
 local runner = require('user_modules/script_runner')
 local common = require('test_scripts/CloudAppRPCs/commonCloudAppRPCs')
 
+--[[ Test Configuration ]]
+runner.testSettings.isSelfIncluded = false
+
 --[[ Local Variables ]]
 local rpc = {
   name = "SubscribeVehicleData",
@@ -32,12 +35,12 @@ local vehicleDataResults = {
 }
 
 --[[ Local Functions ]]
-local function processRPCSuccess(self)
-  local mobileSession = common.getMobileSession(self, 1)
+local function processRPCSuccess()
+  local mobileSession = common.getMobileSession(1)
   local cid = mobileSession:SendRPC(rpc.name, rpc.params)
   EXPECT_HMICALL("VehicleInfo." .. rpc.name, rpc.params)
   :Do(function(_, data)
-      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS",
+      common.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS",
         vehicleDataResults)
     end)
   local responseParams = vehicleDataResults
@@ -46,11 +49,16 @@ local function processRPCSuccess(self)
   mobileSession:ExpectResponse(cid, responseParams)
 end
 
+local function PTUfunc(tbl)
+  tbl.policy_table.app_policies[common.getConfigAppParams(1).fullAppID] = common.getCloudAppConfig(1);
+end
+
 --[[ Scenario ]]
 runner.Title("Preconditions")
 runner.Step("Clean environment", common.preconditions)
 runner.Step("Start SDL, HMI, connect Mobile, start Session", common.start)
-runner.Step("RAI with PTU", common.registerAppWithPTU)
+runner.Step("RAI", common.registerApp)
+runner.Step("PTU", common.policyTableUpdate, { PTUfunc })
 runner.Step("Activate App", common.activateApp)
 
 runner.Title("Test")
