@@ -184,15 +184,17 @@ function commonAppServices.publishEmbeddedAppService(manifest)
   })
   local first_run = true
   EXPECT_HMINOTIFICATION("BasicCommunication.OnSystemCapabilityUpdated"):Times(AtLeast(1)):ValidIf(function(self, data)
-      if first_run then
-        first_run = false
-        local publishedParams = commonAppServices.appServiceCapability("PUBLISHED", manifest)
-        return commonAppServices.findCapabilityUpdate(publishedParams, data.params)
-      else
-        local activatedParams = commonAppServices.appServiceCapability("ACTIVATED", manifest)
-        return commonAppServices.findCapabilityUpdate(activatedParams, data.params)
-      end
-    end)
+    if data.params.systemCapability.systemCapabilityType == "NAVIGATION" then
+      return true
+    elseif first_run then
+      first_run = false
+      local publishedParams = commonAppServices.appServiceCapability("PUBLISHED", manifest)
+      return commonAppServices.findCapabilityUpdate(publishedParams, data.params)
+    else
+      local activatedParams = commonAppServices.appServiceCapability("ACTIVATED", manifest)
+      return commonAppServices.findCapabilityUpdate(activatedParams, data.params)
+    end
+  end)
   EXPECT_HMIRESPONSE(cid, {
     result = {
       appServiceRecord = {
@@ -218,26 +220,28 @@ function commonAppServices.publishMobileAppService(manifest, app_id)
 
   local first_run_mobile = true
   mobileSession:ExpectNotification("OnSystemCapabilityUpdated"):Times(AtLeast(1)):ValidIf(function(self, data)
-      if first_run_mobile then
-        first_run_mobile = false
-        local publishedParams = commonAppServices.appServiceCapability("PUBLISHED", manifest)
-        return commonAppServices.findCapabilityUpdate(publishedParams, data.payload)
-      else
-        local activatedParams = commonAppServices.appServiceCapability("ACTIVATED", manifest)
-        return commonAppServices.findCapabilityUpdate(activatedParams, data.payload)
-      end
-    end)
+    if first_run_mobile then
+      first_run_mobile = false
+      local publishedParams = commonAppServices.appServiceCapability("PUBLISHED", manifest)
+      return commonAppServices.findCapabilityUpdate(publishedParams, data.payload)
+    else
+      local activatedParams = commonAppServices.appServiceCapability("ACTIVATED", manifest)
+      return commonAppServices.findCapabilityUpdate(activatedParams, data.payload)
+    end
+  end)
   local first_run_hmi = true
   EXPECT_HMINOTIFICATION("BasicCommunication.OnSystemCapabilityUpdated"):Times(AtLeast(1)):ValidIf(function(self, data)
-      if first_run_hmi then
-        first_run_hmi = false
-        local publishedParams = commonAppServices.appServiceCapability("PUBLISHED", manifest)
-        return commonAppServices.findCapabilityUpdate(publishedParams, data.params)
-      else
-        local activatedParams = commonAppServices.appServiceCapability("ACTIVATED", manifest)
-        return commonAppServices.findCapabilityUpdate(activatedParams, data.params)
-      end
-    end)
+    if data.params.systemCapability.systemCapabilityType == "NAVIGATION" then
+      return true
+    elseif first_run_hmi then
+      first_run_hmi = false
+      local publishedParams = commonAppServices.appServiceCapability("PUBLISHED", manifest)
+      return commonAppServices.findCapabilityUpdate(publishedParams, data.params)
+    else
+      local activatedParams = commonAppServices.appServiceCapability("ACTIVATED", manifest)
+      return commonAppServices.findCapabilityUpdate(activatedParams, data.params)
+    end
+  end)
 
   mobileSession:ExpectResponse(cid, {
     appServiceRecord = {
@@ -373,6 +377,15 @@ function commonAppServices.putFileInStorage(app_id, request_params, response_par
   mobileSession:ExpectResponse(cid, response_params)
 end
 
-
+--[[Timeout]]
+function commonAppServices.getRpcPassThroughTimeoutFromINI()
+  local SDLini        = config.pathToSDL .. tostring("smartDeviceLink.ini")
+  f = assert(io.open(SDLini, "r"))
+  local fileContentUpdated = false
+  local fileContent = f:read("*all")
+  local property = fileContent:match('RpcPassThroughTimeout%s*=%s*[a-zA-Z%/0-9%_.]+[^\n]')
+  local RpcPassThroughTimeout = string.gsub(property:match("=.*"), "=", "")
+  return tonumber(RpcPassThroughTimeout)
+end
 
 return commonAppServices
