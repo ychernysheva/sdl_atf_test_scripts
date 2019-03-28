@@ -40,6 +40,17 @@ local function PTUfunc(tbl)
     }
     
     tbl.policy_table.app_policies[cloud_app_id] = params
+
+end
+
+local function PostPtuExpectation(self)
+  self["mobileSession" .. 1]:ExpectNotification("OnSystemRequest"):ValidIf(function(self, data)
+    print(data.payload.requestType)
+    if data.payload == nil then return false end
+    if data.payload.requestType == nil then return false end
+    if data.payload.requestType == "ICON_URL" then return true end
+    return false
+  end)
 end
 
 local rpc = {
@@ -54,7 +65,16 @@ local icon_image_path = "files/icon.png"
 local function processRPCSuccess(self)
     local mobileSession = common.getMobileSession(self, 1)
     local cid = mobileSession:SendRPC(rpc.name, rpc.params, icon_image_path)
-    EXPECT_HMICALL("BasicCommunication." .. "UpdateAppList")
+    EXPECT_HMICALL("BasicCommunication.UpdateAppList")
+    :ValidIf(function(self, data)
+      if data.params == nil then
+        return false
+      end
+      if data.params.applications[1] == nil and data.params.applications[2] == nil then
+        return false
+      end
+      return data.params.applications[1].icon ~= nil or data.params.applications[2].icon ~= nil
+    end)
     :Do(function(_, data)
         self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS")
       end)
@@ -70,7 +90,7 @@ runner.Step("Clean environment", common.preconditions)
 runner.Step("Start SDL, HMI, connect Mobile, start Session", common.start)
 
 runner.Title("Test")
-runner.Step("OnSystemRequest ICON_URL Post PTU", common.registerAppWithPTUExpectIconURL, {nil, PTUfunc})
+runner.Step("OnSystemRequest ICON_URL Post PTU", common.registerAppWithPTU, {nil, PTUfunc, PostPtuExpectation})
 runner.Step("Send App Icon SystemRequest", processRPCSuccess)
 
 runner.Title("Postconditions")
