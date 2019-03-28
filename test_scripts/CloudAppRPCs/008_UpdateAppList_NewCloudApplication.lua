@@ -13,11 +13,14 @@
 local runner = require('user_modules/script_runner')
 local common = require('test_scripts/CloudAppRPCs/commonCloudAppRPCs')
 
+--[[ Test Configuration ]]
+runner.testSettings.isSelfIncluded = false
+
 --[[ Local Variables ]]
 local appID = "0000002"
 
 local function updatePTU(tbl)
-  tbl.policy_table.app_policies[appID] = common.getVehicleDataConfig(2)
+  tbl.policy_table.app_policies[appID] = common.getCloudAppConfig(2)
 end
 
 local function checkUpdateAppList(self)

@@ -12,7 +12,7 @@ local function jsonFileToTable(file_name)
   return json.decode(content)
 end
 
-function commonCloudAppRPCs.getCloudAppConfig()
+function commonCloudAppRPCs.getCloudAppConfig(app_id)
   return {
     keep_context = false,
     steal_focus = false,
