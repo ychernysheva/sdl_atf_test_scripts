@@ -17,6 +17,9 @@
 local runner = require('user_modules/script_runner')
 local common = require('test_scripts/CloudAppRPCs/commonCloudAppRPCs')
 
+--[[ Test Configuration ]]
+runner.testSettings.isSelfIncluded = false
+
 --[[ Local Variables ]]
 local rpc1 = {
   name = "SubscribeVehicleData",
@@ -40,12 +43,12 @@ local vehicleDataResults = {
 }
 
 --[[ Local Functions ]]
-local function processRPCSubscribeSuccess(self)
-  local mobileSession = common.getMobileSession(self, 1)
+local function processRPCSubscribeSuccess()
+  local mobileSession = common.getMobileSession(1)
   local cid = mobileSession:SendRPC(rpc1.name, rpc1.params)
   EXPECT_HMICALL("VehicleInfo." .. rpc1.name, rpc1.params)
   :Do(function(_, data)
-      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", vehicleDataResults)
+      common.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", vehicleDataResults)
     end)
 
   local responseParams = vehicleDataResults
@@ -54,17 +57,22 @@ local function processRPCSubscribeSuccess(self)
   mobileSession:ExpectResponse(cid, responseParams)
 end
 
-local function checkNotificationSuccess(self)
-  local mobileSession = common.getMobileSession(self, 1)
-  self.hmiConnection:SendNotification("VehicleInfo." .. rpc2.name, rpc2.params)
+local function checkNotificationSuccess()
+  local mobileSession = common.getMobileSession(1)
+  common.getHMIConnection():SendNotification("VehicleInfo." .. rpc2.name, rpc2.params)
   mobileSession:ExpectNotification("OnVehicleData", rpc2.params)
+end
+
+local function PTUfunc(tbl)
+  tbl.policy_table.app_policies[common.getConfigAppParams(1).fullAppID] = common.getCloudAppConfig(1);
 end
 
 --[[ Scenario ]]
 runner.Title("Preconditions")
 runner.Step("Clean environment", common.preconditions)
 runner.Step("Start SDL, HMI, connect Mobile, start Session", common.start)
-runner.Step("RAI with PTU", common.registerAppWithPTU)
+runner.Step("RAI", common.registerApp)
+runner.Step("PTU", common.policyTableUpdate, { PTUfunc })
 runner.Step("Activate App", common.activateApp)
 
 runner.Title("Test")
