@@ -19,12 +19,15 @@
 local runner = require('user_modules/script_runner')
 local common = require('test_scripts/CloudAppRPCs/commonCloudAppRPCs')
 
+--[[ Test Configuration ]]
+runner.testSettings.isSelfIncluded = false
+
 --[[ Local Variables ]]
 local rpc = {
   name = "SetCloudAppProperties",
   params = {
     properties = {
-        appName = "TestApp",
+        nicknames = {"TestApp"},
         appID = "232",
         enabled = true,
         authToken = "ABCD12345",
@@ -43,7 +46,7 @@ local expected = {
 local get_rpc = {
     name = "GetCloudAppProperties",
     params = {
-      appID = "232"
+      appID = "231"
     }
 }
 
@@ -55,8 +58,8 @@ local get_expected = {
 }
 
 --[[ Local Functions ]]
-local function processRPCSuccess(self)
-  local mobileSession = common.getMobileSession(self, 1)
+local function processRPCSuccess()
+  local mobileSession = common.getMobileSession(1)
   local cid = mobileSession:SendRPC(rpc.name, rpc.params)
 
   local responseParams = {}
@@ -65,8 +68,8 @@ local function processRPCSuccess(self)
   mobileSession:ExpectResponse(cid, responseParams)
 end
 
-local function processGetRPCFailure(self)
-    local mobileSession = common.getMobileSession(self, 1)
+local function processGetRPCFailure()
+    local mobileSession = common.getMobileSession(1)
     local cid = mobileSession:SendRPC(get_rpc.name, get_rpc.params)
   
     local responseParams = {}
@@ -75,7 +78,7 @@ local function processGetRPCFailure(self)
     mobileSession:ExpectResponse(cid, responseParams)
 end
 
-local function verifyCloudAppProperties(self)
+local function verifyCloudAppProperties()
   local snp_tbl = common.GetPolicySnapshot()
   local app_id = rpc.params.properties.appID
   local result = {}
@@ -94,11 +97,16 @@ local function verifyCloudAppProperties(self)
 
 end
 
+local function PTUfunc(tbl)
+  tbl.policy_table.app_policies[common.getConfigAppParams(1).fullAppID] = common.getCloudAppStoreConfig(1);
+end
+
 --[[ Scenario ]]
 runner.Title("Preconditions")
 runner.Step("Clean environment", common.preconditions)
 runner.Step("Start SDL, HMI, connect Mobile, start Session", common.start)
-runner.Step("RAI with PTU", common.registerAppWithPTU)
+runner.Step("RAI", common.registerApp)
+runner.Step("PTU", common.policyTableUpdate, { PTUfunc })
 runner.Step("Activate App", common.activateApp)
 
 runner.Title("Test")
