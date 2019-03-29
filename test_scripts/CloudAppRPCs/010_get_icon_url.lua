@@ -16,6 +16,9 @@
 local runner = require('user_modules/script_runner')
 local common = require('test_scripts/CloudAppRPCs/commonCloudAppRPCs')
 
+ --[[ Test Configuration ]]
+ runner.testSettings.isSelfIncluded = false
+
 --[[ Local Variables ]]
 local cloud_app_id = "cloudAppID123"
 local url = "https://fakeurl1234512345.com"
@@ -50,17 +53,7 @@ local function PTUfunc(tbl)
     tbl.policy_table.app_policies[cloud_app_id] = params
 end
 
-local function PostPtuExpectation(self)
-  self["mobileSession" .. 1]:ExpectNotification("OnSystemRequest"):ValidIf(function(self, data)
-    print(data.payload.requestType)
-    if data.payload == nil then return false end
-    if data.payload.requestType == nil then return false end
-    if data.payload.requestType == "ICON_URL" and data.payload.url == url then return true end
-    return false
-  end)
-end
-
-local function processRPCSuccess(self)
+local function processRPCSuccess()
     local mobileSession = common.getMobileSession(self, 1)
     local cid = mobileSession:SendRPC(rpc.name, rpc.params, icon_image_path)
     EXPECT_HMICALL("BasicCommunication.UpdateAppList")
@@ -74,7 +67,7 @@ local function processRPCSuccess(self)
       return data.params.applications[1].icon ~= nil or data.params.applications[2].icon ~= nil
     end)
     :Do(function(_, data)
-        self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS")
+        common.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS")
       end)
     local responseParams = {}
     responseParams.success = true
@@ -85,11 +78,16 @@ local function processRPCSuccess(self)
 --[[ Scenario ]]
 runner.Title("Preconditions")
 runner.Step("Clean environment", common.preconditions)
+runner.Step("Delete Storage", common.DeleteStorageFolder)
+
 runner.Step("Start SDL, HMI, connect Mobile, start Session", common.start)
 
 runner.Title("Test")
-runner.Step("OnSystemRequest ICON_URL Post PTU", common.registerAppWithPTU, {nil, PTUfunc, PostPtuExpectation})
+runner.Step("RAI", common.registerApp)
+runner.Step("PTU", common.policyTableUpdateWithIconUrl, { PTUfunc, nil, url })
+
 runner.Step("Send App Icon SystemRequest", processRPCSuccess)
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", common.postconditions)
+runner.Step("Delete Storage", common.DeleteStorageFolder)
