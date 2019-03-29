@@ -1,7 +1,7 @@
 ---------------------------------------------------------------------------------------------------
 --  Precondition: 
 --  1) Application 1 with <appID> is registered on SDL.
---  2) Specific permissions are assigned for <appID> with PublishAppService
+--  2) AppServiceProvider permissions are assigned for <appID> with PublishAppService
 --
 --  Steps:
 --  1) Application 1 sends a PublishAppService RPC request with serviceType MEDIA
