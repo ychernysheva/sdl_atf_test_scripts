@@ -3,7 +3,7 @@
 --  1) Application 1 with <appID> is registered on SDL.
 --  2) Application 2 with <appID> is registered on SDL.
 --  3) AppServiceProvider permissions for App 1 are assigned for <appID> with PublishAppService
---  4) Specific permissions for App 2 are assigned for <appID> with PublishAppService
+--  4) AppServiceProvider permissions for App 2 are assigned for <appID> with PublishAppService
 --
 --  Steps:
 --  1) Application 1 sends a PublishAppService RPC request with serviceType MEDIA
