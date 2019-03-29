@@ -3,10 +3,11 @@
 --  1) Application 1 with <appID> is registered on SDL.
 --  2) Specific permissions are assigned for <appID> with GetSystemCapability
 --  3) Application 1 sends a GetSystemCapability RPC request with subscribe = true
+--  4) HMI sends a PublishAppService RPC request with serviceType MEDIA
 --
 --  Steps:
---  1) HMI sends a PublishAppService RPC request with serviceType MEDIA
---  2) HMI sends AppService.AppServiceActivation activate = false
+
+--  1) HMI sends AppService.AppServiceActivation activate = false
 --
 --  Expected:
 --  1) HMI receives a successful response with activate = false
@@ -46,7 +47,6 @@ local expectedResponse = {
 
 local function PTUfunc(tbl)
   tbl.policy_table.app_policies[common.getConfigAppParams(1).fullAppID] = common.getAppServiceProducerConfig(1);
-  tbl.policy_table.app_policies[common.getConfigAppParams(2).fullAppID] = common.getAppServiceConsumerConfig(2);
 end
 
 --[[ Local Functions ]]

@@ -2,9 +2,10 @@
 --  Precondition: 
 --  1) Application 1 with <appID> is registered on SDL.
 --  2) AppServiceProvider permissions are assigned for <appID> with PublishAppService
+--  3) Application 1 sends a PublishAppService RPC request with serviceType MEDIA
 --
 --  Steps:
---  1) Application 1 sends a PublishAppService RPC request with serviceType MEDIA
+
 --  2) HMI sends AppService.AppServiceActivation activate = false
 --
 --  Expected:
@@ -45,7 +46,6 @@ local expectedResponse = {
 
 local function PTUfunc(tbl)
   tbl.policy_table.app_policies[common.getConfigAppParams(1).fullAppID] = common.getAppServiceProducerConfig(1);
-  tbl.policy_table.app_policies[common.getConfigAppParams(2).fullAppID] = common.getAppServiceConsumerConfig(2);
 end
 
 --[[ Local Functions ]]

@@ -4,11 +4,11 @@
 --  2) Application 2 with <appID> is registered on SDL.
 --  3) Specific permissions for App 1 are assigned for <appID> with PublishAppService
 --  4) Specific permissions for App 2 are assigned for <appID> with PublishAppService
+--  5) Application 1 sends a PublishAppService RPC request with serviceType MEDIA
+--  6) Application 2 sends a PublishAppService RPC request with serviceType MEDIA
 --
 --  Steps:
---  1) Application 1 sends a PublishAppService RPC request with serviceType MEDIA
---  2) Application 2 sends a PublishAppService RPC request with serviceType MEDIA
---  2) HMI sends AppService.AppServiceActivation activate = true and App 2's serviceID
+--  1) HMI sends AppService.AppServiceActivation activate = true and App 2's serviceID
 --
 --  Expected:
 --  1) HMI receives a successful response with activate = true
@@ -77,7 +77,7 @@ local function processRPCSuccess(self)
   local combinedParams = onSystemCapabilityParams1
   combinedParams.systemCapability.appServicesCapabilities.appServices[2] = onSystemCapabilityParams2.systemCapability.appServicesCapabilities.appServices[1]
 
-  EXPECT_HMINOTIFICATION("BasicCommunication.OnSystemCapabilityUpdated", combinedParamss):Times(AtLeast(1))
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnSystemCapabilityUpdated", combinedParams):Times(AtLeast(1))
   mobileSession:ExpectNotification("OnSystemCapabilityUpdated", combinedParams):Times(AtLeast(1))
   mobileSession2:ExpectNotification("OnSystemCapabilityUpdated", combinedParams):Times(AtLeast(1))
 end

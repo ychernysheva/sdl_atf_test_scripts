@@ -24,7 +24,7 @@
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
 local common = require('test_scripts/AppServices/commonAppServices')
---local common2 = require('test_scripts/MobileProjection/Phase2/common')
+local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
 
 --[[ Test Configuration ]]
 runner.testSettings.isSelfIncluded = false
@@ -86,7 +86,7 @@ local function processRPCSuccess(self)
   local combinedParams = onSystemCapabilityParams1
   combinedParams.systemCapability.appServicesCapabilities.appServices[2] = onSystemCapabilityParams2.systemCapability.appServicesCapabilities.appServices[1]
 
-  EXPECT_HMINOTIFICATION("BasicCommunication.OnSystemCapabilityUpdated", combinedParamss):Times(AtLeast(1))
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnSystemCapabilityUpdated", combinedParams):Times(AtLeast(1))
   mobileSession:ExpectNotification("OnSystemCapabilityUpdated", combinedParams):Times(AtLeast(1))
   mobileSession2:ExpectNotification("OnSystemCapabilityUpdated", combinedParams):Times(AtLeast(1))
 end
@@ -102,7 +102,7 @@ local function disconnectDefaultService(self)
   local combinedParams = onSystemCapabilityParams1
   combinedParams.systemCapability.appServicesCapabilities.appServices[2] = onSystemCapabilityParams2.systemCapability.appServicesCapabilities.appServices[1]
   combinedParams.systemCapability.appServicesCapabilities.appServices[1].updateReason = nil
-  EXPECT_HMINOTIFICATION("BasicCommunication.OnSystemCapabilityUpdated", combinedParamss):Times(1)
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnSystemCapabilityUpdated", combinedParams):Times(1)
   mobileSession:ExpectNotification("OnSystemCapabilityUpdated", combinedParams):Times(1)
 
 end
@@ -155,7 +155,7 @@ runner.Step("Disconnect Default Service App", disconnectDefaultService)
 runner.Step("Clean sessions", common.cleanSession, {1})
 runner.Step("Clean sessions", common.cleanSession, {2})
 runner.Step("Stop SDL", common.postconditions)
-runner.Step("Clean environment", common.forceStop)
+runner.Step("Clean environment", commonFunctions.SDLForceStop)
 runner.Step("Start SDL, HMI, connect Mobile, start Session", common.start)
 runner.Step("RAI w/o PTU", common.registerAppWOPTU, { 1 })
 runner.Step("Activate App", common.activateApp)
