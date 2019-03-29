@@ -162,7 +162,7 @@ function commonAppServices.publishSecondMobileAppService(manifest1, manifest2, a
     appServiceManifest = manifest2
   })
 
-  local second_app_record = appServiceCapability("PUBLISHED", manifest2)
+  local second_app_record = commonAppServices.appServiceCapability("PUBLISHED", manifest2)
 
   local publishedParams = commonAppServices.appServiceCapabilityUpdateParams("ACTIVATED", manifest1)
   publishedParams.systemCapability.appServicesCapabilities.appServices[2] = second_app_record
