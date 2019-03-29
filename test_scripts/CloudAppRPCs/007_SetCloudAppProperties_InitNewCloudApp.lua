@@ -26,12 +26,13 @@ local rpc = {
   name = "SetCloudAppProperties",
   params = {
     properties = {
-      appName = "TestApp",
+      nicknames = { "TestApp" },
       appID = "232",
       enabled = true,
       authToken = "ABCD12345",
       cloudTransportType = "WSS",
-      hybridAppPreference = "CLOUD"
+      hybridAppPreference = "CLOUD",
+      endpoint = "ws://127.0.0.1:8080/"
     }
   }
 }
