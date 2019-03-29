@@ -84,10 +84,25 @@ local function processGetRPCFailure()
     mobileSession:ExpectResponse(cid, responseParams)
 end
 
+function dump(o)
+  if type(o) == 'table' then
+     local s = '{ '
+     for k,v in pairs(o) do
+        if type(k) ~= 'number' then k = '"'..k..'"' end
+        s = s .. '['..k..'] = ' .. dump(v) .. ','
+     end
+     return s .. '} '
+  else
+     return tostring(o)
+  end
+end
+
 local function verifyCloudAppProperties()
   local snp_tbl = common.GetPolicySnapshot()
   local app_id = rpc.params.properties.appID
   local result = {}
+
+  --print(dump(snp_tbl))
 
   result.nicknames = snp_tbl.policy_table.app_policies[app_id].nicknames
   common.test_assert(commonFunctions:is_table_equal(result.nicknames, expected.nicknames), "Incorrect nicknames")
