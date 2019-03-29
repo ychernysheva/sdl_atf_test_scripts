@@ -18,8 +18,17 @@ local common = require('test_scripts/CloudAppRPCs/commonCloudAppRPCs')
 
 --[[ Local Variables ]]
 local cloud_app_id = "cloudAppID123"
+local url = "https://fakeurl1234512345.com"
+local icon_image_path = "files/icon.png"
 config.application1.registerAppInterfaceParams.syncMsgVersion.majorVersion = 5
 config.application1.registerAppInterfaceParams.syncMsgVersion.minorVersion = 1
+
+local rpc = {
+  name = "SystemRequest",
+  params = {
+      requestType = "ICON_URL", fileName = url
+  }
+}
 
 --[[ Local Functions ]]
 local function PTUfunc(tbl)
@@ -35,12 +44,10 @@ local function PTUfunc(tbl)
         endpoint = "ws://192.168.1.1:3000/",
         enabled = true,
         cloud_transport_type = "WS",
-        icon_url = "https://fakeurl1234512345.com",
+        icon_url = url,
         nicknames = {"CloudApp"}
     }
-    
     tbl.policy_table.app_policies[cloud_app_id] = params
-
 end
 
 local function PostPtuExpectation(self)
@@ -48,19 +55,10 @@ local function PostPtuExpectation(self)
     print(data.payload.requestType)
     if data.payload == nil then return false end
     if data.payload.requestType == nil then return false end
-    if data.payload.requestType == "ICON_URL" then return true end
+    if data.payload.requestType == "ICON_URL" and data.payload.url == url then return true end
     return false
   end)
 end
-
-local rpc = {
-    name = "SystemRequest",
-    params = {
-        requestType = "ICON_URL", fileName = "https://fakeurl1234512345.com"
-    }
-}
-
-local icon_image_path = "files/icon.png"
 
 local function processRPCSuccess(self)
     local mobileSession = common.getMobileSession(self, 1)
