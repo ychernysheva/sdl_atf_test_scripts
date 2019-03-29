@@ -11,13 +11,18 @@ local function jsonFileToTable(file_name)
   return json.decode(content)
 end
 
-function commonCloudAppRPCs.getCloudAppConfig()
+function commonCloudAppRPCs.getCloudAppConfig(app_id)
+  if not app_id then app_id = 1 end
   return {
     keep_context = false,
     steal_focus = false,
     priority = "NONE",
     default_hmi = "NONE",
-    groups = { "Base-4" , "CloudApp" }
+    groups = { "Base-4" , "CloudApp" },
+    endpoint = "ws://127.0.0.1:2000/",
+    nicknames = { config["application" .. app_id].registerAppInterfaceParams.appName },
+    cloud_transport_type = "WS",
+    enabled = true
   }
 end
 
