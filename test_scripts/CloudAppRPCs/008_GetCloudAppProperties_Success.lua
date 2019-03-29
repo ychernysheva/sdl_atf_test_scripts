@@ -19,6 +19,7 @@
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
 local common = require('test_scripts/CloudAppRPCs/commonCloudAppRPCs')
+local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 
 --[[ Test Configuration ]]
 runner.testSettings.isSelfIncluded = false
@@ -47,18 +48,22 @@ local get_rpc = {
 }
 
 local expected = {
+  nicknames = { "TestApp" },
   auth_token = "ABCD12345",
   cloud_transport_type = "WSS",
   enabled = "true",
-  hybrid_app_preference = "CLOUD"
+  hybrid_app_preference = "CLOUD",
+  endpoint = "ws://127.0.0.1:8080/"
 }
 
 local get_expected = {
+    nicknames = { "TestApp" },
     authToken = "ABCD12345",
     cloudTransportType = "WSS",
     enabled = true,
-    hybridAppPreference = "CLOUD"
-  }
+    hybridAppPreference = "CLOUD",
+    endpoint = "ws://127.0.0.1:8080/"
+}
 
 function dump(o)
     if type(o) == 'table' then
@@ -100,6 +105,9 @@ local function verifyCloudAppProperties()
   local app_id = rpc.params.properties.appID
   local result = {}
 
+  result.nicknames = snp_tbl.policy_table.app_policies[app_id].nicknames
+  common.test_assert(commonFunctions:is_table_equal(result.nicknames, expected.nicknames), "Incorrect nicknames")
+
   result.auth_token = snp_tbl.policy_table.app_policies[app_id].auth_token
   common.test_assert(result.auth_token == expected.auth_token, "Incorrect auth token value")
 
@@ -112,6 +120,8 @@ local function verifyCloudAppProperties()
   result.hybrid_app_preference = snp_tbl.policy_table.app_policies[app_id].hybrid_app_preference
   common.test_assert(result.hybrid_app_preference == expected.hybrid_app_preference, "Incorrect hybrid_app_preference value")
 
+  result.endpoint = snp_tbl.policy_table.app_policies[app_id].endpoint
+  common.test_assert(result.endpoint == expected.endpoint, "Incorrect endpoint")
 end
 
 local function PTUfunc(tbl)
