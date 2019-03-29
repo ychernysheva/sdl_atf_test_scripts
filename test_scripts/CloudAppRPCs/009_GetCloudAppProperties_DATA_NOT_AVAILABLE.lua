@@ -42,19 +42,6 @@ end
 
 local function PTUfunc(tbl)
   tbl.policy_table.app_policies[common.getConfigAppParams(1).fullAppID] = common.getCloudAppStoreConfig(1);
-  tbl.policy_table.app_policies[232] = {
-    keep_context = false,
-    steal_focus = false,
-    priority = "NONE",
-    default_hmi = "NONE",
-    groups = { "Base-4" },
-    nicknames = { "TestApp" },
-    enabled = true,
-    auth_token = "ABCD12345",
-    cloud_transport_type = "WSS",
-    hybrid_app_preference = "CLOUD",
-    endpoint = "ws://127.0.0.1:8080/"
-  };
 end
 
 --[[ Scenario ]]
