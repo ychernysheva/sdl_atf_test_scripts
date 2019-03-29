@@ -1,19 +1,15 @@
 ---------------------------------------------------------------------------------------------------
 --  Precondition: 
 --  1) Application with <appID> is registered on SDL.
---  2) Specific permissions are assigned for <appID> with SetCloudAppProperties
+--  2) Specific permissions are assigned for <appID> with GetCloudAppProperties
 --
 --  Steps:
---  1) Application sends a SetCloudAppProperties RPC request
---  2) Application triggers a PTU
---  3) Checks policy table to make sure cloud app properties are set correctly
---  4) Application sends a GetCloudAppProperties RPC request to verify changes
+--  1) Application triggers a PTU with cloud app information present
+--  2) Application sends a GetCloudAppProperties RPC request with the correct cloud app id
 --
 --  Expected:
 --  1) SDL responds to mobile app with "ResultCode: SUCCESS,
 --        success: true
---  2) VerifyCloudAppProperties succeeds
---  3) GetCloudAppProperties succeeds
 ---------------------------------------------------------------------------------------------------
 
 --[[ Required Shared libraries ]]
@@ -25,35 +21,11 @@ local commonFunctions = require ('user_modules/shared_testcases/commonFunctions'
 runner.testSettings.isSelfIncluded = false
 
 --[[ Local Variables ]]
-local rpc = {
-  name = "SetCloudAppProperties",
-  params = {
-    properties = {
-        nicknames = { "TestApp" },
-        appID = "0000001",
-        enabled = true,
-        authToken = "ABCD12345",
-        cloudTransportType = "WSS",
-        hybridAppPreference = "CLOUD",
-        endpoint = "ws://127.0.0.1:8080/"
-    }
-  }
-}
-
 local get_rpc = {
     name = "GetCloudAppProperties",
     params = {
-      appID = "0000001"
+      appID = "232"
     }
-}
-
-local expected = {
-  nicknames = { "TestApp" },
-  auth_token = "ABCD12345",
-  cloud_transport_type = "WSS",
-  enabled = "true",
-  hybrid_app_preference = "CLOUD",
-  endpoint = "ws://127.0.0.1:8080/"
 }
 
 local get_expected = {
@@ -65,30 +37,7 @@ local get_expected = {
     endpoint = "ws://127.0.0.1:8080/"
 }
 
-function dump(o)
-    if type(o) == 'table' then
-       local s = '{ '
-       for k,v in pairs(o) do
-          if type(k) ~= 'number' then k = '"'..k..'"' end
-          s = s .. '['..k..'] = ' .. dump(v) .. ','
-       end
-       return s .. '} '
-    else
-       return tostring(o)
-    end
- end
-
 --[[ Local Functions ]]
-local function processRPCSuccess()
-  local mobileSession = common.getMobileSession(1)
-  local cid = mobileSession:SendRPC(rpc.name, rpc.params)
-
-  local responseParams = {}
-  responseParams.success = true
-  responseParams.resultCode = "SUCCESS"
-  mobileSession:ExpectResponse(cid, responseParams)
-end
-
 local function processGetRPCSuccess()
     local mobileSession = common.getMobileSession(1)
     local cid = mobileSession:SendRPC(get_rpc.name, get_rpc.params)
@@ -100,32 +49,21 @@ local function processGetRPCSuccess()
     mobileSession:ExpectResponse(cid, responseParams)
 end
 
-local function verifyCloudAppProperties()
-  local snp_tbl = common.GetPolicySnapshot()
-  local app_id = rpc.params.properties.appID
-  local result = {}
-
-  result.nicknames = snp_tbl.policy_table.app_policies[app_id].nicknames
-  common.test_assert(commonFunctions:is_table_equal(result.nicknames, expected.nicknames), "Incorrect nicknames")
-
-  result.auth_token = snp_tbl.policy_table.app_policies[app_id].auth_token
-  common.test_assert(result.auth_token == expected.auth_token, "Incorrect auth token value")
-
-  result.cloud_transport_type = snp_tbl.policy_table.app_policies[app_id].cloud_transport_type
-  common.test_assert(result.cloud_transport_type == expected.cloud_transport_type, "Incorrect cloud_transport_type value")
-
-  result.enabled = tostring(snp_tbl.policy_table.app_policies[app_id].enabled) 
-  common.test_assert(result.enabled == expected.enabled, "Incorrect enabled value")
-
-  result.hybrid_app_preference = snp_tbl.policy_table.app_policies[app_id].hybrid_app_preference
-  common.test_assert(result.hybrid_app_preference == expected.hybrid_app_preference, "Incorrect hybrid_app_preference value")
-
-  result.endpoint = snp_tbl.policy_table.app_policies[app_id].endpoint
-  common.test_assert(result.endpoint == expected.endpoint, "Incorrect endpoint")
-end
-
 local function PTUfunc(tbl)
   tbl.policy_table.app_policies[common.getConfigAppParams(1).fullAppID] = common.getCloudAppStoreConfig(1);
+  tbl.policy_table.app_policies[get_rpc.params.appID] = {
+    keep_context = false,
+    steal_focus = false,
+    priority = "NONE",
+    default_hmi = "NONE",
+    groups = { "Base-4" },
+    nicknames = { "TestApp" },
+    enabled = true,
+    auth_token = "ABCD12345",
+    cloud_transport_type = "WSS",
+    hybrid_app_preference = "CLOUD",
+    endpoint = "ws://127.0.0.1:8080/"
+  };
 end
 
 --[[ Scenario ]]
@@ -137,9 +75,6 @@ runner.Step("PTU", common.policyTableUpdate, { PTUfunc })
 runner.Step("Activate App", common.activateApp)
 
 runner.Title("Test")
-runner.Step("RPC " .. rpc.name .. "_resultCode_SUCCESS", processRPCSuccess)
-runner.Step("Request PTU", common.Request_PTU)
-runner.Step("Verify CloudApp Properties", verifyCloudAppProperties)
 runner.Step("RPC " .. get_rpc.name .. "_resultCode_SUCCESS", processGetRPCSuccess)
 
 runner.Title("Postconditions")
