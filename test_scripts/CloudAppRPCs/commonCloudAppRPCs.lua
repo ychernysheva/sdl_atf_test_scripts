@@ -1,7 +1,6 @@
 local actions = require("user_modules/sequences/actions")
 local json = require("modules/json")
 local test = require("user_modules/dummy_connecttest")
-local actions = require("user_modules/sequences/actions")
 
 local commonCloudAppRPCs = actions
 
@@ -13,6 +12,7 @@ local function jsonFileToTable(file_name)
 end
 
 function commonCloudAppRPCs.getCloudAppConfig(app_id)
+  if not app_id then app_id = 1 end
   return {
     keep_context = false,
     steal_focus = false,
