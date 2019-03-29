@@ -2,8 +2,8 @@
 --  Precondition: 
 --  1) Application 1 with <appID> is registered on SDL.
 --  2) Application 2 with <appID> is registered on SDL.
---  3) Specific permissions for App 1 are assigned for <appID> with PublishAppService
---  4) Specific permissions for App 2 are assigned for <appID> with PublishAppService
+--  3) AppServiceProvider permissions for App 1 are assigned for <appID> with PublishAppService
+--  4) AppServiceProvider permissions for App 2 are assigned for <appID> with PublishAppService
 --  5) Application 1 sends a PublishAppService RPC request with serviceType MEDIA
 --  6) Application 2 sends a PublishAppService RPC request with serviceType MEDIA
 --
