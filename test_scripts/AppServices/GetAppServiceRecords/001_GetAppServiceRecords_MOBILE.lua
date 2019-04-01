@@ -50,10 +50,12 @@ local function PTUfunc(tbl)
   tbl.policy_table.app_policies[common.getConfigAppParams(1).fullAppID] = pt_entry
 end
 
-local function getAppServiceRecords(serviceType)
+local function getAppServiceRecords(service_type)
   expectedResponse = getExpectedResponse()
   table.sort(expectedResponse.serviceRecords, function(r1, r2) return r1.serviceID < r2.serviceID end)
-  local rid = common.getHMIConnection():SendRequest(expectedResponse.method, serivceType)
+  local rid = common.getHMIConnection():SendRequest(expectedResponse.method, {
+    serviceType = service_type
+  })
   EXPECT_HMIRESPONSE(rid, expectedResponse)
 end
 
