@@ -9,8 +9,8 @@
 --
 --  Expected:
 --  1) SDL forwards the PerformAppServiceInteraction request to Application as PerformAppServiceInteraction
---  2) Application sends a PerformAppServiceInteraction response (SUCCESS) to Core with a serviceSpecificResult
---  3) SDL forwards the response to HMI as AppService.PerformAppServiceInteraction
+--  2) Application does not respond to SDL
+--  3) SDL sends a GENERIC_ERROR response to the HMI when the request times out
 ---------------------------------------------------------------------------------------------------
 
 --[[ Required Shared libraries ]]
@@ -40,9 +40,10 @@ local rpc = {
 }
 
 local expectedResponse = {
-  serviceSpecificResult = "RESULT",
-  success = true,
-  resultCode = "SUCCESS"
+  code = 22, --GENERIC_ERROR
+  data = {
+    method = rpc.hmiName
+  }
 }
 
 local function PTUfunc(tbl)
@@ -59,19 +60,12 @@ local function processRPCSuccess(self)
   local passedRequestParams = requestParams
   -- Core manually sets the originApp parameter when passing an HMI message through
   passedRequestParams.originApp = hmiOriginID
-  mobileSession:ExpectRequest(rpc.name, passedRequestParams):Do(function(_, data)
-    RUN_AFTER((function() 
-      mobileSession:SendResponse(rpc.name, data.rpcCorrelationId, expectedResponse)
-    end), runner.testSettings.defaultTimeout + 2000) 
-  end)
+  -- Do not respond to request
+  mobileSession:ExpectRequest(rpc.name, passedRequestParams)
 
   EXPECT_HMIRESPONSE(cid, {
-    result = {
-      serviceSpecificResult = expectedResponse.serviceSpecificResult,
-      code = 0, 
-      method = rpc.hmiName
-    }
-  }):Timeout(runner.testSettings.defaultTimeout + common.getRpcPassThroughTimeoutFromINI())
+    error = expectedResponse
+  }):Timeout(runner.testSettings.defaultTimeout + common.getRpcPassThroughTimeoutFromINI() + 1000)
 end
 
 --[[ Scenario ]]
@@ -85,7 +79,7 @@ runner.Step("Activate App", common.activateApp)
 runner.Step("Publish App Service", common.publishMobileAppService, { manifest })
 
 runner.Title("Test")
-runner.Step("RPC " .. rpc.name .. "_resultCode_SUCCESS", processRPCSuccess)
+runner.Step("RPC " .. rpc.name .. "_resultCode_GENERIC_ERROR", processRPCSuccess)
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", common.postconditions)

@@ -1,16 +1,18 @@
 ---------------------------------------------------------------------------------------------------
 --  Precondition: 
---  1) Application with <appID> is registered on SDL.
---  2) Specific permissions are assigned for <appID> with PublishAppService
---  3) Application has published a MEDIA service
+--  1) Application 1 with <appID> is registered on SDL.
+--  2) Application 2 with <appID2> is registered on SDL.
+--  3) Specific permissions are assigned for <appID> with PublishAppService
+--  4) Specific permissions are assigned for <appID2> with PerformAppServiceInteraction
+--  5) Application 1 has published a MEDIA service
 --
 --  Steps:
---  1) HMI sends a AppService.PerformAppServiceInteraction RPC request with Application's serviceID
+--  1) Application 2 sends a PerformAppServiceInteraction RPC request with Application 1's serviceID
 --
 --  Expected:
---  1) SDL forwards the PerformAppServiceInteraction request to Application as PerformAppServiceInteraction
---  2) Application sends a PerformAppServiceInteraction response (SUCCESS) to Core with a serviceSpecificResult
---  3) SDL forwards the response to HMI as AppService.PerformAppServiceInteraction
+--  1) SDL forwards the PerformAppServiceInteraction request to Application 1
+--  2) Application 1 does not respond to SDL
+--  3) SDL sends a GENERIC_ERROR response to Application 2 when the request times out
 ---------------------------------------------------------------------------------------------------
 
 --[[ Required Shared libraries ]]
@@ -29,63 +31,52 @@ local manifest = {
   mediaServiceManifest = {}
 }
 
-local hmiOriginID = "HMI_ORIGIN_ID"
-
 local rpc = {
   name = "PerformAppServiceInteraction",
-  hmiName = "AppService.PerformAppServiceInteraction",
   params = {
+    originApp = config.application2.registerAppInterfaceParams.fullAppID,
     serviceUri = "mobile:sample.service.uri"
   }
 }
 
 local expectedResponse = {
-  serviceSpecificResult = "RESULT",
-  success = true,
-  resultCode = "SUCCESS"
+  success = false,
+  resultCode = "GENERIC_ERROR"
 }
 
 local function PTUfunc(tbl)
   tbl.policy_table.app_policies[common.getConfigAppParams(1).fullAppID] = common.getAppServiceProducerConfig(1);
+  tbl.policy_table.app_policies[common.getConfigAppParams(2).fullAppID] = common.getAppServiceConsumerConfig(2);
 end
 
 --[[ Local Functions ]]
 local function processRPCSuccess(self)
-  local mobileSession = common.getMobileSession()
+  local mobileSession = common.getMobileSession(1)
+  local mobileSession2 = common.getMobileSession(2)
   local service_id = common.getAppServiceID()
   local requestParams = rpc.params
   requestParams.serviceID = service_id
-  local cid = common.getHMIConnection():SendRequest(rpc.hmiName, requestParams)
-  local passedRequestParams = requestParams
-  -- Core manually sets the originApp parameter when passing an HMI message through
-  passedRequestParams.originApp = hmiOriginID
-  mobileSession:ExpectRequest(rpc.name, passedRequestParams):Do(function(_, data)
-    RUN_AFTER((function() 
-      mobileSession:SendResponse(rpc.name, data.rpcCorrelationId, expectedResponse)
-    end), runner.testSettings.defaultTimeout + 2000) 
-  end)
+  local cid = mobileSession2:SendRPC(rpc.name, requestParams)
+  -- Do not respond to request
+  mobileSession:ExpectRequest(rpc.name, requestParams)
 
-  EXPECT_HMIRESPONSE(cid, {
-    result = {
-      serviceSpecificResult = expectedResponse.serviceSpecificResult,
-      code = 0, 
-      method = rpc.hmiName
-    }
-  }):Timeout(runner.testSettings.defaultTimeout + common.getRpcPassThroughTimeoutFromINI())
+  mobileSession2:ExpectResponse(cid, expectedResponse)
+  :Timeout(runner.testSettings.defaultTimeout + common.getRpcPassThroughTimeoutFromINI() + 1000)
 end
 
 --[[ Scenario ]]
 runner.Title("Preconditions")
 runner.Step("Clean environment", common.preconditions)
-runner.Step("Set HMI Origin ID", common.setSDLIniParameter, { "HMIOriginID", hmiOriginID })
 runner.Step("Start SDL, HMI, connect Mobile, start Session", common.start)
 runner.Step("RAI", common.registerApp)
 runner.Step("PTU", common.policyTableUpdate, { PTUfunc })
+runner.Step("RAI w/o PTU", common.registerAppWOPTU, { 2 })
 runner.Step("Activate App", common.activateApp)
 runner.Step("Publish App Service", common.publishMobileAppService, { manifest })
 
 runner.Title("Test")
-runner.Step("RPC " .. rpc.name .. "_resultCode_SUCCESS", processRPCSuccess)
+runner.Step("RPC " .. rpc.name .. "_resultCode_GENERIC_ERROR", processRPCSuccess)
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", common.postconditions)
+
