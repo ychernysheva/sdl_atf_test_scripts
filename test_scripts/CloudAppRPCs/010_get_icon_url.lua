@@ -56,7 +56,7 @@ end
 local function processRPCSuccess()
     local mobileSession = common.getMobileSession(self, 1)
     local cid = mobileSession:SendRPC(rpc.name, rpc.params, icon_image_path)
-    EXPECT_HMICALL("BasicCommunication.UpdateAppList")
+    EXPECT_HMICALL("BasicCommunication.UpdateAppList"):Times(AtLeast(1))
     :ValidIf(function(self, data)
       if data.params == nil then
         return false
