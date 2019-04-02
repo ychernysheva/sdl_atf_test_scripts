@@ -9,8 +9,8 @@
 --
 --  Expected:
 --  1) SDL forwards the PerformAppServiceInteraction request to Application as PerformAppServiceInteraction
---  2) Application sends a PerformAppServiceInteraction response (SUCCESS) to Core with a serviceSpecificResult
---  3) SDL forwards the response to HMI as AppService.PerformAppServiceInteraction
+--  2) Application does not respond to SDL
+--  3) SDL sends a GENERIC_ERROR response to the HMI when the request times out
 ---------------------------------------------------------------------------------------------------
 
 --[[ Required Shared libraries ]]
@@ -40,7 +40,7 @@ local rpc = {
 }
 
 local expectedResponse = {
-  code = 22,
+  code = 22, --GENERIC_ERROR
   data = {
     method = rpc.hmiName
   }

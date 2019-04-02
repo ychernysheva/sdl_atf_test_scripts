@@ -11,8 +11,8 @@
 --
 --  Expected:
 --  1) SDL forwards the GetAppServiceData request to Application 1
---  2) Application 1 sends a GetAppServiceData response (SUCCESS) to Core with its own serviceData
---  3) SDL forwards the response to Application 2
+--  2) Application 1 does not respond to SDL
+--  3) SDL sends a GENERIC_ERROR response to Application 2 when the request times out
 ---------------------------------------------------------------------------------------------------
 
 --[[ Required Shared libraries ]]

@@ -9,8 +9,8 @@
 --
 --  Expected:
 --  1) SDL forwards the GetAppServiceData request to Application as GetAppServiceData
---  2) Application sends a GetAppServiceData response (SUCCESS) to Core with its own serviceData
---  3) SDL forwards the response to HMI as AppService.GetAppServiceData
+--  2) Application does not respond to SDL
+--  3) SDL sends a GENERIC_ERROR response to the HMI when the request times out
 ---------------------------------------------------------------------------------------------------
 
 --[[ Required Shared libraries ]]
@@ -56,7 +56,7 @@ local rpc = {
 }
 
 local expectedResponse = {
-  code = 22,
+  code = 22, --GENERIC_ERROR
   data = {
     method = rpc.hmiName
   }

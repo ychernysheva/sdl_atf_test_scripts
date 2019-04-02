@@ -9,8 +9,8 @@
 --
 --  Expected:
 --  1) SDL forwards the GetAppServiceData request to the HMI as AppService.GetAppServiceData
---  2) HMI sends a AppService.GetAppServiceData response (SUCCESS) to Core with its own serviceData
---  3) SDL forwards the response to Application as GetAppServiceData
+--  2) HMI does not respond to SDL
+--  3) SDL sends a GENERIC_ERROR response to the Application when the request times out
 ---------------------------------------------------------------------------------------------------
 
 --[[ Required Shared libraries ]]

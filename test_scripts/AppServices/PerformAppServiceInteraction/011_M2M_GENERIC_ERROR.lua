@@ -11,8 +11,8 @@
 --
 --  Expected:
 --  1) SDL forwards the PerformAppServiceInteraction request to Application 1
---  2) Application 1 sends a PerformAppServiceInteraction response (SUCCESS) to Core with a serviceSpecificResult
---  3) SDL forwards the response to Application 2
+--  2) Application 1 does not respond to SDL
+--  3) SDL sends a GENERIC_ERROR response to Application 2 when the request times out
 ---------------------------------------------------------------------------------------------------
 
 --[[ Required Shared libraries ]]
