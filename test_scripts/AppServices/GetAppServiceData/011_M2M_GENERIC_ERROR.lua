@@ -54,7 +54,7 @@ local function processRPCSuccess(self)
   local mobileSession2 = common.getMobileSession(2)
   local cid = mobileSession2:SendRPC(rpc.name, rpc.params)
   local service_id = common.getAppServiceID()
-  -- Do not respond
+  -- Do not respond to request
   mobileSession:ExpectRequest(rpc.name, rpc.params)
 
   mobileSession2:ExpectResponse(cid, expectedResponse)

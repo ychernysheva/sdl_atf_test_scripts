@@ -29,24 +29,6 @@ local manifest = {
   mediaServiceManifest = {}
 }
 
-local appServiceData = {
-  serviceType = manifest.serviceType,
-  mediaServiceData = {
-    mediaType = "MUSIC",
-    mediaTitle = "Song name",
-    mediaArtist = "Band name",
-    mediaAlbum = "Album name",
-    playlistName = "Good music",
-    isExplicit = false,
-    trackPlaybackProgress = 200,
-    trackPlaybackDuration = 300,
-    queuePlaybackProgress = 2200,
-    queuePlaybackDuration = 4000,
-    queueCurrentTrackNumber = 12,
-    queueTotalTrackCount = 20
-  }
-}
-
 local rpc = {
   name = "GetAppServiceData",
   hmiName = "AppService.GetAppServiceData",
@@ -69,7 +51,7 @@ local function processRPCSuccess(self)
   local mobileSession = common.getMobileSession()
   local cid = mobileSession:SendRPC(rpc.name, rpc.params)
   local service_id = common.getAppServiceID(0)
-  -- Do not respond
+  -- Do not respond to request
   EXPECT_HMICALL(rpc.hmiName, rpc.params)
 
   mobileSession:ExpectResponse(cid, expectedResponse)

@@ -1,8 +1,8 @@
 ---------------------------------------------------------------------------------------------------
 --  Precondition: 
 --  1) Application with <appID> is registered on SDL.
---  2) Specific permissions are assigned for <appID> with PerformAppServiceInteraction
---  3) Application 1 has published a MEDIA service
+--  2) Specific permissions are assigned for <appID> with PublishAppService
+--  3) Application has published a MEDIA service
 --
 --  Steps:
 --  1) HMI sends a AppService.PerformAppServiceInteraction RPC request with Application's serviceID

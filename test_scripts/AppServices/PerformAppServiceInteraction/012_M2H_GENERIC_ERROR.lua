@@ -9,8 +9,8 @@
 --
 --  Expected:
 --  1) SDL forwards the PerformAppServiceInteraction request to the HMI as AppService.PerformAppServiceInteraction
---  2) HMI sends a AppService.PerformAppServiceInteraction response (SUCCESS) to Core with a serviceSpecificResult
---  3) SDL forwards the response to Application as PerformAppServiceInteraction
+--  2) HMI does not respond to SDL
+--  3) SDL sends a GENERIC_ERROR response to the Application when the request times out
 ---------------------------------------------------------------------------------------------------
 
 --[[ Required Shared libraries ]]
@@ -54,6 +54,7 @@ local function processRPCSuccess(self)
   local requestParams = rpc.params
   requestParams.serviceID = service_id
   local cid = mobileSession:SendRPC(rpc.name, requestParams)
+  -- Do not respond to request
   EXPECT_HMICALL(rpc.hmiName, requestParams)
 
   mobileSession:ExpectResponse(cid, expectedResponse)
