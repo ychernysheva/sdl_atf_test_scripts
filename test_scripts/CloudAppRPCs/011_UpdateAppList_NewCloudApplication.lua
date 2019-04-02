@@ -17,19 +17,18 @@ local common = require('test_scripts/CloudAppRPCs/commonCloudAppRPCs')
 runner.testSettings.isSelfIncluded = false
 
 --[[ Local Variables ]]
-local appID = "0000002"
+local appID = config.application2.registerAppInterfaceParams.fullAppID
 
 local function updatePTU(tbl)
   tbl.policy_table.app_policies[appID] = common.getCloudAppConfig(2)
 end
 
 local function checkUpdateAppList(self)
-  EXPECT_HMINOTIFICATION("BasicCommunication.UpdateAppList"):Times(AnyNumber())
+  EXPECT_HMINOTIFICATION("BasicCommunication.UpdateAppList"):Times(AtLeast(1))
   :ValidIf(function(_,data)
     if #data.params.applications ~= 0 then
       for i=1,#data.params.applications do
         local app = data.params.applications[i]
-        print("APP: " .. app.policyAppID)
         if app.policyAppID == appID then
           return app.isCloudApplication and app.cloudConnectionStatus == "NOT_CONNECTED"
         end
