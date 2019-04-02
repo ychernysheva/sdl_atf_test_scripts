@@ -12,6 +12,9 @@
 ./test_scripts/AppServices/GetAppServiceData/008_M2M_Timeout.lua
 ./test_scripts/AppServices/GetAppServiceData/009_M2H_Timeout.lua
 ./test_scripts/AppServices/GetAppServiceData/010_H2M_Timeout.lua
+./test_scripts/AppServices/GetAppServiceData/011_M2M_GENERIC_ERROR.lua
+./test_scripts/AppServices/GetAppServiceData/012_M2H_GENERIC_ERROR.lua
+./test_scripts/AppServices/GetAppServiceData/013_H2M_GENERIC_ERROR.lua
 ./test_scripts/AppServices/GetAppServiceRecords/001_GetAppServiceRecords_MOBILE.lua
 ./test_scripts/AppServices/GetAppServiceRecords/002_GetAppServiceRecords_HMI.lua
 ./test_scripts/AppServices/GetAppServiceRecords/003_GetAppServiceRecords_Multiple.lua
@@ -37,6 +40,9 @@
 ./test_scripts/AppServices/PerformAppServiceInteraction/008_M2M_Timeout.lua
 ./test_scripts/AppServices/PerformAppServiceInteraction/009_M2H_Timeout.lua
 ./test_scripts/AppServices/PerformAppServiceInteraction/010_H2M_Timeout.lua
+./test_scripts/AppServices/PerformAppServiceInteraction/011_M2M_GENERIC_ERROR.lua
+./test_scripts/AppServices/PerformAppServiceInteraction/012_M2H_GENERIC_ERROR.lua
+./test_scripts/AppServices/PerformAppServiceInteraction/013_H2M_GENERIC_ERROR.lua
 ./test_scripts/AppServices/PublishAppService/001_Mobile_success_flow.lua
 ./test_scripts/AppServices/PublishAppService/002_HMI_success_flow.lua
 ./test_scripts/AppServices/PublishAppService/003_Nav_success_flow.lua
