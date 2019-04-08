@@ -12,7 +12,6 @@
 --  1) Core forwards the request to app1
 --  2) app1 does not respond to the request in time
 --  3) Core sees that the original request function ID is unknown and sends {success = true, resultCode = "UNSUPPORTED_REQUEST"} to app2
---     (Note: It is a known issue that Core does not respond to unknown RPCs)
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
@@ -84,7 +83,6 @@ local function RPCPassThruTest()
 
   --Core will respond with UNSUPPORTED_REQUEST because the RPC is unknown
   mobileSession:ExpectResponse(cid, rpcResponse.params)
-  :Times(0) --Core issue, it does not respond to unknown function IDs
 end
 
 --[[ Scenario ]]
@@ -98,7 +96,7 @@ runner.Step("RAI App 2", common.registerAppWOPTU, { 2 })
 runner.Step("Activate App", common.activateApp, { 2 })   
 
 runner.Title("Test")    
-runner.Step("RPCPassThroughTest_SUCCESS", RPCPassThruTest)   
+runner.Step("RPCPassThroughTest_UNSUPPORTED", RPCPassThruTest)   
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", common.postconditions)
