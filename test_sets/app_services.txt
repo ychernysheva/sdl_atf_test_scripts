@@ -15,6 +15,9 @@
 ./test_scripts/AppServices/GetAppServiceData/011_M2M_GENERIC_ERROR.lua
 ./test_scripts/AppServices/GetAppServiceData/012_M2H_GENERIC_ERROR.lua
 ./test_scripts/AppServices/GetAppServiceData/013_H2M_GENERIC_ERROR.lua
+./test_scripts/AppServices/GetAppServiceData/014_M2M_Unknown_ServiceType.lua
+./test_scripts/AppServices/GetAppServiceData/015_M2H_Unknown_ServiceType.lua
+./test_scripts/AppServices/GetAppServiceData/016_H2M_Unknown_ServiceType.lua
 ./test_scripts/AppServices/GetAppServiceRecords/001_GetAppServiceRecords_MOBILE.lua
 ./test_scripts/AppServices/GetAppServiceRecords/002_GetAppServiceRecords_HMI.lua
 ./test_scripts/AppServices/GetAppServiceRecords/003_GetAppServiceRecords_Multiple.lua
