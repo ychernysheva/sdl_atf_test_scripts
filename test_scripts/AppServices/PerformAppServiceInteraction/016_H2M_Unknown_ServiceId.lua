@@ -1,14 +1,14 @@
 ---------------------------------------------------------------------------------------------------
 --  Precondition: 
 --  1) Application with <appID> is registered on SDL.
---  2) Specific permissions are assigned for <appID> with GetAppServiceData
---  3) Application has published a MEDIA service
+--  2) Specific permissions are assigned for <appID> with PublishAppService
+--  3) Application 1 has published a MEDIA service
 --
 --  Steps:
---  1) HMI sends a AppService.GetAppServiceData RPC request with serviceType MUSIC
+--  1) HMI sends a AppService.PerformAppServiceInteraction RPC request with Application's serviceID
 --
 --  Expected:
---  1) SDL responds to the HMI with {code = "DATA_NOT_AVAILABLE"}
+--  1) SDL responds to the HMI with {code = "INVALID_ID"}
 ---------------------------------------------------------------------------------------------------
 
 --[[ Required Shared libraries ]]
@@ -27,18 +27,14 @@ local manifest = {
   mediaServiceManifest = {}
 }
 
-local rpc = {
-  name = "GetAppServiceData",
-  hmiName = "AppService.GetAppServiceData",
-  params = {
-    serviceType = "MUSIC"
-  }
-}
+local hmiOriginID = "HMI_ORIGIN_ID"
 
-local expectedResponse = {
-  serviceData = nil,
-  success = false,
-  resultCode = "DATA_NOT_AVAILABLE"
+local rpc = {
+  name = "PerformAppServiceInteraction",
+  hmiName = "AppService.PerformAppServiceInteraction",
+  params = {
+    serviceUri = "mobile:sample.service.uri"
+  }
 }
 
 local function PTUfunc(tbl)
@@ -48,17 +44,22 @@ end
 --[[ Local Functions ]]
 local function processRPCSuccess(self)
   local mobileSession = common.getMobileSession()
-  local cid = common.getHMIConnection():SendRequest(rpc.hmiName, rpc.params)
-
+  local service_id = common.getAppServiceID()
+  local requestParams = rpc.params
+  requestParams.serviceID = "not a service id"
+  local cid = common.getHMIConnection():SendRequest(rpc.hmiName, requestParams)
+  local passedRequestParams = requestParams
+  passedRequestParams.originApp = hmiOriginID
+  
   -- Request is NOT forwarded to ASP
-  mobileSession:ExpectRequest(rpc.name, rpc.params):Times(0)
+  mobileSession:ExpectRequest(rpc.name, passedRequestParams):Times(0)
 
   EXPECT_HMIRESPONSE(cid, {
-    error = {
-      serviceData = nil, 
-      code = 9, --DATA_NOT_AVAILABLE (HMI_API)
+    result = {
+      serviceSpecificResult = nil,
+      code = 13,  --INVALID_ID (HMI_API)
       data = { 
-        method = rpc.hmiName 
+        method = rpc.hmiName
       }
     }
   })
@@ -67,6 +68,7 @@ end
 --[[ Scenario ]]
 runner.Title("Preconditions")
 runner.Step("Clean environment", common.preconditions)
+runner.Step("Set HMI Origin ID", common.setSDLIniParameter, { "HMIOriginID", hmiOriginID })
 runner.Step("Start SDL, HMI, connect Mobile, start Session", common.start)
 runner.Step("RAI", common.registerApp)
 runner.Step("PTU", common.policyTableUpdate, { PTUfunc })
@@ -74,7 +76,7 @@ runner.Step("Activate App", common.activateApp)
 runner.Step("Publish App Service", common.publishMobileAppService, { manifest })
 
 runner.Title("Test")
-runner.Step("RPC " .. rpc.name .. "_resultCode_DATA_NOT_AVAILABLE", processRPCSuccess)
+runner.Step("RPC " .. rpc.name .. "_resultCode_INVALID_ID", processRPCSuccess)
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", common.postconditions)

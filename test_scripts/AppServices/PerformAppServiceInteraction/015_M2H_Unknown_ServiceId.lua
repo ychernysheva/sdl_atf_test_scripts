@@ -1,14 +1,14 @@
 ---------------------------------------------------------------------------------------------------
 --  Precondition: 
 --  1) Application with <appID> is registered on SDL.
---  2) Specific permissions are assigned for <appID> with GetAppServiceData
+--  2) Specific permissions are assigned for <appID> with PerformAppServiceInteraction
 --  3) HMI has published a MEDIA service
 --
 --  Steps:
---  1) Application sends a GetAppServiceData RPC request with serviceType MUSIC
+--  1) Application sends a PerformAppServiceInteraction RPC request with unknown serviceID
 --
 --  Expected:
---  1) SDL responds to the Application with {success = false, resultCode = "DATA_NOT_AVAILABLE"}
+--  1) SDL responds to the Application with {success = false, resultCode = "INVALID_ID"}
 ---------------------------------------------------------------------------------------------------
 
 --[[ Required Shared libraries ]]
@@ -28,17 +28,18 @@ local manifest = {
 }
 
 local rpc = {
-  name = "GetAppServiceData",
-  hmiName = "AppService.GetAppServiceData",
+  name = "PerformAppServiceInteraction",
+  hmiName = "AppService.PerformAppServiceInteraction",
   params = {
-    serviceType = "MUSIC"
+    originApp = config.application1.registerAppInterfaceParams.fullAppID,
+    serviceUri = "hmi:sample.service.uri"
   }
 }
 
 local expectedResponse = {
-  serviceData = nil,
+  serviceSpecificResult = nil,
   success = false,
-  resultCode = "DATA_NOT_AVAILABLE"
+  resultCode = "INVALID_ID"
 }
 
 local function PTUfunc(tbl)
@@ -48,10 +49,12 @@ end
 --[[ Local Functions ]]
 local function processRPCSuccess(self)
   local mobileSession = common.getMobileSession()
-  local cid = mobileSession:SendRPC(rpc.name, rpc.params)
+  local requestParams = rpc.params
+  requestParams.serviceID = "not a service id"
+  local cid = mobileSession:SendRPC(rpc.name, requestParams)
 
   -- Request is NOT forwarded to ASP
-  EXPECT_HMICALL(rpc.hmiName, rpc.params):Times(0) 
+  EXPECT_HMICALL(rpc.hmiName, requestParams):Times(0)
 
   mobileSession:ExpectResponse(cid, expectedResponse)
 end
@@ -66,7 +69,7 @@ runner.Step("Activate App", common.activateApp)
 runner.Step("Publish App Service", common.publishEmbeddedAppService, { manifest })
 
 runner.Title("Test")
-runner.Step("RPC " .. rpc.name .. "_resultCode_DATA_NOT_AVAILABLE", processRPCSuccess)
+runner.Step("RPC " .. rpc.name .. "_resultCode_INVALID_ID", processRPCSuccess)
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", common.postconditions)
