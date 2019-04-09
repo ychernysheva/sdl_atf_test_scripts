@@ -5,7 +5,7 @@
 -- In case:
 -- 1) Mobile sends GetInteriorVehicleData request
 -- 2) SDL transfers this request to HMI
--- 3) HMI not sends "shifted" item in "stationLocation" parameter of "moduleData" parameter of GetInteriorVehicleData
+-- 3) HMI does not send "shifted" item in "stationLocation" parameter of "moduleData" parameter of GetInteriorVehicleData
 --    response
 -- SDL does:
 -- 1) Send GetInteriorVehicleData response to mobile without "shifted" item in "stationLocation" parameter of

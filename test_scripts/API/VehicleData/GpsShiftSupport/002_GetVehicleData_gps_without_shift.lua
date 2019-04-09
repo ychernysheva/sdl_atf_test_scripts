@@ -3,9 +3,9 @@
 -- https://github.com/smartdevicelink/sdl_evolution/blob/master/proposals/0199-Adding-GPS-Shift-support.md
 -- Description:
 -- In case:
--- 1) Mobile sends GetVehicleData (gps) request without shifted item
+-- 1) Mobile sends GetVehicleData (gps) request
 -- 2) SDL transfers this request to HMI
--- 3) HMI not sends "shifted" item in "gps" parameter of GetVehicleData response
+-- 3) HMI does not send "shifted" item in "gps" parameter of GetVehicleData response
 -- SDL does:
 -- 1) Send GetVehicleData response to mobile without "shifted" item in "gps" parameter
 ----------------------------------------------------------------------------------------------------

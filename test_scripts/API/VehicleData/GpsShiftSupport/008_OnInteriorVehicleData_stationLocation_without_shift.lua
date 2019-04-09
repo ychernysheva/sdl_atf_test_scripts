@@ -4,7 +4,7 @@
 -- Description:
 -- In case:
 -- 1) App registered and subscribed on RADIO
--- 2) HMI not sends "shifted" item in "stationLocation" parameter of "moduleData" parameter of OnInteriorVehicleData
+-- 2) HMI does not send "shifted" item in "stationLocation" parameter of "moduleData" parameter of OnInteriorVehicleData
 --    notification
 -- SDL does:
 -- 1) Send OnInteriorVehicleData notification to mobile without "shifted" item in "stationLocation" parameter

@@ -4,7 +4,7 @@
 -- Description:
 -- In case:
 -- 1) App registered and subscribed on vehicle data (gps)
--- 2) HMI not sends "shifted" item in "gps" parameter of OnVehicleData notification
+-- 2) HMI does not send "shifted" item in "gps" parameter of OnVehicleData notification
 -- SDL does:
 -- 1) Send OnVehicleData notification to mobile without "shifted" item in "gps" parameter
 ---------------------------------------------------------------------------------------------------
