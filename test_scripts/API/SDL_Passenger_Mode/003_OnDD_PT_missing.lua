@@ -5,7 +5,7 @@
 -- 1) OnDriverDistraction notification is  allowed by Policy for (FULL, LIMITED, BACKGROUND, NONE) HMILevel
 -- 2) In Policy "lock_screen_dismissal_enabled" parameter is missing
 -- 3) App registered (HMI level NONE)
--- 4) HMI sends OnDriverDistraction notification with all mandatory fields
+-- 4) HMI sends OnDriverDistraction notifications with state=DD_ON and then with state=DD_OFF one by one
 -- SDL does:
 -- 1) Send  OnDriverDistraction notification to mobile without "lockScreenDismissalEnabled" parameter,
 -- but with all mandatory fields

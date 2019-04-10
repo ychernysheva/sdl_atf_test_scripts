@@ -5,12 +5,13 @@
 -- 1) OnDriverDistraction notification is  allowed by Policy for (FULL, LIMITED, BACKGROUND, NONE) HMILevel
 -- 2) In Policy "lock_screen_dismissal_enabled" parameter is missing
 -- 3) App registered (HMI level NONE)
--- 4) HMI sends OnDriverDistraction notification with all mandatory fields
+-- 4) HMI sends OnDriverDistraction notifications with state=DD_ON and then with state=DD_OFF one by one
 -- 5) Policy Table update ("lock_screen_dismissal_enabled" = false)
--- 6) HMI sends OnDriverDistraction notification with all mandatory fields
+-- 6) HMI sends OnDriverDistraction notifications with state=DD_ON and then with state=DD_OFF one by one
 -- SDL does:
 -- 1) Send OnDriverDistraction notification to mobile without "lockScreenDismissalEnabled" before PTU
--- 2) Send OnDriverDistraction notification to mobile with "lockScreenDismissalEnabled"=false after PTU
+-- 2) Send OnDriverDistraction(DD_ON) notification to mobile with "lockScreenDismissalEnabled"=false after PTU
+-- 3) Send OnDriverDistraction(DD_OFF) notification to mobile without "lockScreenDismissalEnabled" after PTU
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')

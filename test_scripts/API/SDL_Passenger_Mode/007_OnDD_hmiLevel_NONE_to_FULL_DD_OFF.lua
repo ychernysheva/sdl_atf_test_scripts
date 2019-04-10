@@ -50,6 +50,20 @@ local function activateApp()
     { state = "DD_OFF" })
 end
 
+local function OnDriverDistractionOFF()
+  local function msg(pValue)
+    return "Parameter `lockScreenDismissalEnabled` is transfered to Mobile with `" .. tostring(pValue) .. "` value"
+  end
+  common.getHMIConnection():SendNotification("UI.OnDriverDistraction", { state = "DD_OFF" })
+  common.getMobileSession():ExpectNotification("OnDriverDistraction",{ state = "DD_OFF" })
+  :ValidIf(function(_, d)
+      if d.payload.lockScreenDismissalEnabled ~= nil then
+        return false, d.payload.state .. ": " .. msg(d.payload.lockScreenDismissalEnabled)
+      end
+      return true
+    end)
+end
+
 --[[ Scenario ]]
 runner.Title("Preconditions")
 runner.Step("Clean environment", common.preconditions)
@@ -60,7 +74,7 @@ runner.Step("App registration HMI level NONE", registerApp)
 runner.Title("Test")
 runner.Step("OnDriverDistraction OFF not transfered", onDriverDistractionUnsuccess)
 runner.Step("App activation HMI level FULL", activateApp)
-runner.Step("OnDriverDistraction OFF true", common.onDriverDistraction, { lockScreenDismissalEnabled })
+runner.Step("OnDriverDistraction OFF missing", OnDriverDistractionOFF)
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", common.postconditions)
