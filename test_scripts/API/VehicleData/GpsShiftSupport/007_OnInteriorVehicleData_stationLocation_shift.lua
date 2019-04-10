@@ -7,8 +7,9 @@
 -- 2) HMI sends "shifted" item in "stationLocation" parameter of "moduleData" parameter of OnInteriorVehicleData
 --    notification
 -- SDL does:
--- 1) Send OnInteriorVehicleData notification to mobile with "shifted" item in "stationLocation" parameter of
---    "moduleData" parameter
+-- 1) Cut all parameters except longitudeDegrees, latitudeDegrees, altitude from stationLocation and send
+--   OnInteriorVehicleData notification to mobile without "shifted" item in "stationLocation" structure
+--   of "moduleData" parameter
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
@@ -17,6 +18,16 @@ local commonRC = require("test_scripts/RC/commonRC")
 
 -- [[ Test Configuration ]]
 runner.testSettings.isSelfIncluded = false
+
+-- [[ Local Functions ]]
+local function onInteriorVehicleData(pShiftValue)
+    common.radioData.radioControlData.sisData.stationLocation.shifted = pShiftValue
+    common.getHMIConnection():SendNotification("RC.OnInteriorVehicleData", { moduleData = common.radioData })
+    common.getMobileSession():ExpectNotification("OnInteriorVehicleData", { moduleData = common.radioData })
+    :ValidIf(function(_, data)
+        return common.checkShifted(data.payload.moduleData.radioControlData.sisData.stationLocation.shifted, nil)
+    end)
+end
 
 --[[ Scenario ]]
 runner.Title("Preconditions")
@@ -28,7 +39,7 @@ runner.Step("Subscribe on InteriorVehicleData, RADIO module", common.getInterior
 
 runner.Title("Test")
 for _, v in pairs(common.shiftValue) do
-    runner.Step("OnInteriorVehicleData, RADIO module, shifted " .. tostring(v), common.onInteriorVehicleData, { v })
+    runner.Step("OnInteriorVehicleData, RADIO module, shifted " .. tostring(v), onInteriorVehicleData, { v })
 end
 
 runner.Title("Postconditions")

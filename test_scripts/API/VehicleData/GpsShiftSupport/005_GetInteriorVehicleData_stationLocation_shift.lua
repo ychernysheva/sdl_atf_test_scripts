@@ -8,8 +8,9 @@
 -- 3) HMI sends "shifted" item in "stationLocation" parameter of "moduleData" parameter of GetInteriorVehicleData
 --    response
 -- SDL does:
--- 1) Send GetInteriorVehicleData response to mobile with "shifted" item in "stationLocation" parameter of
---    "moduleData" parameter
+-- 1) Cut all parameters except longitudeDegrees, latitudeDegrees, altitude from stationLocation and
+--   send GetInteriorVehicleData response to mobile without "shifted" item in "stationLocation" structure of
+--   "moduleData" parameter
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
@@ -18,6 +19,31 @@ local commonRC = require("test_scripts/RC/commonRC")
 
 -- [[ Test Configuration ]]
 runner.testSettings.isSelfIncluded = false
+
+-- [[ Local Functions ]]
+local function getInteriorVehicleData(pShiftValue)
+    common.radioData.radioControlData.sisData.stationLocation.shifted = pShiftValue
+    local cid = common.getMobileSession():SendRPC("GetInteriorVehicleData", {
+        moduleType = "RADIO",
+        subscribe = false
+    })
+    EXPECT_HMICALL("RC.GetInteriorVehicleData", {
+        moduleType = "RADIO"
+      })
+    :Do(function(_, data)
+        common.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", {
+            moduleData = common.radioData,
+            isSubscribed = false
+          })
+    end)
+    common.getMobileSession():ExpectResponse(cid, { success = true, resultCode = "SUCCESS",
+      isSubscribed = false,
+      moduleData = common.radioData
+    })
+    :ValidIf(function(_, data)
+        return common.checkShifted(data.payload.moduleData.radioControlData.sisData.stationLocation.shifted, nil)
+    end)
+end
 
 --[[ Scenario ]]
 runner.Title("Preconditions")
@@ -28,7 +54,7 @@ runner.Step("Activate App", common.activateApp)
 
 runner.Title("Test")
 for _, v in pairs(common.shiftValue) do
-    runner.Step("GetInteriorVehicleData RADIO module, shifted " .. tostring(v), common.getInteriorVehicleData, { v })
+    runner.Step("GetInteriorVehicleData RADIO module, shifted " .. tostring(v), getInteriorVehicleData, { v })
 end
 
 runner.Title("Postconditions")
