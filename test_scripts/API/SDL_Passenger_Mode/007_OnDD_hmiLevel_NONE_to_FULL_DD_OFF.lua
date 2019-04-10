@@ -9,9 +9,9 @@
 -- 5) App activated (HMI level FULL)
 -- 6) HMI sends OnDriverDistraction notification with all mandatory fields
 -- SDL does:
--- 1) Not send  OnDriverDistraction notification to mobile when (HMI level NONE)
--- 2) Send OnDriverDistraction notification to mobile once app is activated
--- 3) Send OnDriverDistraction notification to mobile with "lockScreenDismissalEnabled"=true once HMI sends it to SDL
+-- 1) Not send  OnDriverDistraction notification to mobile when HMI level is NONE
+-- 2) Send OnDriverDistraction notification without "lockScreenDismissalEnabled" to mobile once app is activated
+-- 3) Send OnDriverDistraction notification to mobile without "lockScreenDismissalEnabled" once HMI sends it to SDL
 -- when app is in FULL
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
