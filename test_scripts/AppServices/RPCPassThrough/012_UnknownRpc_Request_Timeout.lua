@@ -10,7 +10,7 @@
 --
 --  Expected:
 --  1) Core forwards the request to app1
---  2) app1 responds to Core with { success = false, resultCode = "UNSUPPORTED_REQUEST", info = "Request CANNOT be handled by app services" }
+--  2) app1 does not respond to the request in time
 --  3) Core sees that the original request function ID is unknown and sends {success = true, resultCode = "UNSUPPORTED_REQUEST"} to app2
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
