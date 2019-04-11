@@ -2,7 +2,7 @@
 --  Precondition: 
 --  1) app1 and app2 are registered on SDL.
 --  2) AppServiceProvider permissions(with NAVIGATION AppService permissions to handle rpc FutureRequest) are assigned for <app1ID>
---  3) allow_unknown_rpc_passthrough is set to true for <app2ID>
+--  3) allow_unknown_rpc_passthrough is set to false for <app2ID>
 --  4) app1 sends a PublishAppService (with {serviceType=NAVIGATION, handledRPC=FutureRequest} in the manifest)
 --
 --  Steps:
