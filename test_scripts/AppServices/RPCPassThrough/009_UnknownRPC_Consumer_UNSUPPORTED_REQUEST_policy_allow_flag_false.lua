@@ -10,7 +10,7 @@
 --
 --  Expected:
 --  1) Core does not forward the request to any provider application
---  2) core responds to app3 with { success = false, resultCode = "UNSUPPORTED_REQUEST" }
+--  2) Core responds to app2 with { success = false, resultCode = "UNSUPPORTED_REQUEST" }
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
