@@ -54,6 +54,10 @@
 ./test_scripts/AppServices/RPCPassThrough/002_SendLocation_Unsupported_Request.lua
 ./test_scripts/AppServices/RPCPassThrough/003_SendLocation_Request_Timeout.lua
 ./test_scripts/AppServices/RPCPassThrough/004_SendLocation_MultipleAS.lua
+./test_scripts/AppServices/RPCPassThrough/010_UnknownRpc_Handled_Request.lua
+./test_scripts/AppServices/RPCPassThrough/011_UnknownRpc_Unsupported_Request.lua
+./test_scripts/AppServices/RPCPassThrough/012_UnknownRpc_Request_Timeout.lua
+./test_scripts/AppServices/RPCPassThrough/013_UnknownRpc_MultipleAS.lua
 ./test_scripts/AppServices/SystemCapabilities/001_GetSystemCapability_success.lua
 ./test_scripts/AppServices/SystemCapabilities/002_GetSystemCapabilitySubscribe_OnSystemCapability_on_unregister.lua
 ./test_scripts/AppServices/SystemCapabilities/003_OnSystemCapability_on_deactivate_service.lua
