@@ -36,9 +36,12 @@ local function getInteriorVehicleData(pShiftValue)
             isSubscribed = false
           })
     end)
+
+    local expectedRadioData = common.cloneTable(common.radioData)
+    expectedRadioData.radioControlData.sisData.stationLocation.shifted = nil
     common.getMobileSession():ExpectResponse(cid, { success = true, resultCode = "SUCCESS",
       isSubscribed = false,
-      moduleData = common.radioData
+      moduleData = expectedRadioData
     })
     :ValidIf(function(_, data)
         return common.checkShifted(data.payload.moduleData.radioControlData.sisData.stationLocation.shifted, nil)

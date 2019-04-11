@@ -23,7 +23,9 @@ runner.testSettings.isSelfIncluded = false
 local function onInteriorVehicleData(pShiftValue)
     common.radioData.radioControlData.sisData.stationLocation.shifted = pShiftValue
     common.getHMIConnection():SendNotification("RC.OnInteriorVehicleData", { moduleData = common.radioData })
-    common.getMobileSession():ExpectNotification("OnInteriorVehicleData", { moduleData = common.radioData })
+    local expectedRadioData = common.cloneTable(common.radioData)
+    expectedRadioData.radioControlData.sisData.stationLocation.shifted = nil
+    common.getMobileSession():ExpectNotification("OnInteriorVehicleData", { moduleData = expectedRadioData })
     :ValidIf(function(_, data)
         return common.checkShifted(data.payload.moduleData.radioControlData.sisData.stationLocation.shifted, nil)
     end)
