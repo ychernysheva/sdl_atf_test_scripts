@@ -7,6 +7,7 @@
 -- 2) HMI sends "shifted" item in "gps" parameter of OnVehicleData notification
 -- SDL does:
 -- 1) Send OnVehicleData notification to mobile with "shifted" item in "gps" parameter
+--  with the same value as those from HMI
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
