@@ -20,28 +20,28 @@ local preloadedPT = commonFunctions:read_parameter_from_smart_device_link_ini("P
 
 --[[ Common Functions ]]
 local registerAppOrig = c.registerApp
-function c.registerApp()
-  registerAppOrig()
-  c.getMobileSession():ExpectNotification("OnDriverDistraction", { state = "DD_OFF" })
+function c.registerApp(pAppId)
+  registerAppOrig(pAppId)
+  c.getMobileSession(pAppId):ExpectNotification("OnDriverDistraction", { state = "DD_OFF" })
 end
 
 function c.onDriverDistraction(pLockScreenDismissalEnabled)
   local function msg(pValue)
     return "Parameter `lockScreenDismissalEnabled` is transfered to Mobile with `" .. tostring(pValue) .. "` value"
   end
-  c.getHMIConnection():SendNotification("UI.OnDriverDistraction", { state = "DD_ON" })
   c.getHMIConnection():SendNotification("UI.OnDriverDistraction", { state = "DD_OFF" })
+  c.getHMIConnection():SendNotification("UI.OnDriverDistraction", { state = "DD_ON" })
   c.getMobileSession():ExpectNotification("OnDriverDistraction",
-    { state = "DD_ON", lockScreenDismissalEnabled = pLockScreenDismissalEnabled },
-    { state = "DD_OFF" })
+    { state = "DD_OFF" },
+    { state = "DD_ON", lockScreenDismissalEnabled = pLockScreenDismissalEnabled })
   :ValidIf(function(e, d)
-      if e.occurences == 1 and pLockScreenDismissalEnabled == nil and d.payload.lockScreenDismissalEnabled ~= nil then
+      if e.occurences == 1 and d.payload.lockScreenDismissalEnabled ~= nil then
         return false, d.payload.state .. ": " .. msg(d.payload.lockScreenDismissalEnabled)
       end
       return true
     end)
   :ValidIf(function(e, d)
-      if e.occurences == 2 and d.payload.lockScreenDismissalEnabled ~= nil then
+      if e.occurences == 2 and pLockScreenDismissalEnabled == nil and d.payload.lockScreenDismissalEnabled ~= nil then
         return false, d.payload.state .. ": " .. msg(d.payload.lockScreenDismissalEnabled)
       end
       return true
