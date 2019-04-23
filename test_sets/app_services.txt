@@ -33,6 +33,10 @@
 ./test_scripts/AppServices/OnAppServiceData/005_M2M_Nav_success_flow.lua
 ./test_scripts/AppServices/OnAppServiceData/006_M2M_Weather_success_flow.lua
 ./test_scripts/AppServices/OnAppServiceData/007_M2M_Future_service_type_success_flow.lua
+./test_scripts/AppServices/OnAppServiceData/008_M2M_service_not_active_flow.lua
+./test_scripts/AppServices/OnAppServiceData/009_M2M_service_not_published_flow.lua
+./test_scripts/AppServices/OnAppServiceData/010_M2M_invalid_service_id_flow.lua
+./test_scripts/AppServices/OnAppServiceData/011_M2M_service_type_mismatch_flow.lua
 ./test_scripts/AppServices/PerformAppServiceInteraction/001_M2M_success_flow.lua
 ./test_scripts/AppServices/PerformAppServiceInteraction/002_M2H_success_flow.lua
 ./test_scripts/AppServices/PerformAppServiceInteraction/003_H2M_success_flow.lua
@@ -56,6 +60,8 @@
 ./test_scripts/AppServices/PublishAppService/005_Future_service_type_success_flow.lua
 ./test_scripts/AppServices/PublishAppService/006_Mobile_disallowed_flow.lua
 ./test_scripts/AppServices/PublishAppService/007_Mobile_unknown_param_success.lua
+./test_scripts/AppServices/PublishAppService/008_Mobile_duplicate_service_rejected.lua
+./test_scripts/AppServices/PublishAppService/009_Mobile_duplicate_name_rejected.lua
 ./test_scripts/AppServices/RPCPassThrough/001_SendLocation_Handled_Request.lua
 ./test_scripts/AppServices/RPCPassThrough/002_SendLocation_Unsupported_Request.lua
 ./test_scripts/AppServices/RPCPassThrough/003_SendLocation_Request_Timeout.lua
