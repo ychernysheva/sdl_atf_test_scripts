@@ -76,7 +76,7 @@ runner.Step("Activate App", common.activateApp)
 runner.Step("Publish App Service", common.publishMobileAppService, { manifest })
 
 runner.Title("Test")
-runner.Step("RPC " .. rpc.name .. "_resultCode_SUCCESS", processRPCRejected)
+runner.Step("RPC " .. rpc.name .. "_resultCode_REJECTED", processRPCRejected)
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", common.postconditions)

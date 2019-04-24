@@ -2,14 +2,13 @@
 --  Precondition: 
 --  1) Application with <appID> is registered on SDL.
 --  2) Specific permissions are assigned for <appID> with PublishAppService
+--  3) Application has published a NAVIGATION service with it's app name for `serviceName`
 --
 --  Steps:
---  1) Application sends a PublishAppService RPC request
+--  1) Application sends a PublishAppService(MEDIA) RPC request service with it's app name for `serviceName`
 --
 --  Expected:
---  1) SDL sends a OnSystemCapabilityUpdated(APP_SERVICES, PUBLISHED) notification to mobile app
---  2) SDL sends a OnSystemCapabilityUpdated(APP_SERVICES, ACTIVATED) notification to mobile app
---  3) SDL responds to mobile app with "resultCode: SUCCESS, success: true"
+--  1) SDL responds to mobile app with "resultCode: REJECTED, success: false"
 ---------------------------------------------------------------------------------------------------
 
 --[[ Required Shared libraries ]]
@@ -78,7 +77,7 @@ runner.Step("Activate App", common.activateApp)
 runner.Step("Publish App Service", common.publishMobileAppService, { manifest })
 
 runner.Title("Test")
-runner.Step("RPC " .. rpc.name .. "_resultCode_SUCCESS", processRPCRejected)
+runner.Step("RPC " .. rpc.name .. "_resultCode_REJECTED", processRPCRejected)
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", common.postconditions)
