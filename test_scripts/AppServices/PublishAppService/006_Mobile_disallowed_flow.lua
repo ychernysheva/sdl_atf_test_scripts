@@ -47,7 +47,7 @@ end
 
 --[[ Local Functions ]]
 local function processServiceTypeDisallowed(self)
-  local mobileSession = common.getMobileSession(self, 1)
+  local mobileSession = common.getMobileSession(1)
   local cid = mobileSession:SendRPC(rpc.name, rpc.params)
 
   mobileSession:ExpectNotification("OnSystemCapabilityUpdated", 
@@ -64,7 +64,7 @@ local function processServiceNameDisallowed(self)
   rpc.params.appServiceManifest.serviceType = "WEATHER"
   rpc.params.appServiceManifest.serviceName = "BadServiceName"
   
-  local mobileSession = common.getMobileSession(self, 1)
+  local mobileSession = common.getMobileSession(1)
   local cid = mobileSession:SendRPC(rpc.name, rpc.params)
 
   mobileSession:ExpectNotification("OnSystemCapabilityUpdated", 
@@ -80,7 +80,7 @@ end
 local function processHandledRPCsDisallowed(self)
   rpc.params.appServiceManifest.serviceName = config.application1.registerAppInterfaceParams.appName
   rpc.params.appServiceManifest["handledRPCs"] = {44}
-  local mobileSession = common.getMobileSession(self, 1)
+  local mobileSession = common.getMobileSession(1)
   local cid = mobileSession:SendRPC(rpc.name, rpc.params)
 
   mobileSession:ExpectNotification("OnSystemCapabilityUpdated", 

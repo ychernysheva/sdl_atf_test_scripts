@@ -31,7 +31,7 @@ local manifest = {
 }
 
 local manifest2 = {
-  serviceName = config.application1.registerAppInterfaceParams.appName,
+  serviceName = manifest.serviceName,
   serviceType = "NAVIGATION",
   allowAppConsumers = false,
   rpcSpecVersion = config.application1.registerAppInterfaceParams.syncMsgVersion,
@@ -54,7 +54,7 @@ local function PTUfunc(tbl)
   local appConfig = common.getAppServiceProducerConfig(1);
   local appConfig2 = common.getAppServiceProducerConfig(2, manifest2.serviceType);
   appConfig2.app_services[manifest2.serviceType].service_names = { 
-    config.application1.registerAppInterfaceParams.appName
+    manifest.serviceName
   }
 
   tbl.policy_table.app_policies[common.getConfigAppParams(1).fullAppID] = appConfig;
@@ -64,11 +64,11 @@ end
 --[[ Local Functions ]]
 
 local function processRPCRejected(self)
-  local mobileSession = common.getMobileSession(self, 2)
+  local mobileSession = common.getMobileSession(2)
   local cid = mobileSession:SendRPC(rpc.name, rpc.params)
 
   mobileSession:ExpectNotification("OnSystemCapabilityUpdated"):Times(0)
-  mobileSession:ExpectResponse(cid, rejectedResponse)
+  mobileSession:ExpectResponse(cid, expectedResponse)
 
   EXPECT_HMINOTIFICATION("BasicCommunication.OnSystemCapabilityUpdated"):Times(0)
 end
