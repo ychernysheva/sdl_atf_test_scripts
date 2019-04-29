@@ -2,8 +2,8 @@
 --  Precondition: 
 --  1) Application 1 with <appID> is registered on SDL.
 --  2) Application 2 with <appID2> is registered on SDL.
---  3) Specific permissions are assigned for <appID> with PublishAppService
---  4) Specific permissions are assigned for <appID2> with OnAppServiceData
+--  3) Specific permissions are assigned for <appID> with ASP RPCs
+--  4) Specific permissions are assigned for <appID2> with ASC RPCs
 --  5) Application 1 has published a MEDIA service
 --  5) HMI has published a NAVIGATION service
 --  7) Application 2 is subscribed to NAVIGATION app service data
@@ -73,7 +73,8 @@ local function processRPCFailure(self)
   local mobileSession = common.getMobileSession(1)
   local mobileSession2 = common.getMobileSession(2)
   local notificationParams = expectedNotification
-  notificationParams.serviceData.serviceID = "INVALID_SERVICE_ID"
+  local service_id = common.getAppServiceID()
+  notificationParams.serviceData.serviceID = service_id
 
   mobileSession:SendNotification(rpc.name, notificationParams)
   mobileSession2:ExpectNotification(rpc.name, notificationParams):Times(0)

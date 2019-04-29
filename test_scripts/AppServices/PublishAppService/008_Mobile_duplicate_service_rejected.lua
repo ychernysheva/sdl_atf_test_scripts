@@ -48,10 +48,10 @@ local expectedResponse = {
 }
 
 local function PTUfunc(tbl)
-  local config = common.getAppServiceProducerConfig(1);
-  config.app_services[manifest.serviceType].service_names = { manifest.serviceName, manifest2.serviceName }
+  local appConfig = common.getAppServiceProducerConfig(1);
+  appConfig.app_services[manifest.serviceType].service_names = { manifest.serviceName, manifest2.serviceName }
 
-  tbl.policy_table.app_policies[common.getConfigAppParams(1).fullAppID] = config;
+  tbl.policy_table.app_policies[common.getConfigAppParams(1).fullAppID] = appConfig;
 end
 
 --[[ Local Functions ]]
