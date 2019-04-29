@@ -1,6 +1,7 @@
 local actions = require("user_modules/sequences/actions")
 local utils = require("user_modules/utils")
 local test = require("user_modules/dummy_connecttest")
+local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 
 local commonAppServices = actions
 
@@ -211,6 +212,7 @@ function commonAppServices.publishEmbeddedAppService(manifest)
         serviceIDs[0] = data.result.appServiceRecord.serviceID
       end
     end)
+  commonTestCases:DelayedExp(2000)
 end
 
 function commonAppServices.publishMobileAppService(manifest, app_id)
@@ -257,6 +259,7 @@ function commonAppServices.publishMobileAppService(manifest, app_id)
         serviceIDs[app_id] = data.payload.appServiceRecord.serviceID
       end
     end)
+  commonTestCases:DelayedExp(2000)
 end
 
 function commonAppServices.publishSecondMobileAppService(manifest1, manifest2, app_id)

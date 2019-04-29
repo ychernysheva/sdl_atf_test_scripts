@@ -54,7 +54,7 @@ local function PTUfunc(tbl)
 end
 
 local function processRPCSuccess(self)
-  local mobileSession = common.getMobileSession(self, 1)
+  local mobileSession = common.getMobileSession(1)
   local cid = mobileSession:SendRPC(rpc.name, rpc.params)
 
   mobileSession:ExpectNotification("OnSystemCapabilityUpdated", 

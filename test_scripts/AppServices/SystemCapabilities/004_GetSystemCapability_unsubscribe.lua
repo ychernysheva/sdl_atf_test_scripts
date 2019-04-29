@@ -97,7 +97,7 @@ local function GetSystemCapabilityUnsubscribe(self)
 end
 
 local function DeactivateService(self)
-  local mobileSession = common.getMobileSession(self, 1)
+  local mobileSession = common.getMobileSession(1)
   local mobileSession2 = common.getMobileSession(2)
   local cid = common.getHMIConnection():SendRequest("AppService.AppServiceActivation", {
     activate = false,
