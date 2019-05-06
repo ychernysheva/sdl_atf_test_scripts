@@ -8,12 +8,6 @@ config.ValidateSchema = false
 config.checkAllValidations = true
 config.application1.registerAppInterfaceParams.appHMIType = { "REMOTE_CONTROL" }
 config.application2.registerAppInterfaceParams.appHMIType = { "REMOTE_CONTROL" }
-config.application1.registerAppInterfaceParams.syncMsgVersion.majorVersion = 5
-config.application1.registerAppInterfaceParams.syncMsgVersion.minorVersion = 1
-config.application2.registerAppInterfaceParams.syncMsgVersion.majorVersion = 5
-config.application2.registerAppInterfaceParams.syncMsgVersion.minorVersion = 1
-config.application3.registerAppInterfaceParams.syncMsgVersion.majorVersion = 5
-config.application3.registerAppInterfaceParams.syncMsgVersion.minorVersion = 1
 
 --[[ Required Shared libraries ]]
 local test = require("user_modules/dummy_connecttest")
@@ -24,6 +18,7 @@ local json = require("modules/json")
 local hmi_values = require("user_modules/hmi_values")
 local utils = require('user_modules/utils')
 local actions = require("user_modules/sequences/actions")
+local apiLoader = require("modules/api_loader")
 
 --[[ Common Variables ]]
 
@@ -1017,5 +1012,19 @@ function commonRC.rpcUnsuccessResultCode(pAppId, pRPC, pRequestParams, pResult)
   :Times(0)
   mobSession:ExpectResponse(cid, pResult)
 end
+
+local function setSyncMsgVersion()
+  local mobile = apiLoader.init("data/MOBILE_API.xml")
+  local schema = mobile.interface[next(mobile.interface)]
+  local ver = schema.version
+  for appId = 1, 3 do
+    local syncMsgVersion = actions.getConfigAppParams(appId).syncMsgVersion
+    syncMsgVersion.majorVersion = tonumber(ver.majorVersion)
+    syncMsgVersion.minorVersion = tonumber(ver.minorVersion)
+    syncMsgVersion.patchVersion = tonumber(ver.patchVersion)
+  end
+end
+
+setSyncMsgVersion()
 
 return commonRC
