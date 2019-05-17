@@ -4,12 +4,12 @@
 -- Preconditions:
 -- 1) SDL got RC.GetCapabilities("availableHdChannelsAvailable" = true) for RADIO module parameter from HMI
 -- In case:
--- 1) Mobile app sends SetInteriorVehicleData with parameter ("hdChannels" = 7) to SDL
+-- 1) Mobile app sends SetInteriorVehicleData with parameter (availableHdChannels = { 1, 2, 3 }) to SDL
 -- SDL must:
--- 1) send SetInteriorVehicleData response with (availableHdChannels = { 1, 2, 3 }) to Mobile
+-- 1) send SetInteriorVehicleData response with "resultCode: READ_ONLY, success:false" to Mobile
 ---------------------------------------------------------------------------------------------------
 
---[[ Requiredcontaining incorrect  Shared libraries ]]
+--[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
 local commonRC = require('test_scripts/RC/commonRC')
 local hmi_values = require("user_modules/hmi_values")

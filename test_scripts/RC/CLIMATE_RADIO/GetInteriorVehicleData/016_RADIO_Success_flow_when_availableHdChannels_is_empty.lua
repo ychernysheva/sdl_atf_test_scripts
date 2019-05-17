@@ -2,8 +2,8 @@
 -- Proposal: https://github.com/smartdevicelink/sdl_evolution/blob/master/proposals/0213-rc-radio-climate-parameter-update.md
 -- Description:
 -- Preconditions:
--- 1) SDL got RC.GetCapabilities for RADIO module with ("climateEnableAvailable" = true) parameter from HMI
--- 2) Mobile app subscribed on getting RC.OnInteriorVehicleData notification for RADIO module
+-- 1) SDL got RC.GetCapabilities for RADIO module
+--  with ("radioEnableAvailable" = true, "availableHdChannelsAvailable" = true) parameter from HMI
 -- In case:
 -- 1) Mobile app sends GetInteriorVehicleData (RADIO) to SDL
 --  Check SDL:
