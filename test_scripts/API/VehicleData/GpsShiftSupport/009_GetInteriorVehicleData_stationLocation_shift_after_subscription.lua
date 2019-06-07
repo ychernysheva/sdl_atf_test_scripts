@@ -81,4 +81,4 @@ runner.Step("GetInteriorVehicleData subscription RADIO module, shifted true", ge
 runner.Step("GetInteriorVehicleData RADIO module subscribed, without shifted", getInteriorVehicleDataSubscribed)
 
 runner.Title("Postconditions")
-runner.Step("Stop SDL", common.postconditions)
+runner.Step("Stop SDL", commonRC.postconditions)
