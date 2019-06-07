@@ -30,4 +30,4 @@ runner.Title("Test")
 runner.Step("OnInteriorVehicleData, RADIO module, without shifted ", common.onInteriorVehicleData, { nil })
 
 runner.Title("Postconditions")
-runner.Step("Stop SDL", common.postconditions)
+runner.Step("Stop SDL", commonRC.postconditions)
