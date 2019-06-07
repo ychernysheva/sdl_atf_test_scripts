@@ -61,4 +61,4 @@ for _, v in pairs(common.shiftValue) do
 end
 
 runner.Title("Postconditions")
-runner.Step("Stop SDL", common.postconditions)
+runner.Step("Stop SDL", commonRC.postconditions)
