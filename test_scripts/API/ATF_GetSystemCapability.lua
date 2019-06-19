@@ -49,7 +49,7 @@ function Test:TestStep_GetNavCapability()
   local CorIdGetSystemCapability = self.mobileSession:SendRPC(
     "GetSystemCapability",
     {
-      systemCapabilityType = 0
+      systemCapabilityType = "NAVIGATION"
     })
 
   --mobile response
@@ -64,7 +64,7 @@ function Test:TestStep_GetPhoneCapability()
   local CorIdGetSystemCapability = self.mobileSession:SendRPC(
     "GetSystemCapability",
     {
-      systemCapabilityType = 1
+      systemCapabilityType = "PHONE_CALL"
     })
 
   --mobile response
@@ -79,7 +79,7 @@ function Test:TestStep_GetVideoCapability()
   local CorIdGetSystemCapability = self.mobileSession:SendRPC(
     "GetSystemCapability",
     {
-      systemCapabilityType = 2
+      systemCapabilityType = "VIDEO_STREAMING"
     })
 
   --mobile response
