@@ -75,7 +75,7 @@ function Test:TestStep_GetPhoneCapability()
   :Timeout(12000)   
 end
 
-function Test:TestStep_GetPhoneCapability()
+function Test:TestStep_GetVideoCapability()
   local CorIdGetSystemCapability = self.mobileSession:SendRPC(
     "GetSystemCapability",
     {
