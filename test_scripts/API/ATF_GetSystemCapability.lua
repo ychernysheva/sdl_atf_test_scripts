@@ -75,6 +75,36 @@ function Test:TestStep_GetPhoneCapability()
   :Timeout(12000)   
 end
 
+function Test:TestStep_GetPhoneCapability()
+  local CorIdGetSystemCapability = self.mobileSession:SendRPC(
+    "GetSystemCapability",
+    {
+      systemCapabilityType = 2
+    })
+
+  --mobile response
+  EXPECT_RESPONSE(CorIdGetSystemCapability, { 
+    success = true, 
+    resultCode = "SUCCESS",
+    systemCapability={
+      videoStreamingCapability={
+        preferredResolution={
+          resolutionWidth=800,
+          resolutionHeight=350
+        },
+        maxBitrate=10000,
+        supportedFormats={{
+          protocol="RAW",
+          codec="H264"
+        }},
+        hapticSpatialDataSupported= false
+      },
+      systemCapabilityType="VIDEO_STREAMING"
+    }
+  })
+  :Timeout(12000)   
+end
+
 --[[ Postconditions ]]
 -- if not applicable remove this section
 commonFunctions:newTestCasesGroup("Postconditions")
