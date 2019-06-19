@@ -39,7 +39,6 @@ local phoneCapabilities = {
     dialNumberEnabled=true
   },
   systemCapabilityType="PHONE_CALL"
-
 }
 local videoCapabilities = {
   videoStreamingCapability={
@@ -72,7 +71,8 @@ local function getSystemCapabilityResponse(capabilities)
   return temp
 end
 
-local function getSystemCapability(type, capabilities, self)
+local function getSystemCapability(capabilities, self)
+  local type = capabilities.systemCapabilityType
   local paramsSend = getSystemCapabilityRequest(type)
   local response = getSystemCapabilityResponse(capabilities)
   local cid = self.mobileSession1:SendRPC("GetSystemCapability", paramsSend)
@@ -91,9 +91,9 @@ runner.Step("RAI", commonSmoke.registerApp)
 runner.Step("Activate App", commonSmoke.activateApp)
 
 runner.Title("Test")
-runner.Step("GetSystemCapability NAVIGATION Positive Case", getSystemCapability, {"NAVIGATION", navCapabilities})
-runner.Step("GetSystemCapability PHONE_CALL Positive Case", getSystemCapability, {"PHONE_CALL", phoneCapabilities})
-runner.Step("GetSystemCapability VIDEO_STREAMING Positive Case", getSystemCapability, {"VIDEO_STREAMING", videoCapabilities})
+runner.Step("GetSystemCapability NAVIGATION Positive Case", getSystemCapability, {navCapabilities})
+runner.Step("GetSystemCapability PHONE_CALL Positive Case", getSystemCapability, {phoneCapabilities})
+runner.Step("GetSystemCapability VIDEO_STREAMING Positive Case", getSystemCapability, {videoCapabilities})
 
 
 runner.Title("Postconditions")
