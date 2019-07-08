@@ -53,7 +53,7 @@ local function getPTUFromPTS()
     end
   end
   if next(pTbl) ~= nil then
-    pTbl.policy_table.consumer_friendly_messages.messages = nil
+    pTbl.policy_table.consumer_friendly_messages = nil
     pTbl.policy_table.device_data = nil
     pTbl.policy_table.module_meta = nil
     pTbl.policy_table.usage_and_error_counts = nil
