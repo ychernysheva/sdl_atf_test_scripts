@@ -7,7 +7,7 @@
 -- 3) HMI sends OnDriverDistraction notification with all mandatory fields (state = "DD_ON")
 -- 3) App1 registered (HMI level NONE)
 -- 4) App2 registered (HMI level NONE)
--- 5) App1 is activated(HMI level FULL)
+-- 5) App1 is activated (HMI level FULL)
 -- 6) Policy Table update ("lock_screen_dismissal_enabled" = true)
 -- 7) App2 is activated(HMI level FULL)
 -- 8) HMI sends OnDriverDistraction notifications with state=DD_OFF and then with state=DD_ON one by one
@@ -41,20 +41,17 @@ local function updatePreloadedPT(pLockScreenDismissalEnabled)
 end
 
 local function ptuWithOnDD()
-  common.policyTableUpdate(ptUpdate)
-  common.getMobileSession():ExpectNotification("OnDriverDistraction",
-    { state = "DD_ON", lockScreenDismissalEnabled = true })
-
+  common.expOnDriverDistraction("DD_ON", lockScreenDismissalEnabled, 1)
   common.getMobileSession(2):ExpectNotification("OnDriverDistraction")
   :Times(0)
+  common.policyTableUpdate(ptUpdate)
 end
 
 local function activateApp(pAppIdExpect, pAppIdNotExpect, pLockScreenDismissalEnabledValue)
-  common.activateApp(pAppIdExpect)
-  common.getMobileSession(pAppIdExpect):ExpectNotification("OnDriverDistraction",
-    { state = "DD_ON", lockScreenDismissalEnabled = pLockScreenDismissalEnabledValue })
+  common.expOnDriverDistraction("DD_ON", pLockScreenDismissalEnabledValue, pAppIdExpect)
   common.getMobileSession(pAppIdNotExpect):ExpectNotification("OnDriverDistraction")
   :Times(0)
+  common.activateApp(pAppIdExpect)
 end
 
 local function onDriverDistractionTwoApps(pLockScreenDismissalEnabled)

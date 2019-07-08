@@ -30,9 +30,8 @@ local function ptUpdate(pPT)
 end
 
 local function ptuWithOnDD()
+  common.expOnDriverDistraction("DD_ON", lockScreenDismissalEnabled)
   common.policyTableUpdate(ptUpdate)
-  common.getMobileSession():ExpectNotification("OnDriverDistraction",
-    { state = "DD_ON", lockScreenDismissalEnabled = false })
 end
 
 --[[ Scenario ]]
@@ -43,9 +42,11 @@ runner.Step("Start SDL, HMI, connect Mobile, start Session", common.start)
 runner.Step("Register App", common.registerAppWithOnDD)
 
 runner.Title("Test")
-runner.Step("OnDriverDistraction ON/OFF missing", common.onDriverDistraction, { nil })
+runner.Step("OnDriverDistraction OFF missing", common.onDriverDistraction, { "DD_OFF", nil })
+runner.Step("OnDriverDistraction ON missing", common.onDriverDistraction, { "DD_ON", nil })
 runner.Step("Policy Table Update", ptuWithOnDD)
-runner.Step("OnDriverDistraction ON/OFF false", common.onDriverDistraction, { lockScreenDismissalEnabled })
+runner.Step("OnDriverDistraction OFF false", common.onDriverDistraction, { "DD_OFF", lockScreenDismissalEnabled })
+runner.Step("OnDriverDistraction ON false", common.onDriverDistraction, { "DD_ON", lockScreenDismissalEnabled })
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", common.postconditions)
