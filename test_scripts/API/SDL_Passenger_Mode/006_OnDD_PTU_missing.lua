@@ -30,18 +30,8 @@ local function ptUpdate(pPT)
 end
 
 local function ptuWithOnDD()
-  local function msg(pValue)
-    return "Parameter `lockScreenDismissalEnabled` is transfered to Mobile with `" .. tostring(pValue) .. "` value"
-  end
+  common.expOnDriverDistraction("DD_ON", lockScreenDismissalEnabled)
   common.policyTableUpdate(ptUpdate)
-  common.getMobileSession():ExpectNotification("OnDriverDistraction",
-    { state = "DD_ON" })
-  :ValidIf(function(_, d)
-      if d.payload.lockScreenDismissalEnabled ~= nil then
-        return false, d.payload.state .. ": " .. msg(d.payload.lockScreenDismissalEnabled)
-      end
-      return true
-    end)
 end
 
 --[[ Scenario ]]
@@ -52,9 +42,11 @@ runner.Step("Start SDL, HMI, connect Mobile, start Session", common.start)
 runner.Step("Register App", common.registerAppWithOnDD)
 
 runner.Title("Test")
-runner.Step("OnDriverDistraction ON/OFF true", common.onDriverDistraction, { true })
+runner.Step("OnDriverDistraction OFF true", common.onDriverDistraction, { "DD_OFF", true })
+runner.Step("OnDriverDistraction ON true", common.onDriverDistraction, { "DD_ON", true })
 runner.Step("Policy Table Update", ptuWithOnDD)
-runner.Step("OnDriverDistraction ON/OFF missing", common.onDriverDistraction, { lockScreenDismissalEnabled })
+runner.Step("OnDriverDistraction OFF missing", common.onDriverDistraction, { "DD_OFF", lockScreenDismissalEnabled })
+runner.Step("OnDriverDistraction ON missing", common.onDriverDistraction, { "DD_ON", lockScreenDismissalEnabled })
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", common.postconditions)

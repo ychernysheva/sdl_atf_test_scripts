@@ -35,7 +35,8 @@ runner.Title("Test")
 
 for _, level in common.pairs(common.hmiLevel) do
   runner.Step("Switch app's HMI level to " .. level.name, level.func)
-  runner.Step("OnDriverDistraction ON/OFF false", common.onDriverDistraction, { lockScreenDismissalEnabled })
+  runner.Step("OnDriverDistraction OFF false", common.onDriverDistraction, { "DD_OFF", lockScreenDismissalEnabled })
+  runner.Step("OnDriverDistraction ON false", common.onDriverDistraction, { "DD_ON", lockScreenDismissalEnabled })
 end
 
 runner.Title("Postconditions")
