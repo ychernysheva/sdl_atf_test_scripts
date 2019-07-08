@@ -5,18 +5,25 @@
 -- 1) OnDriverDistraction notification is  allowed by Policy for (FULL, LIMITED, BACKGROUND) HMILevel
 -- 2) In Policy "lock_screen_dismissal_enabled" parameter is defined with correct value (false)
 -- 3) HMI sends OnDriverDistraction notification with all mandatory fields (state = "DD_ON")
--- 3) App1 registered (HMI level NONE)
--- 4) App2 registered (HMI level NONE)
+-- 4) App1 and App2 are registered (HMI level NONE)
 -- 5) App1 is activated (HMI level FULL)
+-- SDL does:
+--  - Send OnDriverDistraction notification to mobile App1 with "lockScreenDismissalEnabled"=false
+--    and without "lockScreenDismissalWarning" parameters
 -- 6) Policy Table update ("lock_screen_dismissal_enabled" = true)
+-- SDL does:
+--  - Send OnDriverDistraction(DD_ON) notification to mobile App1 with both "lockScreenDismissalEnabled"=true
+--    and "lockScreenDismissalWarning" parameters
 -- 7) App2 is activated(HMI level FULL)
+-- SDL does:
+--  - Send OnDriverDistraction(DD_ON) notification to mobile App2 with both "lockScreenDismissalEnabled"=true
+--    and "lockScreenDismissalWarning" parameters
 -- 8) HMI sends OnDriverDistraction notifications with state=DD_OFF and then with state=DD_ON one by one
 -- SDL does:
--- 1) Send OnDriverDistraction notification to mobile App1 with "lockScreenDismissalEnabled"=false after activation
--- 2) Send OnDriverDistraction(DD_ON) notification to mobile App1 with "lockScreenDismissalEnabled"=true right after PTU
--- 3) Send OnDriverDistraction(DD_ON) notification to mobile App2 with "lockScreenDismissalEnabled"=true after activation
--- 3) Resend OnDriverDistraction(DD_OFF) notification to both mobile apps without "lockScreenDismissalEnabled"
--- 4) Resend OnDriverDistraction(DD_ON) notification to both mobile apps with "lockScreenDismissalEnabled"=true after PTU
+--  - Resend OnDriverDistraction(DD_OFF) notification to both mobile apps without both "lockScreenDismissalEnabled"
+--    and "lockScreenDismissalWarning" parameters
+--  - Resend OnDriverDistraction(DD_ON) notification to both mobile apps with both "lockScreenDismissalEnabled"=true
+--    and "lockScreenDismissalWarning" parameters
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
