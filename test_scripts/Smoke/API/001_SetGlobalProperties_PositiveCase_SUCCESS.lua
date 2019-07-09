@@ -83,7 +83,7 @@ local requestParams = {
 		keypressMode = "SINGLE_KEYPRESS",
 		limitedCharacterList = {"a"},
 		language = "EN-US",
-		autoCompleteText = "Daemon, Freedom"
+		autoCompleteList = { "Daemon" , "Freedom" }
 	}
 }
 
