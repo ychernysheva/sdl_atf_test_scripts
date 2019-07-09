@@ -25,13 +25,13 @@ runner.testSettings.isSelfIncluded = false
 
 --[[ Local Variables ]]
 local lockScreenDismissalEnabled = true
-local language = "DE-DE"
+common.language = "DE-DE"
 
 --[[ Local Functions ]]
 local function updatePreloadedPT()
   local function updatePT(pPT)
     local langs = pPT.policy_table.consumer_friendly_messages.messages["LockScreenDismissalWarning"].languages
-    langs[string.lower(language)] = {
+    langs[string.lower(common.language)] = {
       textBody = "Wischen Sie zum Entlassen nach oben"
     }
   end
@@ -39,14 +39,14 @@ local function updatePreloadedPT()
 end
 
 local function updateAppConfig()
-  common.getConfigAppParams().languageDesired = language
-  common.getConfigAppParams().hmiDisplayLanguageDesired = language
+  common.getConfigAppParams().languageDesired = common.language
+  common.getConfigAppParams().hmiDisplayLanguageDesired = common.language
 end
 
 local function getHMIParams()
   local hmiParams = hmi_values.getDefaultHMITable()
-  for _, iface in pairs({ "UI", "VR", "TTS"}) do
-    hmiParams[iface].GetLanguage.params.language = language
+  for _, iface in pairs({ "UI", "VR", "TTS" }) do
+    hmiParams[iface].GetLanguage.params.language = common.language
   end
   return hmiParams
 end

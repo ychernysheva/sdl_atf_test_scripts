@@ -5,20 +5,20 @@
 -- 1) OnDriverDistraction notification is  allowed by Policy for (FULL, LIMITED, BACKGROUND, NONE) HMILevel
 -- 2) In Policy:
 --  - "lock_screen_dismissal_enabled" parameter is defined with correct value (true)
---  - there is no value in "LockScreenDismissalWarning" section for 'DE-DE' language
--- 3) App registered (HMI level NONE) with 'DE-DE' language
--- 4) HMI sends OnDriverDistraction notifications with state=DD_OFF and then with state=DD_ON one by one
+--  - there is non-empty value in "LockScreenDismissalWarning" section for 'DE-DE' language
+-- 3) App registered (HMI level NONE) with 'EN-US' language
+-- 4) App changed language to 'DE-DE' using "ChangeRegistration"
+-- 5) HMI sends OnDriverDistraction notifications with state=DD_OFF and then with state=DD_ON one by one
 -- SDL does:
 --  - Send OnDriverDistraction(DD_OFF) notification to mobile without both "lockScreenDismissalEnabled"
 --    and "lockScreenDismissalWarning" parameters and all mandatory fields
 --  - Send OnDriverDistraction(DD_ON) notification to mobile with both "lockScreenDismissalEnabled"=true
 --    and "lockScreenDismissalWarning" parameters and all mandatory fields
---    and message text is correspond to default language 'EN-US'
+--    and message text is correspond to app's language 'DE-DE'
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
 local common = require('test_scripts/API/SDL_Passenger_Mode/commonPassengerMode')
-local hmi_values = require('user_modules/hmi_values')
 
 --[[ Test Configuration ]]
 runner.testSettings.isSelfIncluded = false
@@ -29,29 +29,37 @@ common.language = "DE-DE"
 
 --[[ Local Functions ]]
 local function updatePreloadedPT()
-  common.updatePreloadedPT(lockScreenDismissalEnabled)
-end
-
-local function updateAppConfig()
-  common.getConfigAppParams().languageDesired = common.language
-  common.getConfigAppParams().hmiDisplayLanguageDesired = common.language
-end
-
-local function getHMIParams()
-  local hmiParams = hmi_values.getDefaultHMITable()
-  for _, iface in pairs({ "UI", "VR", "TTS" }) do
-    hmiParams[iface].GetLanguage.params.language = common.language
+  local function updatePT(pPT)
+    local langs = pPT.policy_table.consumer_friendly_messages.messages["LockScreenDismissalWarning"].languages
+    langs[string.lower(common.language)] = {
+      textBody = "Wischen Sie zum Entlassen nach oben"
+    }
   end
-  return hmiParams
+  common.updatePreloadedPT(lockScreenDismissalEnabled, updatePT)
+end
+
+local function changeRegistration()
+  local params = {
+    language = common.language,
+    hmiDisplayLanguage = common.language,
+  }
+  local cid = common.getMobileSession():SendRPC("ChangeRegistration", params)
+  for _, iface in pairs({ "UI", "VR", "TTS" }) do
+    common.getHMIConnection():ExpectRequest(iface .. ".ChangeRegistration")
+    :Do(function(_, data)
+        common.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", {})
+      end)
+  end
+  common.getMobileSession():ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 end
 
 --[[ Scenario ]]
 runner.Title("Preconditions")
 runner.Step("Clean environment", common.preconditions)
-runner.Step("Set language for App", updateAppConfig)
 runner.Step("Set LockScreenDismissalEnabled", updatePreloadedPT)
-runner.Step("Start SDL, HMI, connect Mobile, start Session", common.start, { getHMIParams() })
+runner.Step("Start SDL, HMI, connect Mobile, start Session", common.start)
 runner.Step("Register App", common.registerAppWOPTU)
+runner.Step("Change language for App", changeRegistration)
 runner.Step("Activate App to FULL", common.activateApp)
 
 runner.Title("Test")
