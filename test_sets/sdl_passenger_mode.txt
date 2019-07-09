@@ -9,3 +9,4 @@
 ./test_scripts/API/SDL_Passenger_Mode/009_OnDD_PTU_several_apps.lua
 ./test_scripts/API/SDL_Passenger_Mode/010_OnDD_PT_another_language_exists.lua
 ./test_scripts/API/SDL_Passenger_Mode/011_OnDD_PT_another_language_not_exists.lua
+./test_scripts/API/SDL_Passenger_Mode/012_OnDD_PT_another_language_exists_ChangeRegistration.lua

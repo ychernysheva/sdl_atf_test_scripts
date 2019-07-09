@@ -19,6 +19,7 @@ local c = actions
 --[[ Variables ]]
 local preloadedPT = commonFunctions:read_parameter_from_smart_device_link_ini("PreloadedPT")
 local wrnMsg
+c.language = "EN-US"
 
 --[[ Common Functions ]]
 function c.registerAppWithOnDD(pAppId)
@@ -78,7 +79,7 @@ function c.postconditions()
 end
 
 local function setLockScreenWrnMsg(pMessages)
-  local lang = string.lower(c.getConfigAppParams().languageDesired)
+  local lang = string.lower(c.language)
   local warnSec = pMessages["LockScreenDismissalWarning"]
   if warnSec == nil then
     test:FailTestCase("'LockScreenDismissalWarning' message section is not defined in 'sdl_preloaded_pt' file")
