@@ -15,7 +15,7 @@
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
-local common = require('test_scripts/API/Expand_PutFile/commonPutFile')
+local common = require('test_scripts/API/PutFile/commonPutFile')
 local utils = require("user_modules/utils")
 local json = require("modules/json")
 
