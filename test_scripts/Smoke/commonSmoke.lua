@@ -22,6 +22,8 @@ local preloadedPT = commonFunctions:read_parameter_from_smart_device_link_ini("P
 
 local commonSmoke = {}
 
+commonSmoke.cloneTable = utils.cloneTable
+
 commonSmoke.HMITypeStatus = {
   NAVIGATION = false,
   COMMUNICATION = false
