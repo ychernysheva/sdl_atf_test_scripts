@@ -123,7 +123,7 @@ function Test:Precondition_UpdatePolicy()
     end)
 
   EXPECT_HMINOTIFICATION("SDL.OnAppPermissionChanged", { appID = HMIAppID, appRevoked = true})
-  EXPECT_HMICALL("BasicCommunication.ActivateApp", { level = "NONE" })
+  EXPECT_HMICALL("BasicCommunication.CloseApplication", {})
   :Do(function(_, data)
       self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
       self.mobileSession2:ExpectNotification("OnHMIStatus", { hmiLevel ="NONE", systemContext = "MAIN", audioStreamingState = "NOT_AUDIBLE" })
