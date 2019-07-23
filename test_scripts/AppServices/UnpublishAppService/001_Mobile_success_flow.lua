@@ -47,7 +47,7 @@ end
 --[[ Local Functions ]]
 local function processRPCSuccess(self)
   rpc.params.serviceID = common.getAppServiceID(1)
-  local mobileSession = common.getMobileSession(self, 1)
+  local mobileSession = common.getMobileSession(1)
   local cid = mobileSession:SendRPC(rpc.name, rpc.params)
 
   mobileSession:ExpectNotification("OnSystemCapabilityUpdated", 
