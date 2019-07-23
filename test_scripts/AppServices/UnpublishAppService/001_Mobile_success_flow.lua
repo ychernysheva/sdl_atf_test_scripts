@@ -5,7 +5,7 @@
 --  3) App sends a PublishAppService RPC request
 --
 --  Steps:
---  1) HMI sends a UnpublishAppService RPC to core
+--  1) App sends a UnpublishAppService RPC to core
 --
 --  Expected:
 --  1) SDL sends a OnSystemCapabilityUpdated(APP_SERVICES, REMOVED) notification to mobile app
