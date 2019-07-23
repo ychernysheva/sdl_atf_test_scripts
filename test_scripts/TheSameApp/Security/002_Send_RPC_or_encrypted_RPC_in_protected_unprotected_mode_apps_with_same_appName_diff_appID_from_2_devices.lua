@@ -68,7 +68,7 @@ runner.Step("Set DTLS protocol in SDL", common.setSDLIniParameter, { "Protocol",
 runner.Step("Start SDL, HMI, connect Mobile, start Session", common.start)
 runner.Step("Connect two mobile devices to SDL", common.connectMobDevices, {devices})
 runner.Step("Register App1 from device 1", common.registerAppEx, {1, appParams[1], 1})
-runner.Step("Register App2 from device 2", common.registerAppEx, {2, appParams[2], 2}, true)
+runner.Step("Register App2 from device 2", common.registerAppEx, {2, appParams[2], 2, true})
 runner.Step("Policy Table Update Certificate", common.policyTableUpdate, { common.ptUpdate })
 runner.Step("Activate App 1", common.activateApp, { 1 })
 
