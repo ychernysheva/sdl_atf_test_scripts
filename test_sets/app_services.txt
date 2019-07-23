@@ -65,6 +65,9 @@
 ./test_scripts/AppServices/PublishAppService/008_Mobile_update_service_success.lua
 ./test_scripts/AppServices/PublishAppService/009_Mobile_duplicate_name_rejected.lua
 ./test_scripts/AppServices/PublishAppService/010_HMI_update_service_success.lua
+./test_scripts/AppServices/UnpublishAppService/001_Mobile_success_flow.lua
+./test_scripts/AppServices/UnpublishAppService/002_HMI_success_flow.lua 
+./test_scripts/AppServices/UnpublishAppService/003_Mobile_failure_did_not_publish_requested_service.lua
 ./test_scripts/AppServices/RPCPassThrough/001_SendLocation_Handled_Request.lua
 ./test_scripts/AppServices/RPCPassThrough/002_SendLocation_Unsupported_Request.lua
 ./test_scripts/AppServices/RPCPassThrough/003_SendLocation_Request_Timeout.lua
