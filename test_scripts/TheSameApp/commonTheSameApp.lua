@@ -104,10 +104,7 @@ function common.registerAppEx(pAppId, pAppParams, pMobConnId, pHasPTU)
       :Do(function(_, d1)
         common.app.setHMIId(d1.params.application.appID, pAppId)
           if pHasPTU then
-            common.hmi.getConnection():ExpectRequest("BasicCommunication.PolicyUpdate")
-              :Do(function(_, d2)
-                  common.hmi.getConnection():SendResponse(d2.id, d2.method, "SUCCESS", { })
-                end)
+            common.isPTUStarted()
           end
         end)
       session:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })

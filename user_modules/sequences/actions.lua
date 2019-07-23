@@ -35,6 +35,13 @@ m.timeout = 2000
 --[[ Variables ]]
 local hmiAppIds = {}
 
+local policyModes = {
+  P  = "PROPRIETARY",
+  EP = "EXTERNAL_PROPRIETARY",
+  H  = "HTTP"
+}
+local ptuAppNum
+
 test.mobileConnections = {}
 test.mobileSession = {}
 
@@ -115,18 +122,14 @@ end
 --! @return: PTU table
 --]]
 local function getPTUFromPTS()
-  local pTbl = {}
-  local ptsFileName = commonFunctions:read_parameter_from_smart_device_link_ini("SystemFilesPath") .. "/"
-    .. commonFunctions:read_parameter_from_smart_device_link_ini("PathToSnapshot")
-  if utils.isFileExist(ptsFileName) then
-    pTbl = utils.jsonFileToTable(ptsFileName)
-  else
+  local pTbl = m.sdl.getPTS()
+  if pTbl == nil then
     utils.cprint(35, "PTS file was not found, PreloadedPT is used instead")
-    local appConfigFolder = commonFunctions:read_parameter_from_smart_device_link_ini("AppConfigFolder")
+    local appConfigFolder = m.sdl.getSDLIniParameter("AppConfigFolder")
     if appConfigFolder == nil or appConfigFolder == "" then
       appConfigFolder = commonPreconditions:GetPathToSDL()
     end
-    local preloadedPT = commonFunctions:read_parameter_from_smart_device_link_ini("PreloadedPT")
+    local preloadedPT = m.sdl.getSDLIniParameter("PreloadedPT")
     local ptsFile = appConfigFolder .. preloadedPT
     if utils.isFileExist(ptsFile) then
       pTbl = utils.jsonFileToTable(ptsFile)
@@ -460,25 +463,14 @@ function m.ptu.getAppData(pAppId)
   }
 end
 
---[[ @ptu.getAppData: perform policy table update sequence
---! @parameters:
---! pPTUpdateFunc - function which contains updates for policy table
---! pExpNotificationFunc - specific notification function
---! @return: none
---]]
-function m.ptu.policyTableUpdate(pPTUpdateFunc, pExpNotificationFunc)
-  if pExpNotificationFunc then
-    pExpNotificationFunc()
-  end
-  local ptsFileName = commonFunctions:read_parameter_from_smart_device_link_ini("SystemFilesPath") .. "/"
-    .. commonFunctions:read_parameter_from_smart_device_link_ini("PathToSnapshot")
+local function policyTableUpdateProprietary(pPTUpdateFunc, pExpNotificationFunc)
   local ptuFileName = os.tmpname()
   local requestId = m.hmi.getConnection():SendRequest("SDL.GetPolicyConfigurationData",
       { policyType = "module_config", property = "endpoints" })
   m.hmi.getConnection():ExpectResponse(requestId)
   :Do(function()
       m.hmi.getConnection():SendNotification("BasicCommunication.OnSystemRequest",
-        { requestType = "PROPRIETARY", fileName = ptsFileName })
+        { requestType = "PROPRIETARY", fileName = m.sdl.getPTSFilePath() })
       local ptuTable = getPTUFromPTS()
       for i, _ in pairs(m.mobile.getApps()) do
         ptuTable.policy_table.app_policies[m.app.getParams(i).fullAppID] = m.ptu.getAppData(i)
@@ -495,8 +487,8 @@ function m.ptu.policyTableUpdate(pPTUpdateFunc, pExpNotificationFunc)
             m.hmi.getConnection():ExpectRequest("BasicCommunication.SystemRequest")
             :Do(function(_, d3)
                 if not pExpNotificationFunc then
-                   m.hmi.getConnection():ExpectRequest("VehicleInfo.GetVehicleData", { odometer = true })
-                   m.hmi.getConnection():ExpectNotification("SDL.OnStatusUpdate", { status = "UP_TO_DATE" })
+                  m.hmi.getConnection():ExpectRequest("VehicleInfo.GetVehicleData", { odometer = true })
+                  m.hmi.getConnection():ExpectNotification("SDL.OnStatusUpdate", { status = "UP_TO_DATE" })
                 end
                 m.hmi.getConnection():SendResponse(d3.id, "BasicCommunication.SystemRequest", "SUCCESS", { })
                 m.hmi.getConnection():SendNotification("SDL.OnReceivedPolicyUpdate", { policyfile = d3.params.fileName })
@@ -511,6 +503,44 @@ function m.ptu.policyTableUpdate(pPTUpdateFunc, pExpNotificationFunc)
         :Times(AtMost(1))
       end
     end)
+end
+
+local function policyTableUpdateHttp(pPTUpdateFunc, pExpNotificationFunc)
+  local ptuFileName = os.tmpname()
+  local ptuTable = getPTUFromPTS()
+  for i = 1, m.getAppsCount() do
+    ptuTable.policy_table.app_policies[m.getConfigAppParams(i).fullAppID] = m.ptu.getAppData(i)
+  end
+  if pPTUpdateFunc then
+    pPTUpdateFunc(ptuTable)
+  end
+  utils.tableToJsonFile(ptuTable, ptuFileName)
+  local cid = m.mobile.getSession(ptuAppNum):SendRPC("SystemRequest",
+    { requestType = "HTTP", fileName = "PolicyTableUpdate" }, ptuFileName)
+  if not pExpNotificationFunc then
+    m.hmi.getConnection():ExpectRequest("VehicleInfo.GetVehicleData", { odometer = true })
+    m.hmi.getConnection():ExpectNotification("SDL.OnStatusUpdate", { status = "UP_TO_DATE" })
+  end
+  m.mobile.getSession(ptuAppNum):ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
+  :Do(function() os.remove(ptuFileName) end)
+end
+
+--[[ @policyTableUpdate: perform PTU
+--! @parameters:
+--! pPTUpdateFunc - function with additional updates (optional)
+--! pExpNotificationFunc - function with specific expectations (optional)
+--! @return: none
+--]]
+function m.ptu.policyTableUpdate(pPTUpdateFunc, pExpNotificationFunc)
+  if pExpNotificationFunc then
+    pExpNotificationFunc()
+  end
+  local policyMode = SDL.buildOptions.extendedPolicy
+  if policyMode == policyModes.P or policyMode == policyModes.EP then
+    policyTableUpdateProprietary(pPTUpdateFunc, pExpNotificationFunc)
+  elseif policyMode == policyModes.H then
+    policyTableUpdateHttp(pPTUpdateFunc, pExpNotificationFunc)
+  end
 end
 
 --[[ Functions of app submodule ]]
@@ -528,10 +558,7 @@ local function registerApp(pAppId, pMobConnId, hasPTU)
       :Do(function(_, d1)
           m.app.setHMIId(d1.params.application.appID, pAppId)
           if hasPTU then
-            m.hmi.getConnection():ExpectRequest("BasicCommunication.PolicyUpdate")
-              :Do(function(_, d2)
-                m.hmi.getConnection():SendResponse(d2.id, d2.method, "SUCCESS", { })
-              end)
+            m.isPTUStarted()
           end
         end)
       session:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
@@ -629,6 +656,42 @@ function m.app.getHMIId(pAppId)
     return id.hmiId
   end
   return nil
+end
+
+function m.isPTUStarted()
+  local event = events.Event()
+  event.matches = function(e1, e2) return e1 == e2 end
+  local function raisePtuEvent()
+    RUN_AFTER(function() m.hmi.getConnection():RaiseEvent(event, "PTU start event") end, m.minTimeout)
+  end
+  local policyMode = SDL.buildOptions.extendedPolicy
+  if policyMode == policyModes.P or policyMode == policyModes.EP then
+    m.hmi.getConnection():ExpectRequest("BasicCommunication.PolicyUpdate")
+    :Do(function(_, d2)
+        m.hmi.getConnection():SendResponse(d2.id, d2.method, "SUCCESS", { })
+        raisePtuEvent()
+      end)
+  elseif policyMode == policyModes.H then
+    local function getAppNums()
+      local out = {}
+        for k in pairs(test.mobileSession) do
+          table.insert(out, k)
+        end
+      return out
+    end
+    for _, appNum in pairs(getAppNums()) do
+      m.mobile.getSession(appNum):ExpectNotification("OnSystemRequest")
+      :Do(function(_, d3)
+          if d3.payload.requestType == "HTTP" then
+            utils.cprint(35, "App ".. appNum .. " will be used for PTU")
+            ptuAppNum = appNum
+            raisePtuEvent()
+          end
+        end)
+      :Times(AtMost(2))
+    end
+  end
+  return m.hmi.getConnection():ExpectEvent(event, "PTU start event")
 end
 
 --[[ @app.setHMIId: set HMI application Id by script's mobile application id
@@ -874,6 +937,38 @@ function m.sdl.stop()
   return SDL:StopSDL()
 end
 
+--[[ @sdl.getPTSFilePath: get path to Policy Table Snapshot file
+--! @parameters: none
+--! @return: path to file
+--]]
+function m.sdl.getPTSFilePath()
+  return m.sdl.getSDLIniParameter("SystemFilesPath") .. "/" .. m.sdl.getSDLIniParameter("PathToSnapshot")
+end
+
+--[[ @sdl.getPTS: get Policy Table Snapshot (PTS)
+--! @parameters: none
+--! @return: table with PTS
+--]]
+function m.sdl.getPTS()
+  local ptsFileName = m.sdl.getPTSFilePath()
+  local pts = nil
+  if utils.isFileExist(ptsFileName) then
+    pts = utils.jsonFileToTable(ptsFileName)
+  end
+  return pts
+end
+
+--[[ @sdl.deletePTS: delete Policy Table Snapshot file
+--! @parameters: none
+--! @return: none
+--]]
+function m.sdl.deletePTS()
+  local ptsFileName = m.sdl.getPTSFilePath()
+  if utils.isFileExist(ptsFileName) then
+    os.remove(ptsFileName)
+  end
+end
+
 --[[ Functions of ATF extension ]]
 
 --[[ @DeleteConnection: Remove connection from event dispatcher
@@ -1087,6 +1182,7 @@ function m.preconditions()
   commonFunctions:SDLForceStop()
   commonSteps:DeletePolicyTable()
   commonSteps:DeleteLogsFiles()
+  m.sdl.deletePTS()
 end
 
 --[[ @postconditions: postcondition steps
