@@ -1,7 +1,7 @@
 ---------------------------------------------------------------------------------------------------
 -- User story: AutoCompleteList
 -- Use case: SetGlobalProperties
--- Item: Happy path
+-- Item: Parameter bounds case
 --
 -- Requirement summary:
 -- [SetGlobalProperties] SUCCESS on TTS.SetGlobalProperties and UI.SetGlobalProperties
@@ -17,7 +17,7 @@
 -- c. appID is currently in BACKGROUND, LIMITED, or FULL HMI level
 
 -- Steps:
--- appID requests SetGlobalproperties with autoCompleteList
+-- appID requests SetGlobalproperties with an empty autoCompleteList
 
 -- Expected:
 
@@ -33,6 +33,7 @@
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
 local common = require('test_scripts/API/AutoCompleteList/commonAutoCompleteList')
+local json = require('modules/json')
 
 --[[ Test Configuration ]]
 runner.testSettings.isSelfIncluded = false
@@ -40,7 +41,7 @@ runner.testSettings.isSelfIncluded = false
 --[[ Local Variables ]]
 local requestParams = {
   keyboardProperties = {
-    autoCompleteList = { "Daemon" , "Freedom" }
+    autoCompleteList = json.EMPTY_ARRAY
   }
 }
 
