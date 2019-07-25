@@ -3,7 +3,7 @@
 -- https://github.com/smartdevicelink/sdl_evolution/blob/master/proposals/0116-open-menu.md
 -- Description:
 -- In case:
--- 1) Mobile application is set to appropriate HMI level and System Context MENU
+-- 1) Mobile application is set to appropriate HMI level and System Context VRSESSION
 -- 2) ShowAppMenu RPC is not allowed by policy
 -- 3) Mobile sends ShowAppMenu request without menuID parameter to SDL
 -- SDL does:
@@ -12,7 +12,7 @@
 ---------------------------------------------------------------------------------------------------
 -- [[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
-local common = require('test_scripts/API/OpenMenuRPC/commonOpenMenuRPC')
+local common = require('test_scripts/API/ShowAppMenu/commonShowAppMenu')
 
 -- [[ Test Configuration ]]
 runner.testSettings.isSelfIncluded = false
@@ -30,9 +30,11 @@ runner.Step("PTU", common.policyTableUpdate, { common.pTUpdateFunc })
 
 runner.Title("Test")
 runner.Step("App activate, HMI SystemContext MAIN", common.activateApp)
-runner.Step("Set HMI SystemContext to MENU" , common.changeHMISystemContext, { "MENU" })
-runner.Step("Set HMI Level to Limited", common.hmiLeveltoLimited, { 1, "MENU" })
+runner.Step("Set HMI SystemContext to VRSESSION" , common.changeHMISystemContext, { "VRSESSION" })
+runner.Step("Set HMI Level to Limited", common.hmiLeveltoLimited, { 1, "VRSESSION" })
 runner.Step("Send show App menu, Limited level", common.showAppMenuUnsuccess, { nil, resultCode })
+runner.Step("Set HMI Level to BACKGROUND", common.deactivateAppToBackground, { "VRSESSION" })
+runner.Step("Send show app menu, BACKGROUND level", common.showAppMenuUnsuccess, { nil, resultCode })
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", common.postconditions)
