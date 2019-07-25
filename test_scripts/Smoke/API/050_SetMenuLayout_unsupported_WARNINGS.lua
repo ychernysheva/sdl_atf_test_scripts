@@ -29,33 +29,39 @@ local commonSmoke = require('test_scripts/Smoke/commonSmoke')
 local hmi_values = require('user_modules/hmi_values')
 
 --[[ Local Variables ]]
+local addSubMenuParams = { 
+  menuLayout = "TILES",
+  menuID = 44991234,
+  menuName = "sickMenu"
+}
+
+local setGlobalPropertiesParams = { 
+  menuLayout = "TILES", 
+  menuTitle = "sickMenu" 
+}
+
+local warningsResponse = {
+  success = true,
+  resultCode = "WARNINGS"
+}
+
+--[[ Local Functions ]]
 local function setMenuLayoutTiles(self)
-  local cid = self.mobileSession1:SendRPC("SetGlobalProperties", { menuLayout = "TILES", menuTitle = "sickMenu" })
+  local cid = self.mobileSession1:SendRPC("SetGlobalProperties", setGlobalPropertiesParams)
   
   EXPECT_HMICALL("UI.SetGlobalProperties", {})
   :Do(function(_, data)
     --util.printTable(data)
     self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-    self.mobileSession1:ExpectResponse(cid, {
-      success = true,
-      resultCode = "WARNINGS"
-    })
+    self.mobileSession1:ExpectResponse(cid, warningsResponse)
   end)
 
-  local _addSubMenuParams = { menuLayout = "TILES",
-                              menuID = 44991234,
-                              menuName = "sickMenu"
-                            }
-
-  local cid2 = self.mobileSession1:SendRPC("AddSubMenu", _addSubMenuParams)
+  local cid2 = self.mobileSession1:SendRPC("AddSubMenu", addSubMenuParams)
   
   EXPECT_HMICALL("UI.AddSubMenu", {})
   :Do(function(_, data)
     self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-    self.mobileSession1:ExpectResponse(cid2, {
-      success = true,
-      resultCode = "WARNINGS"
-    })
+    self.mobileSession1:ExpectResponse(cid2, warningsResponse)
   end)
 end
 
