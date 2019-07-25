@@ -51,7 +51,6 @@ local function setMenuLayoutTiles(self)
   
   EXPECT_HMICALL("UI.SetGlobalProperties", {})
   :Do(function(_, data)
-    --util.printTable(data)
     self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
     self.mobileSession1:ExpectResponse(cid, warningsResponse)
   end)
