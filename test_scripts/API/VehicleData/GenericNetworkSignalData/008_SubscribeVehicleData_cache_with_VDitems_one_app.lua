@@ -53,7 +53,7 @@ local function processingVD()
     [common.VehicleDataItemsWithData.custom_vd_item2_float.key] = true
   }
 
-  local VDItemResponse = { dataType = "OEM_SPECIFIC", resultCode = "SUCCESS" }
+  local VDItemResponse = { dataType = common.CUSTOM_DATA_TYPE, resultCode = "SUCCESS" }
   local gpsResponse = { dataType = common.VehicleDataItemsWithData.gps.APItype, resultCode = "SUCCESS" }
 
   local hmiResponseData = {
@@ -61,10 +61,13 @@ local function processingVD()
     gps = gpsResponse
   }
 
+  local floatItem = common.VehicleDataItemsWithData.custom_vd_item2_float
+  local integerItem = common.VehicleDataItemsWithData.custom_vd_item1_integer
   local MobResp = {
     gps = gpsResponse,
-    [common.VehicleDataItemsWithData.custom_vd_item2_float.name] = VDItemResponse,
-    [common.VehicleDataItemsWithData.custom_vd_item1_integer.name] = { dataType = "OEM_SPECIFIC", resultCode = "DATA_ALREADY_SUBSCRIBED" }
+    [floatItem.name] = common.buildSubscribeMobileResponseItem(VDItemResponse, floatItem.name),
+    [integerItem.name] = common.buildSubscribeMobileResponseItem(
+        { dataType = common.CUSTOM_DATA_TYPE, resultCode = "DATA_ALREADY_SUBSCRIBED" }, integerItem.name)
   }
 
   local cid = common.getMobileSession():SendRPC("SubscribeVehicleData", mobRequestData)

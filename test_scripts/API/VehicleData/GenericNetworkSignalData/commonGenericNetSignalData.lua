@@ -54,6 +54,7 @@ common.EMPTY_OBJECT = json.EMPTY_OBJECT
 common.null = json.null
 common.decode = json.decode
 
+common.CUSTOM_DATA_TYPE = "VEHICLEDATA_OEM_CUSTOM_DATA"
 
 common.VehicleDataItemsWithData = {}
 
@@ -530,7 +531,32 @@ function common.validation(actualData, expectedData, pMessage)
   return true
 end
 
-function common.VDsubscription(pAppId, pData, pRPC)
+local function getOemCustomDataType(pItemName, pCustomTypeItem)
+  local dataTypes = common.customDataTypeSample
+  if type(pCustomTypeItem) == "table" then
+    dataTypes = { pCustomTypeItem }
+  end
+  for _, customDataType in ipairs(dataTypes) do
+    if customDataType.name == pItemName then
+      return customDataType.type
+    end
+  end
+  utils.cprint(35, "Warning: Custom data type '" .. pItemName .. "' does not exist")
+  return nil
+end
+
+function common.buildSubscribeMobileResponseItem(pHmiResponseItem, pItemName, pCustomTypeItem)
+  if type(pHmiResponseItem) == "table" then
+    local res = utils.cloneTable(pHmiResponseItem)
+    if res.dataType == common.CUSTOM_DATA_TYPE then
+      res.oemCustomDataType = getOemCustomDataType(pItemName, pCustomTypeItem)
+    end
+    return res
+  end
+  return nil
+end
+
+function common.VDsubscription(pAppId, pData, pRPC, pCustomTypeItem)
   local hmiReqResData
   local hmiResponseType
   local pVehicleData = common.VehicleDataItemsWithData[pData]
@@ -543,7 +569,7 @@ function common.VDsubscription(pAppId, pData, pRPC)
     hmiResponseType = pVehicleData.APItype
   else
     hmiReqResData = pVehicleData.key
-    hmiResponseType = "OEM_SPECIFIC"
+    hmiResponseType = common.CUSTOM_DATA_TYPE
   end
 
   local hmiRequestData
@@ -572,7 +598,8 @@ function common.VDsubscription(pAppId, pData, pRPC)
     }
   else
     mobileResponseData = {
-      [pVehicleData.name] = hmiResponseData[hmiReqResData]
+      [pVehicleData.name] =
+          common.buildSubscribeMobileResponseItem(hmiResponseData[hmiReqResData], pVehicleData.name, pCustomTypeItem)
     }
   end
 
@@ -597,7 +624,7 @@ function common.VDsubscription(pAppId, pData, pRPC)
   end)
 end
 
-function common.VDsubscriptionWithoutReqOnHMI(pAppId, pData, pRPC)
+function common.VDsubscriptionWithoutReqOnHMI(pAppId, pData, pRPC, pCustomTypeItem)
   local pVehicleData = common.VehicleDataItemsWithData[pData]
   local mobRequestData = { [pVehicleData.name] = true }
 
@@ -605,14 +632,14 @@ function common.VDsubscriptionWithoutReqOnHMI(pAppId, pData, pRPC)
   if pVehicleData.rpcSpecData == true then
     hmiResponseType = pVehicleData.APItype
   else
-    hmiResponseType = "OEM_SPECIFIC"
+    hmiResponseType = common.CUSTOM_DATA_TYPE
   end
 
   local mobileResponseData = {
-    [pVehicleData.name] = {
-      dataType = hmiResponseType,
-      resultCode = "SUCCESS"
-    }
+    [pVehicleData.name] = common.buildSubscribeMobileResponseItem(
+        { dataType = hmiResponseType, resultCode = "SUCCESS" },
+        pVehicleData.name,
+        pCustomTypeItem)
   }
 
   local cid = common.getMobileSession(pAppId):SendRPC(pRPC, mobRequestData)

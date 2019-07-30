@@ -53,14 +53,14 @@ local function VDsubscription(pRPC)
       resultCode = "SUCCESS"
     },
     [floatItem.key] = {
-      dataType = "OEM_SPECIFIC",
+      dataType = common.CUSTOM_DATA_TYPE,
       resultCode = "SUCCESS"
     }
   }
 
   local mobileResponseData = {
     [speedItem.name] = hmiResponseData[speedItem.name],
-    [floatItem.name] = hmiResponseData[floatItem.key]
+    [floatItem.name] = common.buildSubscribeMobileResponseItem(hmiResponseData[floatItem.key], floatItem.name)
   }
 
   local cid = common.getMobileSession():SendRPC(pRPC, mobRequestData)

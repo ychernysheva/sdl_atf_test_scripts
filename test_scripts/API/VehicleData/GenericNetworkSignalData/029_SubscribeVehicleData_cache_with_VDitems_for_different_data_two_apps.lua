@@ -51,13 +51,16 @@ local function processingVDSubscription()
   }
   local hmiResponseData = {
     [common.VehicleDataItemsWithData.custom_vd_item2_float.key] = {
-      dataType = "OEM_SPECIFIC",
+      dataType = common.CUSTOM_DATA_TYPE,
       resultCode = "SUCCESS"
     }
   }
+
+  local floatItem = common.VehicleDataItemsWithData.custom_vd_item2_float
+  local integerItem = common.VehicleDataItemsWithData.custom_vd_item1_integer
   local mobileResponseData = {
-    [common.VehicleDataItemsWithData.custom_vd_item1_integer.name] = hmiResponseData[common.VehicleDataItemsWithData.custom_vd_item2_float.key],
-    [common.VehicleDataItemsWithData.custom_vd_item2_float.name] = hmiResponseData[common.VehicleDataItemsWithData.custom_vd_item2_float.key]
+    [integerItem.name] = common.buildSubscribeMobileResponseItem(hmiResponseData[floatItem.key], integerItem.name),
+    [floatItem.name] = common.buildSubscribeMobileResponseItem(hmiResponseData[floatItem.key], floatItem.name)
   }
 
   local cid = common.getMobileSession(appSessionIdForApp2):SendRPC("SubscribeVehicleData", mobRequestData)

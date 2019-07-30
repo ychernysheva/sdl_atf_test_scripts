@@ -297,7 +297,7 @@ runner.Step("PTU with updated VehicleDataItems", ptu)
 runner.Title("Test")
 for _, vehicleDataItem in pairs(anotherCustomDataType) do
   runner.Step("SubscribeVehicleData " .. vehicleDataItem.name, common.VDsubscription,
-    { appSessionId, vehicleDataItem.name, "SubscribeVehicleData" })
+    { appSessionId, vehicleDataItem.name, "SubscribeVehicleData", vehicleDataItem})
   runner.Step("OnVehicleData " .. vehicleDataItem.name, common.onVD,
     { appSessionId, vehicleDataItem.name })
   runner.Step("GetVehicleData " .. vehicleDataItem.name, common.GetVD,
