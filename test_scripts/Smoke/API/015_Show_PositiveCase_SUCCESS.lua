@@ -43,13 +43,14 @@ local putFileParams = {
 }
 
 local requestParams = {
-  mainField1 = "a",
-  mainField2 = "a",
-  mainField3 = "a",
-  mainField4 = "a",
-  statusBar = "a",
-  mediaClock = "a",
-  mediaTrack = "a",
+  mainField1 = "mainField1_text",
+  mainField2 = "mainField2_text",
+  mainField3 = "mainField3_text",
+  mainField4 = "mainField4_text",
+  templateTitle = "templateTitle_text",
+  statusBar = "statusBar_text",
+  mediaClock = "mediaClock_text",
+  mediaTrack = "mediaTrack_text",
   alignment = "CENTERED",
   graphic = {
     imageType = "DYNAMIC",
@@ -59,25 +60,39 @@ local requestParams = {
     imageType = "DYNAMIC",
     value = "icon.png"
   },
+  metadataTags = {
+    mainField1 = { "mediaTitle" },
+    mainField2 = { "mediaArtist" },
+    mainField3 = { "mediaAlbum" },
+    mainField4 = { "mediaYear" },
+  }
 }
 
 local responseUiParams = {
   showStrings = {
     {
       fieldName = "mainField1",
-      fieldText = requestParams.mainField1
+      fieldText = requestParams.mainField1,
+      fieldTypes = requestParams.metadataTags.mainField1
     },
     {
       fieldName = "mainField2",
-      fieldText = requestParams.mainField2
+      fieldText = requestParams.mainField2,
+      fieldTypes = requestParams.metadataTags.mainField2
     },
     {
       fieldName = "mainField3",
-      fieldText = requestParams.mainField3
+      fieldText = requestParams.mainField3,
+      fieldTypes = requestParams.metadataTags.mainField3
     },
     {
       fieldName = "mainField4",
-      fieldText = requestParams.mainField4
+      fieldText = requestParams.mainField4,
+      fieldTypes = requestParams.metadataTags.mainField4
+    },
+    {
+      fieldName = "templateTitle",
+      fieldText = requestParams.templateTitle
     },
     {
       fieldName = "mediaClock",
