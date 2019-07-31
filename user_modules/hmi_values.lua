@@ -316,7 +316,23 @@ function module.getDefaultHMITable()
         module.createButtonCapability("SEEKLEFT"),
         module.createButtonCapability("SEEKRIGHT"),
         module.createButtonCapability("TUNEUP"),
-        module.createButtonCapability("TUNEDOWN")
+        module.createButtonCapability("TUNEDOWN"),
+        module.createButtonCapability("NAV_CENTER_LOCATION"),
+        module.createButtonCapability("NAV_ZOOM_IN"),
+        module.createButtonCapability("NAV_ZOOM_OUT"),
+        module.createButtonCapability("NAV_PAN_UP"),
+        module.createButtonCapability("NAV_PAN_UP_RIGHT"),
+        module.createButtonCapability("NAV_PAN_RIGHT"),
+        module.createButtonCapability("NAV_PAN_DOWN_RIGHT"),
+        module.createButtonCapability("NAV_PAN_DOWN"),
+        module.createButtonCapability("NAV_PAN_DOWN_LEFT"),
+        module.createButtonCapability("NAV_PAN_LEFT"),
+        module.createButtonCapability("NAV_PAN_UP_LEFT"),
+        module.createButtonCapability("NAV_TILT_TOGGLE"),
+        module.createButtonCapability("NAV_ROTATE_CLOCKWISE"),
+        module.createButtonCapability("NAV_ROTATE_COUNTERCLOCKWISE"),
+        module.createButtonCapability("NAV_HEADING_TOGGLE")
+
       },
       presetBankCapabilities = { onScreenPresetsAvailable = true },
     },
@@ -351,7 +367,8 @@ function module.getDefaultHMITable()
                 heatedSteeringWheelAvailable = true,
                 heatedWindshieldAvailable = true,
                 heatedRearWindowAvailable = true,
-                heatedMirrorsAvailable = true
+                heatedMirrorsAvailable = true,
+                climateEnableAvailable = true
               }
             },
           radioControlCapabilities = {
@@ -362,7 +379,7 @@ function module.getDefaultHMITable()
                 radioFrequencyAvailable = true,
                 hdChannelAvailable = true,
                 rdsDataAvailable = true,
-                availableHDsAvailable = true,
+                availableHdChannelsAvailable = true,
                 stateAvailable = true,
                 signalStrengthAvailable = true,
                 signalChangeThresholdAvailable = true,
