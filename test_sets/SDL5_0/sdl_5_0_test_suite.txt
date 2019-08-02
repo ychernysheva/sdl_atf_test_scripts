@@ -237,8 +237,8 @@
 ./test_scripts/MobileProjection/Phase2/002_audioStreamingState_010-068.lua
 ./test_scripts/MobileProjection/Phase2/003_audioStreamingState_069-103.lua
 ./test_scripts/MobileProjection/Phase2/004_audioStreamingState_104-110.lua
-./test_scripts/MobileProjection/Phase2/005_audioStreamingState_111-118.lua
-./test_scripts/MobileProjection/Phase2/006_videoStreamingState_001-006.lua
+./test_scripts/MobileProjection/Phase2/005_audioStreamingState_111-118.lua sdl_atf_test_scripts/issues/2164
+./test_scripts/MobileProjection/Phase2/006_videoStreamingState_001-006.lua sdl_atf_test_scripts/issues/2164
 ./test_scripts/MobileProjection/Phase2/007_videoStreamingState_007-030.lua
 ./test_scripts/MobileProjection/Phase2/008_videoStreamingState_031-042.lua
 ./test_scripts/MobileProjection/Phase2/009_hmiLevel_001-032.lua
@@ -427,7 +427,7 @@
 ./test_scripts/RC/AUDIO_LIGHT_HMI_SETTINGS/GetInteriorVehicleData/013_Absence_of_isSubscribed_parameter_in_case_request_from_Mob_app_without_subscribe_parameter_but_response_from_HMI_with_isSubscribed.lua
 ./test_scripts/RC/AUDIO_LIGHT_HMI_SETTINGS/GetInteriorVehicleData/014_Absence_of_subscribe_parameter_in_request_for_HMI_in_case_of_2nd_Subscription_UnSubscription.lua
 ./test_scripts/RC/AUDIO_LIGHT_HMI_SETTINGS/GetInteriorVehicleData/015_Transfering_of_isSubscribed_parameter_in_case_request_from_Mob_app_with_subscribe_parameter_but_response_from_HMI_without_isSubscribed.lua
-./test_scripts/RC/AUDIO_LIGHT_HMI_SETTINGS/GetInteriorVehicleData/016_RADIO_GPSdata_in_HMI_response.lua
+./test_scripts/RC/AUDIO_LIGHT_HMI_SETTINGS/GetInteriorVehicleData/016_RADIO_GPSdata_in_HMI_response.lua sdl_atf_test_scripts/issues/2216
 ./test_scripts/RC/AUDIO_LIGHT_HMI_SETTINGS/GetInteriorVehicleData/017_Success_audio_source_values.lua
 ./test_scripts/RC/AUDIO_LIGHT_HMI_SETTINGS/GetInteriorVehicleData/018_GetInteriorVD_Success_flow_light_values.lua
 ./test_scripts/RC/AUDIO_LIGHT_HMI_SETTINGS/GetInteriorVehicleData/019_GetInteriorVD_Success_flow_light_statuses.lua
@@ -539,7 +539,7 @@
 ./test_scripts/SDL5_0/Transfer_RPC_with_invalid_image/002_AddSubMenu.lua
 ./test_scripts/SDL5_0/Transfer_RPC_with_invalid_image/003_Alert.lua
 ./test_scripts/SDL5_0/Transfer_RPC_with_invalid_image/004_CreateInteractionChoiceSet.lua
-./test_scripts/SDL5_0/Transfer_RPC_with_invalid_image/005_PerfomInteraction.lua
+./test_scripts/SDL5_0/Transfer_RPC_with_invalid_image/005_PerfomInteraction.lua sdl_core/issues/2974
 ./test_scripts/SDL5_0/Transfer_RPC_with_invalid_image/006_ScrollableMessage.lua
 ./test_scripts/SDL5_0/Transfer_RPC_with_invalid_image/007_Show.lua
 ./test_scripts/SDL5_0/Transfer_RPC_with_invalid_image/008_ShowConstantTBT.lua
