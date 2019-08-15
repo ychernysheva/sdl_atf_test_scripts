@@ -80,8 +80,8 @@ local anotherCustomDataType = {
         type = "String",
         key = "OEM_REF_STRUCT_2_STR",
         mandatory = true,
-        maxlength = 10,
-        minlength = 20
+        maxlength = 20,
+        minlength = 10
       },
       -- updated key
       {
@@ -160,10 +160,10 @@ end
 
 local function ptuFuncVDIupdate(pTbl)
   common.ptuFuncWithCustomData(pTbl)
-  for keyAnothData, valueAnotheData in pairs(anotherCustomDataType) do
+  for anotherKey, anotherValue in pairs(anotherCustomDataType) do
     for key, value in pairs(pTbl.policy_table.vehicle_data.schema_items) do
-      if value.name == valueAnotheData.name then
-        pTbl.policy_table.vehicle_data.schema_items[key] = anotherCustomDataType[keyAnothData]
+      if value.name == anotherValue.name then
+        pTbl.policy_table.vehicle_data.schema_items[key] = anotherCustomDataType[anotherKey]
       end
     end
   end
