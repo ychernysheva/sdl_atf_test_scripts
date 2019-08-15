@@ -45,9 +45,9 @@ local paramsForChecking = { "custom_vd_item4_string", "custom_vd_item11_struct" 
 local string256symb = string.rep("a", 256)
 
 --[[ Local Functions ]]
-local function setNewIntParams(pValueRootLevel, pVelueChildLevel)
+local function setNewStringParams(pValueRootLevel, pValueChildLevel)
   common.VehicleDataItemsWithData.custom_vd_item4_string.value = pValueRootLevel
-  common.VehicleDataItemsWithData.custom_vd_item11_struct.params.struct_element_2_str.value = pVelueChildLevel
+  common.VehicleDataItemsWithData.custom_vd_item11_struct.params.struct_element_2_str.value = pValueChildLevel
 end
 
 -- [[ Scenario ]]
@@ -64,23 +64,23 @@ for _, vehicleDataName in pairs(paramsForChecking) do
     { appSessionId, vehicleDataName, "SubscribeVehicleData" })
 end
 
-runner.Step("Update parameter values to minvalue", setNewIntParams, { "a", "abc" })
+runner.Step("Update parameter values to minvalue", setNewStringParams, { "a", "abc" })
 for _, vehicleDataName in pairs(paramsForChecking) do
   runner.Step("OnVehicleData minvalue " .. vehicleDataName, common.onVD, { appSessionId, vehicleDataName })
 end
 
-runner.Step("Update parameter values to maxvalue", setNewIntParams, { string256symb, "abcdefg" })
+runner.Step("Update parameter values to maxvalue", setNewStringParams, { string256symb, "abcdefg" })
 for _, vehicleDataName in pairs(paramsForChecking) do
   runner.Step("OnVehicleData maxvalue " .. vehicleDataName, common.onVD, { appSessionId, vehicleDataName })
 end
 
-runner.Step("Update parameter values to out of minvalue", setNewIntParams, { "", "ab" })
+runner.Step("Update parameter values to out of minvalue", setNewStringParams, { "", "ab" })
 for _, vehicleDataName in pairs(paramsForChecking) do
   runner.Step("OnVehicleData out of minvalue " .. vehicleDataName, common.onVD,
     { appSessionId, vehicleDataName, onVDNOTexpected })
 end
 
-runner.Step("Update parameter values to out of maxvalue", setNewIntParams, { string256symb .. "a", "abcdefgh" })
+runner.Step("Update parameter values to out of maxvalue", setNewStringParams, { string256symb .. "a", "abcdefgh" })
 for _, vehicleDataName in pairs(paramsForChecking) do
   runner.Step("OnVehicleData out of maxvalue " .. vehicleDataName, common.onVD,
     { appSessionId, vehicleDataName, onVDNOTexpected })

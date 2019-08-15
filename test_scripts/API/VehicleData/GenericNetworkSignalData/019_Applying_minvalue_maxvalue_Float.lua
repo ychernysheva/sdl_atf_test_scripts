@@ -44,9 +44,9 @@ local onVDNOTexpected = 0
 local paramsForChecking = { "custom_vd_item2_float", "custom_vd_item11_struct" }
 
 --[[ Local Functions ]]
-local function setNewIntParams(pValueRootLevel, pVelueChildLevel)
+local function setNewIntParams(pValueRootLevel, pValueChildLevel)
   common.VehicleDataItemsWithData.custom_vd_item2_float.value = pValueRootLevel
-  common.VehicleDataItemsWithData.custom_vd_item11_struct.params.struct_element_3_flt.value = pVelueChildLevel
+  common.VehicleDataItemsWithData.custom_vd_item11_struct.params.struct_element_3_flt.value = pValueChildLevel
 end
 
 -- [[ Scenario ]]

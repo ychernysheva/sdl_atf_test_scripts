@@ -27,7 +27,7 @@ common.setDefaultValuesForCustomData()
 
 local appSessionId = 1
 local onVDNOTexpected = 0
-local definedInParamters = { "gps", "custom_vd_item1_integer" }
+local definedInParameters = { "gps", "custom_vd_item1_integer" }
 local notDefinedInParameters = { "rpm", "custom_vd_item2_float" }
 local disallowedCode = "DISALLOWED"
 
@@ -39,10 +39,10 @@ function common.ptuFuncWithCustomData(pTbl)
   pTbl.policy_table.functional_groupings.NewTestCaseGroup = common.cloneTable(
     pTbl.policy_table.functional_groupings["Emergency-1"])
 
-  pTbl.policy_table.functional_groupings.NewTestCaseGroup.rpcs.GetVehicleData.parameters = definedInParamters
-  pTbl.policy_table.functional_groupings.NewTestCaseGroup.rpcs.OnVehicleData.parameters = definedInParamters
-  pTbl.policy_table.functional_groupings.NewTestCaseGroup.rpcs.SubscribeVehicleData.parameters = definedInParamters
-  pTbl.policy_table.functional_groupings.NewTestCaseGroup.rpcs.UnsubscribeVehicleData.parameters = definedInParamters
+  pTbl.policy_table.functional_groupings.NewTestCaseGroup.rpcs.GetVehicleData.parameters = definedInParameters
+  pTbl.policy_table.functional_groupings.NewTestCaseGroup.rpcs.OnVehicleData.parameters = definedInParameters
+  pTbl.policy_table.functional_groupings.NewTestCaseGroup.rpcs.SubscribeVehicleData.parameters = definedInParameters
+  pTbl.policy_table.functional_groupings.NewTestCaseGroup.rpcs.UnsubscribeVehicleData.parameters = definedInParameters
   pTbl.policy_table.functional_groupings.NewTestCaseGroup.user_consent_prompt = "NewTestCaseGroup"
   pTbl.policy_table.app_policies[common.getConfigAppParams(appSessionId).fullAppID].groups = {
     "Base-4", "NewTestCaseGroup" }
@@ -175,9 +175,9 @@ local function userConsent(isConsent)
   common.getMobileSession():ExpectNotification("OnPermissionsChange")
   :ValidIf(function(_, data)
       if isConsent == false then
-        return onPermissionChangeValidationUserDisallowed(data.payload.permissionItem, definedInParamters)
+        return onPermissionChangeValidationUserDisallowed(data.payload.permissionItem, definedInParameters)
       end
-      return common.onPermissionChangeValidation(data.payload.permissionItem, definedInParamters)
+      return common.onPermissionChangeValidation(data.payload.permissionItem, definedInParameters)
     end)
 end
 
@@ -185,7 +185,7 @@ local function policyTableUpdateWithOnPermChange()
   common.policyTableUpdate(common.ptuFuncWithCustomData)
   common.getMobileSession():ExpectNotification("OnPermissionsChange")
   :ValidIf(function(_, data)
-      return onPermissionChangeValidationUserDisallowed(data.payload.permissionItem, definedInParamters)
+      return onPermissionChangeValidationUserDisallowed(data.payload.permissionItem, definedInParameters)
     end)
 end
 
@@ -200,7 +200,7 @@ runner.Title("Test")
 runner.Step("PTU with VehicleDataItems", policyTableUpdateWithOnPermChange)
 runner.Step("User consent false", userConsent, { false })
 
-for _, vehicleDataName in pairs(definedInParamters) do
+for _, vehicleDataName in pairs(definedInParameters) do
   runner.Step("SubscribeVehicleData " .. vehicleDataName .. " USER_DISALLOWED", common.errorRPCprocessing,
     { appSessionId, vehicleDataName, "SubscribeVehicleData", "USER_DISALLOWED" })
   runner.Step("GetVehicleData " .. vehicleDataName .. " USER_DISALLOWED", common.errorRPCprocessing,
@@ -226,7 +226,7 @@ runner.Step("GetVehicleData with not allowed by user and disallowed VD", process
 
 runner.Step("User consent true", userConsent, { true })
 
-for _,vehicleDataName in pairs(definedInParamters) do
+for _,vehicleDataName in pairs(definedInParameters) do
   runner.Step("SubscribeVehicleData " .. vehicleDataName, common.VDsubscription,
     { appSessionId, vehicleDataName, "SubscribeVehicleData" })
   runner.Step("OnVehicleData " .. vehicleDataName, common.onVD,

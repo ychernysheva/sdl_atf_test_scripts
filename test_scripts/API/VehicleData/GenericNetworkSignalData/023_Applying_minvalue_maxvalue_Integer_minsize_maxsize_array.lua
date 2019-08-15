@@ -62,9 +62,9 @@ table.insert(childArrayOutOfMaxSize, common.VehicleDataItemsWithData.custom_vd_i
 local childArrayOutOfMaxValue = { common.VehicleDataItemsWithData.custom_vd_item11_struct.params.struct_element_5_array.maxvalue + 1 }
 
 --[[ Local Functions ]]
-local function setNewIntParams(pValueRootLevel, pVelueChildLevel)
+local function setNewArrayParams(pValueRootLevel, pValueChildLevel)
   common.VehicleDataItemsWithData.custom_vd_item7_array_integer.value = pValueRootLevel
-  common.VehicleDataItemsWithData.custom_vd_item11_struct.params.struct_element_5_array.value = pVelueChildLevel
+  common.VehicleDataItemsWithData.custom_vd_item11_struct.params.struct_element_5_array.value = pValueChildLevel
 end
 
 -- [[ Scenario ]]
@@ -81,31 +81,31 @@ for _, vehicleDataName in pairs(paramsForChecking) do
     { appSessionId, vehicleDataName, "SubscribeVehicleData" })
 end
 
-runner.Step("Update parameter values to minsize", setNewIntParams, { arrayMinSize, arrayMinSize })
+runner.Step("Update parameter values to minsize", setNewArrayParams, { arrayMinSize, arrayMinSize })
 for _, vehicleDataName in pairs(paramsForChecking) do
   runner.Step("OnVehicleData minsize " .. vehicleDataName, common.onVD, { appSessionId, vehicleDataName })
 end
 
-runner.Step("Update parameter values to minvalue, maxsize", setNewIntParams,
+runner.Step("Update parameter values to minvalue, maxsize", setNewArrayParams,
   { rootArrayMaxSizeMinValue, childArrayMaxSizeMinValue })
 for _, vehicleDataName in pairs(paramsForChecking) do
   runner.Step("OnVehicleData minvalue, maxsize " .. vehicleDataName, common.onVD, { appSessionId, vehicleDataName })
 end
 
-runner.Step("Update parameter values to maxvalue, maxsize", setNewIntParams,
+runner.Step("Update parameter values to maxvalue, maxsize", setNewArrayParams,
   { rootArrayMaxSizeMaxValue, childArrayMaxSizeMaxValue })
 for _, vehicleDataName in pairs(paramsForChecking) do
   runner.Step("OnVehicleData maxvalue, maxsize " .. vehicleDataName, common.onVD, { appSessionId, vehicleDataName })
 end
 
-runner.Step("Update parameter values to out of maxvalue", setNewIntParams,
+runner.Step("Update parameter values to out of maxvalue", setNewArrayParams,
   { rootArrayOutOfMaxValue, childArrayOutOfMaxValue })
 for _, vehicleDataName in pairs(paramsForChecking) do
   runner.Step("OnVehicleData maxvalue " .. vehicleDataName, common.onVD,
     { appSessionId, vehicleDataName, onVDNOTexpected })
 end
 
-runner.Step("Update parameter values to out of maxsize", setNewIntParams,
+runner.Step("Update parameter values to out of maxsize", setNewArrayParams,
   { rootArrayOutOfMaxSize, childArrayOutOfMaxSize })
 for _, vehicleDataName in pairs(paramsForChecking) do
   runner.Step("OnVehicleData out of maxsize " .. vehicleDataName, common.onVD,

@@ -65,7 +65,7 @@ common.setDefaultValuesForCustomData()
 local appSessionId = 1
 local onVDNOTexpected = 0
 local paramsWithoutParamsUpdate = { "custom_vd_item4_string", "custom_vd_item6_array_string" }
-local paramsWithUpdatedParams = { "custom_vd_item1_integer", "custom_vd_item3_enum", "custom_vd_item5_boolean" }
+local paramsWithUpdatedProps = { "custom_vd_item1_integer", "custom_vd_item3_enum", "custom_vd_item5_boolean" }
 
 local function setNewParams()
   common.VehicleDataItemsWithData.custom_vd_item1_integer.value = 150
@@ -103,7 +103,7 @@ for _, vehicleDataName in pairs(paramsWithoutParamsUpdate) do
     { appSessionId, vehicleDataName, "UnsubscribeVehicleData" })
   runner.Step("GetVehicleData " .. vehicleDataName, common.GetVD, { appSessionId, vehicleDataName })
 end
-for _, vehicleDataName in pairs(paramsWithUpdatedParams) do
+for _, vehicleDataName in pairs(paramsWithUpdatedProps) do
   runner.Step("SubscribeVehicleData vehicleDataName" .. vehicleDataName, common.VDsubscription,
     { appSessionId, vehicleDataName, "SubscribeVehicleData" })
   runner.Step("OnVehicleData " .. vehicleDataName, common.onVD, { appSessionId, vehicleDataName, onVDNOTexpected })
@@ -113,7 +113,7 @@ for _, vehicleDataName in pairs(paramsWithUpdatedParams) do
 end
 
 runner.Step("Update parameter values according to since and until values", setNewParams)
-for _, vehicleDataName in pairs(paramsWithUpdatedParams) do
+for _, vehicleDataName in pairs(paramsWithUpdatedProps) do
   runner.Step("SubscribeVehicleData vehicleDataName" .. vehicleDataName, common.VDsubscription,
     { appSessionId, vehicleDataName, "SubscribeVehicleData" })
   runner.Step("OnVehicleData " .. vehicleDataName, common.onVD, { appSessionId, vehicleDataName })

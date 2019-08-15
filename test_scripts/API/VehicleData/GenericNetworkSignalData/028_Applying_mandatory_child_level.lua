@@ -56,7 +56,7 @@ local function getOnlyNonMandatoryParams()
   return onlyNonMandatory
 end
 
-local function setNewIntParams(pValue)
+local function setNewStructParams(pValue)
   common.VehicleDataItemsWithData.custom_vd_item11_struct.params = pValue
 end
 
@@ -120,13 +120,13 @@ runner.Step("OnVehicleData for custom_vd_item11_struct with mandatory and non-ma
 runner.Step("GetVehicleData for custom_vd_item11_struct with mandatory and non-mandatory params", common.GetVD,
   { appSessionId, "custom_vd_item11_struct" })
 
-runner.Step("Set only mandatory params in custom_vd_item11_struct", setNewIntParams, { getOnlyMandatoryParams() })
+runner.Step("Set only mandatory params in custom_vd_item11_struct", setNewStructParams, { getOnlyMandatoryParams() })
 runner.Step("OnVehicleData for custom_vd_item11_struct with only mandatory params", common.onVD,
   { appSessionId, "custom_vd_item11_struct" })
 runner.Step("GetVehicleData for custom_vd_item11_struct with only mandatory params", GetVDwithDiferentReqAndResExp,
   { "custom_vd_item11_struct" })
 
-runner.Step("Set only non-mandatory params in custom_vd_item11_struct", setNewIntParams,
+runner.Step("Set only non-mandatory params in custom_vd_item11_struct", setNewStructParams,
   { getOnlyNonMandatoryParams() })
 runner.Step("OnVehicleData for custom_vd_item11_struct without mandatory params", common.onVD,
   { appSessionId, "custom_vd_item11_struct", onVDNOTexpected })
