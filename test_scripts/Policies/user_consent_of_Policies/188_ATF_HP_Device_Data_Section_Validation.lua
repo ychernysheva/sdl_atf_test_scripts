@@ -140,9 +140,9 @@ function Test:Precondition_Activate_App_Consent_Device_Make_PTU_Consent_Group()
   EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN"})
   EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
   :Do(function(_,_)
-      local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetPolicyConfigurationData",
+      local requestId = self.hmiConnection:SendRequest("SDL.GetPolicyConfigurationData",
           { policyType = "module_config", property = "endpoints" })
-      EXPECT_HMIRESPONSE(RequestIdGetURLS)
+      EXPECT_HMIRESPONSE(requestId)
       :Do(function()
           self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",{requestType = "PROPRIETARY", fileName = "filename"})
           EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY" })

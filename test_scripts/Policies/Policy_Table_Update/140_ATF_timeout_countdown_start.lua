@@ -67,9 +67,9 @@ function Test:TestStep_Sending_PTS_to_mobile_application()
   commonTestCases:DelayedExp(time_wait) -- tolerance 10 sec
 
   local expUrls = commonFunctions:getUrlsTableFromPtFile(file_pts)
-  local RequestId_GetUrls = self.hmiConnection:SendRequest("SDL.GetPolicyConfigurationData",
+  local requestId = self.hmiConnection:SendRequest("SDL.GetPolicyConfigurationData",
       { policyType = "module_config", property = "endpoints" })
-  EXPECT_HMIRESPONSE(RequestId_GetUrls,{result = {code = 0, method = "SDL.GetPolicyConfigurationData"} })
+  EXPECT_HMIRESPONSE(requestId,{result = {code = 0, method = "SDL.GetPolicyConfigurationData"} })
   :ValidIf(function(_,data)
       return commonFunctions:validateUrls(expUrls, data)
     end)

@@ -65,9 +65,9 @@ end
 
 function Test:Precondition_PolicyUpdateStarted()
 
-  local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetPolicyConfigurationData",
+  local requestId = self.hmiConnection:SendRequest("SDL.GetPolicyConfigurationData",
       { policyType = "module_config", property = "endpoints" })
-  EXPECT_HMIRESPONSE(RequestIdGetURLS)
+  EXPECT_HMIRESPONSE(requestId)
   :Do(function(_, _)
       self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",{
           requestType = "PROPRIETARY",

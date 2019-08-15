@@ -42,9 +42,9 @@ commonFunctions:newTestCasesGroup("Test")
 function Test:TestStep_CheckMessagesSequence()
   local is_test_fail = false
   local message_number = 1
-  local RequestId_GetUrls = self.hmiConnection:SendRequest("SDL.GetPolicyConfigurationData",
+  local requestId = self.hmiConnection:SendRequest("SDL.GetPolicyConfigurationData",
       { policyType = "module_config", property = "endpoints" })
-  EXPECT_HMIRESPONSE(RequestId_GetUrls)
+  EXPECT_HMIRESPONSE(requestId)
   :Do(function(_,_)
     self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest", { requestType = "PROPRIETARY", fileName = "PolicyTableUpdate"})
 
