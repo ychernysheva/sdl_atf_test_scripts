@@ -49,7 +49,7 @@ local function ptuFunc(pTbl)
 end
 
 local function getParamsListForOnPermChange()
-  local out = common.getAllVDdata()
+  local out = common.getAllVehicleData()
   for k,v in pairs(out) do
     if v == itemToRemove then
       table.remove(out, k)

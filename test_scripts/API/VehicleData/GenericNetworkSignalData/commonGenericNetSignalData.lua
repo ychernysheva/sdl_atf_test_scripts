@@ -26,7 +26,6 @@ common.registerApp = actions.registerApp
 common.getMobileSession = actions.getMobileSession
 common.policyTableUpdate = actions.policyTableUpdate
 common.getHMIConnection = actions.getHMIConnection
-common.getHMIrequestData = actions.getHMIrequestData
 common.setHMIAppId = actions.setHMIAppId
 common.getHMIAppId = actions.getHMIAppId
 common.getConfigAppParams = actions.getConfigAppParams
@@ -423,24 +422,26 @@ common.customDataTypeSample = {
   }
 }
 
+
+
 --[[ Local Functions ]]
 function common.writeCustomDataToGeneralArray(pTbl)
-  if type(pTbl) == "table" then
-    for _, item in pairs (pTbl) do
-      common.VehicleDataItemsWithData[item.name] = common.cloneTable(item)
-      if item.type == "Struct" then
-        common.VehicleDataItemsWithData[item.name].params = {}
-        for _, subItem in pairs(item.params) do
-          common.VehicleDataItemsWithData[item.name].params[subItem.name] = common.cloneTable(subItem)
-          if subItem.type == "Struct" then
-            common.VehicleDataItemsWithData[item.name].params[subItem.name].params = {}
-            for _, subItem2 in pairs(subItem.params) do
-              common.VehicleDataItemsWithData[item.name].params[subItem.name].params[subItem2.name] = subItem2
-            end
-          end
+  local function addItems(pDestTbl, pSrcTbl)
+    for _, item in pairs (pSrcTbl) do
+      if type(item) == "table" then
+        pDestTbl[item.name] = common.cloneTable(item)
+        if item.type == "Struct" then
+          pDestTbl[item.name].params = {}
+          addItems(pDestTbl[item.name].params, item.params)
         end
+      else
+        pDestTbl[item.name] = item
       end
     end
+  end
+
+  if type(pTbl) == "table" then
+    addItems(common.VehicleDataItemsWithData, pTbl)
   else
     print("Error: pTbl is not a table, pTbl is wrong value type: " .. type(pTbl))
   end
@@ -507,7 +508,7 @@ function common.postconditions()
 end
 
 function common.policyTableUpdateWithOnPermChange(pPTUpdateFunc, pExpNotificationFunc, pVDparams)
-  if not pVDparams then pVDparams = common.getAllVDdata() end
+  if not pVDparams then pVDparams = common.getAllVehicleData() end
   common.policyTableUpdate(pPTUpdateFunc, pExpNotificationFunc)
   common.getMobileSession():ExpectNotification("OnPermissionsChange")
   :ValidIf(function(_, data)
@@ -949,7 +950,7 @@ function common.policyTableUpdateWithoutOnPermChange(pPTUpdateFunc, pExpNotifica
   :Times(0)
 end
 
-function common.getAllVDdata()
+function common.getAllVehicleData()
   local customData, rpcSpecData = common.getCustomAndRpcSpecDataNames()
   local allVDdata = common.cloneTable(customData)
   for _, value in pairs(rpcSpecData) do

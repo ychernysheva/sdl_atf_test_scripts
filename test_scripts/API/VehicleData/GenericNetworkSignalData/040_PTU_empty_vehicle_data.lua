@@ -42,10 +42,11 @@ local function ptuFuncWithVDI(pTbl)
   pTbl.policy_table.functional_groupings["Emergency-1"])
 
   local rpcsGroupWithAllVehicleData = pTbl.policy_table.functional_groupings.NewGroupWithAllData.rpcs
-  rpcsGroupWithAllVehicleData.GetVehicleData.parameters = common.getAllVDdata()
-  rpcsGroupWithAllVehicleData.OnVehicleData.parameters = common.getAllVDdata()
-  rpcsGroupWithAllVehicleData.SubscribeVehicleData.parameters = common.getAllVDdata()
-  rpcsGroupWithAllVehicleData.UnsubscribeVehicleData.parameters = common.getAllVDdata()
+  local allVehicleData = common.getAllVehicleData()
+  rpcsGroupWithAllVehicleData.GetVehicleData.parameters = allVehicleData
+  rpcsGroupWithAllVehicleData.OnVehicleData.parameters = allVehicleData
+  rpcsGroupWithAllVehicleData.SubscribeVehicleData.parameters = allVehicleData
+  rpcsGroupWithAllVehicleData.UnsubscribeVehicleData.parameters = allVehicleData
 
   pTbl.policy_table.app_policies[common.getConfigAppParams(1).fullAppID].groups = {
     "Base-4", "NewGroupWithAllData"

@@ -47,7 +47,7 @@ runner.Step("App activation", common.activateApp)
 runner.Step("PTU with VehicleDataItems", common.policyTableUpdateWithOnPermChange, { ptuFunc })
 
 runner.Title("Test")
-for _, vehicleDataItem in pairs(common.getAllVDdata()) do
+for _, vehicleDataItem in pairs(common.getAllVehicleData()) do
   runner.Step("SubscribeVehicleData " .. vehicleDataItem, common.VDsubscription,
     { appSessionId, vehicleDataItem, "SubscribeVehicleData" })
   runner.Step("OnVehicleData " .. vehicleDataItem, common.onVD,

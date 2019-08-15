@@ -94,7 +94,7 @@ local function ptuWithOnPermissionChange()
   common.policyTableUpdate(common.ptuFuncWithCustomData)
   common.getMobileSession():ExpectNotification("OnPermissionsChange")
   :ValidIf(function(_, data)
-      return common.onPermissionChangeValidation(data.payload.permissionItem, common.getAllVDdata())
+      return common.onPermissionChangeValidation(data.payload.permissionItem, common.getAllVehicleData())
     end)
 end
 

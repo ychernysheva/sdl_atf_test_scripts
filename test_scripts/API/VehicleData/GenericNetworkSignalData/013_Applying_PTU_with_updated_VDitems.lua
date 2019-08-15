@@ -272,7 +272,7 @@ local function ptu()
   common.policyTableUpdate(ptuFunc)
   common.getMobileSession():ExpectNotification("OnPermissionsChange")
   :ValidIf(function(_, data)
-      return common.onPermissionChangeValidation(data.payload.permissionItem, common.getAllVDdata())
+      return common.onPermissionChangeValidation(data.payload.permissionItem, common.getAllVehicleData())
   end)
 end
 
@@ -291,7 +291,7 @@ runner.Step("Start SDL, HMI, connect Mobile, start Session", common.start)
 runner.Step("App registration", common.registerApp)
 runner.Step("App activation", common.activateApp)
 runner.Step("PTU with VehicleDataItems", common.policyTableUpdateWithOnPermChange,
-  { common.ptuFuncWithCustomData, nil, common.getAllVDdata()  })
+  { common.ptuFuncWithCustomData, nil, common.getAllVehicleData()  })
 runner.Step("PTU with updated VehicleDataItems", ptu)
 
 runner.Title("Test")
