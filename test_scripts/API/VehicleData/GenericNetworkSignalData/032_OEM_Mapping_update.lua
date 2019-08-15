@@ -44,7 +44,7 @@ local endpointPropertiesFromPtu
 local updatedOemMappingVersion = "0.2.2"
 local updatedOemMappingUrl = "http://x.x.x.x:3000/api/1/vehicleDataMapUpd"
 local oemMappingFileName = "oemMappingTable.json"
-local oemMappingSample = '{"version":"0.0.1_Draft", "date":"mm-dd-yyyy", "vehicleDataTable":[  { "defaultArchitecture":{ "defaultPowertrain":{ "vehicleData":[ { "key":"OEM_REF_VEHICLEDATA", "type":"dataType", "minFrequency":"Minimum signal update frequency", "maxLatency":"maximum delay to receive the value", "messageName":"CAN message Name", "messageID":"CAN message ID", "signalName":"CAN signal name", "transportChannel":"Bus name", "resolution":"CAN signal value resolution", "offset":"CAN signal value offset" }]}, "gas":{ "vehicleData":[ {  "key":"OEM_REF_VEHICLEDATA", "type":"dataType", "minFrequency":"Minimum signal update frequency", "maxLatency":"maximum delay to receive the value", "messageName":"CAN message Name", "messageID":"CAN message ID", "signalName":"CAN signal name", "transportChannel":"Bus name", "resolution":"CAN signal value resolution", "offset":"CAN signal value offset" }]}, "hev":{ "vehicleData":[ {  "key":"OEM_REF_VEHICLEDATA", "type":"dataType", "minFrequency":"Minimum signal update frequency", "maxLatency":"maximum delay to receive the value", "messageName":"CAN message Name", "messageID":"CAN message ID", "signalName":"CAN signal name", "transportChannel":"Bus name", "resolution":"CAN signal value resolution", "offset":"CAN signal value offset" }]}, "phev":{  "vehicleData":[ {  "key":"OEM_REF_VEHICLEDATA", "type":"dataType", "minFrequency":"Minimum signal update frequency", "maxLatency":"maximum delay to receive the value", "messageName":"CAN message Name", "messageID":"CAN message ID", "signalName":"CAN signal name", "transportChannel":"Bus name", "resolution":"CAN signal value resolution", "offset":"CAN signal value offset" }]}, "bev":{ "vehicleData":[ { "key":"OEM_REF_VEHICLEDATA", "type":"dataType", "minFrequency":"Minimum signal update frequency", "maxLatency":"maximum delay to receive the value", "messageName":"CAN message Name", "messageID":"CAN message ID", "signalName":"CAN signal name", "transportChannel":"Bus name", "resolution":"CAN signal value resolution", "offset":"CAN signal value offset" }]}}, "CGEA1.3c":{ "defaultPowertrain":{ "vehicleData":[ ] }, "PHEV":{ "vehicleData":[ { "key":"OEM_REF_VEHICLEDATA", "type":"dataType", "minFrequency":"Minimum signal update frequency", "maxLatency":"maximum delay to receive the value", "messageName":"CAN message Name", "messageID":"CAN message ID", "signalName":"CAN signal name", "transportChannel":"Bus name", "resolution":"CAN signal value resolution", "offset":"CAN signal value offset" }, { "key":"OEM_REF_FUELLEVEL", "type":"Integer", "minFrequency":200, "maxLatency":10, "messageName":"Cluster_Info3", "messageID":"0x434", "signalName":"FuelLvl_Pc_Dsply", "transportChannel":"HS3", "resolution":0.109, "offset":-5.2174 }]}}, "<MY>_<VehicleNameNoSpaces>":{ "defaultPowertrain":{ "vehicleData":[ { "key":"OEM_REF_VEHICLEDATA", "type":"dataType", "minFrequency":"Minimum signal update frequency", "maxLatency":"maximum delay to receive the value", "messageName":"CAN message Name", "messageID":"CAN message ID", "signalName":"CAN signal name", "transportChannel":"Bus name", "resolution":"CAN signal value resolution", "offset":"CAN signal value offset" }]}}}]}'
+local oemMappingSampleFile = "files/jsons/GenericNetworkSignalData/OEM_Mapping_update.json"
 local anotherCustomDataType = {
   -- update minvalue and maxvalue
   {
@@ -104,7 +104,7 @@ end
 
 local function oemMappingUpdate()
   local oemUrl = updatedOemMappingUrl
-  local oemFileName = os.tmpname()
+  local oemFileName = oemMappingSampleFile
 
   local systemRequestParamsFromMobile = {
     requestType = "OEM_SPECIFIC",
@@ -121,7 +121,6 @@ local function oemMappingUpdate()
   local onSystemRequestParamsOnMobile = common.cloneTable(onSystemRequestParamsFromHMI)
   onSystemRequestParamsOnMobile.fileName = nil
 
-  common.tableToJsonFile(common.decode(oemMappingSample), oemFileName)
   local requestGetPCD = common.getHMIConnection():SendRequest("SDL.GetPolicyConfigurationData",
     { policyType = "module_config", property = "endpoint_properties" })
   common.getHMIConnection():ExpectResponse(requestGetPCD,
@@ -148,8 +147,7 @@ local function oemMappingUpdate()
               :ValidIf(function()
                   if common.isFileExist(systemRequestParamsOnHMI.fileName) then
                     local fileContent = common.jsonFileToTable(systemRequestParamsOnHMI.fileName)
-                    os.remove(oemFileName)
-                    return common.validation(fileContent, common.decode(oemMappingSample), "OEM mapping file ")
+                    return common.validation(fileContent, common.jsonFileToTable(oemFileName), "OEM mapping file ")
                   end
                   return false, "OEM mapping file is absent on FS in " .. systemRequestParamsOnHMI.fileName
                 end)
