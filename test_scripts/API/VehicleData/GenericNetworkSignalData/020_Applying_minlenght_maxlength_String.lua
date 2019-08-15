@@ -64,25 +64,25 @@ for _, vehicleDataName in pairs(paramsForChecking) do
     { appSessionId, vehicleDataName, "SubscribeVehicleData" })
 end
 
-runner.Step("Update parameter values to minvalue", setNewStringParams, { "a", "abc" })
+runner.Step("Update parameter values to minlength", setNewStringParams, { "a", "abc" })
 for _, vehicleDataName in pairs(paramsForChecking) do
-  runner.Step("OnVehicleData minvalue " .. vehicleDataName, common.onVD, { appSessionId, vehicleDataName })
+  runner.Step("OnVehicleData minlength " .. vehicleDataName, common.onVD, { appSessionId, vehicleDataName })
 end
 
-runner.Step("Update parameter values to maxvalue", setNewStringParams, { string256symb, "abcdefg" })
+runner.Step("Update parameter values to maxlength", setNewStringParams, { string256symb, "abcdefg" })
 for _, vehicleDataName in pairs(paramsForChecking) do
-  runner.Step("OnVehicleData maxvalue " .. vehicleDataName, common.onVD, { appSessionId, vehicleDataName })
+  runner.Step("OnVehicleData maxlength " .. vehicleDataName, common.onVD, { appSessionId, vehicleDataName })
 end
 
-runner.Step("Update parameter values to out of minvalue", setNewStringParams, { "", "ab" })
+runner.Step("Update parameter values to out of minlength", setNewStringParams, { "", "ab" })
 for _, vehicleDataName in pairs(paramsForChecking) do
-  runner.Step("OnVehicleData out of minvalue " .. vehicleDataName, common.onVD,
+  runner.Step("OnVehicleData out of minlength " .. vehicleDataName, common.onVD,
     { appSessionId, vehicleDataName, onVDNOTexpected })
 end
 
-runner.Step("Update parameter values to out of maxvalue", setNewStringParams, { string256symb .. "a", "abcdefgh" })
+runner.Step("Update parameter values to out of maxlength", setNewStringParams, { string256symb .. "a", "abcdefgh" })
 for _, vehicleDataName in pairs(paramsForChecking) do
-  runner.Step("OnVehicleData out of maxvalue " .. vehicleDataName, common.onVD,
+  runner.Step("OnVehicleData out of maxlength " .. vehicleDataName, common.onVD,
     { appSessionId, vehicleDataName, onVDNOTexpected })
 end
 

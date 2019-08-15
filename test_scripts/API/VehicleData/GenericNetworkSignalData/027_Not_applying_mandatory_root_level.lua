@@ -7,8 +7,8 @@
 -- 1. Preloaded file contains VehicleDataItems for all RPC spec VD
 -- 2. App is registered and activated
 -- 3. PTU is performed, the update contains the custom vehicle data_1 mandatory=true for Root-Level
--- 4. Custom VD data_1 and RPC spec data_2 are allowed
--- 5. App is subscribed for custom VD data_1 and RPC spec data_2
+-- 4. Custom vehicle data_1 and RPC spec vehicle data_2 are allowed
+-- 5. App is subscribed for custom vehicle data_1 and RPC spec vehicle data_2
 
 -- Sequence:
 -- 1. HMI sends OnVD without custom data_1, but with data_2

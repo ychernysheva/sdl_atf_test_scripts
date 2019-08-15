@@ -1,7 +1,7 @@
 ---------------------------------------------------------------------------------------------------
 -- Proposal: https://github.com/smartdevicelink/sdl_evolution/blob/master/proposals/0173-Read-Generic-Network-Signal-data.md
 --
--- Description: Unsubscription for RPC spec VD data from preloaded file
+-- Description: Unsubscription for RPC spec VD from preloaded file
 
 -- Precondition:
 -- 1. Preloaded file contains VehicleDataItems for all RPC spec VD
