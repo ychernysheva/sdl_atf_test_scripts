@@ -104,7 +104,6 @@ end
 
 local function oemMappingUpdate()
   local oemUrl = updatedOemMappingUrl
-  local oemFileName = oemMappingSampleFile
 
   local systemRequestParamsFromMobile = {
     requestType = "OEM_SPECIFIC",
@@ -138,7 +137,7 @@ local function oemMappingUpdate()
           common.getMobileSession():ExpectNotification("OnSystemRequest", onSystemRequestParamsOnMobile)
           :Do(function()
               local corIdSystemRequest = common.getMobileSession():SendRPC("SystemRequest",
-                systemRequestParamsFromMobile, oemFileName)
+                systemRequestParamsFromMobile, oemMappingSampleFile)
               common.getHMIConnection():ExpectRequest("BasicCommunication.SystemRequest", systemRequestParamsOnHMI)
               :Do(function(_, data)
                   common.getHMIConnection():SendResponse(data.id, "BasicCommunication.SystemRequest", "SUCCESS", { })
@@ -147,7 +146,8 @@ local function oemMappingUpdate()
               :ValidIf(function()
                   if common.isFileExist(systemRequestParamsOnHMI.fileName) then
                     local fileContent = common.jsonFileToTable(systemRequestParamsOnHMI.fileName)
-                    return common.validation(fileContent, common.jsonFileToTable(oemFileName), "OEM mapping file ")
+                    local oemMappingSample = common.jsonFileToTable(oemMappingSampleFile)
+                    return common.validation(fileContent, oemMappingSample, "OEM mapping file ")
                   end
                   return false, "OEM mapping file is absent on FS in " .. systemRequestParamsOnHMI.fileName
                 end)
