@@ -11,7 +11,7 @@
 
 -- Sequence:
 -- 1. Update is performed successfully
--- 2. SDL sends OnPermissionChaneg notification without fake parameter
+-- 2. SDL sends OnPermissionChange notification without fake parameter
 -- 3. Mobile app requests RPC with RPC spec data or custom data
 --   a. SDL processes the request successfully
 ---------------------------------------------------------------------------------------------------
