@@ -40,7 +40,6 @@ common.writeCustomDataToGeneralArray(common.customDataTypeSample)
 common.setDefaultValuesForCustomData()
 
 local appSessionId = 1
-local onVDNOTexpected = 0
 
 --[[ Local Functions ]]
 local function processingVD()
@@ -105,11 +104,11 @@ runner.Step("SubscribeVehicleData gps", common.VDsubscription, { appSessionId, "
 runner.Title("Test")
 runner.Step("UnsubscribeVehicleData custom_vd_item1_integer", common.VDsubscription,
   { appSessionId, "custom_vd_item1_integer", "UnsubscribeVehicleData" })
-runner.Step("OnVehicleData custom_vd_item1_integer", common.onVD, { appSessionId, "custom_vd_item1_integer", onVDNOTexpected })
+runner.Step("OnVehicleData custom_vd_item1_integer", common.onVD, { appSessionId, "custom_vd_item1_integer", common.VD.NOT_EXPECTED })
 runner.Step("UnsubscribeVehicleData custom_vd_item1_integer, gps, custom_vd_item2_float", processingVD)
-runner.Step("OnVehicleData custom_vd_item1_integer", common.onVD, { appSessionId, "custom_vd_item1_integer", onVDNOTexpected })
-runner.Step("OnVehicleData custom_vd_item2_float", common.onVD, { appSessionId, "custom_vd_item2_float", onVDNOTexpected })
-runner.Step("OnVehicleData gps", common.onVD, { appSessionId, "gps", onVDNOTexpected })
+runner.Step("OnVehicleData custom_vd_item1_integer", common.onVD, { appSessionId, "custom_vd_item1_integer", common.VD.NOT_EXPECTED })
+runner.Step("OnVehicleData custom_vd_item2_float", common.onVD, { appSessionId, "custom_vd_item2_float", common.VD.NOT_EXPECTED })
+runner.Step("OnVehicleData gps", common.onVD, { appSessionId, "gps", common.VD.NOT_EXPECTED })
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", common.postconditions)

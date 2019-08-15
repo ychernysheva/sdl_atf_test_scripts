@@ -40,8 +40,6 @@ common.setDefaultValuesForCustomData()
 
 local appSessionIdForApp1 = 1
 local appSessionIdForApp2 = 2
-local onVDexpected = 1
-local onVDNOTexpected = 0
 
 -- [[ Scenario ]]
 runner.Title("Preconditions")
@@ -64,11 +62,11 @@ runner.Step("App1 and App2 OnVehicleData custom_vd_item1_integer", common.onVD2A
 runner.Step("App2 UnsubscribeVehicleData custom_vd_item1_integer", common.VDsubscriptionWithoutReqOnHMI,
   { appSessionIdForApp2, "custom_vd_item1_integer", "UnsubscribeVehicleData" })
 runner.Step("App1 OnVehicleData custom_vd_item1_integer", common.onVD2Apps,
-  { "custom_vd_item1_integer", onVDexpected, onVDNOTexpected })
+  { "custom_vd_item1_integer", common.VD.EXPECTED, common.VD.NOT_EXPECTED })
 runner.Step("App1 UnsubscribeVehicleData custom_vd_item1_integer", common.VDsubscription,
   { appSessionIdForApp1, "custom_vd_item1_integer", "UnsubscribeVehicleData" })
 runner.Step("OnVehicleData is not resent custom_vd_item1_integer", common.onVD2Apps,
-  { "custom_vd_item1_integer", onVDNOTexpected, onVDNOTexpected })
+  { "custom_vd_item1_integer", common.VD.NOT_EXPECTED, common.VD.NOT_EXPECTED })
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", common.postconditions)

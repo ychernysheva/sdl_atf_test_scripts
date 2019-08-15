@@ -28,7 +28,6 @@ common.writeCustomDataToGeneralArray(common.customDataTypeSample)
 common.setDefaultValuesForCustomData()
 
 local appSessionId = 1
-local onVDNOTexpected = 0
 local mandatoryParams = {"name", "type", "key" , "mandatory"}
 local customData, rpcSpecData = common.getCustomAndRpcSpecDataNames()
 
@@ -55,13 +54,13 @@ for number, parameter in pairs(mandatoryParams) do
     runner.Step("UnsubscribeVehicleData " .. vehicleDataItem, common.VDsubscription,
       { appSessionId, vehicleDataItem, "UnsubscribeVehicleData" })
     runner.Step("OnVehicleData " .. vehicleDataItem, common.onVD,
-      { appSessionId, vehicleDataItem, onVDNOTexpected })
+      { appSessionId, vehicleDataItem, common.VD.NOT_EXPECTED })
   end
   for _, vehicleDataItem in pairs(customData) do
     runner.Step("SubscribeVehicleData INVALID_DATA " .. vehicleDataItem, common.errorRPCprocessing,
       { appSessionId, vehicleDataItem, "SubscribeVehicleData", "INVALID_DATA" })
     runner.Step("OnVehicleData " .. vehicleDataItem, common.onVD,
-      { appSessionId, vehicleDataItem, onVDNOTexpected })
+      { appSessionId, vehicleDataItem, common.VD.NOT_EXPECTED })
     runner.Step("GetVehicleData INVALID_DATA " .. vehicleDataItem, common.errorRPCprocessing,
       { appSessionId, vehicleDataItem, "GetVehicleData", "INVALID_DATA" })
     runner.Step("UnsubscribeVehicleData INVALID_DATA " .. vehicleDataItem, common.errorRPCprocessing,

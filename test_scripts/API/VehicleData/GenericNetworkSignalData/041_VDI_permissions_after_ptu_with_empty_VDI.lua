@@ -36,7 +36,6 @@ common.writeCustomDataToGeneralArray(common.customDataTypeSample)
 common.setDefaultValuesForCustomData()
 
 local appSessionId = 1
-local onVDNOTexpected = 0
 local customData, rpcSpecData = common.getCustomAndRpcSpecDataNames()
 
 --[[ Local Functions ]]
@@ -85,19 +84,19 @@ for _, vehicleDataItem in pairs(rpcSpecData) do
   runner.Step("UnsubscribeVehicleData " .. vehicleDataItem, common.VDsubscription,
     { appSessionId, vehicleDataItem, "UnsubscribeVehicleData" })
   runner.Step("OnVehicleData " .. vehicleDataItem, common.onVD,
-    { appSessionId, vehicleDataItem, onVDNOTexpected })
+    { appSessionId, vehicleDataItem, common.VD.NOT_EXPECTED })
 end
 for _, vehicleDataItem in pairs(customData) do
   runner.Step("SubscribeVehicleData INVALID_DATA " .. vehicleDataItem, common.errorRPCprocessing,
     { appSessionId, vehicleDataItem, "SubscribeVehicleData", "INVALID_DATA" })
   runner.Step("OnVehicleData " .. vehicleDataItem, common.onVD,
-    { appSessionId, vehicleDataItem, onVDNOTexpected })
+    { appSessionId, vehicleDataItem, common.VD.NOT_EXPECTED })
   runner.Step("GetVehicleData INVALID_DATA " .. vehicleDataItem, common.errorRPCprocessing,
     { appSessionId, vehicleDataItem, "GetVehicleData", "INVALID_DATA" })
   runner.Step("UnsubscribeVehicleData INVALID_DATA " .. vehicleDataItem, common.errorRPCprocessing,
     { appSessionId, vehicleDataItem, "UnsubscribeVehicleData", "INVALID_DATA" })
   runner.Step("OnVehicleData " .. vehicleDataItem, common.onVD,
-    { appSessionId, vehicleDataItem, onVDNOTexpected })
+    { appSessionId, vehicleDataItem, common.VD.NOT_EXPECTED })
 end
 
 runner.Step("Ignition off", common.ignitionOff)
@@ -115,19 +114,19 @@ for _, vehicleDataItem in pairs(rpcSpecData) do
   runner.Step("UnsubscribeVehicleData after ign_off " .. vehicleDataItem, common.VDsubscription,
     { appSessionId, vehicleDataItem, "UnsubscribeVehicleData" })
   runner.Step("OnVehicleData after ign_off " .. vehicleDataItem, common.onVD,
-    { appSessionId, vehicleDataItem, onVDNOTexpected })
+    { appSessionId, vehicleDataItem, common.VD.NOT_EXPECTED })
 end
 for _, vehicleDataItem in pairs(customData) do
   runner.Step("SubscribeVehicleData INVALID_DATA after ign_off " .. vehicleDataItem, common.errorRPCprocessing,
     { appSessionId, vehicleDataItem, "SubscribeVehicleData", "INVALID_DATA" })
   runner.Step("OnVehicleData after ign_off " .. vehicleDataItem, common.onVD,
-    { appSessionId, vehicleDataItem, onVDNOTexpected })
+    { appSessionId, vehicleDataItem, common.VD.NOT_EXPECTED })
   runner.Step("GetVehicleData INVALID_DATA after ign_off " .. vehicleDataItem, common.errorRPCprocessing,
     { appSessionId, vehicleDataItem, "GetVehicleData", "INVALID_DATA" })
   runner.Step("UnsubscribeVehicleData INVALID_DATA after ign_off " .. vehicleDataItem, common.errorRPCprocessing,
     { appSessionId, vehicleDataItem, "UnsubscribeVehicleData", "INVALID_DATA" })
   runner.Step("OnVehicleData after ign_off" .. vehicleDataItem, common.onVD,
-    { appSessionId, vehicleDataItem, onVDNOTexpected })
+    { appSessionId, vehicleDataItem, common.VD.NOT_EXPECTED })
 end
 
 runner.Title("Postconditions")

@@ -26,7 +26,6 @@ common.writeCustomDataToGeneralArray(common.customDataTypeSample)
 common.setDefaultValuesForCustomData()
 
 local appSessionId = 1
-local onVDNOTexpected = 0
 
 --[[ Local Functions ]]
 local function ptuFuncWithoutCustomUrl(pTbl)
@@ -69,7 +68,7 @@ for vehicleDataItem in pairs(common.VehicleDataItemsWithData) do
   runner.Step("UnsubscribeVehicleData " .. vehicleDataItem, common.VDsubscription,
     { appSessionId, vehicleDataItem, "UnsubscribeVehicleData" })
   runner.Step("OnVehicleData " .. vehicleDataItem, common.onVD,
-    { appSessionId, vehicleDataItem, onVDNOTexpected })
+    { appSessionId, vehicleDataItem, common.VD.NOT_EXPECTED })
 end
 
 runner.Title("Postconditions")

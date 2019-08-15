@@ -31,7 +31,6 @@ common.writeCustomDataToGeneralArray(common.customDataTypeSample)
 common.setDefaultValuesForCustomData()
 
 local appSessionId = 1
-local onVDNOTexpected = 0
 
 local VDIitem11StructHMIreqParamsRpcSpec = common.getHMIrequestData("custom_vd_item11_struct")
 
@@ -129,7 +128,7 @@ runner.Step("GetVehicleData for custom_vd_item11_struct with only mandatory para
 runner.Step("Set only non-mandatory params in custom_vd_item11_struct", setNewStructParams,
   { getOnlyNonMandatoryParams() })
 runner.Step("OnVehicleData for custom_vd_item11_struct without mandatory params", common.onVD,
-  { appSessionId, "custom_vd_item11_struct", onVDNOTexpected })
+  { appSessionId, "custom_vd_item11_struct", common.VD.NOT_EXPECTED })
 runner.Step("GetVehicleData for custom_vd_item11_struct without mandatory params", getVehicleDataGenericError,
   { "custom_vd_item11_struct" })
 

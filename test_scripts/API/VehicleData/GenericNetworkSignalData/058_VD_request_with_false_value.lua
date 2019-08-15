@@ -29,7 +29,6 @@ common.writeCustomDataToGeneralArray(common.customDataTypeSample)
 common.setDefaultValuesForCustomData()
 
 local appSessionId = 1
-local onVDNOTexpected = 0
 
 --[[ Local Functions ]]
 local function VDsubscription(pRPC)
@@ -154,9 +153,9 @@ runner.Step("OnVehicleData custom_vd_item2_float", common.onVD,
 runner.Step("OnVehicleData speed", common.onVD,
   { appSessionId, "speed" })
 runner.Step("OnVehicleData custom_vd_item1_integer", common.onVD,
-  { appSessionId, "custom_vd_item1_integer", onVDNOTexpected })
+  { appSessionId, "custom_vd_item1_integer", common.VD.NOT_EXPECTED })
 runner.Step("OnVehicleData gps", common.onVD,
-  { appSessionId, "gps", onVDNOTexpected })
+  { appSessionId, "gps", common.VD.NOT_EXPECTED })
 runner.Step("UnsubscribeVehicleData", VDsubscription, { "UnsubscribeVehicleData" })
 runner.Step("GetVehicleData", GetVD)
 

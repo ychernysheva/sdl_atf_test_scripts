@@ -43,7 +43,6 @@ common.writeCustomDataToGeneralArray(common.customDataTypeSample)
 common.setDefaultValuesForCustomData()
 
 local appSessionId = 1
-local onVDNOTexpected = 0
 local paramsForChecking = { "custom_vd_item9_array_enum", "custom_vd_item11_struct" }
 local arrayMinSize = { }
 local arrayOutOfRangeValue = { "Some_enum_value" }
@@ -100,14 +99,14 @@ runner.Step("Update parameter values to out of enum range", setNewArrayParams,
   { arrayOutOfRangeValue, arrayOutOfRangeValue })
 for _, vehicleDataName in pairs(paramsForChecking) do
   runner.Step("OnVehicleData out of enum range " .. vehicleDataName, common.onVD,
-    { appSessionId, vehicleDataName, onVDNOTexpected })
+    { appSessionId, vehicleDataName, common.VD.NOT_EXPECTED })
 end
 
 runner.Step("Update parameter values to out of maxsize", setNewArrayParams,
   { rootArrayOutOfMaxSize, childArrayOutOfMaxSize })
 for _, vehicleDataName in pairs(paramsForChecking) do
   runner.Step("OnVehicleData maxsize " .. vehicleDataName, common.onVD,
-    { appSessionId, vehicleDataName, onVDNOTexpected })
+    { appSessionId, vehicleDataName, common.VD.NOT_EXPECTED })
 end
 
 runner.Title("Postconditions")

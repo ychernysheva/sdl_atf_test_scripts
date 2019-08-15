@@ -40,7 +40,6 @@ common.writeCustomDataToGeneralArray(common.customDataTypeSample)
 common.setDefaultValuesForCustomData()
 
 local appSessionId = 1
-local onVDNOTexpected = 0
 local paramsForChecking = { "custom_vd_item4_string", "custom_vd_item11_struct" }
 local string256symb = string.rep("a", 256)
 
@@ -77,13 +76,13 @@ end
 runner.Step("Update parameter values to out of minlength", setNewStringParams, { "", "ab" })
 for _, vehicleDataName in pairs(paramsForChecking) do
   runner.Step("OnVehicleData out of minlength " .. vehicleDataName, common.onVD,
-    { appSessionId, vehicleDataName, onVDNOTexpected })
+    { appSessionId, vehicleDataName, common.VD.NOT_EXPECTED })
 end
 
 runner.Step("Update parameter values to out of maxlength", setNewStringParams, { string256symb .. "a", "abcdefgh" })
 for _, vehicleDataName in pairs(paramsForChecking) do
   runner.Step("OnVehicleData out of maxlength " .. vehicleDataName, common.onVD,
-    { appSessionId, vehicleDataName, onVDNOTexpected })
+    { appSessionId, vehicleDataName, common.VD.NOT_EXPECTED })
 end
 
 runner.Title("Postconditions")

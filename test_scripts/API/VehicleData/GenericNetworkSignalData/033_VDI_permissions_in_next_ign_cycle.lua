@@ -47,7 +47,6 @@ common.writeCustomDataToGeneralArray(common.customDataTypeSample)
 common.setDefaultValuesForCustomData()
 
 local appSessionId = 1
-local onVDNOTexpected = 0
 
 -- [[ Scenario ]]
 runner.Title("Preconditions")
@@ -72,7 +71,7 @@ for _, vehicleDataItem in pairs(common.VehicleDataItemsWithData) do
   runner.Step("UnsubscribeVehicleData " .. vehicleDataItem.name, common.VDsubscription,
     { appSessionId, vehicleDataItem.name, "UnsubscribeVehicleData" })
   runner.Step("OnVehicleData " .. vehicleDataItem.name, common.onVD,
-    { appSessionId, vehicleDataItem.name, onVDNOTexpected })
+    { appSessionId, vehicleDataItem.name, common.VD.NOT_EXPECTED })
 end
 
 runner.Title("Postconditions")

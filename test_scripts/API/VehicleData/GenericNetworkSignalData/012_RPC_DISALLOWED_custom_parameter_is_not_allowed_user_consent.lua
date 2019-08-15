@@ -26,7 +26,6 @@ common.writeCustomDataToGeneralArray(common.customDataTypeSample)
 common.setDefaultValuesForCustomData()
 
 local appSessionId = 1
-local onVDNOTexpected = 0
 local definedInParameters = { "gps", "custom_vd_item1_integer" }
 local notDefinedInParameters = { "rpm", "custom_vd_item2_float" }
 local disallowedCode = "DISALLOWED"
@@ -206,7 +205,7 @@ for _, vehicleDataName in pairs(definedInParameters) do
   runner.Step("GetVehicleData " .. vehicleDataName .. " USER_DISALLOWED", common.errorRPCprocessing,
     { appSessionId, vehicleDataName, "GetVehicleData", "USER_DISALLOWED" })
   runner.Step("OnVehicleData " .. vehicleDataName, common.onVD,
-    { appSessionId, vehicleDataName, onVDNOTexpected })
+    { appSessionId, vehicleDataName, common.VD.NOT_EXPECTED })
   runner.Step("UnsubscribeVehicleData " .. vehicleDataName .. " USER_DISALLOWED", common.errorRPCprocessing,
     { appSessionId, vehicleDataName, "UnsubscribeVehicleData", "USER_DISALLOWED" })
 end
@@ -217,7 +216,7 @@ for _, vehicleDataName in pairs(notDefinedInParameters) do
   runner.Step("GetVehicleData " .. vehicleDataName .. " USER_DISALLOWED", common.errorRPCprocessing,
     { appSessionId, vehicleDataName, "GetVehicleData", "USER_DISALLOWED" })
   runner.Step("OnVehicleData " .. vehicleDataName, common.onVD,
-    { appSessionId, vehicleDataName, onVDNOTexpected })
+    { appSessionId, vehicleDataName, common.VD.NOT_EXPECTED })
   runner.Step("UnsubscribeVehicleData " .. vehicleDataName .. " USER_DISALLOWED", common.errorRPCprocessing,
     { appSessionId, vehicleDataName, "UnsubscribeVehicleData", "USER_DISALLOWED" })
 end
@@ -243,7 +242,7 @@ for _, vehicleDataName in pairs(notDefinedInParameters) do
   runner.Step("GetVehicleData " .. vehicleDataName .. " " .. disallowedCode, common.errorRPCprocessing,
     { appSessionId, vehicleDataName, "GetVehicleData", disallowedCode })
   runner.Step("OnVehicleData " .. vehicleDataName, common.onVD,
-    { appSessionId, vehicleDataName, onVDNOTexpected })
+    { appSessionId, vehicleDataName, common.VD.NOT_EXPECTED })
   runner.Step("UnsubscribeVehicleData " .. vehicleDataName .. " " .. disallowedCode, common.errorRPCprocessing,
     { appSessionId, vehicleDataName, "UnsubscribeVehicleData", disallowedCode })
 end

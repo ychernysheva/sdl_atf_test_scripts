@@ -63,7 +63,6 @@ common.writeCustomDataToGeneralArray(common.customDataTypeSample)
 common.setDefaultValuesForCustomData()
 
 local appSessionId = 1
-local onVDNOTexpected = 0
 local paramsWithoutParamsUpdate = { "custom_vd_item4_string", "custom_vd_item6_array_string" }
 local paramsWithUpdatedProps = { "custom_vd_item1_integer", "custom_vd_item3_enum", "custom_vd_item5_boolean" }
 
@@ -106,7 +105,8 @@ end
 for _, vehicleDataName in pairs(paramsWithUpdatedProps) do
   runner.Step("SubscribeVehicleData vehicleDataName" .. vehicleDataName, common.VDsubscription,
     { appSessionId, vehicleDataName, "SubscribeVehicleData" })
-  runner.Step("OnVehicleData " .. vehicleDataName, common.onVD, { appSessionId, vehicleDataName, onVDNOTexpected })
+  runner.Step("OnVehicleData " .. vehicleDataName, common.onVD,
+    { appSessionId, vehicleDataName, common.VD.NOT_EXPECTED })
   runner.Step("UnsubscribeVehicleData " .. vehicleDataName, common.VDsubscription,
     { appSessionId, vehicleDataName, "UnsubscribeVehicleData" })
   runner.Step("GetVehicleData " .. vehicleDataName, getVehicleDataGenericError, { vehicleDataName })

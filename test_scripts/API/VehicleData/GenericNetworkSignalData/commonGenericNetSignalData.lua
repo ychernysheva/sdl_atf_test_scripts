@@ -57,6 +57,11 @@ common.decode = json.decode
 
 common.VehicleDataItemsWithData = {}
 
+common.VD = {
+  NOT_EXPECTED = 0,
+  EXPECTED = 1
+}
+
 function common.getPreloadedFileAndContent()
   local preloadedFile = common:GetPathToSDL()
     .. common:read_parameter_from_smart_device_link_ini("PreloadedPT")

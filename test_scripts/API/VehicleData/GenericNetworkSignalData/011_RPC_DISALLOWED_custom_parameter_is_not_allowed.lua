@@ -24,7 +24,6 @@ runner.testSettings.isSelfIncluded = false
 common.writeCustomDataToGeneralArray(common.customDataTypeSample)
 common.setDefaultValuesForCustomData()
 local appSessionId = 1
-local onVDNOTexpected = 0
 local allowedParams = { "gps", "custom_vd_item1_integer"}
 local notAllowedParams = { "rpm", "custom_vd_item2_float" }
 
@@ -129,7 +128,7 @@ for _, vehicleDataName in pairs(notAllowedParams) do
   runner.Step("GetVehicleData " .. vehicleDataName .. "DISALLOWED", common.errorRPCprocessing,
     { appSessionId, vehicleDataName, "GetVehicleData", "DISALLOWED" })
   runner.Step("OnVehicleData " .. vehicleDataName, common.onVD,
-    { appSessionId, vehicleDataName, onVDNOTexpected })
+    { appSessionId, vehicleDataName, common.VD.NOT_EXPECTED })
   runner.Step("UnsubscribeVehicleData " .. vehicleDataName .. "DISALLOWED", common.errorRPCprocessing,
     { appSessionId, vehicleDataName, "UnsubscribeVehicleData", "DISALLOWED" })
 end

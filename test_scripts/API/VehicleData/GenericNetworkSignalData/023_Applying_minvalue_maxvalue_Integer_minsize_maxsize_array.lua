@@ -31,7 +31,6 @@ common.writeCustomDataToGeneralArray(common.customDataTypeSample)
 common.setDefaultValuesForCustomData()
 
 local appSessionId = 1
-local onVDNOTexpected = 0
 local paramsForChecking = { "custom_vd_item7_array_integer", "custom_vd_item11_struct" }
 local arrayMinSize = { }
 
@@ -102,14 +101,14 @@ runner.Step("Update parameter values to out of maxvalue", setNewArrayParams,
   { rootArrayOutOfMaxValue, childArrayOutOfMaxValue })
 for _, vehicleDataName in pairs(paramsForChecking) do
   runner.Step("OnVehicleData maxvalue " .. vehicleDataName, common.onVD,
-    { appSessionId, vehicleDataName, onVDNOTexpected })
+    { appSessionId, vehicleDataName, common.VD.NOT_EXPECTED })
 end
 
 runner.Step("Update parameter values to out of maxsize", setNewArrayParams,
   { rootArrayOutOfMaxSize, childArrayOutOfMaxSize })
 for _, vehicleDataName in pairs(paramsForChecking) do
   runner.Step("OnVehicleData out of maxsize " .. vehicleDataName, common.onVD,
-    { appSessionId, vehicleDataName, onVDNOTexpected })
+    { appSessionId, vehicleDataName, common.VD.NOT_EXPECTED })
 end
 
 runner.Title("Postconditions")

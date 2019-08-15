@@ -28,7 +28,6 @@ runner.testSettings.isSelfIncluded = false
 
 --[[ Local Variables ]]
 local appSessionId = 1
-local onVDNOTexpected = 0
 
 -- [[ Scenario ]]
 runner.Title("Preconditions")
@@ -44,7 +43,7 @@ for vehicleDataName in pairs(common.VehicleDataItemsWithData) do
   runner.Step("UnsubscribeVehicleData " .. vehicleDataName, common.VDsubscription,
     { appSessionId, vehicleDataName, "UnsubscribeVehicleData" })
   runner.Step("OnVehicleData " .. vehicleDataName, common.onVD,
-    { appSessionId, vehicleDataName, onVDNOTexpected })
+    { appSessionId, vehicleDataName, common.VD.NOT_EXPECTED })
 end
 
 runner.Title("Postconditions")

@@ -52,7 +52,6 @@ end
 setValuesForCustomDataWithInvalidType()
 
 local appSessionId = 1
-local onVDNOTexpected = 0
 
 --[[ Local Functions ]]
 local function getVehicleDataGenericError(pData)
@@ -81,7 +80,7 @@ for _, vehicleDataItem in pairs(common.customDataTypeSample) do
   runner.Step("SubscribeVehicleData " .. vehicleDataItem.name, common.VDsubscription,
     { appSessionId, vehicleDataItem.name, "SubscribeVehicleData" })
   runner.Step("OnVehicleData " .. vehicleDataItem.name, common.onVD,
-    { appSessionId, vehicleDataItem.name, onVDNOTexpected })
+    { appSessionId, vehicleDataItem.name, common.VD.NOT_EXPECTED })
   runner.Step("GetVehicleData " .. vehicleDataItem.name, getVehicleDataGenericError,
     { vehicleDataItem.name })
 end

@@ -35,7 +35,6 @@ common.writeCustomDataToGeneralArray(common.customDataTypeSample)
 common.setDefaultValuesForCustomData()
 
 local appSessionId = 1
-local onVDNOTexpected = 0
 local itemToRemove = "custom_vd_item1_integer"
 
 --[[ Local Functions ]]
@@ -74,7 +73,7 @@ runner.Step("OnVehicleData " .. itemToRemove, common.onVD,
 runner.Step("PTU with removing " .. itemToRemove .. " from VehicleDataItems", common.ptuWithOnPolicyUpdateFromHMI,
   { ptuFunc, getParamsListForOnPermChange() })
 runner.Step("OnVehicleData " .. itemToRemove, common.onVD,
-  { appSessionId, itemToRemove, onVDNOTexpected })
+  { appSessionId, itemToRemove, common.VD.NOT_EXPECTED })
 runner.Step("SubscribeVehicleData " .. itemToRemove .. " after VD was removed", common.errorRPCprocessing,
   { appSessionId, itemToRemove, "SubscribeVehicleData", "INVALID_DATA" })
 
@@ -84,7 +83,7 @@ runner.Step("App registration after ign_off", common.registerAppWOPTU)
 runner.Step("App activation after ign_off", common.activateApp)
 
 runner.Step("OnVehicleData " .. itemToRemove, common.onVD,
-  { appSessionId, itemToRemove, onVDNOTexpected })
+  { appSessionId, itemToRemove, common.VD.NOT_EXPECTED })
 runner.Step("SubscribeVehicleData " .. itemToRemove .. " after VD was removed", common.errorRPCprocessing,
   { appSessionId, itemToRemove, "SubscribeVehicleData", "INVALID_DATA" })
 

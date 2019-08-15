@@ -28,7 +28,6 @@ common.writeCustomDataToGeneralArray(common.customDataTypeSample)
 common.setDefaultValuesForCustomData()
 
 local appSessionId = 1
-local onVDNOTexpected = 0
 local paramsForChecking = { "custom_vd_item3_enum", "custom_vd_item11_struct" }
 
 --[[ Local Functions ]]
@@ -58,7 +57,8 @@ end
 runner.Step("Update parameter values to out of enum range", setNewIntParams,
   { "Some_enum_value_root", "Some_enum_value_child" })
 for _, vehicleDataName in pairs(paramsForChecking) do
-  runner.Step("OnVehicleData " .. vehicleDataName, common.onVD, { appSessionId, vehicleDataName, onVDNOTexpected })
+  runner.Step("OnVehicleData " .. vehicleDataName, common.onVD,
+      { appSessionId, vehicleDataName, common.VD.NOT_EXPECTED })
 end
 
 runner.Title("Postconditions")

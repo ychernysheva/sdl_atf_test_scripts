@@ -47,8 +47,6 @@ common.setDefaultValuesForCustomData()
 
 local appSessionIdForApp1 = 1
 local appSessionIdForApp2 = 2
-local onVDexpected = 1
-local onVDNOTexpected = 0
 
 --[[ Local Functions ]]
 local function processingVDunsubscribeWithSeveralData()
@@ -118,13 +116,13 @@ runner.Step("App1 OnVehicleData custom_vd_item2_float", common.onVD,
 runner.Step("App1 UnsubscribeVehicleData custom_vd_item1_integer, custom_vd_item2_float",
   processingVDunsubscribeWithSeveralData)
 runner.Step("App2 OnVehicleData custom_vd_item1_integer", common.onVD2Apps,
-  { "custom_vd_item1_integer", onVDNOTexpected, onVDexpected })
+  { "custom_vd_item1_integer", common.VD.NOT_EXPECTED, common.VD.EXPECTED })
 runner.Step("App2 OnVehicleData custom_vd_item2_float", common.onVD,
-  { appSessionIdForApp2, "custom_vd_item2_float", onVDNOTexpected })
+  { appSessionIdForApp2, "custom_vd_item2_float", common.VD.NOT_EXPECTED })
 runner.Step("App2 UnsubscribeVehicleData custom_vd_item1_integer", common.VDsubscription,
   { appSessionIdForApp2, "custom_vd_item1_integer", "UnsubscribeVehicleData" })
 runner.Step("OnVehicleData is not resend custom_vd_item1_integer", common.onVD2Apps,
-  { "custom_vd_item1_integer", onVDNOTexpected, onVDNOTexpected })
+  { "custom_vd_item1_integer", common.VD.NOT_EXPECTED, common.VD.NOT_EXPECTED })
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", common.postconditions)

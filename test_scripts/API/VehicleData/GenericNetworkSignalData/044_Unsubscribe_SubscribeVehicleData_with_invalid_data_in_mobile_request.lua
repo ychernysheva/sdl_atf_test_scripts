@@ -30,7 +30,6 @@ common.writeCustomDataToGeneralArray(common.customDataTypeSample)
 common.setDefaultValuesForCustomData()
 
 local appSessionId = 1
-local onVDNOTexpected = 0
 
 local paramsForCheckingForSubscribe = { "gps", "custom_vd_item1_integer" }
 local paramsForCheckingForUnsubscribe = { "rpm", "custom_vd_item2_float" }
@@ -57,7 +56,7 @@ for _, vehicleDataName in pairs(paramsForCheckingForSubscribe) do
   runner.Step("SubscribeVehicleData INVALID_DATA " .. vehicleDataName, errorRPCprocessing,
     { vehicleDataName, "SubscribeVehicleData" })
   runner.Step("OnVehicleData " .. vehicleDataName, common.onVD,
-    { appSessionId, vehicleDataName, onVDNOTexpected })
+    { appSessionId, vehicleDataName, common.VD.NOT_EXPECTED })
 end
 for _, vehicleDataName in pairs(paramsForCheckingForUnsubscribe) do
   runner.Step("SubscribeVehicleData " .. vehicleDataName, common.VDsubscription,
