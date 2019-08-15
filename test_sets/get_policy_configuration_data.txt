@@ -1,2 +1,2 @@
 ./test_scripts/API/GetPolicyConfigurationData/001_GetPolicyConfigurationData_success.lua
-;./test_scripts/API/GetPolicyConfigurationData/001_GetPolicyConfigurationData_success.lua 2983
+;./test_scripts/API/GetPolicyConfigurationData/002_GetPolicyConfigurationData_incorrect_params.lua 2983
