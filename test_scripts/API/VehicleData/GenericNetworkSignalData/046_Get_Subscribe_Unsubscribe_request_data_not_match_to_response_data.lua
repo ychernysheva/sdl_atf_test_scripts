@@ -19,7 +19,7 @@
 --   b. SDL sends response(GENERIC_ERROR) to mobile app
 -- 3. SubscribeVD/GetVD/UnsubscribeVD with data_1 from VehicleDataItems is requested from mobile app
 --   a. SDL sends VI.SubscribeVD/GetVD/UnsubscribeVD to HMI
--- 2. HMI responds with data_1 and data_2
+-- 4. HMI responds with data_1 and data_2
 --   a. SDL processes the response from HMI
 --   b. SDL sends response only with requested data_1 to mobile app
 ---------------------------------------------------------------------------------------------------
@@ -50,7 +50,7 @@ local function getVehicleDataGenericErrorNotMatch()
   common.getMobileSession():ExpectResponse(cid, { success = false, resultCode = "GENERIC_ERROR" })
 end
 
-local function getVehicleDataGenericErrorWithRedundant()
+local function getVehicleDataWithRedundant()
   local mobRequestData = { [common.VehicleDataItemsWithData.custom_vd_item1_integer.name] = true }
   local hmiRequestData = common.getHMIrequestData("custom_vd_item1_integer")
   local hmiResponseData, mobileResponseData = common.getVehicleDataResponse("custom_vd_item1_integer")
@@ -153,7 +153,7 @@ runner.Step("SubscribeVehicleData with redundant param", subscriptionVDWithRedun
 runner.Step("UnsubscribeVehicleData with redundant param", subscriptionVDWithRedundant,
   { "UnsubscribeVehicleData", "custom_vd_item11_struct" })
 runner.Step("GetVehicleData GENERIC_ERROR", getVehicleDataGenericErrorNotMatch)
-runner.Step("GetVehicleData with redundant param", getVehicleDataGenericErrorWithRedundant)
+runner.Step("GetVehicleData with redundant param", getVehicleDataWithRedundant)
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", common.postconditions)
