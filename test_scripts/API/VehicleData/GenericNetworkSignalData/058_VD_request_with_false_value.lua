@@ -93,8 +93,8 @@ local function GetVD()
   local function getArrayWithKeys(pArray)
     local out = {}
     for _, value in pairs(pArray)do
-      local elementKey, ElementValue = next(value)
-      out[elementKey] = ElementValue
+      local elementKey, elementValue = next(value)
+      out[elementKey] = elementValue
     end
     return out
   end
