@@ -28,13 +28,13 @@ local function sendSetDisplayLayout()
   :Do(function(_, data)
       common.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", {})
     end)
-  common.getMobileSession():ExpectResponse(cid, {
-    success = true,
-    resultCode = "WARNINGS",
-    info = "The RPC is deprecated and will be removed in a future version. "
-      .. "The requested display layout is set to the main window. "
-      .. "Please use `Show.templateConfiguration` instead."
-  })
+  common.getMobileSession():ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
+  :ValidIf(function(_, data)
+      if data.payload.info ~= nil then
+        return false, "'Info' is not expected"
+      end
+      return true
+    end)
 end
 
 --[[ Scenario ]]
