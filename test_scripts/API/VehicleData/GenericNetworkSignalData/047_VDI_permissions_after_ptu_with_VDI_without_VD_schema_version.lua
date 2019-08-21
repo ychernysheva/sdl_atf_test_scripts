@@ -81,16 +81,21 @@ runner.Step("PTU without VehicleDataItems", ptuWithOnPolicyUpdateFromHMI, { ptuF
 
 runner.Title("Test")
 for _, vehicleDataItem in pairs(common.VehicleDataItemsWithData) do
-  runner.Step("SubscribeVehicleData " .. vehicleDataItem.name, common.VDsubscription,
-    { appSessionId, vehicleDataItem.name, "SubscribeVehicleData" })
-  runner.Step("OnVehicleData " .. vehicleDataItem.name, common.onVD,
-    { appSessionId, vehicleDataItem.name })
-  runner.Step("GetVehicleData " .. vehicleDataItem.name, common.GetVD,
-    { appSessionId, vehicleDataItem.name })
-  runner.Step("UnsubscribeVehicleData " .. vehicleDataItem.name, common.VDsubscription,
-    { appSessionId, vehicleDataItem.name, "UnsubscribeVehicleData" })
-  runner.Step("OnVehicleData " .. vehicleDataItem.name, common.onVD,
-    { appSessionId, vehicleDataItem.name, common.VD.NOT_EXPECTED })
+  if vehicleDataItem.name == "vin" then
+    runner.Step("GetVehicleData " .. vehicleDataItem.name, common.GetVD,
+      { appSessionId, vehicleDataItem.name })
+  else
+    runner.Step("SubscribeVehicleData " .. vehicleDataItem.name, common.VDsubscription,
+      { appSessionId, vehicleDataItem.name, "SubscribeVehicleData" })
+    runner.Step("OnVehicleData " .. vehicleDataItem.name, common.onVD,
+      { appSessionId, vehicleDataItem.name })
+    runner.Step("GetVehicleData " .. vehicleDataItem.name, common.GetVD,
+      { appSessionId, vehicleDataItem.name })
+    runner.Step("UnsubscribeVehicleData " .. vehicleDataItem.name, common.VDsubscription,
+      { appSessionId, vehicleDataItem.name, "UnsubscribeVehicleData" })
+    runner.Step("OnVehicleData " .. vehicleDataItem.name, common.onVD,
+      { appSessionId, vehicleDataItem.name, common.VD.NOT_EXPECTED })
+  end
 end
 
 runner.Title("Postconditions")

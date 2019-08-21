@@ -96,12 +96,17 @@ runner.Step("PTU with VehicleDataItems", common.policyTableUpdateWithOnPermChang
 
 runner.Title("Test")
 for vehicleDataName in pairs(common.VehicleDataItemsWithData) do
-  runner.Step("SubscribeVehicleData " .. vehicleDataName, common.VDsubscription,
-    { appSessionId, vehicleDataName, "SubscribeVehicleData" })
-  runner.Step("OnVehicleData " .. vehicleDataName, common.onVD,
-    { appSessionId, vehicleDataName })
-  runner.Step("GetVehicleData " .. vehicleDataName, common.GetVD,
-    { appSessionId, vehicleDataName })
+  if vehicleDataName == "vin" then
+    runner.Step("GetVehicleData " .. vehicleDataName, common.GetVD,
+      { appSessionId, vehicleDataName })
+  else
+    runner.Step("SubscribeVehicleData " .. vehicleDataName, common.VDsubscription,
+      { appSessionId, vehicleDataName, "SubscribeVehicleData" })
+    runner.Step("OnVehicleData " .. vehicleDataName, common.onVD,
+      { appSessionId, vehicleDataName })
+    runner.Step("GetVehicleData " .. vehicleDataName, common.GetVD,
+      { appSessionId, vehicleDataName })
+  end
 end
 
 runner.Title("Postconditions")

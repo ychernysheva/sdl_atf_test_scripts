@@ -75,16 +75,21 @@ runner.Step("PTU with empty VehicleDataItems", common.ptuWithOnPolicyUpdateFromH
 
 runner.Title("Test")
 for _, vehicleDataItem in pairs(rpcSpecData) do
-  runner.Step("SubscribeVehicleData " .. vehicleDataItem, common.VDsubscription,
-    { appSessionId, vehicleDataItem, "SubscribeVehicleData" })
-  runner.Step("OnVehicleData " .. vehicleDataItem, common.onVD,
-    { appSessionId, vehicleDataItem })
-  runner.Step("GetVehicleData " .. vehicleDataItem, common.GetVD,
-    { appSessionId, vehicleDataItem })
-  runner.Step("UnsubscribeVehicleData " .. vehicleDataItem, common.VDsubscription,
-    { appSessionId, vehicleDataItem, "UnsubscribeVehicleData" })
-  runner.Step("OnVehicleData " .. vehicleDataItem, common.onVD,
-    { appSessionId, vehicleDataItem, common.VD.NOT_EXPECTED })
+  if vehicleDataItem == "vin" then
+    runner.Step("GetVehicleData " .. vehicleDataItem, common.GetVD,
+      { appSessionId, vehicleDataItem })
+  else
+    runner.Step("SubscribeVehicleData " .. vehicleDataItem, common.VDsubscription,
+      { appSessionId, vehicleDataItem, "SubscribeVehicleData" })
+    runner.Step("OnVehicleData " .. vehicleDataItem, common.onVD,
+      { appSessionId, vehicleDataItem })
+    runner.Step("GetVehicleData " .. vehicleDataItem, common.GetVD,
+      { appSessionId, vehicleDataItem })
+    runner.Step("UnsubscribeVehicleData " .. vehicleDataItem, common.VDsubscription,
+      { appSessionId, vehicleDataItem, "UnsubscribeVehicleData" })
+    runner.Step("OnVehicleData " .. vehicleDataItem, common.onVD,
+      { appSessionId, vehicleDataItem, common.VD.NOT_EXPECTED })
+  end
 end
 for _, vehicleDataItem in pairs(customData) do
   runner.Step("SubscribeVehicleData INVALID_DATA " .. vehicleDataItem, common.errorRPCprocessing,
@@ -105,16 +110,21 @@ runner.Step("App registration after ign_off", common.registerAppWOPTU)
 runner.Step("App activation after ign_off", common.activateApp)
 
 for _, vehicleDataItem in pairs(rpcSpecData) do
-  runner.Step("SubscribeVehicleData after ign_off " .. vehicleDataItem, common.VDsubscription,
-    { appSessionId, vehicleDataItem, "SubscribeVehicleData" })
-  runner.Step("OnVehicleData after ign_off " .. vehicleDataItem, common.onVD,
-    { appSessionId, vehicleDataItem })
-  runner.Step("GetVehicleData after ign_off " .. vehicleDataItem, common.GetVD,
-    { appSessionId, vehicleDataItem })
-  runner.Step("UnsubscribeVehicleData after ign_off " .. vehicleDataItem, common.VDsubscription,
-    { appSessionId, vehicleDataItem, "UnsubscribeVehicleData" })
-  runner.Step("OnVehicleData after ign_off " .. vehicleDataItem, common.onVD,
-    { appSessionId, vehicleDataItem, common.VD.NOT_EXPECTED })
+  if vehicleDataItem == "vin" then
+    runner.Step("GetVehicleData " .. vehicleDataItem, common.GetVD,
+      { appSessionId, vehicleDataItem })
+  else
+    runner.Step("SubscribeVehicleData after ign_off " .. vehicleDataItem, common.VDsubscription,
+      { appSessionId, vehicleDataItem, "SubscribeVehicleData" })
+    runner.Step("OnVehicleData after ign_off " .. vehicleDataItem, common.onVD,
+      { appSessionId, vehicleDataItem })
+    runner.Step("GetVehicleData after ign_off " .. vehicleDataItem, common.GetVD,
+      { appSessionId, vehicleDataItem })
+    runner.Step("UnsubscribeVehicleData after ign_off " .. vehicleDataItem, common.VDsubscription,
+      { appSessionId, vehicleDataItem, "UnsubscribeVehicleData" })
+    runner.Step("OnVehicleData after ign_off " .. vehicleDataItem, common.onVD,
+      { appSessionId, vehicleDataItem, common.VD.NOT_EXPECTED })
+  end
 end
 for _, vehicleDataItem in pairs(customData) do
   runner.Step("SubscribeVehicleData INVALID_DATA after ign_off " .. vehicleDataItem, common.errorRPCprocessing,

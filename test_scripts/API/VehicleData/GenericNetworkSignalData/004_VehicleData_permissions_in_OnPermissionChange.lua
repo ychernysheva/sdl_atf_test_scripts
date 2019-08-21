@@ -109,14 +109,19 @@ runner.Title("Test")
 runner.Step("Check VehicleDataItems in snapshot file", checkPolicySnapshot)
 runner.Step("PTU with VehicleDataItems", ptuWithOnPermissionChange)
 for vehicleDataName in pairs(common.VehicleDataItemsWithData) do
-  runner.Step("SubscribeVehicleData " .. vehicleDataName, common.VDsubscription,
-    { appSessionId, vehicleDataName, "SubscribeVehicleData" })
-  runner.Step("OnVehicleData " .. vehicleDataName, common.onVD,
+  if vehicleDataName == "vin" then
+    runner.Step("GetVehicleData " .. vehicleDataName, common.GetVD,
     { appSessionId, vehicleDataName })
-  runner.Step("GetVehicleData " .. vehicleDataName, common.GetVD,
-    { appSessionId, vehicleDataName })
-  runner.Step("UnsubscribeVehicleData " .. vehicleDataName, common.VDsubscription,
-    { appSessionId, vehicleDataName, "UnsubscribeVehicleData" })
+  else
+    runner.Step("SubscribeVehicleData " .. vehicleDataName, common.VDsubscription,
+      { appSessionId, vehicleDataName, "SubscribeVehicleData" })
+    runner.Step("OnVehicleData " .. vehicleDataName, common.onVD,
+      { appSessionId, vehicleDataName })
+    runner.Step("GetVehicleData " .. vehicleDataName, common.GetVD,
+      { appSessionId, vehicleDataName })
+    runner.Step("UnsubscribeVehicleData " .. vehicleDataName, common.VDsubscription,
+      { appSessionId, vehicleDataName, "UnsubscribeVehicleData" })
+  end
 end
 
 runner.Title("Postconditions")

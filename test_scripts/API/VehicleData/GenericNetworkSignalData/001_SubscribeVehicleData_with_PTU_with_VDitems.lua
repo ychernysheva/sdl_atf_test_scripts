@@ -30,6 +30,8 @@ runner.testSettings.isSelfIncluded = false
 --[[ Local Variables ]]
 common.writeCustomDataToGeneralArray(common.customDataTypeSample)
 common.setDefaultValuesForCustomData()
+-- removed because vin parameter is not applicable for SubscribeVehicleData
+common.VehicleDataItemsWithData.vin = nil
 
 local appSessionId = 1
 

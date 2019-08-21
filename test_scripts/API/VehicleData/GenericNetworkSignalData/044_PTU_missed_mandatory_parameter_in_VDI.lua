@@ -45,16 +45,21 @@ for number, parameter in pairs(mandatoryParams) do
 
   runner.Title("Test")
   for _, vehicleDataItem in pairs(rpcSpecData) do
-    runner.Step("SubscribeVehicleData " .. vehicleDataItem, common.VDsubscription,
-      { appSessionId, vehicleDataItem, "SubscribeVehicleData" })
-    runner.Step("OnVehicleData " .. vehicleDataItem, common.onVD,
-      { appSessionId, vehicleDataItem })
+    if vehicleDataItem == "vin" then
     runner.Step("GetVehicleData " .. vehicleDataItem, common.GetVD,
       { appSessionId, vehicleDataItem })
-    runner.Step("UnsubscribeVehicleData " .. vehicleDataItem, common.VDsubscription,
-      { appSessionId, vehicleDataItem, "UnsubscribeVehicleData" })
-    runner.Step("OnVehicleData " .. vehicleDataItem, common.onVD,
-      { appSessionId, vehicleDataItem, common.VD.NOT_EXPECTED })
+    else
+      runner.Step("SubscribeVehicleData " .. vehicleDataItem, common.VDsubscription,
+        { appSessionId, vehicleDataItem, "SubscribeVehicleData" })
+      runner.Step("OnVehicleData " .. vehicleDataItem, common.onVD,
+        { appSessionId, vehicleDataItem })
+      runner.Step("GetVehicleData " .. vehicleDataItem, common.GetVD,
+        { appSessionId, vehicleDataItem })
+      runner.Step("UnsubscribeVehicleData " .. vehicleDataItem, common.VDsubscription,
+        { appSessionId, vehicleDataItem, "UnsubscribeVehicleData" })
+      runner.Step("OnVehicleData " .. vehicleDataItem, common.onVD,
+        { appSessionId, vehicleDataItem, common.VD.NOT_EXPECTED })
+    end
   end
   for _, vehicleDataItem in pairs(customData) do
     runner.Step("SubscribeVehicleData INVALID_DATA " .. vehicleDataItem, common.errorRPCprocessing,
