@@ -32,7 +32,7 @@ local appSessionId = 1
 local paramsForChecking = { "custom_vd_item1_integer", "custom_vd_item11_struct" }
 
 --[[ Local Functions ]]
-local function setNewIntParams(pValueRootLevel, pValueChildLevel)
+local function setNewIntValues(pValueRootLevel, pValueChildLevel)
   common.VehicleDataItemsWithData.custom_vd_item1_integer.value = pValueRootLevel
   common.VehicleDataItemsWithData.custom_vd_item11_struct.params.struct_element_1_int.value = pValueChildLevel
 end
@@ -51,23 +51,23 @@ for _, vehicleDataName in pairs(paramsForChecking) do
     { appSessionId, vehicleDataName, "SubscribeVehicleData" })
 end
 
-runner.Step("Update parameter values to minvalue", setNewIntParams, { 0, -100 })
+runner.Step("Update parameter values to minvalue", setNewIntValues, { 0, -100 })
 for _, vehicleDataName in pairs(paramsForChecking) do
   runner.Step("OnVehicleData minvalue " .. vehicleDataName, common.onVD, { appSessionId, vehicleDataName })
 end
 
-runner.Step("Update parameter values to maxvalue", setNewIntParams, { 100, 1000 })
+runner.Step("Update parameter values to maxvalue", setNewIntValues, { 100, 1000 })
 for _, vehicleDataName in pairs(paramsForChecking) do
   runner.Step("OnVehicleData maxvalue " .. vehicleDataName, common.onVD, { appSessionId, vehicleDataName })
 end
 
-runner.Step("Update parameter values to out of minvalue", setNewIntParams, { -1, -101 })
+runner.Step("Update parameter values to out of minvalue", setNewIntValues, { -1, -101 })
 for _, vehicleDataName in pairs(paramsForChecking) do
   runner.Step("OnVehicleData out of minvalue " .. vehicleDataName, common.onVD,
     { appSessionId, vehicleDataName, common.VD.NOT_EXPECTED })
 end
 
-runner.Step("Update parameter values to out of maxvalue", setNewIntParams, { 101, 1001 })
+runner.Step("Update parameter values to out of maxvalue", setNewIntValues, { 101, 1001 })
 for _, vehicleDataName in pairs(paramsForChecking) do
   runner.Step("OnVehicleData out of maxvalue " .. vehicleDataName, common.onVD,
     { appSessionId, vehicleDataName, common.VD.NOT_EXPECTED })

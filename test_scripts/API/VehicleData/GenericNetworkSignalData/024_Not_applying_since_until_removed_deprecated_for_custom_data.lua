@@ -63,10 +63,10 @@ common.writeCustomDataToGeneralArray(common.customDataTypeSample)
 common.setDefaultValuesForCustomData()
 
 local appSessionId = 1
-local paramsWithoutParamsUpdate = { "custom_vd_item4_string", "custom_vd_item6_array_string" }
+local paramsWithoutUpdatedProps = { "custom_vd_item4_string", "custom_vd_item6_array_string" }
 local paramsWithUpdatedProps = { "custom_vd_item1_integer", "custom_vd_item3_enum", "custom_vd_item5_boolean" }
 
-local function setNewParams()
+local function setNewValues()
   common.VehicleDataItemsWithData.custom_vd_item1_integer.value = 150
   common.VehicleDataItemsWithData.custom_vd_item3_enum.value = { "OFF" }
   common.VehicleDataItemsWithData.custom_vd_item5_boolean.value = { true }
@@ -94,7 +94,7 @@ runner.Step("App activation", common.activateApp)
 runner.Step("PTU with VehicleDataItems", common.policyTableUpdateWithOnPermChange, { common.ptuFuncWithCustomData })
 
 runner.Title("Test")
-for _, vehicleDataName in pairs(paramsWithoutParamsUpdate) do
+for _, vehicleDataName in pairs(paramsWithoutUpdatedProps) do
   runner.Step("SubscribeVehicleData vehicleDataName" .. vehicleDataName, common.VDsubscription,
     { appSessionId, vehicleDataName, "SubscribeVehicleData" })
   runner.Step("OnVehicleData " .. vehicleDataName, common.onVD, { appSessionId, vehicleDataName })
@@ -112,7 +112,7 @@ for _, vehicleDataName in pairs(paramsWithUpdatedProps) do
   runner.Step("GetVehicleData " .. vehicleDataName, getVehicleDataGenericError, { vehicleDataName })
 end
 
-runner.Step("Update parameter values according to since and until values", setNewParams)
+runner.Step("Update parameter values according to since and until values", setNewValues)
 for _, vehicleDataName in pairs(paramsWithUpdatedProps) do
   runner.Step("SubscribeVehicleData vehicleDataName" .. vehicleDataName, common.VDsubscription,
     { appSessionId, vehicleDataName, "SubscribeVehicleData" })

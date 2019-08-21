@@ -44,7 +44,7 @@ local values = {
 }
 
 --[[ Local Functions ]]
-local function setNewIntParams(pValueInt, pValueFloat)
+local function setNewIntValues(pValueInt, pValueFloat)
   if pValueInt then
     common.VehicleDataItemsWithData.custom_vd_item11_struct.params.struct_element_6_struct.params.substruct_element_1_int.value = { pValueInt }
   else
@@ -65,13 +65,13 @@ runner.Step("SubscribeVehicleData custom_vd_item11_struct", common.VDsubscriptio
   { appSessionId, "custom_vd_item11_struct", "SubscribeVehicleData" })
 
 for key, typeValue in pairs(values.int) do
-  runner.Step("Update Integer parameter value to " .. key, setNewIntParams, { typeValue })
+  runner.Step("Update Integer parameter value to " .. key, setNewIntValues, { typeValue })
   runner.Step("OnVehicleData substruct_element_1_int with " .. key, common.onVD, { appSessionId, "custom_vd_item11_struct" })
   runner.Step("GetVehicleData substruct_element_1_int with " .. key, common.GetVD, { appSessionId, "custom_vd_item11_struct" })
 end
 
 for key, typeValue in pairs(values.float) do
-  runner.Step("Update Float parameter value to " .. key, setNewIntParams, { nil, typeValue })
+  runner.Step("Update Float parameter value to " .. key, setNewIntValues, { nil, typeValue })
   runner.Step("OnVehicleData struct_element_3_flt with " .. key, common.onVD, { appSessionId, "custom_vd_item11_struct" })
   runner.Step("GetVehicleData struct_element_3_flt with " .. key, common.GetVD, { appSessionId, "custom_vd_item11_struct" })
 end

@@ -31,7 +31,7 @@ local appSessionId = 1
 local paramsForChecking = { "custom_vd_item3_enum", "custom_vd_item11_struct" }
 
 --[[ Local Functions ]]
-local function setNewIntParams(pValueRootLevel, pValueChildLevel)
+local function setNewEnumValues(pValueRootLevel, pValueChildLevel)
   common.VehicleDataItemsWithData.custom_vd_item3_enum.value = pValueRootLevel
   common.VehicleDataItemsWithData.custom_vd_item11_struct.params.struct_element_4_enum.value = pValueChildLevel
 end
@@ -54,7 +54,7 @@ for _, vehicleDataName in pairs(paramsForChecking) do
   runner.Step("OnVehicleData " .. vehicleDataName, common.onVD, { appSessionId, vehicleDataName })
 end
 
-runner.Step("Update parameter values to out of enum range", setNewIntParams,
+runner.Step("Update parameter values to out of enum range", setNewEnumValues,
   { "Some_enum_value_root", "Some_enum_value_child" })
 for _, vehicleDataName in pairs(paramsForChecking) do
   runner.Step("OnVehicleData " .. vehicleDataName, common.onVD,

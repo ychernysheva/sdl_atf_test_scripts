@@ -43,7 +43,7 @@ local appSessionId = 1
 local paramsForChecking = { "custom_vd_item2_float", "custom_vd_item11_struct" }
 
 --[[ Local Functions ]]
-local function setNewIntParams(pValueRootLevel, pValueChildLevel)
+local function setNewFloatValues(pValueRootLevel, pValueChildLevel)
   common.VehicleDataItemsWithData.custom_vd_item2_float.value = pValueRootLevel
   common.VehicleDataItemsWithData.custom_vd_item11_struct.params.struct_element_3_flt.value = pValueChildLevel
 end
@@ -62,23 +62,23 @@ for _, vehicleDataName in pairs(paramsForChecking) do
     { appSessionId, vehicleDataName, "SubscribeVehicleData" })
 end
 
-runner.Step("Update parameter values to minvalue", setNewIntParams, { 1, 0.5 })
+runner.Step("Update parameter values to minvalue", setNewFloatValues, { 1, 0.5 })
 for _, vehicleDataName in pairs(paramsForChecking) do
   runner.Step("OnVehicleData minvalue " .. vehicleDataName, common.onVD, { appSessionId, vehicleDataName })
 end
 
-runner.Step("Update parameter values to maxvalue", setNewIntParams, { 100.5, 50.99 })
+runner.Step("Update parameter values to maxvalue", setNewFloatValues, { 100.5, 50.99 })
 for _, vehicleDataName in pairs(paramsForChecking) do
   runner.Step("OnVehicleData maxvalue " .. vehicleDataName, common.onVD, { appSessionId, vehicleDataName })
 end
 
-runner.Step("Update parameter values to out of minvalue", setNewIntParams, { 0.9, 0.4 })
+runner.Step("Update parameter values to out of minvalue", setNewFloatValues, { 0.9, 0.4 })
 for _, vehicleDataName in pairs(paramsForChecking) do
   runner.Step("OnVehicleData out of minvalue " .. vehicleDataName, common.onVD,
     { appSessionId, vehicleDataName, common.VD.NOT_EXPECTED })
 end
 
-runner.Step("Update parameter values to out of maxvalue", setNewIntParams, { 100.99, 51 })
+runner.Step("Update parameter values to out of maxvalue", setNewFloatValues, { 100.99, 51 })
 for _, vehicleDataName in pairs(paramsForChecking) do
   runner.Step("OnVehicleData out of maxvalue " .. vehicleDataName, common.onVD,
     { appSessionId, vehicleDataName, common.VD.NOT_EXPECTED })

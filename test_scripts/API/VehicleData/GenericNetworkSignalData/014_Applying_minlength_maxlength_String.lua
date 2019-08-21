@@ -44,7 +44,7 @@ local paramsForChecking = { "custom_vd_item4_string", "custom_vd_item11_struct" 
 local string256symb = string.rep("a", 256)
 
 --[[ Local Functions ]]
-local function setNewStringParams(pValueRootLevel, pValueChildLevel)
+local function setNewStringValues(pValueRootLevel, pValueChildLevel)
   common.VehicleDataItemsWithData.custom_vd_item4_string.value = pValueRootLevel
   common.VehicleDataItemsWithData.custom_vd_item11_struct.params.struct_element_2_str.value = pValueChildLevel
 end
@@ -63,23 +63,23 @@ for _, vehicleDataName in pairs(paramsForChecking) do
     { appSessionId, vehicleDataName, "SubscribeVehicleData" })
 end
 
-runner.Step("Update parameter values to minlength", setNewStringParams, { "a", "abc" })
+runner.Step("Update parameter values to minlength", setNewStringValues, { "a", "abc" })
 for _, vehicleDataName in pairs(paramsForChecking) do
   runner.Step("OnVehicleData minlength " .. vehicleDataName, common.onVD, { appSessionId, vehicleDataName })
 end
 
-runner.Step("Update parameter values to maxlength", setNewStringParams, { string256symb, "abcdefg" })
+runner.Step("Update parameter values to maxlength", setNewStringValues, { string256symb, "abcdefg" })
 for _, vehicleDataName in pairs(paramsForChecking) do
   runner.Step("OnVehicleData maxlength " .. vehicleDataName, common.onVD, { appSessionId, vehicleDataName })
 end
 
-runner.Step("Update parameter values to out of minlength", setNewStringParams, { "", "ab" })
+runner.Step("Update parameter values to out of minlength", setNewStringValues, { "", "ab" })
 for _, vehicleDataName in pairs(paramsForChecking) do
   runner.Step("OnVehicleData out of minlength " .. vehicleDataName, common.onVD,
     { appSessionId, vehicleDataName, common.VD.NOT_EXPECTED })
 end
 
-runner.Step("Update parameter values to out of maxlength", setNewStringParams, { string256symb .. "a", "abcdefgh" })
+runner.Step("Update parameter values to out of maxlength", setNewStringValues, { string256symb .. "a", "abcdefgh" })
 for _, vehicleDataName in pairs(paramsForChecking) do
   runner.Step("OnVehicleData out of maxlength " .. vehicleDataName, common.onVD,
     { appSessionId, vehicleDataName, common.VD.NOT_EXPECTED })

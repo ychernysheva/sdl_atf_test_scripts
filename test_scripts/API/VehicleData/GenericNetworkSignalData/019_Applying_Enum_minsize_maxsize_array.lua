@@ -66,7 +66,7 @@ local childArrayOutOfMaxSize = common.cloneTable(childArrayMaxSize)
 table.insert(childArrayOutOfMaxSize, "OFF")
 
 --[[ Local Functions ]]
-local function setNewArrayParams(pValueRootLevel, pValueChildLevel)
+local function setNewArrayValues(pValueRootLevel, pValueChildLevel)
   common.VehicleDataItemsWithData.custom_vd_item9_array_enum.value = pValueRootLevel
   common.VehicleDataItemsWithData.custom_vd_item11_struct.params.struct_element_5_array.value = pValueChildLevel
 end
@@ -85,24 +85,24 @@ for _, vehicleDataName in pairs(paramsForChecking) do
     { appSessionId, vehicleDataName, "SubscribeVehicleData" })
 end
 
-runner.Step("Update parameter values to minsize", setNewArrayParams, { arrayMinSize, arrayMinSize })
+runner.Step("Update parameter values to minsize", setNewArrayValues, { arrayMinSize, arrayMinSize })
 for _, vehicleDataName in pairs(paramsForChecking) do
   runner.Step("OnVehicleData minsize " .. vehicleDataName, common.onVD, { appSessionId, vehicleDataName })
 end
 
-runner.Step("Update parameter values to maxsize", setNewArrayParams, { rootArrayMaxSize, childArrayMaxSize })
+runner.Step("Update parameter values to maxsize", setNewArrayValues, { rootArrayMaxSize, childArrayMaxSize })
 for _, vehicleDataName in pairs(paramsForChecking) do
   runner.Step("OnVehicleData maxsize " .. vehicleDataName, common.onVD, { appSessionId, vehicleDataName })
 end
 
-runner.Step("Update parameter values to out of enum range", setNewArrayParams,
+runner.Step("Update parameter values to out of enum range", setNewArrayValues,
   { arrayOutOfRangeValue, arrayOutOfRangeValue })
 for _, vehicleDataName in pairs(paramsForChecking) do
   runner.Step("OnVehicleData out of enum range " .. vehicleDataName, common.onVD,
     { appSessionId, vehicleDataName, common.VD.NOT_EXPECTED })
 end
 
-runner.Step("Update parameter values to out of maxsize", setNewArrayParams,
+runner.Step("Update parameter values to out of maxsize", setNewArrayValues,
   { rootArrayOutOfMaxSize, childArrayOutOfMaxSize })
 for _, vehicleDataName in pairs(paramsForChecking) do
   runner.Step("OnVehicleData maxsize " .. vehicleDataName, common.onVD,

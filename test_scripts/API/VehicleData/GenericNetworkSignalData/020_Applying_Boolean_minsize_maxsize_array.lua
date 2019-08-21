@@ -42,7 +42,7 @@ local rootArrayOutOfMaxSize = common.cloneTable(rootArrayMaxSize)
 table.insert(rootArrayOutOfMaxSize, true)
 
 --[[ Local Functions ]]
-local function setNewArrayParams(pValueRootLevel)
+local function setNewArrayValues(pValueRootLevel)
   common.VehicleDataItemsWithData.custom_vd_item10_array_bool.value = pValueRootLevel
 end
 
@@ -60,17 +60,17 @@ for _, vehicleDataName in pairs(paramsForChecking) do
     { appSessionId, vehicleDataName, "SubscribeVehicleData" })
 end
 
-runner.Step("Update parameter values to minsize", setNewArrayParams, { arrayMinSize })
+runner.Step("Update parameter values to minsize", setNewArrayValues, { arrayMinSize })
 for _, vehicleDataName in pairs(paramsForChecking) do
   runner.Step("OnVehicleData minsize " .. vehicleDataName, common.onVD, { appSessionId, vehicleDataName })
 end
 
-runner.Step("Update parameter values to maxsize", setNewArrayParams, { rootArrayMaxSize })
+runner.Step("Update parameter values to maxsize", setNewArrayValues, { rootArrayMaxSize })
 for _, vehicleDataName in pairs(paramsForChecking) do
   runner.Step("OnVehicleData maxsize " .. vehicleDataName, common.onVD, { appSessionId, vehicleDataName })
 end
 
-runner.Step("Update parameter values to out of maxsize", setNewArrayParams, { rootArrayOutOfMaxSize })
+runner.Step("Update parameter values to out of maxsize", setNewArrayValues, { rootArrayOutOfMaxSize })
 for _, vehicleDataName in pairs(paramsForChecking) do
   runner.Step("OnVehicleData out of maxsize " .. vehicleDataName, common.onVD,
     { appSessionId, vehicleDataName, common.VD.NOT_EXPECTED })
