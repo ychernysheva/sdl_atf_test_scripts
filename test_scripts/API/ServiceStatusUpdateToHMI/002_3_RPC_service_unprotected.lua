@@ -47,6 +47,7 @@ end
 function common.policyTableUpdateFunc()
   -- common.getHMIConnection():ExpectNotification("SDL.OnStatusUpdate")
   -- :Times(0) -- There is an issue: SDL sends 'UPDATE_NEEDED' if it was build in EXTERNAL_PROPRIETARY mode
+  -- https://github.com/smartdevicelink/sdl_core/issues/2995
 end
 
 function common.onServiceUpdateFunc(pServiceTypeValue)
