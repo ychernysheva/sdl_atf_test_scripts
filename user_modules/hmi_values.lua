@@ -236,10 +236,12 @@ function module.getDefaultHMITable()
         },
         numCustomPresetsAvailable = 10
       },
-      audioPassThruCapabilities = {
-        samplingRate = "44KHZ",
-        bitsPerSample = "8_BIT",
-        audioType = "PCM"
+      audioPassThruCapabilitiesList = {
+        {
+          samplingRate = "44KHZ",
+          bitsPerSample = "8_BIT",
+          audioType = "PCM"
+        }
       },
       hmiZoneCapabilities = "FRONT",
       softButtonCapabilities = {
