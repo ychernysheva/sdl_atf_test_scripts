@@ -24,6 +24,9 @@ local common = require('test_scripts/API/ServiceStatusUpdateToHMI/common')
 --[[ Test Configuration ]]
 runner.testSettings.isSelfIncluded = false
 
+--[[ Local Constants ]]
+local serviceId = 10
+
 --[[ Local Functions ]]
 function common.startServiceFunc(pServiceId)
   local msg = {
@@ -58,14 +61,14 @@ end
 --[[ Scenario ]]
 runner.Title("Preconditions")
 runner.Step("Clean environment", common.preconditions, {
-  common.serviceData[10].forceCode .. ', ' .. common.serviceData[11].forceCode })
+  common.serviceData[serviceId].forceCode })
 runner.Step("Start SDL, HMI, connect Mobile, start Session", common.start)
 runner.Step("App registration", common.registerApp)
 runner.Step("PolicyTableUpdate", common.policyTableUpdate)
 runner.Step("App activation", common.activateApp)
 
 runner.Title("Test")
-runner.Step("Start Video Service unprotected, MISSING", common.startServiceWithOnServiceUpdate, { 10, 0, 0 })
+runner.Step("Start Video Service unprotected, MISSING", common.startServiceWithOnServiceUpdate, { serviceId, 0, 0 })
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", common.postconditions)

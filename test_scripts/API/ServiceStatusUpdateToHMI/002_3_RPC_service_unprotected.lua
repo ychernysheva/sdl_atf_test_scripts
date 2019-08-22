@@ -23,6 +23,9 @@ local common = require('test_scripts/API/ServiceStatusUpdateToHMI/common')
 --[[ Test Configuration ]]
 runner.testSettings.isSelfIncluded = false
 
+--[[ Local Constants ]]
+local serviceId = 7
+
 --[[ Local Functions ]]
 function common.startServiceFunc(pServiceId)
   local msg = {
@@ -65,7 +68,7 @@ runner.Step("Clean environment", common.preconditions)
 runner.Step("Start SDL, HMI, connect Mobile, start Session", common.start)
 
 runner.Title("Test")
-runner.Step("Start RPC Service unprotected, ACCEPTED", common.startServiceWithOnServiceUpdate, { 7, 0, 0 } )
+runner.Step("Start RPC Service unprotected, ACCEPTED", common.startServiceWithOnServiceUpdate, { serviceId, 0, 0 } )
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", common.postconditions)

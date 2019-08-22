@@ -29,7 +29,7 @@ m.cprint = utils.cprint
 m.readFile = utils.readFile
 
 --[[ Common Functions ]]
-function common.failTestCase(pReason)
+function m.failTestCase(pReason)
   test:FailTestCase(pReason)
 end
 
@@ -217,7 +217,7 @@ function m.checkResult(pResult)
   common.cprint(35, "retryFinishedTime:", pResult.retryFinishedTime)
   common.cprint(35, "serviceNackTime:", pResult.serviceNackTime)
   common.cprint(35, "onServiceUpdateTime:", pResult.onServiceUpdateTime)
-  local tollerance = 200 -- ms
+  local tolerance = 200 -- ms
   local msg = ""
   if pResult.retryFinishedTime == 0 then
     msg = msg .. "\nRetry sequence was not finished"
@@ -227,17 +227,17 @@ function m.checkResult(pResult)
     end
     local delay = math.abs(pResult.serviceNackTime - pResult.retryFinishedTime)
     common.cprint(35, "Delay serviceNackTime vs retryFinishedTime (ms):", delay)
-    if math.abs(delay - tollerance) > tollerance then
+    if math.abs(delay - tolerance) > tolerance then
       msg = msg .. "\nThere to much delay between START_SERVICE_NACK and finishing of Retry sequence"
     end
     delay = math.abs(pResult.onServiceUpdateTime - pResult.retryFinishedTime)
     common.cprint(35, "Delay onServiceUpdateTime vs retryFinishedTime (ms):", delay)
-    if math.abs(delay - tollerance) > tollerance then
+    if math.abs(delay - tolerance) > tolerance then
       msg = msg .. "\nThere to much delay between OnServiceUpdate notification and finishing of Retry sequence"
     end
   end
   if string.len(msg) > 0 then
-    common.failTestCase(msg)
+    m.failTestCase(msg)
   end
 end
 

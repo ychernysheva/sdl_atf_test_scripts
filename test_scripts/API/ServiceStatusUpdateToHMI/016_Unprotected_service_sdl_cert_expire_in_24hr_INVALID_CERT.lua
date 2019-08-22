@@ -31,6 +31,10 @@ local common = require('test_scripts/API/ServiceStatusUpdateToHMI/common')
 --[[ Test Configuration ]]
 runner.testSettings.isSelfIncluded = false
 
+--[[ Local Constants ]]
+local videoServiceId = 11
+local audioServiceId = 10
+
 --[[ Local Functions ]]
 function common.sendGetSystemTimeResponse(pId, pMethod)
   local st = {
@@ -73,8 +77,8 @@ runner.Step("PolicyTableUpdate", common.policyTableUpdate)
 runner.Step("App activation", common.activateApp)
 
 runner.Title("Test")
-runner.Step("Start Video Service protected, ACCEPTED", common.startServiceWithOnServiceUpdate, { 11, 0, 1 })
-runner.Step("Start Audio Service protected, ACCEPTED", common.startServiceWithOnServiceUpdate, { 10, 0, 1 })
+runner.Step("Start Video Service protected, ACCEPTED", common.startServiceWithOnServiceUpdate, { videoServiceId, 0, 1 })
+runner.Step("Start Audio Service protected, ACCEPTED", common.startServiceWithOnServiceUpdate, { audioServiceId, 0, 1 })
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", common.postconditions)

@@ -45,6 +45,8 @@ local crts = {
   [1] = "./files/Security/spt_credential.pem",
   [2] = "./files/Security/spt_credential_2.pem"
 }
+local videoServiceId = 11
+local audioServiceId = 10
 
 --[[ Local Functions ]]
 function common.onServiceUpdateFunc(pServiceTypeValue, pAppId)
@@ -81,9 +83,9 @@ runner.Title("Test")
 for i = 1, 2 do
   runner.Step("App " .. i .. " activation", common.activateApp, { i })
   runner.Step("Start Video Service app " .. i .. ", ACCEPTED",
-    common.startServiceWithOnServiceUpdate, { 11, 1, 1, i })
+    common.startServiceWithOnServiceUpdate, { videoServiceId, 1, 1, i })
   runner.Step("Start Audio Service app " .. i .. ", ACCEPTED",
-    common.startServiceWithOnServiceUpdate, { 10, 0, 0, i })
+    common.startServiceWithOnServiceUpdate, { audioServiceId, 0, 0, i })
 end
 
 runner.Title("Postconditions")

@@ -32,6 +32,9 @@ local common = require('test_scripts/API/ServiceStatusUpdateToHMI/common')
 --[[ Test Configuration ]]
 runner.testSettings.isSelfIncluded = false
 
+--[[ Local Constants ]]
+local serviceId = 10
+
 --[[ Local Functions ]]
 function common.onServiceUpdateFunc(pServiceTypeValue)
   common.getHMIConnection():ExpectNotification("BasicCommunication.OnServiceUpdate",
@@ -58,7 +61,7 @@ runner.Step("PolicyTableUpdate", common.policyTableUpdate)
 runner.Step("App activation", common.activateApp)
 
 runner.Title("Test")
-runner.Step("Start Audio Service protected, ACCEPTED", common.startServiceWithOnServiceUpdate, { 10, 1, 1 })
+runner.Step("Start Audio Service protected, ACCEPTED", common.startServiceWithOnServiceUpdate, { serviceId, 1, 1 })
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", common.postconditions)

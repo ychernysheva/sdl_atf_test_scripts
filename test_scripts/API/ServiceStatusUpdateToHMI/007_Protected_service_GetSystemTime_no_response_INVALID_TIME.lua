@@ -26,6 +26,10 @@ local common = require('test_scripts/API/ServiceStatusUpdateToHMI/common')
 --[[ Test Configuration ]]
 runner.testSettings.isSelfIncluded = false
 
+--[[ Local Constants ]]
+local videoServiceId = 11
+local audioServiceId = 10
+
 --[[ Local Functions ]]
 function common.sendGetSystemTimeResponse()
   -- no response
@@ -53,7 +57,7 @@ end
 --[[ Scenario ]]
 runner.Title("Preconditions")
 runner.Step("Clean environment", common.preconditions, {
-  common.serviceData[10].forceCode .. ', ' .. common.serviceData[11].forceCode })
+  common.serviceData[audioServiceId].forceCode .. ', ' .. common.serviceData[videoServiceId].forceCode })
 runner.Step("Init SDL certificates", common.initSDLCertificates,
   { "./files/Security/client_credential_expired.pem", true })
 runner.Step("Start SDL, HMI, connect Mobile, start Session", common.start)
@@ -63,9 +67,9 @@ runner.Step("App activation", common.activateApp)
 
 runner.Title("Test")
 runner.Step("Start Video Service protected, REJECTED",
-  common.startServiceWithOnServiceUpdate, { 11, 0, 1 })
+  common.startServiceWithOnServiceUpdate, { videoServiceId, 0, 1 })
 runner.Step("Start Audio Service protected, REJECTED",
-  common.startServiceWithOnServiceUpdate, { 10, 0, 1 })
+  common.startServiceWithOnServiceUpdate, { audioServiceId, 0, 1 })
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", common.postconditions)
