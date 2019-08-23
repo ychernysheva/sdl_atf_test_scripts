@@ -678,8 +678,9 @@ end
 --! pCheckFunc: check function
 --! @return: none
 --]]
-function m.reRegisterAppSuccess(pWidgetParams, pAppId, pCheckFunc)
+function m.reRegisterAppSuccess(pWidgetParams, pAppId, pCheckFunc, pResultCode)
   if not pAppId then pAppId = 1 end
+  if not pResultCode then pResultCode = "SUCCESS" end
   m.getMobileSession(pAppId):StartService(7)
   :Do(function()
       local params = m.cloneTable(m.getConfigAppParams(pAppId))
@@ -691,7 +692,7 @@ function m.reRegisterAppSuccess(pWidgetParams, pAppId, pCheckFunc)
       :Do(function()
           m.sendOnSCU(m.getOnSCUParams({ 0 }, 0), pAppId)
         end)
-      m.getMobileSession(pAppId):ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
+      m.getMobileSession(pAppId):ExpectResponse(corId, { success = true, resultCode = pResultCode })
       :Do(function()
           m.getMobileSession(pAppId):ExpectNotification("OnPermissionsChange")
         end)
