@@ -84,7 +84,7 @@ local function subscriptionVDNotMatch(pRPC, pData)
   end
   local hmiResponseData = {
     [common.VehicleDataItemsWithData.custom_vd_item2_float.key] = {
-      dataType = "OEM_SPECIFIC",
+      dataType = common.CUSTOM_DATA_TYPE,
       resultCode = "SUCCESS"
     }
   }
@@ -109,7 +109,7 @@ local function subscriptionVDWithRedundant(pRPC, pData)
     hmiRequestData = common.getHMIrequestData(pData)
   end
   local vdResponseStruct = {
-      dataType = "OEM_SPECIFIC",
+      dataType = common.CUSTOM_DATA_TYPE,
       resultCode = "SUCCESS"
     }
   local hmiResponseData = {
@@ -123,7 +123,8 @@ local function subscriptionVDWithRedundant(pRPC, pData)
     common.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", hmiResponseData)
   end)
 
-  local mobileResponseData = { [pData] = vdResponseStruct }
+  local item = common.VehicleDataItemsWithData[pData]
+  local mobileResponseData = { [item.name] = common.buildSubscribeMobileResponseItem(vdResponseStruct, item.name) }
   mobileResponseData.success = true
   mobileResponseData.resultCode = "SUCCESS"
   common.getMobileSession():ExpectResponse(cid, mobileResponseData)

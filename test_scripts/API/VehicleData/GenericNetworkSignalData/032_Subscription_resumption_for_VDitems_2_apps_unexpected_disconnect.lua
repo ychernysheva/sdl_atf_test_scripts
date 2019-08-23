@@ -87,12 +87,14 @@ local function registerApps()
   }
 
   local hmiResponseDataApp1 = {
-    [common.VehicleDataItemsWithData.custom_vd_item1_integer.key] = { dataType = "OEM_SPECIFIC", resultCode = "SUCCESS" },
+    [common.VehicleDataItemsWithData.custom_vd_item1_integer.key] =
+        { dataType = common.CUSTOM_DATA_TYPE, resultCode = "SUCCESS" },
     gps = { dataType = common.VehicleDataItemsWithData.gps.APItype, resultCode = "SUCCESS" }
   }
 
   local hmiResponseDataApp2 = {
-    [common.VehicleDataItemsWithData.custom_vd_item2_float.key] = { dataType = "OEM_SPECIFIC", resultCode = "SUCCESS" },
+    [common.VehicleDataItemsWithData.custom_vd_item2_float.key] =
+        { dataType = common.CUSTOM_DATA_TYPE, resultCode = "SUCCESS" },
     rpm = { dataType = common.VehicleDataItemsWithData.rpm.APItype, resultCode = "SUCCESS" }
   }
 

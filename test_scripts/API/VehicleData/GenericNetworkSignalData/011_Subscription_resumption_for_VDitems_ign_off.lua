@@ -50,7 +50,7 @@ local function registerApp()
 
       local hmiResponseData = {
         [common.VehicleDataItemsWithData.custom_vd_item1_integer.key] = {
-          dataType = "OEM_SPECIFIC", resultCode = "SUCCESS"
+          dataType = common.CUSTOM_DATA_TYPE, resultCode = "SUCCESS"
         },
         gps = { dataType = common.VehicleDataItemsWithData.gps.APItype, resultCode = "SUCCESS" }
       }
