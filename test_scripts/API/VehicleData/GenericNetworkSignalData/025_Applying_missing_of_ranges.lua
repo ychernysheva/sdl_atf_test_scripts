@@ -35,7 +35,7 @@ local appSessionId = 1
 local values = {
   int = {
     maxValue = 4294967295,
-    minValue = -2147483648
+    minValue = -2147483647
   },
   float = {
     minValue = 1.175494*10^-38,

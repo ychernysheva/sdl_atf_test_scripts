@@ -43,7 +43,7 @@ common.setDefaultValuesForCustomData()
 
 local appSessionId = 1
 local paramsForChecking = { "custom_vd_item8_array_float", "custom_vd_item11_struct" }
-local arrayMinSize = { }
+local arrayMinSize = common.EMPTY_ARRAY
 
 -- parameter values for root element
 local rootArrayMaxSizeMinValue = { }

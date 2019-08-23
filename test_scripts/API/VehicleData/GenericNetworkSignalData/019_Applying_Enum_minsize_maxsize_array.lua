@@ -44,7 +44,7 @@ common.setDefaultValuesForCustomData()
 
 local appSessionId = 1
 local paramsForChecking = { "custom_vd_item9_array_enum", "custom_vd_item11_struct" }
-local arrayMinSize = { }
+local arrayMinSize = common.EMPTY_ARRAY
 local arrayOutOfRangeValue = { "Some_enum_value" }
 
 -- parameter values for root element

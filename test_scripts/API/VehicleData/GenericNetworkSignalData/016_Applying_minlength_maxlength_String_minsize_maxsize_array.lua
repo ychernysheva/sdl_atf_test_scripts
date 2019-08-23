@@ -47,7 +47,7 @@ common.setDefaultValuesForCustomData()
 
 local appSessionId = 1
 local paramsForChecking = { "custom_vd_item6_array_string", "custom_vd_item11_struct" }
-local arrayMinSize = { }
+local arrayMinSize = common.EMPTY_ARRAY
 
 local function getItemParamValues(pItem)
   local params = {}
