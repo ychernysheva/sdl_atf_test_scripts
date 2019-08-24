@@ -1,7 +1,8 @@
 ---------------------------------------------------------------------------------------------------
 -- Proposal: https://github.com/smartdevicelink/sdl_evolution/blob/master/proposals/0216-widget-support.md
 --
--- Description: Check that SDL restored Main window to FULL level after unexpected disconnect
+-- Description: Check that SDL restores Main window to FULL level and doesn't restore Widget window
+-- in case if App re-registers with wrong hashId after unexpected disconnect
 --
 -- Preconditions:
 -- 1) SDL and HMI are started
@@ -16,12 +17,11 @@
 -- 3) HMI sends OnSystemCapabilityUpdated(params) notification to SDL for Main window
 -- SDL does:
 --  - send OnSystemCapabilityUpdated(params) notification to App for Main window
---  - send OnHMIStatus (NONE level) notification for Main window to App
--- 4) Main window is activated on the HMI and has FULL level
--- 5) App send Show(with WindowID for Main window) request to SDL
+--  - send OnHMIStatus (FULL level) notification for Main window to app
+-- 4) App send Show(with WindowID for Main window) request to SDL
 -- SDL does:
 --  - proceed with request successfully
--- 6) App send Show(with WindowID for Widget window) request to SDL
+-- 5) App send Show(with WindowID for Widget window) request to SDL
 -- SDL does:
 --  - respond to App with (success = false, resultCode = INVALID_ID")
 ---------------------------------------------------------------------------------------------------
@@ -49,14 +49,19 @@ local function createWindow(pParams, pAppId)
   common.createWindow(pParams, pAppId)
 end
 
-local function checkResumption_NONE()
-  common.getHMIConnection():ExpectRequest("BasicCommunication.ActivateApp")
-  :Times(0)
+local function checkResumption_FULL()
+  common.getHMIConnection():ExpectRequest("BasicCommunication.ActivateApp", {})
+  :Do(function(_, data)
+      common.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", {})
+    end)
+  common.getMobileSession():ExpectNotification("OnHMIStatus",
+    { windowID = 0, hmiLevel = "NONE" },
+    { windowID = 0, hmiLevel = "FULL" })
+  :Times(2)
   common.getHMIConnection():ExpectRequest("UI.CreateWindow")
   :Times(0)
   common.expCreateWindowResponse()
   :Times(0)
-  common.getMobileSession():ExpectNotification("OnHMIStatus", { windowID = 0, hmiLevel = "NONE" })
   common.getMobileSession():ExpectNotification("OnSystemCapabilityUpdated", common.getOnSCUParams({ 0 }))
 end
 
@@ -77,8 +82,7 @@ common.Title("Test")
 common.Step("Unexpected disconnect", common.unexpectedDisconnect)
 common.Step("Connect mobile", common.connectMobile)
 common.Step("Re-register App resumption data RESUME_FAILED", common.reRegisterAppSuccess,
-  { nil, 1, checkResumption_NONE, "RESUME_FAILED" })
-common.Step("App activation", common.activateApp)
+  { nil, 1, checkResumption_FULL, "RESUME_FAILED" })
 common.Step("Show RPC to Main window", common.sendShowToWindow, { 0 })
 common.Step("Show RPC to Widget window", common.sendShowToWindowUnsuccess, { widgetParams.windowID, "INVALID_ID" })
 
