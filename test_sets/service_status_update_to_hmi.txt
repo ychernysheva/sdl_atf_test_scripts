@@ -1,6 +1,9 @@
 ./test_scripts/API/ServiceStatusUpdateToHMI/001_1_Video_service_protected.lua
 ./test_scripts/API/ServiceStatusUpdateToHMI/001_2_Audio_service_protected.lua
 ./test_scripts/API/ServiceStatusUpdateToHMI/001_3_RPC_service_protected.lua
+./test_scripts/API/ServiceStatusUpdateToHMI/001_4_Video_service_protected_force_unprotected.lua
+./test_scripts/API/ServiceStatusUpdateToHMI/001_5_Audio_service_protected_force_unprotected.lua
+./test_scripts/API/ServiceStatusUpdateToHMI/001_6_RPC_service_protected_force_unprotected.lua
 ./test_scripts/API/ServiceStatusUpdateToHMI/002_1_Video_service_unprotected.lua
 ./test_scripts/API/ServiceStatusUpdateToHMI/002_2_Audio_service_unprotected.lua
 ./test_scripts/API/ServiceStatusUpdateToHMI/002_3_RPC_service_unprotected.lua

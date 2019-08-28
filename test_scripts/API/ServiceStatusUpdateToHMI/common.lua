@@ -77,10 +77,12 @@ function m.ptUpdate(pTbl)
 end
 
 local preconditionsOrig = common.preconditions
-function m.preconditions(pForceProtectedServices)
+function m.preconditions(pForceProtectedServices, pForceUnprotectedServices)
   preconditionsOrig()
   if not pForceProtectedServices then pForceProtectedServices = "Non" end
+  if not pForceUnprotectedServices then pForceUnprotectedServices = "Non" end
   m.setSDLIniParameter("ForceProtectedService", pForceProtectedServices)
+  m.setSDLIniParameter("ForceUnprotectedService", pForceUnprotectedServices)
 end
 
 local postconditionsOrig = common.postconditions
@@ -145,7 +147,7 @@ end
 
 m.serviceData = {
   [7] = {
-    forceCode = "Non",
+    forceCode = "0x07",
     serviceType = "RPC",
     startStreamFunc = function() end,
     streamingFunc = function() end
