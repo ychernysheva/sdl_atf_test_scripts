@@ -59,7 +59,7 @@ runner.Step("PolicyTableUpdate", common.policyTableUpdate)
 runner.Step("App activation", common.activateApp)
 
 runner.Title("Test")
-runner.Step("Start Video Service protected, REJECTED", common.startServiceWithOnServiceUpdate, { serviceId, 0, 0 })
+runner.Step("Start RPC Service protected, REJECTED", common.startServiceWithOnServiceUpdate, { serviceId, 0, 0 })
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", common.postconditions)
