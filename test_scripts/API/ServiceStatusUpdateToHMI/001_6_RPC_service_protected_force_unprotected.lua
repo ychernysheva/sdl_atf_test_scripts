@@ -15,7 +15,7 @@
 --   - send OnServiceUpdate (<service_type>, REQUEST_RECEIVED) to HMI
 --   - not send GetSystemTime() request to HMI
 --   - not start PTU sequence
---   - send OnServiceUpdate (<service_type>, REQUEST_REJECTED) to HMI
+--   - send OnServiceUpdate (<service_type>, REQUEST_REJECTED, PROTECTION_DISABLED) to HMI
 --   - send StartServiceNACK(<service_type>, encryption = false) to App
 -----------------------------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
@@ -32,7 +32,8 @@ local serviceId = 7
 function common.onServiceUpdateFunc(pServiceTypeValue)
   common.getHMIConnection():ExpectNotification("BasicCommunication.OnServiceUpdate",
     { serviceEvent = "REQUEST_RECEIVED", serviceType = pServiceTypeValue, appID = common.getHMIAppId() },
-    { serviceEvent = "REQUEST_REJECTED", serviceType = pServiceTypeValue, appID = common.getHMIAppId() })
+    { serviceEvent = "REQUEST_REJECTED", serviceType = pServiceTypeValue, appID = common.getHMIAppId(),
+      reason = "PROTECTION_DISABLED" })
   :Times(2)
 end
 
