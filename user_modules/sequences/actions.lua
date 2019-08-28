@@ -114,19 +114,20 @@ function m.policyTableUpdate(pPTUpdateFunc, pExpNotificationFunc)
       for id = 1, m.getAppsCount() do
         m.getMobileSession(id):ExpectNotification("OnSystemRequest", { requestType = "PROPRIETARY" })
         :Do(function()
-            if not pExpNotificationFunc then
-               m.getHMIConnection():ExpectRequest("VehicleInfo.GetVehicleData", { odometer = true })
-               m.getHMIConnection():ExpectNotification("SDL.OnStatusUpdate", { status = "UP_TO_DATE" })
-            end
+            m.getHMIConnection():ExpectRequest("BasicCommunication.SystemRequest")
+            :Do(function(_, d3)
+                if not pExpNotificationFunc then
+                   m.getHMIConnection():ExpectRequest("VehicleInfo.GetVehicleData", { odometer = true })
+                   m.getHMIConnection():ExpectNotification("SDL.OnStatusUpdate", { status = "UP_TO_DATE" })
+                end
+                m.getHMIConnection():SendResponse(d3.id, "BasicCommunication.SystemRequest", "SUCCESS", { })
+                m.getHMIConnection():SendNotification("SDL.OnReceivedPolicyUpdate", { policyfile = d3.params.fileName })
+              end)
             utils.cprint(35, "App ".. id .. " was used for PTU")
             m.getHMIConnection():RaiseEvent(event, "PTU event")
             local corIdSystemRequest = m.getMobileSession(id):SendRPC("SystemRequest", {
               requestType = "PROPRIETARY" }, ptuFileName)
-            m.getHMIConnection():ExpectRequest("BasicCommunication.SystemRequest")
-            :Do(function(_, d3)
-                m.getHMIConnection():SendResponse(d3.id, "BasicCommunication.SystemRequest", "SUCCESS", { })
-                m.getHMIConnection():SendNotification("SDL.OnReceivedPolicyUpdate", { policyfile = d3.params.fileName })
-              end)
+
             m.getMobileSession(id):ExpectResponse(corIdSystemRequest, { success = true, resultCode = "SUCCESS" })
             :Do(function() os.remove(ptuFileName) end)
           end)
