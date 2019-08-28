@@ -80,7 +80,7 @@ function common.serviceResponseFunc(pServiceId)
   :Timeout(timeout)
 end
 
-local function startServiceWithOnServiceUpdate_PTU_FAILED(pServiceId, pHandShakeExpeTimes, pGSTExpTimes, pPTUNum)
+local function startServiceWithOnServiceUpdate_REQUEST_ACCEPTED(pServiceId, pHandShakeExpeTimes, pGSTExpTimes, pPTUNum)
   result.serviceNackTime = 0
   result.retryFinishedTime = 0
   result.onServiceUpdateTime = 0
@@ -157,14 +157,9 @@ runner.Step("App activation", common.activateApp)
 runner.Title("Test")
 
 runner.Title("PTU 1")
-runner.Step("Start " .. common.serviceData[serviceId].serviceType .. " service protected, REJECTED",
-  startServiceWithOnServiceUpdate_PTU_FAILED, { serviceId, 0, 1, 1 })
+runner.Step("Start " .. common.serviceData[serviceId].serviceType .. " service protected, REQUEST_ACCEPTED",
+  startServiceWithOnServiceUpdate_REQUEST_ACCEPTED, { serviceId, 0, 1, 1 })
 runner.Step("Check result", common.checkResult, { result })
-
--- runner.Title("PTU 2")
--- runner.Step("Start " .. common.serviceData[serviceId].serviceType .. " service protected, REJECTED",
---   startServiceWithOnServiceUpdate_PTU_FAILED, { serviceId, 0, 1, 2 })
--- runner.Step("Check result", common.checkResult, { result })
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", common.postconditions)
