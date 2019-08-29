@@ -1,7 +1,7 @@
 ---------------------------------------------------------------------------------------------------
 -- Proposal: https://github.com/smartdevicelink/sdl_evolution/blob/master/proposals/0173-Read-Generic-Network-Signal-data.md
 --
--- Description: Applying of the update for VehcileDataItems from PTU in case VehcileDataItems is empty array
+-- Description: Applying of the update for VehicleDataItems from PTU in case VehicleDataItems is empty array
 
 -- Precondition:
 -- 1. Preloaded file contains VehicleDataItems for all RPC spec VD

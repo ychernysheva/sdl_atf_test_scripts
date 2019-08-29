@@ -1,7 +1,7 @@
 ---------------------------------------------------------------------------------------------------
 -- Proposal: https://github.com/smartdevicelink/sdl_evolution/blob/master/proposals/0173-Read-Generic-Network-Signal-data.md
 --
--- Description: Policy prohibition for VehcileDataItems in case VD is not allowed by policies
+-- Description: Policy prohibition for VehicleDataItems in case VD is not allowed by policies
 
 -- Precondition:
 -- 1. Preloaded file contains VehicleDataItems for all RPC spec VD

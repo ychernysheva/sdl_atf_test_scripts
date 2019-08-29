@@ -1,7 +1,7 @@
 ---------------------------------------------------------------------------------------------------
 -- Proposal: https://github.com/smartdevicelink/sdl_evolution/blob/master/proposals/0173-Read-Generic-Network-Signal-data.md
 --
--- Description: Applying of the update for VehcileDataItems from PTU after already successful one
+-- Description: Applying of the update for VehicleDataItems from PTU after already successful one
 
 -- Precondition:
 -- 1. Preloaded file contains VehicleDataItems for all RPC spec VD
