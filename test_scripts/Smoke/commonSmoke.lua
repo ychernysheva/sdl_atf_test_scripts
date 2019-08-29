@@ -41,6 +41,7 @@ local preloadedPT = commonSmoke:read_parameter_from_smart_device_link_ini("Prelo
 local function allowSDL(self)
   self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality",
     { allowed = true, source = "GUI", device = { id = commonSmoke.getDeviceMAC(), name = commonSmoke.getDeviceName() }})
+  utils.wait(commonSmoke.minTimeout)
 end
 
 function commonSmoke.preconditions()
