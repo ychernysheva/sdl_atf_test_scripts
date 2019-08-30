@@ -19,7 +19,7 @@
 --    SDL responds with  AddCommand secure response (protected) to Mobile №1
 -- 3) Mobile №1 sends AddCommand RPC in unprotected mode to SDL
 --   Check:
---    SDL responds with  AddCommand secure response (protected) to Mobile №1
+--    SDL responds with  AddCommand response (unprotected) to Mobile №1
 -- 4) Mobile №2 sends AddCommand RPC in unprotected mode to SDL
 --   Check:
 --    SDL responds with AddCommand response (unprotected) to Mobile №2
@@ -31,7 +31,7 @@
 --    SDL responds with  AddCommand secure response (protected) to Mobile №2
 -- 7) Mobile №2 sends AddCommand RPC in unprotected mode to SDL
 --   Check:
---    SDL responds with  AddCommand secure response (protected) to Mobile №2
+--    SDL responds with  AddCommand response (unprotected) to Mobile №2
 -- 8) Mobile №1 sends AddCommand RPC in protected mode to SDL
 --   Check:
 --    SDL responds with  AddCommand secure response (protected) to Mobile №1
@@ -68,21 +68,21 @@ runner.Step("Set DTLS protocol in SDL", common.setSDLIniParameter, { "Protocol",
 runner.Step("Start SDL, HMI, connect Mobile, start Session", common.start)
 runner.Step("Connect two mobile devices to SDL", common.connectMobDevices, {devices})
 runner.Step("Register App1 from device 1", common.registerAppEx, {1, appParams[1], 1})
-runner.Step("Register App2 from device 2", common.registerAppEx, {2, appParams[2], 2}, true)
+runner.Step("Register App2 from device 2", common.registerAppEx, {2, appParams[2], 2, true})
 runner.Step("Policy Table Update Certificate", common.policyTableUpdate, { common.ptUpdate })
 runner.Step("Activate App 1", common.activateApp, { 1 })
 
 runner.Title("Test")
 runner.Step ("Start RPC Service protected for App 1", common.startServiceProtected, { 7, 1 })
 runner.Step ("Mobile 1 sends secure RPC in protected mode",   common.protectedModeRPC, { 1, addCommandParams[1] })
-runner.Step ("Mobile 1 sends insecure RPC in protected mode", common.nonProtectedRPC,  { 1, addCommandParams[2], true })
+runner.Step ("Mobile 1 sends insecure RPC in protected mode", common.nonProtectedRPC,  { 1, addCommandParams[2] })
 
 runner.Step ("Activate App 2", common.activateApp, { 2 })
-runner.Step ("Mobile 2 sends insecure RPC in NON protected mode", common.nonProtectedRPC,{2, addCommandParams[1],false})
+runner.Step ("Mobile 2 sends insecure RPC in NON protected mode", common.nonProtectedRPC,{2, addCommandParams[1] })
 
 runner.Step ("Start RPC Service protected for App 2", common.startServiceProtected, { 7, 2 })
 runner.Step ("Mobile 2 sends secure RPC in protected mode",  common.protectedModeRPC, { 2, addCommandParams[2] })
-runner.Step ("Mobile 2 sends insecure RPC in protected mode", common.nonProtectedRPC, { 2, addCommandParams[3], true })
+runner.Step ("Mobile 2 sends insecure RPC in protected mode", common.nonProtectedRPC, { 2, addCommandParams[3] })
 runner.Step ("Mobile 1 sends secure RPC in protected mode",  common.protectedModeRPC, { 1, addCommandParams[3] })
 
 runner.Title("Postconditions")
