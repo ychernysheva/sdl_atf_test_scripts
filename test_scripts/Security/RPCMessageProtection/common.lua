@@ -168,7 +168,7 @@ function m.subscribeToVD()
   m.getHMIConnection():ExpectRequest("VehicleInfo.SubscribeVehicleData", { speed = true })
   :Do(function(_, data)
       m.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", {
-        gps = { dataType = "VEHICLEDATA_GPS", resultCode = "SUCCESS" }})
+        speed = { dataType = "VEHICLEDATA_SPEED", resultCode = "SUCCESS" }})
     end)
   m.getMobileSession():ExpectResponse(cid, { success = true, resultCode = "SUCCESS"})
 end

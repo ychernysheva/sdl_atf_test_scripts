@@ -73,6 +73,7 @@ local function startServiceWithOnServiceUpdate_INVALID_CERT_2nd_try(pServiceId, 
       pTbl.policy_table.functional_groupings["DataConsent-2"].rpcs = json.null
       pTbl.policy_table.module_config.preloaded_pt = nil
       pTbl.policy_table.module_config.preloaded_date = nil
+      pTbl.policy_table.vehicle_data = nil
     end
     return pTbl
   end
@@ -80,7 +81,8 @@ local function startServiceWithOnServiceUpdate_INVALID_CERT_2nd_try(pServiceId, 
     if pExpNotificationFunc then
       pExpNotificationFunc()
     end
-    local cid = common.getHMIConnection():SendRequest("SDL.GetURLS", { service = 7 })
+    local cid = common.getHMIConnection():SendRequest("SDL.GetPolicyConfigurationData",
+      { policyType = "module_config", property = "endpoints" })
     common.getHMIConnection():ExpectResponse(cid)
     :Do(function()
 
@@ -189,7 +191,8 @@ local function startServiceWithOnServiceUpdate_PTU_FAILED(pServiceId, pHandShake
   end
   function common.policyTableUpdateFunc()
     function common.policyTableUpdate()
-      local cid = common.getHMIConnection():SendRequest("SDL.GetURLS", { service = 7 })
+      local cid = common.getHMIConnection():SendRequest("SDL.GetPolicyConfigurationData",
+        { policyType = "module_config", property = "endpoints" })
       common.getHMIConnection():ExpectResponse(cid)
       :Do(function()
           common.getHMIConnection():ExpectRequest("BasicCommunication.PolicyUpdate")

@@ -109,7 +109,8 @@ local function startServiceWithOnServiceUpdate_REQUEST_ACCEPTED(pServiceId, pHan
   end
   function common.policyTableUpdateFunc()
     function common.policyTableUpdate()
-      local cid = common.getHMIConnection():SendRequest("SDL.GetURLS", { service = 7 })
+      local cid = common.getHMIConnection():SendRequest("SDL.GetPolicyConfigurationData",
+        { policyType = "module_config", property = "endpoints" })
       common.getHMIConnection():ExpectResponse(cid)
       :Do(function()
           common.getHMIConnection():ExpectRequest("BasicCommunication.PolicyUpdate")
