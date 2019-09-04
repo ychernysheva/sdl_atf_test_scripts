@@ -1,5 +1,5 @@
 ---------------------------------------------------------------------------------------------------
---  Precondition: 
+--  Precondition:
 --  1) Application with <appID> is registered on SDL.
 --
 --  Steps:
@@ -23,8 +23,8 @@ local function updatePTU(tbl)
   tbl.policy_table.app_policies[appID] = common.getCloudAppConfig(2)
 end
 
-local function checkUpdateAppList(self)
-  EXPECT_HMINOTIFICATION("BasicCommunication.UpdateAppList"):Times(AtLeast(1))
+local function checkUpdateAppList()
+  EXPECT_HMINOTIFICATION("BasicCommunication.UpdateAppList")
   :ValidIf(function(_,data)
     if #data.params.applications ~= 0 then
       for i=1,#data.params.applications do
@@ -41,11 +41,16 @@ local function checkUpdateAppList(self)
   end)
 end
 
+local function rai()
+  EXPECT_HMINOTIFICATION("BasicCommunication.UpdateAppList")
+  common.registerAppWOPTU()
+end
+
 --[[ Scenario ]]
 runner.Title("Preconditions")
 runner.Step("Clean environment", common.preconditions)
 runner.Step("Start SDL, HMI, connect Mobile, start Session", common.start)
-runner.Step("RAI", common.registerAppWOPTU, { 1 })
+runner.Step("RAI", rai)
 
 runner.Title("Test")
 runner.Step("Check UpdateAppList", common.policyTableUpdate, { updatePTU, checkUpdateAppList })
