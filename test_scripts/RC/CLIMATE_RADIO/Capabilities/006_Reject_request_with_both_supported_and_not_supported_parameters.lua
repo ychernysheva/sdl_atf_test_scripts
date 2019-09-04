@@ -21,8 +21,12 @@ local commonRC = require('test_scripts/RC/commonRC')
 runner.testSettings.isSelfIncluded = false
 
 --[[ Local Variables ]]
+local moduleId = commonRC.getModuleId("CLIMATE")
 local climate_capabilities = {{
   moduleName = "Climate",
+  moduleInfo = {
+    moduleId = moduleId
+  },
   fanSpeedAvailable = true,
   acEnableAvailable = true,
   acMaxEnableAvailable = true
@@ -34,8 +38,9 @@ capParams.BUTTONS = commonRC.DEFAULT
 local rc_capabilities = commonRC.buildHmiRcCapabilities(capParams)
 local climate_params =
 {
-	moduleType = "CLIMATE",
-	climateControlData =
+  moduleType = "CLIMATE",
+  moduleId = moduleId,
+  climateControlData =
   {
     fanSpeed = 30,
     acEnable = true,
