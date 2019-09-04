@@ -53,7 +53,7 @@ local function changeRegistration()
     hmiDisplayLanguage = common.language,
   }
   local cid = common.getMobileSession():SendRPC("ChangeRegistration", params)
-  expHMIChangeRegistration("DE-DE")
+  expHMIChangeRegistration(common.language)
   common.getMobileSession():ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 end
 
