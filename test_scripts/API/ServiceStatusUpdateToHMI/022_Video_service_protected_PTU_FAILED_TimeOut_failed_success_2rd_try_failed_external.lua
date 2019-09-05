@@ -143,6 +143,7 @@ local function startServiceWithOnServiceUpdate_INVALID_CERT_2nd_try(pServiceId, 
         common.log("SDL->HMI:", "BC.OnServiceUpdate", d.params.serviceEvent, d.params.reason)
       end)
     :Times(2)
+    :Timeout(timeout)
   end
   common.startServiceWithOnServiceUpdate(pServiceId, pHandShakeExpeTimes, pGSTExpTimes)
 end
