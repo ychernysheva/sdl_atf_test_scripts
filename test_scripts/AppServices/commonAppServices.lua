@@ -134,7 +134,8 @@ function commonAppServices.getAppServiceConsumerConfig(app_id)
     steal_focus = false,
     priority = "NONE",
     default_hmi = "NONE",
-    groups = { "Base-4" , "AppServiceConsumer" }
+    groups = { "Base-4" , "AppServiceConsumer" },
+    nicknames = { config["application" .. app_id].registerAppInterfaceParams.appName }
   }
 end
 
@@ -145,6 +146,7 @@ function commonAppServices.getAppServiceProducerConfig(app_id, service_type)
     priority = "NONE",
     default_hmi = "NONE",
     groups = { "Base-4" , "AppServiceProvider" },
+    nicknames = { config["application" .. app_id].registerAppInterfaceParams.appName },
     app_services = {}
   }
   local service_info = {
