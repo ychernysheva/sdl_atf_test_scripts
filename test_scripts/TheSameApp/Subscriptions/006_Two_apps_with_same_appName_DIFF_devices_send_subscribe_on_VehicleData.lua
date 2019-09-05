@@ -79,7 +79,13 @@ local function subscribeOnSpeed(pAppId, pFirstApp)
   if pFirstApp then
     common.hmi.getConnection():ExpectRequest("VehicleInfo.SubscribeVehicleData", { speed = true })
     :Do(function(_,data)
-         common.hmi.getConnection():SendResponse( data.id, data.method, "SUCCESS" )
+        local hmiRespParams = {
+          speed = {
+            dataType = "VEHICLEDATA_SPEED",
+            resultCode = "SUCCESS"
+          }
+        }
+        common.hmi.getConnection():SendResponse( data.id, data.method, "SUCCESS", hmiRespParams )
       end)
   end
     mobSession:ExpectResponse( cid, { success = true, resultCode = "SUCCESS" })
@@ -93,7 +99,13 @@ local function subscribeOnSpeedAndGPS(pAppId, pFirstApp)
     common.hmi.getConnection():ExpectRequest(
                      "VehicleInfo.SubscribeVehicleData", { gps = true })
     :Do(function(_,data)
-         common.hmi.getConnection():SendResponse( data.id, data.method, "SUCCESS" )
+        local hmiRespParams = {
+          gps = {
+            dataType = "VEHICLEDATA_GPS",
+            resultCode = "SUCCESS"
+          }
+        }
+        common.hmi.getConnection():SendResponse( data.id, data.method, "SUCCESS", hmiRespParams )
       end)
   end
     mobSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })

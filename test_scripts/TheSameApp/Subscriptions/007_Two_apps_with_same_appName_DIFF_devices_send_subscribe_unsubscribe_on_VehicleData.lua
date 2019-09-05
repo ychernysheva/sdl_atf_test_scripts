@@ -86,7 +86,13 @@ local function sendSubscribeGPS(pAppId, pFirstApp)
   if pFirstApp then
     common.hmi.getConnection():ExpectRequest("VehicleInfo.SubscribeVehicleData", { gps = true })
     :Do(function(_,data)
-         common.hmi.getConnection():SendResponse( data.id, data.method, "SUCCESS" )
+        local hmiRespParams = {
+          gps = {
+            dataType = "VEHICLEDATA_GPS",
+            resultCode = "SUCCESS"
+          }
+        }
+        common.hmi.getConnection():SendResponse( data.id, data.method, "SUCCESS", hmiRespParams )
       end)
   end
     mobSession:ExpectResponse( cid, { success = true, resultCode = "SUCCESS" })
@@ -100,7 +106,13 @@ local function sendSubscribeGPSSpeed(pAppId, pFirstApp)
     common.hmi.getConnection():ExpectRequest(
                      "VehicleInfo.SubscribeVehicleData", { speed = true })
     :Do(function(_,data)
-         common.hmi.getConnection():SendResponse( data.id, data.method, "SUCCESS" )
+        local hmiRespParams = {
+          speed = {
+            dataType = "VEHICLEDATA_SPEED",
+            resultCode = "SUCCESS"
+          }
+        }
+        common.hmi.getConnection():SendResponse( data.id, data.method, "SUCCESS", hmiRespParams )
       end)
   end
     mobSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
@@ -130,7 +142,13 @@ local function sendUnsubscribeGPS(pAppId, pLastApp)
   if pLastApp then
     common.hmi.getConnection():ExpectRequest("VehicleInfo.UnsubscribeVehicleData", { gps = true })
     :Do(function(_,data)
-         common.hmi.getConnection():SendResponse( data.id, data.method, "SUCCESS" )
+        local hmiRespParams = {
+          gps = {
+            dataType = "VEHICLEDATA_GPS",
+            resultCode = "SUCCESS"
+          }
+        }
+        common.hmi.getConnection():SendResponse( data.id, data.method, "SUCCESS", hmiRespParams )
       end)
   end
     mobSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
@@ -142,7 +160,13 @@ local function sendUnsubscribeSpeed(pAppId)
   local cid = mobSession:SendRPC("UnsubscribeVehicleData", { speed = true })
     common.hmi.getConnection():ExpectRequest("VehicleInfo.UnsubscribeVehicleData", { speed = true })
     :Do(function(_,data)
-         common.hmi.getConnection():SendResponse(data.id, data.method, "SUCCESS",{})
+        local hmiRespParams = {
+          speed = {
+            dataType = "VEHICLEDATA_SPEED",
+            resultCode = "SUCCESS"
+          }
+        }
+        common.hmi.getConnection():SendResponse(data.id, data.method, "SUCCESS", hmiRespParams )
       end)
     mobSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
     mobSession:ExpectNotification("OnHashChange")

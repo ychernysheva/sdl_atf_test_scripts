@@ -168,7 +168,7 @@ function m.subscribeToVD()
   m.getHMIConnection():ExpectRequest("VehicleInfo.SubscribeVehicleData", { speed = true })
   :Do(function(_, data)
       m.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", {
-        gps = { dataType = "VEHICLEDATA_GPS", resultCode = "SUCCESS" }})
+        speed = { dataType = "VEHICLEDATA_SPEED", resultCode = "SUCCESS" }})
     end)
   m.getMobileSession():ExpectResponse(cid, { success = true, resultCode = "SUCCESS"})
 end
@@ -283,6 +283,7 @@ function m.checkOnPermissionsChange(pRpcConfig, pExpApp, pExpRPC, pActPayload, p
   return true
 end
 
+local policyTableUpdate_Orig = m.policyTableUpdate
 function m.policyTableUpdateSpecific(pRpcConfig, pNotifQty, pUpdateFunc, pExpApp, pExpRPC, pTC)
   local function expNotificationFunc()
     m.defaultExpNotificationFunc()
@@ -295,8 +296,13 @@ function m.policyTableUpdateSpecific(pRpcConfig, pNotifQty, pUpdateFunc, pExpApp
       end)
     :Times(pNotifQty)
   end
-  m.policyTableUpdate(pUpdateFunc, expNotificationFunc)
+  policyTableUpdate_Orig(pUpdateFunc, expNotificationFunc)
   m.wait(1000)
+end
+
+function m.policyTableUpdate(pUpdateFunc, expNotificationFunc)
+  m.getMobileSession():ExpectNotification("OnPermissionsChange")
+  policyTableUpdate_Orig(pUpdateFunc, expNotificationFunc)
 end
 
 return m

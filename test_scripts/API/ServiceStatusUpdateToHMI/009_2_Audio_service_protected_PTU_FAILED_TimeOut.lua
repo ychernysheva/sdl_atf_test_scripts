@@ -85,7 +85,8 @@ end
 
 function common.policyTableUpdateFunc()
   function common.policyTableUpdate()
-    local cid = common.getHMIConnection():SendRequest("SDL.GetURLS", { service = 7 })
+    local cid = common.getHMIConnection():SendRequest("SDL.GetPolicyConfigurationData",
+      { policyType = "module_config", property = "endpoints" })
     common.getHMIConnection():ExpectResponse(cid)
     :Do(function()
         common.getHMIConnection():SendNotification("BasicCommunication.OnSystemRequest",

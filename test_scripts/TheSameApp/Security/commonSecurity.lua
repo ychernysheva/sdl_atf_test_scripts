@@ -36,19 +36,16 @@ function common.protectedModeRPC(pAppId, pParams)
       common.hmi.getConnection():SendResponse(data.id, data.method, "SUCCESS", { })
     end)
   common.getMobileSession(pAppId):ExpectEncryptedResponse(cid, { success = true, resultCode = "SUCCESS" })
-  common.getMobileSession(pAppId):ExpectEncryptedNotification("OnHashChange")
+  common.getMobileSession(pAppId):ExpectNotification("OnHashChange")
 end
 
-function common.nonProtectedRPC(pAppId, pRPCParams, pAppInProtectedMode)
-  local cid = common.getMobileSession(pAppId):SendRPC("AddCommand", pRPCParams)
-      common.hmi.getConnection():ExpectRequest("UI.AddCommand", pRPCParams)
+function common.nonProtectedRPC(pAppId, pParams)
+  local cid = common.getMobileSession(pAppId):SendRPC("AddCommand", pParams)
+      common.hmi.getConnection():ExpectRequest("UI.AddCommand", pParams)
   :Do(function(_, data)
        common.hmi.getConnection():SendResponse(data.id, data.method, "SUCCESS", {})
       end)
-  if not pAppInProtectedMode then
     common.getMobileSession(pAppId):ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
-  else common.getMobileSession(pAppId):ExpectEncryptedResponse(cid, { success = true, resultCode = "SUCCESS" })
-  end
 end
 
 --[[ @startServiceProtected: start (or switch) service in protected mode

@@ -73,6 +73,7 @@ local function startServiceWithOnServiceUpdate_INVALID_CERT_2nd_try(pServiceId, 
       pTbl.policy_table.functional_groupings["DataConsent-2"].rpcs = json.null
       pTbl.policy_table.module_config.preloaded_pt = nil
       pTbl.policy_table.module_config.preloaded_date = nil
+      pTbl.policy_table.vehicle_data = nil
     end
     return pTbl
   end
@@ -80,7 +81,8 @@ local function startServiceWithOnServiceUpdate_INVALID_CERT_2nd_try(pServiceId, 
     if pExpNotificationFunc then
       pExpNotificationFunc()
     end
-    local cid = common.getHMIConnection():SendRequest("SDL.GetURLS", { service = 7 })
+    local cid = common.getHMIConnection():SendRequest("SDL.GetPolicyConfigurationData",
+      { policyType = "module_config", property = "endpoints" })
     common.getHMIConnection():ExpectResponse(cid)
     :Do(function()
 
@@ -141,6 +143,7 @@ local function startServiceWithOnServiceUpdate_INVALID_CERT_2nd_try(pServiceId, 
         common.log("SDL->HMI:", "BC.OnServiceUpdate", d.params.serviceEvent, d.params.reason)
       end)
     :Times(2)
+    :Timeout(timeout)
   end
   common.startServiceWithOnServiceUpdate(pServiceId, pHandShakeExpeTimes, pGSTExpTimes)
 end
@@ -189,21 +192,20 @@ local function startServiceWithOnServiceUpdate_PTU_FAILED(pServiceId, pHandShake
   end
   function common.policyTableUpdateFunc()
     function common.policyTableUpdate()
-      local cid = common.getHMIConnection():SendRequest("SDL.GetURLS", { service = 7 })
+      local cid = common.getHMIConnection():SendRequest("SDL.GetPolicyConfigurationData",
+        { policyType = "module_config", property = "endpoints" })
       common.getHMIConnection():ExpectResponse(cid)
+      common.getHMIConnection():ExpectRequest("BasicCommunication.PolicyUpdate")
       :Do(function()
-          common.getHMIConnection():ExpectRequest("BasicCommunication.PolicyUpdate")
-          :Do(function()
-              common.log("SDL->HMI:", "BC.PolicyUpdate")
-              sendBCOnSystemRequest()
-            end)
-          common.getMobileSession():ExpectNotification("OnSystemRequest", { requestType = "PROPRIETARY" })
-          :Do(function(_, d)
-              common.log("SDL->MOB:", "OnSystemRequest  ", d.payload.requestType)
-            end)
-          :Times(numOfIter + 2)
-          :Timeout(timeout)
+          common.log("SDL->HMI:", "BC.PolicyUpdate")
+          sendBCOnSystemRequest()
         end)
+      common.getMobileSession():ExpectNotification("OnSystemRequest", { requestType = "PROPRIETARY" })
+      :Do(function(_, d)
+          common.log("SDL->MOB:", "OnSystemRequest  ", d.payload.requestType)
+        end)
+      :Times(numOfIter + 2)
+      :Timeout(timeout)
     end
     local expNotifRes = getExpOnStatusUpdate()
     common.getHMIConnection():ExpectNotification("SDL.OnStatusUpdate", unpack(expNotifRes))
