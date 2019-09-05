@@ -104,7 +104,7 @@ function m.policyTableUpdateSuccess(pPTUpdateFunc)
     :Times(AtMost(1))
     m.getHMIConnection():ExpectRequest("VehicleInfo.GetVehicleData", { odometer = true })
   end
-  m.getHMIConnection():ExpectRequest("BasicCommunication.PolicyUpdate")
+  m.isPTUStarted()
   :Do(function(e, data)
       if e.occurences == 1 then
         m.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", { })
@@ -123,7 +123,7 @@ function m.policyTableUpdateUnsuccess()
     common.getHMIConnection():ExpectRequest("BasicCommunication.DecryptCertificate")
     :Times(0)
   end
-  common.getHMIConnection():ExpectRequest("BasicCommunication.PolicyUpdate")
+  m.isPTUStarted()
   :Do(function(e, data)
       if e.occurences == 1 then
         common.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", { })
