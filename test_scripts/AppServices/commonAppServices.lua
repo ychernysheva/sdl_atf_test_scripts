@@ -289,6 +289,7 @@ function commonAppServices.publishSecondMobileAppService(manifest1, manifest2, a
         serviceIDs[app_id] = data.payload.appServiceRecord.serviceID
       end
     end)
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnSystemCapabilityUpdated")
 end
 
 function commonAppServices.mobileSubscribeAppServiceData(provider_app_id, service_type, app_id)
@@ -450,13 +451,7 @@ end
 
 --[[Timeout]]
 function commonAppServices.getRpcPassThroughTimeoutFromINI()
-  local SDLini        = config.pathToSDL .. tostring("smartDeviceLink.ini")
-  f = assert(io.open(SDLini, "r"))
-  local fileContentUpdated = false
-  local fileContent = f:read("*all")
-  local property = fileContent:match('RpcPassThroughTimeout%s*=%s*[a-zA-Z%/0-9%_.]+[^\n]')
-  local RpcPassThroughTimeout = string.gsub(property:match("=.*"), "=", "")
-  return tonumber(RpcPassThroughTimeout)
+  return tonumber(commonAppServices.sdl.getSDLIniParameter("RpcPassThroughTimeout"))
 end
 
 function commonAppServices:Request_PTU()  
