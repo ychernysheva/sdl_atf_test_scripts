@@ -568,6 +568,10 @@ local function registerApp(pAppId, pMobConnId, hasPTU)
             { hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN" })
           session:ExpectNotification("OnPermissionsChange")
           :Times(AnyNumber())
+          local policyMode = SDL.buildOptions.extendedPolicy
+          if policyMode == policyModes.P or policyMode == policyModes.EP then
+            session:ExpectNotification("OnSystemRequest", { requestType = "LOCK_SCREEN_ICON_URL" })
+          end
         end)
     end)
 end
