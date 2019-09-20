@@ -232,7 +232,7 @@ m.allVehicleData = {
       emergencyEventType = "NO_EVENT",
       fuelCutoffStatus = "NORMAL_OPERATION",
       rolloverEvent = "NO",
-      maximumChangeVelocity = "NO_EVENT",
+      maximumChangeVelocity = 0,
       multipleEvents = "NO"
     },
     type = "VEHICLEDATA_EMERGENCYEVENT"
@@ -331,9 +331,6 @@ end
 function m.checkNotificationSuccess(pData)
   local hmiNotParams = { [pData] = m.allVehicleData[pData].value }
   local mobNotParams = m.cloneTable(hmiNotParams)
-  if mobNotParams.emergencyEvent then
-    mobNotParams.emergencyEvent.maximumChangeVelocity = 0
-  end
   m.getHMIConnection():SendNotification("VehicleInfo.OnVehicleData", hmiNotParams)
   m.getMobileSession():ExpectNotification("OnVehicleData", mobNotParams)
 end

@@ -248,7 +248,7 @@ local function VehicleDataItemsWithDataTableCreation()
     emergencyEventParams.emergencyEventType.value = "NO_EVENT"
     emergencyEventParams.fuelCutoffStatus.value = "NORMAL_OPERATION"
     emergencyEventParams.rolloverEvent.value = "NO"
-    emergencyEventParams.maximumChangeVelocity.value = "NO_EVENT"
+    emergencyEventParams.maximumChangeVelocity.value = 0
     emergencyEventParams.multipleEvents.value = "NO"
     common.VehicleDataItemsWithData.emergencyEvent.APItype = "VEHICLEDATA_EMERGENCYEVENT"
     local clusterModeStatusParams = common.VehicleDataItemsWithData.clusterModeStatus.params
@@ -774,9 +774,6 @@ function common.getVehicleDataResponse(pVehicleData)
   end
   if common.VehicleDataItemsWithData[pVehicleData].rpcSpecData == true then
     HMIresponse = mobileResponse
-  end
-  if mobileResponse.emergencyEvent then
-    mobileResponse.emergencyEvent.maximumChangeVelocity = 0
   end
   return HMIresponse, mobileResponse
 end

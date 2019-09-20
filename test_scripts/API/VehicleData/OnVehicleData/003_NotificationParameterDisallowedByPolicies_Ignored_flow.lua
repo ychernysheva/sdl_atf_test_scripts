@@ -40,9 +40,6 @@ end
 local function checkNotification2apps(pData)
   local hmiNotParams = { [pData] = common.allVehicleData[pData].value }
   local mobNotParams = common.cloneTable(hmiNotParams)
-  if mobNotParams.emergencyEvent then
-    mobNotParams.emergencyEvent.maximumChangeVelocity = 0
-  end
   common.getHMIConnection():SendNotification("VehicleInfo.OnVehicleData", hmiNotParams)
   common.getMobileSession(1):ExpectNotification("OnVehicleData", mobNotParams)
   common.getMobileSession(2):ExpectNotification("OnVehicleData"):Times(0)
