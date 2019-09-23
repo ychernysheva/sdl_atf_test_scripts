@@ -32,9 +32,6 @@ local function processRPCSuccess(pData)
       common.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", hmiResParams)
     end)
   local mobResParams = common.cloneTable(hmiResParams)
-  if mobResParams.emergencyEvent then
-    mobResParams.emergencyEvent.maximumChangeVelocity = 0
-  end
   mobResParams.success = true
   mobResParams.resultCode = "SUCCESS"
   common.getMobileSession():ExpectResponse(cid, mobResParams)
