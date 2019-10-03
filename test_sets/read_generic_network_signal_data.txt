@@ -42,7 +42,7 @@
 ./test_scripts/API/VehicleData/GenericNetworkSignalData/042_Initial_data_in_PTU.lua
 ./test_scripts/API/VehicleData/GenericNetworkSignalData/043_VD_is_invalid_in_preloaded.lua
 ./test_scripts/API/VehicleData/GenericNetworkSignalData/044_PTU_missed_mandatory_parameter_in_VDI.lua
-./test_scripts/API/VehicleData/GenericNetworkSignalData/045_PTU_invalid_types_of_parameters.lua
+./test_scripts/API/VehicleData/GenericNetworkSignalData/045_PTU_unknown_types_of_parameters.lua
 ./test_scripts/API/VehicleData/GenericNetworkSignalData/046_PTU_missed_params_in_VDI_of_type_Struct.lua
 ./test_scripts/API/VehicleData/GenericNetworkSignalData/047_VDI_permissions_after_ptu_with_VDI_without_VD_schema_version.lua
 ./test_scripts/API/VehicleData/GenericNetworkSignalData/048_PTU_without_version_in_endpoint_properties.lua
