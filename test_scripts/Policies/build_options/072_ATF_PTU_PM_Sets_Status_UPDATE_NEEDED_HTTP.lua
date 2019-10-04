@@ -157,7 +157,7 @@ function Test:ValidateResult()
   print("Expected: " .. r_expected_timeout)
   print("Actual: " .. r_actual_timeout)
   -- tolerance 2 sec.
-  if (r_actual_timeout < r_expected_timeout) or (r_actual_timeout > r_expected_timeout + 1) then
+  if (r_actual_timeout < r_expected_timeout - 1) or (r_actual_timeout > r_expected_timeout + 1) then
     local msg = "\nExpected timeout '" .. r_expected_timeout .. "', actual '" .. r_actual_timeout .. "'"
     self:FailTestCase(msg)
   end
