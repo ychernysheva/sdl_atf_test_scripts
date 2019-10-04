@@ -60,7 +60,6 @@ for _, vehicleDataItem in pairs(rpcSpecData) do
   end
 end
 for _, vehicleDataItem in pairs(customData) do
-  --if vehicleDataItem == "custom_vd_item1_integer" then
   runner.Step("SubscribeVehicleData " .. vehicleDataItem, common.VDsubscription,
     { appSessionId, vehicleDataItem, "SubscribeVehicleData" })
   runner.Step("OnVehicleData " .. vehicleDataItem, common.onVD,
