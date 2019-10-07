@@ -102,6 +102,9 @@ function common.registerAppEx(pAppId, pAppParams, pMobConnId, pHasPTU)
           }
         })
       :Do(function(_, d1)
+        common.hmi.getConnection():ExpectRequest("VR.ChangeRegistration")
+        common.hmi.getConnection():ExpectRequest("TTS.ChangeRegistration")
+        common.hmi.getConnection():ExpectRequest("UI.ChangeRegistration")
         common.app.setHMIId(d1.params.application.appID, pAppId)
           if pHasPTU then
             common.isPTUStarted()
