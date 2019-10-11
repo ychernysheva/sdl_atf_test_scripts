@@ -60,13 +60,18 @@ local MACHash
 local appID = config.application1.registerAppInterfaceParams["fullAppID"]
 
 --[[ Local Functions ]]
+local function dateToTimeStamp(date)
+  local year, month, day, hour, min, sec = date:match("(%d+)-(%d+)-(%d+)T(%d+):(%d+):(%d+)Z")
+  return os.time({year = year, month = month, day = day, hour = hour, min = min, sec = sec})
+end
+
 local function GetCurrentTimeStampDeviceConsent()
-  consentDeviceSystemTimeStamp = os.date("%Y-%m-%dT%H:%M:%SZ")
+  consentDeviceSystemTimeStamp = os.time()
   return consentDeviceSystemTimeStamp
 end
 
 local function GetCurrentTimeStampGroupConsent()
-  consentGroupSystemTimeStamp = os.date("%Y-%m-%dT%H:%M:%SZ")
+  consentGroupSystemTimeStamp = os.time()
   return consentGroupSystemTimeStamp
 end
 
@@ -90,11 +95,11 @@ local function GetDataFromSnapshot(pathToFile)
   local data = json.decode(json_data)
   local ucr = data.policy_table.device_data[MACHash].user_consent_records
   local res = {
-    deviceConsentTimeStamp = getData(ucr.device, "time_stamp"),
+    deviceConsentTimeStamp = dateToTimeStamp(getData(ucr.device, "time_stamp")),
     deviceInput = getData(ucr.device, "input"),
     deviceGroups = getTableData(ucr.device, "consent_groups"),
     inputOfAppIdConsent = getData(ucr[appID], "input"),
-    groupUserconsentTimeStamp = getData(ucr[appID], "time_stamp"),
+    groupUserconsentTimeStamp = dateToTimeStamp(getData(ucr[appID], "time_stamp")),
     userConsentGroup = getTableData(ucr[appID], "consent_groups")
   }
   return res
@@ -213,10 +218,11 @@ function Test:Validate_Snapshot_Values()
       local msg = ""
       local result = true
       for k, v in pairs(verificationValues) do
-        if v ~= valuesFromPTS[k] then
-          if string.len(msg) > 0 then msg = msg .. "\n" end
-          msg = msg .. "Wrong value from snapshot " .. k .. "! Expected: " .. v .. " Actual: " .. tostring(valuesFromPTS[k])
-          result = false
+        if (type(v) == "number" and (valuesFromPTS[k] > v + 1 or valuesFromPTS[k] < v - 1))
+          or (type(v) ~= "number" and v ~= valuesFromPTS[k]) then
+            if string.len(msg) > 0 then msg = msg .. "\n" end
+            msg = msg .. "Wrong value from snapshot " .. k .. "! Expected: " .. v .. " Actual: " .. tostring(valuesFromPTS[k])
+            result = false
         end
       end
       return result, msg
