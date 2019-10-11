@@ -121,7 +121,7 @@ for i = 1, (ignition_cycles_before_ptu) do
   function Test:Precondition_IGNITION_OFF()
 
     self.hmiConnection:SendNotification("BasicCommunication.OnIgnitionCycleOver")
-
+    commonTestCases:DelayedExp(500)
   end
 
   function Test.Precondition_StopSDL()
@@ -172,6 +172,7 @@ end
 function Test:TestStep_IGNITION_OFF()
   self.hmiConnection:SendNotification("BasicCommunication.OnIgnitionCycleOver")
   ignition_cycles_before_ptu = ignition_cycles_before_ptu + 1
+  commonTestCases:DelayedExp(500)
 end
 
 function Test.TestStep_StopSDL()
