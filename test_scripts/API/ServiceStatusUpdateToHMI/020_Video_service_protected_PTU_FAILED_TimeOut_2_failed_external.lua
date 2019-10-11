@@ -53,6 +53,16 @@ function common.onServiceUpdateFunc(pServiceTypeValue)
     end)
   :Times(2)
   :Timeout(timeout)
+
+  common.getHMIConnection():ExpectRequest("BasicCommunication.CloseApplication", { appID = common.getHMIAppId() })
+  :Do(function(_, data)
+      common.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", { })
+    end)
+  :Timeout(timeout)
+
+  common.getMobileSession():ExpectNotification("OnHMIStatus",
+    { hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN" })
+  :Timeout(timeout)
 end
 
 function common.serviceResponseFunc(pServiceId)
@@ -149,6 +159,8 @@ runner.Title("PTU 1")
 runner.Step("Start " .. common.serviceData[serviceId].serviceType .. " service protected, REJECTED",
   startServiceWithOnServiceUpdate_PTU_FAILED, { serviceId, 0, 1, 1 })
 runner.Step("Check result", common.checkResult, { result })
+
+runner.Step("App activation", common.activateApp)
 
 runner.Title("PTU 2")
 runner.Step("Start " .. common.serviceData[serviceId].serviceType .. " service protected, REJECTED",
