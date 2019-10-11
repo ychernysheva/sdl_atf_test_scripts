@@ -51,8 +51,7 @@ local requestParams = {}
 
 local responseParams = {
 	success = true,
-    resultCode = "SUCCESS",
-	spaceAvailable = 103878520
+	resultCode = "SUCCESS"
 }
 
 local allParams = {
@@ -76,6 +75,12 @@ local function listFiles(params, self)
           		.. "\nActual files:\n" .. commonFunctions:convertTableToString(data.payload.filenames, 1)
       	end
     	return true
+    end)
+    :ValidIf(function(_, data)
+      if not data.payload.spaceAvailable or data.payload.spaceAvailable == 0 then
+        return false, "'spaceAvailable' is not provided or zero"
+      end
+      return true
     end)
 end
 
