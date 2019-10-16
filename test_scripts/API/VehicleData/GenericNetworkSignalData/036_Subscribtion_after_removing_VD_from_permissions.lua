@@ -57,6 +57,20 @@ local function getParamsListForOnPermChange()
   return out
 end
 
+local function expectFunc()
+  local itemToRemoveKey =  common.VehicleDataItemsWithData[itemToRemove].key
+  common.getHMIConnection():ExpectRequest("VehicleInfo.GetVehicleData", { odometer = true })
+  common.getHMIConnection():ExpectNotification("SDL.OnStatusUpdate", { status = "UP_TO_DATE" })
+
+  common.getHMIConnection():ExpectRequest("VehicleInfo.UnsubscribeVehicleData", { [itemToRemoveKey] = true })
+  :Do(function(_, data)
+    common.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", {[itemToRemoveKey] = {
+      dataType = common.CUSTOM_DATA_TYPE,
+      resultCode = "SUCCESS"
+    }})
+  end)
+end
+
 -- [[ Scenario ]]
 runner.Title("Preconditions")
 runner.Step("Clean environment", common.preconditions)
@@ -71,7 +85,7 @@ runner.Step("SubscribeVehicleData " .. itemToRemove, common.VDsubscription,
 runner.Step("OnVehicleData " .. itemToRemove, common.onVD,
   { appSessionId, itemToRemove })
 runner.Step("PTU with removing " .. itemToRemove .. " from VehicleDataItems", common.ptuWithOnPolicyUpdateFromHMI,
-  { ptuFunc, getParamsListForOnPermChange() })
+  { ptuFunc, getParamsListForOnPermChange(), expectFunc })
 runner.Step("OnVehicleData " .. itemToRemove, common.onVD,
   { appSessionId, itemToRemove, common.VD.NOT_EXPECTED })
 runner.Step("SubscribeVehicleData " .. itemToRemove .. " after VD was removed", common.errorRPCprocessing,
