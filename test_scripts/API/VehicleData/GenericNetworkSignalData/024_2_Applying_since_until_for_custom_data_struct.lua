@@ -99,14 +99,16 @@ end
 local function onVD2AppsWithDifferentValues()
   common.VehicleDataItemsWithData[vehicleDataName].params[vehicleDataSubInt].value = initialVDvalueForSubItem
   common.VehicleDataItemsWithData[vehicleDataName].params[vehicleDataSubStruct].params[vehicleDataSubSubInt].value = initialVDvalueForSubSubItem
-  local HMInotifData1, mobileNotifData1 = common.getVehicleDataResponse(vehicleDataName)
+  local HMInotifData1 = common.getVehicleDataResponse(vehicleDataName)
   common.VehicleDataItemsWithData[vehicleDataName].params[vehicleDataSubInt].value = validVDvalueAfterUpdate
   common.VehicleDataItemsWithData[vehicleDataName].params[vehicleDataSubStruct].params[vehicleDataSubSubInt].value = validVDvalueAfterUpdate
   local HMInotifData2, mobileNotifData2 = common.getVehicleDataResponse(vehicleDataName)
   common.getHMIConnection():SendNotification("VehicleInfo.OnVehicleData", HMInotifData1)
   common.getHMIConnection():SendNotification("VehicleInfo.OnVehicleData", HMInotifData2)
 
-  common.getMobileSession(1):ExpectNotification("OnVehicleData", mobileNotifData1)
+  common.getMobileSession(1):ExpectNotification("OnVehicleData")
+  :Times(0)
+
   common.getMobileSession(2):ExpectNotification("OnVehicleData", mobileNotifData2)
 end
 
@@ -163,10 +165,10 @@ runner.Title("Test")
 runner.Step("App1 SubscribeVehicleData " .. vehicleDataName, common.VDsubscription,
   { appSessionId1, vehicleDataName, "SubscribeVehicleData" })
 runner.Step("App1 OnVehicleData " .. vehicleDataName, common.onVD,
-  { appSessionId1, vehicleDataName, common.VD.EXPECTED })
+  { appSessionId1, vehicleDataName, common.VD.NOT_EXPECTED })
 runner.Step("App1 UnsubscribeVehicleData " .. vehicleDataName, common.VDsubscription,
   { appSessionId1, vehicleDataName, "UnsubscribeVehicleData" })
-runner.Step("App1 GetVehicleData " .. vehicleDataName, common.GetVD, { appSessionId1, vehicleDataName })
+runner.Step("App1 GetVehicleData " .. vehicleDataName, getVehicleDataGenericError, { appSessionId1, vehicleDataName })
 
 runner.Step("App2 SubscribeVehicleData " .. vehicleDataName, common.VDsubscription,
   { appSessionId2, vehicleDataName, "SubscribeVehicleData" })
