@@ -318,6 +318,7 @@ function Test:Precondition_PTU_user_consent_prompt_present()
     local RequestAlert = self.mobileSession:SendRPC("Alert", {alertText1 = "alertText1"})
 
     EXPECT_RESPONSE(RequestAlert, {success = false, resultCode = "GENERIC_ERROR"})
+    :Timeout(20000)
   end
 
   --Location-1 is disallowed by user
