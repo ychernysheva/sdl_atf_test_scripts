@@ -60,7 +60,6 @@ end
 local function expectFunc()
   local itemToRemoveKey =  common.VehicleDataItemsWithData[itemToRemove].key
   common.getHMIConnection():ExpectRequest("VehicleInfo.GetVehicleData", { odometer = true })
-  common.getHMIConnection():ExpectNotification("SDL.OnStatusUpdate", { status = "UP_TO_DATE" })
 
   common.getHMIConnection():ExpectRequest("VehicleInfo.UnsubscribeVehicleData", { [itemToRemoveKey] = true })
   :Do(function(_, data)
