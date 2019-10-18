@@ -627,6 +627,7 @@ function common.rpcRejectWithConsent(pAppId, pModuleType)
 end
 
 function common.ignitionOff(pDevices, pExpFunc)
+  config.ExitOnCrash = false
   local isOnSDLCloseSent = false
   local hmi = common.hmi.getConnection()
   if pExpFunc then pExpFunc() end
@@ -647,6 +648,7 @@ function common.ignitionOff(pDevices, pExpFunc)
       for i in pairs(pDevices) do
         common.mobile.deleteConnection(i)
       end
+      RUN_AFTER(function() config.ExitOnCrash = true end, 500)
     end)
 end
 
