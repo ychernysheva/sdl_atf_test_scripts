@@ -56,7 +56,7 @@ local hashIDs = {}
 
 --[[ Local Functions ]]
 local function ptuFunc(pTbl)
-  common.ptuFuncWithCustomData(pTbl)
+  common.ptuFuncWithCustomData2Apps(pTbl)
   for key, item in pairs(pTbl.policy_table.vehicle_data.schema_items) do
     if item.name == itemToRemove then
       table.remove(pTbl.policy_table.vehicle_data.schema_items, key)
