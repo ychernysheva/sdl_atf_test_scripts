@@ -25,8 +25,8 @@
 --   a. resends the OnVD notification to mobile app
 -- 4. Ignition off is performed
 -- 5. Ignition on is performed
--- 6.  Mobile app requests SubscribeVehicleData(data_1)
---   a. SDL rejects requests with INVALID_DATA resultCode
+-- 6.  HMI sends OnVD(data_1) notification
+--   a. SDL resends the OnVD notification to mobile app
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
@@ -56,6 +56,7 @@ end
 local function ptuFuncWithDataAdding(pTbl)
   common.ptuFuncWithCustomData(pTbl)
   pTbl.policy_table.vehicle_data.schema_version = "00.00.03"
+  table.insert(pTbl.policy_table.vehicle_data.schema_items, common.VehicleDataItemsWithData[itemToRemove])
 end
 
 local function getParamsListForOnPermChange()
@@ -68,11 +69,9 @@ local function getParamsListForOnPermChange()
   return out
 end
 
-local function expectFunc()
+local function expectFuncRemoving()
   local itemToRemoveKey =  common.VehicleDataItemsWithData[itemToRemove].key
   common.getHMIConnection():ExpectRequest("VehicleInfo.GetVehicleData", { odometer = true })
-  common.getHMIConnection():ExpectNotification("SDL.OnStatusUpdate", { status = "UP_TO_DATE" })
-
   common.getHMIConnection():ExpectRequest("VehicleInfo.UnsubscribeVehicleData", { [itemToRemoveKey] = true })
   :Do(function(_, data)
     common.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", {[itemToRemoveKey] = {
@@ -82,6 +81,12 @@ local function expectFunc()
   end)
 end
 
+local function expectFuncAdding()
+  common.getHMIConnection():ExpectRequest("VehicleInfo.GetVehicleData", { odometer = true })
+  common.getHMIConnection():ExpectRequest("VehicleInfo.UnsubscribeVehicleData")
+  :Times(0)
+end
+
 local function setVehicleDataItemsWithDataToInitialState()
   common.VehicleDataItemsWithData = initialVehicleDataItemsWithData
 end
@@ -89,7 +94,7 @@ end
 local function registerAppWithResumption()
   local itemKey =  common.VehicleDataItemsWithData[itemToRemove].key
   local expectedRequest = { [itemKey] = true }
-  common.getConfigAppParams(appSessionId).hashID = common.hashID
+  common.getConfigAppParams(appSessionId).hashID = common.hashId
   common.registerAppWOPTU(appSessionId)
 
   common.getHMIConnection():ExpectRequest("VehicleInfo.SubscribeVehicleData")
@@ -118,7 +123,7 @@ runner.Step("SubscribeVehicleData " .. itemToRemove, common.VDsubscription,
 runner.Step("OnVehicleData " .. itemToRemove, common.onVD,
   { appSessionId, itemToRemove })
 runner.Step("PTU with removing " .. itemToRemove .. " from VehicleDataItems", common.ptuWithOnPolicyUpdateFromHMI,
-  { ptuFuncWithDataRemove, getParamsListForOnPermChange(), expectFunc })
+  { ptuFuncWithDataRemove, getParamsListForOnPermChange(), expectFuncRemoving })
 runner.Step("OnVehicleData " .. itemToRemove, common.onVD,
   { appSessionId, itemToRemove, common.VD.NOT_EXPECTED })
 runner.Step("SubscribeVehicleData " .. itemToRemove .. " after VD was removed", common.errorRPCprocessing,
@@ -126,7 +131,7 @@ runner.Step("SubscribeVehicleData " .. itemToRemove .. " after VD was removed", 
 runner.Step("Set VehicleDataItemsWithDataToInitial state with " .. itemToRemove,
   setVehicleDataItemsWithDataToInitialState)
 runner.Step("PTU with adding " .. itemToRemove .. " from VehicleDataItems", common.ptuWithOnPolicyUpdateFromHMI,
-  { ptuFuncWithDataAdding, common.getAllVehicleData() })
+  { ptuFuncWithDataAdding, common.getAllVehicleData(), expectFuncAdding })
 runner.Step("SubscribeVehicleData " .. itemToRemove, common.VDsubscription,
   { appSessionId, itemToRemove, "SubscribeVehicleData" })
 runner.Step("OnVehicleData " .. itemToRemove, common.onVD,

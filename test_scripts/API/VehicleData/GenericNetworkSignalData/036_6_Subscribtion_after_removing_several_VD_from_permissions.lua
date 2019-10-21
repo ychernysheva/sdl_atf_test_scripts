@@ -40,8 +40,8 @@ local itemsToRemove = { "custom_vd_item1_integer", "custom_vd_item11_struct" }
 --[[ Local Functions ]]
 local function ptuFunc(pTbl)
   common.ptuFuncWithCustomData(pTbl)
-  for key, item in pairs(pTbl.policy_table.vehicle_data.schema_items) do
-    for _, itemName in pairs(itemsToRemove) do
+  for _, itemName in pairs(itemsToRemove) do
+    for key, item in pairs(pTbl.policy_table.vehicle_data.schema_items) do
       if item.name == itemName then
         table.remove(pTbl.policy_table.vehicle_data.schema_items, key)
       end
@@ -51,8 +51,8 @@ end
 
 local function getParamsListForOnPermChange()
   local out = common.getAllVehicleData()
-  for k,v in pairs(out) do
-    for _, itemName in pairs(itemsToRemove) do
+  for _, itemName in pairs(itemsToRemove) do
+    for k,v in pairs(out) do
       if v == itemName then
         table.remove(out, k)
       end
@@ -77,7 +77,7 @@ local function expectFunc()
 end
 
 local function registerAppWithResumption()
-  common.getConfigAppParams(appSessionId).hashID = common.hashID
+  common.getConfigAppParams(appSessionId).hashID = common.hashId
   common.registerAppWOPTU(appSessionId)
 
   common.getHMIConnection():ExpectRequest("VehicleInfo.SubscribeVehicleData")
