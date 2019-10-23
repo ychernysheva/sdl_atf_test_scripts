@@ -876,10 +876,10 @@ function common.connectMobile()
     end)
 end
 
-function common.ptuWithOnPolicyUpdateFromHMI(pPtuFunc, pVDparams)
+function common.ptuWithOnPolicyUpdateFromHMI(pPtuFunc, pVDparams, pExpNotificationFunc)
   common.isPTUStarted()
   :Do(function()
-    common.policyTableUpdateWithOnPermChange(pPtuFunc, nil, pVDparams)
+    common.policyTableUpdateWithOnPermChange(pPtuFunc, pExpNotificationFunc, pVDparams)
   end)
   common.getHMIConnection():SendNotification("SDL.OnPolicyUpdate", {} )
 end
