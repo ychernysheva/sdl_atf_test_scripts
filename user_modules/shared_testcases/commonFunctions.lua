@@ -9,8 +9,6 @@ require('atf.util')
 local json = require('json4lua/json/json')
 local expectations = require('expectations')
 local events = require('events')
-
-require('modules/config')
 local NewTestSuiteNumber = 0 -- use as subfix of test case "NewTestSuite" to make different test case name.
 local path_config = commonPreconditions:GetPathToSDL()
 ---------------------------------------------------------------------------------------------
