@@ -16,7 +16,6 @@
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
 local commonRC = require('test_scripts/RC/commonRC')
-local common_functions = require('user_modules/shared_testcases/commonTestCases')
 
 --[[ Test Configuration ]]
 runner.testSettings.isSelfIncluded = false
@@ -44,20 +43,20 @@ local absent_params = {
 local function setVehicleData(pParams)
   local cid = commonRC.getMobileSession():SendRPC("SetInteriorVehicleData", {moduleData = pParams})
 
-  if pParams.climateControlData.fanSpeed then
-    EXPECT_HMICALL("RC.SetInteriorVehicleData",	{
-      appID = commonRC.getHMIAppId(1),
-      moduleData = pParams})
-    :Do(function(_, data)
-        commonRC.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", {
-          moduleData = pParams})
-      end)
-    commonRC.getMobileSession():ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
-  else
-    EXPECT_HMICALL("RC.SetInteriorVehicleData"):Times(0)
-    commonRC.getMobileSession():ExpectResponse(cid, { success = false, resultCode = "UNSUPPORTED_RESOURCE" })
-    common_functions:DelayedExp(commonRC.timeout)
-  end
+	if pParams.climateControlData.fanSpeed then
+		EXPECT_HMICALL("RC.SetInteriorVehicleData",	{
+			appID = commonRC.getHMIAppId(1),
+			moduleData = pParams})
+		:Do(function(_, data)
+				commonRC.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", {
+					moduleData = pParams})
+			end)
+		commonRC.getMobileSession():ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
+	else
+		EXPECT_HMICALL("RC.SetInteriorVehicleData"):Times(0)
+		commonRC.getMobileSession():ExpectResponse(cid, { success = false, resultCode = "UNSUPPORTED_RESOURCE" })
+		commonRC.wait(commonRC.timeout)
+	end
 end
 
 --[[ Scenario ]]
