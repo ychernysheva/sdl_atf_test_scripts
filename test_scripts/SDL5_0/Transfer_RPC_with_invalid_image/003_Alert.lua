@@ -62,7 +62,11 @@ local requestParams = {
     }
   },
   playTone = true,
-  progressIndicator = true
+  progressIndicator = true,
+  alertIcon = {
+    value = "icon.png",
+    imageType = "DYNAMIC"
+  }
 }
 
 local responseUiParams = {

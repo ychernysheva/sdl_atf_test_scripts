@@ -1,6 +1,7 @@
 local actions = require("user_modules/sequences/actions")
 local utils = require("user_modules/utils")
 local test = require("user_modules/dummy_connecttest")
+local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 
 local commonAppServices = actions
 
@@ -211,6 +212,7 @@ function commonAppServices.publishEmbeddedAppService(manifest)
         serviceIDs[0] = data.result.appServiceRecord.serviceID
       end
     end)
+  commonTestCases:DelayedExp(2000)
 end
 
 function commonAppServices.publishMobileAppService(manifest, app_id)
@@ -257,6 +259,7 @@ function commonAppServices.publishMobileAppService(manifest, app_id)
         serviceIDs[app_id] = data.payload.appServiceRecord.serviceID
       end
     end)
+  commonTestCases:DelayedExp(2000)
 end
 
 function commonAppServices.publishSecondMobileAppService(manifest1, manifest2, app_id)
@@ -286,6 +289,7 @@ function commonAppServices.publishSecondMobileAppService(manifest1, manifest2, a
         serviceIDs[app_id] = data.payload.appServiceRecord.serviceID
       end
     end)
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnSystemCapabilityUpdated")
 end
 
 function commonAppServices.mobileSubscribeAppServiceData(provider_app_id, service_type, app_id)
@@ -447,25 +451,12 @@ end
 
 --[[Timeout]]
 function commonAppServices.getRpcPassThroughTimeoutFromINI()
-  local SDLini        = config.pathToSDL .. tostring("smartDeviceLink.ini")
-  f = assert(io.open(SDLini, "r"))
-  local fileContentUpdated = false
-  local fileContent = f:read("*all")
-  local property = fileContent:match('RpcPassThroughTimeout%s*=%s*[a-zA-Z%/0-9%_.]+[^\n]')
-  local RpcPassThroughTimeout = string.gsub(property:match("=.*"), "=", "")
-  return tonumber(RpcPassThroughTimeout)
+  return tonumber(commonAppServices.sdl.getSDLIniParameter("RpcPassThroughTimeout"))
 end
 
-function commonAppServices:Request_PTU()
-  local is_test_fail = false
-  local hmi_app1_id = config.application1.registerAppInterfaceParams.appName
+function commonAppServices:Request_PTU()  
   commonAppServices.getHMIConnection():SendNotification("SDL.OnPolicyUpdate", {} )
-  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
-
-  EXPECT_HMICALL("BasicCommunication.PolicyUpdate",{ file = "/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json" })
-  :Do(function(_,data)
-    commonAppServices.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", {})
-    end)
+  commonAppServices.isPTUStarted()
 end
 
 function commonAppServices.GetPolicySnapshot()

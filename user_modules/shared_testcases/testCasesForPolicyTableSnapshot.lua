@@ -138,6 +138,7 @@ function testCasesForPolicyTableSnapshot:verify_PTS(is_created, app_IDs, device_
     { name = "module_config.vehicle_year", elem_required = "optional"},
     { name = "module_config.display_order", elem_required = "optional"},
     { name = "module_config.full_app_id_supported", elem_required = "required"},
+    { name = "module_config.lock_screen_dismissal_enabled", elem_required = "optional"},
 
     { name = "consumer_friendly_messages.version", elem_required = "required"},
 
@@ -177,7 +178,10 @@ function testCasesForPolicyTableSnapshot:verify_PTS(is_created, app_IDs, device_
     { name = "app_policies.pre_consent_passengersRC.certificate", elem_required = "optional"},
     { name = "app_policies.pre_consent_passengersRC.priority", elem_required = "optional"},
     { name = "app_policies.pre_consent_passengersRC.groups.1", elem_required = "optional"},
-    { name = "app_policies.pre_consent_passengersRC.AppHMIType.1", elem_required = "optional"}
+    { name = "app_policies.pre_consent_passengersRC.AppHMIType.1", elem_required = "optional"},
+    -- custom vehicle_data
+    { name = "module_config.endpoint_properties.custom_vehicle_data_mapping_url.version", elem_required = "optional"},
+    { name = "vehicle_data.schema_version", elem_required = "optional"}
   }
 
   if(flag ~= "PROPRIETARY" and flag ~= "HTTP") then

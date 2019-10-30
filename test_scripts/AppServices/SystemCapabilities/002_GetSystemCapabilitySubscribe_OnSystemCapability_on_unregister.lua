@@ -75,7 +75,7 @@ local function GetSystemCapabilitySubscribe(self)
 end
 
 local function UnregisterAppExpectNotification(self)
-  local mobileSession = common.getMobileSession(self, 1)
+  local mobileSession = common.getMobileSession(1)
   local mobileSession2 = common.getMobileSession(2)
   local cid = mobileSession:SendRPC("UnregisterAppInterface", {})
   local unregister_response = {

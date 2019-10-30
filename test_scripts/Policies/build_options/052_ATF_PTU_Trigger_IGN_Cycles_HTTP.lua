@@ -25,6 +25,7 @@ Test = require('connecttest')
 local commonFunctions = require ('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
 local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
+local commonTestCases = require('user_modules/shared_testcases/commonTestCases')
 
 --[[ Local variables]]
 local ignition_cycles_before_ptu
@@ -97,6 +98,7 @@ local mobile_session = require('mobile_session')
 commonFunctions:newTestCasesGroup("Preconditions")
 function Test:Precondition_CheckPreloaded_IGN_Cycles()
   check_Ignition_cycles_since_last_exchange(self, "0")
+  commonTestCases:DelayedExp(500)
 end
 
 function Test:Precondition_PTU_SUCCESS()
@@ -119,7 +121,7 @@ for i = 1, (ignition_cycles_before_ptu) do
   function Test:Precondition_IGNITION_OFF()
 
     self.hmiConnection:SendNotification("BasicCommunication.OnIgnitionCycleOver")
-
+    commonTestCases:DelayedExp(500)
   end
 
   function Test.Precondition_StopSDL()
@@ -170,6 +172,7 @@ end
 function Test:TestStep_IGNITION_OFF()
   self.hmiConnection:SendNotification("BasicCommunication.OnIgnitionCycleOver")
   ignition_cycles_before_ptu = ignition_cycles_before_ptu + 1
+  commonTestCases:DelayedExp(500)
 end
 
 function Test.TestStep_StopSDL()

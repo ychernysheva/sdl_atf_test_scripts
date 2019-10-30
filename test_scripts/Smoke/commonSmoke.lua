@@ -15,10 +15,10 @@ local commonSteps = require("user_modules/shared_testcases/commonSteps")
 local commonTestCases = require("user_modules/shared_testcases/commonTestCases")
 local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 local utils = require('user_modules/utils')
+local hmi_values = require("user_modules/hmi_values")
 
 --[[ Local Variables ]]
 local hmiAppIds = {}
-local preloadedPT = commonFunctions:read_parameter_from_smart_device_link_ini("PreloadedPT")
 
 local commonSmoke = {}
 
@@ -28,13 +28,23 @@ commonSmoke.HMITypeStatus = {
 }
 commonSmoke.timeout = 5000
 commonSmoke.minTimeout = 500
+commonSmoke.cloneTable = utils.cloneTable
+commonSmoke.tableToString = utils.tableToString
+commonSmoke.decode = json.decode
+commonSmoke.is_table_equal = commonFunctions.is_table_equal
+commonSmoke.read_parameter_from_smart_device_link_ini =  commonFunctions.read_parameter_from_smart_device_link_ini
+commonSmoke.GetPathToSDL = commonPreconditions.GetPathToSDL
+commonSmoke.jsonFileToTable = utils.jsonFileToTable
+commonSmoke.wait = utils.wait
 
+local preloadedPT = commonSmoke:read_parameter_from_smart_device_link_ini("PreloadedPT")
+
+--[[Module functions]]
 local function allowSDL(self)
   self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality",
     { allowed = true, source = "GUI", device = { id = commonSmoke.getDeviceMAC(), name = commonSmoke.getDeviceName() }})
+  utils.wait(commonSmoke.minTimeout)
 end
-
---[[Module functions]]
 
 function commonSmoke.preconditions()
   commonFunctions:SDLForceStop()
@@ -91,7 +101,7 @@ function commonSmoke.getHMIAppId(pAppId)
 end
 
 function commonSmoke.getPathToFileInStorage(fileName)
-  return commonPreconditions:GetPathToSDL() .. "storage/"
+  return commonSmoke:GetPathToSDL() .. "storage/"
   .. commonSmoke.getMobileAppId() .. "_"
   .. commonSmoke.getDeviceMAC() .. "/" .. fileName
 end
@@ -234,7 +244,7 @@ function commonSmoke.GetAppMediaStatus(pAppId)
 end
 
 function commonSmoke.readParameterFromSmartDeviceLinkIni(paramName)
-  return commonFunctions:read_parameter_from_smart_device_link_ini(paramName)
+  return commonSmoke:read_parameter_from_smart_device_link_ini(paramName)
 end
 
 function commonSmoke.postconditions()
@@ -243,8 +253,8 @@ function commonSmoke.postconditions()
 end
 
 function commonSmoke.updatePreloadedPT()
-  local preloadedFile = commonPreconditions:GetPathToSDL() .. preloadedPT
-  local pt = utils.jsonFileToTable(preloadedFile)
+  local preloadedFile = commonSmoke:GetPathToSDL() .. preloadedPT
+  local pt = commonSmoke.jsonFileToTable(preloadedFile)
   pt.policy_table.functional_groupings["DataConsent-2"].rpcs = json.null
   local additionalRPCs = {
     "SendLocation", "SubscribeVehicleData", "UnsubscribeVehicleData", "GetVehicleData", "UpdateTurnList",
@@ -256,11 +266,47 @@ function commonSmoke.updatePreloadedPT()
       hmi_levels = { "BACKGROUND", "FULL", "LIMITED" }
     }
   end
-  pt.policy_table.app_policies["0000001"] = utils.cloneTable(pt.policy_table.app_policies.default)
+  pt.policy_table.app_policies["0000001"] = commonSmoke.cloneTable(pt.policy_table.app_policies.default)
   pt.policy_table.app_policies["0000001"].groups = { "Base-4", "NewTestCaseGroup" }
   pt.policy_table.app_policies["0000001"].keep_context = true
   pt.policy_table.app_policies["0000001"].steal_focus = true
   utils.tableToJsonFile(pt, preloadedFile)
+end
+
+function commonSmoke.preparePreloadedPTForRC()
+  local preloadedFile = commonPreconditions:GetPathToSDL() .. preloadedPT
+  local pt = utils.jsonFileToTable(preloadedFile)
+  pt.policy_table.functional_groupings["DataConsent-2"].rpcs = json.null
+  local appId = config["application1"].registerAppInterfaceParams.fullAppID
+  pt.policy_table.app_policies[appId] = {
+    keep_context = false,
+    steal_focus = false,
+    priority = "NONE",
+    default_hmi = "NONE",
+    moduleType ={ "CLIMATE" },
+    groups = { "Base-4", "RemoteControl" },
+    AppHMIType = { "REMOTE_CONTROL" }
+  }
+  utils.tableToJsonFile(pt, preloadedFile)
+end
+
+function commonSmoke.getRcModuleId(pRcModuleType, pIdx)
+  local capMap = {
+    RADIO = "radioControlCapabilities",
+    CLIMATE = "climateControlCapabilities",
+    SEAT = "seatControlCapabilities",
+    AUDIO = "audioControlCapabilities",
+    LIGHT = "lightControlCapabilities",
+    HMI_SETTINGS = "hmiSettingsControlCapabilities",
+    BUTTONS = "buttonCapabilities"
+  }
+
+  local rcCapabilities = hmi_values.getDefaultHMITable().RC.GetCapabilities.params.remoteControlCapability
+  if pRcModuleType == "LIGHT" or pRcModuleType == "HMI_SETTINGS" then
+    return rcCapabilities[capMap[pRcModuleType]].moduleInfo.moduleId
+  else
+    return rcCapabilities[capMap[pRcModuleType]][pIdx].moduleInfo.moduleId
+  end
 end
 
 function commonSmoke.registerApp(pAppId, self)

@@ -196,8 +196,9 @@ end
 
 function Test:Precondition_PTU_user_consent_prompt_present()
   local is_test_passed = true
-  local RequestIdGetURLS = self.hmiConnection:SendRequest("SDL.GetURLS", { service = 7 })
-  EXPECT_HMIRESPONSE(RequestIdGetURLS)
+  local requestId = self.hmiConnection:SendRequest("SDL.GetPolicyConfigurationData",
+      { policyType = "module_config", property = "endpoints" })
+  EXPECT_HMIRESPONSE(requestId)
   :Do(function()
       self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest",{ requestType = "PROPRIETARY", fileName = "filename"})
       EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY" })
@@ -317,6 +318,7 @@ function Test:Precondition_PTU_user_consent_prompt_present()
     local RequestAlert = self.mobileSession:SendRPC("Alert", {alertText1 = "alertText1"})
 
     EXPECT_RESPONSE(RequestAlert, {success = false, resultCode = "GENERIC_ERROR"})
+    :Timeout(20000)
   end
 
   --Location-1 is disallowed by user

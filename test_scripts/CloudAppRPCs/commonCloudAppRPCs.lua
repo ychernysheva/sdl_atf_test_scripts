@@ -39,16 +39,9 @@ function commonCloudAppRPCs.getCloudAppStoreConfig()
   }
 end
 
-function commonCloudAppRPCs:Request_PTU()
-  local is_test_fail = false
-  local hmi_app1_id = config.application1.registerAppInterfaceParams.appName
+function commonCloudAppRPCs:Request_PTU()  
   commonCloudAppRPCs.getHMIConnection():SendNotification("SDL.OnPolicyUpdate", {} )
-  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
-
-  EXPECT_HMICALL("BasicCommunication.PolicyUpdate",{ file = "/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json" })
-  :Do(function(_,data)
-    commonCloudAppRPCs.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", {})
-    end)
+  commonCloudAppRPCs.isPTUStarted()
 end
 
 function commonCloudAppRPCs.test_assert(condition, msg)
@@ -118,6 +111,7 @@ local function getPTUFromPTS()
     pTbl.policy_table.functional_groupings["DataConsent-2"].rpcs = json.null
     pTbl.policy_table.module_config.preloaded_pt = nil
     pTbl.policy_table.module_config.preloaded_date = nil
+    pTbl.policy_table.vehicle_data = nil
   end
   return pTbl
 end
@@ -129,7 +123,8 @@ function commonCloudAppRPCs.policyTableUpdateWithIconUrl(pPTUpdateFunc, pExpNoti
   local ptsFileName = commonFunctions:read_parameter_from_smart_device_link_ini("SystemFilesPath") .. "/"
     .. commonFunctions:read_parameter_from_smart_device_link_ini("PathToSnapshot")
   local ptuFileName = os.tmpname()
-  local requestId = commonCloudAppRPCs.getHMIConnection():SendRequest("SDL.GetURLS", { service = 7 })
+  local requestId = commonCloudAppRPCs.getHMIConnection():SendRequest("SDL.GetPolicyConfigurationData",
+      { policyType = "module_config", property = "endpoints" })
   commonCloudAppRPCs.getHMIConnection():ExpectResponse(requestId)
   :Do(function()
     commonCloudAppRPCs.getHMIConnection():SendNotification("BasicCommunication.OnSystemRequest",
@@ -151,28 +146,28 @@ function commonCloudAppRPCs.policyTableUpdateWithIconUrl(pPTUpdateFunc, pExpNoti
           if data.payload.requestType == "PROPRIETARY" then
             return true
           end
-          if data.payload.requestType == "ICON_URL" and data.payload.url == url then 
-            return true 
+          if data.payload.requestType == "ICON_URL" and data.payload.url == url then
+            return true
           end
           return false
         end)
         :Do(function(_, data)
             if data.payload.requestType == "PROPRIETARY" then
-              if not pExpNotificationFunc then
-                commonCloudAppRPCs.getHMIConnection():ExpectRequest("VehicleInfo.GetVehicleData", { odometer = true })
-                commonCloudAppRPCs.getHMIConnection():ExpectNotification("SDL.OnStatusUpdate", { status = "UP_TO_DATE" })
-              end
+              commonCloudAppRPCs.getHMIConnection():ExpectRequest("BasicCommunication.SystemRequest")
+              :Do(function(_, d3)
+                  if not pExpNotificationFunc then
+                    commonCloudAppRPCs.getHMIConnection():ExpectRequest("VehicleInfo.GetVehicleData", { odometer = true })
+                    commonCloudAppRPCs.getHMIConnection():ExpectNotification("SDL.OnStatusUpdate", { status = "UP_TO_DATE" })
+                  end
+                  commonCloudAppRPCs.getHMIConnection():SendResponse(d3.id, "BasicCommunication.SystemRequest", "SUCCESS", { })
+                  commonCloudAppRPCs.getHMIConnection():SendNotification("SDL.OnReceivedPolicyUpdate", { policyfile = d3.params.fileName })
+                end)
               utils.cprint(35, "App ".. id .. " was used for PTU")
               commonCloudAppRPCs.getHMIConnection():RaiseEvent(event, "PTU event")
               local corIdSystemRequest = commonCloudAppRPCs.getMobileSession(id):SendRPC("SystemRequest", {
                 requestType = "PROPRIETARY" }, ptuFileName)
-              commonCloudAppRPCs.getHMIConnection():ExpectRequest("BasicCommunication.SystemRequest")
-              :Do(function(_, d3)
-                  commonCloudAppRPCs.getHMIConnection():SendResponse(d3.id, "BasicCommunication.SystemRequest", "SUCCESS", { })
-                  commonCloudAppRPCs.getHMIConnection():SendNotification("SDL.OnReceivedPolicyUpdate", { policyfile = d3.params.fileName })
-                end)
               commonCloudAppRPCs.getMobileSession(id):ExpectResponse(corIdSystemRequest, { success = true, resultCode = "SUCCESS" })
-              :Do(function() 
+              :Do(function()
                 os.remove(ptuFileName) end)
             end
           end)

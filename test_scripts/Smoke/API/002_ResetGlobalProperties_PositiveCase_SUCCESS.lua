@@ -55,7 +55,7 @@ local responseUiParams = {
 	vrHelpTitle = "Test Application",
 	keyboardProperties = {
 		keyboardLayout = "QWERTY",
-		autoCompleteText = "",
+		autoCompleteList = {},
 		language = "EN-US"
 	}
 }
