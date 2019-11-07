@@ -70,25 +70,27 @@ function Test:RAI_PTU()
             function()
               self.hmiConnection:SendNotification("BasicCommunication.OnSystemRequest", { requestType = "PROPRIETARY", fileName = "PTU" })
               self.mobileSession:ExpectNotification("OnSystemRequest", { requestType = "PROPRIETARY" })
-              :Do(
-                function()
+              :DoOnce(function()
                   local OnSystemRequest_time = timestamp()
                   print("OnSystemRequest: " .. tostring(OnSystemRequest_time))
-                  EXPECT_HMINOTIFICATION ("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
-                  :ValidIf(
-                    function()
-                      local OnStatusUpdate_time = timestamp()
-                      print("OnStatusUpdate: " .. tostring(OnStatusUpdate_time))
-                      local diff = tonumber(OnStatusUpdate_time) - tonumber(OnSystemRequest_time)
-                      print("Timeout: " .. diff .. " ms")
-                      if diff >= 59500 and diff <= 60500 then
-                        return true
-                      else
-                        return false, "Expected timeout '60000' ms, actual '" .. diff .. "' ms (tolerance = 500ms)"
+                  EXPECT_HMINOTIFICATION ("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"}, {status = "UPDATING"})
+                  :ValidIf(function(e)
+                      if e.occurences == 1 then
+                        local OnStatusUpdate_time = timestamp()
+                        print("OnStatusUpdate: " .. tostring(OnStatusUpdate_time))
+                        local diff = tonumber(OnStatusUpdate_time) - tonumber(OnSystemRequest_time)
+                        print("Timeout: " .. diff .. " ms")
+                        if diff < 59500 or diff > 60500 then
+                          return false, "Expected timeout '60000' ms, actual '" .. diff .. "' ms (tolerance = 500ms)"
+                        end
                       end
+                      return true
                     end)
                   :Timeout(63000)
+                  :Times(2)
                 end)
+              :Timeout(63000)
+              :Times(2)
             end)
         end)
     end)
