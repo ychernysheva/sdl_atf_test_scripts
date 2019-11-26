@@ -1,32 +1,32 @@
 ---------------------------------------------------------------------------------------------------
 -- User story: https://github.com/SmartDeviceLink/sdl_core/issues/2596
---
 -- Description:
 -- Some vehicle data params are Disallowed after Master Reset even after policies update (1586634)
---
 -- Preconditions:
 -- 1) Clear environment
 -- 2) SDL started, HMI and Mobile connected
--- 3) Application registered and activated
--- 
+-- 3) Application is registered and activated
 -- Steps:
--- 1) send "GetVehicleData" and recieve resultCode = "DISALLOWED"
--- 2) policy table update
--- 3) send "GetVehicleData" and recieve resultCode = "SUCCESS"
--- 4) send BC.OnExitAllApplications with reason = "MASTER_RESET"
--- 5) clean mobile session
+-- 1) App requests "GetVehicleData" RPC
+-- SDl does:
+--  a) send response with resultCode = "DISALLOWED" to the app
+-- 2) Perform PTU
+-- 3) App requests "GetVehicleData" RPC
+-- SDl does:
+--  a) send response with resultCode = "SUCCESS" to the app
+-- 4) Perform Master Reset
+-- SDL does:
+--  a) send BC.OnExitAllApplications with reason = "MASTER_RESET"
+-- 5) Clean mobile session
 -- 6) Start SDL, HMI, mobile session
--- 7) register app
--- 8) activate app
--- 9) send "GetVehicleData" and recieve resultCode = "DISALLOWED"
--- 10) policy table update
--- 11) send "GetVehicleData" and recieve resultCode = "SUCCESS"
--- 
--- Postconditions:
--- Stop SDL and restore INI params
---
--- Expected: 
--- Vehicle data params are allowed after each PTU.
+-- 7) Application is registered and activated
+-- 8) App requests "GetVehicleData" RPC
+-- SDl does:
+--  a) send response with resultCode = "DISALLOWED" to the app
+-- 9) Perform PTU
+-- 10) App requests "GetVehicleData" RPC
+-- SDl does:
+--  a) send response with resultCode = "SUCCESS" to the app
 ---------------------------------------------------------------------------------------------------
 
 --[[ Required Shared libraries ]]
@@ -34,54 +34,48 @@ local runner = require('user_modules/script_runner')
 local common = require('user_modules/sequences/actions')
 local utils = require('user_modules/utils')
 local test = require("user_modules/dummy_connecttest")
-local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 
 --[[ Test Configuration ]]
 runner.testSettings.isSelfIncluded = false
 
 --[[ Local Functions ]]
 local function ptuFunc(tbl)
-	tbl.policy_table.app_policies["0000001"].groups = {"Base-4", "Location-1", "DrivingCharacteristics-3", "VehicleInfo-3", "Emergency-1"}
+	tbl.policy_table.app_policies[common.getConfigAppParams().fullAppID].groups = {
+		"Base-4", "Location-1", "DrivingCharacteristics-3", "VehicleInfo-3", "Emergency-1"
+	}
 end
 
-local function serviceStart()
-	common.getMobileSession():StartService(7)
-end
-
-local function masterReset() 
-	common.getHMIConnection():SendNotification("BasicCommunication.OnExitAllApplications",
-		{ reason = "MASTER_RESET" })
-
-	common.getMobileSession():ExpectNotification("OnAppInterfaceUnregistered", 
-		{ reason = "MASTER_RESET" })
-
-	common.getHMIConnection():ExpectNotification("BasicCommunication.OnAppUnregistered", 
-		{ unexpectedDisconnect = false })
-
+local function masterReset()
+	common.getHMIConnection():SendNotification("BasicCommunication.OnExitAllApplications", {reason = "MASTER_RESET"})
+	common.getMobileSession():ExpectNotification("OnAppInterfaceUnregistered", { reason = "MASTER_RESET" })
+	common.getHMIConnection():ExpectNotification("BasicCommunication.OnAppUnregistered", { unexpectedDisconnect = false })
 	utils.wait(2000)
+  EXPECT_HMINOTIFICATION("BasicCommunication.OnSDLClose")
+  :Do(function()
+		StopSDL()
+  end)
 end
 
-local function cleanMobileSession()
-	test.mobileSession = {}
+local function cleanMobileSession(pAppId)
+	if not pAppId then pAppId = 1 end
+	test.mobileSession[pAppId] = nil
 end
 
 local function getVehicleDataDisallowed()
-	local CorIdGetVehicleDataVD = common.getMobileSession():SendRPC("GetVehicleData", { prndl = true })
-	
-	common.getHMIConnection():ExpectRequest("VehicleInfo.GetVehicleData"):Times(0)
+	local cid = common.getMobileSession():SendRPC("GetVehicleData", { prndl = true })
+	common.getHMIConnection():ExpectRequest("VehicleInfo.GetVehicleData")
+	:Times(0)
 
-	common.getMobileSession():ExpectResponse(CorIdGetVehicleDataVD, { success = false, resultCode = "DISALLOWED" })
+	common.getMobileSession():ExpectResponse(cid, { success = false, resultCode = "DISALLOWED" })
 end
 
 local function getVehicleDataAllowed()
-	local CorIdGetVehicleDataVD = common.getMobileSession():SendRPC("GetVehicleData", { prndl = true })
-	
+	local cid = common.getMobileSession():SendRPC("GetVehicleData", { prndl = true })
 	common.getHMIConnection():ExpectRequest("VehicleInfo.GetVehicleData", { prndl = true })
 		:Do(function(_, data)
-	    	common.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", {} )
-	    end)
-
-	common.getMobileSession():ExpectResponse(CorIdGetVehicleDataVD, { success = true, resultCode = "SUCCESS" })
+			common.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", { prndl = "PARK" } )
+	  end)
+	common.getMobileSession():ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
 end
 
 --[[ Scenario ]]
