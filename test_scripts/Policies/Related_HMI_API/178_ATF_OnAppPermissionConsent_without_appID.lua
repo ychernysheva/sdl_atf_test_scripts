@@ -68,7 +68,7 @@ function Test:TestStep_User_consent_on_activate_app()
       EXPECT_HMIRESPONSE( RequestId1, {result = {code = 0, method = "SDL.GetUserFriendlyMessage"}})
       :Do(function(_,_)
 
-          local request_id_list_of_permissions = self.hmiConnection:SendRequest("SDL.GetListOfPermissions", { appID = self.applications[config.application1.registerAppInterfaceParams.appName] })
+          local request_id_list_of_permissions = self.hmiConnection:SendRequest("SDL.GetListOfPermissions", { appID = nil })
           EXPECT_HMIRESPONSE(request_id_list_of_permissions)
           :Do(function(_,data)
               local groups = {}
@@ -84,7 +84,7 @@ function Test:TestStep_User_consent_on_activate_app()
               self.hmiConnection:SendNotification("SDL.OnAppPermissionConsent", {
                 consentedFunctions = groups,
                 source = "GUI",
-                appID = self.applications[config.application1.registerAppInterfaceParams.appName]
+                appID = nil
               })
               EXPECT_NOTIFICATION("OnPermissionsChange")
             end)
