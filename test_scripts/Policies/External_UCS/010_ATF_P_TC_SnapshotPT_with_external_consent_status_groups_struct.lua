@@ -33,7 +33,6 @@ config.defaultProtocolVersion = 2
 --[[ Required Shared Libraries ]]
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require('user_modules/shared_testcases/commonSteps')
-local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 local testCasesForExternalUCS = require('user_modules/shared_testcases/testCasesForExternalUCS')
 local utils = require ('user_modules/utils')
 
