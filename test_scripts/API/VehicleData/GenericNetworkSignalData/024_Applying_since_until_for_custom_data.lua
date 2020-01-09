@@ -39,7 +39,7 @@ for VDkey, VDitem in pairs (common.customDataTypeSample)do
     common.customDataTypeSample[VDkey]["until"] = "5.0"
     itemInteger.minvalue = 101
     itemInteger.maxvalue = 1000
-    itemInteger.since = "5.1"
+    itemInteger.since = "5.0"
   end
 end
 

@@ -31,8 +31,8 @@ local commonSmoke = require('test_scripts/Smoke/commonSmoke')
 --[[ Local Variables ]]
 local requestParams = {
 	syncMsgVersion = {
-		majorVersion = 2,
-		minorVersion = 2,
+		majorVersion = 5,
+		minorVersion = 0,
 	},
 	appName = "SyncProxyTester",
 	ttsName = {
@@ -78,7 +78,7 @@ local function SetNotificationParams()
 		transportType = "WIFI",
 		isSDLAllowed = true
 	}
-	notificationParams.application.policyAppID = requestParams.appID
+	notificationParams.application.policyAppID = requestParams.fullAppID
 	notificationParams.ttsName = requestParams.ttsName
 	notificationParams.vrSynonyms = requestParams.vrSynonyms
 	return notificationParams

@@ -35,7 +35,7 @@ for VDkey, VDitem in pairs (common.customDataTypeSample)do
     common.customDataTypeSample[VDkey]["since"] = "1.0"
     common.customDataTypeSample[VDkey]["until"] = "5.0"
     itemBool.deprecated = true
-    itemBool.since = "5.1"
+    itemBool.since = "5.0"
   elseif VDitem.name == "custom_vd_item6_array_string" then
     common.customDataTypeSample[VDkey].deprecated = false
   end

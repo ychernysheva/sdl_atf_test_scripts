@@ -39,7 +39,6 @@ common.tableToString = utils.tableToString
 common.tableToJsonFile = utils.tableToJsonFile
 common.jsonFileToTable = utils.jsonFileToTable
 common.isFileExist = utils.isFileExist
-common.isFileExist = utils.isFileExist
 common.wait = utils.wait
 
 common.GetPathToSDL = commonPreconditions.GetPathToSDL

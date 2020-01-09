@@ -35,7 +35,7 @@ for VDkey, VDitem in pairs (common.customDataTypeSample)do
     common.customDataTypeSample[VDkey]["since"] = "1.0"
     common.customDataTypeSample[VDkey]["until"] = "5.0"
     itemEnum.removed = true
-    itemEnum.since = "5.1"
+    itemEnum.since = "5.0"
   elseif VDitem.name == "custom_vd_item4_string" then
     common.customDataTypeSample[VDkey].removed = false
   end
