@@ -72,6 +72,7 @@ local m = { }
     local filePath = commonFunctions:read_parameter_from_smart_device_link_ini("SystemFilesPath") ..
       "/" .. commonFunctions:read_parameter_from_smart_device_link_ini("PathToSnapshot")
     os.execute("rm -rf " .. filePath)
+    m.pts = nil
   end
 
 --[[@updatePTU: Update Policy Table Snapshot (PTS) in the way it can be used as Policy Table Update (PTU)

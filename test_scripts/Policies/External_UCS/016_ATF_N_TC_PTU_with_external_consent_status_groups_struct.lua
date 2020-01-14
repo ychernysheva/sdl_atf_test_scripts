@@ -92,12 +92,8 @@ function Test.RemovePTS()
   testCasesForExternalUCS.removePTS()
 end
 
-function Test:StartSession_2()
-  testCasesForExternalUCS.startSession(self, 2)
-end
-
-function Test:RAI_2()
-  testCasesForExternalUCS.registerApp(self, 2)
+function Test:CreateNewPTS()
+  self.hmiConnection:SendNotification("SDL.OnPolicyUpdate")
   EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
   :Do(function(_, d) testCasesForExternalUCS.pts = testCasesForExternalUCS.createTableFromJsonFile(d.params.file) end)
 end
