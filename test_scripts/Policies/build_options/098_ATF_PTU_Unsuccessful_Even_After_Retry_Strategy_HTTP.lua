@@ -71,7 +71,7 @@ function Test:TestStep_OnStatusUpdate_UPDATE_NEEDED_new_PTU_request()
 end
 
 function Test:TestStep_Retry_Timeout_Expiration()
-  local total_time = 525000
+  local total_time =  185000
   print("Waiting " .. total_time .. "ms")
 
   EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate",
