@@ -12,10 +12,11 @@
 -- 3) App1 is registered from Mobile №1 and triggers PTU
 --
 -- Steps:
--- 1) App2 is registered from Mobile №2 during PTU for App1 from Mobile №1 is in progress
+-- 1) App2 is registered from Mobile №2 within 'ApplicationListUpdateTimeout'
+-- during PTU for App1 from Mobile №1 is in progress
 --   Check: SDL does not send SDL.OnStatusUpdate and BC.PolicyUpdate to HMI during the app registration
 -- 2) First PTU is performed successful
---   Check: SDL triggers new PTU after the first one is finished
+--   Check: SDL does not trigger new PTU after the first one is finished
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local runner = require('user_modules/script_runner')
@@ -81,8 +82,8 @@ runner.Step("Start SDL and HMI", common.start)
 runner.Step("Connect two mobile devices to SDL", common.connectMobDevices, {devices})
 
 runner.Title("Test")
-runner.Step("Register App1 from device 1 - No PTU", registerApp1)
-runner.Step("Register App2 from device 2 - PTU started", registerApp2)
+runner.Step("Register App1 from device 1 - No PTU before ApplicationListUpdateTimeout is expired", registerApp1)
+runner.Step("Register App2 from device 2 - PTU started after ApplicationListUpdateTimeout is expired", registerApp2)
 runner.Step("PTU", common.ptu.policyTableUpdate, { nil, secondPTUIsNotTriggered })
 
 runner.Title("Postconditions")

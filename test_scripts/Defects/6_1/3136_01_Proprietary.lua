@@ -1,7 +1,7 @@
 ---------------------------------------------------------------------------------------------------
 -- Issue: https://github.com/smartdevicelink/sdl_core/issues/3136
 --
--- Description: Successful 2nd HMI PTU if it's triggered within failed retry for the 1st PTU
+-- Description: Successful 2nd PTU if it's triggered within failed retry for the 1st PTU
 -- Note: script is applicable for PROPRIETARY policy flow
 --
 -- Preconditions:
