@@ -270,7 +270,13 @@ local function raiPTU(self)
                   failInCaseIncorrectPTU("BC.PolicyUpdate", self)
                 end
               end)
-          elseif sdl.buildOptions.extendedPolicy == "HTTP" then
+          end
+        end)
+      -- Expect RegisterAppInterface response on mobile side with resultCode SUCCESS
+      self.mobileSession:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
+      :Do(function()
+          log("SDL->MOB: RS: RegisterAppInterface")
+          if sdl.buildOptions.extendedPolicy == "HTTP" then
             -- Expect OnSystemRequest notification on mobile side
             self.mobileSession:ExpectNotification("OnSystemRequest")
             :Do(function(e, d)
@@ -292,11 +298,6 @@ local function raiPTU(self)
               end)
             :Times(2)
           end
-        end)
-      -- Expect RegisterAppInterface response on mobile side with resultCode SUCCESS
-      self.mobileSession:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
-      :Do(function()
-          log("SDL->MOB: RS: RegisterAppInterface")
           -- Expect OnHMIStatus with hmiLevel NONE on mobile side form SDL
           self.mobileSession:ExpectNotification("OnHMIStatus",
             { hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN" })
