@@ -39,6 +39,11 @@ local runner = require('user_modules/script_runner')
 local common = require('test_scripts/iAP2TransportSwitch/common')
 local mobSession = require("mobile_session")
 
+--[[ Conditions to skip test ]]
+if config.defaultMobileAdapterType ~= "TCP" then
+  runner.skipTest("Test is applicable only for TCP connection")
+end
+
 --[[ Local Variables ]]
 local deviceBluetooth
 local sessionBluetooth
@@ -54,7 +59,8 @@ local function connectBluetoothDevice(self)
         id = config.deviceMAC,
         name = common.device.bluetooth.uid,
         transportType = common.device.bluetooth.type
-      }
+      },
+      common.wsDevice()
     }
   })
   :Do(function(_, data)
@@ -111,7 +117,8 @@ local function connectUSBDevice(self)
         id = config.deviceMAC,
         name = common.device.bluetooth.uid,
         transportType = common.device.bluetooth.type
-      }
+      },
+      common.wsDevice()
     }
   },
   {
@@ -120,7 +127,8 @@ local function connectUSBDevice(self)
         id = config.deviceMAC,
         name = common.device.usb.uid,
         transportType = common.device.usb.type
-      }
+      },
+      common.wsDevice()
     }
   })
   :Do(function(_, data)

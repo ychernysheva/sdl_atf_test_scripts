@@ -10,7 +10,7 @@ local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
 local commonSteps = require("user_modules/shared_testcases/commonSteps")
 local SDL = require("SDL")
 local commonPreconditions = require("user_modules/shared_testcases/commonPreconditions")
-local tcp = require("tcp_connection")
+local mobile_adapter_controller = require("mobile_adapter/mobile_adapter_controller")
 local file_connection = require("file_connection")
 local mobile = require("mobile_connection")
 local events = require("events")
@@ -76,8 +76,9 @@ function module:expectEvent(pEvent, pName, pDevice)
 end
 
 function module:createIAP2Device(pDeviceId, pDevicePort, pDeviceOut)
-  local connection = tcp.Connection(pDeviceId, pDevicePort)
-  local fileConnection = file_connection.FileConnection(pDeviceOut, connection)
+  local mobileAdapterParameters = { host = pDeviceId , port = pDevicePort }
+  local mobileAdapter = mobile_adapter_controller.getAdapter(config.defaultMobileAdapterType, mobileAdapterParameters)
+  local fileConnection = file_connection.FileConnection(pDeviceOut, mobileAdapter)
   local device = mobile.MobileConnection(fileConnection)
   event_dispatcher:AddConnection(device)
   return device
@@ -137,6 +138,16 @@ end
 
 function m.print(pMsg)
   commonFunctions:userPrint(35, pMsg)
+end
+
+function m.wsDevice()
+  if SDL.buildOptions.webSocketServerSupport == "ON" then
+    return {
+      name = "Web Engine",
+      transportType = "WEBENGINE_WEBSOCKET"
+    }
+  end
+  return nil
 end
 
 return m
