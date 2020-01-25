@@ -461,7 +461,19 @@ function testCasesForPolicyTableSnapshot:verify_PTS(is_created, app_IDs, device_
     local pts = '/tmp/fs/mp/images/ivsu_cache/sdl_snapshot.json'
     if ( commonSteps:file_exists(pts) ) then
       testCasesForPolicyTableSnapshot:extract_pts()
-
+      -- Skip other devices
+      if device_IDs ~= nil then
+        local toRemove = {}
+        for i = 1, #testCasesForPolicyTableSnapshot.pts_elements do
+          local item = testCasesForPolicyTableSnapshot.pts_elements[i].name
+          if string.find(item, "^device_data") and not string.find(item, device_IDs[1]) then
+            table.insert(toRemove, i)
+          end
+        end
+        for _, i in pairs(toRemove) do
+          table.remove(testCasesForPolicyTableSnapshot.pts_elements, i)
+        end
+      end
       --Check for ommited parameters
       for i = 1, #testCasesForPolicyTableSnapshot.pts_elements do
         local is_existing = false
