@@ -838,10 +838,14 @@ function m.sdl.setSDLIniParameter(pParamName, pParamValue)
     local out = ""
     local find = false
     for line in pContent:gmatch("([^\r\n]*)[\r\n]") do
-      local ptrn = "^%s*".. pParam .. "%s*=.*"
+      local ptrn = "^%s*;*%s*".. pParam .. "%s*=.*"
       if string.find(line, ptrn) then
         if not find then
-          line = string.gsub(line, ptrn, pParam .. " = " .. tostring(pValue))
+          if pValue == ";" then
+            line = string.gsub(line, ptrn, pValue .. pParam .. " = ")
+          else
+            line = string.gsub(line, ptrn, pParam .. " = " .. tostring(pValue))
+          end
           find = true
         else
           line  = ";" .. line
