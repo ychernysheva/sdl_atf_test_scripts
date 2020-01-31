@@ -41,7 +41,7 @@ runner.Step("Start SDL, HMI, connect Mobile", common.start)
 runner.Title("Test")
 runner.Step("Register App 1", common.registerApp, { 1 })
 runner.Step("Register App 2", common.registerApp, { 2 })
-runner.Step("UnRegister App 1", common.unRegisterApp, { 1 })
+runner.Step("UnRegister App 1", common.unregisterApp, { 1 })
 runner.Step("ReRegister App 1", common.registerApp, { 1 })
 
 runner.Title("Postconditions")

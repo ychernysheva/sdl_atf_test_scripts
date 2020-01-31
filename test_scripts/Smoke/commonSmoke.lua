@@ -175,7 +175,7 @@ function common.isFileExistInAppStorage(pFileName)
   return SDL.AppStorage.isFileExist(pFileName)
 end
 
-function common.unRegisterApp(pAppId)
+function common.unregisterApp(pAppId)
   if pAppId == nil then pAppId = 1 end
   local cid = common.getMobileSession(pAppId):SendRPC("UnregisterAppInterface", {})
   common.getMobileSession(pAppId):ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })

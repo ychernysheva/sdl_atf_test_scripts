@@ -51,7 +51,7 @@ runner.Step("Add Command", common.addCommand)
 runner.Step("Add SubMenu", common.addSubMenu)
 
 runner.Title("Test")
-runner.Step("UnRegister App", common.unRegisterApp)
+runner.Step("UnRegister App", common.unregisterApp)
 runner.Step("ReRegister App", common.reregisterApp, { "RESUME_FAILED", expResData, expResLvl })
 
 runner.Title("Postconditions")
