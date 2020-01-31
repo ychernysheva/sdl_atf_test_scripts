@@ -43,20 +43,20 @@ local absent_params = {
 local function setVehicleData(pParams)
   local cid = commonRC.getMobileSession():SendRPC("SetInteriorVehicleData", {moduleData = pParams})
 
-	if pParams.climateControlData.fanSpeed then
-		EXPECT_HMICALL("RC.SetInteriorVehicleData",	{
-			appID = commonRC.getHMIAppId(1),
-			moduleData = pParams})
-		:Do(function(_, data)
-				commonRC.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", {
-					moduleData = pParams})
-			end)
-		commonRC.getMobileSession():ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
-	else
-		EXPECT_HMICALL("RC.SetInteriorVehicleData"):Times(0)
-		commonRC.getMobileSession():ExpectResponse(cid, { success = false, resultCode = "UNSUPPORTED_RESOURCE" })
-		commonRC.wait(commonRC.timeout)
-	end
+  if pParams.climateControlData.fanSpeed then
+    EXPECT_HMICALL("RC.SetInteriorVehicleData", {
+      appID = commonRC.getHMIAppId(1),
+      moduleData = pParams})
+    :Do(function(_, data)
+        commonRC.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", {
+          moduleData = pParams})
+      end)
+    commonRC.getMobileSession():ExpectResponse(cid, { success = true, resultCode = "SUCCESS" })
+  else
+    EXPECT_HMICALL("RC.SetInteriorVehicleData"):Times(0)
+    commonRC.getMobileSession():ExpectResponse(cid, { success = false, resultCode = "UNSUPPORTED_RESOURCE" })
+    commonRC.wait(commonRC.timeout)
+  end
 end
 
 --[[ Scenario ]]

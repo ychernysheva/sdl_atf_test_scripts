@@ -35,14 +35,14 @@ local function setVehicleData(pModuleType)
   local moduleData = commonRC.getSettableModuleControlData(moduleType2)
   moduleData.moduleType = pModuleType
 
-	local cid = commonRC.getMobileSession():SendRPC("SetInteriorVehicleData", {
-		moduleData = moduleData
-	})
+  local cid = commonRC.getMobileSession():SendRPC("SetInteriorVehicleData", {
+    moduleData = moduleData
+  })
 
-	EXPECT_HMICALL("RC.SetInteriorVehicleData")
-	:Times(0)
+  EXPECT_HMICALL("RC.SetInteriorVehicleData")
+  :Times(0)
 
-	commonRC.getMobileSession():ExpectResponse(cid, { success = false, resultCode = "INVALID_DATA" })
+  commonRC.getMobileSession():ExpectResponse(cid, { success = false, resultCode = "INVALID_DATA" })
   commonRC.wait(commonRC.timeout)
 end
 

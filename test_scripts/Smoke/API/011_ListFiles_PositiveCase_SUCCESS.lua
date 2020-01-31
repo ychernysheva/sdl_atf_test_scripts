@@ -69,15 +69,15 @@ local function putFile(pFileName)
 end
 
 local function listFiles(params)
-	local cid = common.getMobileSession():SendRPC("ListFiles", params.requestParams)
+  local cid = common.getMobileSession():SendRPC("ListFiles", params.requestParams)
 
-	common.getMobileSession():ExpectResponse(cid, params.responseParams)
-	:ValidIf(function(_, data)
-		  if not commonFunctions:is_table_equal(data.payload.filenames, testFileNamesList) then
+  common.getMobileSession():ExpectResponse(cid, params.responseParams)
+  :ValidIf(function(_, data)
+      if not commonFunctions:is_table_equal(data.payload.filenames, testFileNamesList) then
         return false, "\nExpected files:\n" .. commonFunctions:convertTableToString(testFileNamesList, 1)
           .. "\nActual files:\n" .. commonFunctions:convertTableToString(data.payload.filenames, 1)
       end
-        return true
+      return true
     end)
   :ValidIf(function(_, data)
       if not data.payload.spaceAvailable or data.payload.spaceAvailable == 0 then
