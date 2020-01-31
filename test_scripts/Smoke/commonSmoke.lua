@@ -74,7 +74,6 @@ function common.postconditions()
 end
 
 function common.updatePreloadedPT()
-  isPreloadedUpdated = true
   if isPreloadedUpdated == false then
     isPreloadedUpdated = true
     SDL.PreloadedPT.backup()
@@ -99,7 +98,6 @@ function common.updatePreloadedPT()
 end
 
 function common.preparePreloadedPTForRC()
-  isPreloadedUpdated = true
   if isPreloadedUpdated == false then
     isPreloadedUpdated = true
     SDL.PreloadedPT.backup()
