@@ -67,7 +67,7 @@ local function allocateInteriorVehicleDataModule()
   params.hmiRequest.appID = common.getHMIAppId(1)
   hmi:ExpectRequest("RC.SetInteriorVehicleData", params.hmiRequest)
   :Do(function(_, data)
-    hmi:SendResponse(data.id, data.method, "SUCCESS", params.hmiResponse)
+      hmi:SendResponse(data.id, data.method, "SUCCESS", params.hmiResponse)
     end)
   mobSession:ExpectResponse(cid, params.mobResponse)
 end

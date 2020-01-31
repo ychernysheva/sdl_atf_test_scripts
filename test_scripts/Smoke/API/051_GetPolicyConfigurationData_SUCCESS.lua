@@ -31,7 +31,7 @@ local function GetPolicyConfigurationData()
   local hmi = common.getHMIConnection()
   local requestId = hmi:SendRequest("SDL.GetPolicyConfigurationData",
     { policyType = "module_config", property = "endpoints" })
-    hmi:ExpectResponse(requestId, { result = { code = 0 } })
+  hmi:ExpectResponse(requestId, { result = { code = 0 } })
   :ValidIf(function(_, data)
       local expectedEndpoints = common.sdl.getPreloadedPT().policy_table.module_config.endpoints
       local actualEndpoints = common.json.decode(data.result.value[1])

@@ -75,7 +75,10 @@ end
 
 function common.updatePreloadedPT()
   isPreloadedUpdated = true
-  SDL.PreloadedPT.backup()
+  if isPreloadedUpdated == false then
+    isPreloadedUpdated = true
+    SDL.PreloadedPT.backup()
+  end
   local pt = SDL.PreloadedPT.get()
   pt.policy_table.functional_groupings["DataConsent-2"].rpcs = json.null
   local additionalRPCs = {
@@ -97,7 +100,10 @@ end
 
 function common.preparePreloadedPTForRC()
   isPreloadedUpdated = true
-  SDL.PreloadedPT.backup()
+  if isPreloadedUpdated == false then
+    isPreloadedUpdated = true
+    SDL.PreloadedPT.backup()
+  end
   local pt = SDL.PreloadedPT.get()
   pt.policy_table.functional_groupings["DataConsent-2"].rpcs = json.null
   local appId = config["application1"].registerAppInterfaceParams.fullAppID
@@ -338,6 +344,5 @@ function common.createConnection(pConId, pDevice)
   connection:Connect()
   return ret
 end
-
 
 return common
