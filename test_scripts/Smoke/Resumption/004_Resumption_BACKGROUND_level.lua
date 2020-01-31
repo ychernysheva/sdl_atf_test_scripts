@@ -59,7 +59,7 @@ runner.Step("UnRegister App 2", common.unRegisterApp, { 2 })
 runner.Step("UnRegister App 1", common.unRegisterApp)
 
 runner.Title("Test")
-runner.Step("ReRegister App", common.reRegisterApp, { "RESUME_FAILED", expResData, expResLvl })
+runner.Step("ReRegister App", common.reregisterApp, { "RESUME_FAILED", expResData, expResLvl })
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", common.postconditions)

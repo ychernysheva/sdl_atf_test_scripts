@@ -187,7 +187,7 @@ function common.unRegisterApp(pAppId)
     end)
 end
 
-function common.reRegisterApp(pResultCode, pExpResDataFunc, pExpResLvlFunc)
+function common.reregisterApp(pResultCode, pExpResDataFunc, pExpResLvlFunc)
   common.createMobileSession()
   local params = common.cloneTable(common.getConfigAppParams())
   params.hashID = common.hashId

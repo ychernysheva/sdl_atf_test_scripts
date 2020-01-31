@@ -79,7 +79,7 @@ runner.Step("Put File", common.putFile, { putFileParams })
 runner.Title("Test")
 runner.Step("Shutdown by MASTER_RESET", common.masterReset, { expAppUnregistered })
 runner.Step("Start SDL, HMI, connect Mobile", common.start)
-runner.Step("ReRegister App", common.reRegisterApp, { "RESUME_FAILED", expResData, expResLvl })
+runner.Step("ReRegister App", common.reregisterApp, { "RESUME_FAILED", expResData, expResLvl })
 runner.Step("List Files", listFiles)
 
 runner.Title("Postconditions")

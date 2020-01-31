@@ -100,7 +100,7 @@ end
 
 runner.Title("Test")
 runner.Step("Unexpected Disconnect", common.unexpectedDisconnect)
-runner.Step("ReRegister App", common.reRegisterApp, { "SUCCESS", expResData, expResLvl })
+runner.Step("ReRegister App", common.reregisterApp, { "SUCCESS", expResData, expResLvl })
 runner.Step("OnCommand", onCommand)
 
 runner.Title("Postconditions")

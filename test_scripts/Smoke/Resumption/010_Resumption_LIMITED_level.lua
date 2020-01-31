@@ -66,7 +66,7 @@ runner.Step("Add SubMenu", common.addSubMenu)
 runner.Title("Test")
 runner.Step("Deactivate app", deactivateApp)
 runner.Step("Unexpected disconnect", common.unexpectedDisconnect)
-runner.Step("ReRegister App", common.reRegisterApp, { "SUCCESS", expResData, expResLvl })
+runner.Step("ReRegister App", common.reregisterApp, { "SUCCESS", expResData, expResLvl })
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", common.postconditions)
