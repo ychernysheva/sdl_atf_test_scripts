@@ -25,9 +25,9 @@ runner.testSettings.isSelfIncluded = false
 
 -- [[ Local Functions ]]
 local function expResData()
-  common.getHMIConnection():ExpectRequest("VR.AddCommand", common.resParams.AddCommand.hmi)
+  common.getHMIConnection():ExpectRequest("VR.AddCommand", common.reqParams.AddCommand.hmi)
   :Times(0)
-  common.getHMIConnection():ExpectRequest("UI.AddSubMenu", common.resParams.AddSubMenu.hmi)
+  common.getHMIConnection():ExpectRequest("UI.AddSubMenu", common.reqParams.AddSubMenu.hmi)
   :Times(0)
   common.getMobileSession():ExpectNotification("OnHashChange")
   :Times(0)

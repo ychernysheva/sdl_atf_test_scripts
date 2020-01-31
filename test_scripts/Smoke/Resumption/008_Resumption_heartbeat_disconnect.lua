@@ -29,11 +29,11 @@ config.defaultProtocolVersion = 3
 
 -- [[ Local Functions ]]
 local function expResData()
-  common.getHMIConnection():ExpectRequest("VR.AddCommand", common.resParams.AddCommand.hmi)
+  common.getHMIConnection():ExpectRequest("VR.AddCommand", common.reqParams.AddCommand.hmi)
   :Do(function(_, data)
       common.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS")
     end)
-  common.getHMIConnection():ExpectRequest("UI.AddSubMenu", common.resParams.AddSubMenu.hmi)
+  common.getHMIConnection():ExpectRequest("UI.AddSubMenu", common.reqParams.AddSubMenu.hmi)
   :Do(function(_, data)
       common.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS")
     end)

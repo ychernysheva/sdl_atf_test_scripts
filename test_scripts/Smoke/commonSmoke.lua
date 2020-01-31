@@ -225,7 +225,7 @@ function test.mobileConnection:Close()
   self.connection:Close()
 end
 
-common.resParams = {
+common.reqParams = {
   AddCommand = {
     mob = { cmdID = 1, vrCommands = { "OnlyVRCommand" }},
     hmi = { cmdID = 1, type = "Command", vrCommands = { "OnlyVRCommand" }}
@@ -237,8 +237,8 @@ common.resParams = {
 }
 
 function common.addCommand()
-  local cid = common.getMobileSession():SendRPC("AddCommand", common.resParams.AddCommand.mob)
-  common.getHMIConnection():ExpectRequest("VR.AddCommand", common.resParams.AddCommand.hmi)
+  local cid = common.getMobileSession():SendRPC("AddCommand", common.reqParams.AddCommand.mob)
+  common.getHMIConnection():ExpectRequest("VR.AddCommand", common.reqParams.AddCommand.hmi)
   :Do(function(_, data)
       common.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", {})
     end)
@@ -250,8 +250,8 @@ function common.addCommand()
 end
 
 function common.addSubMenu()
-  local cid = common.getMobileSession():SendRPC("AddSubMenu", common.resParams.AddSubMenu.mob)
-  common.getHMIConnection():ExpectRequest("UI.AddSubMenu", common.resParams.AddSubMenu.hmi)
+  local cid = common.getMobileSession():SendRPC("AddSubMenu", common.reqParams.AddSubMenu.mob)
+  common.getHMIConnection():ExpectRequest("UI.AddSubMenu", common.reqParams.AddSubMenu.hmi)
   :Do(function(_, data)
       common.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", {})
     end)
