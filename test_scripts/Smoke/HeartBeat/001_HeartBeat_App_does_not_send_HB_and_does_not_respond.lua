@@ -46,7 +46,7 @@ local HBParams_2 = {
 }
 
 --[[ Local Functions ]]
-local function firstAppIsUnregisterred()
+local function firstAppIsUnregistered()
   common.getHMIConnection():ExpectNotification("BasicCommunication.OnAppUnregistered",
     { appID = common.getHMIAppId(1), unexpectedDisconnect = true })
   :Do(function()
@@ -55,7 +55,7 @@ local function firstAppIsUnregisterred()
   :Timeout(15000)
 end
 
-local function secondAppIsStillRegisterred()
+local function secondAppIsStillRegistered()
   local cid = common.getMobileSession(2):SendRPC("RegisterAppInterface", common.getConfigAppParams(2))
   common.getMobileSession(2):ExpectResponse(cid, { success = false, resultCode = "APPLICATION_REGISTERED_ALREADY" })
 end
@@ -69,8 +69,8 @@ runner.Step("Register App 1", common.registerApp, { 1, HBParams_1 })
 runner.Step("Register App 2", common.registerApp, { 2, HBParams_2 })
 
 runner.Title("Test")
-runner.Step("Wait 15 seconds and verify 1st app is unregistered", firstAppIsUnregisterred)
-runner.Step("Verify 2nd app is still registered", secondAppIsStillRegisterred)
+runner.Step("Wait 15 seconds and verify 1st app is unregistered", firstAppIsUnregistered)
+runner.Step("Verify 2nd app is still registered", secondAppIsStillRegistered)
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", common.postconditions)

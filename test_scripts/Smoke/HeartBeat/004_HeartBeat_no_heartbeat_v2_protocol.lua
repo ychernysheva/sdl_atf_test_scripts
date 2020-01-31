@@ -50,7 +50,7 @@ local function wait()
   common.wait(15000)
 end
 
-local function appIsStillRegisterred()
+local function appIsStillRegistered()
   local cid = common.getMobileSession(1):SendRPC("RegisterAppInterface", common.getConfigAppParams(1))
   common.getMobileSession(1):ExpectResponse(cid, { success = false, resultCode = "APPLICATION_REGISTERED_ALREADY" })
 end
@@ -64,7 +64,7 @@ runner.Step("Register App", common.registerApp, { 1, HBParams })
 
 runner.Title("Test")
 runner.Step("Wait 15 seconds", wait)
-runner.Step("Verify app is still registered", appIsStillRegisterred)
+runner.Step("Verify app is still registered", appIsStillRegistered)
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", common.postconditions)
