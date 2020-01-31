@@ -144,22 +144,22 @@ end
 
 local function prepareAlertParams(pParams, pAdditionalParams)
   local params = common.cloneTable(pParams)
-  pParams.responseUiParams.appID = common.getHMIAppId()
+  params.responseUiParams.appID = common.getHMIAppId()
 
   if pAdditionalParams.softButtons ~= nil then
-    pParams.requestParams.duration = nil
-    pParams.requestParams.softButtons = pAdditionalParams.softButtons
-    pParams.responseUiParams.duration = nil
-    pParams.responseUiParams.softButtons = pAdditionalParams.softButtons
-    pParams.responseUiParams.softButtons[1].image.value =
+    params.requestParams.duration = nil
+    params.requestParams.softButtons = pAdditionalParams.softButtons
+    params.responseUiParams.duration = nil
+    params.responseUiParams.softButtons = pAdditionalParams.softButtons
+    params.responseUiParams.softButtons[1].image.value =
       common.getPathToFileInAppStorage(putFileParams.requestParams.syncFileName)
-    pParams.responseUiParams.softButtons[3].image.value =
+    params.responseUiParams.softButtons[3].image.value =
       common.getPathToFileInAppStorage(putFileParams.requestParams.syncFileName)
   elseif pAdditionalParams.duration ~= nil then
-    pParams.requestParams.softButtons = nil
-    pParams.requestParams.duration = pAdditionalParams.duration
-    pParams.responseUiParams.softButtons = nil
-    pParams.responseUiParams.duration = pAdditionalParams.duration
+    params.requestParams.softButtons = nil
+    params.requestParams.duration = pAdditionalParams.duration
+    params.responseUiParams.softButtons = nil
+    params.responseUiParams.duration = pAdditionalParams.duration
   end
   return params
 end
