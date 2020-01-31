@@ -92,7 +92,7 @@ local function getInteriorVehicleData()
   local cid = mobSession:SendRPC("GetInteriorVehicleData", params.mobRequest)
   hmi:ExpectRequest("RC.GetInteriorVehicleData", params.hmiRequest)
   :Do(function(_, data)
-    hmi:SendResponse(data.id, data.method, "SUCCESS", params.hmiResponse)
+      hmi:SendResponse(data.id, data.method, "SUCCESS", params.hmiResponse)
     end)
   mobSession:ExpectResponse(cid, params.mobResponse)
 end

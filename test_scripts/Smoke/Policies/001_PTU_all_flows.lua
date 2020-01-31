@@ -85,11 +85,11 @@ local function ptuProprietary(ptu_table, pFlow)
   -- Expect response GetPolicyConfigurationData on HMI side
   EXPECT_HMIRESPONSE(requestId)
   :Do(function()
-    common.log("SDL->HMI: RS: SDL.GetPolicyConfigurationData")
+      common.log("SDL->HMI: RS: SDL.GetPolicyConfigurationData")
       -- After receiving GetPolicyConfigurationData response send OnSystemRequest notification from HMI
       hmi:SendNotification("BasicCommunication.OnSystemRequest",
         { requestType = "PROPRIETARY", fileName = pts_file_name })
-        common.log("HMI->SDL: N: BC.OnSystemRequest")
+      common.log("HMI->SDL: N: BC.OnSystemRequest")
       -- Prepare PT for update
       getPTUFromPTS(ptu_table)
       -- Save created PT for update in tmp file
@@ -104,7 +104,7 @@ local function ptuProprietary(ptu_table, pFlow)
           -- Send SystemRequest request with PT for update from mobile side
           local corIdSystemRequest = mobileSession:SendRPC("SystemRequest",
             { requestType = "PROPRIETARY" }, ptu_file_name)
-            common.log("MOB->SDL: RQ: SystemRequest")
+          common.log("MOB->SDL: RQ: SystemRequest")
           -- Expect SystemRequest request on HMI side
           hmi:ExpectRequest("BasicCommunication.SystemRequest")
           :Do(function(_, dd)
@@ -115,7 +115,7 @@ local function ptuProprietary(ptu_table, pFlow)
               -- Send OnReceivedPolicyUpdate notification from HMI
               hmi:SendNotification("SDL.OnReceivedPolicyUpdate",
                 { policyfile = dd.params.fileName })
-                common.log("HMI->SDL: N: SDL.OnReceivedPolicyUpdate")
+              common.log("HMI->SDL: N: SDL.OnReceivedPolicyUpdate")
             end)
           -- Expect SystemRequest response with resultCode SUCCESS on mobile side
           mobileSession:ExpectResponse(corIdSystemRequest, { success = true, resultCode = "SUCCESS"})
@@ -141,11 +141,11 @@ local function ptuHttp(ptu_table)
   -- Send SystemRequest form mobile app with created PT
   local corId = mobileSession:SendRPC("SystemRequest",
     { requestType = "HTTP", fileName = policy_file_name }, ptu_file_name)
-    common.log("MOB->SDL: RQ: SystemRequest")
+  common.log("MOB->SDL: RQ: SystemRequest")
   -- Expect successful SystemRequest response on mobile side
   mobileSession:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
   :Do(function()
-    common.log("SDL->MOB: RS: SUCCESS: SystemRequest")
+      common.log("SDL->MOB: RS: SUCCESS: SystemRequest")
     end)
   -- remove tmp PT file
   os.remove(ptu_file_name)
@@ -156,7 +156,7 @@ local function expOnStatusUpdate()
   common.getHMIConnection():ExpectNotification("SDL.OnStatusUpdate",
     { status = "UPDATE_NEEDED" }, { status = "UPDATING" }, {status = "UP_TO_DATE" })
   :Do(function(_, d)
-    common.log("SDL->HMI: N: SDL.OnStatusUpdate", d.params.status)
+      common.log("SDL->HMI: N: SDL.OnStatusUpdate", d.params.status)
     end)
   :Times(3)
 end
@@ -185,7 +185,7 @@ local function raiPTU()
       hmi:ExpectNotification("BasicCommunication.OnAppRegistered",
         { application = { appName = config.application1.registerAppInterfaceParams.appName } })
       :Do(function()
-        common.log("SDL->HMI: N: BC.OnAppRegistered")
+          common.log("SDL->HMI: N: BC.OnAppRegistered")
         end)
       -- Expect RegisterAppInterface response on mobile side with resultCode SUCCESS
       mobileSession:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
@@ -213,7 +213,7 @@ local function raiPTU()
             -- Expect OnSystemRequest notification on mobile side
             mobileSession:ExpectNotification("OnSystemRequest")
             :Do(function(e, d)
-              common.log("SDL->MOB: N: OnSystemRequest", e.occurences, d.payload.requestType)
+                common.log("SDL->MOB: N: OnSystemRequest", e.occurences, d.payload.requestType)
                 if d.payload.requestType == "HTTP" then
                   if e.occurences <= 2 then -- SDL send OnSystemRequest more than once if PTU update was incorrect
                     -- Check data in receives OnSystemRequest notification on mobile side
@@ -235,12 +235,12 @@ local function raiPTU()
           mobileSession:ExpectNotification("OnHMIStatus",
             { hmiLevel = "NONE", audioStreamingState = "NOT_AUDIBLE", systemContext = "MAIN" })
           :Do(function(_, d)
-            common.log("SDL->MOB: N: OnHMIStatus", d.payload.hmiLevel)
+              common.log("SDL->MOB: N: OnHMIStatus", d.payload.hmiLevel)
             end)
           -- Expect OnPermissionsChange on mobile side form SDL
           mobileSession:ExpectNotification("OnPermissionsChange")
           :Do(function()
-            common.log("SDL->MOB: N: OnPermissionsChange")
+              common.log("SDL->MOB: N: OnPermissionsChange")
             end)
           :Times(2)
         end)
