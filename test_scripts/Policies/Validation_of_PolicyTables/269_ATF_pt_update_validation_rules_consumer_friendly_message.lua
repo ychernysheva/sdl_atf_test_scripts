@@ -29,7 +29,6 @@ config.defaultProtocolVersion = 2
 
 --[[ General configuration parameters ]]
 Test = require('connecttest')
-local config = require('config')
 require('cardinalities')
 require('user_modules/AppTypes')
 

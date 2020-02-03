@@ -20,7 +20,6 @@ local commonSteps = require('user_modules/shared_testcases/commonSteps')
 
 --[[ General configuration parameters ]]
 Test = require('user_modules/dummy_connecttest')
-local config = require('config')
 config.defaultProtocolVersion = 2
 
 require('user_modules/AppTypes')

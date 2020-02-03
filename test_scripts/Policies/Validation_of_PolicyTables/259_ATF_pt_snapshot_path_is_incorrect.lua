@@ -41,7 +41,6 @@ testCasesForPolicyTable.Delete_Policy_table_snapshot()
 
 --[[ General configuration parameters ]]
 Test = require('connecttest')
-local config = require('config')
 require('user_modules/AppTypes')
 
 --[[ Local Variables ]]

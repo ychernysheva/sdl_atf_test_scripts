@@ -29,7 +29,6 @@ commonSteps:DeleteLogsFileAndPolicyTable()
 
 --[[ General configuration parameters ]]
 Test = require('connecttest')
-local config = require('config')
 config.defaultProtocolVersion = 2
 
 require('cardinalities')

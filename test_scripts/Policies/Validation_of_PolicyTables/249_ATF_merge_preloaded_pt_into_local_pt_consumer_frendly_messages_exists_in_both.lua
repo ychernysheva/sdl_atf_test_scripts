@@ -224,7 +224,6 @@ prepareInitialPreloadedPT()
 
 --[[ General configuration parameters ]]
 Test = require('connecttest')
-local config = require('config')
 require('user_modules/AppTypes')
 
 function Test.checkLocalPT(checkTable)

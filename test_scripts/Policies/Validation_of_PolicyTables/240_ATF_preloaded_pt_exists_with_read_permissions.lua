@@ -32,7 +32,6 @@ commonPreconditions:BackupFile(preloaded_pt_file_name)
 
 --[[ General Settings for configuration ]]
 Test = require('connecttest')
-local config = require('config')
 require("user_modules/AppTypes")
 
 --[[ Local functions ]]
