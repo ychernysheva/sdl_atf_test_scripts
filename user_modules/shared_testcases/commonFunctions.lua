@@ -7,7 +7,7 @@ local commonFunctions = {}
 local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
 require('atf.util')
 local json = require('json4lua/json/json')
-local expectations = require('expectations')
+local SDL = require("SDL")
 local events = require('events')
 local NewTestSuiteNumber = 0 -- use as subfix of test case "NewTestSuite" to make different test case name.
 local path_config = commonPreconditions:GetPathToSDL()
@@ -60,25 +60,7 @@ end
 
 --check that SDL ports are open then raise else RUN after timeout configured by step variable
 function commonFunctions:waitForSDLStart(test)
-  local step = 100
-  local hmiPort = config.hmiPort
-  local event = events.Event()
-  event.matches = function(self, e) return self == e end
-  local function raise_event()
-    assert(hmiPort ~= nil or hmiPort ~= "")
-    local output = os.execute ("netstat -vatn  | grep " .. hmiPort .. " | grep LISTEN")
-    if (output) then
-      RAISE_EVENT(event, event)
-    else
-      RUN_AFTER(raise_event, step)
-    end
-  end
-  RUN_AFTER(raise_event, step)
-  local ret = expectations.Expectation("Wait for SDL start", test.mobileConnection)
-  ret.event = event
-  event_dispatcher:AddEvent(test.mobileConnection, ret.event, ret)
-  test:AddExpectation(ret)
-  return ret
+  return SDL.WaitForSDLStart(test)
 end
 
 function commonFunctions:createMultipleExpectationsWaiter(test, name)
