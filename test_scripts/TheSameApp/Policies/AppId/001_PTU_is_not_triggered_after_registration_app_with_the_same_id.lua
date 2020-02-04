@@ -13,7 +13,7 @@
 -- Steps:
 -- 1) App1 is registered from Mobile №2 during PTU for App1 from Mobile №1 is in progress
 --   Check: SDL does not send SDL.OnStatusUpdate and BC.PolicyUpdate to HMI during the app registration
--- 2) First PTU is performed successful
+-- 2) First PTU is successful
 --   Check: SDL does not trigger new PTU after the first one is finished
 ---------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
