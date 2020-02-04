@@ -27,6 +27,7 @@
 local runner = require('user_modules/script_runner')
 local common = require("user_modules/sequences/actions")
 local utils = require("user_modules/utils")
+local color = require("user_modules/consts").color
 
 --[[ Test Configuration ]]
 runner.testSettings.isSelfIncluded = false
@@ -44,10 +45,10 @@ local function log(...)
     if i == 1 then delimiter = " " end
     str = str .. delimiter .. p
   end
-  utils.cprint(35, str)
+  utils.cprint(color.magenta, str)
 end
 
-local function preloadedTupd(pTbl)
+local function updatePreloadedTimeout(pTbl)
   pTbl.policy_table.module_config.timeout_after_x_seconds = timeout_after_x_seconds
   pTbl.policy_table.module_config.seconds_between_retries = secondsBetweenRetries
 end
@@ -97,7 +98,7 @@ end
 --[[ Scenario ]]
 runner.Title("Preconditions")
 runner.Step("Clean environment", common.preconditions)
-runner.Step("Preloaded update with retry parameters", updatePreloaded, { preloadedTupd })
+runner.Step("Preloaded update with retry parameters", updatePreloaded, { updatePreloadedTimeout })
 runner.Step("Start SDL, HMI, connect Mobile, start Session", common.start)
 
 runner.Title("Test")
