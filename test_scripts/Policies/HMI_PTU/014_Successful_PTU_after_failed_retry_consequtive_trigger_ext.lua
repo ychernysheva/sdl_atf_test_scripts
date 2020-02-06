@@ -41,16 +41,6 @@ local function updatePreloadedTimeout(pTbl)
   pTbl.policy_table.module_config.seconds_between_retries = secondsBetweenRetries
 end
 
-function common.registerApp(pAppId)
-  common.register(pAppId)
-  local exp = { { status = "UPDATE_NEEDED" }, { status = "UPDATING" } }
-  common.hmi():ExpectNotification("SDL.OnStatusUpdate", unpack(exp))
-  :Times(#exp)
-  :Do(function(_, data)
-      common.log("SDL->HMI:", "SDL.OnStatusUpdate(" .. data.params.status .. ")")
-    end)
-end
-
 local function sendOnSystemRequest()
   if numOfOnSysReq == expNumOfOnSysReq then return end
   common.hmi():SendNotification("BasicCommunication.OnSystemRequest",

@@ -104,7 +104,7 @@ runner.Step("Preloaded update with retry parameters", common.updatePreloaded, { 
 runner.Step("Start SDL, HMI, connect Mobile, start Session", common.start)
 
 runner.Title("Test")
-runner.Step("Register App", common.register, { 1 })
+runner.Step("Register App", common.registerApp, { 1 })
 runner.Step("Activate App", common.activateApp, { 1 })
 runner.Step("Unsuccessful PTU via a HMI", common.unsuccessfulPTUviaHMI)
 runner.Step("Unsuccessful PTU via a mobile device", unsuccessfulPTUviaMobile)
