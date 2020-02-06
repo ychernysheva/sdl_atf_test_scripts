@@ -644,7 +644,7 @@ function common.ignitionOff(pDevices, pExpFunc)
   common.run.wait(3000)
   :Do(function()
       if isOnSDLCloseSent == false then utils.cprint(35, "BC.OnSDLClose was not sent") end
-      if common.sdl.isRunning() then common.sdl.stop() end
+      common.sdl.stop()
       for i in pairs(pDevices) do
         common.mobile.deleteConnection(i)
       end
