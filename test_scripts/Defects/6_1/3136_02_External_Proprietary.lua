@@ -36,6 +36,8 @@ runner.testSettings.restrictions.sdlBuildOptions = { { extendedPolicy = { "EXTER
 --[[ Local Variables ]]
 local secondsBetweenRetries = { 1, 2 }
 local timeout_after_x_seconds = 4
+local expNumOfOnSysReq = #secondsBetweenRetries + 2
+local numOfOnSysReq = 0
 
 --[[ Local Functions ]]
 local function log(...)
@@ -66,19 +68,20 @@ local function checkPTUStatus(pExpStatus)
 end
 
 local function sendOnSystemRequest()
+  if numOfOnSysReq == expNumOfOnSysReq then return end
   common.hmi.getConnection():SendNotification("BasicCommunication.OnSystemRequest",
     { requestType = "PROPRIETARY", fileName = "files/ptu.json" })
   log("HMI->SDL:", "BC.OnSystemRequest")
+  numOfOnSysReq = numOfOnSysReq + 1
 end
 
 local function unsuccessfulPTUviaMobile()
-  sendOnSystemRequest()
   local timeout = 60000
   common.mobile.getSession():ExpectNotification("OnSystemRequest", { requestType = "PROPRIETARY" })
   :Do(function(_, data)
       log("SDL->MOB1:", "OnSystemRequest", data.payload.requestType)
     end)
-  :Times(4)
+  :Times(expNumOfOnSysReq)
   :Timeout(timeout)
 
   local isBCPUReceived = false
@@ -92,7 +95,6 @@ local function unsuccessfulPTUviaMobile()
   :Timeout(timeout)
 
   local exp = {
-    { status = "UPDATING" },
     { status = "UPDATE_NEEDED" },
     { status = "UPDATING" },
     { status = "UPDATE_NEEDED" },
@@ -100,27 +102,30 @@ local function unsuccessfulPTUviaMobile()
     { status = "UPDATE_NEEDED" },
     { status = "UPDATING" },
     { status = "UPDATE_NEEDED" },
-    { status = "UPDATE_NEEDED" } -- new PTU sequence
+    { status = "UPDATING" },
+    { status = "UPDATE_NEEDED" },
+    { status = "UPDATE_NEEDED" }, -- new PTU sequence
+    { status = "UPDATING" }
   }
   common.hmi.getConnection():ExpectNotification("SDL.OnStatusUpdate", table.unpack(exp))
   :Times(#exp)
   :Timeout(timeout)
   :Do(function(e, data)
       log("SDL->HMI:", "SDL.OnStatusUpdate(" .. data.params.status .. ")")
-      if data.params.status == "UPDATE_NEEDED" and e.occurences < #exp - 2 then
+      if data.params.status == "UPDATE_NEEDED" then
         common.run.runAfter(sendOnSystemRequest, 1000)
       end
-      if e.occurences == 1 then
+      if e.occurences == 2 then
         checkPTUStatus("UPDATING")
         common.sdl.deletePTS()
       end
-      if e.occurences == 2 then
+      if e.occurences == 3 then
         common.app.registerNoPTU(2)
         log("SDL->MOB2:", "RAI2")
       end
     end)
     :ValidIf(function(e)
-      if e.occurences == #exp and isBCPUReceived == true then
+      if e.occurences == #exp - 1 and isBCPUReceived == true then
         return false, "BC.PolicyUpdate is sent before new PTU sequence"
       end
       if e.occurences == #exp - 2 and common.sdl.getPTS() ~= nil then
@@ -137,10 +142,23 @@ local function policyTableUpdate()
   local function expNotifFunc()
     common.hmi.getConnection():ExpectRequest("VehicleInfo.GetVehicleData", { odometer = true })
     common.hmi.getConnection():ExpectNotification("SDL.OnStatusUpdate",
-      { status = "UPDATING" }, { status = "UP_TO_DATE" })
-    :Times(2)
+      { status = "UP_TO_DATE" })
+    :Times(1)
   end
   common.ptu.policyTableUpdate(nil, expNotifFunc)
+end
+
+local function unsuccessfulPTUviaHMI()
+  local requestId = common.hmi.getConnection():SendRequest("SDL.GetPolicyConfigurationData",
+    { policyType = "module_config", property = "endpoints" })
+  common.hmi.getConnection():ExpectResponse(requestId)
+  :Do(function()
+      common.hmi.getConnection():ExpectNotification("SDL.OnStatusUpdate")
+      :Times(0)
+      common.mobile.getSession():ExpectNotification("OnPermissionsChange")
+      :Times(0)
+    end)
+  common.run.wait(500)
 end
 
 --[[ Scenario ]]
@@ -152,8 +170,9 @@ runner.Step("Start SDL, HMI, connect Mobile, start Session", common.start)
 runner.Title("Test")
 runner.Step("Register App", common.app.register)
 runner.Step("Activate App", common.app.activate)
+runner.Step("Unsuccessful PTU via a HMI", unsuccessfulPTUviaHMI)
 runner.Step("Unsuccessful PTU via a mobile device", unsuccessfulPTUviaMobile)
-
+runner.Step("Unsuccessful PTU via a HMI", unsuccessfulPTUviaHMI)
 runner.Step("Successful PTU via Mobile", policyTableUpdate)
 runner.Step("Check PTU status UP_TO_DATE", checkPTUStatus, { "UP_TO_DATE" })
 

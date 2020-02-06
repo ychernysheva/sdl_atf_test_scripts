@@ -36,6 +36,7 @@ runner.testSettings.restrictions.sdlBuildOptions = { { extendedPolicy = { "PROPR
 --[[ Local Variables ]]
 local secondsBetweenRetries = { 1, 2 }
 local timeout_after_x_seconds = 4
+local expNumOfOnSysReq = #secondsBetweenRetries
 
 --[[ Local Functions ]]
 local function log(...)
@@ -71,7 +72,7 @@ local function unsuccessfulPTUviaMobile()
   :Do(function()
       log("SDL->MOB:", "OnSystemRequest")
     end)
-  :Times(2)
+  :Times(expNumOfOnSysReq)
   :Timeout(timeout)
 
   local isBCPUReceived = false
@@ -131,6 +132,19 @@ local function policyTableUpdate()
   common.ptu.policyTableUpdate(nil, expNotifFunc)
 end
 
+local function unsuccessfulPTUviaHMI()
+  local requestId = common.hmi.getConnection():SendRequest("SDL.GetPolicyConfigurationData",
+    { policyType = "module_config", property = "endpoints" })
+  common.hmi.getConnection():ExpectResponse(requestId)
+  :Do(function()
+      common.hmi.getConnection():ExpectNotification("SDL.OnStatusUpdate")
+      :Times(0)
+      common.mobile.getSession():ExpectNotification("OnPermissionsChange")
+      :Times(0)
+    end)
+  common.run.wait(500)
+end
+
 --[[ Scenario ]]
 runner.Title("Preconditions")
 runner.Step("Clean environment", common.preconditions)
@@ -140,8 +154,9 @@ runner.Step("Start SDL, HMI, connect Mobile, start Session", common.start)
 runner.Title("Test")
 runner.Step("Register App", common.app.register)
 runner.Step("Activate App", common.app.activate)
+runner.Step("Unsuccessful PTU via a HMI", unsuccessfulPTUviaHMI)
 runner.Step("Unsuccessful PTU via a mobile device", unsuccessfulPTUviaMobile)
-
+runner.Step("Unsuccessful PTU via a HMI", unsuccessfulPTUviaHMI)
 runner.Step("Successful PTU via Mobile", policyTableUpdate)
 runner.Step("Check PTU status UP_TO_DATE", checkPTUStatus, { "UP_TO_DATE" })
 

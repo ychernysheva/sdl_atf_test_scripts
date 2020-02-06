@@ -36,6 +36,7 @@ runner.testSettings.restrictions.sdlBuildOptions = { { extendedPolicy = { "HTTP"
 --[[ Local Variables ]]
 local secondsBetweenRetries = { 1, 2 }
 local timeout_after_x_seconds = 4
+local expNumOfOnSysReq = #secondsBetweenRetries + 1
 
 --[[ Local Functions ]]
 local function log(...)
@@ -71,7 +72,7 @@ local function unsuccessfulPTUviaMobile()
   :Do(function()
       log("SDL->MOB:", "OnSystemRequest")
     end)
-  :Times(3)
+  :Times(expNumOfOnSysReq)
   :Timeout(timeout)
 
   local exp = {
