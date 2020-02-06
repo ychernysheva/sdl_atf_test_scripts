@@ -34,6 +34,8 @@ runner.testSettings.restrictions.sdlBuildOptions = { { extendedPolicy = { "EXTER
 --[[ Local Variables ]]
 local secondsBetweenRetries = { 1, 2 } -- in sec
 local timeout_after_x_seconds = 4 -- in sec
+local expNumOfOnSysReq = #secondsBetweenRetries + 2
+local numOfOnSysReq = 0
 
 --[[ Local Functions ]]
 local function updatePreloadedTimeout(pTbl)
@@ -42,9 +44,11 @@ local function updatePreloadedTimeout(pTbl)
 end
 
 local function sendOnSystemRequest()
+  if numOfOnSysReq == expNumOfOnSysReq then return end
   common.hmi():SendNotification("BasicCommunication.OnSystemRequest",
     { requestType = "PROPRIETARY", fileName = "files/ptu.json" })
   common.log("HMI->SDL:", "BC.OnSystemRequest")
+  numOfOnSysReq = numOfOnSysReq + 1
 end
 
 local function unsuccessfulPTUviaMobile()
@@ -53,7 +57,7 @@ local function unsuccessfulPTUviaMobile()
   :Do(function(_, data)
       common.log("SDL->MOB1:", "OnSystemRequest", data.payload.requestType)
     end)
-  :Times(4)
+  :Times(expNumOfOnSysReq)
   :Timeout(timeout)
 
   local isBCPUReceived = false
@@ -62,8 +66,11 @@ local function unsuccessfulPTUviaMobile()
       isBCPUReceived = true
       common.hmi():SendResponse(data.id, data.method, "SUCCESS", { })
     end)
+  :Timeout(timeout)
 
   local exp = {
+    { status = "UPDATE_NEEDED" },
+    { status = "UPDATING" },
     { status = "UPDATE_NEEDED" },
     { status = "UPDATING" },
     { status = "UPDATE_NEEDED" },
@@ -79,7 +86,7 @@ local function unsuccessfulPTUviaMobile()
   :Timeout(timeout)
   :Do(function(e, data)
       common.log("SDL->HMI:", "SDL.OnStatusUpdate(" .. data.params.status .. ")")
-      if data.params.status == "UPDATE_NEEDED" and e.occurences < #exp - 2 then
+      if data.params.status == "UPDATE_NEEDED" then
         common.runAfter(sendOnSystemRequest, 1000)
       end
       if e.occurences == 2 then

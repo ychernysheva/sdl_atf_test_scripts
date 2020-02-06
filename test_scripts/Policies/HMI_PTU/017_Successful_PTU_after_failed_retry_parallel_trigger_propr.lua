@@ -34,6 +34,7 @@ runner.testSettings.restrictions.sdlBuildOptions = { { extendedPolicy = { "PROPR
 --[[ Local Variables ]]
 local secondsBetweenRetries = { 1, 2 } -- in sec
 local timeout_after_x_seconds = 4 -- in sec
+local expNumOfOnSysReq = #secondsBetweenRetries
 
 --[[ Local Functions ]]
 local function updatePreloadedTimeout(pTbl)
@@ -47,7 +48,7 @@ local function unsuccessfulPTUviaMobile()
   :Do(function()
       common.log("SDL->MOB:", "OnSystemRequest")
     end)
-  :Times(2)
+  :Times(expNumOfOnSysReq)
   :Timeout(timeout)
 
   local isBCPUReceived = false
@@ -56,6 +57,7 @@ local function unsuccessfulPTUviaMobile()
       isBCPUReceived = true
       common.hmi():SendResponse(data.id, data.method, "SUCCESS", { })
     end)
+  :Timeout(timeout)
 
   local exp = {
     { status = "UPDATE_NEEDED" },
