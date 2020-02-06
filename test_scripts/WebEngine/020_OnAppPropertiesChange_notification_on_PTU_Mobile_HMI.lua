@@ -85,14 +85,7 @@ end
 
 local function onAppPropertiesChangePTU()
   common.getHMIConnection():ExpectRequest("VehicleInfo.GetVehicleData", { odometer = true })
-  if common.sdlBuildOptions.extendedPolicy == "EXTERNAL_PROPRIETARY" then
-    common.getHMIConnection():ExpectNotification("SDL.OnStatusUpdate",
-      { status = "UPDATING" },
-      { status = "UP_TO_DATE" })
-    :Times(2)
-  else
-    common.getHMIConnection():ExpectNotification("SDL.OnStatusUpdate", { status = "UP_TO_DATE" })
-  end
+  common.getHMIConnection():ExpectNotification("SDL.OnStatusUpdate", { status = "UP_TO_DATE" })
   common.onAppPropertiesChange(appPropPTUExpect)
 end
 
