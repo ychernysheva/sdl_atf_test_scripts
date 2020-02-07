@@ -168,14 +168,14 @@ local function createInteractionChoiceSet(choiceSetID)
   common.getMobileSession():ExpectResponse(cid, { resultCode = "SUCCESS", success = true })
 end
 
-local function PI_ViaVR_ONLY(paramsSend)
-  paramsSend.interactionMode = "VR_ONLY"
-  local cid = common.getMobileSession():SendRPC("PerformInteraction",paramsSend)
+local function PI_ViaVR_ONLY(pParams)
+  pParams.interactionMode = "VR_ONLY"
+  local cid = common.getMobileSession():SendRPC("PerformInteraction",pParams)
   common.getHMIConnection():ExpectRequest("VR.PerformInteraction", {
-      helpPrompt = paramsSend.helpPrompt,
-      initialPrompt = paramsSend.initialPrompt,
-      timeout = paramsSend.timeout,
-      timeoutPrompt = paramsSend.timeoutPrompt
+      helpPrompt = pParams.helpPrompt,
+      initialPrompt = pParams.initialPrompt,
+      timeout = pParams.timeout,
+      timeoutPrompt = pParams.timeoutPrompt
     })
   :Do(function(_, data)
       local function vrResponse()
@@ -183,7 +183,7 @@ local function PI_ViaVR_ONLY(paramsSend)
         common.getHMIConnection():SendNotification("VR.Started")
         sendOnSystemContext("VRSESSION")
         common.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS",
-          { choiceID = paramsSend.interactionChoiceSetIDList[1] })
+          { choiceID = pParams.interactionChoiceSetIDList[1] })
         common.getHMIConnection():SendNotification("TTS.Stopped")
         common.getHMIConnection():SendNotification("VR.Stopped")
         sendOnSystemContext("MAIN")
@@ -192,44 +192,47 @@ local function PI_ViaVR_ONLY(paramsSend)
     end)
 
   common.getHMIConnection():ExpectRequest("UI.PerformInteraction", {
-      timeout = paramsSend.timeout,
-      vrHelp = paramsSend.vrHelp,
-      vrHelpTitle = paramsSend.initialText,
+      timeout = pParams.timeout,
+      vrHelp = pParams.vrHelp,
+      vrHelpTitle = pParams.initialText,
     })
-  :Do(function(_, data)
-      common.getHMIConnection():SendResponse( data.id, data.method, "SUCCESS", { } )
+  :Do(function(_,data)
+      common.getHMIConnection():ExpectRequest("UI.ClosePopUp", { methodName = "UI.PerformInteraction" })
+        :Do(function()
+          common.getHMIConnection():SendError(data.id, data.method, "ABORTED", "Error message")
+        end)
     end)
   expectOnHMIStatusWithAudioStateChanged_PI("VR")
   common.getMobileSession():ExpectResponse(cid,
-    { success = true, resultCode = "SUCCESS", choiceID = paramsSend.interactionChoiceSetIDList[1] })
+    { success = true, resultCode = "SUCCESS", choiceID = pParams.interactionChoiceSetIDList[1] })
 end
 
-local function PI_ViaMANUAL_ONLY(paramsSend)
-  paramsSend.interactionMode = "MANUAL_ONLY"
-  local cid = common.getMobileSession():SendRPC("PerformInteraction", paramsSend)
+local function PI_ViaMANUAL_ONLY(pParams)
+  pParams.interactionMode = "MANUAL_ONLY"
+  local cid = common.getMobileSession():SendRPC("PerformInteraction", pParams)
   common.getHMIConnection():ExpectRequest("VR.PerformInteraction", {
-      helpPrompt = paramsSend.helpPrompt,
-      initialPrompt = paramsSend.initialPrompt,
-      timeout = paramsSend.timeout,
-      timeoutPrompt = paramsSend.timeoutPrompt
+      helpPrompt = pParams.helpPrompt,
+      initialPrompt = pParams.initialPrompt,
+      timeout = pParams.timeout,
+      timeoutPrompt = pParams.timeoutPrompt
     })
   :Do(function(_, data)
       common.getHMIConnection():SendNotification("TTS.Started")
       common.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", { })
     end)
   common.getHMIConnection():ExpectRequest("UI.PerformInteraction", {
-      timeout = paramsSend.timeout,
-      choiceSet = setExChoiceSet(paramsSend.interactionChoiceSetIDList),
+      timeout = pParams.timeout,
+      choiceSet = setExChoiceSet(pParams.interactionChoiceSetIDList),
       initialText = {
         fieldName = "initialInteractionText",
-        fieldText = paramsSend.initialText
+        fieldText = pParams.initialText
       }
     })
   :Do(function(_, data)
       sendOnSystemContext("HMI_OBSCURED")
       local function uiResponse()
         common.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS",
-          { choiceID = paramsSend.interactionChoiceSetIDList[1] })
+          { choiceID = pParams.interactionChoiceSetIDList[1] })
         common.getHMIConnection():SendNotification("TTS.Stopped")
         sendOnSystemContext("MAIN")
       end
@@ -237,7 +240,7 @@ local function PI_ViaMANUAL_ONLY(paramsSend)
     end)
   expectOnHMIStatusWithAudioStateChanged_PI("MANUAL")
   common.getMobileSession():ExpectResponse(cid,
-    { success = true, resultCode = "SUCCESS", choiceID = paramsSend.interactionChoiceSetIDList[1] })
+    { success = true, resultCode = "SUCCESS", choiceID = pParams.interactionChoiceSetIDList[1] })
 end
 
 local function PI_ViaBOTH(pParams)
@@ -290,6 +293,104 @@ local function PI_ViaBOTH(pParams)
   common.getMobileSession():ExpectResponse(cid, { success = false, resultCode = "TIMED_OUT" })
 end
 
+local function PI_ViaBOTHuiChoice(pParams)
+  pParams.interactionMode = "BOTH"
+  local cid = common.getMobileSession():SendRPC("PerformInteraction",pParams)
+  common.getHMIConnection():ExpectRequest("VR.PerformInteraction", {
+      helpPrompt = pParams.helpPrompt,
+      initialPrompt = pParams.initialPrompt,
+      timeout = pParams.timeout,
+      timeoutPrompt = pParams.timeoutPrompt
+    })
+  :Do(function(_,data)
+      common.getHMIConnection():SendNotification("VR.Started")
+      common.getHMIConnection():SendNotification("TTS.Started")
+      sendOnSystemContext("VRSESSION")
+      local function firstSpeakTimeOut()
+        common.getHMIConnection():SendNotification("TTS.Stopped")
+        common.getHMIConnection():SendNotification("TTS.Started")
+      end
+      common.runAfter(firstSpeakTimeOut, 1000)
+      local function vrResponse()
+        common.getHMIConnection():SendError(data.id, data.method, "TIMED_OUT", "Perform Interaction error response.")
+        common.getHMIConnection():SendNotification("VR.Stopped")
+      end
+      common.runAfter(vrResponse, 2000)
+    end)
+  common.getHMIConnection():ExpectRequest("UI.PerformInteraction", {
+      timeout = pParams.timeout,
+      choiceSet = setExChoiceSet(pParams.interactionChoiceSetIDList),
+      initialText = {
+        fieldName = "initialInteractionText",
+        fieldText = pParams.initialText
+      },
+      vrHelp = pParams.vrHelp,
+      vrHelpTitle = pParams.initialText
+    })
+  :Do(function(_,data)
+      local function choiceIconDisplayed()
+        sendOnSystemContext("HMI_OBSCURED")
+      end
+      common.runAfter(choiceIconDisplayed, 2050)
+      local function uiResponse()
+        common.getHMIConnection():SendNotification("TTS.Stopped")
+        common.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS",
+          { choiceID = pParams.interactionChoiceSetIDList[1] })
+        sendOnSystemContext("MAIN")
+      end
+      common.runAfter(uiResponse, 3000)
+    end)
+  expectOnHMIStatusWithAudioStateChanged_PI("BOTH")
+  common.getMobileSession():ExpectResponse(cid, { success = true, resultCode = "SUCCESS",
+    choiceID = pParams.interactionChoiceSetIDList[1], triggerSource = "MENU" })
+end
+
+local function PI_ViaBOTHvrChoice(pParams)
+  pParams.interactionMode = "BOTH"
+  local cid = common.getMobileSession():SendRPC("PerformInteraction",pParams)
+  common.getHMIConnection():ExpectRequest("VR.PerformInteraction", {
+      helpPrompt = pParams.helpPrompt,
+      initialPrompt = pParams.initialPrompt,
+      timeout = pParams.timeout,
+      timeoutPrompt = pParams.timeoutPrompt
+    })
+  :Do(function(_,data)
+      common.getHMIConnection():SendNotification("TTS.Started")
+      common.getHMIConnection():SendNotification("VR.Started")
+      sendOnSystemContext("VRSESSION")
+      local function firstSpeakTimeOut()
+        common.getHMIConnection():SendNotification("TTS.Stopped")
+      end
+      common.runAfter(firstSpeakTimeOut, 1000)
+      local function vrResponse()
+        common.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS",
+          { choiceID = pParams.interactionChoiceSetIDList[1] })
+        common.getHMIConnection():SendNotification("VR.Stopped")
+        sendOnSystemContext("MAIN")
+      end
+      common.runAfter(vrResponse, 2000)
+    end)
+  common.getHMIConnection():ExpectRequest("UI.PerformInteraction", {
+      timeout = pParams.timeout,
+      choiceSet = setExChoiceSet(pParams.interactionChoiceSetIDList),
+      initialText = {
+        fieldName = "initialInteractionText",
+        fieldText = pParams.initialText
+      },
+      vrHelp = pParams.vrHelp,
+      vrHelpTitle = pParams.initialText
+    })
+  :Do(function(_,data)
+      common.getHMIConnection():ExpectRequest("UI.ClosePopUp", { methodName = "UI.PerformInteraction" })
+        :Do(function()
+          common.getHMIConnection():SendError(data.id, data.method, "ABORTED", "Error message")
+        end)
+    end)
+  expectOnHMIStatusWithAudioStateChanged_PI("VR")
+  common.getMobileSession():ExpectResponse(cid, { success = true, resultCode = "SUCCESS",
+    choiceID = pParams.interactionChoiceSetIDList[1], triggerSource = "VR" })
+end
+
 --[[ Scenario ]]
 runner.Title("Preconditions")
 runner.Step("Clean environment", common.preconditions)
@@ -305,7 +406,9 @@ runner.Step("CreateInteractionChoiceSet with id 300", createInteractionChoiceSet
 runner.Title("Test")
 runner.Step("PerformInteraction with VR_ONLY interaction mode", PI_ViaVR_ONLY, { requestParams })
 runner.Step("PerformInteraction with MANUAL_ONLY interaction mode", PI_ViaMANUAL_ONLY, { requestParams })
-runner.Step("PerformInteraction with BOTH interaction mode", PI_ViaBOTH, { requestParams })
+runner.Step("PerformInteraction with BOTH interaction mode TIMED_OUT", PI_ViaBOTH, { requestParams })
+runner.Step("PerformInteraction with BOTH interaction mode choice via UI", PI_ViaBOTHuiChoice, {requestParams})
+runner.Step("PerformInteraction with BOTH interaction mode choice via VR", PI_ViaBOTHvrChoice, {requestParams})
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", common.postconditions)
