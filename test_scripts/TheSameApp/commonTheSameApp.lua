@@ -913,14 +913,8 @@ end
 
 function common.registerAppWithPTU(pAppId, pAppParams, pDeviceId)
   common.registerAppEx(pAppId, pAppParams, pDeviceId, true)
-  local expTable
-  if common.extendedPolicyOption == "EXTERNAL_PROPRIETARY" then
-    expTable = { { status = "UPDATE_NEEDED" } }
-  else
-    expTable = { { status = "UPDATE_NEEDED" }, { status = "UPDATING" } }
-  end
-  common.hmi.getConnection():ExpectRequest("SDL.OnStatusUpdate", unpack(expTable))
-  :Times(#expTable)
+  common.hmi.getConnection():ExpectRequest("SDL.OnStatusUpdate", { status = "UPDATE_NEEDED" }, { status = "UPDATING" })
+  :Times(2)
   common.run.wait(2500)
 end
 

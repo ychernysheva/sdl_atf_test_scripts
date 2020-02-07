@@ -55,23 +55,11 @@ end
 
 local function registerApp2()
   common.registerAppEx(2, appParams[2], 2, true)
-  if common.extendedPolicyOption == "EXTERNAL_PROPRIETARY" then
-    common.hmi.getConnection():ExpectRequest("SDL.OnStatusUpdate"):Times(0)
-  else
-    common.hmi.getConnection():ExpectRequest("SDL.OnStatusUpdate", { status = "UPDATING" })
-  end
+  common.hmi.getConnection():ExpectRequest("SDL.OnStatusUpdate", { status = "UPDATING" })
 end
 
 local function secondPTUIsNotTriggered()
-  local expTable
-  if common.extendedPolicyOption == "EXTERNAL_PROPRIETARY" then
-    expTable = { { status = "UPDATING" }, { status = "UP_TO_DATE" } }
-  else
-    expTable = { { status = "UP_TO_DATE" } }
-  end
   common.isPTUNotStarted()
-  common.hmi.getConnection():ExpectRequest("SDL.OnStatusUpdate", unpack(expTable))
-  :Times(#expTable)
   common.run.wait(5000)
 end
 

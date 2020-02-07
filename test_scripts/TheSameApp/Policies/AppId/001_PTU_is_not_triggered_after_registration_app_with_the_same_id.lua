@@ -40,15 +40,7 @@ local appParams = {
 }
 
 local function secondPTUIsNotTriggered()
-  local expTable
-  if common.extendedPolicyOption == "EXTERNAL_PROPRIETARY" then
-    expTable = { { status = "UPDATING" }, { status = "UP_TO_DATE" } }
-  else
-    expTable = { { status = "UP_TO_DATE" } }
-  end
   common.isPTUNotStarted()
-  common.hmi.getConnection():ExpectRequest("SDL.OnStatusUpdate", unpack(expTable))
-  :Times(#expTable)
   common.run.wait(5000)
 end
 
