@@ -393,9 +393,8 @@ end
 --! self - test object
 --! @return: none
 --]]
-function commonDefect.unsuccessfulPTU(ptu_update_func, self)
-  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", { status = "UPDATE_NEEDED" }, { status = "UPDATING" })
-  :Times(2)
+function commonDefect.unsuccessfulPTU(ptu_update_func, expec_func, self)
+  expec_func()
   ptu(self, ptu_update_func)
 end
 
@@ -538,6 +537,16 @@ end
 function commonDefect.getMobileSession(self, pAppId)
   if not pAppId then pAppId = 1 end
   return self["mobileSession" .. pAppId]
+end
+
+--[[ @ptu: perform policy table update
+--! @parameters:
+--! pUpdateFunction - additional function for update
+--! self - test object
+--! @return: mobile session
+--]]
+function commonDefect.ptu(pUpdateFunction, self)
+  ptu(self, pUpdateFunction)
 end
 
 return commonDefect
