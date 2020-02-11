@@ -2,15 +2,15 @@
 --  [HMILevel Resumption]: Conditions to resume app to FULL in the next ignition cycle
 --
 --  Description:
---  Check that SDL does not perform App resumption in case when transport
---  disconnect occure in more than 30 sec before BC.OnExitAllApplications(SUSPEND).
+--  Check that SDL does not perform HMI level resumption of an App in case when transport
+--  disconnect occurs in more than 30 sec before BC.OnExitAllApplications(SUSPEND).
 
 --  1. Used precondition
 --  Media App is registered and active on HMI
 
 --  2. Performed steps
 --  Disconnect app, wait 31 sec
---  Perform iginition off
+--  Perform ignition off
 --  Perform ignition on
 --
 --  Expected behavior:

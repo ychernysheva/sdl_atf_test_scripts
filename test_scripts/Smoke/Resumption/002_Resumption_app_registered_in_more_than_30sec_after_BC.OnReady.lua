@@ -2,7 +2,7 @@
 --  [HMILevel Resumption]: Conditions to resume app to FULL in the next ignition cycle
 --
 --  Description:
---  Check that SDL does not perform App resumption in case when app is
+--  Check that SDL does not perform HMI level resumption of an App in case when it is
 --  registered in more than 30 sec. after BC.OnReady from HMI in the very next ignition cycle
 --
 --  1. Used precondition
