@@ -53,7 +53,7 @@ local function setVehicleData(params)
 
   if params.radioControlData.frequencyInteger then
     EXPECT_HMICALL("RC.SetInteriorVehicleData", {
-            appID = commonRC.getHMIAppId(1),
+      appID = commonRC.getHMIAppId(1),
       moduleData = params})
     :Do(function(_, data)
         commonRC.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", {
