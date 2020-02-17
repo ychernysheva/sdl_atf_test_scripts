@@ -15,7 +15,6 @@ runner.testSettings.isSelfIncluded = false
 --[[ Local Variables ]]
 local deviceParams = {
   id = utils.getDeviceMAC(),
-  isSDLAllowed = true,
   name = "127.0.0.1:12345",
   transportType = "WIFI"
 }
