@@ -5,7 +5,7 @@
 --
 -- In case:
 -- 1. VideoStreamConsumer is set to file value
--- 2. VideoStreamFile is sent to value with length in 500 characters
+-- 2. VideoStreamFile is sent to value with length in 255 characters
 -- 3. Video service starts
 -- SDL does:
 -- - sends Navigation.StartStream(<pathToSDL/AppStorageFolder + file name>)
@@ -21,7 +21,7 @@ runner.testSettings.isSelfIncluded = false
 config.defaultProtocolVersion = 3
 
 --[[ Local Variables ]]
-local longString = string.rep("u", 500)
+local longString = string.rep("u", 255)
 common.getConfigAppParams(1).appHMIType = { "NAVIGATION" }
 
 --[[ Local Functions ]]
