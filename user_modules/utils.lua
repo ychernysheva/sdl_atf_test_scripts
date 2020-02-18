@@ -1,9 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 -- Utils
 ---------------------------------------------------------------------------------------------------
---[[ General configuration parameters ]]
-config.mobileHost = "127.0.0.1"
-
 --[[ Required Shared libraries ]]
 local json = require("modules/json")
 local events = require('events')
@@ -322,7 +319,11 @@ end
 --! @return: none
 --]]
 function m.addNetworkInterface(pId, pAddress)
-  os.execute("ifconfig lo:" .. pId .." " .. pAddress)
+  if config.remoteConnection.enabled then
+    m.cprint(31, "!!! utils.addNetworkInterface has been not implemented yet !!!")
+  else
+    os.execute("ifconfig lo:" .. pId .." " .. pAddress)
+  end
 end
 
 --[[ @addNetworkInterface: remove network interface
@@ -332,7 +333,11 @@ end
 --! @return: none
 --]]
 function m.deleteNetworkInterface(pId)
-  os.execute("ifconfig lo:" .. pId .." down")
+  if config.remoteConnection.enabled then
+    m.cprint(31, "!!! utils.deleteNetworkInterface has been not implemented yet !!!")
+  else
+    os.execute("ifconfig lo:" .. pId .." down")
+  end
 end
 
 return m

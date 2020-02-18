@@ -11,7 +11,6 @@ events = require('events')
 mobile = require('mobile_connection')
 tcp = require('tcp_connection')
 file_connection = require('file_connection')
-config = require('config')
 expectations = require('expectations')
 Expectation = expectations.Expectation
 sdl = require('SDL')

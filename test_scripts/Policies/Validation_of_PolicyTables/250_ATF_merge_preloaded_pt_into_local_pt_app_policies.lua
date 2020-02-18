@@ -234,7 +234,6 @@ commonPreconditions:Connecttest_without_ExitBySDLDisconnect_WithoutOpenConnectio
 
 --[[ General configuration parameters ]]
 Test = require('user_modules/connecttest_ConnectMobile')
-local config = require('config')
 require('user_modules/AppTypes')
 
 local TestData = {
