@@ -5,8 +5,9 @@
 --
 -- In case:
 -- 1. AudioStreamConsumer is set to file value
--- 2. AudioStreamFile is sent to value with length in 255 characters
--- 3. Audio service starts
+-- 2. AudioStreamFile is set to value with length in 255 characters
+-- 3. AppStorageFolder is set to value with length in 300 characters
+-- 4. Audio service starts
 -- SDL does:
 -- - sends Navigation.StartAudioStream(<pathToSDL/AppStorageFolder + file name>)
 ---------------------------------------------------------------------------------------------------
@@ -21,13 +22,15 @@ runner.testSettings.isSelfIncluded = false
 config.defaultProtocolVersion = 3
 
 --[[ Local Variables ]]
-local longString = string.rep("u", 255)
+local longStringInFileName = string.rep("u", 255)
+local longPath = string.rep("u", 100) .."/" .. string.rep("u", 100).."/" .. string.rep("u", 100)
 common.getConfigAppParams(1).appHMIType = { "NAVIGATION" }
 
 --[[ Local Functions ]]
 local function iniFilePreparation()
   common.sdl.setSDLIniParameter("AudioStreamConsumer", "file")
-  common.sdl.setSDLIniParameter("AudioStreamFile", longString)
+  common.sdl.setSDLIniParameter("AudioStreamFile", longStringInFileName)
+  common.sdl.setSDLIniParameter("AppStorageFolder", longPath)
 end
 
 local function StartAudioStream()
@@ -36,7 +39,7 @@ local function StartAudioStream()
       common.getHMIConnection():ExpectRequest("Navigation.StartAudioStream",
         {
           url = commonPreconditions:GetPathToSDL() ..
-          common.sdl.getSDLIniParameter("AppStorageFolder") .. "/" .. longString
+          common.sdl.getSDLIniParameter("AppStorageFolder") .. "/" .. longStringInFileName
         })
       :Do(function(_, data)
           common.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", {})

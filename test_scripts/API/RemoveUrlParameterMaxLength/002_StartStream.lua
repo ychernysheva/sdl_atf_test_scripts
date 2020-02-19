@@ -5,8 +5,9 @@
 --
 -- In case:
 -- 1. VideoStreamConsumer is set to file value
--- 2. VideoStreamFile is sent to value with length in 255 characters
--- 3. Video service starts
+-- 2. VideoStreamFile is set to value with length in 255 characters
+-- 3. AppStorageFolder is set to value with length in 300 characters
+-- 4. Video service starts
 -- SDL does:
 -- - sends Navigation.StartStream(<pathToSDL/AppStorageFolder + file name>)
 ---------------------------------------------------------------------------------------------------
@@ -21,13 +22,15 @@ runner.testSettings.isSelfIncluded = false
 config.defaultProtocolVersion = 3
 
 --[[ Local Variables ]]
-local longString = string.rep("u", 255)
+local longStringInFileName = string.rep("u", 255)
+local longPath = string.rep("u", 100) .."/" .. string.rep("u", 100).."/" .. string.rep("u", 100)
 common.getConfigAppParams(1).appHMIType = { "NAVIGATION" }
 
 --[[ Local Functions ]]
 local function iniFilePreparation()
   common.sdl.setSDLIniParameter("VideoStreamConsumer", "file ")
-  common.sdl.setSDLIniParameter("VideoStreamFile", longString)
+  common.sdl.setSDLIniParameter("VideoStreamFile", longStringInFileName)
+  common.sdl.setSDLIniParameter("AppStorageFolder", longPath)
 end
 
 local function StartStream()
@@ -36,7 +39,7 @@ local function StartStream()
       common.getHMIConnection():ExpectRequest("Navigation.StartStream",
         {
           url = commonPreconditions:GetPathToSDL() ..
-          common.sdl.getSDLIniParameter("AppStorageFolder") .. "/" .. longString
+          common.sdl.getSDLIniParameter("AppStorageFolder") .. "/" .. longStringInFileName
         })
       :Do(function(_, data)
           common.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", {})
