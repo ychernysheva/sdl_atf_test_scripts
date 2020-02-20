@@ -5,7 +5,7 @@
 -- 1) SDL does not respond ACK on second service.
 -- Steps to reproduce:
 -- 1) First service started as NOT Protected.
--- 2) Start video sreaming.
+-- 2) Start video streaming.
 -- 3) Second service starting as  Protected.
 -- Expected:
 -- 1) SDL respond ACK on second service and will continuous stream through the encrypted channel.
@@ -33,6 +33,15 @@ end
 
 local function startServiceProtectedSecond(pServiceId)
   common.getMobileSession():StartSecureService(pServiceId)
+  common.getHMIConnection():ExpectRequest("Navigation.StopStream")
+  :Do(function(_, data)
+      common.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", {})
+    end)
+  common.getHMIConnection():ExpectRequest("Navigation.StartStream")
+  :Do(function(_, data)
+      common.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", {})
+      common.getHMIConnection():ExpectNotification("Navigation.OnVideoDataStreaming", { available = true })
+    end)
   common.getMobileSession():ExpectHandshakeMessage()
   :Times(1)
   common.getMobileSession():ExpectControlMessage(pServiceId, {
