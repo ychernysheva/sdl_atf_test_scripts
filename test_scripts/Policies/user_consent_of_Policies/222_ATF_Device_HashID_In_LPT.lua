@@ -38,7 +38,10 @@ local function GetDeviceMacHashFromSnapshot(pathToFile)
   file:close()
   local json = require("modules/json")
   local data = json.decode(json_data)
-  local macHashFromPTS = next(data.policy_table.device_data, nil)
+  local macHashFromPTS = {}
+  for device in pairs(data.policy_table.device_data) do
+    table.insert(macHashFromPTS, device)
+  end
   return macHashFromPTS
 end
 
@@ -72,7 +75,10 @@ function Test:Initiate_PTU_And_Check_DeviceHashId_In_PTS()
   end)
   EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
   :ValidIf (function(_,data)
-  return GetDeviceMacHashFromSnapshot(data.params.file) == utils.getDeviceMAC()
+    for _, device in pairs(GetDeviceMacHashFromSnapshot(data.params.file)) do
+      if device == utils.getDeviceMAC() then return true end
+    end
+    return false, "Expected device was not found in PTS"
   end)
   EXPECT_NOTIFICATION("OnHMIStatus", {hmiLevel = "FULL", systemContext = "MAIN", audioStreamingState = "AUDIBLE"})
 end

@@ -463,15 +463,11 @@ function testCasesForPolicyTableSnapshot:verify_PTS(is_created, app_IDs, device_
       testCasesForPolicyTableSnapshot:extract_pts()
       -- Skip other devices
       if device_IDs ~= nil then
-        local toRemove = {}
-        for i = 1, #testCasesForPolicyTableSnapshot.pts_elements do
+        for i = #testCasesForPolicyTableSnapshot.pts_elements, 1, -1 do
           local item = testCasesForPolicyTableSnapshot.pts_elements[i].name
           if string.find(item, "^device_data") and not string.find(item, device_IDs[1]) then
-            table.insert(toRemove, i)
+            table.remove(testCasesForPolicyTableSnapshot.pts_elements, i)
           end
-        end
-        for _, i in pairs(toRemove) do
-          table.remove(testCasesForPolicyTableSnapshot.pts_elements, i)
         end
       end
       --Check for ommited parameters
