@@ -55,12 +55,12 @@ local function connectBluetoothDevice(self)
 
   EXPECT_HMICALL("BasicCommunication.UpdateDeviceList", {
     deviceList = {
+      common.wsDevice(),
       {
         id = config.deviceMAC,
         name = common.device.bluetooth.uid,
         transportType = common.device.bluetooth.type
-      },
-      common.wsDevice()
+      }
     }
   })
   :Do(function(_, data)
@@ -113,12 +113,12 @@ local function connectUSBDevice(self)
         name = common.device.usb.uid,
         transportType = common.device.usb.type
       },
+      common.wsDevice(),
       {
         id = config.deviceMAC,
         name = common.device.bluetooth.uid,
         transportType = common.device.bluetooth.type
-      },
-      common.wsDevice()
+      }
     }
   },
   {

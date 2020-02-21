@@ -74,10 +74,10 @@ function Test:UpdateDeviceList_on_device_connect()
     }
   }
   if SDL.buildOptions.webSocketServerSupport == "ON" then
-    exp.deviceList[2] = {
+    table.insert(exp.deviceList, 1, {
       id = utils.buildDeviceMAC("WS", { vin = vin }),
       isSDLAllowed = false
-    }
+    })
   end
   if utils.getDeviceTransportType() == "WIFI" then
     self:connectMobile()

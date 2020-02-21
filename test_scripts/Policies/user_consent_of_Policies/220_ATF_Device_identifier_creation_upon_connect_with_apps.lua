@@ -51,7 +51,7 @@ function Test:Precondition_Connect_device()
     }
   }
   if SDL.buildOptions.webSocketServerSupport == "ON" then
-    exp.deviceList[2] = { transportType = "WEBENGINE_WEBSOCKET" }
+    table.insert(exp.deviceList, 1, { transportType = "WEBENGINE_WEBSOCKET" })
   end
   self:connectMobile()
   if utils.getDeviceTransportType() == "WIFI" then
