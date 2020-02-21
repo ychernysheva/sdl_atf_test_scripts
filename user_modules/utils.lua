@@ -195,11 +195,9 @@ end
 function m.getDeviceMAC(pHost, pPort)
   if not pHost then pHost = config.mobileHost end
   if not pPort then pPort = config.mobilePort end
-  local parameters
+  local parameters = nil
   if config.defaultMobileAdapterType == "TCP" then
     parameters = { host = pHost, port = pPort }
-  elseif config.defaultMobileAdapterType == "WS" or config.defaultMobileAdapterType == "WSS" then
-    parameters = { vin = "52-452-52-752" }
   end
   return m.buildDeviceMAC(config.defaultMobileAdapterType, parameters)
 end
@@ -255,7 +253,7 @@ function m.buildDeviceMAC(pDeviceType, pParams)
   if pDeviceType == "TCP" then
     return makeHash(pParams.host .. ":" .. pParams.port)
   elseif pDeviceType == "WS" or pDeviceType == "WSS" then
-    return makeHash(pParams.vin)
+    return makeHash(config.webengineUniqueId)
   else
     m.cprint(35, "ERROR: Unknown device type " .. tostring(pDeviceType)
       .. "\n Possible values: TCP, WS, WSS")

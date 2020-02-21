@@ -1233,6 +1233,7 @@ function m.preconditions()
   SDL.ForceStopSDL()
   SDL.PolicyDB.clean()
   SDL.Log.clean()
+  SDL.AppInfo.clean()
   m.sdl.deletePTS()
   SDL.AppStorage.clean()
 end
