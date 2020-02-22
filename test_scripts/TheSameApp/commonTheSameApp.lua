@@ -8,6 +8,12 @@ local events = require("events")
 local constants = require('protocol_handler/ford_protocol_constants')
 local hmi_values = require("user_modules/hmi_values")
 local rc = require('user_modules/sequences/remote_control')
+local runner = require('user_modules/script_runner')
+
+--[[ Conditions to skip tests ]]
+if config.defaultMobileAdapterType ~= "TCP" then
+  runner.skipTest("Test is applicable only for TCP connection")
+end
 
 --[[ General configuration parameters ]]
 config.defaultProtocolVersion = 2
