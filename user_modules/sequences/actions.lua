@@ -6,9 +6,6 @@ local mobile = require("mobile_connection")
 local mobile_adapter_controller = require("mobile_adapter/mobile_adapter_controller")
 local file_connection = require("file_connection")
 local mobileSession = require("mobile_session")
-local commonFunctions = require("user_modules/shared_testcases/commonFunctions")
-local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
-local commonSteps = require("user_modules/shared_testcases/commonSteps")
 local events = require("events")
 local test = require("user_modules/dummy_connecttest")
 local expectations = require('expectations')
@@ -123,19 +120,13 @@ local function getPTUFromPTS()
   local pTbl = m.sdl.getPTS()
   if pTbl == nil then
     utils.cprint(35, "PTS file was not found, PreloadedPT is used instead")
-    local appConfigFolder = m.sdl.getSDLIniParameter("AppConfigFolder")
-    if appConfigFolder == nil or appConfigFolder == "" then
-      appConfigFolder = commonPreconditions:GetPathToSDL()
-    end
-    local preloadedPT = m.sdl.getSDLIniParameter("PreloadedPT")
-    local ptsFile = appConfigFolder .. preloadedPT
-    if utils.isFileExist(ptsFile) then
-      pTbl = utils.jsonFileToTable(ptsFile)
-    else
-      utils.cprint(35, "PreloadedPT was not found, PTS is not created")
+    pTbl = m.sdl.getPreloadedPT()
+    if pTbl == nil then
+      utils.cprint(35, "PreloadedPT was not found, PTU file has not been created")
+      return nil
     end
   end
-  if next(pTbl) ~= nil then
+  if type(pTbl.policy_table) == "table" then
     pTbl.policy_table.consumer_friendly_messages = nil
     pTbl.policy_table.device_data = nil
     pTbl.policy_table.module_meta = nil
@@ -144,6 +135,8 @@ local function getPTUFromPTS()
     pTbl.policy_table.module_config.preloaded_pt = nil
     pTbl.policy_table.module_config.preloaded_date = nil
     pTbl.policy_table.vehicle_data = nil
+  else
+    utils.cprint(35, "PTU file has incorrect structure")
   end
   return pTbl
 end
@@ -524,6 +517,49 @@ function m.ptu.getAppData(pAppId)
   }
 end
 
+--[[ @ptu.expectStart: expect start of PTU
+--! @parameters: none
+--! @return: expectation of PTU start event
+--]]
+function m.ptu.expectStart()
+  local event = events.Event()
+  event.matches = function(e1, e2) return e1 == e2 end
+  local function raisePtuEvent()
+    RUN_AFTER(function() m.hmi.getConnection():RaiseEvent(event, "PTU start event") end, m.minTimeout)
+  end
+  local policyMode = SDL.buildOptions.extendedPolicy
+  if policyMode == policyModes.P or policyMode == policyModes.EP then
+    m.hmi.getConnection():ExpectRequest("BasicCommunication.PolicyUpdate")
+    :Do(function(_, d2)
+        m.hmi.getConnection():SendResponse(d2.id, d2.method, "SUCCESS", { })
+        raisePtuEvent()
+      end)
+  elseif policyMode == policyModes.H then
+    local function getAppNums()
+      local out = {}
+        for k in pairs(test.mobileSession) do
+          table.insert(out, k)
+        end
+      return out
+    end
+    for _, appNum in pairs(getAppNums()) do
+      m.mobile.getSession(appNum):ExpectNotification("OnSystemRequest")
+      :Do(function(_, d3)
+          if d3.payload.requestType == "HTTP" then
+            utils.cprint(35, "App ".. appNum .. " will be used for PTU")
+            ptuAppNum = appNum
+            if d3.binaryData ~= nil then
+              pts = m.json.decode(d3.binaryData)
+            end
+            raisePtuEvent()
+          end
+        end)
+      :Times(AtMost(2))
+    end
+  end
+  return m.hmi.getConnection():ExpectEvent(event, "PTU start event")
+end
+
 local function policyTableUpdateProprietary(pPTUpdateFunc, pExpNotificationFunc)
   local ptuFileName = os.tmpname()
   local requestId = m.hmi.getConnection():SendRequest("SDL.GetPolicyConfigurationData",
@@ -619,7 +655,7 @@ local function registerApp(pAppId, pMobConnId, hasPTU)
       :Do(function(_, d1)
           m.app.setHMIId(d1.params.application.appID, pAppId)
           if hasPTU then
-            m.isPTUStarted()
+            m.ptu.expectStart()
           end
         end)
       session:ExpectResponse(corId, { success = true, resultCode = "SUCCESS" })
@@ -736,45 +772,6 @@ function m.app.getHMIId(pAppId)
   return nil
 end
 
-function m.isPTUStarted()
-  local event = events.Event()
-  event.matches = function(e1, e2) return e1 == e2 end
-  local function raisePtuEvent()
-    RUN_AFTER(function() m.hmi.getConnection():RaiseEvent(event, "PTU start event") end, m.minTimeout)
-  end
-  local policyMode = SDL.buildOptions.extendedPolicy
-  if policyMode == policyModes.P or policyMode == policyModes.EP then
-    m.hmi.getConnection():ExpectRequest("BasicCommunication.PolicyUpdate")
-    :Do(function(_, d2)
-        m.hmi.getConnection():SendResponse(d2.id, d2.method, "SUCCESS", { })
-        raisePtuEvent()
-      end)
-  elseif policyMode == policyModes.H then
-    local function getAppNums()
-      local out = {}
-        for k in pairs(test.mobileSession) do
-          table.insert(out, k)
-        end
-      return out
-    end
-    for _, appNum in pairs(getAppNums()) do
-      m.mobile.getSession(appNum):ExpectNotification("OnSystemRequest")
-      :Do(function(_, d3)
-          if d3.payload.requestType == "HTTP" then
-            utils.cprint(35, "App ".. appNum .. " will be used for PTU")
-            ptuAppNum = appNum
-            if d3.binaryData ~= nil then
-              pts = m.json.decode(d3.binaryData)
-            end
-            raisePtuEvent()
-          end
-        end)
-      :Times(AtMost(2))
-    end
-  end
-  return m.hmi.getConnection():ExpectEvent(event, "PTU start event")
-end
-
 --[[ @app.setHMIId: set HMI application Id by script's mobile application id
 --! @parameters:
 --! pHMIAppId - HMI application Id
@@ -800,6 +797,11 @@ end
 
 --[[ Functions of sdl submodule ]]
 
+-- BuildOptions
+-- LOGGER
+-- CRT
+-- AppStorage
+
 --[[ @sdl.getPathToFileInStorage: get path to file in SDL storage for specified mobile application
 --! @parameters:
 --! pFileName - file name
@@ -808,18 +810,22 @@ end
 --]]
 function m.sdl.getPathToFileInStorage(pFileName, pAppId)
   if not pAppId then pAppId = 1 end
-  return commonPreconditions:GetPathToSDL() .. "storage/" .. m.app.getParams(pAppId).fullAppID .. "_"
+  return SDL.AppStorage.path() .. m.app.getParams(pAppId).fullAppID .. "_"
     .. utils.getDeviceMAC() .. "/" .. pFileName
 end
 
---[[ @sdl.getPathToFileInStorage: get parameter's value from SDL .ini file
+--[[ @sdl.getSDLIniFilePath: get path to SDL .ini file
+--! @parameters: none
+--! @return: path to SDL .ini file
+--]]
+m.sdl.getSDLIniFilePath = SDL.INI.file
+
+--[[ @sdl.getSDLIniParameter: get parameter's value from SDL .ini file
 --! @parameters:
 --! pParamName - name of the parameter
 --! @return: SDL parameter's value from ini file
 --]]
-function m.sdl.getSDLIniParameter(pParamName)
-  return commonFunctions:read_parameter_from_smart_device_link_ini(pParamName)
-end
+m.sdl.getSDLIniParameter = SDL.INI.get
 
 --[[ @setSDLIniParameter: change original value of parameter in SDL .ini file
 --! @parameters:
@@ -829,36 +835,7 @@ end
 --]]
 function m.sdl.setSDLIniParameter(pParamName, pParamValue)
   m.sdl.backupSDLIniFile()
-  local fileName = commonPreconditions:GetPathToSDL() .. "smartDeviceLink.ini"
-  local f = io.open(fileName, "r")
-  local content = f:read("*all")
-  f:close()
-  local function setParamValue(pContent, pParam, pValue)
-    pValue = string.gsub(pValue, "%%", "%%%%")
-    local out = ""
-    local find = false
-    for line in pContent:gmatch("([^\r\n]*)[\r\n]") do
-      local ptrn = "^%s*;*%s*".. pParam .. "%s*=.*"
-      if string.find(line, ptrn) then
-        if not find then
-          if pValue == ";" then
-            line = string.gsub(line, ptrn, pValue .. pParam .. " = ")
-          else
-            line = string.gsub(line, ptrn, pParam .. " = " .. tostring(pValue))
-          end
-          find = true
-        else
-          line  = ";" .. line
-        end
-      end
-      out = out .. line .. "\n"
-    end
-    return out
-  end
-  content = setParamValue(content, pParamName, pParamValue)
-  f = io.open(fileName, "w")
-  f:write(content)
-  f:close()
+  SDL.INI.set(pParamName, pParamValue)
 end
 
 --[[ @sdl.backupSDLIniFile: backup SDL .ini file
@@ -867,7 +844,7 @@ end
 --]]
 function m.sdl.backupSDLIniFile()
   if not m.sdl.isSdlIniBackuped then
-    commonPreconditions:BackupFile("smartDeviceLink.ini")
+    SDL.INI.backup()
     m.sdl.isSdlIniBackuped = true
   end
 end
@@ -878,7 +855,7 @@ end
 --]]
 function m.sdl.restoreSDLIniFile()
   if m.sdl.isSdlIniBackuped then
-    commonPreconditions:RestoreFile("smartDeviceLink.ini")
+    SDL.INI.restore()
     m.sdl.isSdlIniBackuped = false
   end
 end
@@ -889,8 +866,7 @@ end
 --]]
 function m.sdl.getPreloadedPTPath()
   if not m.sdl.preloadedPTPath then
-    local preloadedPTName = m.sdl.getSDLIniParameter("PreloadedPT")
-    m.sdl.preloadedPTPath = commonPreconditions:GetPathToSDL() .. preloadedPTName
+    m.sdl.preloadedPTPath = SDL.PreloadedPT.file()
   end
   return m.sdl.preloadedPTPath
 end
@@ -901,7 +877,7 @@ end
 --]]
 function m.sdl.backupPreloadedPT()
   if not m.sdl.isPreloadedPTBackuped then
-    commonPreconditions:BackupFile(m.sdl.getSDLIniParameter("PreloadedPT"))
+    SDL.PreloadedPT.backup()
     m.sdl.isPreloadedPTBackuped = true
   end
 end
@@ -912,7 +888,7 @@ end
 --]]
 function m.sdl.restorePreloadedPT()
   if m.sdl.isPreloadedPTBackuped then
-    commonPreconditions:RestoreFile(m.sdl.getSDLIniParameter("PreloadedPT"))
+    SDL.PreloadedPT.restore()
     m.sdl.isPreloadedPTBackuped = false
   end
 end
@@ -921,9 +897,7 @@ end
 --! @parameters: none
 --! @return: sdl preloaded_pt table
 --]]
-function m.sdl.getPreloadedPT()
-  return utils.jsonFileToTable(m.sdl.getPreloadedPTPath())
-end
+m.sdl.getPreloadedPT = SDL.PreloadedPT.get
 
 --[[ @sdl.setPreloadedPT: set content into sdl preloaded_pt file
 --! @parameters:
@@ -932,7 +906,7 @@ end
 --]]
 function m.sdl.setPreloadedPT(pPreloadedPT)
   m.sdl.backupPreloadedPT()
-  utils.tableToJsonFile(pPreloadedPT, m.sdl.getPreloadedPTPath())
+  SDL.PreloadedPT.set(pPreloadedPT)
 end
 
 --[[ @sdl.getHMICapabilitiesFilePath: get path to default hmi_capabilities file
@@ -941,8 +915,7 @@ end
 --]]
 function m.sdl.getHMICapabilitiesFilePath()
   if not m.sdl.hmiCapabilitiesPath then
-    local hmiCapabilitiesName = m.sdl.getSDLIniParameter("HMICapabilities")
-    m.sdl.hmiCapabilitiesPath = commonPreconditions:GetPathToSDL() .. hmiCapabilitiesName
+    m.sdl.hmiCapabilitiesPath = SDL.HMICap.file()
   end
   return m.sdl.hmiCapabilitiesPath
 end
@@ -953,7 +926,7 @@ end
 --]]
 function m.sdl.backupHMICapabilitiesFile()
   if not m.sdl.isHMICapabilitiesBackuped then
-    commonPreconditions:BackupFile(m.sdl.getSDLIniParameter("HMICapabilities"))
+    SDL.HMICap.backup()
     m.sdl.isHMICapabilitiesBackuped = true
   end
 end
@@ -964,7 +937,7 @@ end
 --]]
 function m.sdl.restoreHMICapabilitiesFile()
   if m.sdl.isHMICapabilitiesBackuped then
-    commonPreconditions:RestoreFile(m.sdl.getSDLIniParameter("HMICapabilities"))
+    SDL.HMICap.restore()
     m.sdl.isHMICapabilitiesBackuped = false
   end
 end
@@ -973,9 +946,7 @@ end
 --! @parameters: none
 --! @return: default hmi_capabilities table
 --]]
-function m.sdl.getHMICapabilitiesFromFile()
-  return utils.jsonFileToTable(m.sdl.getHMICapabilitiesFilePath())
-end
+m.sdl.getHMICapabilitiesFromFile = SDL.HMICap.get
 
 --[[ @sdl.setHMICapabilitiesToFile: set content into default hmi_capabilities file
 --! @parameters:
@@ -984,7 +955,7 @@ end
 --]]
 function m.sdl.setHMICapabilitiesToFile(pHMICapabilities)
   m.sdl.backupHMICapabilitiesFile()
-  utils.tableToJsonFile(pHMICapabilities, m.sdl.getHMICapabilitiesFilePath())
+  SDL.HMICap.set(pHMICapabilities)
 end
 
 --[[ @sdl.start: start SDL
@@ -993,7 +964,7 @@ end
 --]]
 function m.sdl.start()
   test:runSDL()
-  return commonFunctions:waitForSDLStart(test)
+  return SDL.WaitForSDLStart(test)
 end
 
 --[[ @sdl.getStatus: Retrieve current status of SDL
@@ -1009,7 +980,7 @@ end
 --! @return: boolean represents whether SDL is running
 --]]
 function m.sdl.isRunning()
-  return SDL:CheckStatusSDL() == SDL.RUNNING
+  return m.sdl.getStatus() == SDL.RUNNING
 end
 
 --[[ @sdl.stop: stop SDL
@@ -1026,18 +997,16 @@ end
 --! @parameters: none
 --! @return: path to file
 --]]
-function m.sdl.getPTSFilePath()
-  return m.sdl.getSDLIniParameter("SystemFilesPath") .. "/" .. m.sdl.getSDLIniParameter("PathToSnapshot")
-end
+m.sdl.getPTSFilePath = SDL.PTS.file
 
 --[[ @sdl.getPTS: get Policy Table Snapshot (PTS)
 --! @parameters: none
 --! @return: table with PTS
 --]]
 function m.sdl.getPTS()
-  local ptsFileName = m.sdl.getPTSFilePath()
-  if utils.isFileExist(ptsFileName) then
-    pts = utils.jsonFileToTable(ptsFileName)
+  local remotePts = SDL.PTS.get()
+  if remotePts then
+    pts = remotePts
   end
   return pts
 end
@@ -1047,10 +1016,7 @@ end
 --! @return: none
 --]]
 function m.sdl.deletePTS()
-  local ptsFileName = m.sdl.getPTSFilePath()
-  if utils.isFileExist(ptsFileName) then
-    os.remove(ptsFileName)
-  end
+  SDL.PTS.clean()
   pts = nil
 end
 
@@ -1264,10 +1230,11 @@ end
 --! @return: none
 --]]
 function m.preconditions()
-  commonFunctions:SDLForceStop()
-  commonSteps:DeletePolicyTable()
-  commonSteps:DeleteLogsFiles()
+  SDL.ForceStopSDL()
+  SDL.PolicyDB.clean()
+  SDL.Log.clean()
   m.sdl.deletePTS()
+  SDL.AppStorage.clean()
 end
 
 --[[ @postconditions: postcondition steps
@@ -1362,5 +1329,11 @@ m.setSDLIniParameter = m.sdl.setSDLIniParameter
 --! @return: none
 --]]
 m.restoreSDLIniParameters = m.sdl.restoreSDLIniFile
+
+--[[ @isPTUStarted: expect start of PTU
+--! @parameters: none
+--! @return: expectation of PTU start event
+--]]
+m.isPTUStarted = m.ptu.expectStart
 
 return m

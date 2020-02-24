@@ -10,7 +10,6 @@ require('cardinalities')
 events = require('events')
 mobile = require('mobile_connection')
 file_connection = require('file_connection')
-config = require('config')
 expectations = require('expectations')
 Expectation = expectations.Expectation
 sdl = require('SDL')

@@ -159,9 +159,7 @@ function Test:TestStep_Set_Odometer_Value_And_Check_That_PTU_Is_Triggered()
   self.hmiConnection:SendNotification("VehicleInfo.OnVehicleData", {odometer = 2250})
   EXPECT_NOTIFICATION("OnVehicleData", {odometer = 2250})
   EXPECT_HMICALL("BasicCommunication.PolicyUpdate")
-  :Do(function(_, data)
-      self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
-    end)
+  :Do(function(_, data) self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {}) end)
   EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"}, {status = "UPDATING"}):Times(2)
 end
 

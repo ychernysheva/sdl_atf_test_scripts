@@ -25,7 +25,6 @@ local utils = require ('user_modules/utils')
 
 --[[ General configuration parameters ]]
 Test = require('connecttest')
-local config = require('config')
 require('user_modules/AppTypes')
 config.defaultProtocolVersion = 2
 config.application1.registerAppInterfaceParams.deviceInfo.hardware = "Nexus"
