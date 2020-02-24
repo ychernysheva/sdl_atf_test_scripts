@@ -54,14 +54,13 @@ local function connectBluetoothDevice(self)
     common.device.bluetooth.port, common.device.bluetooth.out)
 
   EXPECT_HMICALL("BasicCommunication.UpdateDeviceList", {
-    deviceList = {
-      common.wsDevice(),
+    deviceList = common.getUpdatedDeviceList({
       {
         id = config.deviceMAC,
         name = common.device.bluetooth.uid,
         transportType = common.device.bluetooth.type
       }
-    }
+    })
   })
   :Do(function(_, data)
       self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", { })
@@ -107,29 +106,27 @@ local function connectUSBDevice(self)
   local is_switching_done = false
 
   EXPECT_HMICALL("BasicCommunication.UpdateDeviceList", {
-    deviceList = {
+    deviceList = common.getUpdatedDeviceList({
       {
         id = config.deviceMAC,
         name = common.device.usb.uid,
         transportType = common.device.usb.type
       },
-      common.wsDevice(),
       {
         id = config.deviceMAC,
         name = common.device.bluetooth.uid,
         transportType = common.device.bluetooth.type
       }
-    }
+    })
   },
   {
-    deviceList = {
+    deviceList = common.getUpdatedDeviceList({
       {
         id = config.deviceMAC,
         name = common.device.usb.uid,
         transportType = common.device.usb.type
-      },
-      common.wsDevice()
-    }
+      }
+    })
   })
   :Do(function(_, data)
       self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", { })

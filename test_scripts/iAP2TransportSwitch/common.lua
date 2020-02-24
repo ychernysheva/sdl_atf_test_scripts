@@ -123,6 +123,7 @@ function m.preconditions()
   commonPreconditions:BackupFile(ptFileName)
   os.execute("cp -f " .. ptName .. " " .. commonPreconditions:GetPathToSDL() .. "/" .. ptFileName)
   actions.setSDLIniParameter("AppTransportChangeTimer", "5000")
+  actions.setSDLIniParameter("ApplicationListUpdateTimeout", "3000")
 end
 
 function m.postconditions()
@@ -140,14 +141,21 @@ function m.print(pMsg)
   commonFunctions:userPrint(35, pMsg)
 end
 
-function m.wsDevice()
+function m.getUpdatedDeviceList(pExp)
   if SDL.buildOptions.webSocketServerSupport == "ON" then
-    return {
+    local weDevice = {
       name = "Web Engine",
       transportType = "WEBENGINE_WEBSOCKET"
     }
+    local pos = 1
+    if pExp[1].name == m.device.usb.uid then pos = 2 end
+    if pExp[pos] ~= nil then
+      table.insert(pExp, pos, weDevice)
+    else
+      pExp[pos] = weDevice
+    end
   end
-  return nil
+  return pExp
 end
 
 return m
