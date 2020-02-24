@@ -21,10 +21,6 @@ local runner = require('user_modules/script_runner')
 runner.testSettings.restrictions.sdlBuildOptions = {{webSocketServerSupport = {"ON"}}}
 
 --[[ Local Variables ]]
-local appData
-
---[[ Local Functions ]]
-local function setAppProperties()
   local appProp = {
     nicknames = { "Test Application" },
     policyAppID = "0000001",
@@ -33,22 +29,22 @@ local function setAppProperties()
     transportType = "WS",
     hybridAppPreference = "CLOUD"
   }
-  common.getHMIConnection():ExpectRequest("BasicCommunication.UpdateAppList")
-  :ValidIf(function(_, data)
-      if #data.params.applications == 0 then
-        return false, "BC.UpdateAppList is empty"
-      else
-        appData = data.params.applications[1]
-        appData.appID = nil
-      end
-      return true
-    end)
+
+--[[ Local Functions ]]
+local function setAppProperties()
+
+  common.checkUpdateAppList(appProp.policyAppID, 1, 1)
   common.setAppProperties(appProp)
 end
 
 local function unRegisterApp()
-  common.getHMIConnection():ExpectRequest("BasicCommunication.UpdateAppList", { applications = { appData }})
+  common.checkUpdateAppList(appProp.policyAppID, 1, 1)
   common.unRegisterApp()
+end
+
+local function registerApp()
+  common.registerAppWOPTU()
+  common.getHMIConnection():ExpectRequest("BasicCommunication.UpdateAppList")
 end
 
 -- [[ Scenario ]]
@@ -58,7 +54,7 @@ common.Step("Start SDL, HMI, connect regular mobile, start Session", common.star
 
 common.Title("Test")
 common.Step("SetAppProperties enabled=true", setAppProperties)
-common.Step("Register App", common.registerAppWOPTU)
+common.Step("Register App", registerApp)
 common.Step("Activate App", common.activateApp)
 common.Step("Unregister App", unRegisterApp)
 

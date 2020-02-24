@@ -29,37 +29,6 @@ local expected = 1
 local notExpected = 0
 
 --[[ Local Functions ]]
-local function checkUpdateAppList(pAppID, pTimes, pExpNumOfApps)
-  if not pTimes then pTimes = 0 end
-  if not pExpNumOfApps then pExpNumOfApps = 0 end
-  common.getHMIConnection():ExpectRequest("BasicCommunication.UpdateAppList")
-  :Times(pTimes)
-  :ValidIf(function(_,data)
-    if #data.params.applications == pExpNumOfApps then
-      if #data.params.applications ~= 0 then
-        for i = 1,#data.params.applications do
-          local app = data.params.applications[i]
-          if app.policyAppID == pAppID then
-            if app.isCloudApplication == false then
-              return true
-            else
-              return false, "Parameter isCloudApplication = " .. tostring(app.isCloudApplication) ..
-              ", expected = false"
-            end
-          end
-        end
-        return false, "Application was not found in application array"
-      else
-        return true
-      end
-    else
-      return false, "Application array in BasicCommunication.UpdateAppList contains " ..
-        tostring(#data.params.applications)..", expected " .. tostring(pExpNumOfApps)
-    end
-  end)
-  common.wait()
-end
-
 local function setAppProperties(pAppId, pEnabled)
   local webAppProperties = {
     nicknames = { "Test Web Application_" .. pAppId },
@@ -73,7 +42,7 @@ end
 
 local function start(pAppID, pTimes, pExpNumOfApps)
   local policyAppID = "000000" .. tostring(pAppID)
-  checkUpdateAppList(policyAppID, pTimes, pExpNumOfApps)
+  common.checkUpdateAppList(policyAppID, pTimes, pExpNumOfApps)
   common.start()
 end
 
