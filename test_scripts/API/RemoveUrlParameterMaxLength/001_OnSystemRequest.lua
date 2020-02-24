@@ -13,12 +13,8 @@
 ---------------------------------------------------------------------------------------------------
 
 --[[ Required Shared libraries ]]
-local runner = require('user_modules/script_runner')
-local common = require('user_modules/sequences/actions')
-
---[[ Test Configuration ]]
-runner.testSettings.isSelfIncluded = false
-config.defaultProtocolVersion = 2
+-- local runner = require('user_modules/script_runner')
+local common = require('test_scripts/API/RemoveUrlParameterMaxLength/commonRemoveUrlParameterMaxLength')
 
 --[[ Local Variables ]]
 local expected = 1
@@ -29,25 +25,25 @@ local longString = string.rep("u", 100000)
 
 --[[ Local Functions ]]
 local function OnSystemRequest(pUrlValue, pTimes)
-  common.hmi.getConnection():SendNotification("BasicCommunication.OnSystemRequest",
-        { requestType = "ICON_URL", fileName = "fileName", url = pUrlValue })
-  common.mobile.getSession():ExpectNotification("OnSystemRequest", { requestType = "ICON_URL", url = pUrlValue })
+  common.getHMIConnection():SendNotification("BasicCommunication.OnSystemRequest",
+    { requestType = "ICON_URL", fileName = "fileName", url = pUrlValue })
+  common.getMobileSession():ExpectNotification("OnSystemRequest", { requestType = "ICON_URL", url = pUrlValue })
   :Times(pTimes)
 end
 
 --[[ Scenario ]]
-runner.Title("Preconditions")
-runner.Step("Clean environment", common.preconditions)
-runner.Step("Start SDL, HMI, connect Mobile, start Session", common.start)
-runner.Step("RAI", common.registerApp)
-runner.Step("Activate App", common.activateApp)
+common.Title("Preconditions")
+common.Step("Clean environment", common.preconditions)
+common.Step("Start SDL, HMI, connect Mobile, start Session", common.start)
+common.Step("RAI", common.registerApp)
+common.Step("Activate App", common.activateApp)
 
-runner.Title("Test")
+common.Title("Test")
 
-runner.Step("OnSystemRequest url outOfMinLength", OnSystemRequest, { outOfMinLength, notExpected } )
-runner.Step("OnSystemRequest url minlength", OnSystemRequest, { minlength, expected } )
-runner.Step("OnSystemRequest url longString", OnSystemRequest, { longString, expected } )
+common.Step("OnSystemRequest url outOfMinLength", OnSystemRequest, { outOfMinLength, notExpected })
+common.Step("OnSystemRequest url minlength", OnSystemRequest, { minlength, expected })
+common.Step("OnSystemRequest url longString", OnSystemRequest, { longString, expected })
 
-runner.Title("Postconditions")
-runner.Step("Stop SDL", common.postconditions)
+common.Title("Postconditions")
+common.Step("Stop SDL", common.postconditions)
 

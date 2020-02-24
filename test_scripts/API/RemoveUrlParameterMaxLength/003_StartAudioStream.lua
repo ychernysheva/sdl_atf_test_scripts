@@ -13,12 +13,9 @@
 ---------------------------------------------------------------------------------------------------
 
 --[[ Required Shared libraries ]]
-local runner = require('user_modules/script_runner')
-local common = require('user_modules/sequences/actions')
-local commonPreconditions = require('user_modules/shared_testcases/commonPreconditions')
+local common = require('test_scripts/API/RemoveUrlParameterMaxLength/commonRemoveUrlParameterMaxLength')
 
 --[[ Test Configuration ]]
-runner.testSettings.isSelfIncluded = false
 config.defaultProtocolVersion = 3
 
 --[[ Local Variables ]]
@@ -28,9 +25,9 @@ common.getConfigAppParams(1).appHMIType = { "NAVIGATION" }
 
 --[[ Local Functions ]]
 local function iniFilePreparation()
-  common.sdl.setSDLIniParameter("AudioStreamConsumer", "file")
-  common.sdl.setSDLIniParameter("AudioStreamFile", longStringInFileName)
-  common.sdl.setSDLIniParameter("AppStorageFolder", longPath)
+  common.setSDLIniParameter("AudioStreamConsumer", "file")
+  common.setSDLIniParameter("AudioStreamFile", longStringInFileName)
+  common.setSDLIniParameter("AppStorageFolder", longPath)
 end
 
 local function StartAudioStream()
@@ -38,8 +35,7 @@ local function StartAudioStream()
   :Do(function()
       common.getHMIConnection():ExpectRequest("Navigation.StartAudioStream",
         {
-          url = commonPreconditions:GetPathToSDL() ..
-          common.sdl.getSDLIniParameter("AppStorageFolder") .. "/" .. longStringInFileName
+          url = common:GetPathToSDL() .. longPath .. "/" .. longStringInFileName
         })
       :Do(function(_, data)
           common.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", {})
@@ -48,17 +44,17 @@ local function StartAudioStream()
 end
 
 --[[ Scenario ]]
-runner.Title("Preconditions")
-runner.Step("Clean environment", common.preconditions)
-runner.Step("Ini file preparation", iniFilePreparation)
-runner.Step("Start SDL, HMI, connect Mobile, start Session", common.start)
-runner.Step("RAI", common.registerApp)
-runner.Step("Activate App", common.activateApp)
+common.Title("Preconditions")
+common.Step("Clean environment", common.preconditions)
+common.Step("Ini file preparation", iniFilePreparation)
+common.Step("Start SDL, HMI, connect Mobile, start Session", common.start)
+common.Step("RAI", common.registerApp)
+common.Step("Activate App", common.activateApp)
 
-runner.Title("Test")
+common.Title("Test")
 
-runner.Step("StartAudioStream", StartAudioStream)
+common.Step("StartAudioStream", StartAudioStream)
 
-runner.Title("Postconditions")
-runner.Step("Stop SDL", common.postconditions)
+common.Title("Postconditions")
+common.Step("Stop SDL", common.postconditions)
 
