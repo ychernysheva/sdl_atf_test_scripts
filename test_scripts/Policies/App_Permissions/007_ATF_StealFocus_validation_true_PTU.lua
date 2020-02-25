@@ -118,13 +118,16 @@ function Test:Preconditions_Update_Policy_With_Steal_Focus_FalseValue_for_Curren
     end)
 end
 
---[[Test]]
-commonFunctions:newTestCasesGroup("Test")
+function Test.Wait()
+  os.execute("sleep 2")
+end
 
+--[[Test]]
 function Test:TestStep_UpdatePTS()
   testCasesForPolicyTable:trigger_user_request_update_from_HMI(self)
 end
 
+commonFunctions:newTestCasesGroup("Test")
 function Test:TestStep_Verify_appid_section()
   local test_fail = false
   local steal_focus = testCasesForPolicyTableSnapshot:get_data_from_PTS("app_policies.123456.steal_focus")

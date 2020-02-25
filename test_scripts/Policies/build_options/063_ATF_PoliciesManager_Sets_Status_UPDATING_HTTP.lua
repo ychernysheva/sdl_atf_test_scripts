@@ -57,14 +57,16 @@ function Test:TestStep_PoliciesManager_changes_status_UPDATING()
 
   self.mobileSession:SendRPC("RegisterAppInterface", config.application1.registerAppInterfaceParams)
 
+  EXPECT_NOTIFICATION("OnSystemRequest")--, {requestType = "LOCK_SCREEN_ICON_URL"}, {requestType = "HTTP"})
+  :Do(function(_,data)
+      print("SDL -> MOB: OnSystemRequest, requestType: " .. data.payload.requestType)
+    end)
+  :Times(2)
+
   EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", {application = { appName = config.application1.registerAppInterfaceParams.appName } })
   :Do(function()
 
-      EXPECT_NOTIFICATION("OnSystemRequest")--, {requestType = "LOCK_SCREEN_ICON_URL"}, {requestType = "HTTP"})
-      :Do(function(_,data)
-          print("SDL -> MOB: OnSystemRequest, requestType: " .. data.payload.requestType)
-        end)
-      :Times(2)
+
 
       EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate"):Times(2)
       :Do(function(exp,data)
