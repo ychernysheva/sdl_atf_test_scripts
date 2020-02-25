@@ -24,7 +24,7 @@ local common = require('test_scripts/WebEngine/commonWebEngine')
 
 --[[ Local Variables ]]
 local appProperties1 = {
-  nicknames = { "Test Web Application_11", "Test Web Application_12" },
+  nicknames = { "Test Web Application_11" },
   policyAppID = "0000001",
   enabled = true,
   authToken = "ABCD12345",
@@ -36,18 +36,21 @@ local appProperties1 = {
 local appProperties2 = {
   nicknames = { "Test Web Application_21", "Test Web Application_22" },
   policyAppID = "0000002",
-  enabled = false,
-  authToken = "12345ABCD",
-  transportType = "WSS",
-  hybridAppPreference = "BOTH",
-  endpoint = "wss://127.0.0.1:8080/"
+  enabled = false
 }
 
 --[[ Local Functions ]]
 local function getAppPropertiesAll(pData)
+  local sdlResponseDataResult = {}
+  sdlResponseDataResult.success = true
+  sdlResponseDataResult.resultCode = "SUCCESS"
+  sdlResponseDataResult.properties =  pData
   local corId = common.getHMIConnection():SendRequest("BasicCommunication.GetAppProperties", {})
-  common.getHMIConnection():ExpectResponse(corId,
-    { result = { success = true, resultCode = "SUCCESS", properties = pData }})
+  common.getHMIConnection():ExpectResponse(corId, { result = sdlResponseDataResult })
+  :ValidIf(function(_,data)
+    return common.validation(data.result.properties, sdlResponseDataResult.properties,
+      "BasicCommunication.GetAppProperties")
+  end)
 end
 
 -- [[ Scenario ]]
