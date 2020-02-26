@@ -37,7 +37,7 @@ function Test:initHMIonReady()
   EXPECT_HMICALL("BasicCommunication.UpdateDeviceList", {
     deviceList = {
       [1] = {
-        id = utils.buildDeviceMAC("WS", { vin = vin }),
+        id = utils.buildDeviceMAC("WS"),
         isSDLAllowed = false
       }
     }
@@ -75,7 +75,7 @@ function Test:UpdateDeviceList_on_device_connect()
   }
   if SDL.buildOptions.webSocketServerSupport == "ON" then
     table.insert(exp.deviceList, 1, {
-      id = utils.buildDeviceMAC("WS", { vin = vin }),
+      id = utils.buildDeviceMAC("WS"),
       isSDLAllowed = false
     })
   end
