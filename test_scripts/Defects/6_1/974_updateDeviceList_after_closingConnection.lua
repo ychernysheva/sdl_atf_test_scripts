@@ -8,6 +8,12 @@ local utils = require("user_modules/utils")
 local actions = require("user_modules/sequences/actions")
 local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local test = require("user_modules/dummy_connecttest")
+local SDL = require("SDL")
+
+--[[ Conditions to skip test ]]
+if config.defaultMobileAdapterType ~= "TCP" then
+  runner.skipTest("Test is applicable only for TCP connection")
+end
 
 --[[ Test Configuration ]]
 runner.testSettings.isSelfIncluded = false
@@ -20,6 +26,22 @@ local deviceParams = {
 }
 
 --[[ Local Functions ]]
+local function getUpdatedDeviceList(pExp)
+  if SDL.buildOptions.webSocketServerSupport == "ON" then
+    local weDevice = {
+      name = "Web Engine",
+      transportType = "WEBENGINE_WEBSOCKET"
+    }
+    local pos = 1
+    if pExp[pos] ~= nil then
+      table.insert(pExp, pos, weDevice)
+    else
+      pExp[pos] = weDevice
+    end
+  end
+  return pExp
+end
+
 local function start()
   test:runSDL()
   commonFunctions:waitForSDLStart(test)
@@ -39,9 +61,9 @@ local function ConnectDeviceNonEmptyDeviceList()
   test:connectMobile()
 
   EXPECT_HMICALL("BasicCommunication.UpdateDeviceList", {
-	  deviceList = {
+	  deviceList = getUpdatedDeviceList({
 	    deviceParams
-	  }
+	  })
 	})
   :Do(function(_,data)
     actions.getHMIConnection():SendResponse(data.id, data.method, "SUCCESS", {})
@@ -53,9 +75,9 @@ local function UpdateDeviceListNonEmptyDeviceList()
   hmiConnection:SendNotification("BasicCommunication.OnStartDeviceDiscovery")
 
   EXPECT_HMICALL("BasicCommunication.UpdateDeviceList", {
-	  deviceList = {
+	  deviceList = getUpdatedDeviceList({
 	    deviceParams
-	  }
+	  })
 	})
   :DoOnce(function(_,data)
 	hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
@@ -75,7 +97,7 @@ local function UpdateDeviceListNonEmptyDeviceList()
 	})
   end)
   :ValidIf(function(_,data)
-	if #data.params.deviceList ~= 1 then
+	if #data.params.deviceList ~= #getUpdatedDeviceList({ deviceParams }) then
 	  commonFunctions:userPrint(31, "deviceList array in UpdateDeviceList contains not one device in list." ..
 		" Received elements number '" .. tostring(#data.params.deviceList) .. "'")
 	  return false
@@ -109,7 +131,7 @@ local function UpdateDeviceListEmptyDeviceListAfterConnectionIsClosed()
 	  hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
 	end)
 	:ValidIf(function(_,data)
-      if #data.params.deviceList ~= 0 then
+    if #data.params.deviceList ~= #getUpdatedDeviceList({ }) then
 		return false, "deviceList array in UpdateDeviceList is not empty. Received elements number '" ..
 		  tostring(#data.params.deviceList) .. "'"
 	  else
