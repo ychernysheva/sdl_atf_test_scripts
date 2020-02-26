@@ -34,7 +34,7 @@ runner.testSettings.restrictions.sdlBuildOptions = { { extendedPolicy = { "PROPR
 --[[ Local Variables ]]
 local secondsBetweenRetries = { 1, 2 } -- in sec
 local timeout_after_x_seconds = 4 -- in sec
-local expNumOfOnSysReq = #secondsBetweenRetries
+local expNumOfOnSysReq = #secondsBetweenRetries + 1
 
 --[[ Local Functions ]]
 local function updatePreloadedTimeout(pTbl)
@@ -44,6 +44,8 @@ end
 
 local function unsuccessfulPTUviaMobile()
   local timeout = 60000
+  common.hmi():SendNotification("BasicCommunication.OnSystemRequest",
+    { requestType = "PROPRIETARY", fileName = "files/ptu.json" })
   common.mobile():ExpectNotification("OnSystemRequest", { requestType = "PROPRIETARY" })
   :Do(function()
       common.log("SDL->MOB:", "OnSystemRequest")
