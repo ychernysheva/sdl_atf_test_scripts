@@ -8,6 +8,12 @@ local events = require("events")
 local constants = require('protocol_handler/ford_protocol_constants')
 local hmi_values = require("user_modules/hmi_values")
 local rc = require('user_modules/sequences/remote_control')
+local runner = require('user_modules/script_runner')
+
+--[[ Conditions to skip tests ]]
+if config.defaultMobileAdapterType ~= "TCP" then
+  runner.skipTest("Test is applicable only for TCP connection")
+end
 
 --[[ General configuration parameters ]]
 config.defaultProtocolVersion = 2
@@ -643,8 +649,8 @@ function common.ignitionOff(pDevices, pExpFunc)
     end)
   common.run.wait(3000)
   :Do(function()
-      if isOnSDLCloseSent == false then common.cprint(35, "BC.OnSDLClose was not sent") end
-      if common.sdl.isRunning() then common.sdl.StopSDL() end
+      if isOnSDLCloseSent == false then utils.cprint(35, "BC.OnSDLClose was not sent") end
+      common.sdl.stop()
       for i in pairs(pDevices) do
         common.mobile.deleteConnection(i)
       end
@@ -690,7 +696,7 @@ function common.unexpectedDisconnect(pAppId)
   if pAppId == nil then pAppId = 1 end
   common.hmi.getConnection():ExpectNotification("BasicCommunication.OnAppUnregistered",
     { unexpectedDisconnect = true, appID = common.app.getHMIId(pAppId) })
-  common.mobile.deleteSession(pAppId)
+  common.mobile.closeSession(pAppId)
 end
 
 function common.triggerPTUtoGetPTS()
