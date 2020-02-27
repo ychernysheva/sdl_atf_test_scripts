@@ -141,7 +141,7 @@ function Test:TestStep_RegisterSecondApp()
       self.mobileSession1:ExpectNotification("OnPermissionsChange")
     end)
 
-  self.mobileSession1:ExpectNotification("OnSystemRequest"):Times(Between(1,2)) --"LOCK_SCREEN_ICON_URL" + HTTP
+  self.mobileSession1:ExpectNotification("OnSystemRequest"):Times(Between(0,1)) --HTTP
   :Do(function(_,data)
       print("SDL -> MOB2: OnSystemRequest, requestType: " .. data.payload.requestType)
       if(data.payload.requestType == "HTTP") then
