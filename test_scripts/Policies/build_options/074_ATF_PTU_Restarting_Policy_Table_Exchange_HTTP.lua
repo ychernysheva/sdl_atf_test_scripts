@@ -270,7 +270,7 @@ end
     EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"}, {status = "UPDATING"}):Times(2)
     self.mobileSession2:ExpectResponse(CorIdRAI2, {success = true, resultCode = "SUCCESS"})
 
-    commonTestCases:DelayedExp(10000)
+    commonTestCases:DelayedExp(5000)
   end
 
   function Test:TestStep_CheckHTTP_Received()
