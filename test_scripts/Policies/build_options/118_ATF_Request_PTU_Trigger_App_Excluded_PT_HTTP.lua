@@ -82,7 +82,7 @@ function Test:TestStep_PTU_AppID_SecondApp_NotListed_PT()
         end
       end
     end)
-  :Times(Between(1,2))
+  :Times(Between(0,1))
 
   self.mobileSession:ExpectNotification("OnSystemRequest")
   :Do(function(_, data)
