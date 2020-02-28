@@ -42,6 +42,7 @@ commonRC.cprint = utils.cprint
 commonRC.start = actions.start
 commonRC.json = json
 commonRC.HMICap = SDL.HMICap
+commonRC.setSDLIniParameter = actions.setSDLIniParameter
 
 commonRC.modules = { "RADIO", "CLIMATE" }
 commonRC.allModules = { "RADIO", "CLIMATE", "SEAT", "AUDIO", "LIGHT", "HMI_SETTINGS" }
@@ -941,7 +942,7 @@ function commonRC.activateApp(pAppId)
   EXPECT_HMIRESPONSE(requestId)
   mobSession:ExpectNotification("OnHMIStatus", { hmiLevel = "FULL", audioStreamingState = audibleState(pAppId),
       systemContext = "MAIN" })
-  actions.run.wait()
+  actions.run.wait(commonRC.minTimeout)
 end
 
 function commonRC.getModuleId(pModuleType)

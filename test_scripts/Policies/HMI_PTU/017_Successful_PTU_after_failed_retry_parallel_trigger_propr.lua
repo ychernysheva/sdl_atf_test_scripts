@@ -34,6 +34,7 @@ runner.testSettings.restrictions.sdlBuildOptions = { { extendedPolicy = { "PROPR
 --[[ Local Variables ]]
 local secondsBetweenRetries = { 1, 2 } -- in sec
 local timeout_after_x_seconds = 4 -- in sec
+local expNumOfOnSysReq = #secondsBetweenRetries + 1
 
 --[[ Local Functions ]]
 local function updatePreloadedTimeout(pTbl)
@@ -43,11 +44,13 @@ end
 
 local function unsuccessfulPTUviaMobile()
   local timeout = 60000
+  common.hmi():SendNotification("BasicCommunication.OnSystemRequest",
+    { requestType = "PROPRIETARY", fileName = "files/ptu.json" })
   common.mobile():ExpectNotification("OnSystemRequest", { requestType = "PROPRIETARY" })
   :Do(function()
       common.log("SDL->MOB:", "OnSystemRequest")
     end)
-  :Times(2)
+  :Times(expNumOfOnSysReq)
   :Timeout(timeout)
 
   local isBCPUReceived = false
@@ -56,6 +59,7 @@ local function unsuccessfulPTUviaMobile()
       isBCPUReceived = true
       common.hmi():SendResponse(data.id, data.method, "SUCCESS", { })
     end)
+  :Timeout(timeout)
 
   local exp = {
     { status = "UPDATE_NEEDED" },
@@ -102,7 +106,7 @@ runner.Step("Preloaded update with retry parameters", common.updatePreloaded, { 
 runner.Step("Start SDL, HMI, connect Mobile, start Session", common.start)
 
 runner.Title("Test")
-runner.Step("Register App", common.register, { 1 })
+runner.Step("Register App", common.registerApp, { 1 })
 runner.Step("Activate App", common.activateApp, { 1 })
 runner.Step("Unsuccessful PTU via a HMI", common.unsuccessfulPTUviaHMI)
 runner.Step("Unsuccessful PTU via a mobile device", unsuccessfulPTUviaMobile)

@@ -36,7 +36,7 @@ local atf_logger = require('atf_logger')
 --[[ Local variables ]]
 local time_prev = 0
 local time_curr = 0
-local exp_timeout = 30000
+local exp_timeout = 8000
 local tolerance = 500 -- ms
 
 --[[ General Precondition before ATF start ]]
@@ -109,13 +109,13 @@ function Test:TestStep_RetrySequenceStart()
       end
     end)
   :Times(2)
-  :Timeout(40000)
+  :Timeout(15000)
 
   EXPECT_HMICALL("BasicCommunication.PolicyUpdate"):Times(0)
   self.mobileSession:ExpectNotification("OnSystemRequest", { requestType = "PROPRIETARY" }):Times(1)
-  :Timeout(40000)
+  :Timeout(15000)
 
-  commonTestCases:DelayedExp(40000)
+  commonTestCases:DelayedExp(15000)
 end
 
 --[[ Postconditions ]]

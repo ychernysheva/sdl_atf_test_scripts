@@ -32,6 +32,7 @@ runner.testSettings.restrictions.sdlBuildOptions = { { extendedPolicy = { "PROPR
 --[[ Local Variables ]]
 local secondsBetweenRetries = { 1, 2 } -- in sec
 local timeout_after_x_seconds = 4 -- in sec
+local expNumOfOnSysReq = #secondsBetweenRetries + 1
 
 --[[ Local Functions ]]
 local function updatePreloadedTimeout(pTbl)
@@ -39,26 +40,15 @@ local function updatePreloadedTimeout(pTbl)
   pTbl.policy_table.module_config.seconds_between_retries = secondsBetweenRetries
 end
 
-function common.registerApp(pAppId)
-  common.register(pAppId)
-  local exp = {
-    [1] = { { status = "UPDATE_NEEDED" }, { status = "UPDATING" } },
-    [2] = { { status = "UPDATE_NEEDED" }, { status = "UPDATING" } }
-  }
-  common.hmi():ExpectNotification("SDL.OnStatusUpdate", unpack(exp[pAppId]))
-  :Times(#exp[pAppId])
-  :Do(function(_, data)
-      common.log("SDL->HMI:", "SDL.OnStatusUpdate(" .. data.params.status .. ")")
-    end)
-end
-
 local function unsuccessfulPTUviaMobile()
   local timeout = 60000
+  common.hmi():SendNotification("BasicCommunication.OnSystemRequest",
+    { requestType = "PROPRIETARY", fileName = "files/ptu.json" })
   common.mobile():ExpectNotification("OnSystemRequest", { requestType = "PROPRIETARY" })
   :Do(function()
       common.log("SDL->MOB:", "OnSystemRequest")
     end)
-  :Times(2)
+  :Times(expNumOfOnSysReq)
   :Timeout(timeout)
 
   local exp = {
@@ -83,12 +73,12 @@ runner.Step("Preloaded update with retry parameters", common.updatePreloaded, { 
 runner.Step("Start SDL, HMI, connect Mobile, start Session", common.start)
 
 runner.Title("Test")
-runner.Step("Register App", common.registerApp, { 1 })
+runner.Step("Register App1", common.registerApp, { 1 })
 runner.Step("Unsuccessful PTU via a HMI", common.unsuccessfulPTUviaHMI)
 runner.Step("Unsuccessful PTU via a mobile device", unsuccessfulPTUviaMobile)
 runner.Step("Check PTU status UPDATE_NEEDED", common.checkPTUStatus, { "UPDATE_NEEDED" })
 
-runner.Step("Register App 2", common.registerApp, { 2 })
+runner.Step("Register App2", common.registerApp, { 2 })
 runner.Step("Successful PTU via HMI", common.ptuViaHMI)
 runner.Step("Check PTU status UP_TO_DATE", common.checkPTUStatus, { "UP_TO_DATE" })
 

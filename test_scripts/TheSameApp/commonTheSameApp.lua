@@ -8,6 +8,7 @@ local events = require("events")
 local constants = require('protocol_handler/ford_protocol_constants')
 local hmi_values = require("user_modules/hmi_values")
 local rc = require('user_modules/sequences/remote_control')
+local SDL = require('SDL')
 local runner = require('user_modules/script_runner')
 
 --[[ Conditions to skip tests ]]
@@ -34,6 +35,7 @@ common.cloneTable = utils.cloneTable
 common.isTableContains = utils.isTableContains
 common.setModuleAllocation = rc.state.setModuleAllocation
 common.resetModulesAllocationByApp = rc.state.resetModulesAllocationByApp
+common.extendedPolicyOption = SDL.buildOptions.extendedPolicy
 
 --[[ Common Functions ]]
 function common.start(pHMIParams)
@@ -913,6 +915,37 @@ function common.createNewGroup(pAppId, pTestGroupName, pTestGroup, pPolicyTable)
   pt.policy_table.functional_groupings[pTestGroupName] = pTestGroup
   pt.policy_table.app_policies[pAppId] = utils.cloneTable(pt.policy_table.app_policies.default)
   pt.policy_table.app_policies[pAppId].groups = { pTestGroupName, "Notifications-RC" }
+end
+
+function common.registerAppWithPTU(pAppId, pAppParams, pDeviceId)
+  common.registerAppEx(pAppId, pAppParams, pDeviceId, true)
+  common.hmi.getConnection():ExpectRequest("SDL.OnStatusUpdate", { status = "UPDATE_NEEDED" }, { status = "UPDATING" })
+  :Times(2)
+  common.run.wait(2500)
+end
+
+function common.isPTUNotStarted()
+  if common.extendedPolicyOption == "HTTP" then
+    for appNum = 1, common.mobile.getAppsCount() do
+      common.mobile.getSession(appNum):ExpectNotification("OnSystemRequest")
+      :Times(AtMost(1))
+      :ValidIf(function(_, data)
+          if data.payload.requestType == "HTTP" then
+            return false, "RequestType 'HTTP' is unexpected"
+          end
+          return true
+        end)
+    end
+  else
+    common.hmi.getConnection():ExpectRequest("BasicCommunication.PolicyUpdate"):Times(0)
+  end
+end
+
+function common.registerAppWithoutPTU(pAppId, pAppParams, pDeviceId)
+  common.registerAppEx(pAppId, pAppParams, pDeviceId, false)
+  common.isPTUNotStarted()
+  common.hmi.getConnection():ExpectRequest("SDL.OnStatusUpdate"):Times(0)
+  common.run.wait(2500)
 end
 
 return common

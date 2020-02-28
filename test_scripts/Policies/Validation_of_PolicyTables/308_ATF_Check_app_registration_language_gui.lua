@@ -139,6 +139,7 @@ function Test:RegisterFirstApp()
       EXPECT_RESPONSE(correlationId, { success = true })
       EXPECT_NOTIFICATION("OnPermissionsChange")
     end)
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"})
 end
 
 function Test:CheckDB_app_registration_language_gui()
@@ -164,7 +165,7 @@ function Test:ActivateAppInFULLLevel()
       self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
     end)
   :Times(AtLeast(1))
-  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATE_NEEDED"}, {status = "UPDATING"}):Times(2)
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", {status = "UPDATING"})
 end
 
 function Test:InitiatePTUForGetSnapshot()

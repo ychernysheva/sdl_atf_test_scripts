@@ -100,25 +100,14 @@ function Test:Preconditions_Update_Policy_With_Steal_Focus_FalseValue_for_Curren
       )
       EXPECT_NOTIFICATION("OnSystemRequest", { requestType = "PROPRIETARY" })
       :Do(function()
-          local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest",
-            {
-              fileName = "PolicyTableUpdate",
-              requestType = "PROPRIETARY"
-            }, "files/ptu_general_steal_focus_false.json")
-          local systemRequestId
+          local CorIdSystemRequest = self.mobileSession:SendRPC("SystemRequest", {
+            requestType = "PROPRIETARY" }, "files/ptu_general_steal_focus_false.json")
           EXPECT_HMICALL("BasicCommunication.SystemRequest")
-          :Do(function(_,data)
-              systemRequestId = data.id
-              self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate",
-                {
-                  policyfile = "/tmp/fs/mp/images/ivsu_cache/PolicyTableUpdate"
-                })
-              local function to_run()
-                self.hmiConnection:SendResponse(systemRequestId,"BasicCommunication.SystemRequest", "SUCCESS", {})
-              end
-              RUN_AFTER(to_run, 800)
-              self.mobileSession:ExpectResponse(CorIdSystemRequest, {success = true, resultCode = "SUCCESS"})
+          :Do(function(_, data)
+              self.hmiConnection:SendNotification("SDL.OnReceivedPolicyUpdate", { policyfile = data.params.fileName })
+              self.hmiConnection:SendResponse(data.id, data.method, "SUCCESS", {})
             end)
+          self.mobileSession:ExpectResponse(CorIdSystemRequest, { success = true, resultCode = "SUCCESS" })
         end)
     end)
 end

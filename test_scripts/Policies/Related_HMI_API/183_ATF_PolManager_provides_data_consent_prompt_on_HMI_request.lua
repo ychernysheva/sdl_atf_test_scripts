@@ -56,7 +56,7 @@ function Test:TestStep_ActivateApp_StatusNeeded()
           self.hmiConnection:SendNotification("SDL.OnAllowSDLFunctionality",
             {allowed = true, source = "GUI", device = {id = utils.getDeviceMAC(), name = utils.getDeviceName(), isSDLAllowed = true}})
 
-          -- EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", { status = "UPDATE_NEEDED" })
+          EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", { status = "UPDATE_NEEDED" }, { status = "UPDATING" }):Times(2)
 
           EXPECT_HMICALL("BasicCommunication.PolicyUpdate",{})
           :Do(function(_,data)
