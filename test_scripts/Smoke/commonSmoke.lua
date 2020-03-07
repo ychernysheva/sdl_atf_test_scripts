@@ -319,7 +319,7 @@ function common.createConnection(pConId, pDevice)
       print("WARNING: Default mobile adapter type is not TCP. Create TCP mobile connection.")
     end
     local mobileAdapterParameters = {
-      host = SDL.GetHostURL(),
+      host = config.remoteConnection.enabled and config.remoteConnection.url or config.mobileHost,
       port = config.mobilePort,
       source = pSource
     }
