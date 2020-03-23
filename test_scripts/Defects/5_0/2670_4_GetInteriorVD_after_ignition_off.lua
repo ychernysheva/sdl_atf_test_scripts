@@ -30,7 +30,6 @@ runner.testSettings.isSelfIncluded = false
 
 --[[ Local function ]]
 local function updatePreloadedPT()
-  if not pCountOfRCApps then pCountOfRCApps = 2 end
   local preloadedFile = commonPreconditions:GetPathToSDL()
   .. commonFunctions:read_parameter_from_smart_device_link_ini("PreloadedPT")
   local preloadedTable = utils.jsonFileToTable(preloadedFile)
@@ -43,8 +42,8 @@ local function updatePreloadedPT()
   utils.tableToJsonFile(preloadedTable, preloadedFile)
 end
 
-function preconditions()
-  	actions.preconditions()
+local function preconditions()
+    actions.preconditions()
     updatePreloadedPT()
 end
 
@@ -78,7 +77,7 @@ runner.Step("GetInteriorVehicleData RADIO", commonRC.rpcDenied,
   { "RADIO", 1, "GetInteriorVehicleData", "DISALLOWED" })
 runner.Step("ignitionOff", ignitionOff)
 runner.Step("Start SDL, HMI, connect Mobile, start Session", actions.start)
-runner.Step("RAI", actions.registerApp)
+runner.Step("RAI", actions.registerAppWOPTU)
 runner.Step("Activate App", actions.activateApp)
 runner.Step("GetInteriorVehicleData SEAT", commonRC.rpcDenied,
   { "SEAT", 1, "GetInteriorVehicleData", "DISALLOWED" })
