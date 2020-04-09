@@ -1,6 +1,6 @@
 ----------------------------------------------------------------------------------------------------
 -- Script verifies issue https://github.com/SmartDeviceLink/sdl_core/issues/1206
--- Flow: HTTP
+-- Flow: HTTP, PROPRIETARY
 ----------------------------------------------------------------------------------------------------
 --[[ Required Shared libraries ]]
 local runner = require("user_modules/script_runner")
@@ -22,6 +22,13 @@ runner.testSettings.restrictions.sdlBuildOptions = { { extendedPolicy = { "PROPR
 local function registerApplicationAndWaitPTUStart(self)
   -- create mobile session
   self.mobileSession1 = mobile_session.MobileSession(self, self.mobileConnection)
+  -- register expectation of 'SDL.OnStatusUpdate' notification on HMI connection
+  -- it's expected that the value of 'status' argument will be 'UPDATE_NEEDED'
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", { status = "UPDATE_NEEDED" })
+  :Do(function()
+      -- print information about received notification to console
+      commonFunctions:userPrint(color.blue, "Received OnStatusUpdate: UPDATE_NEEDED")
+    end)
   -- start RPC service
   self.mobileSession1:StartService(7)
   :Do(function()
@@ -37,13 +44,17 @@ local function registerApplicationAndWaitPTUStart(self)
       EXPECT_HMINOTIFICATION("BasicCommunication.OnAppRegistered", {
         application = { appName = config.application1.registerAppInterfaceParams.appName }
       })
-      -- register expectation of 'SDL.OnStatusUpdate' notification on HMI connection
-      -- it's expected that the value of 'status' argument will be 'UPDATE_NEEDED'
-      EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", { status = "UPDATE_NEEDED" })
-      :Do(function()
-          -- print information about received notification to console
-          commonFunctions:userPrint(color.blue, "Received OnStatusUpdate: UPDATE_NEEDED")
-        end)
+    end)
+end
+
+local function start(self)
+  common.start(self)
+  -- register expectation of 'SDL.OnStatusUpdate' notification on HMI connection
+  -- it's expected that the value of 'status' argument will be 'UPDATE_NEEDED'
+  EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", { status = "UPDATE_NEEDED" })
+  :Do(function()
+      -- print information about received notification to console
+      commonFunctions:userPrint(color.blue, "Received OnStatusUpdate: UPDATE_NEEDED")
     end)
 end
 
@@ -56,8 +67,7 @@ runner.Step("SDL Configuration", common.printSDLConfig)
 runner.Title("Test")
 runner.Step("Application Registration and wait for UPDATE_NEEDED", registerApplicationAndWaitPTUStart)
 runner.Step("Ignition Off", common.ignitionOff)
-runner.Step("Start SDL, HMI, connect Mobile", common.start)
-runner.Step("Application Registration and wait for UPDATE_NEEDED", registerApplicationAndWaitPTUStart)
+runner.Step("Start SDL, HMI, connect Mobile and wait for UPDATE_NEEDED", start)
 
 runner.Title("Postconditions")
 runner.Step("Stop SDL", common.postconditions)
