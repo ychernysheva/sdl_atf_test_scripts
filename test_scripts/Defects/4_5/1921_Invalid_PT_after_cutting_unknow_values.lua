@@ -147,13 +147,13 @@ local function contains(pTbl, pValue)
   return false
 end
 
---[[ @CheckCuttingUnknowValues: expectation of OnPermissionsChange notification and check its content
+--[[ @CheckCuttingUnknownValues: expectation of OnPermissionsChange notification and check its content
 --! @parameters:
 --! pNotifTimes - expected number of OnPermissionsChange notification
 --! self - test object
 --! @return: none
 --]]
-local function CheckCuttingUnknowValues(pNotifTimes, self)
+local function CheckCuttingUnknownValues(pNotifTimes, self)
   self.mobileSession1:ExpectNotification("OnPermissionsChange")
     :Times(pNotifTimes)
     :ValidIf(function(_, data)
@@ -190,7 +190,7 @@ end
 --]]
 local function rai_with_OnPermissionChange(ptuUpdateFunc, self)
   commonDefects.rai_ptu_n_without_OnPermissionsChange(1, ptuUpdateFunc, self)
-  CheckCuttingUnknowValues(2, self)
+  CheckCuttingUnknownValues(2, self)
 end
 
 --[[ @SuccessfulProcessingRPC: Successful processing API
@@ -294,7 +294,7 @@ end
 local function ptu(pUpdateFunction, self)
   EXPECT_HMINOTIFICATION("SDL.OnStatusUpdate", { status = "UP_TO_DATE" })
   commonDefects.ptu(pUpdateFunction, self)
-  CheckCuttingUnknowValues(1, self)
+  CheckCuttingUnknownValues(1, self)
 end
 
 --[[ Scenario ]]
@@ -315,7 +315,7 @@ runner.Step("Check applying of PT by processing SubscribeVehicleData", Disallowe
   { "SubscribeVehicleData", { gps = true }, "VehicleInfo" })
 
 runner.Step("Remove Snapshot and trigger PTU, check new created PTS", removeSnapshotAndTriggerPTUFromHMI)
-runner.Step("Invalid_PTU_after_cutting_of_unknown_values", commonDefects.unsuccessfulPTU,
+runner.Step("Invalid_PTU_after_cutting_off_unknown_values", commonDefects.unsuccessfulPTU,
   { ptuUpdateFuncNotValid, ptuExpUnsuccessFlow })
 
 runner.Title("Postconditions")
