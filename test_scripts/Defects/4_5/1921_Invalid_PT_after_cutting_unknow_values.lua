@@ -16,6 +16,9 @@ local commonFunctions = require('user_modules/shared_testcases/commonFunctions')
 local commonSteps = require ('user_modules/shared_testcases/commonSteps')
 local json = require("modules/json")
 
+--[[ General configuration parameters ]]
+runner.testSettings.restrictions.sdlBuildOptions = { { extendedPolicy = { "PROPRIETARY" } } }
+
 --[[ Local variables ]]
 -- define path to policy table snapshot
 local pathToPTS = commonFunctions:read_parameter_from_smart_device_link_ini("SystemFilesPath") .. "/"
